@@ -1,0 +1,38 @@
+/* ===== JANELA DE ATRIBUTOS (STATUS) ===== */
+
+.btn-util.btn-status { background: #8e44ad; border-color: #a569bd; }
+
+#atributos-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(8, 8, 8, 0.82); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 310; }
+#atributos-dupla { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; align-items: flex-start; max-width: 96vw; max-height: 96vh; }
+#atributos-window { background: #1d1a2e; border: 3px solid #9b59b6; box-shadow: 6px 6px 0 #000, inset 3px 3px 0 #3a3345; padding: 12px 14px 14px 14px; width: 280px; max-height: 92vh; overflow-y: auto; text-align: center; image-rendering: pixelated; }
+#detalhes-window { background: #12231d; border: 3px solid #27ae60; box-shadow: 6px 6px 0 #000, inset 3px 3px 0 #1f3f31; padding: 12px 14px 14px 14px; width: 190px; max-height: 92vh; overflow-y: auto; text-align: center; image-rendering: pixelated; }
+#detalhes-title { font-family: 'Courier New', monospace; font-weight: bold; font-size: 14px; color: #27ae60; letter-spacing: 3px; text-shadow: 2px 2px 0 #000; margin: 0 0 8px 0; }
+#detalhes-lista { display: flex; flex-direction: column; gap: 4px; }
+.detalhe-linha { display: flex; justify-content: space-between; align-items: center; gap: 6px; background: #16281f; border: 2px solid #2d4a3a; box-shadow: 2px 2px 0 #000; padding: 3px 6px; }
+.detalhe-nome { font-family: 'Courier New', monospace; font-size: 10px; color: #b9d8c5; letter-spacing: 0.3px; }
+.detalhe-valor { font-family: 'Courier New', monospace; font-weight: bold; font-size: 11px; color: #f1c40f; letter-spacing: 0.3px; }
+#atributos-title { font-family: 'Courier New', monospace; font-weight: bold; font-size: 16px; color: #9b59b6; letter-spacing: 3px; text-shadow: 2px 2px 0 #000; margin: 0 0 8px 0; }
+#atributos-pontos { font-family: 'Courier New', monospace; font-size: 12px; font-weight: bold; color: #f1c40f; background: #16131f; border: 2px solid #4a3f5e; padding: 5px; margin-bottom: 6px; letter-spacing: 0.5px; box-shadow: 2px 2px 0 #000; }
+#atributos-hp-resumo { font-family: 'Courier New', monospace; font-size: 11px; font-weight: bold; color: #e8e4da; background: #16131f; border: 2px solid #4a3f5e; padding: 5px; margin-bottom: 8px; letter-spacing: 0.5px; box-shadow: 2px 2px 0 #000; }
+
+#atributos-lista { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+
+.atributo-linha { display: flex; align-items: center; gap: 6px; background: #221e33; border: 2px solid #443a5c; box-shadow: 3px 3px 0 #000; padding: 6px 8px; }
+.atributo-btn-mais { flex: 0 0 34px; height: 34px; font-family: 'Courier New', monospace; font-weight: bold; font-size: 18px; color: #111; background: #2ecc71; border: 2px solid #27ae60; box-shadow: 2px 2px 0 #000; cursor: pointer; border-radius: 4px; }
+.atributo-btn-mais:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #000; }
+.atributo-btn-mais:disabled { background: #3d3a3d; border-color: #555; color: #666; cursor: not-allowed; box-shadow: none; }
+
+.atributo-info { display: flex; align-items: center; gap: 8px; flex: 1; text-align: left; }
+.atributo-icone { font-size: 20px; line-height: 1; filter: drop-shadow(1px 1px 0 #000); }
+.atributo-texto { flex: 1; }
+.atributo-nome { font-family: 'Courier New', monospace; font-weight: bold; font-size: 12px; color: #c9d6e2; letter-spacing: 0.5px; }
+.atributo-valor { color: #e2c400; }
+.atributo-bonus-equip { color: #4da6ff; font-size: 11px; }
+.atributo-bonus { font-family: 'Courier New', monospace; font-size: 9px; color: #8a8578; letter-spacing: 0.3px; }
+
+#atributos-botoes { display: flex; justify-content: center; gap: 8px; }
+#btn-atributos-resetar { font-family: 'Courier New', monospace; font-weight: bold; font-size: 13px; padding: 8px 16px; background: #1f618d; color: #fff; border: 3px solid #3498db; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; }
+#btn-atributos-resetar:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #000; }
+#btn-atributos-resetar:disabled { background: #3d3a3d; border-color: #555; color: #666; cursor: not-allowed; box-shadow: none; }
+#btn-atributos-fechar { font-family: 'Courier New', monospace; font-weight: bold; font-size: 13px; padding: 8px 22px; background: #c0392b; color: #fff; border: 3px solid #e74c3c; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; }
+#btn-atributos-fechar:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #000; }

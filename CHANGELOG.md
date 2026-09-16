@@ -1,0 +1,703 @@
+# CHANGELOG — MMORPG Mobile
+
+Registro de todas as atualizações feitas no projeto. **Sempre** que algo novo for implementado, adicionar uma nova entrada aqui e subir o número da versão.
+
+---
+
+## Versão atual: **v1.23.0**
+
+Regra de versão (semver):
+- **Nova funcionalidade** → sobe o menor componente (`v1.3.0` → `v1.4.0`)
+- **Correção/bug fix** → sobe o último componente (`v1.3.0` → `v1.3.1`)
+
+---
+
+## Histórico de versões
+
+### v1.23.0 — 15/09/2026
+
+**Engine Gráfica 2.5D Hiper-Realista para a Cidade de Davahl, Sombras Reais Projetadas, Oclusão de Ambiente (AO), Calçamento de Paralelepípedos Procedural, Arquitetura Volumétrica Medieval, Grande Fonte em 3 Níveis e Feira da Praça.**
+
+- **Engine de Calçamento de Paralelepípedos Procedural:**
+  - Cada tile de rua agora renderiza uma malha 3x3 de pedras de calçamento com chanfros de luz solar superior-esquerda e sombra profunda inferior-direita, além de amarração inglesa alternada e guias de calçada em pedra talhada.
+  - Pátio da Praça Central com grande mosaico rúnico circular entalhado com rosa dos ventos e anéis em mármore polido e ouro velho.
+- **Sistema de Sombras Reais Projetadas e Oclusão de Ambiente (AO):**
+  - Modelo de sol direcional em ângulo Noroeste gerando sombras alongadas e suaves em direção Sudeste com gradiente realista de penumbra para todos os edifícios, muralhas, árvores e postes.
+  - Oclusão de ambiente (AO) na linha de contato das construções com o chão, eliminando a sensação de objetos flutuantes.
+- **Arquitetura 2.5D Volumétrica das Casas e Lojas:**
+  - Projeção tridimensional com parede lateral em perspectiva sombreada (profundidade real).
+  - Fachadas detalhadas com vigamento em enxaimel medieval (madeira maciça entalhada e cruzetas de Santo André) ou cantaria de pedra.
+  - Telhados volumétricos 2.5D com beirais pronunciados, caibros aparentes, cumeeiras de cerâmica e trapeiras (águas-furtadas) no sotão.
+  - Portas em arco de pedra com tábuas de madeira, ferragens pretas forjadas e maçanetas de latão.
+  - Janelas com vidraças em losangos iluminadas com luz âmbar quente, esquadrias e floreiras suspensas floridas.
+  - Placas suspensas em ferro forjado com ícones das lojas (Taverna, Forja, Alquimia, Mansão, Guarda, etc.).
+  - Chaminés de tijolos com fumaça animada e ondulante ao vento.
+- **Grande Fonte Monumental de Davahl em 3 Níveis:**
+  - Bacia inferior esculpida em mármore com água cristalina turquesa e anéis de onda animados.
+  - Pedestal intermediário com jatos d'água laterais.
+  - Pináculo superior com jato parabólico de alta altitude, partículas de gotas cintilantes e névoa iluminada.
+- **Iluminação Volumétrica dos Postes Vitorianos:**
+  - Postes trabalhados em ferro fundido com lanternas de vidro e chama cintilante, projetando poças de luz quente com gradiente radial sobre os paralelepípedos.
+- **Feira Medieval da Praça:**
+  - 4 barracas temáticas (Poções, Frutas/Especiarias, Armas/Escudos, Livros) com bancadas de madeira, caixotes, mercadorias e toldos listrados em tecido colorido com franjas onduladas.
+  - Bancos rústicos de madeira para descanso espalhados pela praça.
+- **Muralhas Fortificadas com Torres de Vigia 2.5D:**
+  - Muralhas elevadas com ameias dentadas e seteiras.
+  - 4 torres de vigia circulares nos vértices da cidade com telhado cônico de ardósia e catavento de bronze.
+
+**Zoom no Minimapa (+ e -), Smart Cast Reconstruído com Range Clamping, Ataque Básico por Clique do Mouse, Cenário Vivo e Orgânico, Spawns Automatizados por Bioma/Nível, Evento de Horda e Ajuste de Portais.**
+
+- **Zoom no Minimapa com Botões `+` e `−`:**
+  - Botões integrados na barra superior do minimapa com 4 níveis de ampliação: `4x` (700px), `2x` (1400px, padrão), `1x` (2800px) e `Mundo` (visão global).
+  - Modo radar centrado no jogador, com anéis concêntricos de radar, mira central, proporção correta de distância, monstros coloridos por nível/tipo, drops, jogadores e seta indicadora do chefe Golem de Pedra com distância em tempo real.
+- **Smart Cast para PC Reconstruído do Zero:**
+  - Ao pressionar a tecla da habilidade ou clicar no slot, exibe o círculo de alcance máximo (`alcanceMax`) ao redor do jogador e o círculo de área (`raio`) sob o cursor do mouse.
+  - Limitação estrita de distância máxima por habilidade (ex: Meteoro: 550, Nevasca: 520, Chuva: 600, Julgamento: 480, Prece: 400, Esmagamento: 220, Teleporte: 450, Salto: 380), impedindo conjuração fora do alcance válido.
+  - Conjuração imediata no clique esquerdo do mouse e cancelamento limpo com botão direito ou `ESC`.
+- **Ataque Básico com Clique Esquerdo do Mouse:**
+  - Clicar com o botão esquerdo no canvas direciona o herói para o cursor e dispara o ataque básico imediatamente naquela direção.
+- **Cenário Mais Vivo, Realista e Arredondado (`mapas.js`):**
+  - **Árvores Orgânicas 3D:** troncos de madeira com raízes e textura de casca, sombra ovalada no solo e 3 camadas de domos arredondados sobrepostos com balanço suave ao vento e frutinhas vermelhas.
+  - **Flores e Plantas:** canteiros detalhados com pétalas arredondadas, caules, folhas e miolos em múltiplas tonalidades (douradas, magenta, celestes, lavanda e margaridas).
+  - **Lagos com Vitórias-Régias e Lótus:** folhas flutuantes arredondadas com flores de lótus abertas e ondulações de água com reflexos.
+  - **Detalhes de Chão:** trevos de 3 folhas, lâminas curvadas de grama, pequenos cogumelos de chapéu vermelho/marrom e rochas fluviais arredondadas com musgo e iluminação.
+  - **Safe Zone com Pulso Rúnico:** anel dourado animado delimitando a área protegida.
+- **Spawns por Nível/Bioma e Eventos:**
+  - Spawns escalonados: Floresta Verde (Slimes Lv 1-10), Deserto (Besouros e Zumbis Lv 10-25), Pântano (Zumbis do Pântano Lv 25-40) e DG Caverna (Morcegos Lv 40+).
+  - Chefe Golem de Pedra reposicionado para o final da Caverna DG (`x: 59400, y: 900`, 8000 HP).
+  - Evento de Horda periódica a cada 3-5 minutos invocando cerca de 20 monstros agressivos próximos a um jogador ativo com aviso no servidor.
+- **Correções de Portais:**
+  - Entrada do Portal da Cidade ajustada para `X: 61824, Y: 1783`.
+  - Portal de retorno do Pântano Lodoso corrigido para levar de volta à Cidade de Davahl (`61824, 1783`) em vez de reciclar no próprio pântano.
+  - Constantes `GATE_L0` e `GATE_L1` corrigidas no `mapa_pantano.js`.
+
+**Controles de PC (WASD + Atalhos), Barra de Skills Central, HUD Superior Rente, Novo Minimapa com Monstros e Mapa Grande (M) com Portal para Davahl.**
+
+- **Controles de Movimento para PC (WASD):** movimentação fluida via teclas W, A, S, D e setas direcionais com normalização de vetor para velocidade diagonal perfeita; atualização de ângulo e envio sincronizado de movimento.
+- **Barra de Skills Centralizada Horizontal:** a barra de ações foi reposicionada para o centro inferior horizontal da tela (`.actions`), com badges visuais de teclas (`.key-badge`) exibindo os atalhos (1, 2, 3, Espaço, R).
+- **Atalhos de Interface para PC:**
+  - `I`: Abre/fecha o Inventário (`toggleInventario()`).
+  - `K`: Abre/fecha a tela de Habilidades (`toggleSkills()`).
+  - `C`: Abre/fecha a tela de Status/Atributos (`toggleAtributos()`).
+  - `L`: Exibe/atualiza latência e ping de rede (`alternarHudPing()`).
+  - `ESC`: Fecha a janela modal ativa ou abre/fecha as Configurações (`fecharModalSuperiorOuConfig()`).
+  - `M`: Abre/fecha a tela do Mapa Grande (`toggleBigMap()`).
+  - `Espaço`: Executa ataque básico.
+  - `R`: Ativa/desativa autofarm.
+  - `1`, `2`, `3`: Disparam as habilidades da classe ativa.
+  - Clique com o botão esquerdo do mouse no canvas dispara ataques básicos ou conjura habilidades com smart-cast na direção do ponteiro.
+- **Remoção do Botão "Girar Tela":** botão `#btn-rotate` removido da interface e dos estilos.
+- **HUD Superior Otimizado:** elementos do topo (Level, DPS, Status, FPS, Coordenadas) foram reancorados rentes às bordas da tela (`top: 6px` a `top: 8px`).
+- **Novo Minimapa do Zero (`#minimap-wrapper`):** canvas moderno com moldura estilizada, cabeçalho com bioma e coordenadas, exibição dos 5 biomas, jogadores, drops e **monstros em tempo real** (pontos coloridos por espécie e ícone de chefe com diamante pulsante para o Golem de Pedra).
+- **Tela de Mapa Grande (`#big-map-screen`):** acionada pela tecla `M` ou clique no minimapa. Visualização panorâmica de alta resolução das 5 zonas (Campo Verde, Deserto, Pântano, Caverna e Davahl), com indicação clara da posição do jogador, monstros e o **Portal da Cidade de Davahl**. Clicar no portal abre a confirmação para teleporte imediato de volta à cidade (`voltarCidade()`).
+
+### v1.20.0 — 15/09/2026
+
+**Portal de Viagem na cidade + correção do bug de travar no chão vazio (recursão infinita da cadeia de mapas).**
+
+- **Bug do spawn corrigido:** o client travava em chão vazio (HUD "X: 0 Y: 0") por `RangeError: Maximum call stack size exceeded` a cada frame — `mapa_cidade` sobrescrevia o global `_chainMapasAnterior` que `mapa_caverna` lia, causando recursão infinita em `infoPortalCaverna` (`Math.hypot`). Correção: cada módulo guarda o antecessor no escopo do próprio módulo (`cidadeChainAnterior` em `mapa_cidade.js` e `cavernaChainAnterior` em `mapa_caverna.js`) antes de sobrescrever `global.chainMapas`.
+- **Bug do portal do verde:** teleportar para o Campo Verde colocava o jogador exatamente em `PORTA_CIDADE_VERDE` (5000,1200), fazendo `infoPortalCidade` detectar o portal e disparar transição falsa de volta à cidade (tela preta). Correção: `PONTOS_TELEPORTE.green` agora usa (5200, 1400), distante do raio do portal (r=58).
+- **Portal de Viagem (`PORTAL_MAPAS` em (61700,1500), raio 55):** coreografia animada pulso + rótulo "PORTAL VIAGEM" desenhado no fim de `desenharCenarioCidade`; hit-test `tocarPortalViagem` (raio +14) acessível por toque e mouse.
+- **Janela de seleção de mapa (`#teleport-screen`):** ao tocar/clicar no portal abre a janela com 5 destinos — Cidade de Davahl, Campo Verde, Deserto com Oásis, Pântano Lodoso e **Caverna Sombria (DG)** — botão FECHAR; enquanto aberta, movimento, joystick, autofarm, drops e UI são bloqueados.
+- **Teleporte autoritativo no servidor:** nova constante `PONTOS_TELEPORTE` (green 5000/1200, desert 18300/4500, pantano 50200/1000, caverna 58080/900, cidade 61800/2000, todos validados walkable) e handler `teleporte_mapa` que reposiciona o player (+jitter ±10), move o lacaio do summoner e responde `teleporte_confirmado {mapa,x,y}`.
+- **Client:** `selecionarMapa(mapa)` (destaca o botão com `.selecionado`, mostra `#btn-teleportare-confirmar` verde), `confirmarTeleporte()` (só então envia `teleporte_mapa`, fecha a janela e reseta seleção); `voltarCidade()` envia teleporte direto para a cidade. `fadeTeleporte` aplica o fade de transição. Guards de movimento incluem `teleporteAberto`.
+- **Minimapa (`#minimap`, canto superior direito):** canvas 150×85px mostrando as 5 zonas coloridas, a posição do jogador (ciano) e os drops no chão (amarelos/laranjas); clique no minimap coleta o drop mais próximo da posição clicada **mesmo longe do jogador** (raio 80).
+- **Correção do joystick com itens no lado esquerdo:** no `touchstart`, o controle do joystick (metade esquerda) agora tem prioridade máxima e é verificado ANTES da coleta de drops; toques na metade esquerda ativam o joystick e são ignorados pela detecção de drops.
+- **Telemetria de diagnóstico (mantida):** envio de erros do client ao servidor (`client_error`), estado periódico (`client_estado`, a cada 100 ticks), `window.ws` exposto e logs `[LOGIN] pos(...) classe=...`/`[ESTADO]` no servidor — confirmaram que o servidor saía do login correto (pos 61806/1997, classe mago).
+- **Cache-busters:** `mapa_cidade.js?v=2`, `style.css?v=234`.
+
+**Arquivos alterados:** `mapa_cidade.js`, `mapa_caverna.js`, `server.js`, `index.html`, `style.css`, `CHANGELOG.md`
+
+**Verificação:** `node --check server.js` e `node --check mapa_cidade.js` OK; teste E2E via WebSocket PASS — login → teleporte verde (5201/1399, sem tela preta) → caverna → voltar à cidade (61801/1999). Rollback: backups/ do dia.
+
+---
+
+### v1.19.8 — 14/09/2026
+
+**Mapas em escala + Cidade de Davahl separada com portal + pântano venenoso — e todos os spawns automáticos removidos.**
+
+- **Escala dos biomas:** verde 10x (18000×18000, x∈[0,18000)), deserto 20x (32000×36000, x∈[18000,50000)), pântano 5x (8000×9000, x∈[50000,58000)), caverna reposicionada (1800×1800, x∈[58000,59800)) e cidade nova (4000×3000, x∈[59800,63800)). `WORLD_WIDTH=63800`, `WORLD_HEIGHT=36000`.
+- **Cidade de Davahl (`mapa_cidade.js`, novo):** região separada com muralha externa (portão oeste), praça central com fonte, 14 casas, ruas em anel, parque e lâmpadas. Acesso só por portal da Safe Zone do verde (relocalizada para x=5000,y=1200, raio 350) e portal de retorno na cidade (x≈59920,y=1400). `colideMapaAtivo` final inclui a cidade.
+- **`mapas.js` (verde):** reescrito — 450×450 tiles, 14 lagos decorativos acessíveis (rios removidos), 130 árvores fora de lagos/Safe, terreno determinístico com relevo 2.3D, base da Safe com gradiente + runas + portão sul.
+- **`mapa_deserto.js`:** reescrito — dunas, 4 oásis com palmeiras, ruínas, desfiladeiro leste (y 8000-8600) rumo ao pântano, portais verde↔deserto, montanhas na borda leste.
+- **`mapa_pantano.js`:** reescrito — água **venenosa** (libre p/ jogador, bloqueia monstros via `podeAndar`); jogador sobre ela recebe debuff `veneno` (☠️, 5s, −5 HP a cada 0,5s) via novo bloco no loop do `server.js`.
+- **`server.js`:** novas constantes de bioma; `podeAndar` com limites por bioma + veneno; colisões de projéteis com pântano/cidade; **todos os spawns automáticos removidos** (monstros só nascem por bandeira admin); bloco de dano `sobVenenoPantano`.
+- **`debuffs.js`:** efeito `veneno` adicionado.
+- **`index.html`:** nova zona `cidade` (render, sortables, detecção de região com clamp Y por bioma), `ZOOM_CAMERA` 0.77 → 0.92, colisão de árvores só no mapa verde.
+- **Correções de validação:** `Math.hypot` sem parêntese no anel circular da cidade; Safe Zone do verde movida para o portal da cidade; comentários de fases desatualizados.
+
+**Arquivos alterados:** `mapas.js`, `mapa_deserto.js`, `mapa_pantano.js`, `mapa_caverna.js`, `mapa_cidade.js` (novo), `server.js`, `index.html`, `debuffs.js`, `CHANGELOG.md`, `PROGRESSO.md`
+
+**Verificação:** `node --check` OK em todos os módulos; servidor 8080 bootstrap carregou as 5 fases; testes 39 PASS / 1 FAIL pré-existente (RNG de drop). Rollback: `backups/mmorpg_backup_20260914_antes_mapas.tar.gz`.
+
+---
+
+### v1.19.7 — 14/09/2026
+
+**Hotfix: efeitos visuais das skills e ataques básicos (projéteis, marcas, explosões, smart cast) voltaram a funcionar.**
+
+- **Causa raiz:** na v1.19.6 o módulo de buffs/debuffs foi escrito sobrescrevendo o `efeitos.js` (29 KB) — que era o arquivo de efeitos visuais do cliente (projéteis, animações de skill, smart cast). Skills continuavam causando dano mas toda a parte visual sumiu.
+- **FIX:** o `efeitos.js` original (visual) foi restaurado a partir do backup (`backups/mmorpg_backup_20260914_010643.tar.gz`). O módulo de debuffs/buffs foi movido para um novo arquivo **`debuffs.js`** e o `server.js` agora faz `require('./debuffs.js')`.
+- **`index.html`:** volta a carregar `efeitos.js` (visual, `v=234`) e passa a carregar `debuffs.js?v=1` (define `window.EFEITOS` usado nos ícones de status). Handler `efeitos_sync` e trava/lentidão de movimento mantidos.
+
+**Arquivos alterados:** `efeitos.js` (restaurado), `debuffs.js` (novo), `server.js`, `index.html`, `CHANGELOG.md`, `PROGRESSO.md`
+
+---
+
+### v1.19.6 — 14/09/2026
+
+**4 correções: reset de status (1x), upgrade de skill ao subir nível, drop de arma secundária e sistema de buffs/debuffs:**
+
+- **Bug 1 — Reset de status só funcionava 1x:** `atributos.js` — `resetarAtributos()` desabilitava o botão e `renderizarAtributos()` nunca o re-habilitava. FIX: `renderizarAtributos()` re-habilita (`btnReset.disabled=false; text="RESETAR"`).
+- **Bug 2 — Upgrade de skill não refletia ao subir de nível:** `index.html` — handler `xp_ganho` não re-renderizava a skills UI quando `subiuLevel`. FIX: chama `renderizarSkills()` (o servidor já validava/ganhava pontos corretamente).
+- **Bug 3 — Arma secundária nunca dropava:** só o guerreiro tinha (`escudo_pedra`). FIX em `equipamentos.js`: novas armas secundárias para **mago** (Grimório Arcano 📖), **summoner** (Cálice das Sombras 🏆), **arqueiro** (Aljava Peregrina 🪶) e **curandeiro** (Rosário Sagrado 🕊️). Bárbaro e Roqueiro seguem sem armas (design). `testes_equipamentos.js` atualizado — agora exige que essas 4 classes gerem secundária.
+- **Bug 4 — Tabela de buffs/debuffs (sistema novo):**
+  - **`efeitos.js` (novo):** 12 efeitos cadastrados — debuffs: stun ⚡, lentidão 🐌, paralisia ⛓️, sono 💤, corta-cura 🩹, defesa quebrada 🥀, enfraquecido 💪; buffs: escudo 🛡️, ardente 🔥, fervor 💢, velocidade 💨, sede de sangue 🩸. Módulo puro com `aplicarEfeito`/`atualizarEfeitos`/`temEfeito`/`pegarEfeito`/`removerEfeito`/`exporEfeitos` + guard de compatibilidade browser (`module`/`window`).
+  - **`server.js`:** efeitos alteram dano causado (`reducaoAtk` −25%, `fervor` +25%), dano recebido (`reducaoDef` +25%, `escudo` −20%), cura recebida (`cortaCura` −50%); trava de movimento por `paralisia`/`sono` além do stun; **sono acorda ao levar dano** (re-emite `efeitos_sync`); `efeitos` de cada player agora viajam no `world_update`.
+  - **`index.html`:** novo handler `efeitos_sync` (com `id` de alvo); ícones de status sobre o personagem (círculo, ícone colorido e timer/valor abaixo); movimento local respeita `lentidao` (−50%), `velocidade` (+50%) e trava em `paralisia`/`sono` (autofarm também). Cache-buster `efeitos.js?v=233`.
+
+**Arquivos alterados:** `server.js`, `index.html`, `atributos.js`, `equipamentos.js`, `efeitos.js`, `testes_equipamentos.js`, `PROGRESSO.md`, `CHANGELOG.md`
+
+---
+
+### v1.19.5 — 14/09/2026
+
+**Skills funcional no servidor + sistema de mana + barra de MP no HUD:**
+
+- **Servidor (`server.js`):** níveis de skill agora vivem no servidor (`p.skills`, persistidos). Ganha 1 ponto por level (`p.pontosHabilidade`, sincronizado via `init`/`xp_ganho`). Novas funções utilitárias: `calcularMaxMp` (50+int*10), `obterNivelSkill`, `dmgSkill` (+25%/nível), `mpSkill` (+6%/nível), `gastarMana` (retorna false + envia `mp_insuficiente` se faltar mana). Novos handlers: `upgrade_skill` (valida nível<10 e pontos>0, gasta ponto, persiste), `resetar_skill`, `resetar_todas_skills`. Regen automática de mana ~3% do máximo a cada 2.5s no loop principal. Todos os handlers de skills (incluindo basic attacks e projéteis de pet/zona) agora usam `dmgSkill` para dano/cura escalado e `gastarMana` para custo real; `xp_ganho`/`distribuir_ponto`/`atributos_resetados`/`inventario_sync` agora também enviam/sincronizam `maxMp`/`mana`.
+- **Skills UI (`skills.js`):** agora envia `upgrade_skill`/`resetar_skill`/`resetar_todas_skills` ao servidor em vez de simular localmente. Mostra "Pontos de habilidade" disponíveis no topo. Botão ⬆️ MELHORAR desabilitado se não houver pontos. Mana exibida no card é o custo efetivo escalado (`mpSkill`). Estilos atualizados (`.skill-pontos`, `.btn-melhorar:disabled`).
+- **`index.html`:** barra de mana no HUD (`#mp-bar-container`/`#mp-bar-fill`, verde). Novo `window.enviarServidor()`. Handlers `skill_upgrade`/`skill_reset`/`skill_reset_tudo`/`skill_erro`/`mp_sync`/`mp_insuficiente` integrados. `ponto_distribuido`/`atributos_resetados`/`inventario_sync` sincronizam `maxMp/mana` e chamam `atualizarHudMp()`. Cache-busters: `skills.js?v=143`, `skills.css?v=141`, `style.css?v=232`.
+
+### v1.19.4 — 14/09/2026
+
+**Correção: confirm() de reset virava a tela para vertical + duração do texto de combate reduzida:**
+
+- **`atributos.js`:** o `confirm()` nativo do navegador derrubava o fullscreen/`screen.orientation.lock('landscape')` no celular e a tela girava para retrato. Substituído por **modal de confirmação próprio do jogo** (`#confirm-screen`, botões SIM/NÃO) — a pergunta continua aparecendo, mas sem sair da horizontal. Ao abrir, chama `tentarHorizontalAutomatico()` de novo para reforçar o modo paisagem.
+- **`index.html`/`style.css`:** estrutura e estilos do modal de confirmação (overlay `z-index:950`, janela pixelada roxa, botões vermelho/azul).
+- **Duração do texto flutuante de combate reduzida ~40%:** decaimento de alpha `0.0273` → `0.045` por frame (de ~37 quadros ≈ 0.62s para ~22 quadros ≈ 0.37s). Fonte `bold 21px` mantida.
+
+**Arquivos alterados:** `atributos.js`, `index.html`, `style.css`, `CHANGELOG.md`
+
+---
+
+### v1.19.3 — 14/09/2026
+
+**Textos de combate maiores/mais visíveis e botão de RESETAR status:**
+
+- **`index.html`:** texto flutuante de dano/cura/XP com fonte **+30%** (`bold 21px Arial`, era 16px) e duração na tela **+10%** (`alpha -= 0.0273` por frame, ~37 quadros ≈ 0.61s, era ~33 quadros). Offset de centralização ajustado (−14).
+- **Botão RESETAR na janela de Status:** devolve **todos os pontos gastos** (`atributos` voltam a 1 e `pontosDisponiveis` recebe a soma dos pontos alocados), recalcula `maxHp` (e a vida do ogro por Afinidade) e persiste. Confirmação com `confirm()` antes de aplicar.
+- **`server.js`:** handler `resetar_atributos` (validação estrita: só devolve pontos realmente gastos; se não houver nenhum, responde `atributos_resetados` sem alterar nada).
+- **`atributos.js`/`atributos.css`:** função `resetarAtributos()` + estilo do botão azul (desabilitado enquanto processa) e cache-buster `?v=2`.
+
+**Arquivos alterados:** `server.js`, `index.html`, `atributos.js`, `atributos.css`, `CHANGELOG.md`
+
+---
+
+### v1.19.2 — 14/09/2026
+
+**Todo dano exibido agora vem do servidor (autoritativo) — fim dos números falsos no cliente:**
+
+- **`server.js`:** novo helper `broadcastDanoFlut` emite `texto_dano` (`{x,y,dano,autorId}`) com o dano **real aplicado** sempre que um JOGADOR acerta monstro ou boss — dentro de `registrarDanoMonstro`/`registrarDanoBoss` (pet `tipoOrigem:'pet'` excluído, o golem/lacaio já tem o seu). Isso cobre automaticamente ataques básicos, projéteis, corte, machadada, dash, tornado, meteoro, nevasca (DoT), chuva de flechas, julgamento, esmagamento do bárbaro, bateria e golpes de área vs bosses. A mensagem de cura (`action_curandeiro_cura`) agora envia `valor` com o **valor real curado**.
+- **`index.html`:** handler `texto_dano` (texto flutuante laranja `-X` + entra no DPS **só quando o dano é seu**, via `autorId`) e `action_curandeiro_cura` passa `dados.valor` à animação de cura (texto verde `+X HP ✨` real, não mais "+35" fixo). Removidos os **danos fabricados no cliente**: cortes/ataques básicos das classes (`classes/*.js`), roqueiro, dash (-20), tornado (-25), meteoro (-25), nevasca (-6), esmagamento sísmico (-45), esmagamento do bárbaro (-35) e julgamento (-28) — o número passa a sair **exclusivamente do servidor** no momento do acerto.
+- **`efeitos/*`:** animações mantidas; os textos com números fixos removidos (meteoro/nevasca/sísmico/esmagamento/julgamento/cura).
+- Cache-busters atualizados (`?v=`) e Bump de versão para **v1.19.2**.
+
+**Arquivos alterados:** `server.js`, `index.html`, `classes/{guerreiro,mago,summoner,arqueiro,curandeiro,barbaro}.js`, `efeitos.js`, `efeitos/curandeiro_efeitos.js`, `efeitos/barbaro_efeitos.js`, `CHANGELOG.md`
+
+---
+
+### v1.19.1 — 14/09/2026
+
+**Cura e dano mágico agora refletem os atributos na interface (o servidor já escalava):**
+
+Teste automatizado controlado em servidor real (porta 8099, usuários de teste criados e removidos no fim):
+- **Cura (Divindade):** curandeiro com divindade 1 curou **+35**; com divindade 8 curou **+47** (35 × 1.35) — confirmado via alvos iniciando com 53/100 HP salvos no banco (`server.js` já aplicava `calcularCuraJogador`, linha ~201).
+- **Dano mágico (Inteligência):** `ataque_curandeiro` causou **12** com inteligência 1 e **16** com inteligência 8 (12 × 1.35, crit 1.5× visto) contra o slime da bandeira.
+
+O "35 fixo" que o jogador via era **só visual**: o tooltip de `skills.js` mostrava o valor base (só escalava por nível de TESTE, que não altera combate) e a animação de cura não exibia número algum.
+
+- **`skills.js`:** novo `atributoEscalaSkill()` + `valorComAtributo()` que espelham as regras do `server.js` e o tooltip agora mostra o valor com os atributos atuais do jogador, ex: "💖 Cura **47** (35 base · +5% por Divindade)". Regras: cura → Divindade; golpes de pet (ogro/esmagamento/salto) → Afinidade; dano contínuo (`/s`) → Profanidade; mago/summoner/curandeiro/roqueiro → Inteligência; demais → Força.
+- **`index.html`:** quando o HP sobe (ex: cura recebida), aparece número flutuante **verde "+X"** sobre o personagem (antes só existia o "-X" vermelho de dano recebido). Bump `skills.js?v=142` (cache-buster).
+
+**Arquivos alterados:** `skills.js`, `index.html`, `CHANGELOG.md`
+
+---
+
+### v1.19.0 — 14/09/2026
+
+**Mapa transformado em 2.3D (extrusão de tiles) — Opção A:**
+
+A câmera continua **top-down** e os personagens/monstros continuam sprites 2D (y-sort intacto), mas o **chão agora é voxel**: cada tile com relevo é desenhado como um bloco com **topo levantado + parede sombreada (face sul + face leste)**, estilo isométrico visto de cima. Isso é 100% visual — **não altera colisão** (a altura real continua vindo do `grid`, usada pelo servidor).
+
+- **`mapa_deserto.js`:** novo `alturaRelevo(tipo)` — **dunas** sobem 4px, **ruínas** 8px, **montanhas** 12px (agora com parede de rochedo + pico ancorado no topo). `desenharAreiaBase`/`desenharMontanha` desenham parede sul + parede leste + topo com brilho na borda. Decoração (pedrinhas) assenta no topo da duna; sprite das **ruínas ancorado no topo do bloco** (`sortables.base` corrigido).
+- **`mapa_pantano.js`:** mesmo esquema — **grama** (ilhas musgosas) 4px, **ruínas** 8px, **montanhas musgosas** 12px (paredes escuras + pico + musgo no topo). Juncos/cogumelos em grama sobem junto; sprite de ruína ancorado no topo.
+- **`mapas.js` (mapa verde):** grade determinística cosmética (`mulberry32`) gerada uma vez — manchas de grama clara, **blocos de terra** (3px) e **afloramentos de pedra** (5px) com a mesma extrusão, sob o rio/safe zone/árvores. **Sem mudança de colisão** (verde continua com árvores circulares).
+
+**Arquivos alterados:** `mapa_deserto.js`, `mapa_pantano.js`, `mapas.js`, `index.html` (bump anti-cache `?v=`), `CHANGELOG.md`
+
+---
+
+**Correções: stun eterno do Besouro, troca de personagem que não deslogava e conferência da barra de skill:**
+
+- **Stun do Besouro não acabava (bug):** o bloco que decrementa `stunTimer` do jogador estava **deslocado para dentro do handler de mensagem `comando_salto_ogro`** (só rodava quando o summoner usava o salto do ogro sem mira) e **não existia no loop principal de 50ms** — por isso quem levava o stun de 5s (100 ticks) ficava atordoado para sempre. O bloco foi **movido para o loop principal** (`server.js`, logo após o processamento dos players) e roda a cada tick normalizando os 5s; o respawn também **zera o `stunTimer`** para o jogador não renascer atordoado.
+- **Troca de personagem desloga de verdade:** `trocarDePersonagem()` (config.js) agora **fecha o WebSocket** (o servidor remove o personagem do mundo no `close`) em vez de só abrir a tela de seleção com o char antigo ainda conectado/aparecendo. O personagem **só volta a aparecer quando a nova classe é escolhida**: `selecionarClasse()` detecta socket fechado, guarda a classe em `classePendente` e re-loga (`conectarWebSocket`); no `init` a classe pendente é aplicada sozinha (ping também é deduplicado via `pingIntervalo`).
+- **Conferida a barra de skill do Besouro:** a barra de carregamento (1.2s antes do voo) já existia e é renderizada em `monstros.js` (`desenharBesouroNegro`) quando `skillCharging`; confirmado que o servidor envia os campos (`skillCharging/skillChargeMax/skillAim`) no `world_update` e que o `skillChargeMax` do spawn natural (24) dispara a barra corretamente.
+
+**Arquivos alterados:** `server.js`, `config.js`, `index.html`, `CHANGELOG.md`
+
+---
+
+### v1.18.0 — 13/09/2026
+
+**Spawn natural do Besouro Negro 🪲 no deserto** — antes o monstro só existia em código (AI/render/efeitos) e só podia aparecer via bandeira de admin (e `spawn_flags.json` vazio, então nunca era visto). Agora ele vive de verdade no bioma:
+
+- **`server.js`:** novo helper `gerarPosicaoDeserto()` (x ∈ [1800, 3400) em tile andável — arena, fora de água/pedras/cactos) e spawn inicial de **4 besouros** fixos no deserto com todos os atributos (HP 300, agro 420, voo com stun 5s, ranged 4x, `flagPassivo:false`/`flagAgressivo:true` para agro por proximidade).
+- **Respawn corrigido:** ao morrer e renascer, o besouro **reaparece dentro do deserto** (usava `gerarPosicaoValida()` que jogava o monstro para fora do bioma), e o estado da skill (voo/dash) é resetado junto.
+- **Revisão da integração:** conferidos AI no `server.js` (`besouro_negro`), render em `monstros.js`/`index.html`, efeitos de decolagem/impacto em `efeitos.js` e registro no painel admin (`spawn-admin.js`) — tudo conectado e sem contradições.
+
+**Arquivos alterados:** `server.js`, `CHANGELOG.md`
+
+---
+
+### v1.17.0 — 13/09/2026
+
+**Correção: o golem (ogro) do Summoner agora recebe dano de verdade (com HUD, morte e respawn)** — antes inimigos provocados pelo rugido "atacavam" o pet mas o dano não valia: melee/zumbi reduziam o HP sem HUD nem morte, e projéteis de ranged/zumbi **atravessavam o pet e acertavam o summoner** (vazamento de dano):
+
+- **Colisão de projéteis contra o pet**: no loop de colisão, um projétil com `petAlvo` válido colide com o lacaio do dono (raio `(p.raio||5)+24`) e aplica `danoCausadoAoOgro(pid, p.dano||10, x, y)` **antes** da checagem contra players — corrige o vazamento sem alterar a colisão normal.
+- **`danoCausadoAoOgro(pid, dano, x, y)`**: reduz `ogro.hp`, emite `action_lacaio_dano` (texto flutuante vermelho `#ff5252` à altura do pet + som de bloco) e, se zerar o HP, **remove o lacaio**, inicia `petRespawnTimer[pid] = 240` (12 s) e emite `action_lacaio_morreu` (texto "💀 OGOR CAIU!" + som de impacto pesado).
+- **Aplicação nas 3 fontes**: ataque corpo-a-corpo do slime melee, cuspirada do zumbi e tiro do ranged — todos com taunt ativo no lacaio passam a usar `danoCausadoAoOgro` em vez do `alvo.hp -=` genérico sem efeito visual.
+- **Respawn do pet**: loop do summoner decrementa `petRespawnTimer` e recria o ogro (vida cheia) ao zerar; `if (!ogro) continue` evita processar pet inexistente durante o timer. Morte do pet **não** mata o jogador nem dá invulnerabilidade.
+- **Limpeza do timer**: `escolher_classe`, ressurreição e desconexão removem o `petRespawnTimer` do jogador.
+- **HUD no `index.html`**: handlers `action_lacaio_dano` (floating text vermelho + `tocarSomBlock()`) e `action_lacaio_morreu` (floating text "💀 OGOR CAIU!" + `tocarSomImpactoPesado()`).
+
+**Arquivos alterados:** `server.js`, `index.html`, `CHANGELOG.md`
+
+---
+
+### v1.16.0 — 13/09/2026
+
+**Sistema de Gerenciamento de Spawns em Tempo Real (Ferramenta de Administração In-Game)** — bandeiras de spawn de monstros/bosses plantadas no mundo por admins:
+
+- **Botão Admin 🚩 no HUD** (`#util-buttons`): só aparece para o cargo configurado em `admins.json` (`{"admins":["admin"]}`, comparação case-insensitive). Abert no `init` o servidor envia `admin: true` e a lista atual de bandeiras (`spawn_flags`).
+- **Painel centralizado `#spawn-admin-screen`**: select com todos os monstros/bosses cadastrados (Slime Melee 🟢, Slime Arqueiro 🔵, Zumbi 🧟, GOLEM DE PEDRA 🗿), quantidade máxima (1–50), comportamento (Agressivo/Passivo), **HP base customizado** e **respawn 1–10s** (slider). Botões **APLICAR/SALVAR**, **DELETAR BANDEIRA** (com confirmação dupla) e **FECHAR**.
+- **Posicionamento por bandeira**: ao aplicar, a bandeira é plantada nas coordenadas (X,Y) atuais do admin; tocar em cima de uma bandeira no mapa (raio ~40px) reabre o painel preenchido para edição ou exclusão. Bandeiras desenhadas no Canvas **apenas para admins** (mastro + bandeirinha colorida por tipo, emoji do monstro, rótulo com quantidade e estado passivo/agressivo).
+- **Persistência em tempo real**: cada criação/edição/exclusão salva instantaneamente `spawn_flags.json` no servidor (sobrevive a reinícios) e reenvia a lista atualizada só para admins conectados.
+- **Segurança no servidor (módulo `spawns.js`)**: todo CRUD valida `players[id].isAdmin`; jogador comum não consegue criar/editar/excluir nem recebe bandeiras. Validação estrita de `tipo`, `maxQtd`, `hpBase`, `respawnSeg` e posição dentro do mundo (fora de água e em tile andável).
+- **Sincronização multiplayer**: os monstros gerados entram nas arrays globais `slimes`/`bosses` (sincronizados no `world_update` para todos). Agro por proximidade se agressivo, **passivo não agroa nem ataca nem é provocado** (nem pelo rugido), taunt do golem ignora passivos. Morte, XP e respawn sincronizados: monstro de bandeira morre → revive na bandeira após o `respawnSeg` (bosses também, na posição da bandeira em vez dos cantos fixos).
+- **Modularidade**: backend isolado em `spawns.js` (registry + persistência + permissão + factories); frontend em `spawn-admin.js`/`spawn-admin.css`; `server.js` só orquestra o loop (`atualizarBandeirasSpawn()` por tick) e os handlers de socket.
+
+**Arquivos alterados:** `server.js`, `index.html`, `CHANGELOG.md`
+**Arquivos novos:** `spawns.js`, `spawn-admin.js`, `spawn-admin.css`, `admins.json`, `spawn_flags.json` (gerado)
+
+---
+
+### v1.15.0 — 13/09/2026
+
+Summoner: salto em **Smart Cast**, **Rugido passivo do golem** (agro) e **dano do golem em roxo** nos textos flutuantes:
+
+- **Salto do golem agora é Smart Cast** (igual o mago): `SKILLS_DRAG.salto` (raio 70, alcance 350, classe `summoner`), botão 🦘 dispara `iniciarDragSkill`, arrasta e solta no local; mira toggle `ativarSaltoSmartCast`/`modoMiraSaltoOgro` com marcador roxo próprio e fallback para a direção do jogador. Servidor `comando_salto_ogro` aceita `targetX/targetY`, clampa no mundo e, ao aterrissar, o golem foca o inimigo mais próximo (slime OU boss).
+- **Rugido passivo a cada 10s** (200 ticks): o golem emite `action_ogro_rugido` (onda roxa + som + tremor) e puxa o agro por **4s** (80 ticks) — slimes (melee/ranged/zumbi) passam a atacar **o golem**, e o boss foca o summoner. Ao fim do taunt os alvos são limpos; golem regenera HP lentamente (não morre aguentando o agro). Taunts resetados no respawn do boss/slime.
+- **Dano do golem em texto flutuante roxo** (`#9b59b6`) no inimigo: `registrarDanoMonstro`/`registrarDanoBoss`/`danoEmBosses` agora retornam o dano real aplicado, e o helper `broadcastDanoLacaio` emite `action_golem_ataque` com `dano` (atalho do rang: ataque básico, salto e sismico 💥). O dano exibido é o dano calculado (atributos/multipliers), não mais "-15" fixo.
+- Dano flutuante entra no `registrarDanoCausado` (DPS/DPS total contabilizam o golem).
+
+**Arquivos alterados:** `server.js`, `index.html`, `efeitos.js`, `CHANGELOG.md`
+
+---
+
+### v1.14.0 — 13/09/2026
+
+Sistema completo de **Atributos** com distribuição de pontos, validação no servidor e sync multiplayer:
+
+- **8 atributos:** Força (dano físico + HP), Inteligência (dano mágico + regen MP), Agilidade (+velocidade de movimento), Destreza (chance 5% + 1%/pt e multiplicador de crítico 1.5x + 3%/pt), Vida (+20 HP/pt), Profanidade (+5% dano de DoT/pt), Divindade (+5% cura/escudo/pt), Afinidade (+5% dano e +15 vida/pt do pet/ogro).
+- **Novos arquivos:** `atributos.js` (janela de Status no client) e `atributos.css` (estilos pixelados, z-index 310).
+- **`index.html`:** botão `#btn-status` 📊 na HUD, janela `#atributos-screen`, handlers `ponto_distribuido` e `texto_critico`, `init`/`xp_ganho` recebem `atributos`/`pontos`/`maxHp`, `world_update` sincroniza atributos de `window.todosJogadores[meuId]`, velocidade de movimento ganha bônus de Agilidade, movimento/autofarm bloqueados com a janela aberta.
+- **`server.js`:** bloco "SISTEMA DE ATRIBUTOS" — `atributosIniciais()`, `getAtr()`, `calcularMaxHp()` (100 + vida*20 + forca*4), `calcularVidaPet()` (90 + afinidade*15), `calcularDanoJogador()` (multiplicadores por classe/tipo de origem + crítico), `calcularCuraJogador()` (divindade), `broadcastCritico()` (textos flutuantes "CRÍTICO!").
+- **Dano aplicado:** `registrarDanoMonstro`/`registrarDanoBoss`/`danoEmBosses` ganharam `tipoOrigem` (`'pet'` → afinidade, `'dot'` → profanidade) — todo dano de jogador/pet/ogro passa pelos multiplicadores; ataques do ogro marcados como `'pet'`.
+- **Alocação validada no servidor:** handler `distribuir_ponto` (atributo válido + pontos > 0), recalcula `maxHp`, aplica afinidade na vida do ogro e responde `ponto_distribuido`.
+- **Pontos:** 3 no primeiro login + 1 por level (nível 60 máx.); persistidos via `salvarProgresso` (incluindo `atributos`/`pontosDisponiveis`).
+- **Cura:** `curandeiro_cura` escala com Divindade do autor.
+
+**Arquivos alterados:** `server.js`, `index.html` (`atributos.js?v=1`/`atributos.css?v=1`), `CHANGELOG.md`
+**Arquivos novos:** `atributos.js`, `atributos.css`
+
+---
+
+### v1.13.0 — 13/09/2026
+
+Rework do mapa do pântano + correção rigorosa do render (sem pop-in):
+
+- **`mapa_pantano.js` reescrito do zero:** geração **estática e procedural** com PRNG determinístico (`mulberry32(777)`) em código — sem dependência de `mapa_pantano.json` (arquivo removido). `gerarPantano()` é idempotente (`if (grid) return grid`), `initSwampMap()`/`resetarPantano()` idempotentes e regeneração sob demanda (`if (!grid) gerarPantano()`) na colisão/render. Sortables fixos (63 entidades), colisões por altura (barra baixa: anda mas projétil passa; média: barra tudo; alta: barra tudo).
+- **Poça contínua sem grade:** `desenharLamaBase` agora pinta o tile em `TILE+1` com a cor constante de água (`#2e5d3a`), unindo tiles vizinhos numa mancha única; contorno escuro só na divisa água↔terra; reflexo/clara que atravessa a fronteira de tiles vizinhos; terra sem quadriculado.
+- **Limpeza do frame em screen-space (`index.html` `loop()`):** antes do `save/scale/translate`, `setTransform(1,0,0,1,0,0)` + `fillRect(0,0,canvas.width,canvas.height)` com a cor sólida do bioma atual (`#24301a` pântano / `#d9b45c` deserto / `#163f18` verde) — elimina pixels transparentes e resquícios do frame anterior nos cantos quando o shake desloca a câmera nas bordas do mundo.
+- **Margem de pré-render:** culling de tiles do pântano ampliada de 80px → **200px** (5 tiles) e culling dos sprites y-sort de 100/160 → 200/220px — o mapa é renderizado "antes" de entrar na área visível, sem sensação de carregamento.
+- Bounds checking do loop de tiles: `Math.max(0,…)` / `Math.min(COLS-1,…)` mantidos e toda a largura/altura do canvas sempre coberta pelo fundo mesmo na borda leste (x→5000).
+
+**Arquivos alterados:** `mapa_pantano.js`, `index.html` (script `?v=3`/`?v=4` anti-cache)
+**Arquivo removido:** `mapa_pantano.json` (órfão, sem referências)
+
+---
+
+### v1.12.3 — 12/09/2026
+
+Bugfix: ataque básico disparando sozinho (ranged/mago):
+
+- **`server.js`:** removido o **autobatk** do servidor — mago, arqueiro, curandeiro e roqueiro **não atacam mais automaticamente** slimes hostis a cada ~28 ticks. Agora cada projétil só sai quando o jogador pressiona o botão de ataque (1 toque = 1 ataque). Removidos também `alcanceAutobatk()` e o campo `autobatkTimer` do jogador.
+
+### v1.12.2 — 12/09/2026
+
+Visual do Golem repensado para pedra rígida:
+
+- **`efeitos/boss_golem.js`:** removidos pernas, braços (de trás e da frente com mão redonda) e ombros. O corpo agora é um **monólito de pedra rígida** — tronco único com bordas irregulares/achateladas, placas facetadas, fissuras e rachaduras, gola de pedra no pescoço, cabeça em bloco angular — assentado numa base de pedra no chão.
+- A **pedra flutuante virou uma laje retangular na vertical** (78×200): bloco com topo/base em bisel, facetas, fissuras verticais, núcleo de lava pulsante, sombra e fagulhas em órbita vertical.
+- Rastro da pedra agora em retângulos verticais (casando com a laje) em vez de círculos.
+
+### v1.12.1 — 12/09/2026
+
+- **`server.js`:** posição de spawn/respawn do GOLEM DE PEDRA movida para `x: 1426, y: 1042` (fixa, substituindo a escolha aleatória entre os 4 cantos).
+
+### v1.12.0 — 12/09/2026
+
+Sistema de localização 🎯: agora o jogador pode marcar pontos no mundo (coordenadas X/Y) para reportar ao dev exatamente onde quer que algo seja colocado.
+
+- **`index.html`:** botão `📌` (`#btn-local`) adicionado na fileira de utilitários; posiciona pinos ao tocar na tela com o modo ativo (converte toque tela→tela do mundo usando `camX/camY` e `ZOOM_CAMERA`); ao desativar, mostra a área no status como `📍 ÁREA: X min..max | Y min..max`; HUD `#coord-hud` no topo exibe a posição atual do jogador em tempo real (`X: ... Y: ...`); som de beep ao marcar pino.
+- **`style.css`:** estilo do `#coord-hud` (topo central, abaixo do FPS) e do botão `📌` (azul, laranja quando modo ativo com brilho).
+- **`efeitos.js`:** função `desenharPinosLocalizacao()` — pinos pulsantes amarelos com rótulo `X:... Y:...`, desenhados sobre o cenário no loop de render.
+- Limite de 10 pinos por sessão (remove o mais antigo ao exceder); até 2 pinos definem uma área retangular no status.
+
+### v1.11.0 — Drag to Cast nas skills de área
+**Data:** 2026-09-12
+
+- **Drag to Cast substitui o smart cast de 2 toques nas skills de área:** segure no botão da skill, arraste o dedo até o local desejado e solte — a skill cai **exatamente onde você soltou** (meteoro, nevasca, chuva de flechas, julgamento, esmagamento do bárbaro e teleporte do roqueiro).
+- **Marcador vermelho do tamanho da área da skill:** durante o arrasto aparece um círculo vermelho pulsante com o raio real de dano da skill (`ellipse` + contorno com glow + alvo em cruz + traço tracejado externo), além de um **anel tracejado vermelho mostrando o alcance máximo** da skill a partir do jogador.
+- **Respeita a área limite:** a posição de soltura fica **limitada ao alcance máximo da skill** (meteoro/nevasca 320, chuva 300, julgamento 280, esmagamento 220, teleporte 280) e aos limites do mapa — não dá para soltar fora do alcance nem para fora do mundo.
+- **Toque com botão no canto não mexe o personagem:** o gesto fica isolado no toque do dedo que segurou a skill (`touchId`), sem conflitar com o joystick; `touchcancel` cancela a mira sem gastar a skill.
+- **Desktop continua com o toque duplo antigo** (fallback via `onclick`).
+
+**Arquivos alterados:** `index.html`, `efeitos.js`, `CHANGELOG.md`
+
+---
+
+### v1.10.0 — Escudo em bolha brilhante + Ping real + Lacaio foca o alvo do summoner
+**Data:** 2026-09-12
+
+- **Bolha brilhante no escudo do Golem:** em vez dos espinhos, agora uma **bolha translúcida** (render layer `lighter`, brilho com glow) envolve o golem na cor do escudo — **vermelha** ou **azul** — com pulso de tamanho/luminosidade, reflexo de luz no topo, contorno brilhante e mini-bolhas de sabão orbitando, deixando a mecânica de reflexão visível de longe.
+- **Medidor de PING real ao lado do FPS:** o jogo envia `{action:'ping'}` a cada 2s e o servidor responde `{type:'pong'}`; o client calcula a latência real (ida+volta) e exibe `FPS: 60 | PING: 25ms` no mesmo contador do topo.
+- **Lacaio (ogro) foca o inimigo focado pelo summoner:** ao atacar, o summoner envia o alvo (`alvoTipo`/`alvoId`) para o servidor e o ogro **sempre prioriza o inimigo focado** (slime ou boss). Se o foco sumir/morrer ou o ogro passar de ~560px de distância do dono, ele desfoca e volta ao comportamento automático (perseguir quem mira o summoner / boss próximo / orbitar).
+
+**Arquivos alterados:** `server.js`, `index.html`, `efeitos/boss_golem.js`, `classes/summoner.js`, `CHANGELOG.md`
+
+---
+
+### v1.9.0 — Boss como alvo + Escudo de Espinhos + HP bar por visão + Mapa maior
+**Data:** 2026-09-12
+
+- **Lacaio do summoner, ogro e banda do roqueiro agora focam o Golem:** quando nenhum slime está no alcance, o pet/banda persegue e ataca o boss (o ogro precisa estar agressivo ~440px e o lacaio/banda em ~220-300px do boss).
+- **Auto-mira inclui o boss:** o `obterAlvoNaMira` (cliente) e o autobatk (servidor) consideram o Golem como alvo válido dentro do alcance de cada classe — a mira automática aponta para ele.
+- **HP bar do boss só na área de visão:** a barra dourada no topo aparece apenas quando o jogador está a ~520px ou menos do Golem.
+- **Escudo de espinhos periódico:** o Golem ativa alternadamente dois escudos (10s ativos, ~4,5s de pausa):
+  - **VERMELHO:** ataques básicos são refletidos 100% de volta ao usuário (projéteis, corte, machadada, dash, golpes de ogro/lacaio/banda) — só skills acertam.
+  - **AZUL:** skills são refletidas 100% (esmagamento, tornado, meteoro, nevasca, chuva, julgamento, bateria, perfurante, salto/sísmico) — só básicos acertam.
+- **Feedback visual e sonoro:** aura pulsante de espinhos girando em volta do golem na cor do escudo, texto "ESCUDO VERMELHO!/AZUL!" com som, e "REFLETIDO!" + vibração para o autor quando o dano volta.
+- **Mapa 20% maior:** campo de 1500×1500 → **1800×1800**, com fundo, rio e 6 novas árvores nas bordas (coordenação via `window.WORLD_WIDTH/HEIGHT`).
+
+**Arquivos alterados:** `server.js`, `index.html`, `style.css`, `efeitos/boss_golem.js`, `mapas.js`, `efeitos.js`, `classes/*.js`, `CHANGELOG.md`
+
+---
+
+### v1.8.0 — Golem melhorado: Enrage, HUD de boss e vibração
+**Data:** 2026-09-12
+
+- **Golem 40% menor:** visual do golem e da pedra reduzidos (~40%) para caber melhor na tela.
+- **ENRAGE por HP perdido:** conforme o HP do golem cai, o **dano aumenta** (45 → até 95) e ele fica **mais rápido** — levanta, marca e arremessa a pedra com ciclos mais curtos (até ~2.8x de velocidade) e a pedra orbita mais depressa.
+- **HP bar especial de boss no topo central da tela:** barra dourada/laranja com nome 👹 GOLEM DE PEDRA e contador de HP, visível sempre que o boss está vivo e somando junto com o HUD atual.
+- **Vibração da tela no impacto:** quando a pedra bate no chão, a tela inteira treme forte (`tremorTela`) para todos os jogadores, além de vibração física do celular (quando suportada).
+
+**Arquivos alterados:** `server.js`, `index.html`, `style.css`, `efeitos/boss_golem.js`, `CHANGELOG.md`
+
+---
+
+### v1.7.0 — Primeiro Boss: GOLEM DE PEDRA
+**Data:** 2026-09-12
+
+- **Boss inédito:** um **Golem de Pedra** enorme (~10x o tamanho dos personagens) que guarda o mapa. Ele usa uma **pedra flutuante com metade do tamanho dele** como arma.
+- **Ciclo de ataque completo:** fases `idle` → `levantar` → `marcar` → `lancar` → `retorno`. O golem levanta a pedra acima da cabeça, deixa uma **marca de perigo pulsante no chão** onde o golpe vai cair (~1s), arremessa a pedra com rastro e a pedra **volta suavemente** para orbitar ao redor do corpo.
+- **Dano:** 45 de dano em área (raio ~90) em quem estiver sobre a marca na hora do impacto. O golem mira no jogador vivo mais próximo dentro de ~520px e vira o corpo em direção ao alvo.
+- **Visual detalhado:** corpo de pedra com rachaduras, musgo, runa de energia quente pulsando no peito, olhos brilhantes (ficam vermelhos quando vai atacar), braço de pedra que alcança a pedra, poeira ambiente subindo, tremor de tela ao levantar/arremessar, impacto com anel de choque e destroços voando.
+- **Cofre: 6000 de HP**, 500 de XP divididos entre os participantes (mín. 60 cada), respawn em ~10s após a morte com anúncio `👹 GOLEM DESTRUÍDO!`.
+- **Todos os ataques dos jogadores acertam o boss:** projéteis de todas as classes (mago/summoner/arqueiro/curandeiro/roqueiro), perfurante, corte, machadada (+lifesteal em Fúria), dash, esmagamento, tornado, meteoro, nevasca, chuva de flechas, julgamento, bateria e os golpes do ogro (salto/sísmico/ataque) e do lacaio summoner.
+
+**Arquivos alterados:** `server.js`, `index.html`, `CHANGELOG.md`
+**Arquivo novo:** `efeitos/boss_golem.js`
+
+---
+
+### v1.6.0 — Auto-mira para todas as classes de longo alcance + Roqueiro com bateria
+**Data:** 2026-09-12
+
+- **Auto-mira com linha guia:** o sistema de mira (linha tracejada + retículo que trava sozinho no inimigo quando o joystick aponta para perto dele) agora vale para **todas** as classes de longo alcance — mago, summoner, arqueiro, curandeiro e roqueiro —, cada uma com sua cor (roxa/verde/teal/dourada/laranja).
+- **Limite de busca do ataque à distância por classe** (percentual do alcance do projétil):
+  - Mago / Summoner / Curandeiro: **50%** → busca até ~300px.
+  - Arqueiro: **70%** → busca até ~470px.
+  - Roqueiro: **60%** → busca até ~396px.
+  - Aplicado no `obterAlvoNaMira` (cliente) e no autobatk (servidor).
+- **Roqueiro (visual):** a arma agora é uma **bateria de rock** — tambor com pele, baqueta que bate sozinha e prato (cymbal) girando acima.
+- **Lacaio da banda:** agora empunha uma **guitarra** (antes um baixo roxo).
+- **Chamar a Banda:** convoca **1 membro** (antes 3). Skill atualizada em `skills.js`.
+
+**Arquivos alterados:** `server.js`, `index.html`, `efeitos.js`, `classes/roqueiro.js`, `skills.js`
+
+---
+
+### v1.5.0 — Ataques básicos por classe + Autobatk em classes de longo alcance
+**Data:** 2026-09-12
+
+- **Arqueiro:** projétil agora é uma **flecha** desenhada (haste + ponta + penas) e voa **~10% mais longe** que o das classes mágicas (48 ticks x 14 de velocidade ≈ 672px vs 600px das magias).
+- **Mago:** projétil virou uma **magia brilhosa** — núcleo pulsante com halo roxo, aura ciano e partículas brancas orbitando, além de rastro (trail).
+- **Guitarrista (Roqueiro):** o riff agora viaja como **notas musicais** (🎵 com ♪ de rastro), balançando suavemente.
+- **Berserker (Bárbaro):** continua corpo a corpo, mas a machadada solta **muito mais sangue** — 30 gotas (antes 14), mais rápidas, maiores e com duração maior.
+- **Autobatk (novo):** mago, arqueiro, curandeiro e roqueiro agora atacam **automaticamente** slimes hostis (que estão perseguindo o jogador, `targetId === pid`) dentro de ~320px, no mesmo padrão do ogro do summoner. O jogador não precisa apertar o ataque; se tornou o alvo, ele dispara sozinho a cada ~28 ticks (~1,4s). O projétil e o som aparecem para todos via broadcast.
+- Projéteis usam `tipo` (`magia`, `orbe`, `flecha`, `sagrado`, `riff`) para o renderizador dedicado `desenharPlayerProjetil` em `efeitos.js` (com rastro `trailProjeteis`).
+
+**Arquivos alterados:** `server.js`, `efeitos.js`, `index.html`, `classes/*.js` (sem mudança visual de personagens), `efeitos/barbaro_efeitos.js`
+
+---
+
+### v1.4.5 — Efeitos de Tornado e Block visíveis para todos os jogadores
+**Data:** 2026-09-12
+
+Os efeitos de duas skills do Guerreiro só apareciam para o próprio jogador (bug multiplayer):
+- **Tornado:** o giro/arco estava preso a um timer global (`window.tornadoAnimTimer`) ativado apenas se `id === meuId`. Agora existe `window.tornadoTimers` (timers por jogador), o handler ativa o efeito para **qualquer** jogador que use a skill e a renderização passa o timer correto ao `desenharGuerreiro` — o som continua apenas para o autor.
+- **Block ("🛡️ BLOCK!")**: o handler só empurrava o efeito quando `id === meuId`. Agora o texto flutuante aparece **na posição do bloqueador** para todos (som apenas para o autor). Usa `window.todosJogadores[dados.id]` como origem para os outros jogadores.
+
+**Arquivos alterados:** `index.html`, `classes/guerreiro.js`
+
+---
+
+### v1.4.4 — Configurações sem "pause" (fundo translúcido)
+**Data:** 2026-09-12
+
+O MMORPG nunca pausa (o loop roda via `requestAnimationFrame` e o servidor continua simulando). A sensação de "pause" vinha do fundo quase opaco (`rgba(8,8,8,0.82)`) do painel de configurações, que escondia o jogo. Agora o fundo é **translúcido** (`rgba(8,8,8,0.35)`), mantendo o mundo e o combate visíveis e rodando atrás da janela.
+
+**Arquivos alterados:** `config.css`
+
+---
+
+### v1.4.3 — Rotação automática horizontal + Sistema de Configurações
+**Data:** 2026-09-12
+
+O jogo agora **abre sempre em modo horizontal** (auto) e ganhou um **menu de configurações** (botão ⚙️ na barra de utilitários, com a janela centralizada).
+
+- **Rotação horizontal automática:**
+  - `alternarModoOrientacao()` agora trava sempre em `landscape` (antes alternava).
+  - Tentativa automática de `screen.orientation.lock('landscape')` + `requestFullscreen()` no **primeiro toque/clique**, e overlay `#rotate-overlay` centralizado ("🔄 GIRE O CELULAR PARA HORIZONTAL") via `@media (orientation: portrait)`.
+- **Sistema de configurações (`config.js`/`config.css`):**
+  - **🔊 Volume Geral (central):** slider 0–100%. Criado um `GainNode` master (`window.audioGanhoMaster`) no `iniciarAudio()`; todos os 26 pontos de som agora roteiam por `window.audioGanhoMaster`. Valor persistido em `localStorage` (`mmorpg_volume`).
+  - **🔁 Trocar de personagem:** fecha janelas, cancela miras e autofarm, e reabre a tela de seleção de classe.
+  - **🚪 Sair do jogo:** fecha o WebSocket e recarrega para a tela de login.
+  - Janela centralizada (`#settings-screen` em flex center, z-index 320) no mesmo estilo pixel.
+- **Trava de movimento:** joystick/autofarm/movimento também bloqueados com as configurações abertas (`window.configAberto`).
+
+**Arquivos alterados/criados:** `index.html`, `style.css`, `config.js` (novo), `config.css` (novo)
+
+---
+
+### v1.4.2 — Botões de skill ~10% menores e ancorados no rodapé
+**Data:** 2026-09-12
+
+A coluna de habilidades de combate (`.actions`) foi reduzida e reposicionada, sem sobrepor os botões utilitários 📖/🎒:
+
+- **`.btn-action`:** 60px → **54px** (~10% menor).
+- **`.actions`:** `bottom: 60px` → **`bottom: 12px`** (coluna no rodapé da tela).
+- **Sem sobreposição:** coluna de skills vai de `right: 25px` a `79px`; `#util-buttons` começa em `right: 95px` — 16px de folga entre os blocos.
+
+**Arquivos alterados:** `style.css`
+
+---
+
+### v1.4.1 — Botões Skills/Inventário menores e reposicionados
+**Data:** 2026-09-12
+
+Os botões 📖 (skills) e 🎒 (inventário) saíram da coluna de ações do combate e foram para um container próprio, **50% menores** (60px → 30px) e posicionados no **canto inferior central/direito** da tela.
+
+- **`index.html`:** criado `<div id="util-buttons">` (fora da coluna `.actions`) com os dois botões com classe `.btn-util`.
+- **`style.css`:** novo bloco `#util-buttons` (absoluto, `bottom: 14px; right: 95px`, linha, gap 8px) e `.btn-util` (30px, circular, flex centralizado, escala no toque).
+- **`inventario.css` / `skills.css`:** cores (`#b7950b`/`#f1c40f` e `#16a085`/`#1abc9c`) mantidas via `.btn-util.btn-inventario` e `.btn-util.btn-skills`, com fonte ajustada ao tamanho menor.
+- A coluna `.actions` (skills de combate + ataque) permanece no canto inferior direito.
+
+**Arquivos alterados:** `index.html`, `style.css`, `inventario.css`, `skills.css`
+
+---
+
+### v1.4.0 — Interface de Skills com detalhes e upgrade (teste)
+**Data:** 2026-09-12
+
+Criada a **interface de habilidades** (botão 📖 no HUD), aberta junto com o inventário, mostrando o **detalhe completo de cada skill da classe atual** e um **upgrade de TESTE**.
+
+- **Painel estilo pixel** (combinando com inventário/mochila), janela própria com título, tag da classe e lista de cards de skills, uma por habilidade da classe vigente (jogador morto ou em seleção de classe não abre).
+- **Detalhes por skill:** ícone, nome, categoria (ATAQUE, AOE, ZONA, CANAL, CURA, BUFF, MOBILIDADE, INVOCAÇÃO, PASSIVA), descrição, dano/cura (com unidade), **MP** (custos planejados — sistema de mana ainda não existe, só exibição), **CD**, **área de efeito**, **alcance**, **duração** e efeitos extras (stun, slow, lifesteal, perfurante, etc.).
+- **Upgrade de TESTE (client-side):** botão ⬆️ MELHORAR sobe o nível da skill até **NV 10**; dano/cura escalam **+25%/nível** e duração **+10%/nível** apenas na exibição — sem tocar no combate real (servidor). Botão ↺ reseta a skill e ↺ RESETAR reseta todas.
+- **Dados:** `SKILLS_INFO` (tabela completa por classe, valores literais do `server.js`/`index.html`), `window.skillsNiveis` (níveis por "classe|id"), helpers `valorEscalado()`, `renderizarSkills()`, `melhorarSkill()`, `resetarSkill()`, `resetarTodasSkills()`.
+- **Trava de movimento:** joystick, autofarm e teclas também bloqueados com a interface de skills aberta.
+- **Aviso no rodapé:** "Upgrade é TESTE — não altera o combate ainda."
+
+**Arquivos alterados/criados:** `index.html`, `skills.js` (novo), `skills.css` (novo)
+
+---
+
+### v1.3.1 — Refatoração: inventário/mochila em arquivos próprios
+**Data:** 2026-09-12
+
+CSS e JS do inventário (corpo pixelado) e da mochila (abas) saíram do `index.html`/`style.css` e passaram para arquivos dedicados, seguindo o padrão das `classes/` e `efeitos/`:
+
+- **`inventario.js` (novo):** toda a lógica — `window.inventario`, `SLOTS_INFO`, abrir/fechar/toggle, `renderizarInventario()`, `selecionarSlot()`, `window.mochila`, `adicionarItemNaMochila()`, `removerItemDaMochila()`, `setAbaMochila()`, `renderizarMochila()`, `selecionarItemMochila()` e os itens de demonstração. Carregado via `<script src="inventario.js?v=131">`.
+- **`inventario.css` (novo):** todos os estilos (corpo pixelado, slots, mochila e abas). Carregado via `<link rel="stylesheet" href="inventario.css?v=131">`.
+- **`index.html`:** removidos os dois blocos de JS inline duplicados (equip + mochila) e adicionados os novos `<link>`/`<script src>` com query string anti-cache.
+- **`style.css`:** removido todo o bloco de estilos do inventário (`.btn-inventario` → `#btn-inv-fechar`).
+
+**Verificação:** `node --check inventario.js` OK; `inventario.css` e `inventario.js` respondem `200` no servidor; HTML do inventário (slots, mochila, abas) permanece no `index.html`.
+
+**Arquivos alterados/criados:** `index.html`, `style.css`, `inventario.js` (novo), `inventario.css` (novo)
+
+---
+
+### v1.3.0 — Mochila com abas (itens, drops e consumíveis)
+**Data:** 2026-09-12
+
+Criada a **mochila** de itens, logo abaixo do inventário de equipamento, abrindo junto com ele (botão 🎒).
+
+- **5 abas organizadas:**
+  1. TODOS — exibe tudo
+  2. 🍶 CONSUMÍVEIS — itens do tipo `consumivel`
+  3. 🧰 ITENS — itens/materiais/equipamento do tipo `item`
+  4. 📜 QUEST — itens de missão do tipo `quest`
+  5. 🎭 COSMÉTICOS — cosméticos do tipo `cosmetico`
+- **Grade 4×N** com slots de 44px (rolagem interna quando passa de ~3 linhas) e células vazias tracejadas para preencher a grade.
+- **Badge de quantidade** no canto do slot quando um item tem mais de 1 unidade.
+- **Dados:** `window.mochila` (array client-side) + helpers `adicionarItemNaMochila()` (empilha iguais) e `removerItemDaMochila(id, qtd)`.
+- **Controle:** `setAbaMochila(aba)`, `renderizarMochila()`, `selecionarItemMochila(item)` (mostra nome/quantidade/tipo/descrição na barra de informações).
+- **Itens de demonstração** inseridos para testar as abas (poções, pele de slime, espada, cristal de quest, chapéu de festa) — marcados para remover quando o sistema de drops chegar.
+- **Ajuste:** `#inv-window` agora rola verticalmente (`max-height: 94vh`), pois ficou mais alto.
+
+**Arquivos alterados:** `index.html`, `style.css`
+
+---
+
+### v1.2.0 — Inventário com corpo pixelado
+**Data:** 2026-09-12
+
+Criado o sistema de inventário de equipamento no formato de um corpo humano pixelado, aberto pelo botão 🎒 no HUD.
+
+- **Slots (9):** 🪖 Capacete, 🛡️ Peitoral, ⚔️ Arma, 🔪 Arma Secundária, 📿 Colar, 💍 Anel, 🧥 Capa, 🥾 Bota, 🧤 Luva.
+- **Layout:** silhueta de herói desenhada em `divs` pixeladas (cabeça, pescoço, tronco, braços, mãos, pernas, pés, capa), com os slots posicionados anatomicamente e **sem sobreposição**:
+  - Centro: Capacete → Colar → Peitoral → Bota
+  - Esquerda: Capa → Anel → Arma Sec
+  - Direita: Luva → Arma
+- **Visual pixelado:** cantos retos, sombras deslocadas (`box-shadow` chunky), fonte monoespaçada, bordas em dourado/vinho.
+- **Ícones:** ficam em **preto e branco acinzentado** (`filter: grayscale`) quando o slot está vazio e coloridos quando equipados (classe `.ocupado`).
+- **Dados:** `window.inventario` (client-side) com os 9 slots + helpers `inserirItemNoSlot()` e `removerItemDoSlot()` prontos para o futuro sistema de itens.
+- **Interação:** tocar num slot inspeciona (mostra nome/status na barra de informações); fechar pelo botão FECHAR ou tocando fora.
+- **Trava de movimento:** joystick, autofarm e teclas ficam bloqueados com o inventário aberto.
+
+**Arquivos alterados:** `index.html`, `style.css`
+
+**Bugs corrigidos durante o desenvolvimento:**
+- Botão 🎒 não abria: havia `onclick` **e** `addEventListener("click")` duplicados → o toggle abria e fechava na hora. Removido o listener duplicado.
+
+---
+
+### v1.1.2 — Correção 4: Remoção de arquivos órfãos
+**Data:** 2026-09-12
+
+Removidos arquivos de Boss/Dungeon que nunca eram carregados nem referenciados (não apareciam no `index.html`):
+
+- `sistemas/boss_pedra_client.js`
+- `classes/sistemas/dg_servidor.js`
+
+(As pastas `sistemas/` e `classes/sistemas/`, que ficaram vazias, também foram removidas.)
+
+**Verificação:** `grep` confirmou zero referências em todo o código.
+
+---
+
+### v1.1.1 — Correção 3: Bateria do Roqueiro vira canal de 5s
+**Data:** 2026-09-12
+
+A skill 🥁 **Bateria Solo** do Roqueiro deixou de ser um golpe único e virou um **canal de 5 segundos**:
+
+- **Servidor (`server.js`):**
+  - Nova estrutura `bateriaCanal[playerId]`: canal de 250 ticks (5s) com dano em área (30 de dano + stun 25, raio 110) **repetido a cada 500ms** (batida).
+  - Broadcast `action_roqueiro_bateria` (x, y) a cada batida → repete efeito visual e sonoro.
+  - **Cancelamento** se: jogador se mover (>1px), morrer, ou ao fim do tempo — com broadcast `action_roqueiro_bateria_end`.
+  - Limpeza do canal no `respawn` e no `close` (desconexão).
+- **Cliente (`index.html`):**
+  - `usarBateriaRoqueiro()` mantém `roqueiroBateriaLigada` por 5s e bloqueia reuso enquanto canaliza.
+  - Movimento travado durante o canal (joystick e autofarm).
+  - Som/efeito de batida se repetem a cada `action_roqueiro_bateria`.
+  - Flag limpa via `action_roqueiro_bateria_end` e no `renascer()`.
+
+**Arquivos alterados:** `server.js`, `index.html`
+
+---
+
+### v1.1.0 — Correção 2: Classe Roqueiro integrada
+**Data:** 2026-09-12
+
+Classe 🎸 **Roqueiro** integrada por completo (antes existia como arquivos soltos não conectados).
+
+- **Cliente:**
+  - Card da classe na tela de seleção (`index.html`).
+  - 3 habilidades no HUD: 🥁 Bateria, 🌠 Stage Dive (teletransporte com mira em 2 toques, 160px, CD 8s), 🎸 Chamar a Banda (3 membros, CD 15s).
+  - Novos arquivos seguindo o padrão do jogo: `classes/roqueiro.js` (renderização) e `efeitos/roqueiro_efeitos.js` (efeitos visuais), carregados no `index.html`.
+  - Ataque básico = Riff de guitarra (projétil laranja).
+- **Servidor (`server.js`):**
+  - `ataque_roqueiro` (projétil `riff`, 15 de dano).
+  - `roqueiro_bateria` (30 AoE raio 110 + stun) — na época golpe único (depois virou canal na v1.1.1).
+  - `roqueiro_teleporte` (clamp 20..WORLD-40).
+  - `roqueiro_banda` (3 membros perseguem e atacam, 10 de dano), enviados como `bandas` no `world_update`.
+  - Renderização da banda movida para `desenharBandaRoqueiro()` no loop (sem duplicar).
+- **CSS:** botões do Roqueiro em `style.css` (#d35400 / #e67e22).
+
+**Arquivos alterados/criados:** `index.html`, `server.js`, `style.css`, `classes/roqueiro.js` (novo), `efeitos/roqueiro_efeitos.js` (novo)
+
+---
+
+### v1.0.1 — Correção 1: Anti-cheat server-side
+**Data:** 2026-09-11
+
+Eliminado o principal cheat do jogo (bloqueio infinito do Guerreiro aplicado no cliente):
+
+- **Servidor (`server.js`):**
+  - Removido `anular_dano` (nunca mais confiar no cliente).
+  - Todo dano agora passa por `aplicarDanoJogador()` (server-side).
+  - Novo atributo `estamina` (inicia em 100, regenera `+0.75`/tick no loop de 50ms).
+  - Broadcast `action_block` quando o jogador bloqueia de verdade.
+- **Cliente (`index.html`):**
+  - Removido o handler `anular_dano`.
+  - HP no `world_update` passou a seguir o servidor (só mostra flash/dano real).
+  - `action_block` → som de bloqueio + efeito visual "🛡️ BLOCK!".
+
+**Arquivos alterados:** `server.js`, `index.html`
+
+---
+
+## Organização do código
+
+O projeto mantém a arquitetura original de arquivo único. Lógica e UI ficam concentradas em:
+
+| Arquivo | Papel |
+|---|---|
+| `server.js` | Todo o backend: WebSocket, loop de 50ms, handlers de ações, dano, monstros, XP, canais de skill. |
+| `index.html` | Todo o HTML + JavaScript do cliente: HUD, redes, loop de renderização. |
+| `style.css` | Todos os estilos. |
+| `inventario.js` | Lógica do inventário (corpo com slots) e da mochila (abas). Carregado no `index.html`. |
+| `inventario.css` | Estilos do inventário/mochila. Carregado no `index.html`. |
+| `classes/*.js` | Renderização de cada classe (guerreiro, mago, summoner, arqueiro, curandeiro, bárbaro, roqueiro...). Carregados no `index.html`. |
+| `efeitos/*.js` | Efeitos visuais por tema/habilidade. Carregados no `index.html`. |
+| `mapas.js`, `monstros.js`, `efeitos.js`, `classes/comum.js` | Cenário, monstros, efeitos gerais e helpers. |
+| `database.js`, `jogadores.json` | Persistência do progresso (o `rpg_save.db` é órfão e foi mantido por opção do usuário). |
+
+## Como subir para o ar (testes)
+
+- O servidor roda na porta **8080**.
+- Reinício seguro: matar o processo antigo com `kill <pid>` (NUNCA `pkill -f "node server.js"` — esse pattern mata o próprio shell), depois `nohup node server.js > /tmp/opencode/server.log 2>&1 & disown` dentro de `/sdcard/Download/MMORPG`.
+- Conferir com `curl -s -o /dev/null -w "HTTP:%{http_code}\n" http://localhost:8080/` (esperar `HTTP:200`).
