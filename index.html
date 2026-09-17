@@ -189,7 +189,8 @@
         </div>
     </div>
 
-    <div id="trade-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(0,0,0,0.95); border:2px solid #3498db; padding:20px; border-radius:10px; z-index:10000; color:#fff; min-width:450px; display:flex; flex-direction:column; gap:15px;">
+    <!-- trade-modal DEVE iniciar em display:none e só abrir via JS (trade_start) com display:flex -->
+    <div id="trade-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(0,0,0,0.95); border:2px solid #3498db; padding:20px; border-radius:10px; z-index:10000; color:#fff; min-width:min(450px, 92vw); max-width:92vw; max-height:92vh; overflow-y:auto; flex-direction:column; gap:15px; box-sizing:border-box;">
         <h2 style="margin:0; text-align:center; color:#3498db; font-size:18px;">Troca de Itens</h2>
         <div style="display:flex; justify-content:space-between; gap:20px;">
             <div style="flex:1; text-align:center;">

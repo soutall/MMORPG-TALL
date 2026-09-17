@@ -1,144 +1,593 @@
-// classes/summoner.js - Renderização do Summoner e do Ogro Guardião (Pet)
+// classes/summoner.js — Renderização do Summoner e do GOLEM DE PEDRA (pet)
+// ============================================================================
+// v2: visual refeito para casar com a folha de conceito do Summoner
+//     (invocadora de capuz roxo/violeta com acabamento dourado, cabelo claro e
+//     cajado de cristal; Golem de Pedra com olhos azuis e núcleo de cristal).
+//
+// INTERFACES PÚBLICAS IDÊNTICAS (nada fora deste arquivo mudou):
+//     window.desenharLacaio(lacaio)
+//     window.desenharSummoner(x, y, isMoving, angulo, hp, maxHp)
+//     window.enviarAtaqueSummoner(ws)
+// Estado externo lido: window.ctx, window.walkCycle, window.danoFlashTimer;
+//     o lacaio continua usando lacaio.x / y / hp / maxHp / isJumping.
+//
+// NOVO: window.desenharCorpoGolem(x, y, escala) é o desenho do golem sozinho,
+//       compartilhado com a animação de salto (efeitos.js) — antes o salto
+//       redesenhava o ogro à mão (e ia ficar dessincronizado do visual novo).
+// ============================================================================
 
-// Desenho do Ogro Guardião
-window.desenharLacaio = function(lacaio) {
-    if (lacaio.isJumping || !window.ctx) return;
-    let ctx = window.ctx;
+// Paleta do golem: pedra quente + cristal violeta + olhos azuis
+const GOLEM_COR = {
+    pedraClara: '#a2957f',
+    pedraMedia: '#7d7261',
+    pedraEscura: '#514839',
+    pedraSombra: '#3a332a',
+    rachadura: '#2e2820',
+    cristalClaro: '#c9a2ff',
+    cristal: '#9a63e8',
+    cristalEscuro: '#5f2fa8',
+    olho: '#9fe8ff',
+    olhoGlow: '#3fb8f0'
+};
+
+// ---------------------------------------------------------------------------
+// Corpo do Golem de Pedra (referencial local; pé em y+21*escala)
+// ---------------------------------------------------------------------------
+window.desenharCorpoGolem = function (x, y, escala) {
+    const ctx = window.ctx;
+    if (!ctx) return;
+    const e = escala || 1;
+    const t = Date.now() / 1000;
+    const respira = Math.sin(t * 1.6) * 0.6;
+    const pulsoCristal = 0.72 + Math.sin(t * 2.6) * 0.28;
 
     ctx.save();
-    ctx.translate(lacaio.x, lacaio.y);
+    ctx.translate(x, y);
+    ctx.scale(e, e);
 
-    // Sombra do Ogro
-    ctx.fillStyle = "rgba(0,0,0,0.45)";
-    ctx.beginPath();
-    ctx.ellipse(0, 16, 16, 6, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Partículas de energia da invocação orbitando o Ogro
-    let tempo = Date.now() / 200;
-    for (let i = 0; i < 4; i++) {
-        let anguloPart = tempo + (i * Math.PI / 2);
-        let px = Math.cos(anguloPart) * 22;
-        let py = Math.sin(anguloPart) * 14;
-        ctx.fillStyle = "rgba(46, 204, 113, 0.8)";
-        ctx.shadowColor = "#2ecc71";
-        ctx.shadowBlur = 8;
+    // ---------- pedras flutuantes ao redor ----------
+    const shards = [
+        { ang: 0.4, dist: 31, yy: -24, tam: 3.4, fase: 0.0 },
+        { ang: 2.3, dist: 35, yy: -13, tam: 2.6, fase: 1.9 },
+        { ang: 4.1, dist: 30, yy: -28, tam: 2.9, fase: 3.4 },
+        { ang: 5.4, dist: 36, yy: -6, tam: 2.2, fase: 5.1 }
+    ];
+    ctx.fillStyle = GOLEM_COR.pedraMedia;
+    ctx.strokeStyle = GOLEM_COR.pedraSombra;
+    ctx.lineWidth = 0.7;
+    for (let i = 0; i < shards.length; i++) {
+        const s = shards[i];
+        const sx = Math.cos(s.ang + t * 0.35) * s.dist;
+        const sy = s.yy + Math.sin(t * 1.3 + s.fase) * 3;
         ctx.beginPath();
-        ctx.arc(px, py, 3, 0, Math.PI * 2);
+        ctx.moveTo(sx - s.tam, sy + s.tam * 0.6);
+        ctx.lineTo(sx, sy - s.tam);
+        ctx.lineTo(sx + s.tam, sy + s.tam * 0.4);
+        ctx.lineTo(sx + s.tam * 0.2, sy + s.tam);
+        ctx.closePath();
         ctx.fill();
+        ctx.stroke();
     }
 
-    // Pernas robustas do Ogro
-    ctx.fillStyle = "#5d4037";
-    ctx.fillRect(-8, 8, 5, 8);
-    ctx.fillRect(3, 8, 5, 8);
+    ctx.translate(0, respira * 0.5);
 
-    // Tronco pesado
-    ctx.fillStyle = "#784212";
+    // ---------- pernas ----------
+    const gPerna = ctx.createLinearGradient(0, 4, 0, 21);
+    gPerna.addColorStop(0, GOLEM_COR.pedraMedia);
+    gPerna.addColorStop(1, GOLEM_COR.pedraEscura);
+    ctx.fillStyle = gPerna;
+    ctx.strokeStyle = GOLEM_COR.pedraSombra;
+    ctx.lineWidth = 1.0;
+    [[-12], [5]].forEach(function (p) {
+        const px = p[0];
+        ctx.beginPath();
+        ctx.moveTo(px, 4);
+        ctx.lineTo(px + 9, 4);
+        ctx.lineTo(px + 10.5, 18);
+        ctx.lineTo(px + 8, 21);
+        ctx.lineTo(px + 1, 21);
+        ctx.lineTo(px - 1, 17);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    });
+
+    // ---------- braços + punhos ----------
+    [[-15], [15]].forEach(function (lado) {
+        const baseX = lado[0];
+        const s = (baseX < 0) ? -1 : 1;
+        const gBraco = ctx.createLinearGradient(baseX, -18, baseX, 10);
+        gBraco.addColorStop(0, GOLEM_COR.pedraClara);
+        gBraco.addColorStop(0.55, GOLEM_COR.pedraMedia);
+        gBraco.addColorStop(1, GOLEM_COR.pedraEscura);
+        ctx.fillStyle = gBraco;
+        ctx.strokeStyle = GOLEM_COR.pedraSombra;
+        ctx.lineWidth = 1.0;
+        ctx.beginPath();
+        ctx.moveTo(baseX - 5 * s, -19);
+        ctx.lineTo(baseX + 7 * s, -16);
+        ctx.lineTo(baseX + 8 * s, 3);
+        ctx.lineTo(baseX + 6.5 * s, 9);
+        ctx.lineTo(baseX - 1 * s, 10);
+        ctx.lineTo(baseX - 6.5 * s, 6);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = GOLEM_COR.pedraEscura;
+        ctx.beginPath();
+        ctx.ellipse(baseX + 1.5 * s, 10, 6.4, 5.2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.fillStyle = GOLEM_COR.pedraClara;
+        ctx.beginPath();
+        ctx.ellipse(baseX, -18, 7.4, 3.6, 0, Math.PI, Math.PI * 2);
+        ctx.fill();
+    });
+
+    // ---------- tronco ----------
+    const gTronco = ctx.createLinearGradient(-17, -22, 17, 8);
+    gTronco.addColorStop(0, GOLEM_COR.pedraClara);
+    gTronco.addColorStop(0.45, GOLEM_COR.pedraMedia);
+    gTronco.addColorStop(1, GOLEM_COR.pedraEscura);
+    ctx.fillStyle = gTronco;
+    ctx.strokeStyle = GOLEM_COR.pedraSombra;
+    ctx.lineWidth = 1.1;
     ctx.beginPath();
-    ctx.arc(0, 0, 15, 0, Math.PI * 2);
+    ctx.moveTo(-13, -22);
+    ctx.lineTo(0, -25);
+    ctx.lineTo(13, -22);
+    ctx.lineTo(16, -10);
+    ctx.lineTo(14, 3);
+    ctx.lineTo(9, 8);
+    ctx.lineTo(-9, 8);
+    ctx.lineTo(-14, 3);
+    ctx.lineTo(-16, -10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // rachaduras entre as placas de pedra
+    ctx.strokeStyle = GOLEM_COR.rachadura;
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(-11, -14); ctx.lineTo(-2, -16); ctx.lineTo(-4, -5);
+    ctx.moveTo(4, -19); ctx.lineTo(10, -13); ctx.lineTo(5, -7);
+    ctx.moveTo(-8, 2); ctx.lineTo(0, 0); ctx.lineTo(7, 3);
+    ctx.stroke();
+
+    // ---------- NÚCLEO DE CRISTAL no peito ----------
+    ctx.save();
+    ctx.shadowColor = GOLEM_COR.cristal;
+    ctx.shadowBlur = 14 * pulsoCristal;
+    const gCristal = ctx.createLinearGradient(0, -13, 0, 1);
+    gCristal.addColorStop(0, GOLEM_COR.cristalClaro);
+    gCristal.addColorStop(0.5, GOLEM_COR.cristal);
+    gCristal.addColorStop(1, GOLEM_COR.cristalEscuro);
+    ctx.fillStyle = gCristal;
+    ctx.beginPath();
+    ctx.moveTo(0, -13.5);
+    ctx.lineTo(6.2, -6);
+    ctx.lineTo(0, 1.5);
+    ctx.lineTo(-6.2, -6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,0.42)';
+    ctx.beginPath();
+    ctx.moveTo(0, -12.2); ctx.lineTo(2.8, -6); ctx.lineTo(0, -0.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(30,0,60,0.30)';
+    ctx.beginPath();
+    ctx.moveTo(0, -12.2); ctx.lineTo(-2.8, -6); ctx.lineTo(0, -0.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,' + pulsoCristal.toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.ellipse(0, -6, 1.5, 2.2, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Braços grossos
-    ctx.fillStyle = "#6e2c00";
-    ctx.fillRect(-18, -4, 6, 12);
-    ctx.fillRect(12, -4, 6, 12);
-
-    // Protetores de ombro de ferro
-    ctx.fillStyle = "#566573";
-    ctx.fillRect(-16, -9, 9, 6);
-    ctx.fillRect(7, -9, 9, 6);
-
-    // Cabeça
-    ctx.fillStyle = "#5d4037";
+    // ---------- cabeça ----------
+    const gCabeca = ctx.createLinearGradient(-10, -36, 10, -22);
+    gCabeca.addColorStop(0, GOLEM_COR.pedraClara);
+    gCabeca.addColorStop(0.5, GOLEM_COR.pedraMedia);
+    gCabeca.addColorStop(1, GOLEM_COR.pedraEscura);
+    ctx.fillStyle = gCabeca;
+    ctx.strokeStyle = GOLEM_COR.pedraSombra;
+    ctx.lineWidth = 1.1;
     ctx.beginPath();
-    ctx.arc(0, -12, 10, 0, Math.PI * 2);
+    ctx.moveTo(-9, -23);
+    ctx.lineTo(-8, -32);
+    ctx.lineTo(-3, -36);
+    ctx.lineTo(4, -36);
+    ctx.lineTo(9, -31);
+    ctx.lineTo(9, -23);
+    ctx.lineTo(4, -20.5);
+    ctx.lineTo(-4, -20.5);
+    ctx.closePath();
     ctx.fill();
+    ctx.stroke();
+    ctx.strokeStyle = GOLEM_COR.rachadura;
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(-2, -35); ctx.lineTo(-4, -30); ctx.lineTo(0, -28);
+    ctx.stroke();
 
-    // Olhos brilhantes do guardião
-    ctx.fillStyle = "#f1c40f";
-    ctx.fillRect(-4, -14, 3, 3);
-    ctx.fillRect(2, -14, 3, 3);
-
+    // ---------- olhos azuis brilhantes ----------
+    ctx.save();
+    ctx.shadowColor = GOLEM_COR.olhoGlow;
+    ctx.shadowBlur = 8 * pulsoCristal;
+    ctx.fillStyle = 'rgba(190,245,255,' + pulsoCristal.toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.ellipse(-4.4, -28, 2.4, 1.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(4.4, -28, 2.4, 1.5, 0, 0, Math.PI * 2);
+    ctx.fill();
     ctx.restore();
 
-    // Barra de Vida do Ogro
+    ctx.restore();
+};
+
+// ---------------------------------------------------------------------------
+// Pet: Golem de Pedra (sombra + corpo + aura + barra de vida)
+// ---------------------------------------------------------------------------
+window.desenharLacaio = function (lacaio) {
+    if (lacaio.isJumping || !window.ctx) return;
+    const ctx = window.ctx;
+
+    const gSombra = ctx.createRadialGradient(lacaio.x, lacaio.y + 21, 1, lacaio.x, lacaio.y + 21, 27);
+    gSombra.addColorStop(0, 'rgba(6,4,10,0.55)');
+    gSombra.addColorStop(0.7, 'rgba(6,4,10,0.30)');
+    gSombra.addColorStop(1, 'rgba(6,4,10,0)');
+    ctx.fillStyle = gSombra;
+    ctx.beginPath();
+    ctx.ellipse(lacaio.x, lacaio.y + 21, 27, 9.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    window.desenharCorpoGolem(lacaio.x, lacaio.y, 1);
+
+    // energia de invocação subindo pelas pernas
+    const t = Date.now() / 1000;
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = 0; i < 4; i++) {
+        const a = t * 0.9 + i * (Math.PI * 2 / 4);
+        const px = lacaio.x + Math.cos(a) * 25;
+        const py = lacaio.y + 20 + Math.sin(a) * 7 - ((t * 26 + i * 30) % 60) * 0.5;
+        ctx.fillStyle = 'rgba(154,99,232,0.55)';
+        ctx.beginPath();
+        ctx.ellipse(px, py, 2.1, 3.0, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+
     if (typeof window.desenharBarraHp === "function") {
-        window.desenharBarraHp(lacaio.x - 18, lacaio.y - 22, lacaio.hp, lacaio.maxHp);
+        window.desenharBarraHp(lacaio.x - 18, lacaio.y - 36, lacaio.hp, lacaio.maxHp);
     }
 };
 
-// Desenho do Summoner (Personagem)
-window.desenharSummoner = function(x, y, isMoving, angulo, hp, maxHp) {
+// ---------------------------------------------------------------------------
+// Summoner (personagem) — invocadora de capuz com cajado de cristal
+// ---------------------------------------------------------------------------
+window.desenharSummoner = function (x, y, isMoving, angulo, hp, maxHp) {
     if (hp <= 0 || !window.ctx) return;
-    let ctx = window.ctx;
+    const ctx = window.ctx;
+
+    const t = Date.now() / 1000;
+    const ciclo = window.walkCycle || 0;
+    const passo = isMoving ? Math.sin(ciclo) : 0;
+    const sobe = isMoving ? Math.abs(Math.sin(ciclo)) * 1.2
+                          : Math.sin(t * 2.0) * 0.45 + 0.45;
+    const ang = angulo || 0;
+    const dano = (window.danoFlashTimer || 0) > 0;
+    const cor = (normal, flash) => (dano ? flash : normal);
+
+    const CAPA_TOPO   = cor('#7b57b5', '#ff8f7d');
+    const CAPA_MEIO   = cor('#553a86', '#e74c3c');
+    const CAPA_BASE   = cor('#2f1f4d', '#a93226');
+    const CAPUZ_TOPO  = cor('#6b4a9e', '#e04b3a');
+    const CAPUZ_BASE  = cor('#2a1a45', '#8e2a1f');
+    const OURO        = cor('#e5c15c', '#ffe08a');
+    const OURO_ESCURO = cor('#a8862c', '#c9a227');
+    const CABELO      = cor('#e9e2f5', '#ffd9d0');
+    const PELE        = cor('#f2d6bd', '#ffb3a7');
+    const CONTORNO    = 'rgba(14,8,24,0.85)';
 
     ctx.save();
     ctx.translate(x, y);
 
-    // Sombra
-    ctx.fillStyle = "rgba(0,0,0,0.4)";
+    // ---------- aura de invocação no chão ----------
+    const pulsoAura = 1 + Math.sin(t * 2.3) * 0.07;
+    const gAura = ctx.createRadialGradient(12, 31.0, 0.5, 12, 31.0, 10.4);
+    gAura.addColorStop(0, 'rgba(122,84,208,0.30)');
+    gAura.addColorStop(0.55, 'rgba(85,58,134,0.12)');
+    gAura.addColorStop(1, 'rgba(47,31,77,0)');
+    ctx.fillStyle = gAura;
     ctx.beginPath();
-    ctx.ellipse(12, 32, 9, 3, 0, 0, Math.PI * 2);
+    ctx.ellipse(12, 31.0, 10.4 * pulsoAura, 3.7 * pulsoAura, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // Pernas
-    let legOffset = isMoving ? Math.sin(window.walkCycle || 0) * 3 : 0;
-    ctx.fillStyle = "#145a32";
-    ctx.fillRect(7, 25, 3, 6 + legOffset);
-    ctx.fillRect(14, 25, 3, 6 - legOffset);
-    
-    // Túnica do Invocador
-    let corTunica = ((window.danoFlashTimer || 0) > 0) ? "#e74c3c" : "#196f3d"; 
-    ctx.fillStyle = corTunica;
+    // ---------- sombra ----------
+    const gSombra = ctx.createRadialGradient(12, 32.3, 0.5, 12, 32.3, 10.2);
+    gSombra.addColorStop(0, 'rgba(8,4,16,0.58)');
+    gSombra.addColorStop(0.7, 'rgba(8,4,16,0.32)');
+    gSombra.addColorStop(1, 'rgba(8,4,16,0)');
+    ctx.fillStyle = gSombra;
     ctx.beginPath();
-    ctx.moveTo(6, 10);
-    ctx.lineTo(18, 10);
-    ctx.lineTo(22, 28);
-    ctx.lineTo(2, 28);
+    ctx.ellipse(12, 32.3, 10.2, 3.3, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ---------- botas ----------
+    ctx.fillStyle = cor('#241a33', '#6b1f16');
+    ctx.beginPath();
+    ctx.ellipse(9.3, 30.8 + passo * 1.0, 3.0, 1.9, 0, 0, Math.PI * 2);
+    ctx.ellipse(14.7, 30.8 - passo * 1.0, 3.0, 1.9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ---------- corpo (respira) ----------
+    ctx.save();
+    ctx.translate(0, -sobe * 0.55);
+
+    // vestido inferior (aparece pela abertura da capa)
+    const gVestido = ctx.createLinearGradient(0, 14, 0, 31);
+    gVestido.addColorStop(0, cor('#5a6fc4', '#e05b48'));
+    gVestido.addColorStop(1, cor('#26305e', '#7b2318'));
+    ctx.fillStyle = gVestido;
+    ctx.beginPath();
+    ctx.moveTo(9.0, 15.0);
+    ctx.quadraticCurveTo(7.6, 24.0, 7.2, 30.0);
+    ctx.quadraticCurveTo(12.0, 31.4, 16.8, 30.0);
+    ctx.quadraticCurveTo(16.4, 24.0, 15.0, 15.0);
     ctx.closePath();
     ctx.fill();
 
-    // Detalhe místico
-    ctx.fillStyle = "#f1c40f";
-    ctx.fillRect(11, 12, 2, 16);
-
-    // Capuz florestal
-    ctx.fillStyle = "#145a32";
+    // capa externa
+    const gCapa = ctx.createLinearGradient(0, 10, 0, 31.5);
+    gCapa.addColorStop(0, CAPA_TOPO);
+    gCapa.addColorStop(0.45, CAPA_MEIO);
+    gCapa.addColorStop(1, CAPA_BASE);
+    ctx.fillStyle = gCapa;
     ctx.beginPath();
-    ctx.moveTo(12, 0);
-    ctx.lineTo(20, 12);
-    ctx.lineTo(4, 12);
+    ctx.moveTo(7.0, 12.0);
+    ctx.quadraticCurveTo(4.0, 20.0, 2.8 + passo * 0.7, 30.4);
+    ctx.quadraticCurveTo(12.0, 33.1, 21.2 - passo * 0.7, 30.4);
+    ctx.quadraticCurveTo(20.0, 20.0, 17.0, 12.0);
+    ctx.quadraticCurveTo(12.0, 9.2, 7.0, 12.0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = CONTORNO;
+    ctx.lineWidth = 0.9;
+    ctx.stroke();
+
+    // abertura frontal
+    ctx.fillStyle = cor('#233060', '#7b2318');
+    ctx.beginPath();
+    ctx.moveTo(10.2, 13.6);
+    ctx.quadraticCurveTo(9.4, 22.0, 9.6, 29.4);
+    ctx.quadraticCurveTo(12.0, 30.2, 14.4, 29.4);
+    ctx.quadraticCurveTo(14.6, 22.0, 13.8, 13.6);
     ctx.closePath();
     ctx.fill();
 
-    // Rosto e olhos esmeralda
-    ctx.fillStyle = "#111";
-    ctx.fillRect(8, 7, 8, 4);
-    ctx.fillStyle = "#2ecc71";
-    ctx.fillRect(9, 8, 2, 2);
-    ctx.fillRect(13, 8, 2, 2);
-    
-    // Orbe de invocação levitando
+    // dobras
+    ctx.strokeStyle = 'rgba(26,12,44,0.55)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(6.6, 16.0); ctx.quadraticCurveTo(5.2, 23.0, 5.8, 29.0);
+    ctx.moveTo(17.4, 16.0); ctx.quadraticCurveTo(18.8, 23.0, 18.2, 29.0);
+    ctx.stroke();
+
+    // barra da capa + filete dourado
+    ctx.strokeStyle = cor('#1e1230', '#8e2a1f');
+    ctx.lineWidth = 2.0;
+    ctx.beginPath();
+    ctx.moveTo(3.3, 29.9); ctx.quadraticCurveTo(12.0, 32.5, 20.7, 29.9);
+    ctx.stroke();
+    ctx.strokeStyle = OURO;
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(3.7, 28.8); ctx.quadraticCurveTo(12.0, 31.2, 20.3, 28.8);
+    ctx.stroke();
+
+    // acabamento dourado nas laterais (assinatura da folha de conceito)
+    ctx.beginPath();
+    ctx.moveTo(7.2, 12.4); ctx.quadraticCurveTo(4.4, 20.0, 3.3, 29.2);
+    ctx.moveTo(16.8, 12.4); ctx.quadraticCurveTo(19.6, 20.0, 20.7, 29.2);
+    ctx.stroke();
+    // luz de borda (sol de noroeste)
+    ctx.strokeStyle = 'rgba(226,200,255,0.30)';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(7.4, 12.8); ctx.quadraticCurveTo(5.0, 20.0, 3.9, 28.8);
+    ctx.stroke();
+
+    // cinto + fecho dourado
+    ctx.fillStyle = cor('#2b1c46', '#8e2a1f');
+    ctx.beginPath();
+    ctx.moveTo(7.6, 18.6); ctx.quadraticCurveTo(12.0, 19.8, 16.4, 18.6);
+    ctx.lineTo(16.7, 20.9); ctx.quadraticCurveTo(12.0, 22.1, 7.3, 20.9);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = OURO;
+    ctx.beginPath();
+    ctx.ellipse(12.0, 20.2, 1.5, 1.1, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ---------- mangas (a direita acompanha o cajado) ----------
+    const DESLOC_CAJADO = 14.0, PEGADA = 5.0;
+    const maoX = 12.0 + Math.cos(ang) * DESLOC_CAJADO - Math.sin(ang) * PEGADA;
+    const maoY = 16.0 + Math.sin(ang) * DESLOC_CAJADO + Math.cos(ang) * PEGADA;
+
+    ctx.fillStyle = CAPA_MEIO;
+    ctx.strokeStyle = CONTORNO;
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(7.0, 12.4);
+    ctx.quadraticCurveTo(3.8, 16.8, 4.7, 21.0);
+    ctx.quadraticCurveTo(7.0, 22.2, 7.8, 19.8);
+    ctx.quadraticCurveTo(6.9, 16.2, 8.9, 13.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(16.6, 12.4);
+    ctx.quadraticCurveTo(maoX + 2.2, maoY - 4.6, maoX + 1.2, maoY - 0.8);
+    ctx.quadraticCurveTo(maoX - 2.6, maoY + 1.4, maoX - 3.2, maoY - 1.8);
+    ctx.quadraticCurveTo(14.0, 14.2, 14.6, 12.6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore(); // fim do "respirar"
+
+    // ---------- capuz ----------
+    const gCapuz = ctx.createLinearGradient(0, 4.4, 0, 13.6);
+    gCapuz.addColorStop(0, CAPUZ_TOPO);
+    gCapuz.addColorStop(1, CAPUZ_BASE);
+    ctx.fillStyle = gCapuz;
+    ctx.beginPath();
+    ctx.moveTo(6.8, 12.4);
+    ctx.quadraticCurveTo(5.9, 5.2, 12.0, 4.8);
+    ctx.quadraticCurveTo(18.1, 5.2, 17.2, 12.4);
+    ctx.quadraticCurveTo(12.0, 14.6, 6.8, 12.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = CONTORNO;
+    ctx.lineWidth = 0.9;
+    ctx.stroke();
+
+    // rosto
+    ctx.fillStyle = PELE;
+    ctx.beginPath();
+    ctx.ellipse(12.0, 9.9, 3.3, 3.0, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // cabelo claro emoldurando o rosto
+    ctx.fillStyle = CABELO;
+    ctx.beginPath();
+    ctx.moveTo(8.4, 11.4);
+    ctx.quadraticCurveTo(8.0, 6.6, 12.0, 6.4);
+    ctx.quadraticCurveTo(16.0, 6.6, 15.6, 11.4);
+    ctx.quadraticCurveTo(14.6, 8.6, 12.0, 8.5);
+    ctx.quadraticCurveTo(9.4, 8.6, 8.4, 11.4);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(8.5, 10.0);
+    ctx.quadraticCurveTo(7.2, 13.4, 7.8, 15.6);
+    ctx.quadraticCurveTo(9.0, 14.4, 9.3, 11.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(15.5, 10.0);
+    ctx.quadraticCurveTo(16.8, 13.4, 16.2, 15.6);
+    ctx.quadraticCurveTo(15.0, 14.4, 14.7, 11.2);
+    ctx.closePath();
+    ctx.fill();
+
+    // olhos (traço delicado — é uma humana, não um ser mágico)
+    ctx.fillStyle = cor('#3a2a52', '#5a1f14');
+    ctx.beginPath();
+    ctx.ellipse(10.5, 10.2, 0.75, 1.0, 0, 0, Math.PI * 2);
+    ctx.ellipse(13.5, 10.2, 0.75, 1.0, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // ---------- cajado de invocação (mesmo mecanismo de mira) ----------
     ctx.save();
     ctx.translate(12, 16);
-    ctx.rotate(angulo);
-    ctx.translate(18, 0);
+    ctx.rotate(ang);
+    ctx.translate(DESLOC_CAJADO, 0);
 
-    let t = Date.now() / 200;
-    let hoverY = Math.sin(t) * 3;
-
-    ctx.fillStyle = "#27ae60";
-    ctx.shadowColor = "#00ff00";
-    ctx.shadowBlur = 14;
+    const gHaste = ctx.createLinearGradient(-1.6, 0, 1.4, 0);
+    gHaste.addColorStop(0, cor('#8a7f8e', '#c98d7d'));
+    gHaste.addColorStop(0.45, cor('#5f5468', '#a9614f'));
+    gHaste.addColorStop(1, cor('#332b3a', '#6b2f24'));
+    ctx.fillStyle = gHaste;
     ctx.beginPath();
-    ctx.arc(0, hoverY, 7, 0, Math.PI * 2);
+    ctx.moveTo(-1.3, -12.0);
+    ctx.quadraticCurveTo(-1.8, 0.5, -1.2, 12.8);
+    ctx.quadraticCurveTo(0, 14.1, 1.2, 12.8);
+    ctx.quadraticCurveTo(1.8, 0.5, 1.3, -12.0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(20,12,26,0.75)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    ctx.fillStyle = OURO;
+    ctx.fillRect(-1.8, -2.4, 3.6, 1.3);
+    ctx.fillStyle = OURO_ESCURO;
+    ctx.fillRect(-1.8, 2.0, 3.6, 1.1);
+
+    // gavinhas douradas
+    ctx.strokeStyle = OURO;
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-1.2, -11.8); ctx.quadraticCurveTo(-4.6, -14.6, -2.8, -17.4);
+    ctx.moveTo(1.2, -11.8);  ctx.quadraticCurveTo(4.6, -14.6, 2.8, -17.4);
+    ctx.stroke();
+
+    // CRISTAL
+    const pulsoCristal = 0.74 + Math.sin(t * 2.8) * 0.26;
+    ctx.save();
+    ctx.shadowColor = '#a86fe0';
+    ctx.shadowBlur = 13 * pulsoCristal;
+    const gCristal = ctx.createLinearGradient(0, -21.5, 0, -11.0);
+    gCristal.addColorStop(0, '#d7b8ff');
+    gCristal.addColorStop(0.45, '#a86fe0');
+    gCristal.addColorStop(1, '#5f2fa8');
+    ctx.fillStyle = gCristal;
+    ctx.beginPath();
+    ctx.moveTo(0, -21.8);
+    ctx.lineTo(3.6, -16.0);
+    ctx.lineTo(0, -10.6);
+    ctx.lineTo(-3.6, -16.0);
+    ctx.closePath();
     ctx.fill();
     ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.beginPath();
+    ctx.moveTo(0, -20.8); ctx.lineTo(1.7, -16.0); ctx.lineTo(0, -11.6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(40,0,70,0.30)';
+    ctx.beginPath();
+    ctx.moveTo(0, -20.8); ctx.lineTo(-1.7, -16.0); ctx.lineTo(0, -11.6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,' + pulsoCristal.toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.ellipse(0, -16.0, 1.0, 1.5, 0, 0, Math.PI * 2);
+    ctx.fill();
 
+    // lascas de cristal orbitando a ponta
+    ctx.save();
+    ctx.shadowColor = '#a86fe0';
+    ctx.shadowBlur = 6;
+    for (let i = 0; i < 3; i++) {
+        const a = t * 1.5 + i * (Math.PI * 2 / 3);
+        const sx = Math.cos(a) * 5.4;
+        const sy = -16.0 + Math.sin(a) * 2.4;
+        const br = 0.30 + 0.70 * Math.abs(Math.sin(a * 0.5 + t * 1.2));
+        ctx.fillStyle = 'rgba(215,184,255,' + br.toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.ellipse(sx, sy, 0.9, 1.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
     ctx.restore();
 
-    // Barra de Vida
+    // mão (depois da haste, para parecer que agarra)
+    ctx.fillStyle = PELE;
+    ctx.strokeStyle = 'rgba(70,45,30,0.5)';
+    ctx.lineWidth = 0.6;
+    ctx.beginPath();
+    ctx.ellipse(0, PEGADA, 1.9, 1.7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore(); // fim do cajado
+    ctx.restore(); // fim do translate do personagem
+
+    // Barra de Vida (posição idêntica à v1)
     if (typeof window.desenharBarraHp === "function") {
         window.desenharBarraHp(x - 3, y - 8, hp, maxHp);
     }

@@ -305,19 +305,33 @@
         return grid[l][c];
     }
 
-    function colideCidade(x, y, raio) {
-        if (!grid) gerarCidade();
-        if (!isCidade(x, y)) return false;
-        const r = (typeof raio === 'number') ? raio : 8;
-        const amostras = [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r]];
-        for (let i = 0; i < amostras.length; i++) {
-            const pc = Math.floor((x + amostras[i][0] - CID_X0) / TILE);
-            const pl = Math.floor((y + amostras[i][1]) / TILE);
-            if (pc < 0 || pc >= COLS || pl < 0 || pl >= ROWS) return true;
-            if (grid[pl][pc].alt >= ALT_PEQUENA) return true;
-        }
-        return false;
-    }
+     function colideCidade(x, y, raio) {
+         if (!grid) gerarCidade();
+         if (!isCidade(x, y)) return false;
+         const r = (typeof raio === 'number') ? raio : 8;
+         
+         // ========== COLISÃO NOS CANTOS DA CIDADE ==========
+         // Canto superior esquerdo (x: 59800-59900, y: 0-100)
+         if (x >= CID_X0 && x < CID_X0 + 100 && y >= 0 && y < 100) return true;
+         
+         // Canto superior direito (x: 63700-63800, y: 0-100)
+         if (x > CID_X1 - 100 && x <= CID_X1 && y >= 0 && y < 100) return true;
+         
+         // Canto inferior esquerdo (x: 59800-59900, y: 2900-3000)
+         if (x >= CID_X0 && x < CID_X0 + 100 && y > 2900 && y <= 3000) return true;
+         
+         // Canto inferior direito (x: 63700-63800, y: 2900-3000)
+         if (x > CID_X1 - 100 && x <= CID_X1 && y > 2900 && y <= 3000) return true;
+         
+         const amostras = [[0, 0], [r, 0], [-r, 0], [0, r], [0, -r]];
+         for (let i = 0; i < amostras.length; i++) {
+             const pc = Math.floor((x + amostras[i][0] - CID_X0) / TILE);
+             const pl = Math.floor((y + amostras[i][1]) / TILE);
+             if (pc < 0 || pc >= COLS || pl < 0 || pl >= ROWS) return true;
+             if (grid[pl][pc].alt >= ALT_PEQUENA) return true;
+         }
+         return false;
+     }
 
     function colideProjetilCidade(x, y) {
         if (!grid) gerarCidade();
@@ -431,27 +445,36 @@
     const SUN_DX = 28;
     const SUN_DY = 34;
 
-    function desenharCenarioCidade(t) {
-        const ctx = global.ctx;
-        if (!ctx) return;
+     function desenharCenarioCidade(t) {
+         const ctx = global.ctx;
+         if (!ctx) return;
 
-        let camX = global.camX || 0;
-        let camY = global.camY || 0;
-        let cw = (global.canvas && global.canvas.width) || (global.innerWidth || 800);
-        let ch = (global.canvas && global.canvas.height) || (global.innerHeight || 600);
-        cw = cw / (global.ZOOM_CAMERA || 1);
-        ch = ch / (global.ZOOM_CAMERA || 1);
+         let camX = global.camX || 0;
+         let camY = global.camY || 0;
+         let cw = (global.canvas && global.canvas.width) || (global.innerWidth || 800);
+         let ch = (global.canvas && global.canvas.height) || (global.innerHeight || 600);
+         cw = cw / (global.ZOOM_CAMERA || 1);
+         ch = ch / (global.ZOOM_CAMERA || 1);
 
-        if (!grid) gerarCidade();
+         if (!grid) gerarCidade();
 
-        let c0 = Math.max(0, Math.floor((camX - CID_X0 - 240) / TILE));
-        let c1 = Math.min(COLS - 1, Math.ceil((camX - CID_X0 + cw + 240) / TILE));
-        let l0 = Math.max(0, Math.floor((camY - 240) / TILE));
-        let l1 = Math.min(ROWS - 1, Math.ceil((camY + ch + 240) / TILE));
+         // ========== DESENHAR FUNDO: IMAGEM cidade.png ==========
+         if (!global._cidadeImagem) {
+             global._cidadeImagem = new Image();
+             global._cidadeImagem.src = 'sprites/cidade.png';
+         }
+         
+         if (global._cidadeImagem && global._cidadeImagem.complete && global._cidadeImagem.width > 0) {
+             // Desenhar a imagem como fundo (4000x3000 px = cidade inteira)
+             ctx.drawImage(global._cidadeImagem, CID_X0, 0, 4000, 3000);
+         }
 
-        // 1. Fundo terroso escuro de fundação
-        ctx.fillStyle = '#1c1a17';
-        ctx.fillRect(camX - 20, camY - 20, cw + 40, ch + 40);
+         let c0 = Math.max(0, Math.floor((camX - CID_X0 - 240) / TILE));
+         let c1 = Math.min(COLS - 1, Math.ceil((camX - CID_X0 + cw + 240) / TILE));
+         let l0 = Math.max(0, Math.floor((camY - 240) / TILE));
+         let l1 = Math.min(ROWS - 1, Math.ceil((camY + ch + 240) / TILE));
+
+         // Fundo já foi desenhado pela imagem cidade.png acima
 
         // 2. Calçamento procedural hiper-realista e relevo de solo
         for (let l = l0; l <= l1; l++) {
@@ -882,67 +905,283 @@
     }
 
     // ---------- Portal de Viagem Interdimensional ----------
+    // Visual arcano 2.5D (v2): aro de bronze gravado com runas + vortice em
+    // perspectiva com poco profundo e borda luminosa + bracos de energia
+    // contra-rotativos + faiscas ascendentes + coluna de luz.
+    // Tudo em elipse (RX/RY) porque o portal esta DEITADO no chao: circulo
+    // perfeito lia como bola azul chapada. Sem shadowBlur de proposito (e' o
+    // efeito mais caro do canvas2d em celular) — o brilho vem de gradientes
+    // radiais e de globalCompositeOperation = 'lighter'.
+    const RUNAS = [
+        [[0, -0.5], [0.30, -0.18], [0, 0.16], [0.30, 0.5]],
+        [[-0.30, -0.5], [0, -0.10], [0.30, -0.5]],
+        [[0, -0.5], [0, 0.5]],
+        [[-0.28, -0.28], [0.28, 0.28], [-0.28, 0.3], [0.28, -0.3]],
+        [[-0.28, -0.5], [-0.28, 0.5], [0.28, 0.5]],
+        [[0.28, -0.5], [-0.28, 0], [0.28, 0.5]],
+        [[-0.28, -0.5], [0.28, -0.5], [0.28, 0], [-0.28, 0], [-0.28, 0.5], [0.28, 0.5]],
+        [[0, -0.5], [-0.28, 0.05], [0, 0.5], [0.28, 0.05]]
+    ];
+
     function desenharPortalViagem(ctx, t, camX, camY, cw, ch) {
         const px = PORTAL_MAPAS.x, py = PORTAL_MAPAS.y, r = PORTAL_MAPAS.r;
-        if (px + r + 50 < camX || px - r - 50 > camX + cw || py + r + 50 < camY || py - r - 50 > camY + ch) return;
+        const margem = 150;
+        if (px + r + margem < camX || px - r - margem > camX + cw ||
+            py + r + margem < camY || py - r - margem > camY + ch) return;
 
-        const pulsar = 1 + Math.sin(t * 3.2) * 0.14;
-        const R = r * pulsar + 6;
+        const RX = r * 1.10;                 // raio horizontal (plano do solo)
+        const RY = RX * 0.58;                // raio vertical (perspectiva 2.5D)
+        const respira = 1 + Math.sin(t * 2.1) * 0.035;
+        const giroLento = t * 0.50;          // aro + runas
+        const giroRapido = -t * 1.15;        // bracos de energia
 
         ctx.save();
-        // Sombra / vórtice no solo
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+        ctx.textAlign = 'center';
+
+        // ===== 1. Luz derramada no calcamento (aditivo) =====
+        ctx.globalCompositeOperation = 'lighter';
+        const gLuz = ctx.createRadialGradient(px, py, 2, px, py, RX * 1.85);
+        gLuz.addColorStop(0, 'rgba(64, 205, 255, 0.30)');
+        gLuz.addColorStop(0.42, 'rgba(28, 118, 218, 0.13)');
+        gLuz.addColorStop(1, 'rgba(10, 40, 90, 0)');
+        ctx.fillStyle = gLuz;
         ctx.beginPath();
-        ctx.ellipse(px, py + 12, R * 1.15, R * 0.55, 0, 0, Math.PI * 2);
+        ctx.ellipse(px, py, RX * 1.85, RY * 2.30, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+
+        // ===== 2. Coluna de luz erguendo-se do portal =====
+        // Gradiente LINEAR vertical (o radial apagava o feixe: o raio do gradiente
+        // e' menor que a altura da coluna, entao o topo caia no stop transparente).
+        ctx.globalCompositeOperation = 'lighter';
+        const gFeixe = ctx.createLinearGradient(px, py - RY * 0.10, px, py - RY * 3.00);
+        gFeixe.addColorStop(0, 'rgba(168, 244, 255, 0.40)');
+        gFeixe.addColorStop(0.28, 'rgba(100, 200, 252, 0.20)');
+        gFeixe.addColorStop(0.62, 'rgba(54, 142, 222, 0.08)');
+        gFeixe.addColorStop(1, 'rgba(30, 80, 170, 0)');
+        // Um unico trapezio com gradiente vertical dava borda reta dura nas laterais
+        // (o gradiente so suaviza em Y). Solucao: 6 trapezios ENCAIXADOS, cada vez
+        // mais estreitos, desenhados em 'lighter' — o miolo recebe a soma de todos
+        // e as laterais so o mais largo, criando a queda suave de luz na horizontal.
+        // O alfa CRESCE para dentro (soma ~1,0): a faixa mais externa e' quase
+        // invisivel — degrau de borda de ~2 unidades de cor, imperceptivel — e o
+        // miolo soma todas. Da' a queda de luz suave sem o degrau reto que aparecia
+        // com alfa constante em todas as faixas.
+        const FAIXAS = 12;
+        for (let i = 0; i < FAIXAS; i++) {
+            const esc = 1 - i * 0.075;
+            ctx.globalAlpha = 0.017 + i * 0.012;
+            ctx.fillStyle = gFeixe;
+            ctx.beginPath();
+            ctx.moveTo(px - RX * 0.78 * esc, py - RY * 0.10);
+            ctx.lineTo(px - RX * 0.32 * esc, py - RY * 3.00);
+            ctx.lineTo(px + RX * 0.32 * esc, py - RY * 3.00);
+            ctx.lineTo(px + RX * 0.78 * esc, py - RY * 0.10);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.globalAlpha = 1;
+        ctx.globalCompositeOperation = 'source-over';
+
+        // ===== 3. Cava escura no solo (o portal abre um buraco) =====
+        const gCava = ctx.createRadialGradient(px, py + RY * 0.1, 1, px, py, RX * 1.20);
+        gCava.addColorStop(0, 'rgba(3, 6, 12, 0.85)');
+        gCava.addColorStop(0.7, 'rgba(4, 9, 18, 0.55)');
+        gCava.addColorStop(1, 'rgba(6, 12, 22, 0)');
+        ctx.fillStyle = gCava;
+        ctx.beginPath();
+        ctx.ellipse(px, py + 3, RX * 1.20, RY * 1.28, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Anel arcano exterior com runas
-        ctx.strokeStyle = '#00e5ff';
-        ctx.lineWidth = 3.5;
-        ctx.shadowColor = '#00e5ff';
-        ctx.shadowBlur = 22;
+        // ===== 4. Aro de bronze gravado =====
+        // Banda larga de pedra/bronze escuro + bisel (linha clara por fora, sombra
+        // por dentro) + sombreamento direcional: o sol da cidade vem de noroeste,
+        // entao a metade de CIMA do aro pega luz e a de baixo fica na sombra.
+        // 4a. Face lateral do aro: a mesma elipse 4,5px abaixo, escura. O que sobra
+        // aparecendo embaixo da banda vira a ALTURA do aro (ele deixa de ser um
+        // aro chapado no chao e passa a ter espessura).
+        ctx.lineWidth = 9.5;
+        ctx.strokeStyle = '#100c07';
         ctx.beginPath();
-        ctx.arc(px, py, R, 0, Math.PI * 2);
+        ctx.ellipse(px, py + 4.5, RX * respira, RY * respira, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        // 4b. Banda principal
+        ctx.lineWidth = 9.5;
+        ctx.strokeStyle = '#1d1610';
+        ctx.beginPath();
+        ctx.ellipse(px, py, RX * respira, RY * respira, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.lineWidth = 3.0;
+        ctx.strokeStyle = 'rgba(222, 182, 108, 0.95)';
+        ctx.beginPath();
+        ctx.ellipse(px, py, RX * respira + 3.9, RY * respira + 3.9, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.lineWidth = 2.2;
+        ctx.strokeStyle = 'rgba(120, 86, 40, 0.85)';
+        ctx.beginPath();
+        ctx.ellipse(px, py, RX * respira - 4.6, RY * respira - 4.6, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        // Luz/sombra do aro (cobre o disco todo; o vortice do passo 5 pinta por
+        // cima do miolo, entao so a banda do aro fica sombreada).
+        const gAro = ctx.createLinearGradient(px, py - RY - 10, px, py + RY + 10);
+        gAro.addColorStop(0, 'rgba(255, 240, 195, 0.32)');
+        gAro.addColorStop(0.42, 'rgba(255, 220, 150, 0.05)');
+        gAro.addColorStop(1, 'rgba(0, 0, 0, 0.45)');
+        ctx.fillStyle = gAro;
+        ctx.beginPath();
+        ctx.ellipse(px, py, RX * respira + 5.6, RY * respira + 5.6, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ===== 4c. Circulo ritual fraco gravado no calcamento (ritual fantasia) =====
+        // Um unico path com 12 marcas (moveTo/lineTo) = 1 stroke por frame.
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.lineWidth = 1.4;
+        ctx.strokeStyle = 'rgba(126, 208, 255, 0.15)';
+        ctx.beginPath();
+        ctx.ellipse(px, py, RX * 1.60, RY * 1.60, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.lineWidth = 1.6;
+        ctx.strokeStyle = 'rgba(140, 216, 255, 0.22)';
+        ctx.beginPath();
+        for (let i = 0; i < 12; i++) {
+            const a = giroLento * 0.55 + i * (Math.PI * 2 / 12);
+            const ca = Math.cos(a), sa = Math.sin(a);
+            ctx.moveTo(px + ca * RX * 1.60, py + sa * RY * 1.60);
+            ctx.lineTo(px + ca * RX * 1.76, py + sa * RY * 1.76);
+        }
+        ctx.stroke();
+        ctx.globalCompositeOperation = 'source-over';
+
+        // ===== 5. O poco: fundo escuro e borda luminosa (leitura de tunel) =====
+        // Centro ESCURO e crista luminosa a ~66% do raio = leitura de tunel/funil.
+        // (Centro claro lia como bola azul brilhante, que era o problema do v1.)
+        const gPoco = ctx.createRadialGradient(px, py + RY * 0.06, 1, px, py, RX * 0.90);
+        gPoco.addColorStop(0.00, '#04070f');
+        gPoco.addColorStop(0.20, '#08182f');
+        gPoco.addColorStop(0.40, '#144a7c');
+        gPoco.addColorStop(0.55, '#37a8e6');
+        gPoco.addColorStop(0.66, '#8ceaff');
+        gPoco.addColorStop(0.78, '#12456f');
+        gPoco.addColorStop(0.92, '#061224');
+        gPoco.addColorStop(1.00, '#03080f');
+        ctx.fillStyle = gPoco;
+        ctx.beginPath();
+        ctx.ellipse(px, py, RX * 0.90, RY * 0.90, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ===== 6. Anel de horizonte do tunel (dá volume ao poco) =====
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.lineWidth = 3.0;
+        ctx.strokeStyle = 'rgba(160, 240, 255, 0.55)';
+        ctx.beginPath();
+        ctx.ellipse(px, py, RX * 0.52, RY * 0.52, 0, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.lineWidth = 1.4;
+        ctx.strokeStyle = 'rgba(230, 252, 255, 0.40)';
+        ctx.beginPath();
+        ctx.ellipse(px, py - RY * 0.05, RX * 0.30, RY * 0.30, 0, 0, Math.PI * 2);
         ctx.stroke();
 
-        // Núcleo estrelar profundo
-        const gradCore = ctx.createRadialGradient(px, py, 2, px, py, R);
-        gradCore.addColorStop(0, '#e0f7fa');
-        gradCore.addColorStop(0.35, '#00b0ff');
-        gradCore.addColorStop(0.75, '#1565c0');
-        gradCore.addColorStop(1, '#050c18');
-        ctx.fillStyle = gradCore;
-        ctx.beginPath();
-        ctx.arc(px, py, R - 3, 0, Math.PI * 2);
-        ctx.fill();
+        // ===== 7. Bracos de energia em espiral (2 camadas contra-rotativas) =====
+        const PASSOS = 17;
+        for (let camada = 0; camada < 2; camada++) {
+            const base0 = camada === 0 ? giroRapido : -giroRapido * 0.72;
+            const nArm = camada === 0 ? 3 : 2;
+            ctx.lineWidth = camada === 0 ? 2.4 : 1.6;
+            for (let a = 0; a < nArm; a++) {
+                const base = base0 + a * (Math.PI * 2 / nArm);
+                ctx.strokeStyle = camada === 0
+                    ? 'rgba(150, 240, 255, 0.50)'
+                    : 'rgba(255, 255, 255, 0.34)';
+                ctx.beginPath();
+                for (let s = 0; s <= PASSOS; s++) {
+                    const f = s / PASSOS;
+                    const ang = base + f * 2.7;
+                    const rad = (0.93 - f * 0.78) * respira;
+                    const x = px + Math.cos(ang) * RX * rad;
+                    const y = py + Math.sin(ang) * RY * rad;
+                    if (s === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+                }
+                ctx.stroke();
+            }
+        }
 
-        // Espirais arcanas em rotação
-        ctx.lineWidth = 2.5;
-        for (let i = 0; i < 4; i++) {
-            const rot = t * 2.2 + (i * Math.PI) / 2;
-            ctx.strokeStyle = (i % 2 === 0) ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 229, 255, 0.75)';
+        // ===== 8. Nucleo incandescente (bem no centro do poco) =====
+        // Luz pequena e discreta no FUNDO do poco (luz no fim do tunel).
+        const brilho = 0.75 + Math.sin(t * 3.4) * 0.25;
+        const gNucleo = ctx.createRadialGradient(px, py, 0.5, px, py, RX * 0.17);
+        gNucleo.addColorStop(0, 'rgba(215, 248, 255, ' + (0.55 * brilho).toFixed(3) + ')');
+        gNucleo.addColorStop(1, 'rgba(60, 180, 255, 0)');
+        ctx.fillStyle = gNucleo;
+        ctx.beginPath();
+        ctx.ellipse(px, py, RX * 0.17, RY * 0.17, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalCompositeOperation = 'source-over';
+
+        // ===== 9. Runas gravadas no aro (8 glifos girando devagar) =====
+        const gGlifo = 12.5;
+        ctx.lineWidth = 2.1;
+        for (let i = 0; i < RUNAS.length; i++) {
+            const ang = giroLento + i * (Math.PI * 2 / RUNAS.length);
+            const cx = px + Math.cos(ang) * RX * respira * 1.045;
+            const cy = py + Math.sin(ang) * RY * respira * 1.045;
+            // so acende as runas da metade de baixo (as de cima ficam atras do aro)
+            const frente = Math.sin(ang) * 0.5 + 0.5;
+            ctx.strokeStyle = 'rgba(255, 224, 150, ' + (0.34 + frente * 0.62).toFixed(3) + ')';
+            const gl = RUNAS[i];
             ctx.beginPath();
-            ctx.arc(px, py, (R * 0.75) - i * 6, rot, rot + 1.2);
+            for (let k = 0; k < gl.length; k++) {
+                const x = cx + gl[k][0] * gGlifo;
+                const y = cy + gl[k][1] * gGlifo * 0.72;
+                if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
             ctx.stroke();
         }
 
-        // Rótulo monumental
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = '#00e5ff';
-        ctx.fillStyle = '#ffffff';
-        ctx.font = 'bold 13px Arial';
-        ctx.textAlign = 'center';
-        ctx.fillText('PORTAL DE VIAGEM', px, py + R + 22);
-        ctx.fillStyle = '#80d8ff';
-        ctx.font = '11px Arial';
-        ctx.fillText('Davahl • Santuário', px, py + R + 36);
+        // ===== 10. Faiscas arcanas subindo do vortice =====
+        ctx.globalCompositeOperation = 'lighter';
+        const N_PART = 8;
+        for (let i = 0; i < N_PART; i++) {
+            const semente = (i * 37 % 100) / 100;
+            const vel = 0.30 + semente * 0.38;
+            const vida = (t * vel + i / N_PART) % 1;
+            const ang = i * 2.399 + t * 0.30;
+            const rad = 0.78 * (1 - vida * 0.88) * respira;
+            const x = px + Math.cos(ang) * RX * rad;
+            const y = py + Math.sin(ang) * RY * rad - vida * 46;
+            const alfa = Math.sin(vida * Math.PI) * 0.72;
+            const tam = 0.7 + (1 - vida) * 1.0;
+            ctx.fillStyle = 'rgba(208, 246, 255, ' + alfa.toFixed(3) + ')';
+            ctx.beginPath();
+            ctx.ellipse(x, y, tam, tam * 1.4, 0, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.globalCompositeOperation = 'source-over';
+
+        // ===== 11. Rotulo monumental (serifado, com contorno escuro) =====
+        ctx.font = 'bold 14px Georgia, "Times New Roman", serif';
+        ctx.lineWidth = 3.0;
+        ctx.strokeStyle = 'rgba(6, 10, 18, 0.92)';
+        ctx.strokeText('PORTAL DE VIAGEM', px, py + RY * 1.30 + 24);
+        ctx.fillStyle = '#ffe9a8';
+        ctx.fillText('PORTAL DE VIAGEM', px, py + RY * 1.30 + 24);
+        ctx.font = '11px Georgia, "Times New Roman", serif';
+        ctx.lineWidth = 2.4;
+        ctx.strokeText('Davahl • Santuário', px, py + RY * 1.30 + 40);
+        ctx.fillStyle = '#9ee0ff';
+        ctx.fillText('Davahl • Santuário', px, py + RY * 1.30 + 40);
 
         ctx.restore();
     }
 
+    // Area de toque do portal: elipse casada com o desenho (RX x RY) + folga
+    // generosa, para o toque no celular pegar facil sem pegar o calcamento todo.
     function tocarPortalViagem(mx, my) {
         if (mx === undefined || my === undefined) return false;
-        return Math.hypot(mx - PORTAL_MAPAS.x, my - PORTAL_MAPAS.y) <= PORTAL_MAPAS.r + 14;
+        const RX = PORTAL_MAPAS.r * 1.10, RY = PORTAL_MAPAS.r * 1.10 * 0.58;
+        const dx = (mx - PORTAL_MAPAS.x) / (RX * 1.42);
+        const dy = (my - PORTAL_MAPAS.y) / (RY * 2.60);
+        return (dx * dx + dy * dy) <= 1;
     }
 
     // ============================================================================

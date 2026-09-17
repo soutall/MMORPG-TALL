@@ -1,0 +1,146 @@
+/* =====================================================================
+   SISTEMA DE INTERFACE DRAG & DROP + JANELAS ARRASTRABLES (v1.24.0)
+   ===================================================================== */
+
+/* --- Janelas móviles: absolutas + centradas por defecto ------------- */
+#inv-window, #skills-window, #atributos-dupla, #settings-window,
+#big-map-window, #teleport-window {
+    position: absolute !important;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    max-width: 96vw;
+    max-height: 96vh;
+}
+
+/* --- Manillas de arrastre ------------------------------------------- */
+#inv-title, #skills-header, #settings-header, #atributos-title,
+#detalhes-title, #big-map-top, #teleport-title {
+    cursor: grab;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+}
+#inv-title:active, #skills-header:active, #settings-header:active,
+#atributos-title:active, #detalhes-title:active,
+#big-map-top:active, #teleport-title:active { cursor: grabbing; }
+
+/* --- Slots: sin scroll/zoom nativo começando neles (toque) ----------- */
+.mochila-slot, .mochila-slot-vazio, .inv-slot { touch-action: none; }
+
+/* --- Ítem fantasma que segue o puntero ------------------------------- */
+#drag-ghost {
+    position: fixed;
+    z-index: 9999;
+    pointer-events: none;
+    min-width: 46px;
+    min-height: 46px;
+    background: rgba(10, 10, 8, 0.92);
+    border: 3px solid #f1c40f;
+    border-radius: 6px;
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transform: translate(-40%, -50%);
+    image-rendering: pixelated;
+}
+#drag-ghost .dg-ico { font-size: 26px; line-height: 1; filter: drop-shadow(1px 1px 0 #000); }
+#drag-ghost .dg-txt {
+    font-family: 'Courier New', monospace;
+    font-size: 8px;
+    color: #f1c40f;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* --- Origen atenuado durante o arrastre ------------------------------ */
+.dnd-origen { opacity: 0.35; filter: grayscale(0.6); }
+
+/* --- Zonas de soltado válidas (destacadas) --------------------------- */
+.dnd-alvo-mochila {
+    outline: 3px solid #f1c40f;
+    outline-offset: 2px;
+    box-shadow: 0 0 10px rgba(241, 196, 15, 0.55);
+}
+.dnd-alvo-slot {
+    outline: 3px solid #27ae60;
+    outline-offset: 2px;
+}
+[data-ui-ignored] { pointer-events: none; }
+
+/* --- Barra do editor --------------------------------------------------------- */
+#ui-editor-bar {
+    position: fixed;
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    display: none;
+    background: rgba(10, 10, 8, 0.95);
+    border: 3px solid #ff7a00;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6), inset 2px 2px 0 #3a3528;
+    padding: 8px 12px 10px 12px;
+    image-rendering: pixelated;
+    font-family: 'Courier New', monospace;
+    align-items: center;
+    gap: 8px;
+}
+    font-family: 'Courier New', monospace;
+    font-weight: bold;
+    font-size: 12px;
+    padding: 7px 12px;
+    border: 3px solid;
+    box-shadow: 3px 3px 0 #000;
+    cursor: pointer;
+    letter-spacing: 0.5px;
+    min-width: 64px;
+    min-height: 32px;
+}
+#ui-editor-bar .ui-editor-btn:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #000; }
+#ui-editor-bar .ui-editor-save { background: #1e8449; border-color: #27ae60; color: #fff; }
+#ui-editor-bar .ui-editor-reset { background: #1b4f72; border-color: #3498db; color: #fff; }
+#ui-editor-bar .ui-editor-exit { background: #922b21; border-color: #e74c3c; color: #fff; }
+#ui-editor-bar .ui-editor-dirty {
+    font-size: 11px;
+    color: #f1c40f;
+    background: #262218;
+    border: 2px solid #f1c40f;
+    padding: 3px 7px;
+    letter-spacing: 0.5px;
+    animation: uiEditorBlink 0.9s infinite alternate;
+}
+@keyframes uiEditorBlink {
+    0% { opacity: 1; }
+    100% { opacity: 0.35; }
+}
+
+/* --- Toast do editor (feedback) -------------------------------------- */
+.ui-toast {
+    position: fixed;
+    bottom: 74px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 9998;
+    background: rgba(10, 10, 8, 0.94);
+    border: 2px solid #ff7a00;
+    color: #f1c40f;
+    padding: 8px 16px;
+    border-radius: 6px;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+    box-shadow: 0 5px 12px rgba(0, 0, 0, 0.55);
+    text-shadow: 1px 1px 0 #000;
+    transition: opacity 0.6s ease;
+    pointer-events: none;
+}
+.ui-toast.ui-toast-hide { opacity: 0; transform: translateX(-50%) translateY(6px); }
+.dnd-alvo-invalido {
+    outline: 3px solid #e74c3c;
+    outline-offset: 2px;
+}

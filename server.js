@@ -42,6 +42,14 @@ try {
     console.log("Aviso: mapa_cidade.js não carregado: " + e.message);
 }
 
+let mapaArena = null;
+try {
+    mapaArena = require('./mapa_arena.js');
+    console.log("Fase 6 'Arena' carregada (" + mapaArena.COLS + "x" + mapaArena.ROWS + " tiles).");
+} catch (e) {
+    console.log("Aviso: mapa_arena.js não carregado: " + e.message);
+}
+
 let salvarProgresso = () => {}, carregarProgresso = () => null;
 try {
     const db = require('./database.js');
@@ -128,7 +136,7 @@ let dropsChao = [];
 let bandeirasSpawn = (spawnsAdmin && typeof spawnsAdmin.carregarBandeiras === 'function') ? spawnsAdmin.carregarBandeiras() : [];
 let bandeirasInicializadas = false;
 
-const WORLD_WIDTH = 63800;
+const WORLD_WIDTH = 65040;
 const WORLD_HEIGHT = 36000;
 const LARGURA_VERDE = 18000; // Fase 1 (mapa verde — 10x maior)
 const LARGURA_DESERTO = 50000; // Fase 2 (deserto — 20x maior)
@@ -137,9 +145,14 @@ const LARGURA_CAVERNA = 58000; // Fase 4 (caverna / DG) - começa aqui
 const FIM_CAVERNA = 59800;
 const LARGURA_CIDADE = 59800; // Fase 5 (cidade separada)
 const FIM_CIDADE = 63800;
-const ALTO_VERDE = 18000, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 3000;
+const LARGURA_ARENA = 63800; // Fase 6 (arena, apos a cidade)
+const FIM_ARENA = 65040;
+const ALTO_VERDE = 18000, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 3000, ALTO_ARENA = 1240;
 const CIDADE_SPAWN_X = 61824, CIDADE_SPAWN_Y = 1783;
-const PONTOS_TELEPORTE = { green: { x: 5200, y: 1400 }, desert: { x: 18300, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y } };
+// ATENCAO: cada ponto precisa ficar FORA do raio do portal de retorno do mapa,
+// senao o cliente detecta o portal e dispara transicao falsa (tela preta).
+// arena: 64180/460 = PONTO_CHEGADA de mapa_arena.js (portal fica em 63980/460, r=62).
+const PONTOS_TELEPORTE = { green: { x: 5200, y: 1400 }, desert: { x: 18300, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, arena: { x: 64180, y: 460 } };
 
 const tabelaXp = {};
 for (let lvl = 1; lvl <= 60; lvl++) {
@@ -345,6 +358,11 @@ function podeAndar(x, y) {
     if (x < FIM_CIDADE) {
         if (y >= ALTO_CIDADE) return false;
         if (mapaCidade && mapaCidade.colideCidade(x, y)) return false;
+        return true;
+    }
+    if (x < FIM_ARENA) {
+        if (y >= ALTO_ARENA) return false;
+        if (mapaArena && mapaArena.colideArena(x, y)) return false;
         return true;
     }
     return false;
@@ -2344,6 +2362,7 @@ wss.on('connection', (ws) => {
                     mana: (dadosSalvos && dadosSalvos.mana !== undefined) ? dadosSalvos.mana : 50,
                     maxMp: 50,
                     inventario: (dadosSalvos && dadosSalvos.inventario) ? dadosSalvos.inventario : inventarioPadrao(),
+                    uiLayout: (dadosSalvos && dadosSalvos.uiLayout) ? dadosSalvos.uiLayout : {},
                     isDashing: false,
                     furiaTimer: 0,
                     stunTimer: 0,
@@ -2388,6 +2407,9 @@ wss.on('connection', (ws) => {
                 }));
                 if (ehAdminConta) {
                     ws.send(JSON.stringify({ type: 'spawn_flags', bandeiras: bandeirasSpawn }));
+                }
+                if (players[playerId].uiLayout && Object.keys(players[playerId].uiLayout).length) {
+                    ws.send(JSON.stringify({ type: 'ui_layout', layout: players[playerId].uiLayout }));
                 }
                 return;
             }
@@ -2706,6 +2728,52 @@ wss.on('connection', (ws) => {
                 });
                 salvarProgresso(userId, { inventario: p.inventario });
                 ws.send(JSON.stringify({ type: 'inventario_sync', inventario: p.inventario }));
+                return;
+            }
+
+            // ===== MOVER item dentro da mochila (Drag & Drop de reordenação) =====
+            if (data.action === 'mover_item_mochila') {
+                let p = players[playerId];
+                if (!p.inventario || !Array.isArray(p.inventario.mochila)) return;
+                let idxOrig = p.inventario.mochila.findIndex(i => String(i.id) === String(data.id));
+                if (idxOrig === -1) return;
+                let item = p.inventario.mochila.splice(idxOrig, 1)[0];
+                let idxAlvo = -1;
+                if (data.targetId) idxAlvo = p.inventario.mochila.findIndex(i => String(i.id) === String(data.targetId));
+                if (idxAlvo >= 0) p.inventario.mochila.splice(idxAlvo, 0, item);
+                else p.inventario.mochila.push(item);
+                salvarProgresso(userId, { inventario: p.inventario });
+                ws.send(JSON.stringify({ type: 'inventario_sync', inventario: p.inventario }));
+                return;
+            }
+
+            // ===== SALVAR / RESTAURAR layout da interface (Editor de UI) =====
+            if (data.action === 'salvar_ui_layout') {
+                let p = players[playerId];
+                let layoutLimpo = {};
+                let cont = 0;
+                if (data.layout && typeof data.layout === 'object') {
+                    for (let k in data.layout) {
+                        if (cont >= 60) break;
+                        let v = data.layout[k];
+                        if (v && typeof v.x === 'number' && typeof v.y === 'number'
+                            && Number.isFinite(v.x) && Number.isFinite(v.y)) {
+                            layoutLimpo[k] = { x: Math.round(v.x), y: Math.round(v.y) };
+                            cont++;
+                        }
+                    }
+                }
+                p.uiLayout = layoutLimpo;
+                salvarProgresso(userId, { uiLayout: p.uiLayout });
+                ws.send(JSON.stringify({ type: 'ui_layout_saved', layout: p.uiLayout }));
+                return;
+            }
+
+            if (data.action === 'restaurar_ui_layout') {
+                let p = players[playerId];
+                p.uiLayout = {};
+                salvarProgresso(userId, { uiLayout: p.uiLayout });
+                ws.send(JSON.stringify({ type: 'ui_layout_reset' }));
                 return;
             }
 

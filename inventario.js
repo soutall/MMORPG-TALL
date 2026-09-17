@@ -108,7 +108,10 @@ function selecionarSlot(chave) {
 }
 
 document.querySelectorAll(".inv-slot").forEach(slotEl => {
-    slotEl.addEventListener("click", function() { selecionarSlot(this.getAttribute("data-slot")); });
+    slotEl.addEventListener("click", function () {
+        if (window.__dndClickSuprimido && window.__dndClickSuprimido()) return;
+        selecionarSlot(this.getAttribute("data-slot"));
+    });
 });
 if (inventoryScreen) inventoryScreen.addEventListener("click", function(e) { if (e.target === inventoryScreen) fecharInventario(); });
 
@@ -170,6 +173,7 @@ function renderizarMochila() {
         div.className = "mochila-slot" + (item.tipo === 'equipamento' ? " mochila-slot-equip" : "")
             + (item.raridade === 'raro' ? " equip-raro" : (item.raridade === 'epico' ? " equip-epico" : (item.raridade === 'lendario' ? " equip-lendario" : "")));
         div.title = item.nome || "";
+        div.setAttribute("data-id", item.id); // usado pelo sistema Drag & Drop
         div.innerHTML = '<span class="slot-ico">' + item.icon + '</span>'
             + (item.quantidade > 1 ? '<span class="qtd-badge">' + item.quantidade + '</span>' : '');
 
@@ -201,7 +205,10 @@ function renderizarMochila() {
         });
         div.appendChild(btnLx);
 
-        div.addEventListener("click", function() { selecionarItemMochila(item); });
+        div.addEventListener("click", function () {
+            if (window.__dndClickSuprimido && window.__dndClickSuprimido()) return;
+            selecionarItemMochila(item);
+        });
         grade.appendChild(div);
     });
     let resto = 12 - itens.length;
