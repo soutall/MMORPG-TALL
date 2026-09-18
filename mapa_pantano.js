@@ -40,7 +40,7 @@
     const GATE_L0 = 200;
     const GATE_L1 = 215;
     const ALVO_RETORNO_DESERTO = { x: 49960, y: 8300 };
-    const ALVO_RETORNO_CIDADE = { x: 61824, y: 1783 };
+    const ALVO_RETORNO_CIDADE = { x: 60487, y: 660 };
 
     // Portais visuais
     const PORTA_ENTRADA = { x: PAN_X0 + 80, y: 8300, r: 58, alvo: ALVO_RETORNO_DESERTO };

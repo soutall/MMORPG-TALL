@@ -9,6 +9,11 @@ window.criarAnimacaoTeleporteRoqueiro = function(x, y) {
     window.roqueiroEfeitosAtivos.push({ tipo: 'teleporte', x: x, y: y, raio: 45, alpha: 1.0 });
 };
 
+window.criarAnimacaoGritoGuerra = function(id, x, y, raio) {
+    window.roqueiroEfeitosAtivos.push({ tipo: 'gritoGuerra', x: x, y: y, raio: 20, maxRaio: raio || 220, alpha: 1.0, id: id });
+    window.tremorTela = Math.max(window.tremorTela || 0, 6);
+};
+
 window.desenharEfeitosRoqueiro = function() {
     // 1. Desenha a mira do Teleporte (Stage Dive)
     if (window.modoMiraTeleporteRoqueiro) {
@@ -44,6 +49,19 @@ window.desenharEfeitosRoqueiro = function() {
             ctx.beginPath(); ctx.arc(ef.x, ef.y, Math.abs(ef.raio), 0, Math.PI * 2);
             ctx.fillStyle = "rgba(155, 89, 182, " + (ef.alpha * 0.8) + ")";
             ctx.shadowColor = "#9b59b6"; ctx.shadowBlur = 20; ctx.fill();
+        } else if (ef.tipo === 'gritoGuerra') {
+            ef.raio += 5;
+            ef.alpha -= 0.045;
+            if (ef.alpha <= 0) { window.roqueiroEfeitosAtivos.splice(i, 1); ctx.restore(); continue; }
+            ctx.beginPath(); ctx.arc(ef.x, ef.y, Math.min(ef.raio, ef.maxRaio || ef.raio), 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(241, 196, 15, " + ef.alpha + ")";
+            ctx.lineWidth = 4;
+            ctx.shadowColor = "#f1c40f"; ctx.shadowBlur = 18;
+            ctx.stroke();
+
+            ctx.beginPath(); ctx.arc(ef.x, ef.y, Math.min(ef.raio * 0.72, (ef.maxRaio || ef.raio) * 0.72), 0, Math.PI * 2);
+            ctx.strokeStyle = "rgba(255, 255, 255, " + (ef.alpha * 0.8) + ")";
+            ctx.lineWidth = 2; ctx.stroke();
         }
         ctx.restore();
     }

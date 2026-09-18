@@ -243,7 +243,8 @@ window.desenharLacaio = function (lacaio) {
     ctx.ellipse(lacaio.x, lacaio.y + 21, 27, 9.5, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    window.desenharCorpoGolem(lacaio.x, lacaio.y, 1);
+    let escalaGolem = (window.lacaioColossal && lacaio.pid && window.lacaioColossal[lacaio.pid]) ? 1.4 : 1;
+    window.desenharCorpoGolem(lacaio.x, lacaio.y, escalaGolem);
 
     // energia de invocação subindo pelas pernas
     const t = Date.now() / 1000;

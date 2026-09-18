@@ -13,13 +13,13 @@ window.desenharBarraHp = function(x, y, hp, maxHp, stunTimer = 0, slowTimer = 0)
     // Render debuff icons above HP bar
     if (stunTimer > 0) {
         window.ctx.fillStyle = "#f1c40f";
-        window.ctx.font = "10px Arial";
+        window.ctx.font = "bold 11px 'Rajdhani', Arial, sans-serif";
         let tempo = (stunTimer / 20).toFixed(1);
         window.ctx.fillText("💫 " + tempo + "s", x - 5, y - 15);
     }
     if (slowTimer > 0) {
         window.ctx.fillStyle = "#3498db";
-        window.ctx.font = "10px Arial";
+        window.ctx.font = "bold 11px 'Rajdhani', Arial, sans-serif";
         let tempo = (slowTimer / 20).toFixed(1);
         window.ctx.fillText("❄️ " + tempo + "s", x + 15, y - 15);
     }

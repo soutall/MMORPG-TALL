@@ -125,11 +125,16 @@ let slimes = [];
 let projeteis = [];
 let playerProjeteis = [];
 let blizzards = [];
+let vulcoes = [];
 let chuvasServidor = [];
 let lacaios = {};
 let petRespawnTimer = {};
 let bandas = {};
 let bateriaCanal = {};
+let rajadaCanal = {};
+let aurasSagradas = {};
+let cooldownAuraSagrada = {};
+let cooldownRessurreicao = {};
 let dropsChao = [];
 
 // Bandeiras de spawn criadas por admins (persistidas em spawn_flags.json)
@@ -144,15 +149,15 @@ const LARGURA_PANTANO = 58000; // Fase 3 (pântano — 5x maior)
 const LARGURA_CAVERNA = 58000; // Fase 4 (caverna / DG) - começa aqui
 const FIM_CAVERNA = 59800;
 const LARGURA_CIDADE = 59800; // Fase 5 (cidade separada)
-const FIM_CIDADE = 63800;
+const FIM_CIDADE = 61174;
 const LARGURA_ARENA = 63800; // Fase 6 (arena, apos a cidade)
 const FIM_ARENA = 65040;
-const ALTO_VERDE = 18000, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 3000, ALTO_ARENA = 1240;
-const CIDADE_SPAWN_X = 61824, CIDADE_SPAWN_Y = 1783;
+const ALTO_VERDE = 18000, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 1145, ALTO_ARENA = 1240;
+const CIDADE_SPAWN_X = 60474, CIDADE_SPAWN_Y = 640;
 // ATENCAO: cada ponto precisa ficar FORA do raio do portal de retorno do mapa,
 // senao o cliente detecta o portal e dispara transicao falsa (tela preta).
 // arena: 64180/460 = PONTO_CHEGADA de mapa_arena.js (portal fica em 63980/460, r=62).
-const PONTOS_TELEPORTE = { green: { x: 5200, y: 1400 }, desert: { x: 18300, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, arena: { x: 64180, y: 460 } };
+const PONTOS_TELEPORTE = { green: { x: 5000, y: 1200 }, desert: { x: 18300, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, arena: { x: 64180, y: 460 } };
 
 const tabelaXp = {};
 for (let lvl = 1; lvl <= 60; lvl++) {
@@ -251,6 +256,74 @@ function mpSkill(p, skillId, baseMp) {
     return Math.round(baseMp * (1 + (obterNivelSkill(p, skillId) - 1) * 0.06));
 }
 
+function tempoAtaqueBasico(p, baseMs) {
+    if (!baseMs || baseMs <= 0) return 0;
+    if (efeitos && efeitos.temEfeito(p, 'gritoDeGuerra')) {
+        return Math.round(baseMs * 0.90);
+    }
+    return baseMs;
+}
+
+function atualizarBonusMaxHpGritoGuerra(p) {
+    if (!p) return;
+    let baseMax = calcularMaxHp(p);
+    p.maxHp = baseMax + (p.gritoGuerraBonus || 0);
+    if (p.hp > p.maxHp) p.hp = p.maxHp;
+}
+
+function aliadoNaAura(alvoId) {
+    let alvo = players[alvoId];
+    if (!alvo || alvo.hp <= 0) return null;
+    for (let healerId in aurasSagradas) {
+        let aura = aurasSagradas[healerId];
+        let healer = players[healerId];
+        if (!aura.ativa || !healer || healer.hp <= 0) continue;
+        let aliado = alvoId === healerId || (healer.partyId && alvo.partyId === healer.partyId);
+        if (aliado && Math.hypot(alvo.x - healer.x, alvo.y - healer.y) <= aura.raio) return aura;
+    }
+    return null;
+}
+
+function transmitirAura(tipo, healerId, extra) {
+    let msg = Object.assign({ type: tipo, id: healerId }, extra || {});
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify(msg));
+    });
+}
+
+function desativarAuraSagrada(healerId, motivo) {
+    let aura = aurasSagradas[healerId];
+    if (!aura) return;
+    aura.ativa = false;
+    delete aurasSagradas[healerId];
+    if (players[healerId]) players[healerId].auraSagradaAtiva = false;
+    if (motivo === 'mana_baixa') cooldownAuraSagrada[healerId] = Date.now() + 10000;
+    transmitirAura('action_aura_sagrada_end', healerId, { motivo: motivo || 'manual' });
+}
+
+function tentarRessurreicaoAutomatica(alvoId) {
+    let alvo = players[alvoId];
+    if (!alvo || alvo.hp > 0) return false;
+    let agora = Date.now();
+    for (let healerId in players) {
+        let healer = players[healerId];
+        if (!healer || healer.classe !== 'curandeiro' || healer.hp <= 0) continue;
+        if ((cooldownRessurreicao[healerId] || 0) > agora) continue;
+        if (Math.hypot(alvo.x - healer.x, alvo.y - healer.y) > 190) continue;
+        alvo.hp = Math.max(1, Math.round(alvo.maxHp * 0.35));
+        alvo.stunTimer = 0;
+        cooldownRessurreicao[healerId] = agora + 600000;
+        transmitirAura('action_ressurreicao_automatica', healerId, {
+            alvoId: alvoId,
+            x: alvo.x + 12,
+            y: alvo.y + 16,
+            cooldownMs: 600000
+        });
+        return true;
+    }
+    return false;
+}
+
 // Checa mana e desconta; se insuficiente avisa e retorna false
 function gastarMana(ws, p, custo) {
     if (!custo || custo <= 0) return true;
@@ -283,14 +356,28 @@ function calcularDanoJogador(autorId, quantidade, tipoOrigem) {
         let ehMagico = ['mago', 'summoner', 'curandeiro', 'roqueiro'].indexOf(p.classe) !== -1;
         mult += (getAtr(p, ehMagico ? 'inteligencia' : 'forca') - 1) * 0.05;
         // DESTREZA: 5% base + 1% por ponto de chance; 1.5x + 3% por ponto de multiplicador
-        if (Math.random() < (0.05 + (getAtr(p, 'destreza') - 1) * 0.01)) {
+        let chanceCritico = 0.05 + (getAtr(p, 'destreza') - 1) * 0.01;
+        if (efeitos && efeitos.temEfeito(p, 'gritoDeGuerra')) {
+            chanceCritico += 0.30;
+        }
+        if (Math.random() < chanceCritico) {
             critMult = 1.5 + (getAtr(p, 'destreza') - 1) * 0.03;
+            if (efeitos && efeitos.temEfeito(p, 'gritoDeGuerra')) {
+                critMult *= 1.5;
+            }
         }
     }
     // Debuffs/buffs alteram o dano causado
     if (efeitos) {
         if (efeitos.temEfeito(p, 'reducaoAtk')) mult *= 0.75; // Enfraquecido: -25%
         if (efeitos.temEfeito(p, 'fervor')) mult *= 1.25;     // Fervor: +25%
+    }
+    if (aliadoNaAura(autorId)) mult *= 1.05;
+    if (p && p.classe === 'barbaro' && p.maxHp > 0) {
+        let pctHp = (p.hp > 0 ? p.hp : p.maxHp) / p.maxHp;
+        if (pctHp <= 0.20) mult *= 1.15;
+        else if (pctHp <= 0.40) mult *= 1.10;
+        else if (pctHp <= 0.60) mult *= 1.05;
     }
     return { dano: Math.round(quantidade * mult * critMult), critico: critMult > 1 };
 }
@@ -359,6 +446,9 @@ function podeAndar(x, y) {
         if (y >= ALTO_CIDADE) return false;
         if (mapaCidade && mapaCidade.colideCidade(x, y)) return false;
         return true;
+    }
+    if (x < LARGURA_ARENA) {
+        return false;
     }
     if (x < FIM_ARENA) {
         if (y >= ALTO_ARENA) return false;
@@ -513,10 +603,24 @@ function aplicarDanoJogador(pid, origemX, origemY, dano) {
         }
     }
 
+    // PASSIVA DO GUERREIRO: RESISTÊNCIA DO ÚLTIMO FÔLEGO
+    // <= 50% HP: 5% redução | <= 30% HP: 10% redução | <= 10% HP: 15% redução
+    if (jogador.classe === 'guerreiro' && jogador.maxHp > 0) {
+        let pctHp = jogador.hp / jogador.maxHp;
+        if (pctHp <= 0.10) {
+            dano = Math.round(dano * 0.85); // 15% de redução de dano
+        } else if (pctHp <= 0.30) {
+            dano = Math.round(dano * 0.90); // 10% de redução de dano
+        } else if (pctHp <= 0.50) {
+            dano = Math.round(dano * 0.95); // 5% de redução de dano
+        }
+    }
+
     // Debuffs/buffs alteram o dano recebido
     if (efeitos) {
         if (efeitos.temEfeito(jogador, 'reducaoDef')) dano = Math.round(dano * 1.25); // Defesa quebrada: +25%
         if (efeitos.temEfeito(jogador, 'escudo')) dano = Math.round(dano * 0.8);      // Escudo: -20%
+        if (jogador.classe === 'barbaro' && jogador.giroDescontroladoTimer > 0) dano = Math.round(dano * 0.90);
         // SONO: qualquer dano recebido acorda o jogador
         if (efeitos.removerEfeito(jogador, 'sono')) {
             wss.clients.forEach((client) => {
@@ -526,10 +630,22 @@ function aplicarDanoJogador(pid, origemX, origemY, dano) {
             });
         }
     }
+    if (aliadoNaAura(pid)) dano = Math.round(dano * 0.9);
     if (dano < 0) dano = 0;
+
+    if (jogador.escudoAbsoluto > 0) {
+        let absorvido = Math.min(jogador.escudoAbsoluto, dano);
+        jogador.escudoAbsoluto -= absorvido;
+        dano -= absorvido;
+        let wsT = playerSockets[pid];
+        if (wsT && wsT.readyState === WebSocket.OPEN) {
+            wsT.send(JSON.stringify({ type: 'escudo_sync', escudo: jogador.escudoAbsoluto }));
+        }
+    }
 
     jogador.hp -= dano;
     if (jogador.hp < 0) jogador.hp = 0;
+    if (jogador.hp <= 0) tentarRessurreicaoAutomatica(pid);
     return false;
 }
 
@@ -539,6 +655,7 @@ function aplicarCuraAoJogador(pid, quantidade) {
     if (!p || p.hp <= 0) return;
     let cura = quantidade;
     if (efeitos && efeitos.temEfeito(p, 'cortaCura')) cura = Math.round(cura * 0.5);
+    if (aliadoNaAura(pid)) cura = Math.round(cura * 1.10);
     p.hp = Math.min(p.maxHp, p.hp + cura);
 }
 
@@ -657,10 +774,13 @@ function cancelarTrade(pid) {
 function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
     let p2 = players[defId];
     if (!p2 || p2.hp <= 0) return;
+    if (aliadoNaAura(atkId)) dano = Math.round(dano * 1.05);
+    if (aliadoNaAura(defId)) dano = Math.round(dano * 0.90);
     p2.hp -= dano;
     if (p2.hp < 0) p2.hp = 0;
     broadcastDanoFlut(p2.x, p2.y - 20, dano, atkId);
     if (p2.hp <= 0) {
+        if (tentarRessurreicaoAutomatica(defId)) return;
         p2.hp = p2.maxHp;
         p2.x = CIDADE_SPAWN_X;
         p2.y = CIDADE_SPAWN_Y;
@@ -1155,6 +1275,44 @@ setInterval(() => {
         if (player.furiaTimer > 0) {
             player.furiaTimer--;
         }
+        if (player.giroDescontroladoCooldown > 0) {
+            player.giroDescontroladoCooldown--;
+        }
+        if (player.giroDescontroladoTimer > 0) {
+            player.giroDescontroladoTimer--;
+            if (player.giroDescontroladoTimer <= 0) {
+                player.giroDescontroladoAtivo = false;
+                player.giroDescontroladoCooldown = 240; // 12s de cooldown
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({ type: 'action_barbaro_giro_end', id: pid }));
+                    }
+                });
+            }
+        }
+
+        if (player.giroDescontroladoAtivo) {
+            const tx = player.x + 12;
+            const ty = player.y + 16;
+            const danoGiro = dmgSkill(player, 'giro_descontrolado', 18);
+            slimes.forEach(slime => {
+                if (slime.hp > 0 && Math.hypot(slime.x - tx, slime.y - ty) < 90) {
+                    registrarDanoMonstro(slime, pid, danoGiro, 'player');
+                    efeitos.aplicarEfeito(slime, 'sangramento', 80, 3);
+                }
+            });
+            bosses.forEach(boss => {
+                if (boss.hp > 0 && Math.hypot(boss.x - tx, boss.y - ty) < 90) {
+                    registrarDanoBoss(boss, pid, danoGiro, 'skill', 'player');
+                    efeitos.aplicarEfeito(boss, 'sangramento', 80, 3);
+                }
+            });
+        }
+
+        if (player.classe === 'barbaro' && player.maxHp > 0) {
+            let hpPct = player.hp / player.maxHp;
+            player.furiaCrescenteNivel = hpPct <= 0.20 ? 3 : hpPct <= 0.40 ? 2 : hpPct <= 0.60 ? 1 : 0;
+        }
 
         if (player.estamina === undefined) player.estamina = 100;
         if (player.estamina < 100) player.estamina = Math.min(100, player.estamina + 0.75);
@@ -1179,6 +1337,63 @@ setInterval(() => {
             if (ogro.skillCooldown > 0) ogro.skillCooldown--;
             if (ogro.skill2Cooldown > 0) ogro.skill2Cooldown--;
             if (ogro.modoAgressivoTimer > 0) ogro.modoAgressivoTimer--;
+            if (ogro.colossalCooldown > 0) ogro.colossalCooldown--;
+
+            try {
+                if (ogro.colossalAtivo) {
+                    ogro.colossalTimer--;
+                    if (ogro.colossalTimer <= 0) {
+                        ogro.colossalAtivo = false;
+                        wss.clients.forEach((client) => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({ type: 'action_ogro_colossal_fim', pid: pid }));
+                            }
+                        });
+                    } else {
+                        ogro.colossalPedraCd = (ogro.colossalPedraCd || 0) + 1;
+                        if (ogro.colossalPedraCd >= 20) {
+                            ogro.colossalPedraCd = 0;
+                            let classesRanged = ['mago', 'arqueiro', 'curandeiro', 'summoner'];
+                            let alvoPedra = null, melhorPrio = -1, melhorDist = 99999;
+                            for (let pid2 in players) {
+                                let alvoP = players[pid2];
+                                if (!alvoP || alvoP.hp <= 0 || pid2 === pid) continue;
+                                let d = Math.hypot(alvoP.x - ogro.x, alvoP.y - ogro.y);
+                                if (d > 900) continue;
+                                let prio = classesRanged.indexOf(alvoP.classe) !== -1 ? 1 : 0;
+                                if (prio > melhorPrio || (prio === melhorPrio && d < melhorDist)) {
+                                    melhorPrio = prio; melhorDist = d; alvoPedra = { pid: pid2, x: alvoP.x, y: alvoP.y };
+                                }
+                            }
+                            if (!alvoPedra) {
+                                slimes.forEach(sl => {
+                                    if (sl.hp > 0) {
+                                        let d = Math.hypot(sl.x - ogro.x, sl.y - ogro.y);
+                                        if (d < 900 && d < melhorDist) { melhorDist = d; alvoPedra = { pid: null, x: sl.x, y: sl.y, slimeId: sl.id }; }
+                                    }
+                                });
+                            }
+                            if (alvoPedra) {
+                                let danoPedra = dmgSkill(players[pid], 'colossal', 30);
+                                if (alvoPedra.pid && players[alvoPedra.pid]) {
+                                    aplicarDanoJogador(alvoPedra.pid, ogro.x, ogro.y, danoPedra);
+                                } else if (alvoPedra.slimeId) {
+                                    let slAlvo = slimes.find(s => s.id === alvoPedra.slimeId);
+                                    if (slAlvo) registrarDanoMonstro(slAlvo, pid, danoPedra, 'pet');
+                                }
+                                wss.clients.forEach((client) => {
+                                    if (client.readyState === WebSocket.OPEN) {
+                                        client.send(JSON.stringify({ type: 'ogro_pedra_enorme', sx: ogro.x, sy: ogro.y, tx: alvoPedra.x, ty: alvoPedra.y }));
+                                    }
+                                });
+                            }
+                        }
+                    }
+                }
+            } catch (eColossal) {
+                console.error('[ERRO GOLEM COLOSSAL]', eColossal);
+                ogro.colossalAtivo = false;
+            }
 
             // Regeneração lenta do golem (não morre sozinho aguentando o agro)
             if (ogro.hp < ogro.maxHp) ogro.hp = Math.min(ogro.maxHp, ogro.hp + 0.25);
@@ -1326,7 +1541,7 @@ setInterval(() => {
                         ogro.y += (dy / dist) * 4.16;
                     } else {
                         ogro.attackCooldown++;
-                        if (ogro.attackCooldown > 40) {
+                        if (ogro.attackCooldown > (ogro.colossalAtivo ? 20 : 40)) {
                             let r = registrarDanoMonstro(slimeAlvo, pid, dmgSkill(players[pid], 'ogro', 15), 'pet');
                             broadcastDanoLacaio(slimeAlvo.x, slimeAlvo.y, r.dano);
                             let db = danoEmBosses(ogro.x, ogro.y, 95, pid, dmgSkill(players[pid], 'ogro', 15), 'basico', 'pet');
@@ -1343,7 +1558,7 @@ setInterval(() => {
                         ogro.y += (dyB / distB) * 4.16;
                     } else {
                         ogro.attackCooldown++;
-                        if (ogro.attackCooldown > 40) {
+                        if (ogro.attackCooldown > (ogro.colossalAtivo ? 20 : 40)) {
                             registrarDanoBoss(bossAlvo, pid, dmgSkill(players[pid], 'ogro', 15), 'basico');
                             ogro.attackCooldown = 0;
                         }
@@ -1391,6 +1606,11 @@ setInterval(() => {
         for (let pid in players) {
             let p = players[pid];
             if (efeitos.atualizarEfeitos(p)) efeitosMudaram[pid] = true;
+            if (p.gritoGuerraBonus && !efeitos.temEfeito(p, 'gritoDeGuerra')) {
+                p.gritoGuerraBonus = 0;
+                atualizarBonusMaxHpGritoGuerra(p);
+                efeitosMudaram[pid] = true;
+            }
             // Sincroniza efeitos derivados (stun/lentidão já estão em efeitos via tick)
             // Inclui 'stun' se stunTimer > 0, 'lentidao' se slowTimer > 0 — para exibição na UI
             if (p.stunTimer > 0 && !efeitos.temEfeito(p, 'stun')) {
@@ -1426,6 +1646,107 @@ setInterval(() => {
             if (efeitos.temEfeito(p, 'veneno') && global.venenoTick % 10 === 0) {
                 p.hp = Math.max(0, p.hp - 5);
             }
+        }
+    }
+
+    // ============ QUEIMADURA DoT EM MONSTROS (a cada 20 ticks = 1s) ============
+    global.queimaduraTick = ((global.queimaduraTick || 0) + 1);
+    if (global.queimaduraTick % 20 === 0) {
+        slimes.forEach(slime => {
+            if (slime.hp <= 0) return;
+            let efQ = efeitos.pegarEfeito(slime, 'queimadura');
+            let efQC = efeitos.pegarEfeito(slime, 'queimaduraCongelante');
+            if (efQ && efQ.intensidade > 0) {
+                slime.hp = Math.max(0, slime.hp - efQ.intensidade);
+            }
+            if (efQC && efQC.intensidade > 0) {
+                slime.hp = Math.max(0, slime.hp - efQC.intensidade);
+            }
+        });
+        bosses.forEach(b => {
+            if (b.hp <= 0) return;
+            let efQ = efeitos.pegarEfeito(b, 'queimadura');
+            let efQC = efeitos.pegarEfeito(b, 'queimaduraCongelante');
+            if (efQ && efQ.intensidade > 0) {
+                b.hp = Math.max(0, b.hp - efQ.intensidade);
+            }
+            if (efQC && efQC.intensidade > 0) {
+                b.hp = Math.max(0, b.hp - efQC.intensidade);
+            }
+        });
+    }
+    // Atualizar efeitos nos mobs
+    slimes.forEach(slime => { if (slime.hp > 0) efeitos.atualizarEfeitos(slime); });
+    bosses.forEach(b => { if (b.hp > 0) efeitos.atualizarEfeitos(b); });
+
+    // ============ PASSIVA: QUEIMADURA CONGELANTE EXTREMA ============
+    // Se fogo (queimadura) atingir um mob com gelo, converter para queimaduraCongelante
+    slimes.forEach(slime => {
+        if (slime.hp <= 0) return;
+        if (efeitos.temEfeito(slime, 'queimadura') && efeitos.temEfeito(slime, 'gelo')) {
+            let efFogo = efeitos.pegarEfeito(slime, 'queimadura');
+            let efGelo = efeitos.pegarEfeito(slime, 'gelo');
+            let dotCombo = Math.round((efFogo.intensidade || 4) * 1.8);
+            let duracaoCombo = Math.max(efFogo.tempo, efGelo.tempo);
+            efeitos.removerEfeito(slime, 'queimadura');
+            efeitos.removerEfeito(slime, 'gelo');
+            efeitos.aplicarEfeito(slime, 'queimaduraCongelante', duracaoCombo, dotCombo);
+            slime.slowTimer = Math.max(slime.slowTimer || 0, 30);
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({ type: 'reacao_congelante', x: slime.x, y: slime.y }));
+                }
+            });
+        }
+    });
+    bosses.forEach(b => {
+        if (b.hp <= 0) return;
+        if (efeitos.temEfeito(b, 'queimadura') && efeitos.temEfeito(b, 'gelo')) {
+            let efFogo = efeitos.pegarEfeito(b, 'queimadura');
+            let efGelo = efeitos.pegarEfeito(b, 'gelo');
+            let dotCombo = Math.round((efFogo.intensidade || 4) * 1.8);
+            let duracaoCombo = Math.max(efFogo.tempo, efGelo.tempo);
+            efeitos.removerEfeito(b, 'queimadura');
+            efeitos.removerEfeito(b, 'gelo');
+            efeitos.aplicarEfeito(b, 'queimaduraCongelante', duracaoCombo, dotCombo);
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({ type: 'reacao_congelante', x: b.x, y: b.y }));
+                }
+            });
+        }
+    });
+
+    // ============ AURA SAGRADA DO CURANDEIRO (mana contínua + cura por segundo) ============
+    global.auraSagradaTick = ((global.auraSagradaTick || 0) + 1);
+    if (global.auraSagradaTick % 20 === 0) {
+        for (let healerId in aurasSagradas) {
+            let aura = aurasSagradas[healerId];
+            let healer = players[healerId];
+            if (!aura || !healer || healer.hp <= 0 || healer.mana <= healer.maxMp * 0.10) {
+                desativarAuraSagrada(healerId, 'mana_baixa');
+                if (healer) {
+                    healer.mana = Math.max(0, healer.mana || 0);
+                    let wsMana = playerSockets[healerId];
+                    if (wsMana && wsMana.readyState === WebSocket.OPEN) wsMana.send(JSON.stringify({ type: 'mp_sync', mp: Math.round(healer.mana), maxMp: healer.maxMp }));
+                }
+                continue;
+            }
+            let consumoAura = Math.max(1, Math.ceil(healer.maxMp * 0.08));
+            healer.mana = Math.max(0, healer.mana - consumoAura);
+            let curaAura = Math.max(1, Math.round(healer.maxHp * 0.02));
+            let alvos = [];
+            for (let alvoId in players) {
+                let alvo = players[alvoId];
+                let aliado = alvoId === healerId || (healer.partyId && alvo.partyId === healer.partyId);
+                if (aliado && alvo.hp > 0 && Math.hypot(alvo.x - healer.x, alvo.y - healer.y) <= aura.raio) {
+                    aplicarCuraAoJogador(alvoId, curaAura);
+                    alvos.push({ id: alvoId, x: alvo.x + 12, y: alvo.y + 16 });
+                }
+            }
+            transmitirAura('action_aura_sagrada_tick', healerId, { x: healer.x + 12, y: healer.y + 16, alvos: alvos });
+            let wsMana = playerSockets[healerId];
+            if (wsMana && wsMana.readyState === WebSocket.OPEN) wsMana.send(JSON.stringify({ type: 'mp_sync', mp: Math.round(healer.mana), maxMp: healer.maxMp }));
         }
     }
 
@@ -1521,13 +1842,78 @@ setInterval(() => {
         slimes.forEach(slime => {
             if (slime.hp > 0 && Math.hypot(slime.x - b.x, slime.y - b.y) < b.radius) {
                 slime.slowTimer = 15;
+                efeitos.aplicarEfeito(slime, 'gelo', 60, 1);
                 if (b.duracao % 20 === 0) {
                     registrarDanoMonstro(slime, b.ownerId, b.danoNevasca || 6);
                 }
             }
         });
-        if (b.duracao % 20 === 0) danoEmBosses(b.x, b.y, b.radius, b.ownerId, b.danoNevasca || 6, 'skill');
+        if (b.duracao % 20 === 0) {
+            danoEmBosses(b.x, b.y, b.radius, b.ownerId, b.danoNevasca || 6, 'skill');
+            bosses.forEach(bb => {
+                if (bb.hp > 0 && Math.hypot(bb.x - b.x, bb.y - b.y) < b.radius) {
+                    efeitos.aplicarEfeito(bb, 'gelo', 60, 1);
+                }
+            });
+        }
         if (b.duracao <= 0) blizzards.splice(i, 1);
+    }
+
+    for (let vi = vulcoes.length - 1; vi >= 0; vi--) {
+        let v = vulcoes[vi];
+        v.duracao--;
+        if (v.emergindo > 0) { v.emergindo--; }
+        else {
+            v.tickCounter++;
+            if (v.tickCounter % 20 === 0) {
+                let ang = Math.random() * Math.PI * 2;
+                let dist = Math.random() * v.radius;
+                let tx = v.x + Math.cos(ang) * dist;
+                let ty = v.y + Math.sin(ang) * dist;
+                let tipo = Math.random() < 0.5 ? 'fireball' : 'lava';
+                let projId = 'vp_' + Date.now() + '_' + Math.floor(Math.random() * 9999);
+                v.projeteis.push({ id: projId, tx: tx, ty: ty, tipo: tipo, timer: 16, landed: false });
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({
+                            type: 'vulcao_projetil', vx: v.x, vy: v.y,
+                            tx: tx, ty: ty, tipo: tipo, id: projId
+                        }));
+                    }
+                });
+            }
+            for (let pi = v.projeteis.length - 1; pi >= 0; pi--) {
+                let pp = v.projeteis[pi];
+                pp.timer--;
+                if (pp.timer <= 0 && !pp.landed) {
+                    pp.landed = true;
+                    let raioImpacto = 40;
+                    slimes.forEach(slime => {
+                        if (slime.hp > 0 && Math.hypot(slime.x - pp.tx, slime.y - pp.ty) < raioImpacto) {
+                            registrarDanoMonstro(slime, v.ownerId, v.danoImpacto);
+                            efeitos.aplicarEfeito(slime, 'stun', 10, 1);
+                            efeitos.aplicarEfeito(slime, 'queimadura', 200, v.danoDot);
+                        }
+                    });
+                    danoEmBosses(pp.tx, pp.ty, raioImpacto + 10, v.ownerId, v.danoImpacto, 'skill');
+                    bosses.forEach(b => {
+                        if (b.hp > 0 && Math.hypot(b.x - pp.tx, b.y - pp.ty) < raioImpacto + 10) {
+                            efeitos.aplicarEfeito(b, 'stun', 10, 1);
+                            efeitos.aplicarEfeito(b, 'queimadura', 200, v.danoDot);
+                        }
+                    });
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({
+                                type: 'vulcao_impacto', tx: pp.tx, ty: pp.ty, tipo: pp.tipo, id: pp.id
+                            }));
+                        }
+                    });
+                }
+                if (pp.timer <= -5) v.projeteis.splice(pi, 1);
+            }
+        }
+        if (v.duracao <= 0) vulcoes.splice(vi, 1);
     }
 
     for (let i = chuvasServidor.length - 1; i >= 0; i--) {
@@ -1735,7 +2121,7 @@ setInterval(() => {
         }
 
         let permiteAgroProximidade = !slime.flagPassivo && (slime.flagAgressivo || slime.tipo === "zumbi");
-        if (!slime.flagPassivo && slime.tauntTimer > 0 && lacaios[slime.tauntId]) {
+        if (!slime.flagPassivo && slime.tauntTimer > 0 && (players[slime.tauntId] || lacaios[slime.tauntId])) {
             slime.targetId = slime.tauntId;
         } else if (permiteAgroProximidade && !slime.targetId) {
             let menorDist = slime.aggroRange || 320;
@@ -1750,10 +2136,11 @@ setInterval(() => {
         }
 
         if (slime.targetId && (players[slime.targetId] || lacaios[slime.targetId])) {
-let alvo = players[slime.targetId] || lacaios[slime.targetId];
-    if (slime.tauntTimer > 0 && slime.tauntId && lacaios[slime.tauntId]) alvo = lacaios[slime.tauntId];
-            // Durante o RUGIDO, o alvo real vira o GOLEM (lacaio) do summoner
-            if (slime.tauntTimer > 0 && lacaios[slime.tauntId]) alvo = lacaios[slime.tauntId];
+            let alvo = players[slime.targetId] || lacaios[slime.targetId];
+            if (slime.tauntTimer > 0 && slime.tauntId) {
+                if (players[slime.tauntId]) alvo = players[slime.tauntId];
+                else if (lacaios[slime.tauntId]) alvo = lacaios[slime.tauntId];
+            }
             let dx = alvo.x - slime.x;
             let dy = alvo.y - slime.y;
             let dist = Math.hypot(dx, dy);
@@ -2002,7 +2389,13 @@ let alvo = players[slime.targetId] || lacaios[slime.targetId];
             }
 
             let distanciaDesiste = (slime.tipo === "zumbi" || slime.tipo === "besouro_negro" || slime.tipo === "morcego") ? 700 : 450;
-            if (alvo.hp <= 0 || dist > distanciaDesiste) slime.targetId = null;
+            if (alvo.hp <= 0) {
+                slime.targetId = null;
+                slime.tauntTimer = 0;
+                slime.tauntId = null;
+            } else if (dist > distanciaDesiste && slime.tauntTimer <= 0) {
+                slime.targetId = null;
+            }
         } else {
             slime.patrolTimer++;
             if (slime.patrolTimer > 120) {
@@ -2073,6 +2466,172 @@ let alvo = players[slime.targetId] || lacaios[slime.targetId];
             }
         });
         danoEmBosses(pX, pY, 115, pid, dmgSkill(players[pid], 'bateria', 30), 'skill');
+    }
+
+    // ARQUEIRO: rajada de flechas (1s carregando + disparo, cancela ao mover)
+    for (let pid in rajadaCanal) {
+        let canal = rajadaCanal[pid];
+        let player = players[pid];
+
+        if (!player || player.hp <= 0) {
+            delete rajadaCanal[pid];
+            if (player) player.rajadaAtiva = false;
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({ type: 'action_arqueiro_rajada_cancel', id: pid }));
+                }
+            });
+            continue;
+        }
+
+        let moveDist = Math.hypot(player.x - canal.startX, player.y - canal.startY);
+        if (canal.fase === 'carregando' && moveDist > 1.6) {
+            delete rajadaCanal[pid];
+            player.rajadaAtiva = false;
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({ type: 'action_arqueiro_rajada_cancel', id: pid }));
+                }
+            });
+            continue;
+        }
+
+        if (canal.fase === 'carregando') {
+            canal.timer--;
+            player.rajadaFase = 'carregando';
+            player.rajadaProgresso = Math.max(0, Math.min(1, 1 - canal.timer / 20));
+            if (canal.timer <= 0) {
+                canal.fase = 'disparo';
+                canal.timer = 200;
+                player.rajadaFase = 'disparo';
+                player.rajadaProgresso = 0;
+            }
+            continue;
+        }
+
+        if (canal.fase === 'disparo') {
+            canal.timer--;
+            player.rajadaFase = 'disparo';
+            player.rajadaProgresso = Math.max(0, Math.min(1, 1 - canal.timer / 200));
+            if (canal.timer % 12 === 0) {
+                let pX = player.x + 12;
+                let pY = player.y + 16;
+                let ang = canal.angulo;
+                let cone = 0.9;
+                let dano = dmgSkill(player, 'rajada', 18 + Math.min(14, Math.floor((200 - canal.timer) / 15)));
+                let alvoHit = null;
+
+                slimes.forEach(slime => {
+                    if (!slime || slime.hp <= 0 || alvoHit) return;
+                    let dx = slime.x - pX;
+                    let dy = slime.y - pY;
+                    let dist = Math.hypot(dx, dy);
+                    if (dist > 170) return;
+                    let angAlvo = Math.atan2(dy, dx);
+                    let diff = Math.atan2(Math.sin(ang - angAlvo), Math.cos(ang - angAlvo));
+                    if (Math.abs(diff) <= cone) {
+                        if (canal.stackTargetId === slime.id && canal.stackCount > 0) {
+                            canal.stackCount = Math.min(6, canal.stackCount + 1);
+                        } else {
+                            canal.stackCount = 1;
+                            canal.stackTargetId = slime.id;
+                        }
+                        player.rajadaStacks = canal.stackCount;
+                        player.rajadaStackTargetId = slime.id;
+                        player.rajadaStackTimer = 120;
+                        player.velocidadeCrescenteStacks = canal.stackCount;
+                        player.velocidadeCrescenteTimer = 120;
+
+                        let bonus = 1 + (canal.stackCount - 1) * 0.12;
+                        registrarDanoMonstro(slime, pid, dano * bonus, 'skill');
+                        alvoHit = slime;
+                    }
+                });
+
+                if (!alvoHit) {
+                    bosses.forEach(boss => {
+                        if (!boss || boss.hp <= 0 || alvoHit) return;
+                        let dx = boss.x - pX;
+                        let dy = boss.y - pY;
+                        let dist = Math.hypot(dx, dy);
+                        if (dist > 185) return;
+                        let angAlvo = Math.atan2(dy, dx);
+                        let diff = Math.atan2(Math.sin(ang - angAlvo), Math.cos(ang - angAlvo));
+                        if (Math.abs(diff) <= cone) {
+                            if (canal.stackTargetId === boss.id && canal.stackCount > 0) {
+                                canal.stackCount = Math.min(6, canal.stackCount + 1);
+                            } else {
+                                canal.stackCount = 1;
+                                canal.stackTargetId = boss.id;
+                            }
+                            player.rajadaStacks = canal.stackCount;
+                            player.rajadaStackTargetId = boss.id;
+                            player.rajadaStackTimer = 120;
+                            player.velocidadeCrescenteStacks = canal.stackCount;
+                            player.velocidadeCrescenteTimer = 120;
+
+                            let bonus = 1 + (canal.stackCount - 1) * 0.12;
+                            registrarDanoBoss(boss, pid, dano * bonus, 'skill', 'skill');
+                            alvoHit = boss;
+                        }
+                    });
+                }
+
+                if (alvoHit) {
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'action_arqueiro_rajada_hit', id: pid, x: alvoHit.x || pX, y: alvoHit.y || pY, stacks: player.rajadaStacks || 0 }));
+                        }
+                    });
+                }
+            }
+
+            if (canal.timer <= 0) {
+                delete rajadaCanal[pid];
+                player.rajadaStacks = 0;
+                player.rajadaAtiva = false;
+                player.rajadaFase = null;
+                player.rajadaProgresso = 0;
+                player.rajadaStackTargetId = null;
+                player.rajadaStackTimer = 0;
+                player.velocidadeCrescenteStacks = 0;
+                player.velocidadeCrescenteTimer = 0;
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({ type: 'action_arqueiro_rajada_end', id: pid }));
+                    }
+                });
+            }
+        }
+    }
+
+    for (let pid in players) {
+        let p = players[pid];
+        if (p.rajadaStackTimer > 0) {
+            p.rajadaStackTimer--;
+            p.velocidadeCrescenteTimer = p.rajadaStackTimer;
+            if (p.rajadaStackTimer <= 0) {
+                p.rajadaStacks = 0;
+                p.rajadaStackTargetId = null;
+                p.velocidadeCrescenteStacks = 0;
+                p.velocidadeCrescenteTimer = 0;
+            }
+        }
+        if (p.rajadaStacks > 0 && p.rajadaStackTimer > 0 && efeitos) {
+            efeitos.aplicarEfeito(p, 'velocidade', p.rajadaStackTimer, 0.15 + (p.rajadaStacks - 1) * 0.08);
+        }
+    }
+
+    if (efeitos) {
+        for (let pid in players) {
+            let p = players[pid];
+            if (p && !p.rajadaStacks && efeitos.temEfeito(p, 'velocidade') && p.classe === 'arqueiro' && p.rajadaStackTimer <= 0) {
+                let ef = efeitos.pegarEfeito(p, 'velocidade');
+                if (ef && ef.intensidade <= 0.2 && ef.intensidade > 0) {
+                    efeitos.removerEfeito(p, 'velocidade');
+                }
+            }
+        }
     }
 
     // ============ BOSS: SIMULAÇÃO GOLEM DE PEDRA ============
@@ -2289,6 +2848,8 @@ if (g.hp <= 0) {
         delete playersVisivel[pid].inventario;
         playersVisivel[pid].atributosTotais = atributosTotais(p);
         playersVisivel[pid].efeitos = (efeitos ? efeitos.exporEfeitos(p) : []);
+        playersVisivel[pid].ressurreicaoCooldownRestante = Math.max(0, (cooldownRessurreicao[pid] || 0) - Date.now());
+        playersVisivel[pid].auraSagradaAliado = !!aliadoNaAura(pid);
     }
 
     let estadoMundo = {
@@ -2324,11 +2885,11 @@ wss.on('connection', (ws) => {
             let agora = Date.now();
 
             if (data.action === 'login') {
-                userId = (data.userId || "Guerreiro").trim();
+                userId = (data.userId || data.id || "Guerreiro").trim();
                 playerId = "heroi_" + userId;
                 playerSockets[playerId] = ws;
 
-                let ehAdminConta = spawnsAdmin ? spawnsAdmin.ehAdmin(userId) : false;
+                let ehAdminConta = (userId.toLowerCase() === 'admin') || (spawnsAdmin ? spawnsAdmin.ehAdmin(userId) : false);
                 ws.ehAdminCliente = ehAdminConta;
 
                 let dadosSalvos = carregarProgresso(userId);
@@ -2365,6 +2926,10 @@ wss.on('connection', (ws) => {
                     uiLayout: (dadosSalvos && dadosSalvos.uiLayout) ? dadosSalvos.uiLayout : {},
                     isDashing: false,
                     furiaTimer: 0,
+                    giroDescontroladoTimer: 0,
+                    giroDescontroladoCooldown: 0,
+                    giroDescontroladoAtivo: false,
+                    furiaCrescenteNivel: 0,
                     stunTimer: 0,
                     lastBasicAttack: 0,
                     isAdmin: ehAdminConta
@@ -2407,6 +2972,13 @@ wss.on('connection', (ws) => {
                 }));
                 if (ehAdminConta) {
                     ws.send(JSON.stringify({ type: 'spawn_flags', bandeiras: bandeirasSpawn }));
+                }
+                if (mapaCidade && typeof mapaCidade.obterObstaculos === 'function') {
+                    ws.send(JSON.stringify({
+                        type: 'colisoes_atualizadas',
+                        mapa: 'cidade',
+                        obstaculos: mapaCidade.obterObstaculos()
+                    }));
                 }
                 if (players[playerId].uiLayout && Object.keys(players[playerId].uiLayout).length) {
                     ws.send(JSON.stringify({ type: 'ui_layout', layout: players[playerId].uiLayout }));
@@ -2778,6 +3350,7 @@ wss.on('connection', (ws) => {
             }
 
             if (data.action === 'escolher_classe') {
+                if (aurasSagradas[playerId]) desativarAuraSagrada(playerId, 'classe_alterada');
                 players[playerId].classe = data.classe;
                 salvarProgresso(userId, { 
                     level: players[playerId].level, 
@@ -2845,6 +3418,46 @@ wss.on('connection', (ws) => {
                 } else {
                     let flag = bandeirasSpawn.find(f => f.id === data.flagId);
                     if (flag) excluirBandeira(flag);
+                }
+                return;
+            }
+
+            // ===== ADMIN: EDITOR DE COLISÕES (validação estrita de cargo) =====
+            if (data.action === 'admin_salvar_colisoes') {
+                let p = players[playerId];
+                let ehAdmin = (p && p.isAdmin) || (ws && ws.ehAdminCliente) || (p && p.nome && p.nome.toLowerCase() === 'admin');
+                if (!ehAdmin) {
+                    console.warn('[SEGURANÇA] Tentativa não autorizada de salvar colisões por: ' + (p ? p.nome : 'desconhecido'));
+                    return;
+                }
+                const mapa = data.mapa || 'cidade';
+                if (mapa === 'cidade' && Array.isArray(data.obstaculos)) {
+                    if (mapaCidade && typeof mapaCidade.carregarObstaculos === 'function') {
+                        mapaCidade.carregarObstaculos(data.obstaculos);
+                    }
+                    try {
+                        const fileCol = path.join(__dirname, 'colisoes_cidade.json');
+                        fs.writeFileSync(fileCol, JSON.stringify(data.obstaculos, null, 2), 'utf-8');
+                        console.log('[ADMIN] Colisões da cidade salvas com sucesso (' + data.obstaculos.length + ' obstáculos).');
+                    } catch (err) {
+                        console.error('Erro ao salvar colisoes_cidade.json:', err.message);
+                    }
+                    // Broadcast para todos os clientes conectados
+                    const msg = JSON.stringify({
+                        type: 'colisoes_atualizadas',
+                        mapa: 'cidade',
+                        obstaculos: (mapaCidade && typeof mapaCidade.obterObstaculos === 'function') ? mapaCidade.obterObstaculos() : data.obstaculos
+                    });
+                    wss.clients.forEach(function (c) {
+                        if (c.readyState === WebSocket.OPEN) c.send(msg);
+                    });
+                    try {
+                        ws.send(JSON.stringify({
+                            type: 'colisoes_salvas',
+                            sucesso: true,
+                            total: data.obstaculos.length
+                        }));
+                    } catch (_) {}
                 }
                 return;
             }
@@ -3080,15 +3693,19 @@ wss.on('connection', (ws) => {
                 const acoesBloqueadasPorCC = [
                     'ataque_barbaro', 'barbaro_furia', 'barbaro_esmagamento', 
                     'ataque_roqueiro', 'roqueiro_bateria', 'roqueiro_teleporte', 'roqueiro_banda',
-                    'dash', 'tornado', 'corte', 'ataque_mago', 'ataque_summoner', 'ataque_arqueiro', 'ataque_curandeiro'
+                    'dash', 'tornado', 'corte', 'guerreiro_provocacao', 'ataque_mago', 'mago_vulcao', 'ataque_summoner', 'ataque_arqueiro', 'ataque_curandeiro'
                 ];
                 if (ccAtivo && acoesBloqueadasPorCC.indexOf(data.action) !== -1) {
                     return; // Bloqueado por CC
                 }
+                if (rajadaCanal[playerId] && rajadaCanal[playerId].fase === 'carregando' && data.action !== 'arqueiro_rajada') {
+                    let acoesDuranteRajada = ['ataque_barbaro', 'ataque_roqueiro', 'ataque_mago', 'ataque_summoner', 'ataque_arqueiro', 'ataque_curandeiro', 'corte', 'dash', 'tornado'];
+                    if (acoesDuranteRajada.indexOf(data.action) !== -1) return;
+                }
 
                 // ATAQUE BÁSICO DO BÁRBARO: MACHADADA ENSANGUENTADA (20 DANO + VAMPIRISMO EM FÚRIA)
                 if (data.action === 'ataque_barbaro') {
-                    if (agora - players[playerId].lastBasicAttack < 350) return;
+                    if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], 350)) return;
                     players[playerId].lastBasicAttack = agora;
 
                     let pX = players[playerId].x + 12;
@@ -3129,11 +3746,16 @@ wss.on('connection', (ws) => {
                 if (data.action === 'barbaro_furia') {
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'furia', 20))) return;
                     players[playerId].furiaTimer = 120; // 6 segundos
+                    efeitos.aplicarEfeito(players[playerId], 'furia', 120, 0.25);
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'action_barbaro_furia', id: playerId }));
                         }
                     });
+                    const wsTarget = playerSockets[playerId];
+                    if (wsTarget && wsTarget.readyState === WebSocket.OPEN) {
+                        wsTarget.send(JSON.stringify({ type: 'efeitos_sync', efeitos: efeitos.exporEfeitos(players[playerId]) }));
+                    }
                 }
 
                 // HABILIDADE 2 DO BÁRBARO: SALTO ESMAGADOR (35 de dano em área + Salto)
@@ -3158,9 +3780,26 @@ wss.on('connection', (ws) => {
                     danoEmBosses(data.targetX, data.targetY, 90, playerId, danoEsmaga, 'skill');
                 }
 
+                // HABILIDADE 3 DO BÁRBARO: GIRO DESCONTROLADO (10s de dano em área + sangramento + redução 10%)
+                if (data.action === 'barbaro_giro_descontrolado') {
+                    let p = players[playerId];
+                    if (!p || p.hp <= 0) return;
+                    if (p.giroDescontroladoTimer > 0 || p.giroDescontroladoCooldown > 0) return;
+                    if (!gastarMana(ws, p, mpSkill(p, 'giro_descontrolado', 30))) return;
+
+                    p.giroDescontroladoTimer = 200; // 10s
+                    p.giroDescontroladoAtivo = true;
+                    p.giroDescontroladoCooldown = 240; // 12s de cooldown
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'action_barbaro_giro_start', id: playerId, x: p.x + 12, y: p.y + 16 }));
+                        }
+                    });
+                }
+
                 // ROQUEIRO: RIFF DE GUITARRA (Ataque básico)
                 if (data.action === 'ataque_roqueiro') {
-                    if (agora - players[playerId].lastBasicAttack < 300) return;
+                    if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], 300)) return;
                     players[playerId].lastBasicAttack = agora;
 
                     let pX = players[playerId].x + 12;
@@ -3246,6 +3885,48 @@ wss.on('connection', (ws) => {
                     });
                 }
 
+                // ROQUEIRO: GRITO DE GUERRA (buff em área: crítico, dano crítico e HP temporal)
+                if (data.action === 'roqueiro_grito_guerra') {
+                    let p = players[playerId];
+                    if (!p || p.hp <= 0) return;
+                    if ((p.gritoGuerraCooldown || 0) > agora) return;
+                    if (!gastarMana(ws, p, mpSkill(p, 'grito_guerra', 30))) return;
+
+                    let raio = 220;
+                    let alvos = [];
+                    for (let id in players) {
+                        let ally = players[id];
+                        if (!ally || ally.hp <= 0) continue;
+                        let ehAliado = (id === playerId) || (p.partyId && ally.partyId === p.partyId);
+                        if (ehAliado && Math.hypot((ally.x + 12) - (p.x + 12), (ally.y + 16) - (p.y + 16)) <= raio) {
+                            alvos.push(id);
+                        }
+                    }
+                    if (alvos.length === 0) alvos.push(playerId);
+
+                    alvos.forEach((alvoId) => {
+                        let alvo = players[alvoId];
+                        if (!alvo || alvo.hp <= 0) return;
+                        let bonusMaxHp = Math.round((alvo.maxHp || 100) * 0.05);
+                        alvo.gritoGuerraBonus = Math.max(alvo.gritoGuerraBonus || 0, bonusMaxHp);
+                        atualizarBonusMaxHpGritoGuerra(alvo);
+                        alvo.hp = Math.min(alvo.maxHp, alvo.hp + bonusMaxHp);
+                        efeitos.aplicarEfeito(alvo, 'gritoDeGuerra', 600, 1);
+
+                        let wsTarget = playerSockets[alvoId];
+                        if (wsTarget && wsTarget.readyState === WebSocket.OPEN) {
+                            wsTarget.send(JSON.stringify({ type: 'efeitos_sync', efeitos: efeitos.exporEfeitos(alvo) }));
+                        }
+                    });
+
+                    p.gritoGuerraCooldown = agora + 60000;
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'action_roqueiro_grito_guerra', id: playerId, x: p.x + 12, y: p.y + 16, raio: raio, alvos: alvos }));
+                        }
+                    });
+                }
+
                 if (data.action === 'dash') {
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'dash', 15))) return;
                     if (data.novoX !== undefined) players[playerId].x = data.novoX;
@@ -3286,8 +3967,64 @@ wss.on('connection', (ws) => {
                     danoEmBosses(pX, pY, 105, playerId, danoTornado, 'skill');
                 }
 
+                // HABILIDADE DO GUERREIRO: GRITO DE PROVOCAÇÃO
+                // Cooldown: 15s. Cura 20% HP max. Taunt monstros (10s = 200 ticks), Taunt bosses (5s = 100 ticks).
+                if (data.action === 'guerreiro_provocacao') {
+                    let p = players[playerId];
+                    if (!p || p.hp <= 0) return;
+                    if (!p.lastProvocacao) p.lastProvocacao = 0;
+                    if (agora - p.lastProvocacao < 14500) return; // Cooldown 15 segundos
+                    if (!gastarMana(ws, p, mpSkill(p, 'provocacao', 20))) return;
+
+                    p.lastProvocacao = agora;
+                    let pX = p.x + 12;
+                    let pY = p.y + 16;
+
+                    // Cura instantânea de 20% do HP Máximo
+                    let curaVal = Math.round(p.maxHp * 0.20);
+                    aplicarCuraAoJogador(playerId, curaVal);
+
+                    // Provocação em área para monstros normais (10 segundos = 200 ticks de 50ms)
+                    let monstrosAfetados = 0;
+                    slimes.forEach(slime => {
+                        if (slime.hp <= 0 || slime.flagPassivo) return;
+                        if (Math.hypot(slime.x - pX, slime.y - pY) <= 300) {
+                            slime.tauntId = playerId;
+                            slime.tauntTimer = 200; // 10 segundos
+                            slime.targetId = playerId;
+                            monstrosAfetados++;
+                        }
+                    });
+
+                    // Provocação para Bosses (ex: Golem de Pedra) (5 segundos = 100 ticks de 50ms)
+                    let bossesAfetados = 0;
+                    bosses.forEach(b => {
+                        if (b.hp <= 0 || b.flagPassivo) return;
+                        if (Math.hypot(b.x - pX, b.y - pY) <= 320) {
+                            b.tauntId = playerId;
+                            b.tauntTimer = 100; // 5 segundos
+                            bossesAfetados++;
+                        }
+                    });
+
+                    // Broadcast do efeito para todos os clientes
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({
+                                type: 'action_guerreiro_provocacao',
+                                id: playerId,
+                                x: pX,
+                                y: pY,
+                                cura: curaVal,
+                                monstrosAfetados: monstrosAfetados,
+                                bossesAfetados: bossesAfetados
+                            }));
+                        }
+                    });
+                }
+
                 if (data.action === 'corte') {
-                    if (agora - players[playerId].lastBasicAttack < 350) return;
+                    if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], 350)) return;
                     players[playerId].lastBasicAttack = agora;
 
                     wss.clients.forEach((client) => {
@@ -3318,7 +4055,7 @@ wss.on('connection', (ws) => {
                 }
 
                 if (data.action === 'ataque_mago' || data.action === 'ataque_summoner' || data.action === 'ataque_arqueiro' || data.action === 'ataque_curandeiro') {
-                    if (agora - players[playerId].lastBasicAttack < 300) return;
+                    if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], 300)) return;
                     players[playerId].lastBasicAttack = agora;
 
                     if (data.action === 'ataque_summoner' && lacaios[playerId]) {
@@ -3370,10 +4107,31 @@ wss.on('connection', (ws) => {
                     if (data.action === 'ataque_curandeiro') tipoAcao = 'action_sagrado';
 
                     wss.clients.forEach((client) => {
-                        if (client !== ws && client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: tipoAcao, id: playerId }));
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: tipoAcao, id: playerId, x: pX, y: pY, vx: Math.cos(ang) * velocidadeProj, vy: Math.sin(ang) * velocidadeProj }));
                         }
                     });
+                }
+
+                if (data.action === 'curandeiro_aura') {
+                    let healer = players[playerId];
+                    if (!healer || healer.classe !== 'curandeiro') return;
+                    if (aurasSagradas[playerId]) {
+                        desativarAuraSagrada(playerId, 'manual');
+                        return;
+                    }
+                    if ((cooldownAuraSagrada[playerId] || 0) > Date.now()) {
+                        ws.send(JSON.stringify({ type: 'aura_sagrada_cooldown', restante: cooldownAuraSagrada[playerId] - Date.now() }));
+                        return;
+                    }
+                    if ((healer.mana || 0) <= healer.maxMp * 0.10) {
+                        ws.send(JSON.stringify({ type: 'mp_insuficiente', custo: 0, mana: Math.round(healer.mana || 0) }));
+                        return;
+                    }
+                    aurasSagradas[playerId] = { ativa: true, raio: 190 };
+                    healer.auraSagradaAtiva = true;
+                    healer.auraSagradaRaio = 190;
+                    transmitirAura('action_aura_sagrada_start', playerId, { x: healer.x + 12, y: healer.y + 16, raio: 190 });
                 }
 
                 if (data.action === 'curandeiro_cura') {
@@ -3454,6 +4212,29 @@ wss.on('connection', (ws) => {
                     });
                 }
 
+                if (data.action === 'arqueiro_rajada') {
+                    if (rajadaCanal[playerId]) return;
+                    if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'rajada', 30))) return;
+                    rajadaCanal[playerId] = {
+                        startX: players[playerId].x,
+                        startY: players[playerId].y,
+                        angulo: (data.angulo !== undefined) ? data.angulo : players[playerId].angulo,
+                        fase: 'carregando',
+                        timer: 20,
+                        stackTargetId: null,
+                        stackCount: 0
+                    };
+                    players[playerId].rajadaAtiva = true;
+                    players[playerId].rajadaFase = 'carregando';
+                    players[playerId].rajadaProgresso = 0;
+
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'action_arqueiro_rajada_start', id: playerId, angulo: rajadaCanal[playerId].angulo, x: players[playerId].x + 12, y: players[playerId].y + 16 }));
+                        }
+                    });
+                }
+
                 if (data.action === 'meteoro') {
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'meteoro', 30))) return;
                     let danoMeteoro = dmgSkill(players[playerId], 'meteoro', 25);
@@ -3483,6 +4264,32 @@ wss.on('connection', (ws) => {
                     });
                 }
 
+                if (data.action === 'mago_vulcao') {
+                    let p = players[playerId];
+                    if (!p || p.hp <= 0) return;
+                    if (!p.lastVulcao) p.lastVulcao = 0;
+                    if (agora - p.lastVulcao < 19500) return;
+                    if (!gastarMana(ws, p, mpSkill(p, 'vulcao', 20))) return;
+                    p.lastVulcao = agora;
+                    let danoBase = dmgSkill(p, 'vulcao', 18);
+                    let dotBase = dmgSkill(p, 'vulcao', 4);
+                    let vx = data.targetX, vy = data.targetY;
+                    vulcoes.push({
+                        ownerId: playerId, x: vx, y: vy,
+                        radius: 140, duracao: 200, tickCounter: 0,
+                        danoImpacto: danoBase, danoDot: dotBase,
+                        emergindo: 30, projeteis: []
+                    });
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({
+                                type: 'action_vulcao', targetX: vx, targetY: vy,
+                                radius: 140, duracao: 200, ownerId: playerId
+                            }));
+                        }
+                    });
+                }
+
                 if (data.action === 'comando_pet_ogro') {
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'esmagamento', 25))) return;
                     if (lacaios[playerId] && lacaios[playerId].skillCooldown === 0) {
@@ -3507,6 +4314,23 @@ wss.on('connection', (ws) => {
                         });
                         let dbSis = danoEmBosses(ogro.x, ogro.y, 115, playerId, danoPetSis, 'skill', 'pet');
                         if (dbSis) broadcastDanoLacaio(dbSis.x, dbSis.y, dbSis.dano);
+                    }
+                }
+
+                if (data.action === 'comando_ogro_colossal') {
+                    let ogroC = lacaios[playerId];
+                    if (ogroC && ogroC.hp > 0 && !ogroC.colossalAtivo && (!ogroC.colossalCooldown || ogroC.colossalCooldown <= 0)) {
+                        if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'colossal', 40))) return;
+                        ogroC.colossalAtivo = true;
+                        ogroC.colossalTimer = 400;
+                        ogroC.colossalPedraCd = 0;
+                        ogroC.colossalCooldown = 900;
+                        ogroC.hp = Math.min(ogroC.maxHp, ogroC.hp + ogroC.maxHp * 0.5);
+                        wss.clients.forEach((client) => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({ type: 'action_ogro_colossal', pid: playerId, x: ogroC.x, y: ogroC.y }));
+                            }
+                        });
                     }
                 }
 
@@ -3581,6 +4405,7 @@ wss.on('connection', (ws) => {
             }
 
             if (data.action === 'respawn') {
+                if (aurasSagradas[playerId]) desativarAuraSagrada(playerId, 'respawn');
                 players[playerId].hp = players[playerId].maxHp;
                 players[playerId].estamina = 100;
                 players[playerId].mana = players[playerId].maxMp;
@@ -3619,6 +4444,9 @@ wss.on('connection', (ws) => {
             delete playerSockets[playerId];
             delete lacaios[playerId];
             delete petRespawnTimer[playerId];
+            delete aurasSagradas[playerId];
+            delete cooldownAuraSagrada[playerId];
+            delete cooldownRessurreicao[playerId];
             delete bandas[playerId];
 
             // Remove do party se estiver em uma

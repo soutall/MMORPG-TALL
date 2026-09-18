@@ -1,0 +1,413 @@
+/* colisao-editor.css — Editor Completo de Colisões em Tempo Real (Admin) */
+
+/* Botão no HUD */
+#btn-colisao-editor {
+    background: #2c2214;
+    border: 2px solid #e67e22;
+    color: #f39c12;
+    font-size: 16px;
+    cursor: pointer;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    transition: transform 0.1s, border-color 0.2s;
+}
+#btn-colisao-editor:hover {
+    border-color: #f1c40f;
+    transform: scale(1.08);
+}
+#btn-colisao-editor.ativo {
+    border-color: #2ecc71;
+    box-shadow: 0 0 10px #2ecc71;
+    background: #19381e;
+}
+
+/* Indicador de Topo quando Ativo */
+#colisao-editor-hud-badge {
+    position: fixed;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(20, 18, 14, 0.92);
+    border: 2px solid #e67e22;
+    border-radius: 20px;
+    padding: 6px 16px;
+    color: #f39c12;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: bold;
+    font-size: 14px;
+    display: none;
+    align-items: center;
+    gap: 10px;
+    z-index: 10000;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+    pointer-events: auto;
+}
+#colisao-editor-hud-badge button {
+    background: #34495e;
+    border: 1px solid #7f8c8d;
+    color: #fff;
+    border-radius: 4px;
+    padding: 3px 8px;
+    font-size: 11px;
+    cursor: pointer;
+}
+#colisao-editor-hud-badge button:hover {
+    background: #2c3e50;
+    border-color: #f39c12;
+}
+
+/* Janela Flutuante do Editor */
+#colisao-editor-screen {
+    position: fixed;
+    top: 60px;
+    right: 20px;
+    width: 340px;
+    max-width: 92vw;
+    max-height: 85vh;
+    background: #1e1a14;
+    border: 3px solid #d35400;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.8), inset 0 0 15px rgba(0,0,0,0.5);
+    border-radius: 6px;
+    z-index: 10001;
+    display: none;
+    flex-direction: column;
+    font-family: 'Rajdhani', sans-serif;
+    color: #ecf0f1;
+    overflow: hidden;
+    user-select: none;
+}
+
+/* Cabeçalho Arrastável */
+#colisao-editor-header {
+    background: #2d1c0b;
+    border-bottom: 2px solid #e67e22;
+    padding: 8px 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: move;
+}
+#colisao-editor-title {
+    font-family: 'Cinzel', serif;
+    font-weight: bold;
+    font-size: 14px;
+    color: #f39c12;
+    letter-spacing: 1.5px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+.col-window-controls {
+    display: flex;
+    gap: 6px;
+}
+.col-window-btn {
+    background: #3e2713;
+    border: 1px solid #e67e22;
+    color: #f39c12;
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    cursor: pointer;
+}
+.col-window-btn:hover {
+    background: #e67e22;
+    color: #fff;
+}
+
+/* Corpo e Abas */
+#colisao-editor-body {
+    padding: 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-height: calc(85vh - 90px);
+}
+
+/* Barra de Ferramentas / Modos */
+.col-toolbar {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+.col-tool-btn {
+    background: #2c251d;
+    border: 1.5px solid #7f8c8d;
+    color: #bdc3c7;
+    padding: 7px 8px;
+    font-size: 11px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: all 0.15s;
+}
+.col-tool-btn:hover {
+    background: #3e3326;
+    color: #fff;
+    border-color: #f39c12;
+}
+.col-tool-btn.active {
+    background: #d35400;
+    color: #fff;
+    border-color: #f1c40f;
+    box-shadow: 0 0 6px rgba(241, 196, 15, 0.4);
+}
+.col-tool-btn.btn-toggle-vis.on {
+    background: #27ae60;
+    border-color: #2ecc71;
+    color: #fff;
+}
+.col-tool-btn.btn-tool-curve {
+    background: #351e3d;
+    border-color: #9b59b6;
+    color: #e0b0ff;
+}
+.col-tool-btn.btn-tool-curve:hover {
+    background: #4e295a;
+    border-color: #bb86fc;
+    color: #ffffff;
+}
+.col-tool-btn.btn-tool-curve.active {
+    background: #8e44ad !important;
+    border-color: #bb86fc !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 8px rgba(187, 134, 252, 0.6) !important;
+}
+
+/* Seção de Propriedades */
+.col-section {
+    background: #14120e;
+    border: 1px solid #3d3224;
+    border-radius: 4px;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+}
+.col-section-title {
+    font-size: 11px;
+    font-weight: bold;
+    color: #e67e22;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    border-bottom: 1px dashed #3d3224;
+    padding-bottom: 4px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.col-field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+.col-field label {
+    font-size: 10px;
+    color: #95a5a6;
+    text-transform: uppercase;
+}
+.col-field input[type=text],
+.col-field input[type=number],
+.col-field select {
+    background: #231e17;
+    border: 1px solid #5a4b36;
+    color: #fff;
+    padding: 4px 6px;
+    border-radius: 3px;
+    font-family: inherit;
+    font-size: 11px;
+}
+.col-field input:focus, .col-field select:focus {
+    border-color: #f39c12;
+    outline: none;
+}
+.col-stepper-row {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.col-stepper-row input {
+    flex: 1;
+    width: 60px;
+}
+.col-step-btn {
+    background: #342a1d;
+    border: 1px solid #635036;
+    color: #f39c12;
+    padding: 3px 5px;
+    font-size: 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    font-weight: bold;
+}
+.col-step-btn:hover {
+    background: #e67e22;
+    color: #fff;
+}
+
+/* Ações da Colisão Selecionada */
+.col-actions-row {
+    display: flex;
+    gap: 6px;
+    margin-top: 4px;
+}
+.col-action-btn {
+    flex: 1;
+    padding: 6px;
+    font-size: 11px;
+    font-weight: bold;
+    border-radius: 4px;
+    cursor: pointer;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+}
+.btn-col-delete {
+    background: #962d22;
+    color: #fff;
+}
+.btn-col-delete:hover {
+    background: #c0392b;
+}
+.btn-col-duplicate {
+    background: #2980b9;
+    color: #fff;
+}
+.btn-col-duplicate:hover {
+    background: #3498db;
+}
+.btn-col-teleport {
+    background: #16a085;
+    color: #fff;
+}
+.btn-col-teleport:hover {
+    background: #1abc9c;
+}
+
+/* Lista de Colisões */
+#col-lista-container {
+    max-height: 180px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+.col-list-item {
+    background: #231e17;
+    border: 1px solid #3d3224;
+    padding: 6px 8px;
+    border-radius: 3px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+    font-size: 11px;
+}
+.col-list-item:hover {
+    background: #332a1e;
+    border-color: #f39c12;
+}
+.col-list-item.selected {
+    background: #4a361a;
+    border-color: #f1c40f;
+    box-shadow: inset 0 0 5px rgba(241, 196, 15, 0.3);
+}
+.col-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    overflow: hidden;
+}
+.col-item-name {
+    font-weight: bold;
+    color: #f5b041;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+.col-item-dims {
+    font-size: 9px;
+    color: #95a5a6;
+}
+.col-item-del-btn {
+    background: transparent;
+    border: none;
+    color: #e74c3c;
+    cursor: pointer;
+    font-size: 13px;
+    padding: 2px 4px;
+}
+.col-item-del-btn:hover {
+    color: #ff6b6b;
+    transform: scale(1.2);
+}
+
+/* Rodapé / Botão Salvar */
+#colisao-editor-footer {
+    background: #241a0f;
+    border-top: 2px solid #e67e22;
+    padding: 8px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+#btn-salvar-colisoes {
+    background: #27ae60;
+    border: 2px solid #2ecc71;
+    color: #fff;
+    padding: 9px;
+    font-weight: bold;
+    font-size: 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    letter-spacing: 1px;
+    box-shadow: 0 3px 0 #1e8449;
+}
+#btn-salvar-colisoes:hover {
+    background: #2ecc71;
+    box-shadow: 0 1px 0 #1e8449;
+    transform: translateY(2px);
+}
+#btn-salvar-colisoes:active {
+    transform: translateY(3px);
+}
+#col-status-bar {
+    font-size: 10px;
+    color: #95a5a6;
+    text-align: center;
+}
+
+/* Toast de Feedback */
+.col-toast {
+    position: fixed;
+    bottom: 25px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #27ae60;
+    color: #fff;
+    padding: 8px 18px;
+    border-radius: 20px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.6);
+    z-index: 10005;
+    animation: colFadeInOut 2.5s forwards;
+}
+@keyframes colFadeInOut {
+    0% { opacity: 0; transform: translate(-50%, 15px); }
+    15% { opacity: 1; transform: translate(-50%, 0); }
+    80% { opacity: 1; transform: translate(-50%, 0); }
+    100% { opacity: 0; transform: translate(-50%, -10px); }
+}

@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "strictness": "strict",
+    "allow": [
+      "Bash(cd \"E:\\Jogo CELULAR\" && git log -1 --stat 51b4ec8)",
+      "Bash(cd \"E:\\Jogo CELULAR\" && Get-ChildItem -Force | Select-Object Name | head -30)",
+      "Bash(cd \"E:\\Jogo CELULAR\" && git diff --stat HEAD~1 HEAD)"
+    ]
+  }
+}

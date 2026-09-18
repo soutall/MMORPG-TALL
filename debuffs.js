@@ -15,12 +15,18 @@ const EFEITOS = {
     reducaoDef: { nome: 'Defesa Quebrada', classe: 'debuff', icon: '🥀', cor: '#8e44ad', desc: 'Dano recebido aumentado em 25%.', formato: (ef) => ('' + Math.round(ef.intensidade * 100) + '%') },
     reducaoAtk: { nome: 'Enfraquecido',  classe: 'debuff', icon: '💪', cor: '#e67e22', desc: 'Dano causado reduzido em 25%.', formato: (ef) => ('' + Math.round(ef.intensidade * 100) + '%') },
     veneno:     { nome: 'Envenenado',    classe: 'debuff', icon: '☠️', cor: '#2ecc71', desc: 'Recebe dano ao longo do tempo (água venenosa do pântano).', formato: (ef) => ('' + Math.round(ef.tempo)) },
+    sangramento:{ nome: 'Sangramento',   classe: 'debuff', icon: '🩸', cor: '#c0392b', desc: 'Perde vida ao longo do tempo por ferimentos profundos.', formato: (ef) => ('' + Math.round(ef.tempo)) },
+    queimadura: { nome: 'Queimadura',    classe: 'debuff', icon: '🔥', cor: '#e74c3c', desc: 'Queimando! Recebe dano de fogo ao longo do tempo.', formato: (ef) => ('' + Math.round(ef.tempo)) },
+    gelo:       { nome: 'Congelado',     classe: 'debuff', icon: '🧊', cor: '#00cfff', desc: 'Congelado! Velocidade reduzida e vulnerável a reações elementais.', formato: (ef) => ('' + Math.round(ef.tempo)) },
+    queimaduraCongelante: { nome: 'Queimadura Congelante', classe: 'debuff', icon: '💠', cor: '#b266ff', desc: 'Dano contínuo extremo de fogo e gelo combinados.', formato: (ef) => ('' + Math.round(ef.tempo)) },
 
     // ===== BUFFS =====
+    furia:      { nome: 'Fúria Berserker', classe: 'buff', icon: '🩸', cor: '#e74c3c', desc: 'Lifesteal e dano aumentado durante a fúria.', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') },
     escudo:     { nome: 'Escudo',        classe: 'buff',   icon: '🛡️', cor: '#2ecc71', desc: 'Dano recebido reduzido em 20%.', formato: (ef) => ('' + Math.round(ef.intensidade * 100) + '%') },
     fogo:       { nome: 'Ardente',       classe: 'buff',   icon: '🔥', cor: '#e74c3c', desc: 'Causa dano extra '+ 'por tick.', formato: (ef) => ('' + Math.round(ef.intensidade) + '/tick') },
     fervor:     { nome: 'Fervor',        classe: 'buff',   icon: '💢', cor: '#e74c3c', desc: 'Dano causado aumentado em 25%.', formato: (ef) => ('' + Math.round(ef.intensidade * 100) + '%') },
     velocidade: { nome: 'Velocidade',    classe: 'buff',   icon: '💨', cor: '#00bcd4', desc: 'Velocidade de movimento aumentada em 50%.', formato: (ef) => ('' + Math.round(ef.intensidade * 100) + '%') },
+    gritoDeGuerra: { nome: 'Grito de Guerra', classe: 'buff', icon: '📣', cor: '#f1c40f', desc: 'Crítico maior, velocidade de ataque aumentada e vida máxima ampliada.', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') },
     sedento:    { nome: 'Sede de Sangue', classe: 'buff',  icon: '🩸', cor: '#ff4757', desc: 'Cura uma fração do dano causado.', formato: () => '' }
 };
 
@@ -74,7 +80,19 @@ function removerEfeito(entidade, id) {
 
 function exporEfeitos(entidade) {
     if (!entidade || !Array.isArray(entidade.efeitos)) return [];
-    return entidade.efeitos.map(e => ({ id: e.id, tempo: e.tempo, intensidade: e.intensidade }));
+    return entidade.efeitos.map(e => {
+        const meta = EFEITOS[e.id] || {};
+        return {
+            id: e.id,
+            nome: meta.nome || e.id,
+            icon: meta.icon || '✦',
+            cor: meta.cor || '#ffffff',
+            classe: meta.classe || 'buff',
+            tempo: e.tempo,
+            intensidade: e.intensidade,
+            formatado: (meta.formato ? meta.formato(e) : (String(e.tempo || '')))
+        };
+    });
 }
 
 // Compatibilidade navegador/servidor: no Node expomos via module.exports;

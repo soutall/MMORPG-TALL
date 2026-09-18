@@ -12,6 +12,28 @@
     max-height: 96vh;
 }
 
+#hud-status-window {
+    position: fixed;
+    top: 8px;
+    left: 10px;
+    z-index: 20;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: auto;
+}
+
+#hud-status-window > #hud-level,
+#hud-status-window > #hud-dps {
+    position: relative !important;
+    left: auto !important;
+    top: auto !important;
+    right: auto !important;
+    bottom: auto !important;
+    transform: none !important;
+    display: block;
+}
+
 /* --- Manillas de arrastre ------------------------------------------- */
 #inv-title, #skills-header, #settings-header, #atributos-title,
 #detalhes-title, #big-map-top, #teleport-title {
@@ -47,8 +69,9 @@
 }
 #drag-ghost .dg-ico { font-size: 26px; line-height: 1; filter: drop-shadow(1px 1px 0 #000); }
 #drag-ghost .dg-txt {
-    font-family: 'Courier New', monospace;
-    font-size: 8px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 11px;
+    font-weight: bold;
     color: #f1c40f;
     letter-spacing: 0.5px;
     white-space: nowrap;
@@ -75,9 +98,10 @@
 /* --- Barra do editor --------------------------------------------------------- */
 #ui-editor-bar {
     position: fixed;
-    bottom: 8px;
+    top: 8px;
     left: 50%;
-    transform: translateX(-50%);
+    transform: translateX(-50%) scale(0.7);
+    transform-origin: top center;
     z-index: 9998;
     display: none;
     background: rgba(10, 10, 8, 0.95);
@@ -85,14 +109,15 @@
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.6), inset 2px 2px 0 #3a3528;
     padding: 8px 12px 10px 12px;
     image-rendering: pixelated;
-    font-family: 'Courier New', monospace;
     align-items: center;
     gap: 8px;
+    font-family: 'Rajdhani', sans-serif;
 }
-    font-family: 'Courier New', monospace;
+#ui-editor-bar .ui-editor-btn {
+    font-family: 'Rajdhani', sans-serif;
     font-weight: bold;
-    font-size: 12px;
-    padding: 7px 12px;
+    font-size: 14px;
+    padding: 7px 14px;
     border: 3px solid;
     box-shadow: 3px 3px 0 #000;
     cursor: pointer;
@@ -118,6 +143,21 @@
     100% { opacity: 0.35; }
 }
 
+/* --- Destaque visual enquanto edita a interface --- */
+body.ui-editando .ui-elemento {
+    outline: 2px dashed #ff7a00 !important;
+    outline-offset: 3px !important;
+    cursor: move !important;
+    user-select: none !important;
+    -webkit-user-select: none !important;
+    transition: outline-color 0.15s ease !important;
+}
+body.ui-editando .ui-elemento:hover {
+    outline-color: #f1c40f !important;
+    outline-width: 3px !important;
+    background-color: rgba(255, 122, 0, 0.15) !important;
+}
+
 /* --- Toast do editor (feedback) -------------------------------------- */
 .ui-toast {
     position: fixed;
@@ -130,8 +170,8 @@
     color: #f1c40f;
     padding: 8px 16px;
     border-radius: 6px;
-    font-family: 'Courier New', monospace;
-    font-size: 13px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 15px;
     font-weight: bold;
     letter-spacing: 0.5px;
     box-shadow: 0 5px 12px rgba(0, 0, 0, 0.55);

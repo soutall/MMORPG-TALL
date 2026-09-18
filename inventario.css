@@ -2,9 +2,9 @@
 
 .btn-util.btn-inventario { background: #b7950b; border-color: #f1c40f; font-size: 14px; }
 
-#inventory-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(8, 8, 8, 0.82); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 300; }
-#inv-window { background: #201d1a; border: 3px solid #f1c40f; box-shadow: 6px 6px 0 #000, inset 3px 3px 0 #3a3528; padding: 12px 14px 14px 14px; width: 268px; max-height: 94vh; overflow-y: auto; text-align: center; image-rendering: pixelated; }
-#inv-title { font-family: 'Courier New', monospace; font-weight: bold; font-size: 16px; color: #f1c40f; letter-spacing: 3px; text-shadow: 2px 2px 0 #000; margin: 0 0 10px 0; }
+#inventory-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(8, 8, 8, 0.25); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 300; pointer-events: none; }
+#inv-window { background: #201d1a; border: 3px solid #f1c40f; box-shadow: 6px 6px 0 #000, inset 3px 3px 0 #3a3528; padding: 12px 14px 14px 14px; width: 268px; max-height: 94vh; overflow-y: auto; text-align: center; font-family: 'Rajdhani', sans-serif; pointer-events: auto; }
+#inv-title { font-family: 'Cinzel', serif; font-weight: bold; font-size: 17px; color: #f1c40f; letter-spacing: 3px; text-shadow: 2px 2px 0 #000; margin: 0 0 10px 0; }
 #equip-body { position: relative; width: 230px; height: 250px; margin: 0 auto; }
 
 .px-block { position: absolute; border: 2px solid #101010; box-shadow: 3px 3px 0 rgba(0,0,0,0.5); }
@@ -32,7 +32,7 @@
 .inv-slot.ocupado { background: rgba(46, 204, 113, 0.22); border-color: #27ae60; }
 .inv-slot.ocupado .slot-ico { filter: grayscale(0) brightness(1) drop-shadow(1px 1px 0 #000); }
 .slot-ico { font-size: 17px; line-height: 1; }
-.slot-label { font-family: 'Courier New', monospace; font-size: 6px; font-weight: bold; color: #a8a49a; letter-spacing: 0.5px; text-align: center; margin-top: 2px; }
+.slot-label { font-family: 'Rajdhani', sans-serif; font-size: 8px; font-weight: bold; color: #a8a49a; letter-spacing: 0.5px; text-align: center; margin-top: 2px; }
 .inv-slot.ocupado .slot-label { color: #e8dcc0; }
 
 .slot-capacete { left: 95px; top: 4px; }
@@ -45,12 +45,12 @@
 .slot-arma-sec { left: 43px; top: 140px; }
 .slot-bota { left: 93px; top: 182px; }
 
-#inv-info { font-family: 'Courier New', monospace; font-size: 11px; color: #e8e4da; background: #161412; border: 2px solid #5a5344; padding: 7px 8px; margin: 12px auto 10px auto; min-height: 34px; width: 220px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; box-shadow: 3px 3px 0 #000; }
+#inv-info { font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: 600; color: #e8e4da; background: #161412; border: 2px solid #5a5344; padding: 7px 8px; margin: 12px auto 10px auto; min-height: 34px; width: 220px; display: flex; align-items: center; justify-content: center; letter-spacing: 0.5px; box-shadow: 3px 3px 0 #000; }
 
-#inv-separador { font-family: 'Courier New', monospace; font-size: 11px; font-weight: bold; color: #9a7d3a; letter-spacing: 3px; margin: 14px 0 6px 0; border-top: 2px dashed #5a5344; padding-top: 8px; }
+#inv-separador { font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: bold; color: #9a7d3a; letter-spacing: 3px; margin: 14px 0 6px 0; border-top: 2px dashed #5a5344; padding-top: 8px; }
 
 #mochila-abas { display: flex; gap: 4px; justify-content: center; margin-bottom: 8px; }
-.mochila-aba { font-family: 'Courier New', monospace; font-size: 9px; font-weight: bold; padding: 5px 3px; flex: 1; background: #29251f; color: #8a8578; border: 2px solid #4a4438; box-shadow: 2px 2px 0 #000; cursor: pointer; letter-spacing: 0.5px; }
+.mochila-aba { font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: bold; padding: 5px 3px; flex: 1; background: #29251f; color: #8a8578; border: 2px solid #4a4438; box-shadow: 2px 2px 0 #000; cursor: pointer; letter-spacing: 0.5px; }
 .mochila-aba:active { transform: translate(1px, 1px); box-shadow: 0 0 0 #000; }
 .mochila-aba.ativa { background: #b7950b; border-color: #f1c40f; color: #111; }
 
@@ -59,11 +59,11 @@
 .mochila-slot:active { transform: scale(0.94); background: rgba(241, 196, 15, 0.25); border-color: #f1c40f; }
 .mochila-slot .slot-ico { font-size: 22px; line-height: 1; filter: drop-shadow(1px 1px 0 #000); }
 .mochila-slot-vazio { width: 44px; height: 44px; border: 2px dashed #3a3528; background: rgba(255, 255, 255, 0.03); box-sizing: border-box; }
-.qtd-badge { position: absolute; top: -6px; right: -6px; background: #f1c40f; border: 2px solid #000; color: #111; font-family: 'Courier New', monospace; font-weight: bold; font-size: 9px; line-height: 1; padding: 2px 4px; box-shadow: 2px 2px 0 #000; }
+.qtd-badge { position: absolute; top: -6px; right: -6px; background: #f1c40f; border: 2px solid #000; color: #111; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 11px; line-height: 1; padding: 2px 4px; box-shadow: 2px 2px 0 #000; }
 #inv-botoes { display: flex; justify-content: center; gap: 6px; }
-#btn-inv-fechar { font-family: 'Courier New', monospace; font-weight: bold; font-size: 13px; padding: 8px 22px; background: #c0392b; color: #fff; border: 3px solid #e74c3c; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; }
+#btn-inv-fechar { font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 14px; padding: 8px 22px; background: #c0392b; color: #fff; border: 3px solid #e74c3c; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; }
 #btn-inv-fechar:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #000; }
-.btn-inv-acao { font-family: 'Courier New', monospace; font-weight: bold; font-size: 12px; padding: 8px 12px; color: #fff; border: 3px solid; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; }
+.btn-inv-acao { font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 13px; padding: 8px 12px; color: #fff; border: 3px solid; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; }
 .btn-inv-acao:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #000; }
 .btn-inv-verde { background: #1e8449; border-color: #27ae60; }
 .btn-inv-azul { background: #1f618d; border-color: #2980b9; }
@@ -83,12 +83,12 @@
 .inv-slot-mini { position: absolute; right: -8px; top: -8px; width: 19px; height: 19px; padding: 0; margin: 0; font-size: 8px; line-height: 1; border: 2px solid #000; background: #1f618d; color: #fff; cursor: pointer; z-index: 6; box-shadow: 2px 2px 0 #000; display: flex; justify-content: center; align-items: center; }
 .inv-slot-mini:active { transform: translate(1px, 1px); box-shadow: 0 0 0 #000; }
 
-#inv-comparacao { display: none; margin: 10px auto 0 auto; background: #161412; border: 2px solid #5a5344; padding: 6px 8px; width: 230px; box-sizing: border-box; box-shadow: 3px 3px 0 #000; }
-.cmp-titulo { font-family: 'Courier New', monospace; font-weight: bold; font-size: 10px; color: #f1c40f; letter-spacing: 2px; margin-bottom: 4px; }
+#inv-comparacao { display: none; margin: 10px auto 0 auto; background: #161412; border: 2px solid #5a5344; padding: 6px 8px; width: 230px; box-sizing: border-box; box-shadow: 3px 3px 0 #000; font-family: 'Rajdhani', sans-serif; }
+.cmp-titulo { font-family: 'Cinzel', serif; font-weight: bold; font-size: 11px; color: #f1c40f; letter-spacing: 2px; margin-bottom: 4px; }
 .cmp-cols { display: flex; gap: 6px; }
 .cmp-col { flex: 1; min-width: 0; }
-.cmp-linha { font-family: 'Courier New', monospace; font-size: 9px; color: #e8e4da; padding: 1px 2px; letter-spacing: 0.3px; }
-.cmp-nome { font-weight: bold; color: #f1c40f; font-size: 8px; border-bottom: 1px dashed #5a5344; margin-bottom: 3px; padding-bottom: 2px; }
+.cmp-linha { font-family: 'Rajdhani', sans-serif; font-size: 11px; font-weight: 600; color: #e8e4da; padding: 1px 2px; letter-spacing: 0.3px; }
+.cmp-nome { font-weight: bold; color: #f1c40f; font-size: 10px; border-bottom: 1px dashed #5a5344; margin-bottom: 3px; padding-bottom: 2px; }
 .cmp-melhor { color: #27ae60; }
 .cmp-pior { color: #e74c3c; }
 .cmp-igual { color: #bdc3c7; }

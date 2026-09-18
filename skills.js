@@ -27,12 +27,26 @@ const SKILLS_INFO = {
           mp: 20, cd: 5, escala: 'dano',
           area: 'Raio 100', alcance: 'Ao redor',
           duracao: null, duracaoBase: null, extras: [] },
+        { id: 'provocacao', nome: 'Grito de Provocação', icon: '📢', categoria: 'aoe',
+          desc: 'Grito estrondoso que força todos os monstros (10s) e Bosses (5s) em área a focarem no Guerreiro, curando instantaneamente 20% do HP Máximo.',
+          danoBase: 0, danoUnidade: null, danoNota: 'Cura 20% HP Máx',
+          mp: 20, cd: 15, escala: 'nenhum',
+          area: 'Raio 300px', alcance: 'Ao redor',
+          duracao: '10s (Mobs) / 5s (Boss)', duracaoBase: null,
+          extras: ['Cura instantânea de 20% da Vida Máxima', 'Força aggro de Mobs normais por 10 segundos', 'Força aggro de Bosses por 5 segundos'] },
         { id: 'bloqueio', nome: 'Escudo (Passiva)', icon: '🛡️', categoria: 'passiva',
           desc: 'Bloqueio frontal que anula o dano recebido.',
           danoBase: 0, danoUnidade: null, danoNota: null,
           mp: 0, cd: null, escala: 'nenhum',
           area: 'Frontal', alcance: '—',
-          duracao: null, duracaoBase: null, extras: ['Requer 15 de estamina', 'Gasta 20 de estamina'] }
+          duracao: null, duracaoBase: null, extras: ['Requer 15 de estamina', 'Gasta 20 de estamina'] },
+        { id: 'ultimo_folego', nome: 'Último Fôlego (Passiva)', icon: '🔥', categoria: 'passiva',
+          desc: 'Instinto supremo de sobrevivência. Reduz progressivamente o dano recebido conforme a vida do Guerreiro diminui.',
+          danoBase: 0, danoUnidade: null, danoNota: 'Até -15% Dano',
+          mp: 0, cd: null, escala: 'nenhum',
+          area: 'Próprio', alcance: '—',
+          duracao: 'Passiva', duracaoBase: null,
+          extras: ['Vida <= 50%: -5% de dano recebido', 'Vida <= 30%: -10% de dano recebido', 'Vida <= 10%: -15% de dano recebido'] }
     ],
     mago: [
         { id: 'magia', nome: 'Bola de Magia', icon: '🔮', categoria: 'ataque',
@@ -78,7 +92,13 @@ const SKILLS_INFO = {
           danoBase: 35, danoUnidade: 'físico', danoNota: '+ Stun 0.5s',
           mp: 20, cd: 8, escala: 'dano',
           area: 'Impacto raio 70', alcance: 'Alvo até 350px',
-          duracao: null, duracaoBase: null, extras: [] }
+          duracao: null, duracaoBase: null, extras: [] },
+        { id: 'colossal', nome: 'Golem Colossal', icon: '🗿', categoria: 'invocacao',
+          desc: 'Amplifica o golem por alguns segundos, aumentando seu tamanho, dano e disparo de pedras.',
+          danoBase: 30, danoUnidade: 'físico', danoNota: ' por pedra / 4s',
+          mp: 40, cd: 45, escala: 'dano',
+          area: 'Ao redor do golem', alcance: 'Via pet',
+          duracao: '4s', duracaoBase: null, extras: ['+50% de vida do pet', 'Aumento de alcance e dano em área'] }
     ],
     arqueiro: [
         { id: 'flecha', nome: 'Flecha Precisa', icon: '🏹', categoria: 'ataque',
@@ -98,7 +118,13 @@ const SKILLS_INFO = {
           danoBase: 32, danoUnidade: 'físico', danoNota: null,
           mp: 18, cd: 4.5, escala: 'dano',
           area: 'Projétil', alcance: 'Vel. 18',
-          duracao: null, duracaoBase: null, extras: ['Perfurante: atravessa alvos'] }
+          duracao: null, duracaoBase: null, extras: ['Perfurante: atravessa alvos'] },
+        { id: 'rajada', nome: 'Rajada de Flechas', icon: '🏹', categoria: 'ataque',
+          desc: 'Carrega por 2s e dispara uma rajada em cone por 4s, com dano crescente conforme o fluxo de flechas.',
+          danoBase: 18, danoUnidade: 'físico', danoNota: 'por flecha',
+          mp: 30, cd: 12, escala: 'dano',
+          area: 'Cone em expansão', alcance: 'Frente do arqueiro',
+          duracao: '2s carregando + 4s disparo', duracaoBase: null, extras: ['Bloqueia movimento e ataques durante o carregamento', 'Cancela se andar'] }
     ],
     curandeiro: [
         { id: 'sagrado', nome: 'Luz Sagrada', icon: '✨', categoria: 'ataque',
@@ -118,7 +144,21 @@ const SKILLS_INFO = {
           danoBase: 28, danoUnidade: 'sagrado', danoNota: '+ Slow 1.75s',
           mp: 24, cd: 6.5, escala: 'dano',
           area: 'Raio 65', alcance: 'Mira 140px',
-          duracao: null, duracaoBase: null, extras: [] }
+          duracao: null, duracaoBase: null, extras: [] },
+        { id: 'aura-sagrada', nome: 'Aura Sagrada', icon: '✝️', categoria: 'buff',
+          desc: 'Mantém uma zona divina que protege, fortalece e cura aliados próximos enquanto houver mana.',
+          danoBase: null, danoUnidade: null, danoNota: 'Cura 2% HP/s',
+          mp: 1, cd: 10, escala: 'nenhum',
+          area: 'Raio 190', alcance: 'Ao redor do Curandeiro',
+          duracao: 'Contínua', duracaoBase: null,
+          extras: ['-10% dano recebido', '+5% dano causado', '+10% cura recebida'] },
+        { id: 'ressurreicao-automatica', nome: 'Ressurreição Automática', icon: '🕊️', categoria: 'passiva',
+          desc: 'Ressuscita automaticamente um aliado próximo quando ele morrer.',
+          danoBase: null, danoUnidade: null, danoNota: null,
+          mp: 0, cd: 600, escala: 'nenhum',
+          area: 'Raio 190', alcance: 'Aliado próximo',
+          duracao: 'Passiva', duracaoBase: null,
+          extras: ['Cooldown: 10 minutos', 'Controlada pelo servidor'] }
     ],
     barbaro: [
         { id: 'machadada', nome: 'Machadada', icon: '🪓', categoria: 'ataque',
@@ -133,6 +173,19 @@ const SKILLS_INFO = {
           mp: 20, cd: 8, escala: 'duracao',
           area: 'Auto', alcance: '—',
           duracao: '6s', duracaoBase: 6, extras: ['+30% velocidade', 'Lifesteal +8'] },
+        { id: 'giro_descontrolado', nome: 'Giro Descontrolado', icon: '🌀', categoria: 'aoe',
+          desc: 'Gira violentamente por 10 segundos, causando dano e sangramento ao redor e reduzindo o dano recebido em 10%.',
+          danoBase: 18, danoUnidade: 'físico', danoNota: '+ Sangramento 3/s',
+          mp: 30, cd: 12, escala: 'dano',
+          area: 'Raio 90', alcance: 'Ao redor do Bárbaro',
+          duracao: '10s', duracaoBase: null, extras: ['Cooldown começa somente ao final do giro', 'Redução de dano recebida: 10%'] },
+        { id: 'furia_crescente', nome: 'Fúria Crescente', icon: '📈', categoria: 'passiva',
+          desc: 'Conforme a vida cai, o Bárbaro cresce, causa mais dano e ganha mais presença visual de combate.',
+          danoBase: null, danoUnidade: null, danoNota: 'Visual + dano por HP',
+          mp: 0, cd: null, escala: 'nenhum',
+          area: 'Próprio', alcance: '—',
+          duracao: 'Passiva', duracaoBase: null,
+          extras: ['60% HP: +5% tamanho, +5% dano', '40% HP: +10% tamanho, +10% dano', '20% HP: +20% tamanho, +15% dano'] },
         { id: 'esmagamento-barbaro', nome: 'Salto Esmagador', icon: '🗡️', categoria: 'aoe',
           desc: 'Salta até o ponto marcado e esmaga o chão.',
           danoBase: 35, danoUnidade: 'físico', danoNota: '+ Stun 1.25s',
@@ -164,7 +217,13 @@ const SKILLS_INFO = {
           danoBase: 10, danoUnidade: 'físico', danoNota: ' por membro / 2s',
           mp: 30, cd: 15, escala: 'dano',
           area: 'Persegue o alvo', alcance: 'Via membro',
-          duracao: null, duracaoBase: null, extras: ['Conjura 1 membro'] }
+          duracao: null, duracaoBase: null, extras: ['Conjura 1 membro'] },
+        { id: 'grito_guerra', nome: 'Grito de Guerra', icon: '📣', categoria: 'buff',
+          desc: 'Grito inspirador que fortalece aliados próximos: +30% chance de crítico, +50% dano crítico, +10% velocidade de ataque e +5% vida máxima por 30s.',
+          danoBase: null, danoUnidade: null, danoNota: null,
+          mp: 30, cd: 60, escala: 'buff',
+          area: 'Raio 220', alcance: 'Ao redor do Roqueiro',
+          duracao: '30s', duracaoBase: 30, extras: ['Aumenta crítico e HP máximo temporariamente', 'Todos ao redor ganham ímpeto de combate'] }
     ]
 };
 
@@ -202,7 +261,7 @@ function valorEscalado(skill, nivel) {
 // classes mágicas (mago/summoner/curandeiro/roqueiro) -> Inteligência; demais -> Força.
 function atributoEscalaSkill(skill) {
     if (skill.escala === 'cura') return { chave: 'divindade', rotulo: 'Divindade' };
-    if (skill.id === 'ogro' || skill.id === 'esmagamento' || skill.id === 'salto') return { chave: 'afinidade', rotulo: 'Afinidade' };
+    if (skill.id === 'ogro' || skill.id === 'esmagamento' || skill.id === 'salto' || skill.id === 'colossal') return { chave: 'afinidade', rotulo: 'Afinidade' };
     if (skill.danoNota && /\/\s*\d*s/.test(skill.danoNota)) return { chave: 'profanidade', rotulo: 'Profanidade' };
     if (['mago', 'summoner', 'curandeiro', 'roqueiro'].indexOf(window.minhaClasse) !== -1) return { chave: 'inteligencia', rotulo: 'Inteligência' };
     return { chave: 'forca', rotulo: 'Força' };
@@ -281,6 +340,7 @@ function renderizarSkills() {
             : '';
 
         let custoMp = skill.mp ? Math.round(skill.mp * (1 + (nivel - 1) * 0.06)) : 0;
+        let cooldownExibido = skill.cd === null || skill.cd === undefined ? '—' : (skill.cd >= 60 ? Math.floor(skill.cd / 60) + ':' + String(skill.cd % 60).padStart(2, '0') : skill.cd + 's');
 
         let btnUpgrade;
         if (nivel >= NIVEL_SKILL_MAX) {
@@ -305,7 +365,7 @@ function renderizarSkills() {
             '<div class="skill-stats">' +
                 linhaDano +
                 '<div class="skill-stat"><b>💧 MP</b> ' + (custoMp > 0 ? custoMp : 0) + '</div>' +
-                '<div class="skill-stat"><b>⏱️ CD</b> ' + (skill.cd ? skill.cd + 's' : '—') + '</div>' +
+                '<div class="skill-stat"><b>⏱️ CD</b> ' + cooldownExibido + '</div>' +
                 '<div class="skill-stat"><b>🔵 Área</b> ' + (skill.area || '—') + '</div>' +
                 '<div class="skill-stat"><b>🎯 Alcance</b> ' + (skill.alcance || '—') + '</div>' +
                 duracaoLinha +

@@ -3,14 +3,37 @@ window.desenharBarbaro = function(x, y, isMoving, angulo, hp, maxHp) {
     if (hp <= 0 || !window.ctx) return;
     let ctx = window.ctx;
 
+    let pctHp = maxHp > 0 ? hp / maxHp : 1;
+    let furyStage = 0;
+    if (pctHp <= 0.2) furyStage = 3;
+    else if (pctHp <= 0.4) furyStage = 2;
+    else if (pctHp <= 0.6) furyStage = 1;
+    let furyScale = furyStage === 3 ? 0.2 : furyStage === 2 ? 0.1 : furyStage === 1 ? 0.05 : 0;
+
     ctx.save();
     ctx.translate(x, y);
+    ctx.scale(1 + furyScale, 1 + furyScale);
 
     // Sombra no chão
     ctx.fillStyle = "rgba(0,0,0,0.45)";
     ctx.beginPath();
     ctx.ellipse(12, 32, 10, 4, 0, 0, Math.PI * 2);
     ctx.fill();
+
+    if (furyStage > 0) {
+        let auraRadius = 24 + furyStage * 8;
+        let auraAlpha = furyStage === 3 ? 0.42 : furyStage === 2 ? 0.28 : 0.18;
+        let auraColor = furyStage === 3 ? "rgba(220, 30, 30, " + auraAlpha + ")" : furyStage === 2 ? "rgba(180, 22, 22, " + auraAlpha + ")" : "rgba(150, 18, 18, " + auraAlpha + ")";
+        ctx.fillStyle = auraColor;
+        ctx.beginPath();
+        ctx.arc(12, 18, auraRadius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = "rgba(255, 150, 110, " + (0.18 + furyStage * 0.12) + ")";
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(12, 18, auraRadius + 4, 0, Math.PI * 2);
+        ctx.stroke();
+    }
 
     // Pernas grossas com passos
     let legOffset = isMoving ? Math.sin(window.walkCycle || 0) * 4 : 0;

@@ -4,12 +4,17 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MMORPG Mobile Modular</title>
-    <link rel="stylesheet" href="style.css?v=235">
-    <link rel="stylesheet" href="inventario.css?v=132">
-    <link rel="stylesheet" href="skills.css?v=141">
-    <link rel="stylesheet" href="config.css?v=143">
-    <link rel="stylesheet" href="atributos.css?v=3">
-    <link rel="stylesheet" href="spawn-admin.css?v=1">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=238">
+    <link rel="stylesheet" href="inventario.css?v=134">
+    <link rel="stylesheet" href="skills.css?v=143">
+    <link rel="stylesheet" href="config.css?v=146">
+    <link rel="stylesheet" href="atributos.css?v=5">
+    <link rel="stylesheet" href="spawn-admin.css?v=2">
+    <link rel="stylesheet" href="colisao-editor.css?v=2">
+    <link rel="stylesheet" href="dragdrop.css?v=3">
 </head>
 <body oncontextmenu="return false;">
 
@@ -51,16 +56,22 @@
         </div>
     </div>
 
-    <div id="status">Desconectado</div>
-    <div id="fps-counter">FPS: 60</div>
-    <div id="coord-hud">X: 0  Y: 0</div>
+    <div id="status" data-ui="status">Desconectado</div>
+    <div id="fps-counter" data-ui="fps">FPS: 60</div>
+    <div id="coord-hud" data-ui="coord">X: 0  Y: 0</div>
 
-    <div id="hud-level">
-        <span id="level-text">LVL 1</span>
-        <div id="xp-bar-container"><div id="xp-bar-fill"></div></div>
-        <div id="stamina-bar-container"><div id="stamina-bar-fill"></div></div>
-        <div id="mp-bar-container"><div id="mp-bar-fill"></div></div>
-        <div id="hud-buffs"></div>
+    <div id="hud-status-window" data-ui="hud-status-window">
+        <div id="hud-level" data-ui="hud-level">
+            <span id="level-text">LVL 1</span>
+            <div id="xp-bar-container"><div id="xp-bar-fill"></div></div>
+            <div id="stamina-bar-container"><div id="stamina-bar-fill"></div></div>
+            <div id="mp-bar-container"><div id="mp-bar-fill"></div></div>
+        </div>
+
+        <div id="hud-buffs" class="hud-buffs-panel" data-ui="hud-buffs">
+            <div class="hud-buffs-title">BUFFS</div>
+            <div id="hud-buffs-bar" class="hud-buffs-bar"></div>
+        </div>
     </div>
 
     <style>
@@ -145,14 +156,9 @@
             background: #c0392b; color: white; border: none; border-radius: 3px; cursor: pointer; padding: 2px 5px; font-size: 10px; margin-top: 3px;
         }
     </style>
-    <div id="hud-party"></div>
+    <div id="hud-party" data-ui="hud-party"></div>
 
-    <div id="hud-dps">
-        <div>⚡ DPS: <span id="dps-valor" class="dps-valor">0.0</span></div>
-        <div class="dps-total">Total: <span id="dps-total">0</span> dano</div>
-    </div>
-
-    <div id="hud-boss" style="display:none;">
+    <div id="hud-boss" data-ui="hud-boss" style="display:none;">
         <div id="boss-bar-nome">👹 GOLEM DE PEDRA</div>
         <div id="boss-bar-fundo"><div id="boss-bar-fill"></div></div>
         <div id="boss-bar-hp">6000 / 6000</div>
@@ -213,10 +219,10 @@
 
     <canvas id="jogoCanvas"></canvas>
 
-    <div id="joystick-base"><div id="joystick-stick"></div></div>
+    <div id="joystick-base" data-ui="joystick"><div id="joystick-stick"></div></div>
 
     <!-- NOVO MINIMAPA COM RADAR E ZOOM -->
-    <div id="minimap-wrapper">
+    <div id="minimap-wrapper" data-ui="minimap">
         <div id="minimap-header">
             <span id="minimap-bioma">🌿 Campo Verde</span>
             <div id="minimap-zoom-bar">
@@ -230,32 +236,40 @@
         <div id="minimap-hint" onclick="toggleBigMap()">🗺️ Abrir Mapa [M]</div>
     </div>
 
-    <div class="actions">
+    <div class="actions" data-ui="actions">
         <button id="btn-autofarm" class="btn-action btn-autofarm" ontouchstart="alternarAutofarm(); event.stopPropagation();" onclick="alternarAutofarm();" title="Autofarm (R)">🤖<span class="key-badge">R</span></button>
         <button id="btn-dash" class="btn-action btn-dash" ontouchstart="usarDash(); event.stopPropagation();" onclick="usarDash();" title="Dash (1)">💨<span class="key-badge">1</span></button>
         <button id="btn-tornado" class="btn-action btn-tornado" ontouchstart="usarTornado(); event.stopPropagation();" onclick="usarTornado();" title="Tornado (2)">🌪️<span class="key-badge">2</span></button>
+        <button id="btn-guerreiro-provocacao" class="btn-action btn-guerreiro-provocacao" ontouchstart="usarGritoProvocacao(); event.stopPropagation();" onclick="usarGritoProvocacao();" title="Grito de Provocação (3)">📢<span class="key-badge">3</span></button>
         <button id="btn-meteoro" class="btn-action btn-meteoro" ontouchstart="iniciarDragSkill(event,'meteoro'); event.preventDefault(); event.stopPropagation();" onclick="ativarMeteoroSmartCast();" title="Meteoro (1)">☄️<span class="key-badge">1</span></button>
         <button id="btn-nevasca" class="btn-action btn-nevasca" ontouchstart="iniciarDragSkill(event,'nevasca'); event.preventDefault(); event.stopPropagation();" onclick="ativarNevascaSmartCast();" title="Nevasca (2)">❄️<span class="key-badge">2</span></button>
+        <button id="btn-vulcao" class="btn-action btn-vulcao" ontouchstart="iniciarDragSkill(event,'vulcao'); event.preventDefault(); event.stopPropagation();" onclick="ativarVulcaoSmartCast();" title="Vulcão (3)">🌋<span class="key-badge">3</span></button>
         <button id="btn-ogro-skill" class="btn-action btn-ogro-skill" ontouchstart="usarComandoOgro(); event.stopPropagation();" onclick="usarComandoOgro();" title="Comando Ogro (1)">💥<span class="key-badge">1</span></button>
         <button id="btn-ogro-salto" class="btn-action btn-ogro-salto" ontouchstart="iniciarDragSkill(event,'salto'); event.preventDefault(); event.stopPropagation();" onclick="ativarSaltoSmartCast();" title="Salto do Ogro (2)">🦘<span class="key-badge">2</span></button>
+        <button id="btn-ogro-colossal" class="btn-action btn-ogro-colossal" ontouchstart="usarOgroColossal(); event.preventDefault(); event.stopPropagation();" onclick="usarOgroColossal();" title="Golem Colossal (3)">🗿<span class="key-badge">3</span></button>
         <button id="btn-arqueiro-chuva" class="btn-action btn-arqueiro-chuva" ontouchstart="iniciarDragSkill(event,'chuva'); event.preventDefault(); event.stopPropagation();" onclick="ativarChuvaSmartCast();" title="Chuva de Flechas (1)">🌧️<span class="key-badge">1</span></button>
         <button id="btn-arqueiro-perfurante" class="btn-action btn-arqueiro-perfurante" ontouchstart="usarDisparoPerfurante(); event.stopPropagation();" onclick="usarDisparoPerfurante();" title="Disparo Perfurante (2)">🎯<span class="key-badge">2</span></button>
+        <button id="btn-arqueiro-rajada" class="btn-action btn-arqueiro-rajada" ontouchstart="usarRajadaFlechas(); event.stopPropagation();" onclick="usarRajadaFlechas();" title="Rajada de Flechas (3)">🏹<span class="key-badge">3</span></button>
         <button id="btn-curandeiro-cura" class="btn-action btn-curandeiro-cura" ontouchstart="iniciarDragSkill(event,'prece'); event.preventDefault(); event.stopPropagation();" onclick="ativarPreceSmartCast();" title="Prece / Cura (1)">✨<span class="key-badge">1</span></button>
         <button id="btn-curandeiro-julgamento" class="btn-action btn-curandeiro-julgamento" ontouchstart="iniciarDragSkill(event,'julgamento'); event.preventDefault(); event.stopPropagation();" onclick="ativarJulgamentoSmartCast();" title="Julgamento Divino (2)">⚡<span class="key-badge">2</span></button>
+        <button id="btn-curandeiro-aura" class="btn-action btn-curandeiro-aura" ontouchstart="event.preventDefault(); usarAuraSagrada(); event.stopPropagation();" onclick="usarAuraSagrada();" title="Aura Sagrada (3)">✝️<span class="key-badge">3</span></button>
         
         <!-- BOTOES DO BARBARO -->
         <button id="btn-barbaro-furia" class="btn-action btn-barbaro-furia" ontouchstart="usarFuriaBerserker(); event.stopPropagation();" onclick="usarFuriaBerserker();" title="Fúria (1)">🩸<span class="key-badge">1</span></button>
         <button id="btn-barbaro-esmagamento" class="btn-action btn-barbaro-esmagamento" ontouchstart="iniciarDragSkill(event,'esmagamento'); event.preventDefault(); event.stopPropagation();" onclick="ativarEsmagamentoSmartCast();" title="Esmagamento (2)">🪓<span class="key-badge">2</span></button>
+        <button id="btn-barbaro-giro" class="btn-action btn-barbaro-giro" ontouchstart="usarGiroDescontrolado(); event.stopPropagation();" onclick="usarGiroDescontrolado();" title="Giro Descontrolado (3)">🌀<span class="key-badge">3</span></button>
         
         <!-- BOTOES DO ROQUEIRO -->
         <button id="btn-roqueiro-bateria" class="btn-action btn-roqueiro-bateria" ontouchstart="usarBateriaRoqueiro(); event.stopPropagation();" onclick="usarBateriaRoqueiro();" title="Bateria (1)">🥁<span class="key-badge">1</span></button>
         <button id="btn-roqueiro-teleporte" class="btn-action btn-roqueiro-teleporte" ontouchstart="iniciarDragSkill(event,'teleporte'); event.preventDefault(); event.stopPropagation();" onclick="ativarTeleporteRoqueiro();" title="Teleporte (2)">🌠<span class="key-badge">2</span></button>
         <button id="btn-roqueiro-banda" class="btn-action btn-roqueiro-banda" ontouchstart="usarBandaRoqueiro(); event.stopPropagation();" onclick="usarBandaRoqueiro();" title="Banda (3)">🎸<span class="key-badge">3</span></button>
+        <button id="btn-roqueiro-grito" class="btn-action btn-roqueiro-grito" ontouchstart="usarGritoDeGuerraRoqueiro(); event.stopPropagation();" onclick="usarGritoDeGuerraRoqueiro();" title="Grito de Guerra (Q)">📣<span class="key-badge">Q</span></button>
         
         <button id="btn-attack" class="btn-action btn-attack" ontouchstart="executarAtaqueBasico(); event.stopPropagation();" onclick="executarAtaqueBasico();" title="Ataque Básico (Espaço)">⚔️<span class="key-badge">Espaço</span></button>
     </div>
 
-    <div id="util-buttons">
+    <div id="util-buttons" data-ui="util-buttons">
+        <button id="btn-colisao-editor" class="btn-util btn-colisao-editor" onclick="window.toggleEditorColisao()" title="Editor de Colisões (Admin)" style="display:none;">🧱</button>
         <button id="btn-pvp" class="btn-util btn-pvp" onclick="togglePvP()" title="Ativar/Desativar PvP (P)">⚔️<span class="key-badge">P</span></button>
         <button id="btn-social" class="btn-util btn-social" onclick="abrirSocialModal()" title="Menu Social (O)">👥<span class="key-badge">O</span></button>
         <button id="btn-mapa" class="btn-util btn-mapa" onclick="toggleBigMap()" title="Mapa Mundial (M)">🗺️<span class="key-badge">M</span></button>
@@ -314,6 +328,7 @@
                 <button class="btn-teleportare" data-mapa="desert" onclick="selecionarMapa('desert')">🏜️ Deserto com Oásis</button>
                 <button class="btn-teleportare" data-mapa="pantano" onclick="selecionarMapa('pantano')">🪷 Pântano Lodoso</button>
                 <button class="btn-teleportare" data-mapa="caverna" onclick="selecionarMapa('caverna')">🕳️ Caverna Sombria (DG)</button>
+                <button class="btn-teleportare" data-mapa="arena" onclick="selecionarMapa('arena')">⚔️ Arena de Davahl</button>
             </div>
             <button id="btn-teleportare-confirmar" style="display:none;" onclick="confirmarTeleporte()">✅ CONFIRMAR</button>
             <button id="btn-teleportare-fechar" onclick="fecharTeleporteMapas()">FECHAR</button>
@@ -428,6 +443,9 @@
                 </div>
             </div>
             <div class="settings-linha">
+                <button id="btn-editar-interface" class="btn-config-acao btn-editar-ui" onclick="window.ativarEditarInterface()">🔧 EDITAR INTERFACE</button>
+            </div>
+            <div class="settings-linha">
                 <button id="btn-trocar-char" class="btn-config-acao btn-trocar" onclick="trocarDePersonagem()">🔁 TROCAR DE PERSONAGEM</button>
             </div>
             <div class="settings-linha">
@@ -444,8 +462,9 @@
     <!-- Three.js WebGL Engine — Cidade de Davahl 2.5D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
-    <script src="mapa_cidade.js?v=4"></script>
-    <script src="mapa_cidade_three.js?v=1"></script>
+    <script src="mapa_cidade.js?v=7"></script>
+    <!-- <script src="mapa_cidade_three.js?v=1"></script> -->
+    <script src="mapa_arena.js?v=2"></script>
     <script>
         (function () {
             if (typeof window !== 'undefined' && !window._earlyErros) {
@@ -460,29 +479,33 @@
         })();
     </script>
     <script src="classes/comum.js?v=999"></script>
-    <script src="classes/guerreiro.js?v=1000"></script>
+    <script src="classes/guerreiro.js?v=1002"></script>
     <script src="classes/mago.js?v=1000"></script>
     <script src="classes/summoner.js?v=1000"></script>
     <script src="classes/arqueiro.js?v=1000"></script>
-    <script src="classes/curandeiro.js?v=1000"></script>
+    <script src="classes/curandeiro.js?v=1001"></script>
     <script src="classes/barbaro.js?v=1000"></script>
     <script src="classes/roqueiro.js?v=999"></script>
     <script src="efeitos/arqueiro_efeitos.js?v=230"></script>
     <script src="efeitos/curandeiro_efeitos.js?v=231"></script>
     <script src="efeitos/barbaro_efeitos.js?v=231"></script>
+    <script src="efeitos/guerreiro_efeitos.js?v=235"></script>
+    <script src="efeitos/mago_efeitos.js?v=1"></script>
     <script src="efeitos/roqueiro_efeitos.js?v=230"></script>
     <script src="efeitos.js?v=234"></script>
     <script src="debuffs.js?v=2"></script>
     <script src="efeitos/boss_golem.js?v=230"></script>
     <script src="monstros.js?v=1000"></script>
     <script src="inventario.js?v=132"></script>
-    <script src="skills.js?v=143"></script>
+    <script src="skills.js?v=145"></script>
     <script src="config.js?v=143"></script>
     <script src="atributos.js?v=3"></script>
     <script src="spawn-admin.js?v=2"></script>
+    <script src="dragdrop.js?v=2"></script>
+    <script src="colisao-editor.js?v=2"></script>
 
     <script>
-        const WORLD_WIDTH = 63800;
+        const WORLD_WIDTH = 65040;
         const WORLD_HEIGHT = 36000;
         window.WORLD_WIDTH = WORLD_WIDTH;
         window.WORLD_HEIGHT = WORLD_HEIGHT;
@@ -491,8 +514,12 @@
         window.LARGURA_PANTANO = 58000;
         window.FIM_CAVERNA = 59800;
         window.LARGURA_CIDADE = 59800;
-        window.FIM_CIDADE = 63800;
-        window.currentMap = 'green'; // ESTADO ÚNICO DE MAPA: 'green' | 'desert' | 'pantano' | 'caverna' | 'cidade'
+        window.FIM_CIDADE = 61174;
+        window.ALTO_CIDADE = 1145;
+        window.LARGURA_ARENA = 63800;
+        window.FIM_ARENA = 65040;
+        window.ALTO_ARENA = 1240;
+        window.currentMap = 'cidade'; // ESTADO ÚNICO DE MAPA: 'green' | 'desert' | 'pantano' | 'caverna' | 'cidade' | 'arena'
 
         window._errosPendentes = [];
         function _guardarErroErro(erro, fonte, linha, col, stack) {
@@ -553,26 +580,33 @@
         const btnAutofarm = document.getElementById("btn-autofarm");
         const btnDash = document.getElementById("btn-dash");
         const btnTornado = document.getElementById("btn-tornado");
+        const btnGuerreiroProvocacao = document.getElementById("btn-guerreiro-provocacao");
         const btnMeteoro = document.getElementById("btn-meteoro");
         const btnLocal = document.getElementById("btn-local");
         const coordHud = document.getElementById("coord-hud");
         const btnNevasca = document.getElementById("btn-nevasca");
+        const btnVulcao = document.getElementById("btn-vulcao");
         const btnOgroSkill = document.getElementById("btn-ogro-skill");
+        const btnOgroColossal = document.getElementById("btn-ogro-colossal");
         const btnOgroSalto = document.getElementById("btn-ogro-salto");
         const btnArqueiroChuva = document.getElementById("btn-arqueiro-chuva");
         const btnArqueiroPerfurante = document.getElementById("btn-arqueiro-perfurante");
+        const btnArqueiroRajada = document.getElementById("btn-arqueiro-rajada");
         const btnCurandeiroCura = document.getElementById("btn-curandeiro-cura");
         const btnCurandeiroJulgamento = document.getElementById("btn-curandeiro-julgamento");
+        const btnCurandeiroAura = document.getElementById("btn-curandeiro-aura");
         const btnBarbaroFuria = document.getElementById("btn-barbaro-furia");
         const btnBarbaroEsmagamento = document.getElementById("btn-barbaro-esmagamento");
+        const btnBarbaroGiro = document.getElementById("btn-barbaro-giro");
         const btnRoqueiroBateria = document.getElementById("btn-roqueiro-bateria");
         const btnRoqueiroTeleporte = document.getElementById("btn-roqueiro-teleporte");
         const btnRoqueiroBanda = document.getElementById("btn-roqueiro-banda");
         const btnAttack = document.getElementById("btn-attack");
-        const dpsValorEl = document.getElementById("dps-valor");
-        const dpsTotalEl = document.getElementById("dps-total");
+        const dpsValorEl = null;
+        const dpsTotalEl = null;
 
         const ZOOM_CAMERA = 0.92;
+        window.ZOOM_CAMERA = ZOOM_CAMERA;
 
         function redimensionarCanvas() { 
             let w = window.innerWidth || 800;
@@ -621,7 +655,9 @@
         window.chuvaCooldownAtivo = false; window.modoMiraChuva = false;
         window.julgamentoCooldownAtivo = false; window.modoMiraJulgamento = false;
         window.modoMiraPrece = false;
+        window.auraSagradaAtiva = false; window.auraSagradaCooldown = false;
         window.esmagamentoCooldownAtivo = false; window.modoMiraEsmagamento = false;
+        window.giroDescontroladoCooldownAtivo = false;
         let furiaCooldownAtivo = false;
         let roqueiroBateriaCooldown = false;
         window.roqueiroBateriaLigada = false;
@@ -734,6 +770,7 @@
         function cancelarTodasMiras() {
             window.modoMiraMeteoro = false; btnMeteoro.classList.remove("aiming");
             window.modoMiraNevasca = false; btnNevasca.classList.remove("aiming");
+            window.modoMiraVulcao = false; btnVulcao.classList.remove("aiming");
             window.modoMiraChuva = false; btnArqueiroChuva.classList.remove("aiming");
             window.modoMiraJulgamento = false; btnCurandeiroJulgamento.classList.remove("aiming");
             window.modoMiraPrece = false; btnCurandeiroCura.classList.remove("aiming");
@@ -749,6 +786,7 @@
         const SKILLS_DRAG = {
             meteoro:     { raio: 85,  alcanceMax: 380, classe: 'mago',       cor: '#e67e22', nome: '☄️ METEORO' },
             nevasca:     { raio: 115, alcanceMax: 350, classe: 'mago',       cor: '#00ffff', nome: '❄️ NEVASCA' },
+            vulcao:      { raio: 140, alcanceMax: 380, classe: 'mago',       cor: '#e74c3c', nome: '🌋 VULCÃO' },
             chuva:       { raio: 75,  alcanceMax: 420, classe: 'arqueiro',   cor: '#1abc9c', nome: '🌧️ CHUVA DE FLECHAS' },
             julgamento:  { raio: 65,  alcanceMax: 340, classe: 'curandeiro', cor: '#f1c40f', nome: '⚡ JULGAMENTO' },
             prece:       { raio: 100, alcanceMax: 320, classe: 'curandeiro', cor: '#2ecc71', nome: '✨ CURA EM ÁREA' },
@@ -767,6 +805,7 @@
             let skill = null;
             if (window.modoMiraMeteoro && window.minhaClasse === 'mago') skill = 'meteoro';
             else if (window.modoMiraNevasca && window.minhaClasse === 'mago') skill = 'nevasca';
+            else if (window.modoMiraVulcao && window.minhaClasse === 'mago') skill = 'vulcao';
             else if (window.modoMiraChuva && window.minhaClasse === 'arqueiro') skill = 'chuva';
             else if (window.modoMiraJulgamento && window.minhaClasse === 'curandeiro') skill = 'julgamento';
             else if (window.modoMiraPrece && window.minhaClasse === 'curandeiro') skill = 'prece';
@@ -792,6 +831,7 @@
         function skillEmCooldown(skill) {
             if (skill === 'meteoro') return window.meteoroCooldownAtivo;
             if (skill === 'nevasca') return window.nevascaCooldownAtivo;
+            if (skill === 'vulcao') return window.vulcaoCooldownAtivo;
             if (skill === 'chuva') return window.chuvaCooldownAtivo;
             if (skill === 'julgamento') return window.julgamentoCooldownAtivo;
             if (skill === 'esmagamento') return window.esmagamentoCooldownAtivo;
@@ -820,7 +860,7 @@
         }
 
         function iniciarDragSkill(event, skill) {
-            if (window.estaMorto || window.inventarioAberto || window.skillsAberto || window.configAberto) return;
+            if (window.estaMorto) return;
             let cfg = SKILLS_DRAG[skill];
             if (!cfg || window.minhaClasse !== cfg.classe) return;
             if (skillEmCooldown(skill)) return;
@@ -850,8 +890,8 @@
             if (window.estaMorto || window.meteoroCooldownAtivo || window.minhaClasse !== 'mago') return;
             let p = clamparAlcanceSkill('meteoro', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
-            window.meteoroCooldownAtivo = true; btnMeteoro.classList.add("cooldown");
-            setTimeout(() => { window.meteoroCooldownAtivo = false; btnMeteoro.classList.remove("cooldown"); }, 7000);
+            window.meteoroCooldownAtivo = true; btnMeteoro.classList.add("cooldown"); registrarCooldownBotao(btnMeteoro, 7000);
+            setTimeout(() => { window.meteoroCooldownAtivo = false; btnMeteoro.classList.remove("cooldown"); btnMeteoro.dataset.cdUntil = ''; }, 7000);
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'meteoro', targetX: tx, targetY: ty })); }
         }
 
@@ -859,28 +899,53 @@
             if (window.estaMorto || window.nevascaCooldownAtivo || window.minhaClasse !== 'mago') return;
             let p = clamparAlcanceSkill('nevasca', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
-            window.nevascaCooldownAtivo = true; btnNevasca.classList.add("cooldown");
-            setTimeout(() => { window.nevascaCooldownAtivo = false; btnNevasca.classList.remove("cooldown"); }, 12000);
+            window.nevascaCooldownAtivo = true; btnNevasca.classList.add("cooldown"); registrarCooldownBotao(btnNevasca, 12000);
+            setTimeout(() => { window.nevascaCooldownAtivo = false; btnNevasca.classList.remove("cooldown"); btnNevasca.dataset.cdUntil = ''; }, 12000);
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'nevasca', targetX: tx, targetY: ty })); }
+        }
+
+        function dispararVulcao(tx, ty) {
+            if (window.estaMorto || window.vulcaoCooldownAtivo || window.minhaClasse !== 'mago') return;
+            let p = clamparAlcanceSkill('vulcao', tx, ty); tx = p.x; ty = p.y;
+            cancelarTodasMiras();
+            window.vulcaoCooldownAtivo = true; btnVulcao.classList.add("cooldown"); registrarCooldownBotao(btnVulcao, 20000);
+            setTimeout(() => { window.vulcaoCooldownAtivo = false; btnVulcao.classList.remove("cooldown"); btnVulcao.dataset.cdUntil = ''; }, 20000);
+            if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'mago_vulcao', targetX: tx, targetY: ty })); }
         }
 
         function dispararChuva(tx, ty) {
             if (window.estaMorto || window.chuvaCooldownAtivo || window.minhaClasse !== 'arqueiro') return;
             let p = clamparAlcanceSkill('chuva', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
-            window.chuvaCooldownAtivo = true; btnArqueiroChuva.classList.add("cooldown");
-            setTimeout(() => { window.chuvaCooldownAtivo = false; btnArqueiroChuva.classList.remove("cooldown"); }, 6000);
+            window.chuvaCooldownAtivo = true; btnArqueiroChuva.classList.add("cooldown"); registrarCooldownBotao(btnArqueiroChuva, 6000);
+            setTimeout(() => { window.chuvaCooldownAtivo = false; btnArqueiroChuva.classList.remove("cooldown"); btnArqueiroChuva.dataset.cdUntil = ''; }, 6000);
             tocarSomChuvaFlechas();
             if (typeof window.criarAnimacaoChuvaFlechas === 'function') window.criarAnimacaoChuvaFlechas(tx, ty);
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'arqueiro_chuva', targetX: tx, targetY: ty })); }
+        }
+
+        function usarRajadaFlechas() {
+            if (window.estaMorto || window.arqueiroRajadaCooldown || window.minhaClasse !== 'arqueiro') return;
+            window.arqueiroRajadaCooldown = true;
+            window.arqueiroRajadaLigada = true;
+            btnArqueiroRajada.classList.add("cooldown"); registrarCooldownBotao(btnArqueiroRajada, 12000);
+            setTimeout(() => {
+                window.arqueiroRajadaCooldown = false;
+                btnArqueiroRajada.classList.remove("cooldown");
+                btnArqueiroRajada.dataset.cdUntil = '';
+            }, 12000);
+            setTimeout(() => { window.arqueiroRajadaLigada = false; }, 7000);
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'arqueiro_rajada', angulo: window.meuAngulo }));
+            }
         }
 
         function dispararJulgamento(tx, ty) {
             if (window.estaMorto || window.julgamentoCooldownAtivo || window.minhaClasse !== 'curandeiro') return;
             let p = clamparAlcanceSkill('julgamento', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
-            window.julgamentoCooldownAtivo = true; btnCurandeiroJulgamento.classList.add("cooldown");
-            setTimeout(() => { window.julgamentoCooldownAtivo = false; btnCurandeiroJulgamento.classList.remove("cooldown"); }, 6500);
+            window.julgamentoCooldownAtivo = true; btnCurandeiroJulgamento.classList.add("cooldown"); registrarCooldownBotao(btnCurandeiroJulgamento, 6500);
+            setTimeout(() => { window.julgamentoCooldownAtivo = false; btnCurandeiroJulgamento.classList.remove("cooldown"); btnCurandeiroJulgamento.dataset.cdUntil = ''; }, 6500);
             tocarSomJulgamento();
             if (typeof window.criarAnimacaoJulgamentoSagrado === 'function') window.criarAnimacaoJulgamentoSagrado(tx, ty);
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'curandeiro_julgamento', targetX: tx, targetY: ty })); }
@@ -890,8 +955,8 @@
             if (window.estaMorto || window.esmagamentoCooldownAtivo || window.minhaClasse !== 'barbaro') return;
             let p = clamparAlcanceSkill('esmagamento', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
-            window.esmagamentoCooldownAtivo = true; btnBarbaroEsmagamento.classList.add("cooldown");
-            setTimeout(() => { window.esmagamentoCooldownAtivo = false; btnBarbaroEsmagamento.classList.remove("cooldown"); }, 6000);
+            window.esmagamentoCooldownAtivo = true; btnBarbaroEsmagamento.classList.add("cooldown"); registrarCooldownBotao(btnBarbaroEsmagamento, 6000);
+            setTimeout(() => { window.esmagamentoCooldownAtivo = false; btnBarbaroEsmagamento.classList.remove("cooldown"); btnBarbaroEsmagamento.dataset.cdUntil = ''; }, 6000);
 
             window.meuX = tx - 12;
             window.meuY = ty - 16;
@@ -906,8 +971,8 @@
             if (window.estaMorto || roqueiroTeleporteCooldown || window.minhaClasse !== 'roqueiro') return;
             let p = clamparAlcanceSkill('teleporte', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
-            roqueiroTeleporteCooldown = true; btnRoqueiroTeleporte.classList.add("cooldown");
-            setTimeout(() => { roqueiroTeleporteCooldown = false; btnRoqueiroTeleporte.classList.remove("cooldown"); }, 8000);
+            roqueiroTeleporteCooldown = true; btnRoqueiroTeleporte.classList.add("cooldown"); registrarCooldownBotao(btnRoqueiroTeleporte, 8000);
+            setTimeout(() => { roqueiroTeleporteCooldown = false; btnRoqueiroTeleporte.classList.remove("cooldown"); btnRoqueiroTeleporte.dataset.cdUntil = ''; }, 8000);
 
             window.meuX = tx - 12;
             window.meuY = ty - 16;
@@ -925,6 +990,7 @@
             if (statusText) statusText.innerText = "";
             if (skill === 'meteoro') dispararMeteoro(tx, ty);
             else if (skill === 'nevasca') dispararNevasca(tx, ty);
+            else if (skill === 'vulcao') dispararVulcao(tx, ty);
             else if (skill === 'chuva') dispararChuva(tx, ty);
             else if (skill === 'julgamento') dispararJulgamento(tx, ty);
             else if (skill === 'prece') dispararPrece(tx, ty);
@@ -937,8 +1003,8 @@
             if (window.estaMorto || window.ogroSaltoCooldown || window.minhaClasse !== 'summoner') return;
             let p = clamparAlcanceSkill('salto', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
-            window.ogroSaltoCooldown = true; btnOgroSalto.classList.add("cooldown");
-            setTimeout(() => { window.ogroSaltoCooldown = false; btnOgroSalto.classList.remove("cooldown"); }, 8000);
+            window.ogroSaltoCooldown = true; btnOgroSalto.classList.add("cooldown"); registrarCooldownBotao(btnOgroSalto, 8000);
+            setTimeout(() => { window.ogroSaltoCooldown = false; btnOgroSalto.classList.remove("cooldown"); btnOgroSalto.dataset.cdUntil = ''; }, 8000);
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'comando_salto_ogro', targetX: tx, targetY: ty })); }
         }
 
@@ -958,24 +1024,81 @@
         }
 
         let perfuranteCooldownAtivo = false;
+        window.arqueiroRajadaCooldown = false;
+        window.arqueiroRajadaLigada = false;
         let curaCooldownAtivo = false;
         window.ogroSkillCooldown = false; window.ogroSaltoCooldown = false; window.modoMiraSaltoOgro = false; window.impactosSismicos = []; window.saltosOgroAtivos = [];
         let listaLacaios = {}; let ataqueBasicoCooldown = false; const INTERVALO_ATAQUE_BASICO_MS = 350;
         let historicoDano = []; let danoTotalAcumulado = 0;
-        window.meuId = null; window.meuX = 61800, window.meuY = 2000; window.meuHp = 100, window.meuMaxHp = 100; window.estaMorto = false;
+        window.meuId = null; window.meuX = 60474, window.meuY = 640; window.meuHp = 100, window.meuMaxHp = 100; window.estaMorto = false;
         let _tickBateria = 0; window.ultimoWorldUpdateAt = 0;
         let moveX = 0, moveY = 0; window.meuAngulo = 0; window.walkCycle = 0;
         window.todosJogadores = {}; window.listaSlimes = []; window.listaProjeteis = []; window.listaPlayerProjeteis = [];
         let listaBosses = [];
         let slashes = []; let blockEffects = []; window.floatingTexts = []; let ultimoEnvioRede = 0; let pingAtual = 0;
 
-        function registrarDanoCausado(valor) { let agora = Date.now(); historicoDano.push({ valor: valor, tempo: agora }); danoTotalAcumulado += valor; dpsTotalEl.innerText = danoTotalAcumulado; }
-        function atualizarDpsLive() { let agora = Date.now(); historicoDano = historicoDano.filter(d => agora - d.tempo <= 3000); let somaRecente = historicoDano.reduce((acc, cur) => acc + cur.valor, 0); dpsValorEl.innerText = somaRecente > 0 ? (somaRecente / 3).toFixed(1) : "0.0"; }
+        function registrarDanoCausado(valor) { let agora = Date.now(); historicoDano.push({ valor: valor, tempo: agora }); danoTotalAcumulado += valor; }
+        function atualizarDpsLive() { return; }
 
         const tabelaXp = {}; for (let lvl = 1; lvl <= 60; lvl++) { tabelaXp[lvl] = Math.floor(100 * Math.pow(lvl, 1.45)); }
         function atualizarHudXp() { let xpMax = tabelaXp[meuLevel] || 100; xpBarFill.style.width = Math.min(100, (meuXp / xpMax) * 100) + "%"; levelText.innerText = `LVL ${meuLevel}`; }
         function atualizarHudEstamina() { staminaBarFill.style.width = Math.max(0, minhaEstamina) + "%"; }
         function atualizarHudMp() { if (!mpBarFill) return; let max = window.meuMaxMp || 50; let m = window.meuMp || 0; mpBarFill.style.width = Math.max(0, Math.min(100, (m / max) * 100)) + "%"; }
+
+        function atualizarCooldownSkillHUD() {
+            const map = [
+                ['btn-meteoro', () => window.meteoroCooldownAtivo, 7],
+                ['btn-nevasca', () => window.nevascaCooldownAtivo, 12],
+                ['btn-vulcao', () => window.vulcaoCooldownAtivo, 20],
+                ['btn-arqueiro-chuva', () => window.chuvaCooldownAtivo, 6],
+                ['btn-arqueiro-perfurante', () => perfuranteCooldownAtivo, 8],
+                ['btn-arqueiro-rajada', () => window.arqueiroRajadaCooldown, 12],
+                ['btn-curandeiro-cura', () => curaCooldownAtivo, 6],
+                ['btn-curandeiro-julgamento', () => window.julgamentoCooldownAtivo, 6],
+                ['btn-curandeiro-aura', () => window.auraSagradaCooldown, 10],
+                ['btn-barbaro-furia', () => furiaCooldownAtivo, 8],
+                ['btn-barbaro-esmagamento', () => window.esmagamentoCooldownAtivo, 6],
+                ['btn-barbaro-giro', () => window.giroDescontroladoCooldownAtivo, 12],
+                ['btn-roqueiro-bateria', () => window.roqueiroBateriaCooldown, 8],
+                ['btn-roqueiro-teleporte', () => roqueiroTeleporteCooldown, 8],
+                ['btn-roqueiro-banda', () => window.roqueiroBandaCooldown, 10],
+                ['btn-ogro-skill', () => window.ogroSkillCooldown, 8],
+                ['btn-ogro-salto', () => window.ogroSaltoCooldown, 8],
+                ['btn-dash', () => window.dashCooldownAtivo, 5],
+                ['btn-tornado', () => window.tornadoCooldownAtivo, 10],
+                ['btn-guerreiro-provocacao', () => window.guerreiroProvocacaoCooldown, 10]
+            ];
+            map.forEach(function ([btnId, ativo, padrao]) {
+                const btn = document.getElementById(btnId);
+                if (!btn) return;
+                const badge = btn.querySelector('.skill-cd-badge') || document.createElement('span');
+                if (!badge.classList || !badge.classList.contains('skill-cd-badge')) {
+                    badge.className = 'skill-cd-badge';
+                    btn.appendChild(badge);
+                }
+                let restante = null;
+                const until = Number(btn.dataset.cdUntil || 0);
+                if (until > Date.now()) {
+                    restante = Math.max(1, Math.ceil((until - Date.now()) / 1000));
+                } else if (ativo && ativo()) {
+                    restante = Math.max(1, Math.ceil(padrao));
+                }
+                if (restante) {
+                    btn.classList.add('show-cd');
+                    badge.textContent = restante + 's';
+                } else {
+                    btn.classList.remove('show-cd');
+                    badge.textContent = '';
+                }
+            });
+        }
+
+        function registrarCooldownBotao(btn, milissegundos) {
+            if (!btn) return;
+            btn.dataset.cdUntil = String(Date.now() + milissegundos);
+        }
+
+        setInterval(atualizarCooldownSkillHUD, 250);
         window.atualizarHudMp = atualizarHudMp;
         function mostrarEfeitoLevelUp() { levelUpPopup.classList.add("show-levelup"); setTimeout(() => { levelUpPopup.classList.remove("show-levelup"); }, 1500); }
         function alternarAutofarm() { autofarmLigado = !autofarmLigado; if (autofarmLigado) { btnAutofarm.classList.add("active"); statusText.innerText = "Status: Autofarm ATIVADO 🤖"; } else { btnAutofarm.classList.remove("active"); statusText.innerText = "Status: Autofarm DESLIGADO"; } }
@@ -1044,8 +1167,16 @@
                         let msg = dados.mensagem || "Troca Encerrada";
                         if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 30, text: msg, color: "#f39c12", alpha: 1.0 });
                     }
-if (dados.type === 'init') {
+                    if (dados.type === 'ui_layout' && dados.layout) {
+                        if (window.InterfaceEditor && typeof window.InterfaceEditor.aplicarLayout === 'function') {
+                            window.InterfaceEditor.aplicarLayout(dados.layout);
+                        }
+                    }
+                    if (dados.type === 'init') {
                         window.meuId = dados.id;
+                        if (window.InterfaceEditor && typeof window.InterfaceEditor.recarregarLocal === 'function') {
+                            window.InterfaceEditor.recarregarLocal();
+                        }
                         if (typeof dados.x === 'number' && typeof dados.y === 'number') { window.meuX = dados.x; window.meuY = dados.y; }
                         if (dados.level !== undefined) meuLevel = dados.level;
                         if (dados.xp !== undefined) meuXp = dados.xp;
@@ -1065,6 +1196,11 @@ if (dados.type === 'init') {
                         atualizarHudMp();
                         if (pingIntervalo) clearInterval(pingIntervalo);
                         pingIntervalo = setInterval(() => { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'ping', t: Date.now() })); }, 2000);
+                        window.ehAdmin = !!dados.admin || (window.meuId && window.meuId.toLowerCase() === 'admin');
+                        if (window.ehAdmin) {
+                            if (typeof mostrarBotaoSpawnAdmin === "function") mostrarBotaoSpawnAdmin();
+                            if (typeof mostrarBotaoColisaoEditor === "function") mostrarBotaoColisaoEditor();
+                        }
                         if (classePendente) {
                             // trocou de personagem com o socket fechado: re-loga direto com a nova classe
                             let cp = classePendente;
@@ -1078,7 +1214,7 @@ if (dados.type === 'init') {
                     if (dados.type === 'teleporte_confirmado') {
                         if (typeof dados.x === 'number' && typeof dados.y === 'number') {
                             let mapaDestino = dados.mapa;
-                            let mapaMostrar = (mapaDestino === 'cidade') ? 'cidade' : ((mapaDestino === 'caverna') ? 'caverna' : ((mapaDestino === 'pantano') ? 'pantano' : ((mapaDestino === 'desert') ? 'desert' : 'green')));
+                            let mapaMostrar = (mapaDestino === 'arena') ? 'arena' : ((mapaDestino === 'cidade') ? 'cidade' : ((mapaDestino === 'caverna') ? 'caverna' : ((mapaDestino === 'pantano') ? 'pantano' : ((mapaDestino === 'desert') ? 'desert' : 'green'))));
                             fadeTeleporte(mapaMostrar, dados.x, dados.y);
                             if (window.ws && window.ws.readyState === WebSocket.OPEN) window.ws.send(JSON.stringify({ x: dados.x, y: dados.y, angulo: window.meuAngulo || 0, moving: false }));
                             if (statusText) statusText.innerText = "🌀 Teleportado para " + mapaMostrar + "!";
@@ -1088,6 +1224,14 @@ if (dados.type === 'init') {
                     if (dados.type === 'spawn_flags') {
                         window.listaBandeiras = dados.bandeiras || [];
                         if (typeof atualizarPainelSpawnAdmin === "function") atualizarPainelSpawnAdmin();
+                    }
+
+                    if (dados.type === 'colisoes_atualizadas') {
+                        if (dados.mapa === 'cidade' && window.mapaCidade && typeof window.mapaCidade.carregarObstaculos === 'function') {
+                            window.mapaCidade.carregarObstaculos(dados.obstaculos);
+                            if (typeof window.atualizarListaColisoesUI === 'function') window.atualizarListaColisoesUI();
+                            if (typeof window.atualizarPropriedadesUI === 'function') window.atualizarPropriedadesUI();
+                        }
                     }
 
                     if (dados.type === 'xp_ganho') {
@@ -1172,6 +1316,15 @@ if (dados.type === 'init') {
                         window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 34, text: "💧 MP insuficiente!", color: "#3498db", alpha: 1.0 });
                     }
 
+                    if (dados.type === 'aura_sagrada_cooldown') {
+                        window.auraSagradaCooldown = true;
+                        btnCurandeiroAura.classList.add("cooldown");
+                        setTimeout(() => {
+                            window.auraSagradaCooldown = false;
+                            btnCurandeiroAura.classList.remove("cooldown");
+                        }, Math.max(0, dados.restante || 10000));
+                    }
+
                     if (dados.type === 'texto_critico') {
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 18, text: "CRÍTICO!", color: "#f1c40f", alpha: 1.0 });
                     }
@@ -1185,19 +1338,25 @@ if (dados.type === 'init') {
                         const mappings = {
                             'btn-meteoro': { id: 'meteoro', baseMp: 30 },
                             'btn-nevasca': { id: 'nevasca', baseMp: 35 },
+                            'btn-vulcao': { id: 'vulcao', baseMp: 20 },
                             'btn-arqueiro-chuva': { id: 'chuva', baseMp: 22 },
                             'btn-arqueiro-perfurante': { id: 'perfurante', baseMp: 18 },
+                            'btn-arqueiro-rajada': { id: 'rajada', baseMp: 30 },
                             'btn-curandeiro-cura': { id: 'cura', baseMp: 25 },
                             'btn-curandeiro-julgamento': { id: 'julgamento', baseMp: 24 },
+                            'btn-curandeiro-aura': { id: 'aura-sagrada', baseMp: 1 },
                             'btn-barbaro-furia': { id: 'furia', baseMp: 20 },
                             'btn-barbaro-esmagamento': { id: 'esmagamento-barbaro', baseMp: 25 },
+                            'btn-barbaro-giro': { id: 'giro_descontrolado', baseMp: 30 },
                             'btn-roqueiro-bateria': { id: 'bateria', baseMp: 25 },
                             'btn-roqueiro-teleporte': { id: 'teleporte', baseMp: 15 },
                             'btn-roqueiro-banda': { id: 'banda', baseMp: 30 },
+                            'btn-roqueiro-grito': { id: 'grito_guerra', baseMp: 30 },
                             'btn-ogro-skill': { id: 'esmagamento', baseMp: 25 },
                             'btn-ogro-salto': { id: 'salto', baseMp: 20 },
                             'btn-dash': { id: 'dash', baseMp: 15 },
-                            'btn-tornado': { id: 'tornado', baseMp: 20 }
+                            'btn-tornado': { id: 'tornado', baseMp: 20 },
+                            'btn-guerreiro-provocacao': { id: 'provocacao', baseMp: 20 }
                         };
                         for (let btnId in mappings) {
                             let btn = document.getElementById(btnId);
@@ -1255,23 +1414,101 @@ if (dados.type === 'init') {
                         
                         // Atualizar HUD de Buffs Pessoais
                         let hudBuffs = document.getElementById("hud-buffs");
-                        if (hudBuffs && window.meusEfeitos) {
-                            let buffsHtml = "";
+                        let hudBuffsBar = document.getElementById("hud-buffs-bar");
+                        let meu = window.todosJogadores[window.meuId];
+                        let buffs = [];
+                        if (Array.isArray(window.meusEfeitos)) {
                             window.meusEfeitos.forEach(ef => {
-                                // icon, tempo formatado
-                                buffsHtml += `<div class="hud-buff-icon" style="color:${ef.cor || 'white'}">${ef.icon || '?'}<div class="hud-buff-timer">${ef.formatado || ''}</div></div>`;
+                                buffs.push({ icon: ef.icon || '?', cor: ef.cor || 'white', timer: ef.formatado || '', title: ef.nome || '' });
                             });
-                            hudBuffs.innerHTML = buffsHtml;
+                        }
+                        if (meu && meu.classe === 'arqueiro' && (meu.velocidadeCrescenteStacks || meu.velocidadeCrescenteTimer > 0)) {
+                            let stacks = meu.velocidadeCrescenteStacks || 0;
+                            let tempo = Math.max(0, Math.ceil((meu.velocidadeCrescenteTimer || 0) / 20));
+                            buffs.push({ icon: '⚡', cor: '#00bcd4', timer: `${stacks}/${tempo}s`, title: 'Velocidade' });
+                        }
+                        if (meu && meu.classe === 'barbaro' && meu.furiaTimer > 0 && !buffs.some(b => b.title === 'Fúria Berserker')) {
+                            buffs.push({ icon: '🩸', cor: '#e74c3c', timer: `${Math.max(1, Math.ceil((meu.furiaTimer || 0) / 20))}s`, title: 'Fúria Berserker' });
+                        }
+                        if (hudBuffs) {
+                            hudBuffs.innerHTML = '';
+                        }
+                        if (hudBuffsBar) {
+                            hudBuffsBar.innerHTML = buffs.length ? buffs.map(b => `<div class="hud-buff-item" style="color:${b.cor}" title="${b.title || 'Efeito'}: ${b.timer || ''}" aria-label="${b.title || 'Efeito'}: ${b.timer || ''}" data-tooltip="${b.title || 'Efeito'}: ${b.timer || ''}">${b.icon}<div class="hud-buff-timer">${b.timer}</div></div>`).join('') : '<div class="hud-buff-empty">Sem buffs</div>';
+                        }
+                    }
+
+                    function atualizarAuraHud() {
+                        let hudBuffs = document.getElementById("hud-buffs");
+                        let meu = window.todosJogadores && window.todosJogadores[window.meuId];
+                        if (!hudBuffs || !meu) return;
+                        hudBuffs.querySelectorAll('.hud-aura-status').forEach(function(el) { el.remove(); });
+                        if (meu.auraSagradaAtiva) {
+                            let ativo = document.createElement('div');
+                            ativo.className = 'hud-buff-icon hud-aura-status';
+                            ativo.style.color = '#f9e79f';
+                            ativo.innerHTML = '✝️<div class="hud-buff-timer">ATIVA</div>';
+                            hudBuffs.appendChild(ativo);
+                        }
+                        if (meu.auraSagradaAliado) {
+                            [['🛡️', '10%'], ['✦', '+5%'], ['💖', '+10%']].forEach(function(buff) {
+                                let item = document.createElement('div');
+                                item.className = 'hud-buff-icon hud-aura-status';
+                                item.style.color = '#f9e79f';
+                                item.innerHTML = buff[0] + '<div class="hud-buff-timer">' + buff[1] + '</div>';
+                                hudBuffs.appendChild(item);
+                            });
+                        }
+                        let restante = Math.ceil((meu.ressurreicaoCooldownRestante || 0) / 1000);
+                        if (restante > 0) {
+                            let passiva = document.createElement('div');
+                            passiva.className = 'hud-buff-icon hud-aura-status';
+                            passiva.style.color = '#ffffff';
+                            passiva.innerHTML = '🕊️<div class="hud-buff-timer">' + Math.floor(restante / 60) + ':' + String(restante % 60).padStart(2, '0') + '</div>';
+                            hudBuffs.appendChild(passiva);
                         }
                     }
 
                     if (dados.type === 'world_update') {
                         window.ultimoWorldUpdateAt = Date.now();
+                        let jogadoresAnteriores = window.todosJogadores || {};
+                        Object.keys(dados.players || {}).forEach(function(pid) {
+                            let atual = dados.players[pid];
+                            let anterior = jogadoresAnteriores[pid] || {};
+                            if (atual.rajadaAtiva && atual.rajadaFase === 'disparo' && anterior.rajadaFase !== 'disparo') {
+                                if (pid === window.meuId) window.arqueiroRajadaLigada = false;
+                                if (typeof window.finalizarCarregamentoRajada === 'function') window.finalizarCarregamentoRajada(pid);
+                                if (typeof window.criarAnimacaoRajadaFlechas === 'function') {
+                                    window.criarAnimacaoRajadaFlechas(atual.x + 12, atual.y + 16, atual.angulo);
+                                }
+                            }
+                            if (atual.rajadaAtiva && atual.rajadaFase === 'carregando' && typeof window.atualizarCarregamentoRajada === 'function') {
+                                window.atualizarCarregamentoRajada(pid, atual.x + 12, atual.y + 16, atual.rajadaProgresso, atual.angulo);
+                            }
+                            if (!atual.rajadaAtiva && anterior.rajadaAtiva && typeof window.finalizarRajadaVisual === 'function') {
+                                window.finalizarRajadaVisual(pid);
+                            }
+                            if (atual.auraSagradaAtiva && typeof window.atualizarAuraSagrada === 'function') {
+                                window.atualizarAuraSagrada(pid, atual.x + 12, atual.y + 16);
+                            }
+                            if (pid === window.meuId && atual.auraSagradaAtiva) {
+                                window.auraSagradaAtiva = true;
+                                btnCurandeiroAura.classList.add("active");
+                            }
+                            if (!atual.auraSagradaAtiva && anterior.auraSagradaAtiva && typeof window.finalizarAuraSagrada === 'function') {
+                                window.finalizarAuraSagrada(pid);
+                                if (pid === window.meuId) {
+                                    window.auraSagradaAtiva = false;
+                                    btnCurandeiroAura.classList.remove("active");
+                                }
+                            }
+                        });
                         window.todosJogadores = dados.players;
                         window.listaSlimes = dados.slimes;
                         listaProjeteis = dados.projeteis || [];
                         listaPlayerProjeteis = dados.playerProjeteis || [];
                         if (typeof atualizarPartyHUD === 'function') atualizarPartyHUD();
+                        if (typeof atualizarAuraHud === 'function') atualizarAuraHud();
                         if (typeof atualizarCustosMana === 'function') atualizarCustosMana();
                         
                         let meuP = window.todosJogadores[window.meuId];
@@ -1406,7 +1643,12 @@ if (dados.type === 'init') {
                     }
                     if (dados.type === 'action_magia_basica' && window.todosJogadores[dados.id] && dados.id !== window.meuId) { tocarSomMagiaBasica(); }
                     if (dados.type === 'action_orbe' && window.todosJogadores[dados.id] && dados.id !== window.meuId) { tocarSomOrbe(); }
-                    if (dados.type === 'action_flecha' && window.todosJogadores[dados.id] && dados.id !== window.meuId) { tocarSomFlecha(); }
+                    if (dados.type === 'action_flecha') {
+                        if (dados.id !== window.meuId) tocarSomFlecha();
+                        if (dados.id === window.meuId && typeof window.criarAnimacaoFlechaBasica === 'function' && typeof dados.x === 'number') {
+                            window.criarAnimacaoFlechaBasica(dados.x, dados.y, dados.vx, dados.vy);
+                        }
+                    }
                     if (dados.type === 'action_sagrado' && window.todosJogadores[dados.id] && dados.id !== window.meuId) { tocarSomLuzSagrada(); }
                     if (dados.type === 'action_ogro_sismico') { if(typeof window.criarAnimacaoOgroSismico === "function") window.criarAnimacaoOgroSismico(dados.x, dados.y); }
                     if (dados.type === 'action_ogro_salto') { if(typeof window.criarAnimacaoSaltoOgro === "function") window.criarAnimacaoSaltoOgro(dados.startX, dados.startY, dados.targetX, dados.targetY); }
@@ -1417,9 +1659,27 @@ if (dados.type === 'init') {
                     }
                     if (dados.type === 'action_meteoro') { if(typeof window.criarAnimacaoMeteoro === "function") window.criarAnimacaoMeteoro(dados.targetX, dados.targetY); }
                     if (dados.type === 'action_nevasca') { if(typeof window.criarAnimacaoNevasca === "function") window.criarAnimacaoNevasca(dados.targetX, dados.targetY, dados.radius); }
+                    if (dados.type === 'action_vulcao') { if(typeof window.criarAnimacaoVulcao === "function") window.criarAnimacaoVulcao(dados.targetX, dados.targetY, dados.radius, dados.duracao); }
+                    if (dados.type === 'vulcao_projetil') { if(typeof window.criarVulcaoProjetil === "function") window.criarVulcaoProjetil(dados.vx, dados.vy, dados.tx, dados.ty, dados.tipo, dados.id); }
+                    if (dados.type === 'vulcao_impacto') { if(typeof window.criarVulcaoImpacto === "function") window.criarVulcaoImpacto(dados.tx, dados.ty, dados.tipo, dados.id); }
+                    if (dados.type === 'reacao_congelante') { if(typeof window.criarReacaoCongelante === "function") window.criarReacaoCongelante(dados.x, dados.y); }
                     if (dados.type === 'action_tornado' && window.todosJogadores[dados.id]) {
                         window.tornadoTimers[dados.id] = 30;
                         if (dados.id === window.meuId) tocarSomTornado();
+                    }
+                    if (dados.type === 'action_guerreiro_provocacao') {
+                        tocarSomProvocacao();
+                        if (typeof window.criarAnimacaoGritoProvocacao === "function") {
+                            window.criarAnimacaoGritoProvocacao(dados.id, dados.x, dados.y);
+                        }
+                        if (typeof window.criarAnimacaoCuraGuerreiro === "function") {
+                            window.criarAnimacaoCuraGuerreiro(dados.id, dados.x, dados.y, dados.cura);
+                        }
+                    }
+                    if (dados.type === 'action_roqueiro_grito_guerra') {
+                        if (typeof window.criarAnimacaoGritoGuerra === 'function') {
+                            window.criarAnimacaoGritoGuerra(dados.id, dados.x, dados.y, dados.raio);
+                        }
                     }
                     if (dados.type === 'action_dash' && window.todosJogadores[dados.id]) {
                         dashTrails.push({ x: dados.x + 12, y: dados.y + 16, alpha: 1.0 });
@@ -1443,6 +1703,26 @@ if (dados.type === 'init') {
                         tocarSomImpactoPesado();
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 64, text: "💀 OGOR CAIU!", color: "#ff5252", alpha: 1.0 });
                     }
+                    if (dados.type === 'action_ogro_colossal') {
+                        window.lacaioColossal = window.lacaioColossal || {};
+                        window.lacaioColossal[dados.pid] = true;
+                        window.floatingTexts.push({ x: dados.x, y: dados.y - 60, text: "🗿 GOLEM COLOSSAL!", color: "#e67e22", alpha: 1.0 });
+                        tocarSomImpactoPesado();
+                    }
+                    if (dados.type === 'action_ogro_colossal_fim') {
+                        if (window.lacaioColossal) delete window.lacaioColossal[dados.pid];
+                    }
+                    if (dados.type === 'ogro_pedra_enorme') {
+                        if (typeof window.criarPedraEnorme === 'function') window.criarPedraEnorme(dados.sx, dados.sy, dados.tx, dados.ty);
+                        tocarSomImpactoPesado();
+                    }
+                    if (dados.type === 'ogro_ultimo_vinculo') {
+                        window.floatingTexts.push({ x: dados.x, y: dados.y - 40, text: "💠 ÚLTIMO VÍNCULO!", color: "#2ecc71", alpha: 1.0 });
+                        if (dados.pid === window.meuId) window.meuEscudoAbsoluto = dados.escudo;
+                    }
+                    if (dados.type === 'escudo_sync') {
+                        window.meuEscudoAbsoluto = dados.escudo;
+                    }
                     if (dados.type === 'action_besouro_decolagem') {
                         if (typeof window.criarAnimacaoBesouroDecolagem === "function") window.criarAnimacaoBesouroDecolagem(dados.x, dados.y);
                     }
@@ -1465,10 +1745,68 @@ if (dados.type === 'init') {
                             window.criarAnimacaoDisparoPerfurante(dados.x, dados.y, dados.vx, dados.vy, dados.angulo);
                         }
                     }
+                    if (dados.type === 'action_arqueiro_rajada_start') {
+                        if (dados.id === window.meuId) window.arqueiroRajadaLigada = true;
+                        if (typeof window.iniciarCarregamentoRajada === 'function') {
+                            window.iniciarCarregamentoRajada(dados.id, dados.x, dados.y, dados.angulo);
+                        }
+                    }
+                    if (dados.type === 'action_arqueiro_rajada_hit') {
+                        if (typeof window.criarAnimacaoImpactoFlecha === 'function') {
+                            window.criarAnimacaoImpactoFlecha(dados.x, dados.y, dados.stacks || 0);
+                        }
+                    }
+                    if (dados.type === 'action_arqueiro_rajada_end' || dados.type === 'action_arqueiro_rajada_cancel') {
+                        if (dados.id === window.meuId) {
+                            window.arqueiroRajadaLigada = false;
+                            moveX = 0;
+                            moveY = 0;
+                        }
+                        if (dados.type === 'action_arqueiro_rajada_cancel' && typeof window.cancelarCarregamentoRajada === 'function') {
+                            window.cancelarCarregamentoRajada(dados.id);
+                        }
+                        if (dados.type === 'action_arqueiro_rajada_end' && typeof window.finalizarRajadaVisual === 'function') {
+                            window.finalizarRajadaVisual(dados.id);
+                        }
+                    }
                     if (dados.type === 'action_curandeiro_cura') {
                         tocarSomCura();
                         if (typeof window.criarAnimacaoCuraDivina === 'function') {
                             window.criarAnimacaoCuraDivina(dados.x, dados.y, dados.valor);
+                        }
+                    }
+                    if (dados.type === 'action_aura_sagrada_start') {
+                        if (dados.id === window.meuId) {
+                            window.auraSagradaAtiva = true;
+                            btnCurandeiroAura.classList.add("active");
+                        }
+                        if (typeof window.criarAnimacaoAuraSagrada === 'function') {
+                            window.criarAnimacaoAuraSagrada(dados.id, dados.x, dados.y, dados.raio);
+                        }
+                    }
+                    if (dados.type === 'action_aura_sagrada_tick') {
+                        if (typeof window.criarEfeitoPulsoAuraSagrada === 'function') {
+                            window.criarEfeitoPulsoAuraSagrada(dados.id, dados.x, dados.y, dados.alvos || []);
+                        }
+                    }
+                    if (dados.type === 'action_aura_sagrada_end') {
+                        if (dados.id === window.meuId) {
+                            window.auraSagradaAtiva = false;
+                            btnCurandeiroAura.classList.remove("active");
+                            window.auraSagradaCooldown = dados.motivo === 'mana_baixa';
+                            if (window.auraSagradaCooldown) {
+                                btnCurandeiroAura.classList.add("cooldown");
+                                setTimeout(() => {
+                                    window.auraSagradaCooldown = false;
+                                    btnCurandeiroAura.classList.remove("cooldown");
+                                }, 10000);
+                            }
+                        }
+                        if (typeof window.finalizarAuraSagrada === 'function') window.finalizarAuraSagrada(dados.id);
+                    }
+                    if (dados.type === 'action_ressurreicao_automatica') {
+                        if (typeof window.criarAnimacaoRessurreicaoAutomatica === 'function') {
+                            window.criarAnimacaoRessurreicaoAutomatica(dados.alvoId, dados.x, dados.y, dados.id);
                         }
                     }
                     if (dados.type === 'action_curandeiro_julgamento') {
@@ -1488,6 +1826,16 @@ if (dados.type === 'init') {
                         tocarSomFuria();
                         if (typeof window.criarAnimacaoFuriaBerserker === 'function') {
                             window.criarAnimacaoFuriaBerserker(dados.id);
+                        }
+                    }
+                    if (dados.type === 'action_barbaro_giro_start') {
+                        if (typeof window.criarAnimacaoGiroBarbaro === 'function') {
+                            window.criarAnimacaoGiroBarbaro(dados.id, dados.x, dados.y);
+                        }
+                    }
+                    if (dados.type === 'action_barbaro_giro_end') {
+                        if (typeof window.finalizarAnimacaoGiroBarbaro === 'function') {
+                            window.finalizarAnimacaoGiroBarbaro(dados.id);
                         }
                     }
                     if (dados.type === 'action_barbaro_esmagamento') {
@@ -1565,27 +1913,35 @@ if (dados.type === 'init') {
             cancelarTodasMiras();
             
             btnTornado.style.display = "none";
-            btnMeteoro.style.display = "none"; btnNevasca.style.display = "none";
+            if (btnGuerreiroProvocacao) btnGuerreiroProvocacao.style.display = "none";
+            btnMeteoro.style.display = "none"; btnNevasca.style.display = "none"; btnVulcao.style.display = "none"; btnOgroColossal.style.display = "none";
             btnOgroSkill.style.display = "none"; btnOgroSalto.style.display = "none";
-            btnArqueiroChuva.style.display = "none"; btnArqueiroPerfurante.style.display = "none";
-            btnCurandeiroCura.style.display = "none"; btnCurandeiroJulgamento.style.display = "none";
-            btnBarbaroFuria.style.display = "none"; btnBarbaroEsmagamento.style.display = "none";
+            btnArqueiroChuva.style.display = "none"; btnArqueiroPerfurante.style.display = "none"; btnArqueiroRajada.style.display = "none";
+            btnCurandeiroCura.style.display = "none"; btnCurandeiroJulgamento.style.display = "none"; btnCurandeiroAura.style.display = "none";
+            if (btnBarbaroFuria) btnBarbaroFuria.style.display = "none";
+            if (btnBarbaroEsmagamento) btnBarbaroEsmagamento.style.display = "none";
+            if (btnBarbaroGiro) btnBarbaroGiro.style.display = "none";
             btnRoqueiroBateria.style.display = "none"; btnRoqueiroTeleporte.style.display = "none"; btnRoqueiroBanda.style.display = "none";
 
             if (window.minhaClasse === 'mago') {
-                btnMeteoro.style.display = "block"; btnNevasca.style.display = "block"; btnAttack.innerText = "🔮"; btnAttack.style.background = "#9b59b6";
+                btnMeteoro.style.display = "block"; btnNevasca.style.display = "block"; btnVulcao.style.display = "block"; btnAttack.innerText = "🔮"; btnAttack.style.background = "#9b59b6";
             } else if (window.minhaClasse === 'summoner') {
-                btnOgroSkill.style.display = "block"; btnOgroSalto.style.display = "block"; btnAttack.innerText = "👁️"; btnAttack.style.background = "#27ae60";
+                btnOgroSkill.style.display = "block"; btnOgroSalto.style.display = "block"; btnOgroColossal.style.display = "block"; btnAttack.innerText = "👁️"; btnAttack.style.background = "#27ae60";
             } else if (window.minhaClasse === 'arqueiro') {
-                btnArqueiroChuva.style.display = "block"; btnArqueiroPerfurante.style.display = "block"; btnAttack.innerText = "🏹"; btnAttack.style.background = "#1abc9c";
+                btnArqueiroChuva.style.display = "block"; btnArqueiroPerfurante.style.display = "block"; btnArqueiroRajada.style.display = "block"; btnAttack.innerText = "🏹"; btnAttack.style.background = "#1abc9c";
             } else if (window.minhaClasse === 'curandeiro') {
-                btnCurandeiroCura.style.display = "block"; btnCurandeiroJulgamento.style.display = "block"; btnAttack.innerText = "✨"; btnAttack.style.background = "#f1c40f";
+                btnCurandeiroCura.style.display = "block"; btnCurandeiroJulgamento.style.display = "block"; btnCurandeiroAura.style.display = "block"; btnAttack.innerText = "✨"; btnAttack.style.background = "#f1c40f";
             } else if (window.minhaClasse === 'barbaro') {
-                btnBarbaroFuria.style.display = "block"; btnBarbaroEsmagamento.style.display = "block"; btnAttack.innerText = "🪓"; btnAttack.style.background = "#c0392b";
+                if (btnBarbaroFuria) btnBarbaroFuria.style.display = "block";
+                if (btnBarbaroEsmagamento) btnBarbaroEsmagamento.style.display = "block";
+                if (btnBarbaroGiro) btnBarbaroGiro.style.display = "block";
+                btnAttack.innerText = "🪓"; btnAttack.style.background = "#c0392b";
             } else if (window.minhaClasse === 'roqueiro') {
                 btnRoqueiroBateria.style.display = "block"; btnRoqueiroTeleporte.style.display = "block"; btnRoqueiroBanda.style.display = "block"; btnAttack.innerText = "🎸"; btnAttack.style.background = "#e67e22";
             } else {
-                btnTornado.style.display = "block"; btnAttack.innerText = "⚔️"; btnAttack.style.background = "#d9534f";
+                btnTornado.style.display = "block";
+                if (btnGuerreiroProvocacao) btnGuerreiroProvocacao.style.display = "block";
+                btnAttack.innerText = "⚔️"; btnAttack.style.background = "#d9534f";
             }
             btnDash.style.display = "block";
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'escolher_classe', classe: window.minhaClasse })); }
@@ -1679,6 +2035,38 @@ if (dados.type === 'init') {
             });
         }
 
+        function tocarSomProvocacao() {
+            iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime;
+            // Rugido sônico grave potente
+            let oscSub = audioCtx.createOscillator();
+            let gainSub = audioCtx.createGain();
+            oscSub.type = 'sawtooth';
+            oscSub.frequency.setValueAtTime(80, now);
+            oscSub.frequency.exponentialRampToValueAtTime(145, now + 0.12);
+            oscSub.frequency.exponentialRampToValueAtTime(45, now + 0.55);
+            gainSub.gain.setValueAtTime(0.7, now);
+            gainSub.gain.exponentialRampToValueAtTime(0.001, now + 0.58);
+            oscSub.connect(gainSub);
+            gainSub.connect(window.audioGanhoMaster || audioCtx.destination);
+            oscSub.start(now);
+            oscSub.stop(now + 0.58);
+
+            // Trombeta de guerra ressonante (brass horn swell)
+            let oscHorn = audioCtx.createOscillator();
+            let gainHorn = audioCtx.createGain();
+            oscHorn.type = 'triangle';
+            oscHorn.frequency.setValueAtTime(220, now + 0.04);
+            oscHorn.frequency.linearRampToValueAtTime(330, now + 0.2);
+            oscHorn.frequency.exponentialRampToValueAtTime(110, now + 0.5);
+            gainHorn.gain.setValueAtTime(0.001, now);
+            gainHorn.gain.linearRampToValueAtTime(0.45, now + 0.1);
+            gainHorn.gain.exponentialRampToValueAtTime(0.001, now + 0.52);
+            oscHorn.connect(gainHorn);
+            gainHorn.connect(window.audioGanhoMaster || audioCtx.destination);
+            oscHorn.start(now + 0.04);
+            oscHorn.stop(now + 0.52);
+        }
+
         function tocarSomJulgamento() {
             iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime;
             let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
@@ -1699,6 +2087,9 @@ if (dados.type === 'init') {
         function tocarSomImpactoMeteoro() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let sub = audioCtx.createOscillator(); let subGain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(140, now); sub.frequency.exponentialRampToValueAtTime(30, now + 1.0); subGain.gain.setValueAtTime(0.8, now); subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.0); sub.connect(subGain); subGain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 1.0); let bufferSize = audioCtx.sampleRate * 0.9; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(800, now); filter.frequency.exponentialRampToValueAtTime(80, now + 0.9); let noiseGain = audioCtx.createGain(); noiseGain.gain.setValueAtTime(0.7, now); noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9); noise.connect(filter); filter.connect(noiseGain); noiseGain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); }
         function tocarSomNevasca() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let bufferSize = audioCtx.sampleRate * 1.5; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.setValueAtTime(600, now); filter.frequency.linearRampToValueAtTime(1400, now + 0.8); filter.frequency.linearRampToValueAtTime(450, now + 1.5); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.5); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); }
         function tocarSomDash() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.3); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.3); }
+        function tocarSomVulcaoErupcao() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let bufferSize = audioCtx.sampleRate * 1.2; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(120, now); filter.frequency.linearRampToValueAtTime(400, now + 0.5); filter.frequency.linearRampToValueAtTime(80, now + 1.2); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.7, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); let sub = audioCtx.createOscillator(); let subGain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(50, now); sub.frequency.exponentialRampToValueAtTime(25, now + 1.0); subGain.gain.setValueAtTime(0.6, now); subGain.gain.exponentialRampToValueAtTime(0.01, now + 1.0); sub.connect(subGain); subGain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 1.0); }
+        function tocarSomVulcaoLancamento() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, now); osc.frequency.exponentialRampToValueAtTime(90, now + 0.3); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.3); }
+        function tocarSomVulcaoImpacto() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let bufferSize = audioCtx.sampleRate * 0.4; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(800, now); filter.frequency.exponentialRampToValueAtTime(100, now + 0.4); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.6, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); let sub = audioCtx.createOscillator(); let subGain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(120, now); sub.frequency.exponentialRampToValueAtTime(30, now + 0.35); subGain.gain.setValueAtTime(0.7, now); subGain.gain.exponentialRampToValueAtTime(0.01, now + 0.35); sub.connect(subGain); subGain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 0.35); }
         function tocarSomTornado() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; [300, 450, 600, 750, 500].forEach((freq, idx) => { let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(freq, now + (idx * 0.08)); gain.gain.setValueAtTime(0.2, now + (idx * 0.08)); gain.gain.exponentialRampToValueAtTime(0.01, now + (idx * 0.08) + 0.12); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now + (idx * 0.08)); osc.stop(now + (idx * 0.08) + 0.12); }); }
         function tocarSomBlock() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'square'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.4, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
         function tocarSomLevelUp() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => { let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.frequency.setValueAtTime(freq, now + index * 0.1); gain.gain.setValueAtTime(0.2, now + index * 0.1); gain.gain.exponentialRampToValueAtTime(0.01, now + index * 0.1 + 0.25); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now + index * 0.1); osc.stop(now + index * 0.1 + 0.25); }); }
@@ -1720,6 +2111,26 @@ if (dados.type === 'init') {
 
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ action: 'barbaro_furia' }));
+            }
+        }
+
+        function usarGiroDescontrolado() {
+            if (window.estaMorto || window.giroDescontroladoCooldownAtivo || window.minhaClasse !== 'barbaro') return;
+            window.giroDescontroladoCooldownAtivo = true;
+            btnBarbaroGiro.classList.add("cooldown");
+            registrarCooldownBotao(btnBarbaroGiro, 12000);
+            setTimeout(() => {
+                window.giroDescontroladoCooldownAtivo = false;
+                btnBarbaroGiro.classList.remove("cooldown");
+                if (btnBarbaroGiro) btnBarbaroGiro.dataset.cdUntil = '';
+            }, 12000);
+
+            tocarSomEsmagamento();
+            if (typeof window.criarAnimacaoGiroBarbaro === 'function') {
+                window.criarAnimacaoGiroBarbaro(window.meuId, window.meuX + 12, window.meuY + 16);
+            }
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'barbaro_giro_descontrolado' }));
             }
         }
 
@@ -1799,6 +2210,21 @@ if (dados.type === 'init') {
             dispararNevasca(tx, ty);
         }
 
+        function ativarVulcaoSmartCast() {
+            if (window.estaMorto || window.vulcaoCooldownAtivo || window.minhaClasse !== 'mago') return;
+            if (!window.modoMiraVulcao) {
+                cancelarTodasMiras();
+                window.modoMiraVulcao = true;
+                btnVulcao.classList.add("aiming");
+                statusText.innerText = "🌋 [PC] Mova o mouse e clique para invocar o Vulcão! (ESC cancela)";
+                return;
+            }
+            let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
+            let tx = mira ? mira.tx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 160);
+            let ty = mira ? mira.ty : (window.meuY + 16 + Math.sin(window.meuAngulo) * 160);
+            dispararVulcao(tx, ty);
+        }
+
         function ativarChuvaSmartCast() {
             if (window.estaMorto || window.chuvaCooldownAtivo || window.minhaClasse !== 'arqueiro') return;
             if (!window.modoMiraChuva) {
@@ -1861,6 +2287,13 @@ if (dados.type === 'init') {
             }
         }
 
+        function usarAuraSagrada() {
+            if (window.estaMorto || window.auraSagradaCooldown || window.minhaClasse !== 'curandeiro') return;
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'curandeiro_aura' }));
+            }
+        }
+
         function usarDisparoPerfurante() {
             if (window.estaMorto || perfuranteCooldownAtivo || window.minhaClasse !== 'arqueiro') return;
             perfuranteCooldownAtivo = true; btnArqueiroPerfurante.classList.add("cooldown");
@@ -1880,6 +2313,13 @@ if (dados.type === 'init') {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ action: 'arqueiro_perfurante', angulo: window.meuAngulo }));
             }
+        }
+
+        function usarOgroColossal() {
+            if (window.estaMorto || window.ogroColossalCooldown || window.minhaClasse !== 'summoner') return;
+            window.ogroColossalCooldown = true; btnOgroColossal.classList.add("cooldown");
+            setTimeout(() => { window.ogroColossalCooldown = false; btnOgroColossal.classList.remove("cooldown"); }, 45000);
+            if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'comando_ogro_colossal' })); }
         }
 
         function usarComandoOgro() {
@@ -1939,6 +2379,23 @@ if (dados.type === 'init') {
             setTimeout(() => { roqueiroBandaCooldown = false; btnRoqueiroBanda.classList.remove("cooldown"); }, 15000);
 
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'roqueiro_banda' })); }
+        }
+
+        function usarGritoDeGuerraRoqueiro() {
+            if (window.estaMorto || window.minhaClasse !== 'roqueiro') return;
+            if (window.roqueiroGritoGuerraCooldown) return;
+
+            window.roqueiroGritoGuerraCooldown = true;
+            const btn = document.getElementById('btn-roqueiro-grito');
+            if (btn) btn.classList.add('cooldown');
+            setTimeout(() => {
+                window.roqueiroGritoGuerraCooldown = false;
+                if (btn) btn.classList.remove('cooldown');
+            }, 60000);
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'roqueiro_grito_guerra' }));
+            }
         }
 
         function alcanceBuscaClasse() {
@@ -2043,6 +2500,39 @@ if (dados.type === 'init') {
 
             if (ws && ws.readyState === WebSocket.OPEN) { 
                 ws.send(JSON.stringify({ action: 'tornado' })); 
+            }
+        }
+
+        let provocacaoCooldownAtivo = false;
+        function usarGritoProvocacao() {
+            if (window.estaMorto || provocacaoCooldownAtivo || (window.minhaClasse && window.minhaClasse !== 'guerreiro')) return;
+
+            // Checagem de mana local
+            let nivel = (window.skillsNiveis && window.skillsNiveis['provocacao']) || 1;
+            let custoMp = Math.round(20 * Math.pow(1.06, nivel - 1));
+            if (window.meuMp !== undefined && window.meuMp < custoMp) return;
+
+            provocacaoCooldownAtivo = true;
+            if (btnGuerreiroProvocacao) btnGuerreiroProvocacao.classList.add("cooldown");
+            setTimeout(() => {
+                provocacaoCooldownAtivo = false;
+                if (btnGuerreiroProvocacao) btnGuerreiroProvocacao.classList.remove("cooldown");
+            }, 15000);
+
+            // Animação de preparação elástica (recoil) do guerreiro local (~0.15s)
+            if (window.meuId) {
+                window.guerreiroPrepTimers[window.meuId] = 9;
+                let decTimer = setInterval(() => {
+                    if (window.guerreiroPrepTimers[window.meuId] > 0) {
+                        window.guerreiroPrepTimers[window.meuId]--;
+                    } else {
+                        clearInterval(decTimer);
+                    }
+                }, 16);
+            }
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'guerreiro_provocacao' }));
             }
         }
 
@@ -2349,8 +2839,8 @@ if (dados.type === 'init') {
                 let wx = px * WORLD_WIDTH;
                 let wy = py * WORLD_HEIGHT;
                 // Clique na cidade ou portal da cidade abre a confirmação de retorno
-                let distPortal = Math.hypot(wx - 61824, wy - 1783);
-                if (distPortal < 3500 || wx >= 59800) {
+                let distPortal = Math.hypot(wx - 60487, wy - 460);
+                if (distPortal < 3500 || (wx >= 59800 && wx < 61174)) {
                     abrirConfirmacaoPortalMapa();
                 }
             });
@@ -2370,7 +2860,8 @@ if (dados.type === 'init') {
                 { nome: "🏜️ DESERTO COM OÁSIS", nivel: "Nv. 10-25", x: 18000, w: 32000, cor: "#5a4516", borda: "#f39c12" },
                 { nome: "🪷 PÂNTANO LODOSO", nivel: "Nv. 25-40 (Tóxico)", x: 50000, w: 8000, cor: "#223114", borda: "#27ae60" },
                 { nome: "🕳️ CAVERNA DG", nivel: "Nv. 40+", x: 58000, w: 1800, cor: "#2a1515", borda: "#c0392b" },
-                { nome: "🏰 CIDADE DE DAVAHL", nivel: "Safe Hub", x: 59800, w: 4000, cor: "#152a3b", borda: "#3498db" }
+                { nome: "🏰 CIDADE DE DAVAHL", nivel: "Safe Hub", x: 59800, w: 1374, cor: "#152a3b", borda: "#3498db" },
+                { nome: "⚔️ ARENA DE DAVAHL", nivel: "PvP / Duelos", x: 63800, w: 1240, cor: "#2b1c11", borda: "#e67e22" }
             ];
 
             zonas.forEach(z => {
@@ -2390,8 +2881,8 @@ if (dados.type === 'init') {
                 bigMapCtx.fillText(z.nivel, zx + zw / 2, 35);
             });
 
-            // Portal na Cidade de Davahl (61824, 1783)
-            let pxPortal = 61824 * sx, pyPortal = 1783 * sy;
+            // Portal na Cidade de Davahl (60487, 460)
+            let pxPortal = 60487 * sx, pyPortal = 460 * sy;
             bigMapCtx.save();
             let tempoP = Date.now() / 300;
             bigMapCtx.strokeStyle = "#4fc3f7";
@@ -2409,6 +2900,21 @@ if (dados.type === 'init') {
             bigMapCtx.shadowColor = "#000";
             bigMapCtx.shadowBlur = 4;
             bigMapCtx.fillText("🌀 PORTAL DAVAHL", pxPortal, pyPortal - 14);
+
+            // Portal de Retorno da Arena (63980, 460)
+            let pxPortalArena = 63980 * sx, pyPortalArena = 460 * sy;
+            bigMapCtx.strokeStyle = "#ff9800";
+            bigMapCtx.lineWidth = 2;
+            bigMapCtx.beginPath();
+            bigMapCtx.arc(pxPortalArena, pyPortalArena, 7 + Math.sin(tempoP) * 1.5, 0, Math.PI * 2);
+            bigMapCtx.stroke();
+            bigMapCtx.fillStyle = "#ffb74d";
+            bigMapCtx.beginPath();
+            bigMapCtx.arc(pxPortalArena, pyPortalArena, 4, 0, Math.PI * 2);
+            bigMapCtx.fill();
+            bigMapCtx.fillStyle = "#ff9800";
+            bigMapCtx.font = "bold 9px Arial";
+            bigMapCtx.fillText("🌀 PORTAL ARENA", pxPortalArena, pyPortalArena - 11);
             bigMapCtx.restore();
 
             // Drops
@@ -2602,7 +3108,13 @@ if (dados.type === 'init') {
 
         function acionarSkillSlot3() {
             if (window.estaMorto) return;
-            if (window.minhaClasse === 'roqueiro') usarBandaRoqueiro();
+            if (window.minhaClasse === 'mago') ativarVulcaoSmartCast();
+            else if (window.minhaClasse === 'summoner') usarOgroColossal();
+            else if (window.minhaClasse === 'arqueiro') usarRajadaFlechas();
+            else if (window.minhaClasse === 'curandeiro') usarAuraSagrada();
+            else if (window.minhaClasse === 'barbaro') usarGiroDescontrolado();
+            else if (window.minhaClasse === 'roqueiro') usarBandaRoqueiro();
+            else if (!window.minhaClasse || window.minhaClasse === 'guerreiro') usarGritoProvocacao();
         }
 
         window.addEventListener('keydown', (e) => {
@@ -2689,6 +3201,13 @@ if (dados.type === 'init') {
                 acionarSkillSlot3();
                 return;
             }
+            if (code === 'Digit4' || code === 'Numpad4' || key === 'q') {
+                e.preventDefault();
+                if (window.minhaClasse === 'roqueiro') {
+                    usarGritoDeGuerraRoqueiro();
+                    return;
+                }
+            }
         });
 
         window.addEventListener('keyup', (e) => {
@@ -2715,7 +3234,10 @@ if (dados.type === 'init') {
                 }
                 return;
             }
-            iniciarAudio(); if (window.estaMorto || window.inventarioAberto || window.skillsAberto || window.configAberto || window.spawnAdminAberto || window.teleporteAberto) return;
+            iniciarAudio();
+            if (window.estaMorto || window.spawnAdminAberto || window.teleporteAberto || (window.colisaoEditorAtivo && !window.editorMinimizado)) return;
+            // Se o toque foi dentro de uma janela de interface (inventário, skills, status, config), não ativa joystick nem ações do mundo
+            if (e.target && e.target.closest && e.target.closest('#inv-window, #skills-window, #atributos-window, #detalhes-window, #settings-window, #colisao-editor-screen, #spawn-admin-window')) return;
             // ADMIN: toque em cima de uma bandeira de spawn → abre o painel de edição
             if (window.ehAdmin && window.listaBandeiras && window.listaBandeiras.length && window.dragSkill && !window.dragSkill.ativo) {
                 for (let i = 0; i < e.changedTouches.length; i++) {
@@ -2794,7 +3316,7 @@ if (dados.type === 'init') {
                     }
                 }
             }
-            if (joystickTouchId === null || window.estaMorto || window.roqueiroBateriaLigada || window.inventarioAberto || window.skillsAberto || window.configAberto || window.atributosAberto || window.spawnAdminAberto || window.teleporteAberto) return;
+            if (joystickTouchId === null || window.estaMorto || window.roqueiroBateriaLigada || window.spawnAdminAberto || window.teleporteAberto || (window.colisaoEditorAtivo && !window.editorMinimizado)) return;
             for (let i = 0; i < e.touches.length; i++) {
                 let touch = e.touches[i];
                 if (touch.identifier === joystickTouchId) {
@@ -2866,7 +3388,7 @@ if (dados.type === 'init') {
 
         window.canvas.addEventListener("click", function (e) {
             if (e.pointerType === 'touch') return;
-            if (window.estaMorto || window.inventarioAberto || window.skillsAberto || window.configAberto || window.atributosAberto || window.spawnAdminAberto || window.teleporteAberto || window.bigMapAberto) return;
+            if (window.estaMorto || window.spawnAdminAberto || window.teleporteAberto || window.bigMapAberto || (window.colisaoEditorAtivo && !window.editorMinimizado)) return;
             let camX = window.camX || 0, camY = window.camY || 0;
             let mx = Math.max(0, Math.min(WORLD_WIDTH, (e.clientX / window.innerWidth * window.canvas.width) / ZOOM_CAMERA + camX));
             let my = Math.max(0, Math.min(WORLD_HEIGHT, (e.clientY / window.innerHeight * window.canvas.height) / ZOOM_CAMERA + camY));
@@ -2891,6 +3413,7 @@ if (dados.type === 'init') {
                 cancelarTodasMiras();
                 if (s === 'meteoro') dispararMeteoro(tx, ty);
                 else if (s === 'nevasca') dispararNevasca(tx, ty);
+                else if (s === 'vulcao') dispararVulcao(tx, ty);
                 else if (s === 'chuva') dispararChuva(tx, ty);
                 else if (s === 'julgamento') dispararJulgamento(tx, ty);
                 else if (s === 'prece') dispararPrece(tx, ty);
@@ -2956,11 +3479,12 @@ if (dados.type === 'init') {
             let temEf = function (id) { return efeitosMove.some(function (e) { return e && e.id === id && e.tempo > 0; }); };
             let multEfeitosVel = 1;
             if (temEf('lentidao')) multEfeitosVel *= 0.5;
-            if (temEf('velocidade')) multEfeitosVel *= 1.5;
+            let efeitoVelocidade = efeitosMove.find(function (e) { return e && e.id === 'velocidade' && e.tempo > 0; });
+            if (efeitoVelocidade) multEfeitosVel *= 1 + (Number(efeitoVelocidade.intensidade) || 0.5);
             let efeitoTravaMovimento = temEf('paralisia') || temEf('sono');
             let velocidadeAtual = ((typeof window.estaNaAgua === "function" && window.estaNaAgua(window.meuX, window.meuY)) ? 2.52 : 3.6) * bonusVelocidadeFuria * bonusVelocidadeAgilidade * multEfeitosVel;
 
-            if (autofarmLigado && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.roqueiroBateriaLigada && !window.inventarioAberto && !window.skillsAberto && !window.configAberto && !window.atributosAberto && !window.spawnAdminAberto && !window.teleporteAberto) {
+            if (autofarmLigado && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.roqueiroBateriaLigada && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto) {
                 let alvoMaisProximo = null; let menorDistancia = Infinity;
                 window.listaSlimes.forEach(slime => { if (slime.hp > 0) { let dist = Math.hypot(slime.x - window.meuX, slime.y - window.meuY); if (dist < menorDistancia) { menorDistancia = dist; alvoMaisProximo = slime; } } });
                 if (alvoMaisProximo) {
@@ -2976,7 +3500,7 @@ if (dados.type === 'init') {
                     } 
                     else { tempoAtaqueAutofarm++; if (tempoAtaqueAutofarm > 22 && !ataqueBasicoCooldown) { executarAtaqueBasico(); tempoAtaqueAutofarm = 0; } }
                 }
-            } else if (!window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.roqueiroBateriaLigada && !window.inventarioAberto && !window.skillsAberto && !window.configAberto && !window.atributosAberto && !window.spawnAdminAberto && !window.teleporteAberto && (moveX !== 0 || moveY !== 0)) {
+            } else if (!window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.roqueiroBateriaLigada && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && (moveX !== 0 || moveY !== 0)) {
                 let proximoX = window.meuX + (moveX / 2) * (velocidadeAtual / 1.8) * window.dt; let proximoY = window.meuY + (moveY / 2) * (velocidadeAtual / 1.8) * window.dt;
                 let colidiu = false;
                 if (window.currentMap === 'green' && typeof window.arvores !== "undefined") {
@@ -2988,9 +3512,9 @@ if (dados.type === 'init') {
 
             if (window.meuX < 10) window.meuX = 10; if (window.meuX > WORLD_WIDTH - 30) window.meuX = WORLD_WIDTH - 30;
             if (window.meuY < 10) window.meuY = 10;
-            let maxYMapa = (window.meuX >= window.LARGURA_CIDADE) ? 3000 : ((window.meuX >= window.LARGURA_PANTANO) ? 1800 : ((window.meuX >= window.LARGURA_DESERTO) ? 9000 : ((window.meuX >= window.LARGURA_VERDE) ? 36000 : 18000)));
+            let maxYMapa = (window.meuX >= window.LARGURA_ARENA) ? 1240 : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 1145 : ((window.meuX >= window.LARGURA_PANTANO) ? 1800 : ((window.meuX >= window.LARGURA_DESERTO) ? 9000 : ((window.meuX >= window.LARGURA_VERDE) ? 36000 : 18000))));
             if (window.meuY > maxYMapa - 40) window.meuY = maxYMapa - 40;
-            window.currentMap = (window.meuX >= window.LARGURA_CIDADE) ? 'cidade' : ((window.meuX >= window.LARGURA_PANTANO) ? 'caverna' : ((window.meuX >= window.LARGURA_DESERTO) ? 'pantano' : ((window.meuX >= window.LARGURA_VERDE) ? 'desert' : 'green')));
+            window.currentMap = (window.meuX >= window.LARGURA_ARENA) ? 'arena' : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 'cidade' : ((window.meuX >= window.LARGURA_PANTANO) ? 'caverna' : ((window.meuX >= window.LARGURA_DESERTO) ? 'pantano' : ((window.meuX >= window.LARGURA_VERDE) ? 'desert' : 'green'))));
             if (typeof window.chainMapas === "object" && typeof window.chainMapas.onUpdatePosicao === "function") window.chainMapas.onUpdatePosicao(window.meuX, window.meuY);
             if (coordHud) coordHud.innerText = "X: " + Math.round(window.meuX + 12) + "  Y: " + Math.round(window.meuY + 16);
 
@@ -3003,13 +3527,17 @@ if (dados.type === 'init') {
             window.camX = cameraX; window.camY = cameraY;
 
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.fillStyle = (window.currentMap === 'pantano') ? "#24301a" : ((window.currentMap === 'desert') ? "#d9b45c" : ((window.currentMap === 'caverna') ? "#1a0f0f" : "#163f18"));
+            ctx.fillStyle = (window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'pantano') ? "#24301a" : ((window.currentMap === 'desert') ? "#d9b45c" : ((window.currentMap === 'caverna') ? "#1a0f0f" : ((window.currentMap === 'cidade') ? "#2c2a27" : "#163f18"))));
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.save(); ctx.scale(ZOOM_CAMERA, ZOOM_CAMERA); ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
 
             // ===== FUNDO + CENÁRIO: desenha SOMENTE o bioma do currentMap ativo =====
             let tempoAnimacao = Date.now() / 1000;
-            if (window.currentMap === 'pantano') {
+            if (window.currentMap === 'arena') {
+                ctx.fillStyle = "#141210";
+                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+                if (typeof window.desenharCenarioArena === "function") window.desenharCenarioArena(tempoAnimacao);
+            } else if (window.currentMap === 'pantano') {
                 ctx.fillStyle = "#2c3a1d"; // cor de fundo do pântano (limpa o buffer)
                 ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
                 if (typeof window.desenharCenarioPantano === "function") window.desenharCenarioPantano(tempoAnimacao);
@@ -3044,9 +3572,23 @@ if (dados.type === 'init') {
             if (typeof window.desenharEfeitosSismicos === "function") window.desenharEfeitosSismicos();
             if (typeof window.desenharImpactosGolem === "function") window.desenharImpactosGolem();
             if (typeof window.desenharBesouroExplosoes === "function") window.desenharBesouroExplosoes();
-            if (typeof window.desenharEfeitosArqueiro === "function") window.desenharEfeitosArqueiro();
+            if (typeof window.desenharEfeitosArqueiro === "function") {
+                try {
+                    window.desenharEfeitosArqueiro();
+                } catch (erroFxArqueiro) {
+                    window.rajadasFlechas = [];
+                    window.cargasRajada = {};
+                    if (window.ctx) {
+                        window.ctx.globalAlpha = 1;
+                        window.ctx.globalCompositeOperation = 'source-over';
+                    }
+                }
+            }
             if (typeof window.desenharEfeitosCurandeiro === "function") window.desenharEfeitosCurandeiro();
             if (typeof window.desenharEfeitosBarbaro === "function") window.desenharEfeitosBarbaro();
+            if (typeof window.desenharEfeitosGuerreiro === "function") window.desenharEfeitosGuerreiro();
+            if (typeof window.desenharEfeitosMago === "function") window.desenharEfeitosMago();
+            if (typeof window.desenharPedrasEnormes === "function") window.desenharPedrasEnormes();
             if (typeof window.desenharEfeitosRoqueiro === "function") window.desenharEfeitosRoqueiro();
             if (typeof window.desenharMiraArcana === "function") window.desenharMiraArcana();
             if (typeof window.desenharMarcadorDrag === "function") window.desenharMarcadorDrag();
@@ -3055,6 +3597,7 @@ if (dados.type === 'init') {
 
             // ===== Y-SORT: profundidade entre cenário decorado, monstros e jogadores =====
             let spritesSort = [];
+            if (window.currentMap === 'arena' && typeof window.coletarArenaSortables === "function") window.coletarArenaSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'desert' && typeof window.coletarDesertSortables === "function") window.coletarDesertSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'pantano' && typeof window.coletarPantanoSortables === "function") window.coletarPantanoSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'caverna' && typeof window.coletarCavernaSortables === "function") window.coletarCavernaSortables(tempoAnimacao, spritesSort);
@@ -3070,6 +3613,7 @@ if (dados.type === 'init') {
             for (let lId in listaLacaios) {
                 if (typeof window.desenharLacaio === "function") {
                     let ll = listaLacaios[lId];
+                    ll.pid = lId;
                     spritesSort.push({ y: ll.y, draw: function () { window.desenharLacaio(ll); } });
                 }
             }
@@ -3093,22 +3637,12 @@ if (dados.type === 'init') {
                         y: (pid === window.meuId ? window.meuY : (window.todosJogadores[pid] ? window.todosJogadores[pid].y : 0)) + 16,
                         draw: function () {
                             let pp = window.todosJogadores[pid];
+                            if (!pp) return;
                             let isSpinningPlayer = ((window.tornadoTimers[pid] || 0) > 0);
                             let classeJogador = (pid === window.meuId) ? window.minhaClasse : (pp.classe || 'guerreiro');
                             let posX = (pid === window.meuId) ? window.meuX : pp.x; let posY = (pid === window.meuId) ? window.meuY : pp.y;
                             let mov = (pid === window.meuId) ? isMoving : pp.moving; let ang = (pid === window.meuId) ? window.meuAngulo : pp.angulo;
                             let hpVal = (pid === window.meuId) ? window.meuHp : pp.hp; let maxHpVal = pp.maxHp || 100;
-
-                            if (pp.nome) {
-                                ctx.save();
-                                ctx.font = "bold 12px Arial";
-                                ctx.fillStyle = pp.pvpAtivo ? "#e74c3c" : "#f1c40f";
-                                ctx.shadowColor = "#000";
-                                ctx.shadowBlur = 4;
-                                ctx.textAlign = "center";
-                                ctx.fillText(pp.nome, posX + 12, posY - 14);
-                                ctx.restore();
-                            }
 
                             if (classeJogador === 'mago') { if (typeof window.desenharMago === "function") window.desenharMago(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'summoner') { if (typeof window.desenharSummoner === "function") window.desenharSummoner(posX, posY, mov, ang, hpVal, maxHpVal); }
@@ -3116,7 +3650,43 @@ if (dados.type === 'init') {
                             else if (classeJogador === 'curandeiro') { if (typeof window.desenharCurandeiro === "function") window.desenharCurandeiro(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'barbaro') { if (typeof window.desenharBarbaro === "function") window.desenharBarbaro(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'roqueiro') { if (typeof window.desenharRoqueiro === "function") window.desenharRoqueiro(posX, posY, mov, ang, hpVal, maxHpVal); }
-                            else { if (typeof window.desenharGuerreiro === "function") window.desenharGuerreiro(posX, posY, (pid === window.meuId ? "#c0392b" : "#2980b9"), mov, ang, hpVal, maxHpVal, isSpinningPlayer, window.tornadoTimers[pid] || 0); }
+                            else { if (typeof window.desenharGuerreiro === "function") window.desenharGuerreiro(posX, posY, (pid === window.meuId ? "#c0392b" : "#2980b9"), mov, ang, hpVal, maxHpVal, isSpinningPlayer, window.tornadoTimers[pid] || 0, pid); }
+
+                            let rajadaState = pp.rajadaAtiva && pp.rajadaFase === 'carregando' ? pp : null;
+                            if (rajadaState) {
+                                let progressoRajada = Math.max(0, Math.min(1, Number(rajadaState.rajadaProgresso) || 0));
+                                let larguraRajada = 58;
+                                let xRajada = posX + 12 - larguraRajada / 2;
+                                let yRajada = posY - 49;
+                                ctx.save();
+                                ctx.fillStyle = 'rgba(0, 0, 0, 0.8)';
+                                ctx.fillRect(xRajada, yRajada, larguraRajada, 7);
+                                ctx.fillStyle = rajadaState.rajadaFase === 'carregando' ? '#f1c40f' : '#1abc9c';
+                                ctx.fillRect(xRajada + 1, yRajada + 1, (larguraRajada - 2) * progressoRajada, 5);
+                                ctx.strokeStyle = '#ecf0f1';
+                                ctx.lineWidth = 1;
+                                ctx.strokeRect(xRajada, yRajada, larguraRajada, 7);
+                                ctx.font = "bold 9px 'Rajdhani', Arial, sans-serif";
+                                ctx.textAlign = 'center';
+                                ctx.fillStyle = '#ffffff';
+                                ctx.fillText(rajadaState.rajadaFase === 'carregando' ? 'CARREGANDO' : 'RAJADA', posX + 12, yRajada - 3);
+                                ctx.restore();
+                            }
+
+                            if (pp.nome) {
+                                ctx.save();
+                                ctx.font = "bold 13px 'Rajdhani', 'Segoe UI', Arial, sans-serif";
+                                ctx.textAlign = "center";
+                                ctx.lineJoin = "round";
+                                ctx.lineWidth = 3;
+                                ctx.strokeStyle = "rgba(0, 0, 0, 0.85)";
+                                ctx.strokeText(pp.nome, posX + 12, posY - 23);
+                                ctx.fillStyle = pp.pvpAtivo ? "#ff4d4d" : "#f1c40f";
+                                ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+                                ctx.shadowBlur = 4;
+                                ctx.fillText(pp.nome, posX + 12, posY - 23);
+                                ctx.restore();
+                            }
 
                             if (pp.stunTimer > 0) {
                                 ctx.save();
@@ -3126,7 +3696,7 @@ if (dados.type === 'init') {
                                 ctx.shadowBlur = 4;
                                 ctx.textAlign = "center";
                                 let starsT = Date.now() / 150;
-                                ctx.fillText("💫", posX + Math.cos(starsT) * 10, posY - 34);
+                                ctx.fillText("💫", posX + Math.cos(starsT) * 10, posY - 42);
                                 ctx.restore();
                             }
 
@@ -3138,7 +3708,7 @@ if (dados.type === 'init') {
                                     let cor = def ? def.cor : '#ffffff';
                                     let icon = def ? def.icon : '✨';
                                     let cx = posX + 12 + (idx - (efeitosPlayer.length - 1) / 2) * 20;
-                                    let cy = posY - 52;
+                                    let cy = posY - 58;
                                     ctx.save();
                                     ctx.shadowColor = cor;
                                     ctx.shadowBlur = 6;
@@ -3153,7 +3723,7 @@ if (dados.type === 'init') {
                                     ctx.fillText(icon, cx, cy + 4);
                                     ctx.restore();
                                     ctx.save();
-                                    ctx.font = "bold 8px Arial";
+                                    ctx.font = "bold 9px 'Rajdhani', Arial, sans-serif";
                                     ctx.fillStyle = cor;
                                     ctx.shadowColor = "#000";
                                     ctx.shadowBlur = 2;
@@ -3226,8 +3796,10 @@ if (dados.type === 'init') {
 
             for (let i = dashTrails.length - 1; i >= 0; i--) { let dt = dashTrails[i]; dt.alpha -= 0.05; if (dt.alpha <= 0) { dashTrails.splice(i, 1); } else { ctx.save(); ctx.fillStyle = "rgba(52, 152, 219, " + dt.alpha + ")"; ctx.beginPath(); ctx.arc(dt.x, dt.y, 18, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } }
             for (let i = slashes.length - 1; i >= 0; i--) { let s = slashes[i]; s.alpha -= 0.08; s.escala += 0.1; if (s.alpha <= 0) { slashes.splice(i, 1); } else { ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.angulo); ctx.globalAlpha = s.alpha; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 4; ctx.shadowColor = "#3498db"; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(20, 0, 25 * s.escala, -Math.PI / 3, Math.PI / 3); ctx.stroke(); ctx.restore(); } }
-            for (let i = window.floatingTexts.length - 1; i >= 0; i--) { let ft = window.floatingTexts[i]; ft.y -= 1.0; ft.alpha -= 0.045; if (ft.alpha <= 0) { window.floatingTexts.splice(i, 1); } else { ctx.save(); ctx.translate(ft.x, ft.y); ctx.globalAlpha = ft.alpha; window.ctx.font = "bold 21px Arial"; window.ctx.fillStyle = ft.color; window.ctx.shadowColor = "#000"; window.ctx.shadowBlur = 4; window.ctx.fillText(ft.text, -14, 0); window.ctx.restore(); } }
-            for (let i = blockEffects.length - 1; i >= 0; i--) { let b = blockEffects[i]; b.y -= 0.8; b.alpha -= 0.03; if (b.alpha <= 0) { blockEffects.splice(i, 1); } else { ctx.save(); ctx.translate(b.x, b.y); ctx.globalAlpha = b.alpha; ctx.font = "bold 16px Arial"; ctx.fillStyle = "#f1c40f"; ctx.fillText("🛡️ BLOCK!", -30, 0); ctx.restore(); } }
+            for (let i = window.floatingTexts.length - 1; i >= 0; i--) { let ft = window.floatingTexts[i]; ft.y -= 1.0; ft.alpha -= 0.045; if (ft.alpha <= 0) { window.floatingTexts.splice(i, 1); } else { ctx.save(); ctx.translate(ft.x, ft.y); ctx.globalAlpha = ft.alpha; window.ctx.font = "bold 22px 'Rajdhani', Arial, sans-serif"; window.ctx.lineJoin = "round"; window.ctx.lineWidth = 3; window.ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; window.ctx.strokeText(ft.text, -14, 0); window.ctx.fillStyle = ft.color; window.ctx.shadowColor = "#000"; window.ctx.shadowBlur = 4; window.ctx.fillText(ft.text, -14, 0); window.ctx.restore(); } }
+            for (let i = blockEffects.length - 1; i >= 0; i--) { let b = blockEffects[i]; b.y -= 0.8; b.alpha -= 0.03; if (b.alpha <= 0) { blockEffects.splice(i, 1); } else { ctx.save(); ctx.translate(b.x, b.y); ctx.globalAlpha = b.alpha; ctx.font = "bold 18px 'Rajdhani', Arial, sans-serif"; ctx.lineJoin = "round"; ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; ctx.strokeText("🛡️ BLOCK!", -30, 0); ctx.fillStyle = "#f1c40f"; ctx.fillText("🛡️ BLOCK!", -30, 0); ctx.restore(); } }
+
+            if (typeof window.desenharOverlayColisoes === "function") window.desenharOverlayColisoes(ctx);
 
             ctx.restore();
 
@@ -3238,7 +3810,7 @@ if (dados.type === 'init') {
 
                 // Header do minimapa: bioma e coordenadas
                 if (minimapBioma) {
-                    let biomaLabel = (window.currentMap === 'cidade') ? "🏰 Davahl" : ((window.currentMap === 'caverna') ? "🕳️ Caverna" : ((window.currentMap === 'pantano') ? "🪷 Pântano" : ((window.currentMap === 'desert') ? "🏜️ Deserto" : "🌿 Verde")));
+                    let biomaLabel = (window.currentMap === 'arena') ? "⚔️ Arena" : ((window.currentMap === 'cidade') ? "🏰 Davahl" : ((window.currentMap === 'caverna') ? "🕳️ Caverna" : ((window.currentMap === 'pantano') ? "🪷 Pântano" : ((window.currentMap === 'desert') ? "🏜️ Deserto" : "🌿 Verde"))));
                     minimapBioma.innerText = biomaLabel;
                 }
                 if (minimapCoords) {
@@ -3249,21 +3821,17 @@ if (dados.type === 'init') {
                 let modoRadar = zoomCfg && zoomCfg.raio > 0;
 
                 if (modoRadar) {
-                    // MODO RADAR (Focado no Jogador em tempo real)
-                    let raio = zoomCfg.raio;
+                    // MODO RADAR: centrado no jogador, alcance proporcional ao raio do zoom
+                    let raioMundo = zoomCfg.raio;
+                    let escala = (mw / 2) / raioMundo; // px tela por px mundo
                     let cx0 = mw / 2, cy0 = mh / 2;
-                    let scaleX = cx0 / raio;
-                    let scaleY = cy0 / (raio * (mh / mw));
 
                     function toRadar(wx, wy) {
-                        return {
-                            x: cx0 + (wx - window.meuX) * scaleX,
-                            y: cy0 + (wy - window.meuY) * scaleY
-                        };
+                        return { x: cx0 + (wx - window.meuX) * escala, y: cy0 + (wy - window.meuY) * escala };
                     }
 
                     // Fundo temático do bioma ativo
-                    let corFundoBioma = (window.currentMap === 'cidade') ? "#132333" : ((window.currentMap === 'caverna') ? "#241315" : ((window.currentMap === 'pantano') ? "#1a2714" : ((window.currentMap === 'desert') ? "#4a3915" : "#163a1c")));
+                    let corFundoBioma = (window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'cidade') ? "#132333" : ((window.currentMap === 'caverna') ? "#241315" : ((window.currentMap === 'pantano') ? "#1a2714" : ((window.currentMap === 'desert') ? "#4a3915" : "#163a1c"))));
                     mmCtx.fillStyle = corFundoBioma;
                     mmCtx.fillRect(0, 0, mw, mh);
 
@@ -3281,8 +3849,9 @@ if (dados.type === 'init') {
 
                     // Portais próximos
                     let portais = [
-                        { nome: "CIDADE", x: 61824, y: 1783, cor: "#00e5ff" },
-                        { nome: "VERDE", x: 5000, y: 1200, cor: "#2ecc71" }
+                        { nome: "CIDADE", x: 60487, y: 460, cor: "#00e5ff" },
+                        { nome: "VERDE", x: 5000, y: 1200, cor: "#2ecc71" },
+                        { nome: "ARENA", x: 63980, y: 460, cor: "#ff9800" }
                     ];
                     portais.forEach(p => {
                         let pos = toRadar(p.x, p.y);
@@ -3382,13 +3951,14 @@ if (dados.type === 'init') {
                     // MODO MUNDO GLOBAL
                     let sx = mw / WORLD_WIDTH, sy = mh / WORLD_HEIGHT;
 
-                    // 1. Fundo das 5 zonas
+                    // 1. Fundo das 6 zonas
                     let zonas = [
                         { x: 0, w: 18000, c: "#183e20" },
                         { x: 18000, w: 32000, c: "#5a4516" },
                         { x: 50000, w: 8000, c: "#223114" },
                         { x: 58000, w: 1800, c: "#2a1515" },
-                        { x: 59800, w: 4000, c: "#152a3b" }
+                        { x: 59800, w: 1374, c: "#152a3b" },
+                        { x: 63800, w: 1240, c: "#2b1c11" }
                     ];
                     zonas.forEach(function (z) {
                         let zx = z.x * sx, zw = z.w * sx;
@@ -3400,14 +3970,18 @@ if (dados.type === 'init') {
                     });
 
                     // 2. Portais de viagem no minimapa
-                    // Portal Cidade de Davahl (61824, 1783)
-                    let cpx = 61824 * sx, cpy = 1783 * sy;
+                    // Portal Cidade de Davahl (60487, 460)
+                    let cpx = 60487 * sx, cpy = 460 * sy;
                     mmCtx.fillStyle = "#4fc3f7";
                     mmCtx.beginPath(); mmCtx.arc(cpx, cpy, 2.5, 0, Math.PI * 2); mmCtx.fill();
                     // Portal Campo Verde (5000, 1200)
                     let vpx = 5000 * sx, vpy = 1200 * sy;
                     mmCtx.fillStyle = "#2ecc71";
                     mmCtx.beginPath(); mmCtx.arc(vpx, vpy, 2, 0, Math.PI * 2); mmCtx.fill();
+                    // Portal Arena de Davahl (63980, 460)
+                    let apx = 63980 * sx, apy = 460 * sy;
+                    mmCtx.fillStyle = "#ff9800";
+                    mmCtx.beginPath(); mmCtx.arc(apx, apy, 2, 0, Math.PI * 2); mmCtx.fill();
 
                     // 3. Drops
                     if (window.listaDrops && window.listaDrops.length) {

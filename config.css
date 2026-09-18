@@ -1,24 +1,26 @@
 /* ===== CONFIGURAÇÕES (volume, trocar de char, sair) ===== */
 .btn-util.btn-config { background: #34495e; border-color: #5d6d7e; font-size: 14px; }
 
-#settings-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(8, 8, 8, 0.35); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 320; }
-#settings-window { background: #201d1a; border: 3px solid #5d6d7e; box-shadow: 6px 6px 0 #000, inset 3px 3px 0 #3a3528; padding: 12px 14px 14px 14px; width: 300px; max-height: 94vh; overflow-y: auto; text-align: center; image-rendering: pixelated; font-family: 'Courier New', monospace; }
+#settings-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(8, 8, 8, 0.25); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 320; pointer-events: none; }
+#settings-window { background: #201d1a; border: 3px solid #5d6d7e; box-shadow: 6px 6px 0 #000, inset 3px 3px 0 #3a3528; padding: 12px 14px 14px 14px; width: 300px; max-height: 94vh; overflow-y: auto; text-align: center; font-family: 'Rajdhani', sans-serif; pointer-events: auto; }
 #settings-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-#settings-titulo { font-weight: bold; font-size: 16px; color: #5d6d7e; letter-spacing: 3px; text-shadow: 2px 2px 0 #000; margin: 0; }
-#btn-settings-fechar { font-family: 'Courier New', monospace; font-weight: bold; font-size: 14px; width: 30px; height: 30px; background: #c0392b; color: #fff; border: 2px solid #e74c3c; box-shadow: 2px 2px 0 #000; cursor: pointer; line-height: 1; }
+#settings-titulo { font-family: 'Cinzel', serif; font-weight: bold; font-size: 17px; color: #5d6d7e; letter-spacing: 3px; text-shadow: 2px 2px 0 #000; margin: 0; }
+#btn-settings-fechar { font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 16px; width: 30px; height: 30px; background: #c0392b; color: #fff; border: 2px solid #e74c3c; box-shadow: 2px 2px 0 #000; cursor: pointer; line-height: 1; }
 #btn-settings-fechar:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #000; }
 
 .settings-linha { margin-top: 12px; border-top: 2px dashed #3a3528; padding-top: 10px; }
-.settings-label { font-size: 11px; color: #a8a49a; letter-spacing: 2px; margin-bottom: 8px; }
+.settings-label { font-size: 12px; font-weight: bold; color: #a8a49a; letter-spacing: 2px; margin-bottom: 8px; }
 .volume-row { display: flex; align-items: center; gap: 8px; }
 .vol-icone { font-size: 16px; }
-#volume-valor { font-size: 12px; font-weight: bold; color: #f1c40f; min-width: 34px; text-align: right; }
+#volume-valor { font-size: 14px; font-weight: bold; color: #f1c40f; min-width: 34px; text-align: right; font-family: 'Rajdhani', sans-serif; }
 #volume-slider { flex: 1; -webkit-appearance: none; appearance: none; height: 6px; background: #3a3528; border: 2px solid #5d6d7e; outline: none; }
 #volume-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none; width: 20px; height: 20px; background: #f1c40f; border: 2px solid #000; box-shadow: 2px 2px 0 #000; cursor: pointer; }
 #volume-slider::-moz-range-thumb { width: 18px; height: 18px; background: #f1c40f; border: 2px solid #000; border-radius: 0; cursor: pointer; }
 
-.btn-config-acao { font-family: 'Courier New', monospace; font-weight: bold; font-size: 14px; width: 100%; padding: 12px 0; color: #fff; border: none; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; }
+.btn-config-acao { font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 15px; width: 100%; padding: 12px 0; color: #fff; border: none; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1.5px; }
 .btn-config-acao:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #000; }
+.btn-editar-ui { background: #d35400; border-bottom: 3px solid #e67e22; }
+.btn-editar-ui:active { background: #b84500; }
 .btn-trocar { background: #16a085; border-bottom: 3px solid #1abc9c; }
 .btn-trocar:active { background: #138a73; }
 .btn-sair { margin-top: 12px; background: #c0392b; border-bottom: 3px solid #e74c3c; }

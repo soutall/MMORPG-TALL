@@ -3,23 +3,23 @@
 .btn-util.btn-admin-spawn { background: #e67e22; border-color: #f39c12; display: none; }
 
 #spawn-admin-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(8, 8, 8, 0.82); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 320; }
-#spawn-admin-window { background: #2c2415; border: 3px solid #e67e22; box-shadow: 6px 6px 0 #000, inset 3px 3px 0 #4a3d28; padding: 12px 14px 14px 14px; width: 290px; max-height: 92vh; overflow-y: auto; text-align: center; image-rendering: pixelated; }
-#spawn-admin-title { font-family: 'Courier New', monospace; font-weight: bold; font-size: 14px; color: #f39c12; letter-spacing: 2px; text-shadow: 2px 2px 0 #000; margin: 0 0 8px 0; }
+#spawn-admin-window { background: #2c2415; border: 3px solid #e67e22; box-shadow: 6px 6px 0 #000, inset 3px 3px 0 #4a3d28; padding: 12px 14px 14px 14px; width: 290px; max-height: 92vh; overflow-y: auto; text-align: center; font-family: 'Rajdhani', sans-serif; }
+#spawn-admin-title { font-family: 'Cinzel', serif; font-weight: bold; font-size: 16px; color: #f39c12; letter-spacing: 2px; text-shadow: 2px 2px 0 #000; margin: 0 0 8px 0; }
 
 .spawn-campo { display: flex; flex-direction: column; gap: 3px; margin-bottom: 9px; text-align: left; }
-.spawn-campo label { font-family: 'Courier New', monospace; font-size: 10px; font-weight: bold; color: #e8e4da; letter-spacing: 0.5px; }
-.spawn-campo input, .spawn-campo select { font-family: 'Courier New', monospace; font-size: 13px; font-weight: bold; color: #f1c40f; background: #16131f; border: 2px solid #4a3f5e; padding: 6px 8px; box-shadow: 2px 2px 0 #000; width: 100%; box-sizing: border-box; color-scheme: light; }
+.spawn-campo label { font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: bold; color: #e8e4da; letter-spacing: 0.5px; }
+.spawn-campo input, .spawn-campo select { font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: bold; color: #f1c40f; background: #16131f; border: 2px solid #4a3f5e; padding: 6px 8px; box-shadow: 2px 2px 0 #000; width: 100%; box-sizing: border-box; color-scheme: light; }
 
 #spawn-respawn::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: #e67e22; border: 2px solid #f39c12; cursor: pointer; }
 #spawn-respawn { accent-color: #e67e22; }
 
-#spawn-posicao { font-family: 'Courier New', monospace; font-size: 11px; font-weight: bold; color: #aed6f1; background: #16131f; border: 2px solid #4a3f5e; padding: 5px; margin-bottom: 10px; letter-spacing: 0.5px; box-shadow: 2px 2px 0 #000; }
+#spawn-posicao { font-family: 'Rajdhani', sans-serif; font-size: 13px; font-weight: bold; color: #aed6f1; background: #16131f; border: 2px solid #4a3f5e; padding: 5px; margin-bottom: 10px; letter-spacing: 0.5px; box-shadow: 2px 2px 0 #000; }
 
 #spawn-admin-botoes { display: flex; flex-direction: column; gap: 7px; }
-.spawn-btn { font-family: 'Courier New', monospace; font-weight: bold; font-size: 12px; padding: 10px 12px; color: #fff; border: 3px solid; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; background: transparent; }
+.spawn-btn { font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 14px; padding: 10px 12px; color: #fff; border: 3px solid; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; background: transparent; }
 .spawn-btn:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #000; }
 #spawn-btn-aplicar { background: #27ae60; border-color: #2ecc71; }
 #spawn-btn-excluir { background: #c0392b; border-color: #e74c3c; display: none; }
 #spawn-btn-fechar { background: #34495e; border-color: #5d6d7e; }
 
-.spawn-flutuante { pointer-events: none; font-family: 'Courier New', monospace; font-weight: bold; font-size: 12px; color: #fff; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000; letter-spacing: 0.5px; }
+.spawn-flutuante { pointer-events: none; font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 13px; color: #fff; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000; letter-spacing: 0.5px; }

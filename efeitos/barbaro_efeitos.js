@@ -2,6 +2,77 @@
 window.espilhosSangue = [];
 window.aurasBerserker = [];
 window.esmagamentosBarbaro = [];
+window.girosBarbaro = [];
+window.fragmentosBarbaro = [];
+
+window.criarAnimacaoGiroBarbaro = function(id, x, y) {
+    let giro = {
+        id: id,
+        x: x || 0,
+        y: y || 0,
+        vida: 200,
+        tempo: 0,
+        trails: [],
+        arcos: [],
+        particulas: [],
+        poeira: [],
+        flash: 1,
+        ativo: true
+    };
+
+    for (let i = 0; i < 18; i++) {
+        giro.arcos.push({
+            ang: (Math.PI * 2 / 18) * i + Math.random() * 0.9,
+            raio: 36 + Math.random() * 52,
+            largura: 10 + Math.random() * 18,
+            alpha: 0.15 + Math.random() * 0.4,
+            fase: Math.random() * 100,
+            alongado: Math.random() > 0.5,
+            arrasto: Math.random() * 0.8 + 0.2,
+            brilho: 0.8 + Math.random() * 1.5
+        });
+    }
+
+    for (let i = 0; i < 42; i++) {
+        giro.particulas.push({
+            x: giro.x + (Math.random() - 0.5) * 22,
+            y: giro.y + (Math.random() - 0.5) * 18,
+            vx: (Math.random() - 0.5) * 4.5,
+            vy: (Math.random() - 0.5) * 3.5,
+            life: 1,
+            maxLife: 1,
+            size: 1.5 + Math.random() * 3.5,
+            rot: Math.random() * Math.PI * 2,
+            rotSpeed: (Math.random() - 0.5) * 0.25,
+            alpha: 0.7 + Math.random() * 0.3,
+            cor: Math.random() > 0.7 ? '#fff0d6' : Math.random() > 0.45 ? '#ff7a4d' : '#9d0b0f'
+        });
+    }
+
+    for (let i = 0; i < 18; i++) {
+        giro.poeira.push({
+            x: giro.x + (Math.random() - 0.5) * 14,
+            y: giro.y + 18 + Math.random() * 9,
+            vx: (Math.random() - 0.5) * 2.2,
+            vy: -Math.random() * 1.8,
+            r: 5 + Math.random() * 8,
+            life: 0.7 + Math.random() * 0.8,
+            maxLife: 0.7 + Math.random() * 0.8,
+            alpha: 0.6 + Math.random() * 0.3,
+            cor: 'rgba(118, 74, 48, '
+        });
+    }
+
+    window.girosBarbaro.push(giro);
+};
+
+window.finalizarAnimacaoGiroBarbaro = function(id) {
+    let giro = window.girosBarbaro.find(g => g.id === id);
+    if (giro) {
+        giro.vida = 30;
+        giro.flash = 1.4;
+    }
+};
 
 // Efeito de espirro de sangue quando o machado atinge o monstro
 window.criarAnimacaoSangue = function(x, y) {
@@ -49,6 +120,89 @@ window.criarAnimacaoEsmagamentoBarbaro = function(x, y) {
 window.desenharEfeitosBarbaro = function() {
     if (!window.ctx) return;
     let ctx = window.ctx;
+
+    for (let i = window.girosBarbaro.length - 1; i >= 0; i--) {
+        let giro = window.girosBarbaro[i];
+        giro.tempo += 1;
+        giro.vida -= 1;
+        giro.flash = Math.max(0, giro.flash - 0.02);
+
+        let pj = (giro.id === window.meuId) ? { x: window.meuX, y: window.meuY } : (window.todosJogadores && window.todosJogadores[giro.id] ? window.todosJogadores[giro.id] : null);
+        if (pj) {
+            giro.x = pj.x + 12;
+            giro.y = pj.y + 16;
+        }
+
+        ctx.save();
+        ctx.translate(giro.x, giro.y);
+
+        let t = giro.tempo * 0.18;
+        for (let a of giro.arcos) {
+            let ang = a.ang + t * (a.alongado ? 1.8 : 1.2);
+            let raio = a.raio + Math.sin(t + a.fase) * 12;
+            let pulse = 1 + Math.sin((giro.tempo + a.fase) * 0.25) * 0.16;
+            ctx.beginPath();
+            ctx.arc(0, 0, raio * pulse, ang - 0.18, ang + (a.alongado ? 0.65 : 0.42));
+            ctx.strokeStyle = 'rgba(115, 8, 8, ' + a.alpha + ')';
+            ctx.lineWidth = a.largura * 0.9;
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.arc(0, 0, raio * 0.72, ang + 0.05, ang + (a.alongado ? 0.52 : 0.36));
+            ctx.strokeStyle = 'rgba(255, 69, 38, ' + (a.alpha * 1.3) + ')';
+            ctx.lineWidth = Math.max(1.2, a.largura * 0.45);
+            ctx.stroke();
+        }
+
+        let trailCount = 6;
+        for (let j = 0; j < trailCount; j++) {
+            let ang = t * (1.5 + j * 0.5) + j * 0.7;
+            let len = 20 + j * 12 + Math.sin(giro.tempo * 0.12 + j) * 8;
+            let x1 = Math.cos(ang) * (18 + j * 2);
+            let y1 = Math.sin(ang) * (12 + j * 2);
+            let x2 = Math.cos(ang) * (len + 18 + j * 2);
+            let y2 = Math.sin(ang) * (len * 0.35 + 12 + j * 2);
+            ctx.beginPath();
+            ctx.moveTo(x1, y1);
+            ctx.quadraticCurveTo(x1 + (x2 - x1) * 0.5, y1 + (y2 - y1) * 0.5, x2, y2);
+            ctx.strokeStyle = 'rgba(' + (j < 2 ? '255,120,80' : '160,18,18') + ', ' + (0.2 + j * 0.08) + ')';
+            ctx.lineWidth = 6 - j;
+            ctx.stroke();
+        }
+
+        for (let p of giro.particulas) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life -= 0.025;
+            p.rot += p.rotSpeed;
+            p.vy += 0.02;
+            if (p.life <= 0) continue;
+            ctx.save();
+            ctx.translate(p.x - giro.x, p.y - giro.y);
+            ctx.rotate(p.rot);
+            ctx.fillStyle = p.cor.replace(')', ', ' + (Math.max(0.08, p.life * 0.7)) + ')');
+            ctx.fillRect(-p.size * 0.5, -p.size * 0.5, p.size, p.size * 2.2);
+            ctx.restore();
+        }
+
+        for (let p of giro.poeira) {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life -= 0.012;
+            p.alpha -= 0.005;
+            if (p.life <= 0) continue;
+            ctx.fillStyle = p.cor + p.alpha + ')';
+            ctx.beginPath();
+            ctx.arc(p.x - giro.x, p.y - giro.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.restore();
+
+        if (giro.vida <= 0 || !giro.ativo) {
+            window.girosBarbaro.splice(i, 1);
+        }
+    }
 
     // 1. Desenho dos Espirros de Sangue
     for (let i = window.espilhosSangue.length - 1; i >= 0; i--) {

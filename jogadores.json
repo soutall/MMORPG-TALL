@@ -4,8 +4,8 @@
     "xp": 0,
     "classe": "curandeiro",
     "hp": 100,
-    "x": 61801,
-    "y": 1999,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789480655507,
     "atributos": {
       "forca": 1,
@@ -41,8 +41,8 @@
     "xp": 402,
     "classe": "barbaro",
     "hp": 96,
-    "x": 61804.08934702826,
-    "y": 2010.3817489837045,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789098143290
   },
   "TALL": {
@@ -50,8 +50,8 @@
     "xp": 518,
     "classe": "summoner",
     "hp": 100,
-    "x": 61809.71520853169,
-    "y": 1992.9160079166265,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789125738528
   },
   "TALLl": {
@@ -59,8 +59,8 @@
     "xp": 110,
     "classe": "summoner",
     "hp": 100,
-    "x": 61802.053830057885,
-    "y": 1988.8597245373792,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789097153123
   },
   "Malakar": {
@@ -68,8 +68,8 @@
     "xp": 75,
     "classe": "mago",
     "hp": 100,
-    "x": 61810.28614737586,
-    "y": 1996.3573673699655,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789097165856
   },
   "TALLll": {
@@ -77,8 +77,8 @@
     "xp": 262,
     "classe": "curandeiro",
     "hp": 70,
-    "x": 61812.346326829815,
-    "y": 2002.7003918381388,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789098826469
   },
   "Bbb": {
@@ -86,8 +86,8 @@
     "xp": 466,
     "classe": "curandeiro",
     "hp": 100,
-    "x": 61785.37346117545,
-    "y": 2009.0193941178254,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789130360211
   },
   "Ggg": {
@@ -95,8 +95,8 @@
     "xp": 40,
     "classe": "curandeiro",
     "hp": 100,
-    "x": 61815.07844201015,
-    "y": 2009.650754425239,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789100526869
   },
   "Tall": {
@@ -104,8 +104,8 @@
     "xp": 2351,
     "classe": "roqueiro",
     "hp": 372,
-    "x": 61874,
-    "y": 1963,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789624142941,
     "atributos": {
       "forca": 5,
@@ -536,8 +536,8 @@
     "xp": 151,
     "classe": "guerreiro",
     "hp": 46,
-    "x": 61783.14126986643,
-    "y": 1982.7354251305487,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789223766203
   },
   "Biel": {
@@ -545,8 +545,8 @@
     "xp": 164,
     "classe": "roqueiro",
     "hp": 60,
-    "x": 61812.19365022269,
-    "y": 2006.5436528328323,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789144228741
   },
   "tasd": {
@@ -554,8 +554,8 @@
     "xp": 0,
     "classe": "curandeiro",
     "hp": 100,
-    "x": 61808.96114287336,
-    "y": 2019.0582461889423,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789146189007
   },
   "Otall": {
@@ -563,8 +563,8 @@
     "xp": 961,
     "classe": "roqueiro",
     "hp": 100,
-    "x": 61818.55653625708,
-    "y": 2016.0113950308796,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789323501284,
     "atributos": {
       "forca": 1,
@@ -583,8 +583,8 @@
     "xp": 0,
     "classe": "guerreiro",
     "hp": 100,
-    "x": 61816.60893430861,
-    "y": 1987.2013003032475,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789223794281
   },
   "Malvola": {
@@ -592,8 +592,8 @@
     "xp": 125,
     "classe": "roqueiro",
     "hp": 33,
-    "x": 61803.55106031296,
-    "y": 2016.7004791332051,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789248107028
   },
   "Noah": {
@@ -601,8 +601,8 @@
     "xp": 486,
     "classe": "arqueiro",
     "hp": 100,
-    "x": 61780.20544761855,
-    "y": 1984.8037193165937,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789352277975,
     "atributos": {
       "forca": 1,
@@ -621,8 +621,8 @@
     "xp": 35,
     "classe": "curandeiro",
     "hp": 100,
-    "x": 61751,
-    "y": 2021,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789511213365,
     "atributos": {
       "forca": 1,
@@ -658,8 +658,8 @@
     "xp": 0,
     "classe": "guerreiro",
     "hp": 84,
-    "x": 61786.258997345256,
-    "y": 2013.4408312563423,
+    "x": 60487,
+    "y": 660,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -675,11 +675,11 @@
   },
   "admin": {
     "level": 4,
-    "xp": 232,
-    "classe": "roqueiro",
-    "hp": 48,
-    "x": 61699,
-    "y": 2021,
+    "xp": 442,
+    "classe": "mago",
+    "hp": 100,
+    "x": 60474,
+    "y": 640,
     "atributos": {
       "forca": 1,
       "inteligencia": 5,
@@ -691,7 +691,7 @@
       "afinidade": 1
     },
     "pontosDisponiveis": 2,
-    "ultimoLogin": 1789511138370,
+    "ultimoLogin": 1789690555048,
     "skills": {},
     "pontosHabilidade": 0,
     "inventario": {
@@ -708,15 +708,37 @@
       },
       "mochila": []
     },
-    "mana": 90
+    "mana": 90,
+    "uiLayout": {
+      "actions": {
+        "x": 374,
+        "y": 239
+      },
+      "minimap": {
+        "x": 624,
+        "y": 0
+      },
+      "util-buttons": {
+        "x": 386,
+        "y": 336
+      },
+      "hud-status-window": {
+        "x": 0,
+        "y": 0
+      },
+      "hud-buffs": {
+        "x": 0,
+        "y": 60
+      }
+    }
   },
   "vic": {
     "level": 1,
     "xp": 35,
     "classe": "barbaro",
     "hp": 100,
-    "x": 61795.51327654118,
-    "y": 2008.5499415381062,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789323967892,
     "atributos": {
       "forca": 1,
@@ -735,9 +757,9 @@
     "xp": 1637,
     "classe": "barbaro",
     "hp": 692,
-    "x": 61782.736805760316,
-    "y": 2012.5074790272497,
-    "ultimoLogin": 1789397663040,
+    "x": 60487,
+    "y": 660,
+    "ultimoLogin": 1789655938966,
     "atributos": {
       "forca": 3,
       "inteligencia": 7,
@@ -1065,7 +1087,7 @@
     },
     "maxHp": 684,
     "skills": {},
-    "pontosHabilidade": 2,
+    "pontosHabilidade": 0,
     "mana": 160
   },
   "Admin2": {
@@ -1073,8 +1095,8 @@
     "xp": 47,
     "classe": "curandeiro",
     "hp": 100,
-    "x": 61804,
-    "y": 1988,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789470656828,
     "atributos": {
       "forca": 1,
@@ -1110,8 +1132,8 @@
     "xp": 4,
     "classe": "summoner",
     "hp": 90,
-    "x": 61800.60154044049,
-    "y": 1986.6532783708287,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789329752853,
     "atributos": {
       "forca": 1,
@@ -1130,8 +1152,8 @@
     "xp": 17,
     "classe": "summoner",
     "hp": 100,
-    "x": 61819.330178852826,
-    "y": 2012.1458535753138,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789329752856,
     "atributos": {
       "forca": 1,
@@ -1150,8 +1172,8 @@
     "xp": 17,
     "classe": "summoner",
     "hp": 100,
-    "x": 61807.75998368195,
-    "y": 1983.6857815742246,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789329752859,
     "atributos": {
       "forca": 1,
@@ -1170,8 +1192,8 @@
     "xp": 0,
     "classe": "curandeiro",
     "hp": 100,
-    "x": 61808.93477020915,
-    "y": 1987.9081898209467,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789329752842,
     "atributos": {
       "forca": 1,
@@ -1190,8 +1212,8 @@
     "xp": 35,
     "classe": "summoner",
     "hp": 60,
-    "x": 61810.70137649419,
-    "y": 1984.2726036482525,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789329859892,
     "atributos": {
       "forca": 1,
@@ -1210,8 +1232,8 @@
     "xp": 0,
     "classe": "summoner",
     "hp": 100,
-    "x": 61805.35933251331,
-    "y": 1988.6152723099526,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789329899510,
     "atributos": {
       "forca": 1,
@@ -1230,8 +1252,8 @@
     "xp": 0,
     "classe": "summoner",
     "hp": 100,
-    "x": 61810.93024880827,
-    "y": 1986.9787162262064,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789329996319,
     "atributos": {
       "forca": 1,
@@ -1250,8 +1272,8 @@
     "xp": 0,
     "classe": "summoner",
     "hp": 0,
-    "x": 61808.988153056394,
-    "y": 2017.5387735117743,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789330071315,
     "atributos": {
       "forca": 1,
@@ -1270,8 +1292,8 @@
     "xp": 35,
     "classe": "summoner",
     "hp": 16,
-    "x": 61787.67831550196,
-    "y": 1987.3874279551317,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789330387043,
     "atributos": {
       "forca": 1,
@@ -1290,8 +1312,8 @@
     "xp": 0,
     "classe": "curandeiro",
     "hp": 0,
-    "x": 61803.51282373251,
-    "y": 2011.579463242629,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789330725093,
     "atributos": {
       "forca": 1,
@@ -1310,8 +1332,8 @@
     "xp": 0,
     "classe": "summoner",
     "hp": 100,
-    "x": 61793.27115551685,
-    "y": 2001.85436288206,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789330523312,
     "atributos": {
       "forca": 1,
@@ -1330,8 +1352,8 @@
     "xp": 0,
     "classe": "summoner",
     "hp": 100,
-    "x": 61790.77844606251,
-    "y": 2018.7847201395139,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789330619759,
     "atributos": {
       "forca": 1,
@@ -1350,8 +1372,8 @@
     "xp": 0,
     "classe": "summoner",
     "hp": 0,
-    "x": 61814.47284401188,
-    "y": 1983.7527763212127,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789330725087,
     "atributos": {
       "forca": 1,
@@ -1370,8 +1392,8 @@
     "xp": 0,
     "classe": "curandeiro",
     "hp": 100,
-    "x": 61783.47026263488,
-    "y": 1980.9609128551879,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789330970091,
     "atributos": {
       "forca": 1,
@@ -1390,8 +1412,8 @@
     "xp": 0,
     "classe": "summoner",
     "hp": 81,
-    "x": 61796.92042105552,
-    "y": 1994.4562302326874,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789330970094,
     "atributos": {
       "forca": 1,
@@ -1410,8 +1432,8 @@
     "xp": 0,
     "classe": "summoner",
     "hp": 0,
-    "x": 61816.938003835414,
-    "y": 1991.6078185040012,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789331382040,
     "atributos": {
       "forca": 1,
@@ -1430,8 +1452,8 @@
     "xp": 0,
     "classe": "curandeiro",
     "hp": 0,
-    "x": 61795.28142347701,
-    "y": 2014.1123912080736,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789331382029,
     "atributos": {
       "forca": 1,
@@ -1450,8 +1472,8 @@
     "xp": 17,
     "classe": "summoner",
     "hp": 0,
-    "x": 61799.545377614835,
-    "y": 1996.274894763338,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789333010796,
     "atributos": {
       "forca": 1,
@@ -1470,8 +1492,8 @@
     "xp": 0,
     "classe": "curandeiro",
     "hp": 0,
-    "x": 61786.79308053617,
-    "y": 2008.1516407333054,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789333010785,
     "atributos": {
       "forca": 1,
@@ -1490,8 +1512,8 @@
     "xp": 0,
     "classe": "summoner",
     "hp": 100,
-    "x": 61805.77177158807,
-    "y": 1987.8243691247665,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789333264170,
     "atributos": {
       "forca": 1,
@@ -1510,8 +1532,8 @@
     "xp": 0,
     "classe": "curandeiro",
     "hp": 100,
-    "x": 61783.68805172808,
-    "y": 2012.9609487853913,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789333264153,
     "atributos": {
       "forca": 1,
@@ -1530,8 +1552,8 @@
     "xp": 0,
     "classe": "barbaro",
     "hp": 1914,
-    "x": 61783.35311800448,
-    "y": 1988.6285492917457,
+    "x": 60487,
+    "y": 660,
     "atributos": {
       "forca": 20,
       "inteligencia": 1,
@@ -1550,8 +1572,8 @@
     "xp": 181,
     "classe": "roqueiro",
     "hp": 100,
-    "x": 61785.031633423605,
-    "y": 2019.4660516758408,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789352047946,
     "atributos": {
       "forca": 1,
@@ -1570,8 +1592,8 @@
     "xp": 309,
     "classe": "guerreiro",
     "hp": 74,
-    "x": 61790.47643005222,
-    "y": 1995.425900763379,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789388286391,
     "atributos": {
       "forca": 1,
@@ -1604,8 +1626,8 @@
     "xp": 222,
     "classe": "curandeiro",
     "hp": 100,
-    "x": 61794.578878823326,
-    "y": 1984.8372560927603,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789391031719,
     "atributos": {
       "forca": 1,
@@ -1733,8 +1755,8 @@
     "xp": 35,
     "classe": "mago",
     "hp": 100,
-    "x": 61785.01861757875,
-    "y": 1999.6906101877435,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789391103498,
     "atributos": {
       "forca": 1,
@@ -1767,8 +1789,8 @@
     "xp": 0,
     "classe": "curandeiro",
     "hp": 100,
-    "x": 61801.57436288957,
-    "y": 1990.8884510719276,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789391211905,
     "atributos": {
       "forca": 1,
@@ -1801,8 +1823,8 @@
     "xp": 292,
     "classe": "curandeiro",
     "hp": 312,
-    "x": 61809.96408672025,
-    "y": 2014.1223722702805,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789392001320,
     "atributos": {
       "forca": 1,
@@ -1896,8 +1918,8 @@
     "xp": 448,
     "classe": "curandeiro",
     "hp": 184,
-    "x": 61815.45806183083,
-    "y": 2009.0398669492113,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789408756624,
     "atributos": {
       "forca": 1,
@@ -2246,8 +2268,8 @@
     "xp": 140,
     "classe": "guerreiro",
     "hp": 100,
-    "x": 61800,
-    "y": 2000,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789486620222,
     "atributos": {
       "forca": 1,
@@ -2299,8 +2321,8 @@
     "xp": 0,
     "classe": "guerreiro",
     "hp": 100,
-    "x": 61801.900778093426,
-    "y": 1981.0141063065512,
+    "x": 60487,
+    "y": 660,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -2336,8 +2358,8 @@
     "xp": 0,
     "classe": "summoner",
     "hp": 100,
-    "x": 61789,
-    "y": 2016,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789444682868,
     "atributos": {
       "forca": 1,
@@ -2373,8 +2395,8 @@
     "xp": 0,
     "classe": "guerreiro",
     "hp": 100,
-    "x": 61790,
-    "y": 2020,
+    "x": 60487,
+    "y": 660,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -2410,8 +2432,8 @@
     "xp": 0,
     "classe": "guerreiro",
     "hp": 100,
-    "x": 61808,
-    "y": 2009,
+    "x": 60487,
+    "y": 660,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -2447,8 +2469,8 @@
     "xp": 0,
     "classe": "guerreiro",
     "hp": 100,
-    "x": 61792,
-    "y": 1984,
+    "x": 60487,
+    "y": 660,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -2484,8 +2506,8 @@
     "xp": 0,
     "classe": "guerreiro",
     "hp": 100,
-    "x": 61803,
-    "y": 2006,
+    "x": 60487,
+    "y": 660,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -2521,8 +2543,8 @@
     "xp": 0,
     "classe": "barbaro",
     "hp": 100,
-    "x": 61792.296989996255,
-    "y": 2004.1943606390087,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789470942850
   },
   "123i": {
@@ -2530,8 +2552,8 @@
     "xp": 1581,
     "classe": "mago",
     "hp": 16,
-    "x": 61806.2739497248,
-    "y": 2004.9536672307515,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789476438203,
     "atributos": {
       "forca": 1,
@@ -3241,9 +3263,9 @@
     "xp": 47,
     "classe": "summoner",
     "hp": 100,
-    "x": 61694,
-    "y": 1750,
-    "ultimoLogin": 1789501109471,
+    "x": 60487,
+    "y": 660,
+    "ultimoLogin": 1789655095809,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -3256,7 +3278,7 @@
     },
     "pontosDisponiveis": 5,
     "skills": {},
-    "pontosHabilidade": 2,
+    "pontosHabilidade": 0,
     "inventario": {
       "slots": {
         "capacete": null,
@@ -3295,8 +3317,8 @@
     "xp": 0,
     "classe": "guerreiro",
     "hp": 100,
-    "x": 61829,
-    "y": 1791,
+    "x": 60487,
+    "y": 660,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -3332,8 +3354,8 @@
     "xp": 0,
     "classe": "summoner",
     "hp": 100,
-    "x": 60767,
-    "y": 1582,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789507610130,
     "atributos": {
       "forca": 1,
@@ -3369,8 +3391,8 @@
     "xp": 0,
     "classe": "guerreiro",
     "hp": 100,
-    "x": 61827,
-    "y": 1767,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789503873173,
     "atributos": {
       "forca": 1,
@@ -3406,8 +3428,8 @@
     "xp": 0,
     "classe": "guerreiro",
     "hp": 100,
-    "x": 61835,
-    "y": 1783,
+    "x": 60487,
+    "y": 660,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -3441,11 +3463,11 @@
   "admin2": {
     "level": 1,
     "xp": 0,
-    "classe": "curandeiro",
+    "classe": "roqueiro",
     "hp": 100,
-    "x": 61676,
-    "y": 1943,
-    "ultimoLogin": 1789511150602,
+    "x": 60487,
+    "y": 660,
+    "ultimoLogin": 1789662557855,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -3473,15 +3495,21 @@
     },
     "skills": {},
     "pontosHabilidade": 0,
-    "mana": 50
+    "mana": 50,
+    "uiLayout": {
+      "util-buttons": {
+        "x": 1580,
+        "y": 1012
+      }
+    }
   },
   "admin22": {
     "level": 1,
     "xp": 0,
     "classe": "curandeiro",
     "hp": 100,
-    "x": 61733,
-    "y": 1976,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789511168817,
     "atributos": {
       "forca": 1,
@@ -3517,8 +3545,8 @@
     "xp": 0,
     "classe": "arqueiro",
     "hp": 100,
-    "x": 61775,
-    "y": 1999,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789511211982,
     "atributos": {
       "forca": 1,
@@ -3591,8 +3619,8 @@
     "xp": 0,
     "classe": "curandeiro",
     "hp": 100,
-    "x": 61850,
-    "y": 1971,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789511337541,
     "atributos": {
       "forca": 1,
@@ -3628,8 +3656,8 @@
     "xp": 47,
     "classe": "barbaro",
     "hp": 100,
-    "x": 61800,
-    "y": 2000,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789513431674,
     "atributos": {
       "forca": 1,
@@ -3665,8 +3693,8 @@
     "xp": 0,
     "classe": "arqueiro",
     "hp": 100,
-    "x": 62008,
-    "y": 1952,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789511466224,
     "atributos": {
       "forca": 1,
@@ -3756,8 +3784,8 @@
     "xp": 124,
     "classe": "arqueiro",
     "hp": 64,
-    "x": 61800,
-    "y": 2000,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789515821593,
     "atributos": {
       "forca": 1,
@@ -3790,11 +3818,11 @@
   "PAL": {
     "level": 4,
     "xp": 326,
-    "classe": "mago",
+    "classe": "curandeiro",
     "hp": 100,
-    "x": 61799,
-    "y": 1953,
-    "ultimoLogin": 1789651574119,
+    "x": 60487,
+    "y": 660,
+    "ultimoLogin": 1789654390443,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -3829,8 +3857,8 @@
     "xp": 0,
     "classe": "guerreiro",
     "hp": 100,
-    "x": 61838,
-    "y": 1799,
+    "x": 60487,
+    "y": 660,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -3866,9 +3894,959 @@
     "xp": 0,
     "classe": "roqueiro",
     "hp": 100,
-    "x": 61706,
-    "y": 1942,
+    "x": 60487,
+    "y": 660,
     "ultimoLogin": 1789618361394,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50
+  },
+  "JogadorComum": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 60467,
+    "y": 666,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50,
+    "ultimoLogin": 1789655208796
+  },
+  "admin23": {
+    "level": 9,
+    "xp": 235,
+    "classe": "curandeiro",
+    "hp": 300,
+    "x": 60475,
+    "y": 669,
+    "ultimoLogin": 1789679186266,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 2,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 9
+    },
+    "pontosDisponiveis": 2,
+    "inventario": {
+      "slots": {
+        "capacete": {
+          "id": "drop_1789663232474_5",
+          "uid": "mu5ra40q-ipj9ti17e",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🪖 CAPACETE COMUM",
+          "icon": "🪖",
+          "status": {
+            "vida": 1
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        "peitoral": null,
+        "arma": {
+          "id": "drop_1789663520377_18",
+          "uid": "mu5rga61-3wpjx82w4",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🔮 Orbe das Sombras",
+          "icon": "🔮",
+          "status": {
+            "inteligencia": 1
+          },
+          "cor": "#ffffff",
+          "classe": "summoner",
+          "armaChave": "orbe_sombras"
+        },
+        "armaSecundaria": {
+          "id": "drop_1789663520372_17",
+          "uid": "mu5rga5w-a2k4q3lq3",
+          "tipo": "equipamento",
+          "slot": "armaSecundaria",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🏆 Cálice das Sombras",
+          "icon": "🏆",
+          "status": {
+            "afinidade": 3
+          },
+          "cor": "#ffffff",
+          "classe": "summoner",
+          "armaChave": "calice_sombras"
+        },
+        "colar": {
+          "id": "drop_1789663813521_32",
+          "uid": "mu5rmkcx-jax6yvy0j",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "📿 COLAR LENDÁRIO",
+          "icon": "📿",
+          "status": {
+            "divindade": 7,
+            "forca": 12,
+            "inteligencia": 9
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        },
+        "anel": {
+          "id": "drop_1789663230394_4",
+          "uid": "mu5ra2ey-hsibp9zhp",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "💍 ANEL ÉPICO",
+          "icon": "💍",
+          "status": {
+            "destreza": 6,
+            "divindade": 8
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        "capa": {
+          "id": "drop_1789663253491_7",
+          "uid": "mu5rak8j-kbdg5pud4",
+          "tipo": "equipamento",
+          "slot": "capa",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🧥 CAPA RARO",
+          "icon": "🧥",
+          "status": {
+            "inteligencia": 5,
+            "destreza": 2
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        "bota": {
+          "id": "drop_1789663270274_9",
+          "uid": "mu5rax6q-8yl7wj7rn",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🥾 BOTA ÉPICO",
+          "icon": "🥾",
+          "status": {
+            "agilidade": 5,
+            "vida": 6
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        "luva": {
+          "id": "drop_1789663272758_10",
+          "uid": "mu5raz3q-0cboxpfkt",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🧤 LUVA RARO",
+          "icon": "🧤",
+          "status": {
+            "forca": 3,
+            "destreza": 4
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        }
+      },
+      "mochila": [
+        {
+          "id": "drop_1789663224515_2",
+          "uid": "mu5r9xvn-knskqmzt2",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "📿 COLAR COMUM",
+          "icon": "📿",
+          "status": {
+            "vida": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789663228758_3",
+          "uid": "mu5ra15i-3ghl54ub5",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "💍 ANEL COMUM",
+          "icon": "💍",
+          "status": {
+            "destreza": 1
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789663312935_14",
+          "uid": "mu5rbu3r-jleg2e3ua",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🪖 CAPACETE COMUM",
+          "icon": "🪖",
+          "status": {
+            "destreza": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789663315513_15",
+          "uid": "mu5rbw3d-s0f2qgd6l",
+          "tipo": "equipamento",
+          "slot": "capa",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🧥 CAPA COMUM",
+          "icon": "🧥",
+          "status": {
+            "destreza": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789663538357_22",
+          "uid": "mu5rgo1h-7d6x10nfp",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "📿 COLAR COMUM",
+          "icon": "📿",
+          "status": {
+            "divindade": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789663530598_21",
+          "uid": "mu5rgi1y-znfh1hfht",
+          "tipo": "equipamento",
+          "slot": "capa",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🧥 CAPA COMUM",
+          "icon": "🧥",
+          "status": {
+            "inteligencia": 1
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789663530135_20",
+          "uid": "mu5rghp3-m4gsj9lif",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "📿 COLAR COMUM",
+          "icon": "📿",
+          "status": {
+            "divindade": 1
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789663520383_19",
+          "uid": "mu5rga67-2b7hpj3ii",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "💍 ANEL COMUM",
+          "icon": "💍",
+          "status": {
+            "forca": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789663210022_1",
+          "uid": "mu5r9mp2-u914k5a85",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "📿 COLAR COMUM",
+          "icon": "📿",
+          "status": {
+            "afinidade": 1
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789663234146_6",
+          "uid": "mu5ra5b6-li2xmg8b4",
+          "tipo": "equipamento",
+          "slot": "capa",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🧥 CAPA COMUM",
+          "icon": "🧥",
+          "status": {
+            "agilidade": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789663284924_11",
+          "uid": "mu5rb8ho-sqn6wggtu",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "📿 COLAR ÉPICO",
+          "icon": "📿",
+          "status": {
+            "divindade": 8,
+            "afinidade": 5,
+            "vida": 7
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789663921344_42",
+          "uid": "mu5rovk0-cpmwc4ufo",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🛡️ ARMADURA RARO",
+          "icon": "🛡️",
+          "status": {
+            "vida": 2,
+            "inteligencia": 3
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789667320570_1",
+          "uid": "mu5tpqey-i8m5yp5zj",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "💍 ANEL COMUM",
+          "icon": "💍",
+          "status": {
+            "afinidade": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789667320573_2",
+          "uid": "mu5tpqf1-jtxed1r4s",
+          "tipo": "equipamento",
+          "slot": "capa",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🧥 CAPA RARO",
+          "icon": "🧥",
+          "status": {
+            "divindade": 2,
+            "inteligencia": 5
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789667324607_3",
+          "uid": "mu5tptj3-v205fxw8g",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🛡️ ARMADURA COMUM",
+          "icon": "🛡️",
+          "status": {
+            "divindade": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789667325559_4",
+          "uid": "mu5tpu9j-e2oe1ncwd",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "💍 ANEL ÉPICO",
+          "icon": "💍",
+          "status": {
+            "afinidade": 8,
+            "divindade": 5,
+            "forca": 7
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789667325573_5",
+          "uid": "mu5tpu9x-aegebuxx7",
+          "tipo": "equipamento",
+          "slot": "armaSecundaria",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🛡️ Escudo de Pedra RARO",
+          "icon": "🛡️",
+          "status": {
+            "vida": 5,
+            "forca": 3
+          },
+          "cor": "#4da6ff",
+          "classe": "guerreiro",
+          "armaChave": "escudo_pedra"
+        },
+        {
+          "id": "drop_1789667332903_6",
+          "uid": "mu5tpzxj-7xipt0w40",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🥾 BOTA ÉPICO",
+          "icon": "🥾",
+          "status": {
+            "agilidade": 6,
+            "forca": 7
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789670441510_11",
+          "uid": "mu5vkmjq-ahnwta0gm",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "🧤 LUVA LENDÁRIO",
+          "icon": "🧤",
+          "status": {
+            "vida": 6,
+            "forca": 9,
+            "destreza": 8,
+            "agilidade": 10
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789671083358_3",
+          "uid": "mu5vydsu-c45bqfvn6",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🧤 LUVA COMUM",
+          "icon": "🧤",
+          "status": {
+            "agilidade": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789671079877_1",
+          "uid": "mu5vyb45-cy9yfsycv",
+          "tipo": "equipamento",
+          "slot": "armaSecundaria",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🏆 Cálice das Sombras ÉPICO",
+          "icon": "🏆",
+          "status": {
+            "inteligencia": 8,
+            "afinidade": 8,
+            "profanidade": 4
+          },
+          "cor": "#a855f7",
+          "classe": "summoner",
+          "armaChave": "calice_sombras"
+        },
+        {
+          "id": "drop_1789671094047_5",
+          "uid": "mu5vym1r-0ewlx8ddb",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🧤 LUVA RARO",
+          "icon": "🧤",
+          "status": {
+            "inteligencia": 5,
+            "agilidade": 3
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789671094041_4",
+          "uid": "mu5vym1l-gixnq2ipi",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "📿 COLAR RARO",
+          "icon": "📿",
+          "status": {
+            "afinidade": 5,
+            "divindade": 3
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789675428649_1",
+          "uid": "mu5yjind-mvz8uzkan",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "💍 ANEL RARO",
+          "icon": "💍",
+          "status": {
+            "afinidade": 4,
+            "vida": 3
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        }
+      ]
+    },
+    "skills": {
+      "furia": 5
+    },
+    "pontosHabilidade": 0,
+    "mana": 110,
+    "maxHp": 300
+  },
+  "warrior_tester_01": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 60470,
+    "y": 666,
+    "ultimoLogin": 1789666940074,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 34
+  },
+  "asdasd": {
+    "level": 1,
+    "xp": 0,
+    "classe": "arqueiro",
+    "hp": 100,
+    "x": 61800,
+    "y": 1760,
+    "ultimoLogin": 1789677317762
+  },
+  "smoke_aura": {
+    "level": 1,
+    "xp": 0,
+    "classe": "curandeiro",
+    "hp": 100,
+    "x": 60499,
+    "y": 673,
+    "ultimoLogin": 1789675883839,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50
+  },
+  "smoke_aura_final": {
+    "level": 1,
+    "xp": 0,
+    "classe": "curandeiro",
+    "hp": 100,
+    "x": 60489,
+    "y": 665,
+    "ultimoLogin": 1789675930354,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50
+  },
+  "tall213": {
+    "level": 1,
+    "xp": 0,
+    "classe": "curandeiro",
+    "hp": 100,
+    "x": 61777,
+    "y": 1724,
+    "ultimoLogin": 1789679775980,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50,
+    "uiLayout": {
+      "minimap": {
+        "x": 624,
+        "y": 0
+      },
+      "actions": {
+        "x": 420,
+        "y": 270
+      },
+      "util-buttons": {
+        "x": 449,
+        "y": 355
+      },
+      "hud-status-window": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  },
+  "dad": {
+    "level": 1,
+    "xp": 0,
+    "classe": "roqueiro",
+    "hp": 100,
+    "x": 60497,
+    "y": 673,
+    "ultimoLogin": 1789680032210,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50
+  },
+  "dadas": {
+    "level": 1,
+    "xp": 0,
+    "classe": "curandeiro",
+    "hp": 100,
+    "x": 60469.08435072712,
+    "y": 648.4445435273099,
+    "ultimoLogin": 1789680278397
+  },
+  "adminsss": {
+    "level": 1,
+    "xp": 0,
+    "classe": "summoner",
+    "hp": 100,
+    "x": 60580,
+    "y": 524,
+    "ultimoLogin": 1789680985405,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50
+  },
+  "dasd": {
+    "level": 1,
+    "xp": 0,
+    "classe": "curandeiro",
+    "hp": 100,
+    "x": 60506,
+    "y": 720,
+    "ultimoLogin": 1789681535955,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50
+  },
+  "biel": {
+    "level": 1,
+    "xp": 0,
+    "classe": "arqueiro",
+    "hp": 0,
+    "x": 64757,
+    "y": 764,
+    "ultimoLogin": 1789686046478,
+    "uiLayout": {
+      "util-buttons": {
+        "x": 601,
+        "y": 388
+      },
+      "hud-buffs": {
+        "x": 0,
+        "y": 81
+      },
+      "actions": {
+        "x": 492,
+        "y": 258
+      }
+    },
     "atributos": {
       "forca": 1,
       "inteligencia": 1,

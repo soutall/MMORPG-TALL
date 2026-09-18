@@ -16,6 +16,20 @@
     var arrastro = null;           // estado atual do arrastre
     var clickSuprimidoHasta = 0;
 
+    function clampPosElemento(config) {
+        var x = Number(config.x) || 0;
+        var y = Number(config.y) || 0;
+        var width = Number(config.width) || 0;
+        var height = Number(config.height) || 0;
+        var viewportWidth = Number(config.viewportWidth) || window.innerWidth || 0;
+        var viewportHeight = Number(config.viewportHeight) || window.innerHeight || 0;
+        var maxX = Math.max(0, viewportWidth - width);
+        var maxY = Math.max(0, viewportHeight - height);
+        x = Math.max(0, Math.min(x, maxX));
+        y = Math.max(0, Math.min(y, maxY));
+        return { x: x, y: y };
+    }
+
     function buscarMochila(id) {
         if (!window.mochila) return null;
         return window.mochila.find(function (i) { return String(i.id) === String(id); });
@@ -173,13 +187,17 @@
     function moverJanela(x, y) {
         var a = arrastro;
         if (!a) return;
-        var nx = x - a.despX, ny = y - a.despY;
         var r = a.win.getBoundingClientRect();
-        var vw = window.innerWidth, vh = window.innerHeight;
-        nx = Math.max(40 - r.width, Math.min(nx, vw - 40));
-        ny = Math.max(0, Math.min(ny, vh - 24));
-        a.win.style.left = Math.round(nx) + "px";
-        a.win.style.top = Math.round(ny) + "px";
+        var pos = clampPosElemento({
+            x: x - a.despX,
+            y: y - a.despY,
+            width: r.width,
+            height: r.height,
+            viewportWidth: window.innerWidth,
+            viewportHeight: window.innerHeight
+        });
+        a.win.style.left = Math.round(pos.x) + "px";
+        a.win.style.top = Math.round(pos.y) + "px";
         a.win.style.transform = "none";
     }
 
@@ -201,11 +219,16 @@
             var d = JSON.parse(s);
             if (typeof d.x === "number" && typeof d.y === "number" && win.getBoundingClientRect) {
                 var r = win.getBoundingClientRect();
-                var vw = window.innerWidth, vh = window.innerHeight;
-                d.x = Math.max(40 - r.width, Math.min(d.x, vw - 40));
-                d.y = Math.max(0, Math.min(d.y, vh - 24));
-                win.style.left = Math.round(d.x) + "px";
-                win.style.top = Math.round(d.y) + "px";
+                var pos = clampPosElemento({
+                    x: d.x,
+                    y: d.y,
+                    width: r.width || win.offsetWidth || 0,
+                    height: r.height || win.offsetHeight || 0,
+                    viewportWidth: window.innerWidth,
+                    viewportHeight: window.innerHeight
+                });
+                win.style.left = Math.round(pos.x) + "px";
+                win.style.top = Math.round(pos.y) + "px";
                 win.style.transform = "none";
             }
         } catch (e) { }
@@ -390,7 +413,23 @@
     var LAYOUT_PREF = "mmorpg_ui_layout_";
 
     function claveLayoutUI() {
-        return LAYOUT_PREF + (window.meuId || "anonimo");
+        var uid = window.meuId;
+        if (!uid) {
+            try { uid = localStorage.getItem("mmorpg_user_id"); } catch (e) {}
+        }
+        return LAYOUT_PREF + (uid || "anonimo");
+    }
+
+    function cargarLayoutLocal() {
+        try {
+            var s = localStorage.getItem(claveLayoutUI());
+            if (s) {
+                var d = JSON.parse(s);
+                if (d && typeof d === "object") {
+                    for (var k in d) layoutUI[k] = d[k];
+                }
+            }
+        } catch (e) {}
     }
 
     function toastUI(texto) {
@@ -416,13 +455,23 @@
         var pos = layoutUI[reg.nome];
         if (!pos) return;
         var el = reg.el;
+        var rect = el.getBoundingClientRect();
+        var clamp = clampPosElemento({
+            x: pos.x,
+            y: pos.y,
+            width: rect.width || el.offsetWidth || 0,
+            height: rect.height || el.offsetHeight || 0,
+            viewportWidth: window.innerWidth,
+            viewportHeight: window.innerHeight
+        });
         el.style.position = "fixed";
-        el.style.left = pos.x + "px";
-        el.style.top = pos.y + "px";
-        el.style.right = "";
-        el.style.bottom = "";
+        el.style.left = clamp.x + "px";
+        el.style.top = clamp.y + "px";
+        el.style.right = "auto";
+        el.style.bottom = "auto";
         el.style.transform = "none";
         el.classList.add("ui-movido");
+        layoutUI[reg.nome] = { x: Math.round(clamp.x), y: Math.round(clamp.y) };
     }
 
     function registrarElementoUI(el, nome) {
@@ -469,19 +518,23 @@
     function moverUI(x, y) {
         var a = arrastro;
         if (!a) return;
-        var nx = x - a.despX, ny = y - a.despY;
         var r = a.el.getBoundingClientRect();
-        var vw = window.innerWidth, vh = window.innerHeight;
-        nx = Math.max(40 - r.width, Math.min(nx, vw - 40));
-        ny = Math.max(0, Math.min(ny, vh - 24));
+        var pos = clampPosElemento({
+            x: x - a.despX,
+            y: y - a.despY,
+            width: r.width,
+            height: r.height,
+            viewportWidth: window.innerWidth,
+            viewportHeight: window.innerHeight
+        });
         a.el.style.position = "fixed";
-        a.el.style.left = Math.round(nx) + "px";
-        a.el.style.top = Math.round(ny) + "px";
+        a.el.style.left = Math.round(pos.x) + "px";
+        a.el.style.top = Math.round(pos.y) + "px";
         a.el.style.right = "";
         a.el.style.bottom = "";
         a.el.style.transform = "none";
         a.el.classList.add("ui-movido");
-        layoutUI[a.nome] = { x: Math.round(nx), y: Math.round(ny) };
+        layoutUI[a.nome] = { x: Math.round(pos.x), y: Math.round(pos.y) };
     }
 
     function marcarSucioUI() {
@@ -591,6 +644,30 @@
         }
     }
 
+    function revalidarLimitesViewport() {
+        var nome;
+        for (nome in elementosUI) {
+            var reg = elementosUI[nome];
+            if (!reg || !reg.el || !layoutUI[nome]) continue;
+            var rect = reg.el.getBoundingClientRect();
+            var clamped = clampPosElemento({
+                x: layoutUI[nome].x,
+                y: layoutUI[nome].y,
+                width: rect.width || reg.el.offsetWidth || 0,
+                height: rect.height || reg.el.offsetHeight || 0,
+                viewportWidth: window.innerWidth,
+                viewportHeight: window.innerHeight
+            });
+            if (Math.round(clamped.x) !== Math.round(layoutUI[nome].x) || Math.round(clamped.y) !== Math.round(layoutUI[nome].y)) {
+                reg.el.style.left = Math.round(clamped.x) + "px";
+                reg.el.style.top = Math.round(clamped.y) + "px";
+                layoutUI[nome] = { x: Math.round(clamped.x), y: Math.round(clamped.y) };
+            }
+        }
+    }
+
+    window.addEventListener("resize", revalidarLimitesViewport);
+
     if (window.MutationObserver) {
         var observerUI = new MutationObserver(function (muts) {
             for (var i = 0; i < muts.length; i++) {
@@ -600,6 +677,7 @@
         observerUI.observe(document.body, { childList: true, subtree: true });
     }
 
+    cargarLayoutLocal();
     escanearNodos(document.body.childNodes);
 
     /* ===== API PÚBLICA para UIs criadas por JS ===== */
@@ -608,6 +686,7 @@
         sucio: function () { return uiSucio; },
         registrar: registrarElementoUI,
         aplicarLayout: function (dict) { aplicarLayoutUI(dict); },
+        recarregarLocal: function () { cargarLayoutLocal(); for (var n in elementosUI) aplicarPosicionUI(elementosUI[n]); },
         layout: function () { return JSON.stringify(layoutUI); },
         salvar: window.salvarInterfaceUI,
         restaurar: window.restaurarInterfaceUI

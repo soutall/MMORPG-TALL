@@ -1,30 +1,30 @@
 * { box-sizing: border-box; -webkit-touch-callout: none !important; -webkit-user-select: none !important; user-select: none !important; outline: none !important; }
-html, body { background: #0b0b0b; color: #fff; font-family: Arial, sans-serif; margin: 0; padding: 0; touch-action: none; overflow: hidden; width: 100vw; height: 100vh; position: relative; }
+html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; touch-action: none; overflow: hidden; width: 100vw; height: 100vh; position: relative; }
 
 #login-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle, #2c3e50 0%, #0a0a0a 100%); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 600; gap: 15px; }
-#login-screen h1 { font-size: 26px; color: #f1c40f; text-shadow: 0 2px 10px rgba(0,0,0,0.8); margin: 0; letter-spacing: 1.5px; }
-#login-screen p { font-size: 13px; color: #bdc3c7; margin: 0; }
+#login-screen h1 { font-family: 'Cinzel', serif; font-size: 26px; color: #f1c40f; text-shadow: 0 2px 10px rgba(0,0,0,0.8); margin: 0; letter-spacing: 2px; }
+#login-screen p { font-size: 14px; color: #bdc3c7; margin: 0; }
 #login-box { display: flex; flex-direction: column; gap: 12px; width: 260px; }
-#input-userid { padding: 12px 15px; border-radius: 8px; border: 2px solid #f1c40f; background: rgba(0,0,0,0.7); color: #fff; font-size: 16px; font-weight: bold; text-align: center; }
-#btn-entrar { padding: 12px; background: #27ae60; border: none; border-radius: 8px; color: #fff; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: background 0.2s; }
+#input-userid { padding: 12px 15px; border-radius: 8px; border: 2px solid #f1c40f; background: rgba(0,0,0,0.7); color: #fff; font-size: 17px; font-weight: bold; text-align: center; font-family: 'Rajdhani', sans-serif; }
+#btn-entrar { padding: 12px; background: #27ae60; border: none; border-radius: 8px; color: #fff; font-size: 18px; font-weight: bold; font-family: 'Rajdhani', sans-serif; letter-spacing: 1.5px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: background 0.2s; }
 #btn-entrar:active { background: #2ecc71; transform: scale(0.98); }
 
 /* Aviso de rotação: pede para girar o celular quando estiver em modo retrato */
-#rotate-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; background: #0a0a0a; color: #f1c40f; font-family: 'Courier New', monospace; font-size: 22px; font-weight: bold; letter-spacing: 2px; text-align: center; padding: 20px; box-sizing: border-box; z-index: 900; }
+#rotate-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; background: #0a0a0a; color: #f1c40f; font-family: 'Cinzel', serif; font-size: 20px; font-weight: bold; letter-spacing: 2px; text-align: center; padding: 20px; box-sizing: border-box; z-index: 900; }
 @media (orientation: portrait) { #rotate-overlay { display: flex; } }
 
 /* Confirmação própria do jogo (evita confirm() nativo que quebra fullscreen/orientação) */
 #confirm-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(8, 8, 8, 0.82); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 950; }
-#confirm-window { background: #1d1a2e; border: 3px solid #9b59b6; box-shadow: 6px 6px 0 #000, inset 3px 3px 0 #3a3345; padding: 18px 20px; width: 300px; text-align: center; image-rendering: pixelated; }
-#confirm-mensagem { font-family: 'Courier New', monospace; font-size: 14px; font-weight: bold; color: #e8e4da; letter-spacing: 0.5px; margin-bottom: 14px; white-space: pre-line; }
+#confirm-window { background: #1d1a2e; border: 3px solid #9b59b6; box-shadow: 6px 6px 0 #000, inset 3px 3px 0 #3a3345; padding: 18px 20px; width: 300px; text-align: center; font-family: 'Rajdhani', sans-serif; }
+#confirm-mensagem { font-family: 'Rajdhani', sans-serif; font-size: 16px; font-weight: bold; color: #e8e4da; letter-spacing: 0.5px; margin-bottom: 14px; white-space: pre-line; }
 #confirm-botoes { display: flex; justify-content: center; gap: 14px; }
-#btn-confirmar-sim { font-family: 'Courier New', monospace; font-weight: bold; font-size: 14px; padding: 9px 20px; background: #c0392b; color: #fff; border: 3px solid #e74c3c; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; min-width: 90px; }
+#btn-confirmar-sim { font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 15px; padding: 8px 20px; background: #c0392b; color: #fff; border: 3px solid #e74c3c; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; min-width: 90px; }
 #btn-confirmar-sim:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #000; }
-#btn-confirmar-nao { font-family: 'Courier New', monospace; font-weight: bold; font-size: 14px; padding: 9px 20px; background: #1f618d; color: #fff; border: 3px solid #3498db; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; min-width: 90px; }
+#btn-confirmar-nao { font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 15px; padding: 8px 20px; background: #1f618d; color: #fff; border: 3px solid #3498db; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; min-width: 90px; }
 #btn-confirmar-nao:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #000; }
 
 #char-select-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: radial-gradient(circle, #1a252f 0%, #0b0b0b 100%); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 500; gap: 20px; }
-#char-select-screen h1 { font-size: 24px; color: #f1c40f; text-shadow: 0 2px 8px rgba(0,0,0,0.8); margin: 0 0 10px 0; letter-spacing: 1px; }
+#char-select-screen h1 { font-family: 'Cinzel', serif; font-size: 24px; color: #f1c40f; text-shadow: 0 2px 8px rgba(0,0,0,0.8); margin: 0 0 10px 0; letter-spacing: 2px; }
 .class-card-container { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; max-width: 650px; }
 .class-card { width: 105px; padding: 10px 5px; background: rgba(255, 255, 255, 0.05); border: 2px solid #555; border-radius: 12px; text-align: center; box-shadow: 0 6px 12px rgba(0,0,0,0.6); cursor: pointer; transition: transform 0.15s, border-color 0.15s; }
 .class-card:active { transform: scale(0.96); }
@@ -48,13 +48,21 @@ html, body { background: #0b0b0b; color: #fff; font-family: Arial, sans-serif; m
 #mp-bar-container { width: 100px; height: 5px; background: #333; border-radius: 3px; margin-top: 3px; overflow: hidden; border: 1px solid #555; }
 #mp-bar-fill { width: 100%; height: 100%; background: #1abc9c; transition: width 0.15s; }
 
-#hud-dps { position: absolute; top: 72px; left: 10px; background: rgba(0, 0, 0, 0.75); border: 1px solid #e67e22; padding: 6px 10px; border-radius: 6px; z-index: 20; font-size: 12px; color: #fff; pointer-events: none; box-shadow: 0 4px 6px rgba(0,0,0,0.5); min-width: 120px; }
-#hud-dps .dps-valor { font-size: 16px; font-weight: bold; color: #f39c12; text-shadow: 0 0 6px rgba(243, 156, 18, 0.6); }
-#hud-dps .dps-total { font-size: 10px; color: #aaa; margin-top: 2px; }
+#hud-buffs { position: absolute; top: 112px; left: 10px; background: rgba(0, 0, 0, 0.75); border: 1px solid #2ecc71; padding: 6px 8px; border-radius: 6px; z-index: 20; font-size: 12px; color: #fff; pointer-events: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.5); width: 150px; max-width: 150px; min-width: 150px; min-height: 64px; overflow: visible; }
+#hud-dps { display: none; }
+.hud-buffs-title { font-size: 10px; letter-spacing: 1px; color: #7ef0ab; text-transform: uppercase; margin-bottom: 5px; font-weight: bold; text-align: center; }
+.hud-buffs-bar { display: flex; gap: 4px; align-items: center; justify-content: flex-start; min-height: 34px; flex-wrap: wrap; margin-top: 2px; width: 100%; max-width: 100%; overflow: visible; }
+.hud-buff-item { position: relative; width: 26px; height: 26px; border-radius: 5px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.24); display: flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; box-shadow: inset 0 1px 0 rgba(255,255,255,0.18); flex: 0 0 auto; cursor: default; pointer-events: auto; }
+.hud-buff-item::after { content: attr(data-tooltip); position: absolute; left: 50%; bottom: calc(100% + 8px); transform: translateX(-50%) translateY(4px); background: rgba(0, 0, 0, 0.9); color: white; border: 1px solid rgba(255,255,255,0.25); border-radius: 4px; padding: 4px 6px; font-size: 9px; line-height: 1.2; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity 0.12s ease, transform 0.12s ease; z-index: 999; box-shadow: 0 3px 8px rgba(0,0,0,0.45); }
+.hud-buff-item:hover::after, .hud-buff-item:focus-visible::after { opacity: 1; transform: translateX(-50%) translateY(0); }
+.hud-buff-item .hud-buff-timer { position: absolute; left: 50%; bottom: -11px; transform: translateX(-50%); font-size: 8px; color: #dff9ff; font-weight: bold; text-shadow: 1px 1px 0 #000; white-space: nowrap; }
+.hud-buff-empty { font-size: 9px; color: #8aa1aa; opacity: 0.75; }
+.skill-cd-badge { position: absolute; inset: auto 2px 2px auto; background: rgba(0,0,0,0.75); color: #fff; border-radius: 5px; padding: 1px 3px; font-size: 8px; line-height: 1.2; font-weight: bold; border: 1px solid rgba(255,255,255,0.25); box-shadow: 0 2px 6px rgba(0,0,0,0.5); display: none; }
+.btn-action.show-cd .skill-cd-badge { display: block; }
 
 /* HUD do Boss (que fica no topo central da tela) */
 #hud-boss { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); width: min(70vw, 480px); z-index: 30; text-align: center; pointer-events: none; }
-#boss-bar-nome { font-size: 14px; font-weight: bold; color: #f39c12; text-shadow: 0 2px 4px rgba(0,0,0,0.9), 0 0 8px rgba(255,120,0,0.7); margin-bottom: 4px; letter-spacing: 2px; }
+#boss-bar-nome { font-family: 'Cinzel', serif; font-size: 15px; font-weight: bold; color: #f39c12; text-shadow: 0 2px 4px rgba(0,0,0,0.9), 0 0 8px rgba(255,120,0,0.7); margin-bottom: 4px; letter-spacing: 2px; }
 #boss-bar-fundo { width: 100%; height: 16px; background: rgba(0,0,0,0.72); border: 2px solid #ff6b00; border-radius: 8px; overflow: hidden; box-shadow: 0 0 12px rgba(255,100,0,0.55), inset 0 2px 4px rgba(0,0,0,0.8); }
 #boss-bar-fill { height: 100%; width: 100%; background: linear-gradient(180deg, #ffcc66, #ff7b00 55%, #e74c3c); transition: width 0.15s ease; box-shadow: 0 0 10px rgba(255,120,0,0.9); }
 #boss-bar-hp { font-size: 11px; color: #fff; margin-top: 3px; text-shadow: 0 1px 3px #000; }
@@ -81,6 +89,7 @@ canvas { background: #133015; display: block; width: 100vw; height: 100vh; touch
 .btn-util:active { transform: scale(0.9); box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
 .btn-dash { background: #3498db; font-size: 20px; border: 2px solid #2980b9; display: none; } .btn-dash.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
 .btn-tornado { background: #8e44ad; font-size: 20px; border: 2px solid #e74c3c; display: none; } .btn-tornado.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
+.btn-guerreiro-provocacao { background: linear-gradient(135deg, #c0392b, #d35400); font-size: 20px; border: 2px solid #f39c12; box-shadow: 0 0 10px rgba(243, 156, 18, 0.4); display: none; } .btn-guerreiro-provocacao.cooldown { background: #555; opacity: 0.6; pointer-events: none; box-shadow: none; }
 
 .btn-meteoro { background: #d35400; font-size: 22px; border: 2px solid #e67e22; display: none; } 
 .btn-meteoro.aiming { background: #e74c3c; box-shadow: 0 0 15px #e74c3c; animation: pulseSkillBtn 0.4s infinite alternate; } 
@@ -136,59 +145,59 @@ canvas { background: #133015; display: block; width: 100vw; height: 100vh; touch
 .show-drop { display: block !important; transform: translate(-50%, -50%) scale(1) !important; animation: pulseLevelDrop 0.4s infinite alternate; }
 @keyframes pulseLevelDrop { 0% { transform: translate(-50%, -50%) scale(1); } 100% { transform: translate(-50%, -50%) scale(1.12); } }
 #death-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(150, 0, 0, 0.8); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 100; }
-#death-screen h1 { font-size: 40px; margin-bottom: 20px; text-shadow: 2px 2px #000; }
-#btn-respawn { padding: 15px 30px; font-size: 20px; font-weight: bold; background: #f1c40f; border: none; border-radius: 8px; color: #000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); }
+#death-screen h1 { font-family: 'Cinzel', serif; font-size: 40px; margin-bottom: 20px; text-shadow: 2px 2px #000; letter-spacing: 2px; }
+#btn-respawn { font-family: 'Rajdhani', sans-serif; padding: 14px 30px; font-size: 20px; font-weight: bold; background: #f1c40f; border: none; border-radius: 8px; color: #000; box-shadow: 0 4px 10px rgba(0,0,0,0.5); letter-spacing: 1px; cursor: pointer; }
 
 /* Tela de Teleporte */
 #teleport-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(10, 14, 18, 0.88); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 700; gap: 0; }
-#teleport-window { background: linear-gradient(135deg, #131a22, #0c1015); border: 2px solid #4fc3f7; border-radius: 12px; padding: 18px 24px 22px; width: min(92vw, 340px); max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 12px; box-shadow: 0 0 30px rgba(79, 195, 247, 0.15); }
-#teleport-title { font-size: 20px; font-weight: bold; color: #9ee8ff; text-shadow: 0 0 8px rgba(79, 195, 247, 0.6); }
-#teleport-sub { font-size: 12px; color: #8899aa; text-align: center; margin-bottom: 4px; }
+#teleport-window { background: linear-gradient(135deg, #131a22, #0c1015); border: 2px solid #4fc3f7; border-radius: 12px; padding: 18px 24px 22px; width: min(92vw, 340px); max-height: 92vh; overflow-y: auto; display: flex; flex-direction: column; align-items: center; gap: 12px; box-shadow: 0 0 30px rgba(79, 195, 247, 0.15); font-family: 'Rajdhani', sans-serif; }
+#teleport-title { font-family: 'Cinzel', serif; font-size: 20px; font-weight: bold; color: #9ee8ff; text-shadow: 0 0 8px rgba(79, 195, 247, 0.6); letter-spacing: 1.5px; }
+#teleport-sub { font-size: 13px; color: #8899aa; text-align: center; margin-bottom: 4px; }
 #teleport-maps { display: flex; flex-direction: column; gap: 8px; width: 100%; }
-.btn-teleportare { width: 100%; padding: 12px 16px; background: #0b1523; border: 2px solid #37474f; border-radius: 8px; color: #e0f2f1; font-size: 15px; font-weight: bold; text-align: center; cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+.btn-teleportare { width: 100%; padding: 12px 16px; background: #0b1523; border: 2px solid #37474f; border-radius: 8px; color: #e0f2f1; font-size: 16px; font-family: 'Rajdhani', sans-serif; font-weight: bold; text-align: center; cursor: pointer; transition: background 0.15s, border-color 0.15s; letter-spacing: 0.5px; }
 .btn-teleportare:active { background: #1a3a4a; border-color: #4fc3f7; transform: scale(0.97); }
 .btn-teleportare.selecionado { background: #0d2f4f; border-color: #4fc3f7; color: #ffffff; box-shadow: 0 0 12px rgba(79,195,247,0.4); }
-#btn-teleportare-confirmar { margin-top: 4px; padding: 10px 20px; background: #1a5c2e; border: none; border-radius: 6px; color: #ffffff; font-size: 13px; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.15s; }
+#btn-teleportare-confirmar { margin-top: 4px; padding: 10px 20px; background: #1a5c2e; border: none; border-radius: 6px; color: #ffffff; font-size: 14px; font-family: 'Rajdhani', sans-serif; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.15s; letter-spacing: 1px; }
 #btn-teleportare-confirmar:active { background: #237a3e; }
-#btn-teleportare-fechar { margin-top: 4px; padding: 10px 20px; background: #2c3e50; border: none; border-radius: 6px; color: #bdc3c7; font-size: 13px; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.15s; }
+#btn-teleportare-fechar { margin-top: 4px; padding: 10px 20px; background: #2c3e50; border: none; border-radius: 6px; color: #bdc3c7; font-size: 14px; font-family: 'Rajdhani', sans-serif; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.15s; letter-spacing: 1px; }
 #btn-teleportare-fechar:active { background: #34495e; }
-#btn-teleportare-cidade { margin-top: 4px; padding: 10px 20px; background: #1a3a5c; border: none; border-radius: 6px; color: #ffffff; font-size: 13px; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.15s; }
+#btn-teleportare-cidade { margin-top: 4px; padding: 10px 20px; background: #1a3a5c; border: none; border-radius: 6px; color: #ffffff; font-size: 14px; font-family: 'Rajdhani', sans-serif; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.15s; letter-spacing: 1px; }
 /* NOVO MINIMAPA FUNCIONAL COM CONTROLES DE ZOOM */
 #minimap-wrapper { position: absolute; top: 8px; right: 10px; width: 176px; z-index: 25; pointer-events: auto; display: flex; flex-direction: column; align-items: flex-end; }
-#minimap-header { width: 100%; display: flex; justify-content: space-between; align-items: center; background: rgba(10, 16, 22, 0.9); border: 1.5px solid rgba(79, 195, 247, 0.7); border-bottom: none; border-radius: 6px 6px 0 0; padding: 3px 5px; font-size: 10px; font-weight: bold; color: #9ee8ff; text-shadow: 0 1px 2px #000; box-sizing: border-box; }
+#minimap-header { width: 100%; display: flex; justify-content: space-between; align-items: center; background: rgba(10, 16, 22, 0.9); border: 1.5px solid rgba(79, 195, 247, 0.7); border-bottom: none; border-radius: 6px 6px 0 0; padding: 3px 5px; font-size: 11px; font-family: 'Rajdhani', sans-serif; font-weight: bold; color: #9ee8ff; text-shadow: 0 1px 2px #000; box-sizing: border-box; }
 #minimap-zoom-bar { display: flex; align-items: center; gap: 3px; background: rgba(0, 0, 0, 0.45); border-radius: 4px; padding: 1px 3px; }
 .btn-mm-zoom { background: #1a3a5c; border: 1px solid #3498db; border-radius: 3px; color: #fff; width: 16px; height: 16px; line-height: 14px; font-size: 12px; font-weight: bold; cursor: pointer; padding: 0; text-align: center; display: flex; align-items: center; justify-content: center; user-select: none; }
 .btn-mm-zoom:hover { background: #2980b9; }
 .btn-mm-zoom:active { transform: scale(0.92); }
-#minimap-zoom-label { font-size: 9px; color: #00ffff; min-width: 14px; text-align: center; }
+#minimap-zoom-label { font-size: 10px; font-family: 'Rajdhani', sans-serif; color: #00ffff; min-width: 14px; text-align: center; }
 #minimap-canvas { width: 176px; height: 100px; border: 1.5px solid rgba(79, 195, 247, 0.7); border-radius: 0 0 6px 6px; background: #0b1118; box-shadow: 0 4px 12px rgba(0,0,0,0.6), 0 0 10px rgba(79,195,247,0.25); cursor: pointer; display: block; }
-#minimap-hint { font-size: 9px; color: #88aacc; margin-top: 2px; text-shadow: 0 1px 2px #000; cursor: pointer; font-weight: bold; }
+#minimap-hint { font-size: 10px; font-family: 'Rajdhani', sans-serif; color: #88aacc; margin-top: 2px; text-shadow: 0 1px 2px #000; cursor: pointer; font-weight: bold; }
 
 /* MAPA GRANDE (TECLA M) */
-#big-map-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(6, 10, 15, 0.88); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 800; backdrop-filter: blur(4px); }
+#big-map-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(6, 10, 15, 0.88); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 800; backdrop-filter: blur(4px); font-family: 'Rajdhani', sans-serif; }
 #big-map-window { background: linear-gradient(145deg, #101a26, #090e16); border: 2px solid #3498db; border-radius: 12px; padding: 14px 18px 16px; width: min(94vw, 840px); box-shadow: 0 0 35px rgba(52,152,219,0.35); display: flex; flex-direction: column; gap: 10px; position: relative; box-sizing: border-box; }
 #big-map-top { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(52, 152, 219, 0.3); padding-bottom: 8px; }
-#big-map-title { font-size: 18px; font-weight: bold; color: #9ee8ff; text-shadow: 0 0 8px rgba(79,195,247,0.6); display: flex; align-items: center; gap: 8px; }
-#btn-big-map-fechar { background: #c0392b; border: 1px solid #e74c3c; border-radius: 6px; color: #fff; font-size: 13px; font-weight: bold; padding: 5px 12px; cursor: pointer; }
+#big-map-title { font-family: 'Cinzel', serif; font-size: 18px; font-weight: bold; color: #9ee8ff; text-shadow: 0 0 8px rgba(79,195,247,0.6); display: flex; align-items: center; gap: 8px; letter-spacing: 1.5px; }
+#btn-big-map-fechar { background: #c0392b; border: 1px solid #e74c3c; border-radius: 6px; color: #fff; font-size: 14px; font-family: 'Rajdhani', sans-serif; font-weight: bold; padding: 5px 12px; cursor: pointer; letter-spacing: 1px; }
 #btn-big-map-fechar:hover { background: #e74c3c; }
 #big-map-canvas-container { position: relative; width: 100%; height: 380px; background: #080d14; border: 1.5px solid #2980b9; border-radius: 8px; overflow: hidden; }
 #big-map-canvas { width: 100%; height: 100%; display: block; cursor: crosshair; }
-#big-map-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 11px; color: #aaa; }
+#big-map-footer { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; font-size: 12px; color: #aaa; }
 .big-map-legend { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
 .legend-item { display: flex; align-items: center; gap: 4px; }
 .legend-dot { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
-#btn-portal-cidade-mapa { padding: 9px 18px; background: linear-gradient(135deg, #1a5276, #2980b9); border: 1.5px solid #5dade2; border-radius: 8px; color: #ffffff; font-size: 13px; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 12px rgba(41, 128, 185, 0.5); transition: transform 0.15s, box-shadow 0.15s; }
+#btn-portal-cidade-mapa { padding: 9px 18px; background: linear-gradient(135deg, #1a5276, #2980b9); border: 1.5px solid #5dade2; border-radius: 8px; color: #ffffff; font-size: 14px; font-family: 'Rajdhani', sans-serif; font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; box-shadow: 0 0 12px rgba(41, 128, 185, 0.5); transition: transform 0.15s, box-shadow 0.15s; letter-spacing: 0.5px; }
 #btn-portal-cidade-mapa:hover { transform: scale(1.03); box-shadow: 0 0 18px rgba(93, 173, 226, 0.8); }
 #btn-portal-cidade-mapa:active { transform: scale(0.97); }
 
 /* Confirmação de Retorno à Cidade pelo Mapa */
-#map-portal-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 12px; z-index: 850; }
+#map-portal-modal { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: none; flex-direction: column; justify-content: center; align-items: center; border-radius: 12px; z-index: 850; font-family: 'Rajdhani', sans-serif; }
 #map-portal-box { background: #131f2e; border: 2px solid #3498db; border-radius: 10px; padding: 20px 24px; text-align: center; display: flex; flex-direction: column; gap: 14px; max-width: 340px; box-shadow: 0 0 25px rgba(52,152,219,0.6); }
-#map-portal-box h3 { margin: 0; color: #9ee8ff; font-size: 17px; }
-#map-portal-box p { margin: 0; color: #bdc3c7; font-size: 13px; line-height: 1.4; }
+#map-portal-box h3 { font-family: 'Cinzel', serif; margin: 0; color: #9ee8ff; font-size: 17px; letter-spacing: 1px; }
+#map-portal-box p { margin: 0; color: #bdc3c7; font-size: 14px; line-height: 1.4; }
 .map-portal-btns { display: flex; gap: 12px; justify-content: center; }
-.btn-portal-sim { padding: 9px 18px; background: #27ae60; border: none; border-radius: 6px; color: #fff; font-weight: bold; cursor: pointer; font-size: 13px; }
+.btn-portal-sim { padding: 9px 18px; background: #27ae60; border: none; border-radius: 6px; color: #fff; font-weight: bold; cursor: pointer; font-size: 14px; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
 .btn-portal-sim:hover { background: #2ecc71; }
-.btn-portal-nao { padding: 9px 18px; background: #7f8c8d; border: none; border-radius: 6px; color: #fff; font-weight: bold; cursor: pointer; font-size: 13px; }
+.btn-portal-nao { padding: 9px 18px; background: #7f8c8d; border: none; border-radius: 6px; color: #fff; font-weight: bold; cursor: pointer; font-size: 14px; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
 .btn-portal-nao:hover { background: #95a5a6; }
 

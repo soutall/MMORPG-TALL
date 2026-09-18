@@ -30,7 +30,7 @@
 
     // Portal de retorno no portao OESTE (e nao no centro da arena, para nao
     // expulsar o jogador que estiver lutando no medalhao central).
-    const PORTAL_ARENA_RETORNO = { x: 63980, y: 460, r: 62, alvo: { x: 63740, y: 620 } };
+    const PORTAL_ARENA_RETORNO = { x: 63980, y: 460, r: 62, alvo: { x: 60487, y: 660 } };
     // Ponto de chegada usado pelo teleporte do servidor (PONTOS_TELEPORTE.arena).
     // Row 11 da grade e' um corredor 100% livre: 200px a leste do portal, ou seja
     // bem fora do raio 62 (com a folga de ±10 do servidor a distancia minima e' 190).
