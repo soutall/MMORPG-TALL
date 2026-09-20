@@ -19,6 +19,8 @@ const EFEITOS = {
     cegueira:   { nome: 'Cego(a)',        classe: 'debuff', icon: '👁️‍🗨️', cor: '#2ecc71', desc: 'Névoa venenosa! Ataques normais erram (magia ainda acerta).', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') },
     queimadura: { nome: 'Queimadura',    classe: 'debuff', icon: '🔥', cor: '#e74c3c', desc: 'Queimando! Recebe dano de fogo ao longo do tempo.', formato: (ef) => ('' + Math.round(ef.tempo)) },
     gelo:       { nome: 'Congelado',     classe: 'debuff', icon: '🧊', cor: '#00cfff', desc: 'Congelado! Velocidade reduzida e vulnerável a reações elementais.', formato: (ef) => ('' + Math.round(ef.tempo)) },
+    congelado:  { nome: 'Congelado',     classe: 'debuff', icon: '🧊', cor: '#00e5ff', desc: 'Congelado por completo! Não pode agir nem se mover.', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') },
+    rede:       { nome: 'Arame Prendedor', classe: 'debuff', icon: '🕸️', cor: '#95a5a6', desc: 'Preso pelo arame do Sniper! Não pode se mover.', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') },
     queimaduraCongelante: { nome: 'Queimadura Congelante', classe: 'debuff', icon: '💠', cor: '#b266ff', desc: 'Dano contínuo extremo de fogo e gelo combinados.', formato: (ef) => ('' + Math.round(ef.tempo)) },
 
     // ===== BUFFS =====
@@ -29,7 +31,8 @@ const EFEITOS = {
     velocidade: { nome: 'Velocidade',    classe: 'buff',   icon: '💨', cor: '#00bcd4', desc: 'Velocidade de movimento aumentada em 50%.', formato: (ef) => ('' + Math.round(ef.intensidade * 100) + '%') },
     gritoDeGuerra: { nome: 'Grito de Guerra', classe: 'buff', icon: '📣', cor: '#f1c40f', desc: 'Crítico maior, velocidade de ataque aumentada e vida máxima ampliada.', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') },
     sedento:    { nome: 'Sede de Sangue', classe: 'buff',  icon: '🩸', cor: '#ff4757', desc: 'Cura uma fração do dano causado.', formato: () => '' },
-    invisivel:  { nome: 'Camuflagem Sombria', classe: 'buff', icon: '🌑', cor: '#9b59b6', desc: 'Invisível! Inimigos não atacam (perdem o alvo). O primeiro dano causado é dobrado. Ataques ativos quebram a invisibilidade.', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') }
+    invisivel:  { nome: 'Camuflagem Sombria', classe: 'buff', icon: '🌑', cor: '#9b59b6', desc: 'Invisível! Inimigos não atacam (perdem o alvo). O primeiro dano causado é dobrado. Ataques ativos quebram a invisibilidade.', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') },
+    camuflagem: { nome: 'Camuflagem',    classe: 'buff',   icon: '🌿', cor: '#27ae60', desc: 'Escondido no mato! Inimigos não atacam. Dura enquanto estiver na moita (o primeiro tiro quebra).', formato: () => '∞' }
 };
 
 // Aplica um efeito (id) numa entidade. `tempo` em ticks de 50ms.

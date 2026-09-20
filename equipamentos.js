@@ -81,6 +81,18 @@ const BALANCE = {
         ladino: {
             adaga_ladino: { slot: 'arma', nome: 'Adaga do Assassino',   icon: '🗡️', pesos: { destreza: 7, forca: 3, agilidade: 3, velocidadeAtaque: 4 } },
             bomba_veneno: { slot: 'armaSecundaria', nome: 'Bomba de Veneno', icon: '🧪', pesos: { destreza: 5, profanidade: 5, agilidade: 3, vida: 1 } }
+        },
+        dronemaster: {
+            chave_tecnico: { slot: 'arma', nome: 'Chave Técnica',       icon: '🔧', pesos: { forca: 6, destreza: 4, inteligencia: 3, velocidadeAtaque: 3 } },
+            modulo_energia: { slot: 'armaSecundaria', nome: 'Módulo de Energia', icon: '🔋', pesos: { inteligencia: 6, forca: 3, vida: 3, velocidadeAtaque: 2 } }
+        },
+        arqueiro_arcano: {
+            arco_elemental: { slot: 'arma', nome: 'Arco Elemental',    icon: '🏹', pesos: { inteligencia: 6, destreza: 4, afinidade: 3, velocidadeAtaque: 4 } },
+            runas_ancestrais: { slot: 'armaSecundaria', nome: 'Runas Ancestrais', icon: '🔮', pesos: { inteligencia: 6, afinidade: 4, divindade: 2, vida: 1 } }
+        },
+        sniper: {
+            barrett_antimateria: { slot: 'arma', nome: 'Barrett Antimatéria', icon: '🔫', pesos: { destreza: 7, forca: 4, agilidade: 2, velocidadeAtaque: 2 } },
+            luneta_tatica: { slot: 'armaSecundaria', nome: 'Luneta Tática',     icon: '🔭', pesos: { destreza: 6, agilidade: 4, vida: 2 } }
         }
     }
 };
