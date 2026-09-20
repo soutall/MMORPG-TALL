@@ -183,6 +183,23 @@
     box-shadow: 0 0 8px rgba(187, 134, 252, 0.6) !important;
 }
 
+.col-tool-btn.btn-tool-layer {
+    background: #123b36;
+    border-color: #1abc9c;
+    color: #a7f3d0;
+}
+.col-tool-btn.btn-tool-layer:hover {
+    background: #18594e;
+    border-color: #48e0bd;
+    color: #ffffff;
+}
+.col-tool-btn.btn-tool-layer.active {
+    background: #148f77 !important;
+    border-color: #7fffe1 !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 8px rgba(26, 188, 156, 0.65) !important;
+}
+
 /* Seção de Propriedades */
 .col-section {
     background: #14120e;

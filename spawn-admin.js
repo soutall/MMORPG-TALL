@@ -13,7 +13,19 @@ var SPAWN_TIPOS = [
     { key: 'zumbi', nome: '🧟 Zumbi', baseHp: 120, boss: false, cor: '#58d68d' },
     { key: 'besouro_negro', nome: '🪲 Besouro Negro (deserto)', baseHp: 300, boss: false, cor: '#17202a' },
     { key: 'morcego', nome: '🦇 Morcego (caverna)', baseHp: 90, boss: false, cor: '#5b2c6f' },
-    { key: 'golem_pedra', nome: '🗿 GOLEM DE PEDRA', baseHp: 6000, boss: true, cor: '#e74c3c' }
+    { key: 'golem_pedra', nome: '🗿 GOLEM DE PEDRA', baseHp: 6000, boss: true, cor: '#e74c3c' },
+    { key: 'caveira_arqueira', nome: '🏹 Caveira Arqueira (40+)', baseHp: 420, boss: false, cor: '#d6c9a5' },
+    { key: 'caveira_melee', nome: '💀 Caveira Melee (40+)', baseHp: 560, boss: false, cor: '#b9aa87' },
+    { key: 'aranha_negra', nome: '🕷 Aranha Negra (40+)', baseHp: 480, boss: false, cor: '#24152f' },
+    { key: 'aranha_dark', nome: '🕷 ARANHA DARK', baseHp: 480, boss: false, cor: '#17131d' },
+    { key: 'escorpiao', nome: '🦂 Escorpião (15+)', baseHp: 260, boss: false, cor: '#3d5535' },
+    { key: 'goblin', nome: '👺 Goblin (10+)', baseHp: 220, boss: false, cor: '#3c7138' },
+    { key: 'mago_arcano', nome: '🧙 Mago Arcano (10+)', baseHp: 300, boss: false, cor: '#3153a4' },
+    { key: 'assassino', nome: '🥷 Assassino (10+)', baseHp: 340, boss: false, cor: '#15151e' },
+    { key: 'void_master', nome: '◉ Void Master (20+)', baseHp: 900, boss: false, cor: '#6c35a8' },
+    { key: 'ogro', nome: '👹 Ogro (30+ · 1)', baseHp: 2600, boss: false, cor: '#68734b' },
+    { key: 'gargula', nome: '🦇 Gárgula (20+)', baseHp: 1100, boss: false, cor: '#59616c' },
+    { key: 'mamute', nome: '🐘 Mamute (30+)', baseHp: 3200, boss: false, cor: '#6e6254' }
 ];
 
 function spawnTipoInfo(key) {
@@ -186,6 +198,9 @@ window.aplicarSpawnAdmin = function () {
     SPAWN_STATUS.textContent = editando ? '✅ Bandeira atualizada!' : '✅ Bandeira plantada!';
     window.spawnAdminEditando = null;
     SPAWN_BTN_EXCLUIR.style.display = 'none';
+    window._confirmaExclusaoSpawn = false;
+    SPAWN_ADMIN_SCREEN.style.display = 'none';
+    window.spawnAdminAberto = false;
 };
 
 window.excluirSpawnAdminBandeira = function () {
@@ -207,6 +222,7 @@ window.excluirSpawnAdminBandeira = function () {
     try {
         ws.send(JSON.stringify({ action: 'admin_spawn_excluir', flagId: editando.id }));
     } catch (e) { return; }
+    window._confirmaExclusaoSpawn = false;
     fecharSpawnAdmin();
 };
 

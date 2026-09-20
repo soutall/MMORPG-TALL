@@ -30,6 +30,7 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 .class-card:active { transform: scale(0.96); }
 .class-card.guerreiro { border-color: #e74c3c; } .class-card.mago { border-color: #9b59b6; } .class-card.summoner { border-color: #27ae60; } .class-card.arqueiro { border-color: #1abc9c; } .class-card.curandeiro { border-color: #f1c40f; } .class-card.barbaro { border-color: #c0392b; }
 .class-card.roqueiro { border-color: #e67e22; }
+    .class-card.ladino { border-color: #8e44ad; }
 
 .class-card .icon { font-size: 28px; margin-bottom: 4px; } .class-card .title { font-size: 13px; font-weight: bold; margin-bottom: 3px; } .class-card .desc { font-size: 8px; color: #bbb; line-height: 1.2; }
 
@@ -82,6 +83,7 @@ canvas { background: #133015; display: block; width: 100vw; height: 100vh; touch
 .btn-util .key-badge { font-size: 8px; padding: 1px 3px; bottom: -4px; right: -4px; }
 
 .btn-attack { background: #d9534f; font-size: 20px; } .btn-attack.cooldown { background: #444 !important; opacity: 0.55; pointer-events: none; }
+.btn-attack { display: none !important; } /* v1.30.2: ataque básico MANUAL desativado — só o auto-attack */
 
 /* BOTÕES DE UTILITÁRIOS: Canto inferior direito */
 #util-buttons { position: absolute; bottom: 14px; right: 14px; display: flex; flex-direction: row; gap: 6px; z-index: 10; align-items: center; }
@@ -123,6 +125,7 @@ canvas { background: #133015; display: block; width: 100vw; height: 100vh; touch
 
 .btn-ogro-skill { background: #d35400; font-size: 22px; border: 2px solid #f39c12; display: none; } .btn-ogro-skill.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
 .btn-ogro-salto { background: #8e44ad; font-size: 22px; border: 2px solid #9b59b6; display: none; } .btn-ogro-salto.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
+.btn-ogro-colossal { background: #6c3483; font-size: 22px; border: 2px solid #a569bd; display: none; } .btn-ogro-colossal.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
 
 /* BOTÕES DO ROQUEIRO */
 .btn-roqueiro-bateria { background: #d35400; font-size: 22px; border: 2px solid #e67e22; display: none; } 
@@ -134,6 +137,31 @@ canvas { background: #133015; display: block; width: 100vw; height: 100vh; touch
 
 .btn-roqueiro-banda { background: #27ae60; font-size: 22px; border: 2px solid #2ecc71; display: none; } 
 .btn-roqueiro-banda.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
+
+/* v1.30.2: Grito de Guerra é EXCLUSIVO do Roqueiro — o botão só aparece para essa classe */
+.btn-roqueiro-grito { background: #c0392b; font-size: 20px; border: 2px solid #f39c12; display: none; } 
+.btn-roqueiro-grito.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
+
+/* v1.30.2: Seletor de modo do Golem (ícones pequenos sobre o botão Golem Colossal) */
+#ogro-modo-ui { position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); display: flex; gap: 2px; z-index: 15; }
+.ogro-modo-btn { width: 22px; height: 18px; font-size: 11px; line-height: 1; padding: 0; border-radius: 5px; border: 1px solid rgba(255,255,255,0.45); background: rgba(20,20,25,0.92); color: #fff; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 1px 3px rgba(0,0,0,0.6); opacity: 0.7; }
+.ogro-modo-agressivo.active { background: #c0392b; border-color: #ff8a80; box-shadow: 0 0 8px rgba(231,76,60,0.85); opacity: 1; }
+.ogro-modo-passivo.active { background: #1e8449; border-color: #7dffa8; box-shadow: 0 0 8px rgba(46,204,113,0.85); opacity: 1; }
+
+/* BOTÕES DO LADINO */
+.btn-ladino-danca { background: #6c3483; font-size: 22px; border: 2px solid #8e44ad; display: none; } 
+.btn-ladino-danca.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
+
+.btn-ladino-bomba { background: #1e8449; font-size: 22px; border: 2px solid #27ae60; display: none; } 
+.btn-ladino-bomba.aiming { background: #27ae60; box-shadow: 0 0 15px #27ae60; animation: pulseSkillBtn 0.4s infinite alternate; } 
+.btn-ladino-bomba.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
+
+.btn-ladino-camuflagem { background: #4a235a; font-size: 22px; border: 2px solid #9b59b6; display: none; } 
+.btn-ladino-camuflagem.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
+
+.btn-ladino-estrela { background: #b03a2e; font-size: 22px; border: 2px solid #e74c3c; display: none; } 
+.btn-ladino-estrela.aiming { background: #e74c3c; box-shadow: 0 0 15px #e74c3c; animation: pulseSkillBtn 0.4s infinite alternate; } 
+.btn-ladino-estrela.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
 
 
 @keyframes pulseSkillBtn { 0% { transform: scale(1); } 100% { transform: scale(1.08); } }

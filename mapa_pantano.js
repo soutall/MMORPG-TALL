@@ -302,9 +302,6 @@
 
     function infoPortalPantano(x, y) {
         if (x < PAN_X0) return null;
-        if (x <= BORDA_OESTE) {
-            return { via: 'borda', mapa: 'desert', alvo: ALVO_RETORNO_DESERTO };
-        }
         if (Math.hypot(x - PORTA_RETORNO.x, y - PORTA_RETORNO.y) < PORTA_RETORNO.r) {
             return { via: 'portal', mapa: 'cidade', alvo: PORTA_RETORNO.alvo };
         }
@@ -332,6 +329,7 @@
 
     function onUpdatePosicao(x, y) {
         if (transicaoAtiva || global.estaMorto) return;
+        if (typeof global.portalMapaPodeDisparar === 'function' && !global.portalMapaPodeDisparar(x, y)) return;
         let info = null;
         if (x >= PAN_X0) {
             info = infoPortalPantano(x, y);
@@ -339,6 +337,10 @@
             info = global.mapaDeserto.infoPortalDeserto(x, y);
         }
         if (!info) return;
+        if (typeof global.solicitarTeleporteMapa === 'function') {
+            global.solicitarTeleporteMapa(info.mapa, 'pantano_' + info.mapa);
+            return;
+        }
         transicaoAtiva = true;
         switchMapaFade(function () {
             global.meuX = info.alvo.x;

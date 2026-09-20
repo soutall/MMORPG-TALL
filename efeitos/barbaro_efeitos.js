@@ -5,12 +5,23 @@ window.esmagamentosBarbaro = [];
 window.girosBarbaro = [];
 window.fragmentosBarbaro = [];
 
-window.criarAnimacaoGiroBarbaro = function(id, x, y) {
+window.criarAnimacaoGiroBarbaro = function(id, x, y, duracaoMs) {
+    let duracaoVisualMs = Number.isFinite(duracaoMs) ? duracaoMs : 10000;
+    let giroExistente = window.girosBarbaro.find(g => g.id === id);
+    if (giroExistente) {
+        giroExistente.startTime = Date.now();
+        giroExistente.duracaoMs = duracaoVisualMs;
+        giroExistente.vida = duracaoVisualMs / 16.67;
+        giroExistente.ativo = true;
+        return;
+    }
     let giro = {
         id: id,
         x: x || 0,
         y: y || 0,
-        vida: 200,
+        vida: duracaoVisualMs / 16.67,
+        startTime: Date.now(),
+        duracaoMs: duracaoVisualMs,
         tempo: 0,
         trails: [],
         arcos: [],
@@ -70,6 +81,7 @@ window.finalizarAnimacaoGiroBarbaro = function(id) {
     let giro = window.girosBarbaro.find(g => g.id === id);
     if (giro) {
         giro.vida = 30;
+        giro.encerrando = true;
         giro.flash = 1.4;
     }
 };
@@ -93,10 +105,13 @@ window.criarAnimacaoSangue = function(x, y) {
 };
 
 // Efeito de ativação da Fúria Berserker (Aura avermelhada com vapores de sangue)
-window.criarAnimacaoFuriaBerserker = function(id) {
+window.criarAnimacaoFuriaBerserker = function(id, duracaoMs) {
+    let duracaoVisualMs = Number.isFinite(duracaoMs) ? duracaoMs : 6000;
     window.aurasBerserker.push({
         id: id,
-        duracao: 120, // 6 segundos
+        duracao: 120,
+        startTime: Date.now(),
+        duracaoMs: duracaoVisualMs,
         particulas: []
     });
     if (window.meuId === id) {
@@ -124,7 +139,11 @@ window.desenharEfeitosBarbaro = function() {
     for (let i = window.girosBarbaro.length - 1; i >= 0; i--) {
         let giro = window.girosBarbaro[i];
         giro.tempo += 1;
-        giro.vida -= 1;
+        if (!giro.encerrando) {
+            giro.vida = Math.max(0, ((giro.startTime + giro.duracaoMs) - Date.now()) / 16.67);
+        } else {
+            giro.vida -= 1;
+        }
         giro.flash = Math.max(0, giro.flash - 0.02);
 
         let pj = (giro.id === window.meuId) ? { x: window.meuX, y: window.meuY } : (window.todosJogadores && window.todosJogadores[giro.id] ? window.todosJogadores[giro.id] : null);
@@ -235,6 +254,10 @@ window.desenharEfeitosBarbaro = function() {
     for (let i = window.aurasBerserker.length - 1; i >= 0; i--) {
         let aura = window.aurasBerserker[i];
         aura.duracao--;
+        if (aura.startTime && Date.now() - aura.startTime >= aura.duracaoMs) {
+            window.aurasBerserker.splice(i, 1);
+            continue;
+        }
 
         let jogador = (aura.id === window.meuId) ? { x: window.meuX, y: window.meuY } : window.todosJogadores[aura.id];
         if (jogador && aura.duracao > 0) {

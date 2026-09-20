@@ -53,6 +53,9 @@
             <div class="class-card roqueiro" onclick="selecionarClasse('roqueiro')">
                 <div class="icon">🎸</div><div class="title" style="color:#e67e22;">Roqueiro</div><div class="desc">Bateria, Banda e Stage Dive.</div>
             </div>
+            <div class="class-card ladino" onclick="selecionarClasse('ladino')">
+                <div class="icon">🗡️</div><div class="title" style="color:#8e44ad;">Ladino</div><div class="desc">Dança das Adagas e Névoa Venenosa.</div>
+            </div>
         </div>
     </div>
 
@@ -246,7 +249,13 @@
         <button id="btn-vulcao" class="btn-action btn-vulcao" ontouchstart="iniciarDragSkill(event,'vulcao'); event.preventDefault(); event.stopPropagation();" onclick="ativarVulcaoSmartCast();" title="Vulcão (3)">🌋<span class="key-badge">3</span></button>
         <button id="btn-ogro-skill" class="btn-action btn-ogro-skill" ontouchstart="usarComandoOgro(); event.stopPropagation();" onclick="usarComandoOgro();" title="Comando Ogro (1)">💥<span class="key-badge">1</span></button>
         <button id="btn-ogro-salto" class="btn-action btn-ogro-salto" ontouchstart="iniciarDragSkill(event,'salto'); event.preventDefault(); event.stopPropagation();" onclick="ativarSaltoSmartCast();" title="Salto do Ogro (2)">🦘<span class="key-badge">2</span></button>
-        <button id="btn-ogro-colossal" class="btn-action btn-ogro-colossal" ontouchstart="usarOgroColossal(); event.preventDefault(); event.stopPropagation();" onclick="usarOgroColossal();" title="Golem Colossal (3)">🗿<span class="key-badge">3</span></button>
+        <div id="ogro-colossal-wrap" style="position:relative; width:54px; height:54px; display:none;">
+            <button id="btn-ogro-colossal" class="btn-action btn-ogro-colossal" ontouchstart="usarOgroColossal(); event.preventDefault(); event.stopPropagation();" onclick="usarOgroColossal();" title="Golem Colossal (3)">🗿<span class="key-badge">3</span></button>
+            <div id="ogro-modo-ui" class="ogro-modo-ui">
+                <button class="ogro-modo-btn ogro-modo-agressivo active" onclick="setOgroModo('agressivo'); event.stopPropagation();" title="Golem AGRESSIVO: ataca os inimigos que a Summoner focar">🎯</button>
+                <button class="ogro-modo-btn ogro-modo-passivo" onclick="setOgroModo('passivo'); event.stopPropagation();" title="Golem PASSIVO: fica sem atacar, apenas rodeando a Summoner">🛡️</button>
+            </div>
+        </div>
         <button id="btn-arqueiro-chuva" class="btn-action btn-arqueiro-chuva" ontouchstart="iniciarDragSkill(event,'chuva'); event.preventDefault(); event.stopPropagation();" onclick="ativarChuvaSmartCast();" title="Chuva de Flechas (1)">🌧️<span class="key-badge">1</span></button>
         <button id="btn-arqueiro-perfurante" class="btn-action btn-arqueiro-perfurante" ontouchstart="usarDisparoPerfurante(); event.stopPropagation();" onclick="usarDisparoPerfurante();" title="Disparo Perfurante (2)">🎯<span class="key-badge">2</span></button>
         <button id="btn-arqueiro-rajada" class="btn-action btn-arqueiro-rajada" ontouchstart="usarRajadaFlechas(); event.stopPropagation();" onclick="usarRajadaFlechas();" title="Rajada de Flechas (3)">🏹<span class="key-badge">3</span></button>
@@ -265,7 +274,14 @@
         <button id="btn-roqueiro-banda" class="btn-action btn-roqueiro-banda" ontouchstart="usarBandaRoqueiro(); event.stopPropagation();" onclick="usarBandaRoqueiro();" title="Banda (3)">🎸<span class="key-badge">3</span></button>
         <button id="btn-roqueiro-grito" class="btn-action btn-roqueiro-grito" ontouchstart="usarGritoDeGuerraRoqueiro(); event.stopPropagation();" onclick="usarGritoDeGuerraRoqueiro();" title="Grito de Guerra (Q)">📣<span class="key-badge">Q</span></button>
         
-        <button id="btn-attack" class="btn-action btn-attack" ontouchstart="executarAtaqueBasico(); event.stopPropagation();" onclick="executarAtaqueBasico();" title="Ataque Básico (Espaço)">⚔️<span class="key-badge">Espaço</span></button>
+        <!-- BOTOES DO LADINO -->
+        <button id="btn-ladino-danca" class="btn-action btn-ladino-danca" ontouchstart="usarDancaAdagas(); event.stopPropagation();" onclick="usarDancaAdagas();" title="Dança das Adagas (1)">💫<span class="key-badge">1</span></button>
+        <button id="btn-ladino-bomba" class="btn-action btn-ladino-bomba" ontouchstart="iniciarDragSkill(event,'bomba'); event.preventDefault(); event.stopPropagation();" onclick="ativarBombaSmartCast();" title="Névoa Venenosa (2)">🧪<span class="key-badge">2</span></button>
+        <button id="btn-ladino-camuflagem" class="btn-action btn-ladino-camuflagem" ontouchstart="usarCamuflagemSombria(); event.stopPropagation();" onclick="usarCamuflagemSombria();" title="Camuflagem Sombria (3)">🌑<span class="key-badge">3</span></button>
+        <button id="btn-ladino-estrela" class="btn-action btn-ladino-estrela" ontouchstart="iniciarDragSkill(event,'estrela'); event.preventDefault(); event.stopPropagation();" onclick="ativarEstrelaSmartCast();" title="Estrela da Morte (Q)">⭐<span class="key-badge">Q</span></button>
+        
+        <!-- ATAQUE BÁSICO MANUAL REMOVIDO (v1.30.2): só o auto-attack fica ativo; botão oculto -->
+        <button id="btn-attack" class="btn-action btn-attack" style="display:none;" title="Ataque Básico desativado (use o auto-attack)">⚔️</button>
     </div>
 
     <div id="util-buttons" data-ui="util-buttons">
@@ -486,12 +502,14 @@
     <script src="classes/curandeiro.js?v=1001"></script>
     <script src="classes/barbaro.js?v=1000"></script>
     <script src="classes/roqueiro.js?v=999"></script>
+    <script src="classes/ladino.js?v=1300"></script>
     <script src="efeitos/arqueiro_efeitos.js?v=230"></script>
     <script src="efeitos/curandeiro_efeitos.js?v=231"></script>
     <script src="efeitos/barbaro_efeitos.js?v=231"></script>
     <script src="efeitos/guerreiro_efeitos.js?v=235"></script>
     <script src="efeitos/mago_efeitos.js?v=1"></script>
     <script src="efeitos/roqueiro_efeitos.js?v=230"></script>
+    <script src="efeitos/ladino_efeitos.js?v=1300"></script>
     <script src="efeitos.js?v=234"></script>
     <script src="debuffs.js?v=2"></script>
     <script src="efeitos/boss_golem.js?v=230"></script>
@@ -501,8 +519,10 @@
     <script src="config.js?v=143"></script>
     <script src="atributos.js?v=3"></script>
     <script src="spawn-admin.js?v=2"></script>
+    <script src="map-vfx-admin.js?v=1"></script>
     <script src="dragdrop.js?v=2"></script>
     <script src="colisao-editor.js?v=2"></script>
+    <script src="audio-manager.js?v=1"></script>
 
     <script>
         const WORLD_WIDTH = 65040;
@@ -519,7 +539,31 @@
         window.LARGURA_ARENA = 63800;
         window.FIM_ARENA = 65040;
         window.ALTO_ARENA = 1240;
+        // Ponto de spawn da cidade de Davahl (espelho do server: CIDADE_SPAWN_X/Y = 60474,640).
+        // O respawn do jogador SEMPRE devolve para cá.
+        window.SPAWN_CIDADE = { x: 60474, y: 640 };
         window.currentMap = 'cidade'; // ESTADO ÚNICO DE MAPA: 'green' | 'desert' | 'pantano' | 'caverna' | 'cidade' | 'arena'
+        window.transicaoMapaAtiva = false;
+        window.portalMapaBloqueado = null;
+
+        window.solicitarTeleporteMapa = function (mapa, portal) {
+            if (!mapa || window.transicaoMapaAtiva || window.estaMorto) return true;
+            if (!window.ws || window.ws.readyState !== WebSocket.OPEN) return false;
+            window.transicaoMapaAtiva = true;
+            window.portalMapaBloqueado = portal || null;
+            window.ws.send(JSON.stringify({ action: 'teleporte_mapa', mapa: mapa }));
+            return true;
+        };
+
+        window.portalMapaPodeDisparar = function (x, y) {
+            if (window.transicaoMapaAtiva) return false;
+            if (window.portalMapaBloqueado) {
+                const distancia = Math.hypot(x - window.portalMapaBloqueado.x, y - window.portalMapaBloqueado.y);
+                if (distancia <= window.portalMapaBloqueado.raio) return false;
+                window.portalMapaBloqueado = null;
+            }
+            return true;
+        };
 
         window._errosPendentes = [];
         function _guardarErroErro(erro, fonte, linha, col, stack) {
@@ -589,6 +633,7 @@
         const btnOgroSkill = document.getElementById("btn-ogro-skill");
         const btnOgroColossal = document.getElementById("btn-ogro-colossal");
         const btnOgroSalto = document.getElementById("btn-ogro-salto");
+        const ogroColossalWrap = document.getElementById("ogro-colossal-wrap");
         const btnArqueiroChuva = document.getElementById("btn-arqueiro-chuva");
         const btnArqueiroPerfurante = document.getElementById("btn-arqueiro-perfurante");
         const btnArqueiroRajada = document.getElementById("btn-arqueiro-rajada");
@@ -601,6 +646,11 @@
         const btnRoqueiroBateria = document.getElementById("btn-roqueiro-bateria");
         const btnRoqueiroTeleporte = document.getElementById("btn-roqueiro-teleporte");
         const btnRoqueiroBanda = document.getElementById("btn-roqueiro-banda");
+        const btnRoqueiroGrito = document.getElementById("btn-roqueiro-grito");
+        const btnLadinoDanca = document.getElementById("btn-ladino-danca");
+        const btnLadinoBomba = document.getElementById("btn-ladino-bomba");
+        const btnLadinoCamuflagem = document.getElementById("btn-ladino-camuflagem");
+        const btnLadinoEstrela = document.getElementById("btn-ladino-estrela");
         const btnAttack = document.getElementById("btn-attack");
         const dpsValorEl = null;
         const dpsTotalEl = null;
@@ -657,7 +707,7 @@
         window.modoMiraPrece = false;
         window.auraSagradaAtiva = false; window.auraSagradaCooldown = false;
         window.esmagamentoCooldownAtivo = false; window.modoMiraEsmagamento = false;
-        window.giroDescontroladoCooldownAtivo = false;
+        window.giroDescontroladoCooldownAtivo = false; window.giroDescontroladoLigado = false;
         let furiaCooldownAtivo = false;
         let roqueiroBateriaCooldown = false;
         window.roqueiroBateriaLigada = false;
@@ -705,6 +755,7 @@
         function confirmarTeleporte() {
             const mapa = window.teleporteDestinoSelecionado;
             if (!mapa) return;
+            window.transicaoMapaAtiva = true;
             window.teleporteDestinoSelecionado = null;
             if (teleportScreen) teleportScreen.style.display = "none";
             window.teleporteAberto = false;
@@ -715,6 +766,7 @@
         }
 
         function voltarCidade() {
+            window.transicaoMapaAtiva = true;
             window.teleporteDestinoSelecionado = null;
             if (teleportScreen) teleportScreen.style.display = "none";
             window.teleporteAberto = false;
@@ -731,6 +783,7 @@
         }
 
         function fadeTeleporte(mapMostrar, novoX, novoY) {
+            if (window.AudioManager && typeof window.AudioManager.stopMapSounds === 'function') window.AudioManager.stopMapSounds();
             let ov = document.getElementById('overlay-teleporte-fade');
             if (!ov) {
                 ov = document.createElement('div');
@@ -739,10 +792,13 @@
                 document.body.appendChild(ov);
             }
             ov.style.opacity = '1';
+            window.meuX = novoX;
+            window.meuY = novoY;
+            window.currentMap = mapMostrar;
+            if (window.AudioManager && typeof window.AudioManager.setMapAmbient === 'function') window.AudioManager.setMapAmbient(mapMostrar);
+            window.portalMapaBloqueado = { x: novoX, y: novoY, raio: 90 };
             setTimeout(function () {
-                window.meuX = novoX;
-                window.meuY = novoY;
-                window.currentMap = mapMostrar;
+                window.transicaoMapaAtiva = false;
                 ov.style.opacity = '0';
             }, 360);
         }
@@ -777,6 +833,8 @@
             window.modoMiraEsmagamento = false; btnBarbaroEsmagamento.classList.remove("aiming");
             window.modoMiraTeleporteRoqueiro = false; btnRoqueiroTeleporte.classList.remove("aiming");
             window.modoMiraSaltoOgro = false; btnOgroSalto.classList.remove("aiming");
+            window.modoMiraBomba = false; btnLadinoBomba.classList.remove("aiming");
+            window.modoMiraEstrela = false; btnLadinoEstrela.classList.remove("aiming");
         }
 
         // ===================================
@@ -792,7 +850,9 @@
             prece:       { raio: 100, alcanceMax: 320, classe: 'curandeiro', cor: '#2ecc71', nome: '✨ CURA EM ÁREA' },
             esmagamento: { raio: 75,  alcanceMax: 240, classe: 'barbaro',    cor: '#e74c3c', nome: '🪓 ESMAGAMENTO' },
             teleporte:   { raio: 25,  alcanceMax: 300, classe: 'roqueiro',   cor: '#e67e22', nome: '🌠 STAGE DIVE' },
-            salto:       { raio: 85,  alcanceMax: 360, classe: 'summoner',   cor: '#9b59b6', nome: '🦘 SALTO DO OGRO' }
+            salto:       { raio: 85,  alcanceMax: 360, classe: 'summoner',   cor: '#9b59b6', nome: '🦘 SALTO DO OGRO' },
+            bomba:       { raio: 90,  alcanceMax: 200, classe: 'ladino',     cor: '#27ae60', nome: '🧪 NÉVOA VENENOSA' },
+            estrela:     { raio: 120, alcanceMax: 380, classe: 'ladino',     cor: '#8e44ad', nome: '⭐ ESTRELA DA MORTE' }
         };
         window.SKILLS_DRAG = SKILLS_DRAG;
         window.dragSkill = { ativo: false, skill: null, touchId: null, x: 0, y: 0 };
@@ -812,6 +872,8 @@
             else if (window.modoMiraEsmagamento && window.minhaClasse === 'barbaro') skill = 'esmagamento';
             else if (window.modoMiraTeleporteRoqueiro && window.minhaClasse === 'roqueiro') skill = 'teleporte';
             else if (window.modoMiraSaltoOgro && window.minhaClasse === 'summoner') skill = 'salto';
+            else if (window.modoMiraBomba && window.minhaClasse === 'ladino') skill = 'bomba';
+            else if (window.modoMiraEstrela && window.minhaClasse === 'ladino') skill = 'estrela';
 
             if (!skill) return null;
             let cfg = SKILLS_DRAG[skill] || { alcanceMax: 350, raio: 75, cor: '#00ffff', nome: '🎯 SKILL' };
@@ -824,7 +886,7 @@
             }
             tx = Math.max(20, Math.min(WORLD_WIDTH - 40, tx));
             ty = Math.max(20, Math.min(WORLD_HEIGHT - 40, ty));
-            return { skill: skill, cfg: cfg, pX: pX, pY: pY, tx: tx, ty: ty, dist: dist };
+            return { skill: skill, cfg: cfg, pX: pX, pY: pY, tx: tx, ty: ty, dist: dist, rx: mx, ry: my };
         }
         window.obterInfoMiraAtiva = obterInfoMiraAtiva;
 
@@ -837,6 +899,8 @@
             if (skill === 'esmagamento') return window.esmagamentoCooldownAtivo;
             if (skill === 'teleporte') return roqueiroTeleporteCooldown;
             if (skill === 'salto') return window.ogroSaltoCooldown;
+            if (skill === 'bomba') return window.ladinoBombaCooldown;
+            if (skill === 'estrela') return window.ladinoEstrelaCooldown;
             return false;
         }
 
@@ -848,6 +912,7 @@
             let mx = cx / ZOOM_CAMERA + camX;
             let my = cy / ZOOM_CAMERA + camY;
             let pX = window.meuX + 12, pY = window.meuY + 16;
+            d.xRaw = mx; d.yRaw = my;
             let dx = mx - pX, dy = my - pY;
             let dist = Math.hypot(dx, dy);
             if (dist > cfg.alcanceMax) {
@@ -886,8 +951,107 @@
             return { x: tx, y: ty };
         }
 
+        // ===== AVISOS DE SKILL (sem mana / fora de alcance) + CANCELAMENTO DE COOLDOWN =====
+        // v1.30.3: nenhuma skill pode ENTRAR em recarga quando falha por mana ou alcance.
+        // O servidor continua autoritativo — aqui só avisamos e impedimos o CD visual.
+        function avisoSkillLocal(tipo) {
+            if (window.floatingTexts) window.floatingTexts.push({
+                x: window.meuX + 12,
+                y: window.meuY - 34,
+                text: (tipo === 'mana') ? "💧 Sem Mana!" : "🎯 Fora de alcance!",
+                color: (tipo === 'mana') ? "#3498db" : "#e74c3c",
+                alpha: 1.0
+            });
+        }
+
+        // Custo de mana local, idêntico ao servidor (custo base +6% por nível da skill)
+        function custoManaLocal(skillId, baseMp) {
+            let nivel = (window.skillsNiveis && window.skillsNiveis[skillId]) || 1;
+            return Math.round(baseMp * Math.pow(1.06, nivel - 1));
+        }
+
+        // Verifica mana/alcance ANTES de ativar o cooldown visual da skill.
+        // tx/ty/alcanceMax opcionais (skills de mira). Retorna false = falhou (já avisou).
+        function checarSkill(skillId, baseMp, tx, ty, alcanceMax) {
+            if (baseMp > 0) {
+                let custo = custoManaLocal(skillId, baseMp);
+                if ((window.meuMp || 0) < custo) { avisoSkillLocal('mana'); return false; }
+            }
+            if (typeof tx === 'number' && typeof ty === 'number' && alcanceMax > 0) {
+                let dx = tx - (window.meuX + 12), dy = ty - (window.meuY + 16);
+                if (Math.hypot(dx, dy) > alcanceMax + 1) { avisoSkillLocal('alcance'); return false; }
+            }
+            return true;
+        }
+
+        function limparCdBotao(btn) {
+            if (!btn) return;
+            btn.classList.remove("cooldown");
+            btn.dataset.cdUntil = '';
+        }
+
+        // Reseta o cooldown visual de uma skill (usado quando o servidor rejeita o uso).
+        const ACOES_SKILL_CANCELAVEIS = ['meteoro', 'nevasca', 'mago_vulcao', 'arqueiro_chuva', 'arqueiro_perfurante', 'arqueiro_rajada', 'curandeiro_cura', 'curandeiro_julgamento', 'curandeiro_aura', 'barbaro_furia', 'barbaro_esmagamento', 'barbaro_giro_descontrolado', 'roqueiro_bateria', 'roqueiro_teleporte', 'roqueiro_banda', 'roqueiro_grito_guerra', 'ladino_danca', 'ladino_bomba', 'ladino_camuflagem', 'ladino_estrela', 'comando_pet_ogro', 'comando_salto_ogro', 'comando_ogro_colossal', 'dash', 'tornado', 'guerreiro_provocacao'];
+        function cancelarCooldownVisual(skill) {
+            const mapa = {
+                meteoro:               () => { window.meteoroCooldownAtivo = false; limparCdBotao(btnMeteoro); },
+                nevasca:               () => { window.nevascaCooldownAtivo = false; limparCdBotao(btnNevasca); },
+                mago_vulcao:           () => { window.vulcaoCooldownAtivo = false; limparCdBotao(btnVulcao); },
+                arqueiro_chuva:        () => { window.chuvaCooldownAtivo = false; limparCdBotao(btnArqueiroChuva); },
+                arqueiro_perfurante:   () => { perfuranteCooldownAtivo = false; limparCdBotao(btnArqueiroPerfurante); },
+                arqueiro_rajada:       () => { window.arqueiroRajadaCooldown = false; window.arqueiroRajadaLigada = false; limparCdBotao(btnArqueiroRajada); },
+                curandeiro_cura:       () => { curaCooldownAtivo = false; limparCdBotao(btnCurandeiroCura); },
+                curandeiro_julgamento: () => { window.julgamentoCooldownAtivo = false; limparCdBotao(btnCurandeiroJulgamento); },
+                curandeiro_aura:       () => { window.auraSagradaCooldown = false; limparCdBotao(btnCurandeiroAura); },
+                barbaro_furia:         () => { furiaCooldownAtivo = false; limparCdBotao(btnBarbaroFuria); },
+                barbaro_esmagamento:   () => { window.esmagamentoCooldownAtivo = false; limparCdBotao(btnBarbaroEsmagamento); },
+                barbaro_giro_descontrolado: () => { window.giroDescontroladoCooldownAtivo = false; limparCdBotao(btnBarbaroGiro); },
+                roqueiro_bateria:      () => { roqueiroBateriaCooldown = false; limparCdBotao(btnRoqueiroBateria); },
+                roqueiro_teleporte:    () => { roqueiroTeleporteCooldown = false; limparCdBotao(btnRoqueiroTeleporte); },
+                roqueiro_banda:        () => { roqueiroBandaCooldown = false; limparCdBotao(btnRoqueiroBanda); },
+                roqueiro_grito_guerra: () => { window.roqueiroGritoGuerraCooldown = false; limparCdBotao(btnRoqueiroGrito); },
+                ladino_danca:          () => { window.ladinoDancaCooldown = false; limparCdBotao(btnLadinoDanca); },
+                ladino_bomba:          () => { window.ladinoBombaCooldown = false; limparCdBotao(btnLadinoBomba); },
+                ladino_camuflagem:     () => { window.ladinoCamuflagemCooldown = false; limparCdBotao(btnLadinoCamuflagem); },
+                ladino_estrela:        () => { window.ladinoEstrelaCooldown = false; limparCdBotao(btnLadinoEstrela); },
+                comando_pet_ogro:      () => { window.ogroSkillCooldown = false; limparCdBotao(btnOgroSkill); },
+                comando_salto_ogro:    () => { window.ogroSaltoCooldown = false; limparCdBotao(btnOgroSalto); },
+                comando_ogro_colossal: () => { window.ogroColossalCooldown = false; limparCdBotao(btnOgroColossal); },
+                dash:                  () => { dashCooldownAtivo = false; limparCdBotao(btnDash); },
+                tornado:               () => { tornadoCooldoownAtivo = false; limparCdBotao(btnTornado); },
+                guerreiro_provocacao:  () => { provocacaoCooldownAtivo = false; if (btnGuerreiroProvocacao) limparCdBotao(btnGuerreiroProvocacao); }
+            };
+            const fn = mapa[skill];
+            if (fn) fn();
+        }
+
+        // Cancela o cooldown da ÚLTIMA skill enviada (rejeição do servidor: mana/alcance)
+        function cancelarCooldownUltimaSkill() {
+            const u = window.ultimoSkillEnviado;
+            if (u && (Date.now() - u.ts) < 3500) cancelarCooldownVisual(u.skill);
+        }
+        window.cancelarCooldownUltimaSkill = cancelarCooldownUltimaSkill;
+
+        // LADINO: existe alvo de dança/estrela a até `raio` px do jogador? (sem alvo = fora de alcance)
+        function existeAlvoLadinoProximo(raio) {
+            let pX = window.meuX + 12, pY = window.meuY + 16;
+            if (Array.isArray(window.listaSlimes)) {
+                for (let s of window.listaSlimes) {
+                    if (s && s.hp > 0 && Math.hypot(s.x - pX, s.y - pY) <= raio) return true;
+                }
+            }
+            // `listaBosses` é variável local do script (não fica em window)
+            if (typeof listaBosses !== 'undefined' && Array.isArray(listaBosses)) {
+                for (let b of listaBosses) {
+                    if (b && b.hp > 0 && Math.hypot(b.x - pX, b.y - pY) <= raio) return true;
+                }
+            }
+            return false;
+        }
+
         function dispararMeteoro(tx, ty) {
             if (window.estaMorto || window.meteoroCooldownAtivo || window.minhaClasse !== 'mago') return;
+            if (!checarSkill('meteoro', 30, tx, ty, 380)) return;
             let p = clamparAlcanceSkill('meteoro', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
             window.meteoroCooldownAtivo = true; btnMeteoro.classList.add("cooldown"); registrarCooldownBotao(btnMeteoro, 7000);
@@ -897,6 +1061,7 @@
 
         function dispararNevasca(tx, ty) {
             if (window.estaMorto || window.nevascaCooldownAtivo || window.minhaClasse !== 'mago') return;
+            if (!checarSkill('nevasca', 35, tx, ty, 350)) return;
             let p = clamparAlcanceSkill('nevasca', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
             window.nevascaCooldownAtivo = true; btnNevasca.classList.add("cooldown"); registrarCooldownBotao(btnNevasca, 12000);
@@ -906,6 +1071,7 @@
 
         function dispararVulcao(tx, ty) {
             if (window.estaMorto || window.vulcaoCooldownAtivo || window.minhaClasse !== 'mago') return;
+            if (!checarSkill('vulcao', 20, tx, ty, 380)) return;
             let p = clamparAlcanceSkill('vulcao', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
             window.vulcaoCooldownAtivo = true; btnVulcao.classList.add("cooldown"); registrarCooldownBotao(btnVulcao, 20000);
@@ -915,6 +1081,7 @@
 
         function dispararChuva(tx, ty) {
             if (window.estaMorto || window.chuvaCooldownAtivo || window.minhaClasse !== 'arqueiro') return;
+            if (!checarSkill('chuva', 22, tx, ty, 420)) return;
             let p = clamparAlcanceSkill('chuva', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
             window.chuvaCooldownAtivo = true; btnArqueiroChuva.classList.add("cooldown"); registrarCooldownBotao(btnArqueiroChuva, 6000);
@@ -925,7 +1092,8 @@
         }
 
         function usarRajadaFlechas() {
-            if (window.estaMorto || window.arqueiroRajadaCooldown || window.minhaClasse !== 'arqueiro') return;
+            if (window.estaMorto || window.arqueiroRajadaCooldown || window.arqueiroRajadaLigada || window.minhaClasse !== 'arqueiro') return;
+            if (!checarSkill('rajada', 30)) return;
             window.arqueiroRajadaCooldown = true;
             window.arqueiroRajadaLigada = true;
             btnArqueiroRajada.classList.add("cooldown"); registrarCooldownBotao(btnArqueiroRajada, 12000);
@@ -942,6 +1110,7 @@
 
         function dispararJulgamento(tx, ty) {
             if (window.estaMorto || window.julgamentoCooldownAtivo || window.minhaClasse !== 'curandeiro') return;
+            if (!checarSkill('julgamento', 24, tx, ty, 340)) return;
             let p = clamparAlcanceSkill('julgamento', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
             window.julgamentoCooldownAtivo = true; btnCurandeiroJulgamento.classList.add("cooldown"); registrarCooldownBotao(btnCurandeiroJulgamento, 6500);
@@ -953,6 +1122,7 @@
 
         function dispararEsmagamento(tx, ty) {
             if (window.estaMorto || window.esmagamentoCooldownAtivo || window.minhaClasse !== 'barbaro') return;
+            if (!checarSkill('esmagamento', 25, tx, ty, 240)) return;
             let p = clamparAlcanceSkill('esmagamento', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
             window.esmagamentoCooldownAtivo = true; btnBarbaroEsmagamento.classList.add("cooldown"); registrarCooldownBotao(btnBarbaroEsmagamento, 6000);
@@ -969,6 +1139,7 @@
 
         function dispararTeleporte(tx, ty) {
             if (window.estaMorto || roqueiroTeleporteCooldown || window.minhaClasse !== 'roqueiro') return;
+            if (!checarSkill('teleporte', 15, tx, ty, 300)) return;
             let p = clamparAlcanceSkill('teleporte', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
             roqueiroTeleporteCooldown = true; btnRoqueiroTeleporte.classList.add("cooldown"); registrarCooldownBotao(btnRoqueiroTeleporte, 8000);
@@ -984,7 +1155,8 @@
             let d = window.dragSkill;
             if (!d.ativo) return;
             let skill = d.skill;
-            let tx = d.x, ty = d.y;
+            let tx = (typeof d.xRaw === 'number') ? d.xRaw : d.x;
+            let ty = (typeof d.yRaw === 'number') ? d.yRaw : d.y;
             window.dragSkill = { ativo: false, skill: null, touchId: null, x: 0, y: 0 };
             cancelarTodasMiras();
             if (statusText) statusText.innerText = "";
@@ -997,10 +1169,13 @@
             else if (skill === 'esmagamento') dispararEsmagamento(tx, ty);
             else if (skill === 'teleporte') dispararTeleporte(tx, ty);
             else if (skill === 'salto') dispararSaltoOgro(tx, ty);
+            else if (skill === 'bomba') dispararLadinoBomba(tx, ty);
+            else if (skill === 'estrela') dispararLadinoEstrela(tx, ty);
         }
 
         function dispararSaltoOgro(tx, ty) {
             if (window.estaMorto || window.ogroSaltoCooldown || window.minhaClasse !== 'summoner') return;
+            if (!checarSkill('salto', 20, tx, ty, 360)) return;
             let p = clamparAlcanceSkill('salto', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
             window.ogroSaltoCooldown = true; btnOgroSalto.classList.add("cooldown"); registrarCooldownBotao(btnOgroSalto, 8000);
@@ -1018,9 +1193,87 @@
                 return;
             }
             let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
-            let tx = mira ? mira.tx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 200);
-            let ty = mira ? mira.ty : (window.meuY + 16 + Math.sin(window.meuAngulo) * 200);
+            let tx = mira ? mira.rx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 200);
+            let ty = mira ? mira.ry : (window.meuY + 16 + Math.sin(window.meuAngulo) * 200);
             dispararSaltoOgro(tx, ty);
+        }
+
+        // ===== LADINO: SKILLS (CD visual client-side; servidor é autoritativo) =====
+        function usarDancaAdagas() {
+            if (window.estaMorto || window.ladinoDancaCooldown || window.minhaClasse !== 'ladino') return;
+            if (window.ladinoEstrelaAtivo) return;
+            if (!checarSkill('danca_das_adagas', 25)) return;
+            if (!existeAlvoLadinoProximo(110)) { avisoSkillLocal('alcance'); return; }
+            cancelarTodasMiras();
+            window.ladinoDancaCooldown = true; btnLadinoDanca.classList.add("cooldown"); registrarCooldownBotao(btnLadinoDanca, 12000);
+            setTimeout(() => { window.ladinoDancaCooldown = false; btnLadinoDanca.classList.remove("cooldown"); btnLadinoDanca.dataset.cdUntil = ''; }, 12000);
+            if (typeof window.tocarSomLadinoDanca === 'function') window.tocarSomLadinoDanca();
+            if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'ladino_danca' })); }
+        }
+
+        function dispararLadinoBomba(tx, ty) {
+            if (window.estaMorto || window.ladinoBombaCooldown || window.minhaClasse !== 'ladino') return;
+            if (!checarSkill('nevoeiro_venenoso', 20, tx, ty, 200)) return;
+            let p = clamparAlcanceSkill('bomba', tx, ty); tx = p.x; ty = p.y;
+            cancelarTodasMiras();
+            window.ladinoBombaCooldown = true; btnLadinoBomba.classList.add("cooldown"); registrarCooldownBotao(btnLadinoBomba, 8000);
+            setTimeout(() => { window.ladinoBombaCooldown = false; btnLadinoBomba.classList.remove("cooldown"); btnLadinoBomba.dataset.cdUntil = ''; }, 8000);
+            if (typeof window.criarBombaVoo === 'function') { window.criarBombaVoo(window.meuX + 12, window.meuY + 10, tx, ty); }
+            if (typeof window.tocarSomLadinoBomba === 'function') window.tocarSomLadinoBomba();
+            if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'ladino_bomba', targetX: tx, targetY: ty })); }
+        }
+
+        function ativarBombaSmartCast() {
+            if (window.estaMorto || window.ladinoBombaCooldown || window.minhaClasse !== 'ladino') return;
+            if (!window.modoMiraBomba) {
+                cancelarTodasMiras();
+                window.modoMiraBomba = true;
+                btnLadinoBomba.classList.add("aiming");
+                statusText.innerText = "🧪 [PC] Mova o mouse e clique para arremessar a bomba de veneno! (ESC cancela)";
+                return;
+            }
+            let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
+            let tx = mira ? mira.rx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 200);
+            let ty = mira ? mira.ry : (window.meuY + 16 + Math.sin(window.meuAngulo) * 200);
+            dispararLadinoBomba(tx, ty);
+        }
+
+        function usarCamuflagemSombria() {
+            if (window.estaMorto || window.ladinoCamuflagemCooldown || window.minhaClasse !== 'ladino') return;
+            if (window.ladinoInvisivelAtivo) return;
+            if (!checarSkill('camuflagem_sombria', 20)) return;
+            cancelarTodasMiras();
+            window.ladinoCamuflagemCooldown = true; btnLadinoCamuflagem.classList.add("cooldown"); registrarCooldownBotao(btnLadinoCamuflagem, 10000);
+            setTimeout(() => { window.ladinoCamuflagemCooldown = false; btnLadinoCamuflagem.classList.remove("cooldown"); btnLadinoCamuflagem.dataset.cdUntil = ''; }, 10000);
+            if (typeof window.criarFumacaLadino === 'function') { window.criarFumacaLadino(window.meuX + 12, window.meuY + 16, 10, '#9b59b6'); }
+            if (typeof window.tocarSomLadinoInvisivel === 'function') window.tocarSomLadinoInvisivel();
+            if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'ladino_camuflagem' })); }
+        }
+
+        function dispararLadinoEstrela(tx, ty) {
+            if (window.estaMorto || window.ladinoEstrelaCooldown || window.minhaClasse !== 'ladino') return;
+            if (!checarSkill('estrela_da_morte', 30, tx, ty, 380)) return;
+            let p = clamparAlcanceSkill('estrela', tx, ty); tx = p.x; ty = p.y;
+            cancelarTodasMiras();
+            window.ladinoEstrelaCooldown = true; btnLadinoEstrela.classList.add("cooldown"); registrarCooldownBotao(btnLadinoEstrela, 20000);
+            setTimeout(() => { window.ladinoEstrelaCooldown = false; btnLadinoEstrela.classList.remove("cooldown"); btnLadinoEstrela.dataset.cdUntil = ''; }, 20000);
+            if (typeof window.tocarSomLadinoEstrela === 'function') window.tocarSomLadinoEstrela();
+            if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'ladino_estrela', targetX: tx, targetY: ty })); }
+        }
+
+        function ativarEstrelaSmartCast() {
+            if (window.estaMorto || window.ladinoEstrelaCooldown || window.minhaClasse !== 'ladino') return;
+            if (!window.modoMiraEstrela) {
+                cancelarTodasMiras();
+                window.modoMiraEstrela = true;
+                btnLadinoEstrela.classList.add("aiming");
+                statusText.innerText = "⭐ [PC] Mova o mouse e clique para marcar o centro da Estrela da Morte! (ESC cancela)";
+                return;
+            }
+            let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
+            let tx = mira ? mira.rx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 200);
+            let ty = mira ? mira.ry : (window.meuY + 16 + Math.sin(window.meuAngulo) * 200);
+            dispararLadinoEstrela(tx, ty);
         }
 
         let perfuranteCooldownAtivo = false;
@@ -1028,7 +1281,12 @@
         window.arqueiroRajadaLigada = false;
         let curaCooldownAtivo = false;
         window.ogroSkillCooldown = false; window.ogroSaltoCooldown = false; window.modoMiraSaltoOgro = false; window.impactosSismicos = []; window.saltosOgroAtivos = [];
+        window.ogroModoAtivo = 'agressivo'; // modo do Golem: 'agressivo' (ataca alvo focado) ou 'passivo' (só rodeia)
         let listaLacaios = {}; let ataqueBasicoCooldown = false; const INTERVALO_ATAQUE_BASICO_MS = 350;
+        // ===== ATAQUE BÁSICO AUTOMÁTICO (auto-attack) =====
+        let autoAlvo = null;            // { tipo:'slime'|'boss', id, x, y } — alvo estável
+        let proximoAutoAtaqueEm = 0;    // performance.now() do próximo ataque permitido
+        let ultimoAutoAtaqueEm = 0;     // feedback visual de ataque executado
         let historicoDano = []; let danoTotalAcumulado = 0;
         window.meuId = null; window.meuX = 60474, window.meuY = 640; window.meuHp = 100, window.meuMaxHp = 100; window.estaMorto = false;
         let _tickBateria = 0; window.ultimoWorldUpdateAt = 0;
@@ -1062,8 +1320,14 @@
                 ['btn-roqueiro-bateria', () => window.roqueiroBateriaCooldown, 8],
                 ['btn-roqueiro-teleporte', () => roqueiroTeleporteCooldown, 8],
                 ['btn-roqueiro-banda', () => window.roqueiroBandaCooldown, 10],
+                ['btn-roqueiro-grito', () => window.roqueiroGritoGuerraCooldown, 60],
+                ['btn-ladino-danca', () => window.ladinoDancaCooldown, 12],
+                ['btn-ladino-bomba', () => window.ladinoBombaCooldown, 8],
+                ['btn-ladino-camuflagem', () => window.ladinoCamuflagemCooldown, 10],
+                ['btn-ladino-estrela', () => window.ladinoEstrelaCooldown, 20],
                 ['btn-ogro-skill', () => window.ogroSkillCooldown, 8],
                 ['btn-ogro-salto', () => window.ogroSaltoCooldown, 8],
+                ['btn-ogro-colossal', () => window.ogroColossalCooldown, 45],
                 ['btn-dash', () => window.dashCooldownAtivo, 5],
                 ['btn-tornado', () => window.tornadoCooldownAtivo, 10],
                 ['btn-guerreiro-provocacao', () => window.guerreiroProvocacaoCooldown, 10]
@@ -1116,6 +1380,20 @@
             ws = new WebSocket(wsUrl);
             window.ws = ws;
 
+            // v1.30.3: registra a última skill enviada para cancelar seu cooldown visual
+            // quando o servidor rejeitar (Sem Mana / Fora de alcance).
+            window.ultimoSkillEnviado = null;
+            const _wsSendOriginal = ws.send.bind(ws);
+            ws.send = function (payload) {
+                try {
+                    const obj = (typeof payload === 'string') ? JSON.parse(payload) : payload;
+                    if (obj && typeof obj.action === 'string' && typeof ACOES_SKILL_CANCELAVEIS !== 'undefined' && ACOES_SKILL_CANCELAVEIS.indexOf(obj.action) !== -1) {
+                        window.ultimoSkillEnviado = { skill: obj.action, ts: Date.now() };
+                    }
+                } catch (e) {}
+                return _wsSendOriginal(payload);
+            };
+
             ws.onopen = () => {
                 _enviarErrosPendentes();
                 statusText.innerText = "Status: Conectado!";
@@ -1130,7 +1408,16 @@
 
             ws.onmessage = (event) => {
                 try {
-                    let dados = JSON.parse(event.data);
+                        let dados = JSON.parse(event.data);
+                        // Eventos espaciais de outro mapa nao podem produzir imagem ou som local.
+                        // EXCECOES: init/teleporte_confirmado/respawn_confirmado carregam a posicao
+                        // do proprio jogador em OUTRO mapa (cidade) e precisam SEMPRE passar,
+                        // senao o respawn e descartado e o jogador fica preso na borda do mapa.
+                        if (dados && Number.isFinite(dados.x) && Number.isFinite(dados.y) && dados.type !== 'init' && dados.type !== 'teleporte_confirmado' && dados.type !== 'respawn_confirmado') {
+                            const mapaEvento = dados.x >= window.LARGURA_ARENA ? 'arena' : (dados.x >= window.LARGURA_CIDADE && dados.x < window.FIM_CIDADE ? 'cidade' : (dados.x >= window.LARGURA_PANTANO ? 'caverna' : (dados.x >= window.LARGURA_DESERTO ? 'pantano' : (dados.x >= window.LARGURA_VERDE ? 'desert' : 'green'))));
+                            if (mapaEvento !== window.currentMap) return;
+                        }
+                        if (window.AudioManager && typeof window.AudioManager.handleGameEvent === 'function') window.AudioManager.handleGameEvent(dados);
                     if (dados.type === 'pong') {
                         pingAtual = Math.max(0, Date.now() - (dados.t || Date.now()));
                     }
@@ -1186,6 +1473,10 @@
                         if (dados.pontosHabilidade !== undefined) window.pontosHabilidade = dados.pontosHabilidade;
                         if (dados.mana !== undefined) window.meuMp = dados.mana;
                         if (dados.maxMp) window.meuMaxMp = dados.maxMp;
+                        if (dados.ogroModo) {
+                            window.ogroModoAtivo = (dados.ogroModo === 'passivo') ? 'passivo' : 'agressivo';
+                            if (typeof atualizarUiModoOgro === 'function') atualizarUiModoOgro();
+                        }
                         if (dados.skills) {
                             window.skillsNiveis = {};
                             Object.keys(dados.skills).forEach(function (sid) {
@@ -1199,6 +1490,7 @@
                         window.ehAdmin = !!dados.admin || (window.meuId && window.meuId.toLowerCase() === 'admin');
                         if (window.ehAdmin) {
                             if (typeof mostrarBotaoSpawnAdmin === "function") mostrarBotaoSpawnAdmin();
+                            if (typeof window.mostrarBotaoVfxAdmin === "function") window.mostrarBotaoVfxAdmin();
                             if (typeof mostrarBotaoColisaoEditor === "function") mostrarBotaoColisaoEditor();
                         }
                         if (classePendente) {
@@ -1212,13 +1504,40 @@
                     }
 
                     if (dados.type === 'teleporte_confirmado') {
+                        autoAlvo = null; proximoAutoAtaqueEm = 0; // muda de mapa: cancela alvo/ataque
                         if (typeof dados.x === 'number' && typeof dados.y === 'number') {
                             let mapaDestino = dados.mapa;
                             let mapaMostrar = (mapaDestino === 'arena') ? 'arena' : ((mapaDestino === 'cidade') ? 'cidade' : ((mapaDestino === 'caverna') ? 'caverna' : ((mapaDestino === 'pantano') ? 'pantano' : ((mapaDestino === 'desert') ? 'desert' : 'green'))));
                             fadeTeleporte(mapaMostrar, dados.x, dados.y);
-                            if (window.ws && window.ws.readyState === WebSocket.OPEN) window.ws.send(JSON.stringify({ x: dados.x, y: dados.y, angulo: window.meuAngulo || 0, moving: false }));
                             if (statusText) statusText.innerText = "🌀 Teleportado para " + mapaMostrar + "!";
                         }
+                    }
+
+                    if (dados.type === 'teleporte_recusado') {
+                        window.transicaoMapaAtiva = false;
+                        window.teleporteDestinoSelecionado = null;
+                        if (typeof fecharTeleporteMapas === 'function') fecharTeleporteMapas();
+                        if (statusText) statusText.innerText = 'Portal indisponível ou distante.';
+                    }
+
+                    if (dados.type === 'respawn_confirmado') {
+                        autoAlvo = null; proximoAutoAtaqueEm = 0; // respawn: zera estado do auto-ataque
+                        window.meuX = Number(dados.x);
+                        window.meuY = Number(dados.y);
+                        window.meuHp = window.meuMaxHp;
+                        window.meuMp = window.meuMaxMp;
+                        window.minhaEstamina = 100;
+                        window.meusEfeitos = [];
+                        if (window.todosJogadores && window.meuId && window.todosJogadores[window.meuId]) {
+                            window.todosJogadores[window.meuId].efeitos = [];
+                            window.todosJogadores[window.meuId].hp = window.meuHp;
+                        }
+                        window.currentMap = 'cidade';
+                        window.transicaoMapaAtiva = false;
+                        window.portalMapaBloqueado = { x: window.meuX + 12, y: window.meuY + 16, raio: 90 };
+                        const fadeRespawn = document.getElementById('overlay-teleporte-fade');
+                        if (fadeRespawn) fadeRespawn.style.opacity = '0';
+                        if (window.AudioManager && typeof window.AudioManager.setMapAmbient === 'function') window.AudioManager.setMapAmbient('cidade');
                     }
 
                     if (dados.type === 'spawn_flags') {
@@ -1226,9 +1545,17 @@
                         if (typeof atualizarPainelSpawnAdmin === "function") atualizarPainelSpawnAdmin();
                     }
 
+                    if (dados.type === 'map_vfx') {
+                        window.vfxMapa = dados.vfx || [];
+                        if (typeof window.receberVfxMapa === 'function') window.receberVfxMapa(window.vfxMapa);
+                    }
+
                     if (dados.type === 'colisoes_atualizadas') {
                         if (dados.mapa === 'cidade' && window.mapaCidade && typeof window.mapaCidade.carregarObstaculos === 'function') {
                             window.mapaCidade.carregarObstaculos(dados.obstaculos);
+                            if (Array.isArray(dados.camadas) && typeof window.mapaCidade.carregarCamadas === 'function') {
+                                window.mapaCidade.carregarCamadas(dados.camadas);
+                            }
                             if (typeof window.atualizarListaColisoesUI === 'function') window.atualizarListaColisoesUI();
                             if (typeof window.atualizarPropriedadesUI === 'function') window.atualizarPropriedadesUI();
                         }
@@ -1313,7 +1640,13 @@
                     }
 
                     if (dados.type === 'mp_insuficiente') {
-                        window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 34, text: "💧 MP insuficiente!", color: "#3498db", alpha: 1.0 });
+                        if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 34, text: "💧 Sem Mana!", color: "#3498db", alpha: 1.0 });
+                        if (typeof cancelarCooldownUltimaSkill === 'function') cancelarCooldownUltimaSkill();
+                    }
+
+                    if (dados.type === 'skill_aviso' && dados.motivo === 'fora_alcance') {
+                        if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 34, text: "🎯 Fora de alcance!", color: "#e74c3c", alpha: 1.0 });
+                        if (typeof cancelarCooldownUltimaSkill === 'function') cancelarCooldownUltimaSkill();
                     }
 
                     if (dados.type === 'aura_sagrada_cooldown') {
@@ -1527,6 +1860,9 @@
                         window.listaBandaRoqueiro = dados.bandas || {};
                         listaBosses = dados.bosses || [];
                         window.listaDrops = dados.drops || [];
+                        window.vfxMapa = dados.mapVfx || window.vfxMapa || [];
+                        // LADINO: zonas de gás venenoso (posições/autoridade do servidor)
+                        window.gasesVeneno = dados.gases || [];
 
                         let bossAtivoHud = null;
                         let melhorDistHud = 520;
@@ -1547,7 +1883,9 @@
 
                         if (window.meuId && window.todosJogadores[window.meuId]) {
                             let distDesync = Math.hypot(window.todosJogadores[window.meuId].x - window.meuX, window.todosJogadores[window.meuId].y - window.meuY);
-                            if (distDesync > 120) { window.meuX = window.todosJogadores[window.meuId].x; window.meuY = window.todosJogadores[window.meuId].y; }
+                            // Durante Dança/Estrela o SERVIDOR move o personagem (coreografia): o cliente
+                            // sempre segue a posição do servidor para não "andar" para fora da skill.
+                            if ((distDesync > 120 || window.ladinoEstrelaAtivo || window.ladinoDancaAtivo) && !window.transicaoMapaAtiva) { window.meuX = window.todosJogadores[window.meuId].x; window.meuY = window.todosJogadores[window.meuId].y; }
 
                             if (window.todosJogadores[window.meuId].atributos) window.meusAtributos = window.todosJogadores[window.meuId].atributos;
                             if (window.todosJogadores[window.meuId].atributosTotais) window.atributosTotais = window.todosJogadores[window.meuId].atributosTotais;
@@ -1578,6 +1916,7 @@
 
                             if (window.meuHp <= 0 && !window.estaMorto) {
                                 window.estaMorto = true; autofarmLigado = false;
+                                autoAlvo = null; proximoAutoAtaqueEm = 0; // cancela auto-ataque ao morrer
                                 cancelarTodasMiras();
                                 btnAutofarm.classList.remove("active"); deathScreen.style.display = "flex";
                             }
@@ -1645,9 +1984,9 @@
                     if (dados.type === 'action_orbe' && window.todosJogadores[dados.id] && dados.id !== window.meuId) { tocarSomOrbe(); }
                     if (dados.type === 'action_flecha') {
                         if (dados.id !== window.meuId) tocarSomFlecha();
-                        if (dados.id === window.meuId && typeof window.criarAnimacaoFlechaBasica === 'function' && typeof dados.x === 'number') {
-                            window.criarAnimacaoFlechaBasica(dados.x, dados.y, dados.vx, dados.vy);
-                        }
+                        // FIX flecha dupla: a flecha do ATIRADOR já é renderizada via
+                        // world_update → playerProjeteis (desenharPlayerProjetil). A chamada
+                        // criarAnimacaoFlechaBasica criava uma SEGUNDA flecha sobre a mesma.
                     }
                     if (dados.type === 'action_sagrado' && window.todosJogadores[dados.id] && dados.id !== window.meuId) { tocarSomLuzSagrada(); }
                     if (dados.type === 'action_ogro_sismico') { if(typeof window.criarAnimacaoOgroSismico === "function") window.criarAnimacaoOgroSismico(dados.x, dados.y); }
@@ -1658,7 +1997,7 @@
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 45, text: "🦁 RUGIDO!", color: "#9b59b6", alpha: 1.0 });
                     }
                     if (dados.type === 'action_meteoro') { if(typeof window.criarAnimacaoMeteoro === "function") window.criarAnimacaoMeteoro(dados.targetX, dados.targetY); }
-                    if (dados.type === 'action_nevasca') { if(typeof window.criarAnimacaoNevasca === "function") window.criarAnimacaoNevasca(dados.targetX, dados.targetY, dados.radius); }
+                    if (dados.type === 'action_nevasca') { if(typeof window.criarAnimacaoNevasca === "function") window.criarAnimacaoNevasca(dados.targetX, dados.targetY, dados.radius, dados.duracaoMs); }
                     if (dados.type === 'action_vulcao') { if(typeof window.criarAnimacaoVulcao === "function") window.criarAnimacaoVulcao(dados.targetX, dados.targetY, dados.radius, dados.duracao); }
                     if (dados.type === 'vulcao_projetil') { if(typeof window.criarVulcaoProjetil === "function") window.criarVulcaoProjetil(dados.vx, dados.vy, dados.tx, dados.ty, dados.tipo, dados.id); }
                     if (dados.type === 'vulcao_impacto') { if(typeof window.criarVulcaoImpacto === "function") window.criarVulcaoImpacto(dados.tx, dados.ty, dados.tipo, dados.id); }
@@ -1704,10 +2043,10 @@
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 64, text: "💀 OGOR CAIU!", color: "#ff5252", alpha: 1.0 });
                     }
                     if (dados.type === 'action_ogro_colossal') {
+                                                tocarSomImpactoPesado();
                         window.lacaioColossal = window.lacaioColossal || {};
                         window.lacaioColossal[dados.pid] = true;
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 60, text: "🗿 GOLEM COLOSSAL!", color: "#e67e22", alpha: 1.0 });
-                        tocarSomImpactoPesado();
                     }
                     if (dados.type === 'action_ogro_colossal_fim') {
                         if (window.lacaioColossal) delete window.lacaioColossal[dados.pid];
@@ -1736,7 +2075,7 @@
                     if (dados.type === 'action_arqueiro_chuva') {
                         tocarSomChuvaFlechas();
                         if (typeof window.criarAnimacaoChuvaFlechas === 'function') {
-                            window.criarAnimacaoChuvaFlechas(dados.targetX, dados.targetY);
+                            window.criarAnimacaoChuvaFlechas(dados.targetX, dados.targetY, dados.duracaoMs);
                         }
                     }
                     if (dados.type === 'action_arqueiro_perfurante') {
@@ -1825,15 +2164,17 @@
                     if (dados.type === 'action_barbaro_furia') {
                         tocarSomFuria();
                         if (typeof window.criarAnimacaoFuriaBerserker === 'function') {
-                            window.criarAnimacaoFuriaBerserker(dados.id);
+                            window.criarAnimacaoFuriaBerserker(dados.id, dados.duracaoMs);
                         }
                     }
                     if (dados.type === 'action_barbaro_giro_start') {
+                        if (dados.id === window.meuId) window.giroDescontroladoLigado = true;
                         if (typeof window.criarAnimacaoGiroBarbaro === 'function') {
-                            window.criarAnimacaoGiroBarbaro(dados.id, dados.x, dados.y);
+                            window.criarAnimacaoGiroBarbaro(dados.id, dados.x, dados.y, dados.duracaoMs);
                         }
                     }
                     if (dados.type === 'action_barbaro_giro_end') {
+                        if (dados.id === window.meuId) window.giroDescontroladoLigado = false;
                         if (typeof window.finalizarAnimacaoGiroBarbaro === 'function') {
                             window.finalizarAnimacaoGiroBarbaro(dados.id);
                         }
@@ -1855,14 +2196,96 @@
                         window.roqueiroBateriaLigada = false;
                     }
                     if (dados.type === 'action_roqueiro_teleporte' && window.todosJogadores[dados.id]) {
+                                                if (dados.id === window.meuId) tocarSomSalto();
                         if (typeof window.criarAnimacaoTeleporteRoqueiro === 'function') {
                             window.criarAnimacaoTeleporteRoqueiro(dados.x + 12, dados.y + 16);
                         }
-                        if (dados.id === window.meuId) tocarSomSalto();
                     }
                     if (dados.type === 'action_roqueiro_banda' && dados.id === window.meuId) {
                         tocarSomFuria();
                         window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 35, text: "🎸 A BANDA CHEGOU!", color: "#e67e22", alpha: 1.0 });
+                    }
+                    // ===== LADINO =====
+                    if (dados.type === 'action_ladino_golpe') {
+                        if (dados.id && dados.id !== window.meuId) {
+                            if (typeof window.criarAnimacaoAdagaBasica === 'function') window.criarAnimacaoAdagaBasica(dados.x, dados.y, dados.angulo || 0);
+                            if (typeof window.tocarSomAdaga === 'function') window.tocarSomAdaga();
+                        }
+                    }
+                    if (dados.type === 'action_ladino_danca') {
+                        window.ladinoDancaAtivo = true;
+                        if (typeof window.tocarSomLadinoDanca === 'function') window.tocarSomLadinoDanca();
+                        if (typeof window.criarRastroLadino === 'function') {
+                            window.criarRastroLadino(dados.startX, dados.startY);
+                            (dados.alvos || []).forEach(a => window.criarRastroLadino(a.x, a.y));
+                        }
+                    }
+                    if (dados.type === 'action_ladino_danca_hit') {
+                        if (typeof window.criarRastroLadino === 'function') window.criarRastroLadino(dados.x, dados.y);
+                        if (typeof window.criarFlashLadino === 'function') window.criarFlashLadino(dados.x, dados.y, '#ecf0f1', 6);
+                        if (dados.id === window.meuId && typeof window.tocarSomLadinoDanca === 'function') window.tocarSomLadinoDanca();
+                    }
+                    if (dados.type === 'action_ladino_danca_end') {
+                        window.ladinoDancaAtivo = false;
+                        if (typeof window.criarFumacaLadino === 'function') window.criarFumacaLadino(dados.x, dados.y, 8, '#8e44ad');
+                    }
+                    if (dados.type === 'action_ladino_bomba') {
+                        if (typeof window.tocarSomLadinoBomba === 'function') window.tocarSomLadinoBomba();
+                        let origem = null;
+                        if (dados.ownerId && window.todosJogadores[dados.ownerId]) origem = { x: window.todosJogadores[dados.ownerId].x + 12, y: window.todosJogadores[dados.ownerId].y + 16 };
+                        else if (dados.ownerId === window.meuId) origem = { x: window.meuX + 12, y: window.meuY + 10 };
+                        if (typeof window.criarBombaVoo === 'function') {
+                            window.criarBombaVoo(origem ? origem.x : dados.x - 60, origem ? origem.y : dados.y + 20, dados.x, dados.y);
+                        }
+                    }
+                    if (dados.type === 'action_ladino_gas_dano') {
+                        if (typeof window.criarPuffVeneno === 'function') window.criarPuffVeneno(dados.x, dados.y, 80, false);
+                    }
+                    if (dados.type === 'action_ladino_gas_fim') {
+                        if (typeof window.criarPuffVeneno === 'function') window.criarPuffVeneno(dados.x, dados.y, 60, false);
+                    }
+                    if (dados.type === 'action_ladino_camuflagem' && dados.id === window.meuId) {
+                        if (typeof window.criarFumacaLadino === 'function') window.criarFumacaLadino(window.meuX + 12, window.meuY + 16, 12, '#9b59b6');
+                    }
+                    if (dados.type === 'action_ladino_invisivel') {
+                        // v1.30.3: só o PRÓPRIO jogador atualiza o estado local de invisibilidade.
+                        // Antes, a invisibilidade de QUALQUER outro ladino no mapa travava a skill 3.
+                        if (dados.id === window.meuId) {
+                            window.ladinoInvisivelAtivo = !!dados.ativo;
+                            if (window._invisResetTimer) { clearTimeout(window._invisResetTimer); window._invisResetTimer = null; }
+                            if (dados.ativo) {
+                                // Rede de segurança: nunca deixa o estado preso em true
+                                window._invisResetTimer = setTimeout(() => { window.ladinoInvisivelAtivo = false; }, 11000);
+                            }
+                        }
+                        if (dados.id !== window.meuId && window.todosJogadores[dados.id]) {
+                            let jp = window.todosJogadores[dados.id];
+                            if (typeof window.criarFumacaLadino === 'function') window.criarFumacaLadino(jp.x + 12, jp.y + 16, 8, '#9b59b6');
+                        }
+                    }
+                    if (dados.type === 'action_ladino_estrela') {
+                        window.ladinoEstrelaAtivo = true;
+                        if (typeof window.criarEstrelaLadino === 'function') window.criarEstrelaLadino(dados.cx, dados.cy, dados.raio, (dados.pontos || []));
+                        if (dados.id === window.meuId && typeof window.tocarSomLadinoEstrela === 'function') window.tocarSomLadinoEstrela();
+                    }
+                    if (dados.type === 'action_ladino_estrela_ponto') {
+                        if (typeof window.criarFlashLadino === 'function') window.criarFlashLadino(dados.x, dados.y, '#c39bd3', 5);
+                    }
+                    if (dados.type === 'action_ladino_estrela_salto') {
+                        if (typeof window.criarFumacaLadino === 'function') window.criarFumacaLadino(dados.x, dados.y, 6, '#8e44ad');
+                    }
+                    if (dados.type === 'action_ladino_estrela_queda') {
+                        window.ladinoQueda = { x: dados.x, y: dados.y, vida: 1.0 };
+                    }
+                    if (dados.type === 'action_ladino_estrela_impacto') {
+                        window.ladinoEstrelaAtivo = false;
+                        window.tremorTela = Math.max(window.tremorTela, 30);
+                        if (navigator.vibrate) { try { navigator.vibrate(80); } catch (e) {} }
+                        if (typeof window.criarOndaImpacto === 'function') window.criarOndaImpacto(dados.x, dados.y, dados.raio);
+                        if (dados.id === window.meuId && typeof window.tocarSomLadinoEstrela === 'function') window.tocarSomLadinoEstrela();
+                    }
+                    if (dados.type === 'action_ladino_sangue') {
+                        if (typeof window.criarSangueLadino === 'function') window.criarSangueLadino(dados.x, dados.y);
                     }
                     // Boss: Golem de Pedra
                     if (dados.type === 'boss_golem_levantar') { if (typeof window.criarLevantarGolem === 'function') window.criarLevantarGolem(dados.x, dados.y); }
@@ -1873,6 +2296,11 @@
                         if (navigator.vibrate) { try { navigator.vibrate(70); } catch (e) {} }
                     }
                     if (dados.type === 'boss_golem_morte') { if (typeof window.criarMorteGolem === 'function') window.criarMorteGolem(dados.x, dados.y); }
+                    if (dados.type === 'monster_skill_impact') {
+                        window.monsterSkillImpacts = window.monsterSkillImpacts || [];
+                        window.monsterSkillImpacts.push({ x: dados.x, y: dados.y, skill: dados.skill, ttl: 24 });
+                        window.tremorTela = Math.max(window.tremorTela, dados.skill === 'meteor' ? 12 : 5);
+                    }
                     if (dados.type === 'boss_golem_escudo') {
                         if (typeof window.ativarEscudoGolem === 'function') window.ativarEscudoGolem(dados.x, dados.y, dados.tipo);
                         tocarSomEscudoBoss();
@@ -1922,11 +2350,17 @@
             if (btnBarbaroEsmagamento) btnBarbaroEsmagamento.style.display = "none";
             if (btnBarbaroGiro) btnBarbaroGiro.style.display = "none";
             btnRoqueiroBateria.style.display = "none"; btnRoqueiroTeleporte.style.display = "none"; btnRoqueiroBanda.style.display = "none";
+            if (btnRoqueiroGrito) btnRoqueiroGrito.style.display = "none";
+            if (ogroColossalWrap) ogroColossalWrap.style.display = "none";
+            btnLadinoDanca.style.display = "none"; btnLadinoBomba.style.display = "none"; btnLadinoCamuflagem.style.display = "none"; btnLadinoEstrela.style.display = "none";
 
             if (window.minhaClasse === 'mago') {
                 btnMeteoro.style.display = "block"; btnNevasca.style.display = "block"; btnVulcao.style.display = "block"; btnAttack.innerText = "🔮"; btnAttack.style.background = "#9b59b6";
             } else if (window.minhaClasse === 'summoner') {
-                btnOgroSkill.style.display = "block"; btnOgroSalto.style.display = "block"; btnOgroColossal.style.display = "block"; btnAttack.innerText = "👁️"; btnAttack.style.background = "#27ae60";
+                btnOgroSkill.style.display = "block"; btnOgroSalto.style.display = "block"; btnOgroColossal.style.display = "block";
+                if (ogroColossalWrap) ogroColossalWrap.style.display = "block";
+                atualizarUiModoOgro();
+                btnAttack.innerText = "👁️"; btnAttack.style.background = "#27ae60";
             } else if (window.minhaClasse === 'arqueiro') {
                 btnArqueiroChuva.style.display = "block"; btnArqueiroPerfurante.style.display = "block"; btnArqueiroRajada.style.display = "block"; btnAttack.innerText = "🏹"; btnAttack.style.background = "#1abc9c";
             } else if (window.minhaClasse === 'curandeiro') {
@@ -1937,7 +2371,11 @@
                 if (btnBarbaroGiro) btnBarbaroGiro.style.display = "block";
                 btnAttack.innerText = "🪓"; btnAttack.style.background = "#c0392b";
             } else if (window.minhaClasse === 'roqueiro') {
-                btnRoqueiroBateria.style.display = "block"; btnRoqueiroTeleporte.style.display = "block"; btnRoqueiroBanda.style.display = "block"; btnAttack.innerText = "🎸"; btnAttack.style.background = "#e67e22";
+                btnRoqueiroBateria.style.display = "block"; btnRoqueiroTeleporte.style.display = "block"; btnRoqueiroBanda.style.display = "block";
+                if (btnRoqueiroGrito) btnRoqueiroGrito.style.display = "block";
+                btnAttack.innerText = "🎸"; btnAttack.style.background = "#e67e22";
+            } else if (window.minhaClasse === 'ladino') {
+                btnLadinoDanca.style.display = "block"; btnLadinoBomba.style.display = "block"; btnLadinoCamuflagem.style.display = "block"; btnLadinoEstrela.style.display = "block"; btnAttack.innerText = "🗡️"; btnAttack.style.background = "#8e44ad";
             } else {
                 btnTornado.style.display = "block";
                 if (btnGuerreiroProvocacao) btnGuerreiroProvocacao.style.display = "block";
@@ -1965,6 +2403,50 @@
             osc.type = 'sawtooth'; osc.frequency.setValueAtTime(320, now); osc.frequency.exponentialRampToValueAtTime(80, now + 0.18);
             gain.gain.setValueAtTime(0.6, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
             osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.18);
+        }
+
+        // ===== LADINO: SONS (WebAudio sintetizados, sem assets) =====
+        function tocarSomAdaga() {
+            iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime;
+            let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(1400, now); osc.frequency.exponentialRampToValueAtTime(500, now + 0.1);
+            gain.gain.setValueAtTime(0.35, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+            osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.12);
+        }
+
+        function tocarSomLadinoDanca() {
+            iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime;
+            for (let i = 0; i < 3; i++) {
+                let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+                let t0 = now + i * 0.07;
+                osc.type = 'square'; osc.frequency.setValueAtTime(900 - i * 150, t0); osc.frequency.exponentialRampToValueAtTime(300, t0 + 0.08);
+                gain.gain.setValueAtTime(0.18, t0); gain.gain.exponentialRampToValueAtTime(0.01, t0 + 0.09);
+                osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(t0); osc.stop(t0 + 0.1);
+            }
+        }
+
+        function tocarSomLadinoBomba() {
+            iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime;
+            let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(180, now); osc.frequency.exponentialRampToValueAtTime(45, now + 0.35);
+            gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4);
+            osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.4);
+        }
+
+        function tocarSomLadinoInvisivel() {
+            iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime;
+            let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+            osc.type = 'sine'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(950, now + 0.5);
+            gain.gain.setValueAtTime(0.22, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.55);
+            osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.55);
+        }
+
+        function tocarSomLadinoEstrela() {
+            iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime;
+            let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(120, now); osc.frequency.exponentialRampToValueAtTime(32, now + 0.6);
+            gain.gain.setValueAtTime(0.6, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.65);
+            osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.65);
         }
 
         function tocarSomFuria() {
@@ -2077,19 +2559,19 @@
 
         function tocarSomImpactoPesado() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let sub = audioCtx.createOscillator(); let gain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(180, now); sub.frequency.exponentialRampToValueAtTime(30, now + 0.6); gain.gain.setValueAtTime(0.9, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6); sub.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 0.6); }
         function tocarSomSalto() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(500, now + 0.3); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.3); }
-        function tocarSomCorte() { iniciarAudio(); if (!audioCtx) return; let bufferSize = audioCtx.sampleRate * 0.15; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.setValueAtTime(1000, audioCtx.currentTime); filter.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.15); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(); }
+        function tocarSomCorte() { iniciarAudio(); if (!audioCtx) return; let bufferSize = audioCtx.sampleRate * 0.15; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.setValueAtTime(1000, audioCtx.currentTime); filter.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.15); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(); noise.stop(audioCtx.currentTime + 0.15); }
         function tocarSomMagiaBasica() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(550, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.18); gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.18); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.18); }
         function tocarSomOrbe() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(350, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.15); gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15); }
         function tocarSomFlecha() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(900, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.12); gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.12); }
         function tocarSomEscudoBoss() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(450, audioCtx.currentTime + 0.25); gain.gain.setValueAtTime(0.35, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.25); }
         function tocarSomPinoLocal() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'square'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.08); gain.gain.setValueAtTime(0.15, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.08); }
         function tocarSomQuedaMeteoro() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.55); gain.gain.setValueAtTime(0.35, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.55); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.55); }
-        function tocarSomImpactoMeteoro() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let sub = audioCtx.createOscillator(); let subGain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(140, now); sub.frequency.exponentialRampToValueAtTime(30, now + 1.0); subGain.gain.setValueAtTime(0.8, now); subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.0); sub.connect(subGain); subGain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 1.0); let bufferSize = audioCtx.sampleRate * 0.9; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(800, now); filter.frequency.exponentialRampToValueAtTime(80, now + 0.9); let noiseGain = audioCtx.createGain(); noiseGain.gain.setValueAtTime(0.7, now); noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9); noise.connect(filter); filter.connect(noiseGain); noiseGain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); }
-        function tocarSomNevasca() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let bufferSize = audioCtx.sampleRate * 1.5; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.setValueAtTime(600, now); filter.frequency.linearRampToValueAtTime(1400, now + 0.8); filter.frequency.linearRampToValueAtTime(450, now + 1.5); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.5); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); }
+        function tocarSomImpactoMeteoro() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let sub = audioCtx.createOscillator(); let subGain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(140, now); sub.frequency.exponentialRampToValueAtTime(30, now + 1.0); subGain.gain.setValueAtTime(0.8, now); subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.0); sub.connect(subGain); subGain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 1.0); let bufferSize = audioCtx.sampleRate * 0.9; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(800, now); filter.frequency.exponentialRampToValueAtTime(80, now + 0.9); let noiseGain = audioCtx.createGain(); noiseGain.gain.setValueAtTime(0.7, now); noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9); noise.connect(filter); filter.connect(noiseGain); noiseGain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); noise.stop(now + 0.9); }
+        function tocarSomNevasca() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let bufferSize = audioCtx.sampleRate * 1.5; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.setValueAtTime(600, now); filter.frequency.linearRampToValueAtTime(1400, now + 0.8); filter.frequency.linearRampToValueAtTime(450, now + 1.5); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.5); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); noise.stop(now + 1.5); }
         function tocarSomDash() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.3); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.3); }
-        function tocarSomVulcaoErupcao() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let bufferSize = audioCtx.sampleRate * 1.2; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(120, now); filter.frequency.linearRampToValueAtTime(400, now + 0.5); filter.frequency.linearRampToValueAtTime(80, now + 1.2); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.7, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); let sub = audioCtx.createOscillator(); let subGain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(50, now); sub.frequency.exponentialRampToValueAtTime(25, now + 1.0); subGain.gain.setValueAtTime(0.6, now); subGain.gain.exponentialRampToValueAtTime(0.01, now + 1.0); sub.connect(subGain); subGain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 1.0); }
+        function tocarSomVulcaoErupcao() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let bufferSize = audioCtx.sampleRate * 1.2; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(120, now); filter.frequency.linearRampToValueAtTime(400, now + 0.5); filter.frequency.linearRampToValueAtTime(80, now + 1.2); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.7, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); noise.stop(now + 1.2); let sub = audioCtx.createOscillator(); let subGain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(50, now); sub.frequency.exponentialRampToValueAtTime(25, now + 1.0); subGain.gain.setValueAtTime(0.6, now); subGain.gain.exponentialRampToValueAtTime(0.01, now + 1.0); sub.connect(subGain); subGain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 1.0); }
         function tocarSomVulcaoLancamento() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, now); osc.frequency.exponentialRampToValueAtTime(90, now + 0.3); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.3); }
-        function tocarSomVulcaoImpacto() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let bufferSize = audioCtx.sampleRate * 0.4; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(800, now); filter.frequency.exponentialRampToValueAtTime(100, now + 0.4); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.6, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); let sub = audioCtx.createOscillator(); let subGain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(120, now); sub.frequency.exponentialRampToValueAtTime(30, now + 0.35); subGain.gain.setValueAtTime(0.7, now); subGain.gain.exponentialRampToValueAtTime(0.01, now + 0.35); sub.connect(subGain); subGain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 0.35); }
+        function tocarSomVulcaoImpacto() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let bufferSize = audioCtx.sampleRate * 0.4; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(800, now); filter.frequency.exponentialRampToValueAtTime(100, now + 0.4); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.6, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); noise.stop(now + 0.4); let sub = audioCtx.createOscillator(); let subGain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(120, now); sub.frequency.exponentialRampToValueAtTime(30, now + 0.35); subGain.gain.setValueAtTime(0.7, now); subGain.gain.exponentialRampToValueAtTime(0.01, now + 0.35); sub.connect(subGain); subGain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 0.35); }
         function tocarSomTornado() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; [300, 450, 600, 750, 500].forEach((freq, idx) => { let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(freq, now + (idx * 0.08)); gain.gain.setValueAtTime(0.2, now + (idx * 0.08)); gain.gain.exponentialRampToValueAtTime(0.01, now + (idx * 0.08) + 0.12); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now + (idx * 0.08)); osc.stop(now + (idx * 0.08) + 0.12); }); }
         function tocarSomBlock() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'square'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.4, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
         function tocarSomLevelUp() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => { let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.frequency.setValueAtTime(freq, now + index * 0.1); gain.gain.setValueAtTime(0.2, now + index * 0.1); gain.gain.exponentialRampToValueAtTime(0.01, now + index * 0.1 + 0.25); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now + index * 0.1); osc.stop(now + index * 0.1 + 0.25); }); }
@@ -2101,12 +2583,13 @@
         // 1. Fúria Berserker (Buff de 6 segundos com lifesteal)
         function usarFuriaBerserker() {
             if (window.estaMorto || furiaCooldownAtivo || window.minhaClasse !== 'barbaro') return;
+            if (!checarSkill('furia', 20)) return;
             furiaCooldownAtivo = true; btnBarbaroFuria.classList.add("cooldown");
             setTimeout(() => { furiaCooldownAtivo = false; btnBarbaroFuria.classList.remove("cooldown"); }, 8000);
 
             tocarSomFuria();
             if (typeof window.criarAnimacaoFuriaBerserker === 'function') {
-                window.criarAnimacaoFuriaBerserker(window.meuId);
+                window.criarAnimacaoFuriaBerserker(window.meuId, 6000);
             }
 
             if (ws && ws.readyState === WebSocket.OPEN) {
@@ -2116,6 +2599,7 @@
 
         function usarGiroDescontrolado() {
             if (window.estaMorto || window.giroDescontroladoCooldownAtivo || window.minhaClasse !== 'barbaro') return;
+            if (!checarSkill('giro_descontrolado', 30)) return;
             window.giroDescontroladoCooldownAtivo = true;
             btnBarbaroGiro.classList.add("cooldown");
             registrarCooldownBotao(btnBarbaroGiro, 12000);
@@ -2127,7 +2611,7 @@
 
             tocarSomEsmagamento();
             if (typeof window.criarAnimacaoGiroBarbaro === 'function') {
-                window.criarAnimacaoGiroBarbaro(window.meuId, window.meuX + 12, window.meuY + 16);
+                window.criarAnimacaoGiroBarbaro(window.meuId, window.meuX + 12, window.meuY + 16, 10000);
             }
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ action: 'barbaro_giro_descontrolado' }));
@@ -2145,18 +2629,19 @@
                 return;
             }
             let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
-            let tx = mira ? mira.tx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 160);
-            let ty = mira ? mira.ty : (window.meuY + 16 + Math.sin(window.meuAngulo) * 160);
+            let tx = mira ? mira.rx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 160);
+            let ty = mira ? mira.ry : (window.meuY + 16 + Math.sin(window.meuAngulo) * 160);
             dispararEsmagamento(tx, ty);
         }
 
-        function enviarAtaqueBarbaro() {
+        function enviarAtaqueBarbaro(anguloForcado, alvoTipo, alvoId) {
             if (window.estaMorto) return;
             tocarSomMachado();
             let pX = window.meuX + 12;
             let pY = window.meuY + 16;
-            let tx = pX + Math.cos(window.meuAngulo) * 35;
-            let ty = pY + Math.sin(window.meuAngulo) * 35;
+            let anguloMachado = (anguloForcado !== undefined) ? anguloForcado : window.meuAngulo;
+            let tx = pX + Math.cos(anguloMachado) * 35;
+            let ty = pY + Math.sin(anguloMachado) * 35;
 
             if (typeof window.criarAnimacaoSangue === 'function') {
                 window.criarAnimacaoSangue(tx, ty);
@@ -2167,16 +2652,14 @@
                     let dist = Math.hypot(pX - slime.x, pY - slime.y);
                     if (dist < 72) {
                         let anguloAteSlime = Math.atan2(slime.y - pY, slime.x - pX);
-                        let diff = Math.atan2(Math.sin(window.meuAngulo - anguloAteSlime), Math.cos(window.meuAngulo - anguloAteSlime));
+                        let diff = Math.atan2(Math.sin(anguloMachado - anguloAteSlime), Math.cos(anguloMachado - anguloAteSlime));
                         if (Math.abs(diff) < 1.1) {
                         }
                     }
                 }
             });
 
-            if (ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ action: 'ataque_barbaro' }));
-            }
+            if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_barbaro' }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
         }
 
         // Métodos de Smart Cast das outras classes
@@ -2190,8 +2673,8 @@
                 return;
             }
             let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
-            let tx = mira ? mira.tx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 160);
-            let ty = mira ? mira.ty : (window.meuY + 16 + Math.sin(window.meuAngulo) * 160);
+            let tx = mira ? mira.rx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 160);
+            let ty = mira ? mira.ry : (window.meuY + 16 + Math.sin(window.meuAngulo) * 160);
             dispararMeteoro(tx, ty);
         }
 
@@ -2205,8 +2688,8 @@
                 return;
             }
             let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
-            let tx = mira ? mira.tx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 160);
-            let ty = mira ? mira.ty : (window.meuY + 16 + Math.sin(window.meuAngulo) * 160);
+            let tx = mira ? mira.rx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 160);
+            let ty = mira ? mira.ry : (window.meuY + 16 + Math.sin(window.meuAngulo) * 160);
             dispararNevasca(tx, ty);
         }
 
@@ -2220,8 +2703,8 @@
                 return;
             }
             let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
-            let tx = mira ? mira.tx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 160);
-            let ty = mira ? mira.ty : (window.meuY + 16 + Math.sin(window.meuAngulo) * 160);
+            let tx = mira ? mira.rx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 160);
+            let ty = mira ? mira.ry : (window.meuY + 16 + Math.sin(window.meuAngulo) * 160);
             dispararVulcao(tx, ty);
         }
 
@@ -2235,8 +2718,8 @@
                 return;
             }
             let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
-            let tx = mira ? mira.tx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 150);
-            let ty = mira ? mira.ty : (window.meuY + 16 + Math.sin(window.meuAngulo) * 150);
+            let tx = mira ? mira.rx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 150);
+            let ty = mira ? mira.ry : (window.meuY + 16 + Math.sin(window.meuAngulo) * 150);
             dispararChuva(tx, ty);
         }
 
@@ -2250,8 +2733,8 @@
                 return;
             }
             let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
-            let tx = mira ? mira.tx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 140);
-            let ty = mira ? mira.ty : (window.meuY + 16 + Math.sin(window.meuAngulo) * 140);
+            let tx = mira ? mira.rx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 140);
+            let ty = mira ? mira.ry : (window.meuY + 16 + Math.sin(window.meuAngulo) * 140);
             dispararJulgamento(tx, ty);
         }
 
@@ -2265,13 +2748,14 @@
                 return;
             }
             let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
-            let tx = mira ? mira.tx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 120);
-            let ty = mira ? mira.ty : (window.meuY + 16 + Math.sin(window.meuAngulo) * 120);
+            let tx = mira ? mira.rx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 120);
+            let ty = mira ? mira.ry : (window.meuY + 16 + Math.sin(window.meuAngulo) * 120);
             dispararPrece(tx, ty);
         }
 
         function dispararPrece(tx, ty) {
             if (window.estaMorto || curaCooldownAtivo || window.minhaClasse !== 'curandeiro') return;
+            if (!checarSkill('cura', 25, tx, ty, 320)) return;
             let p = clamparAlcanceSkill('prece', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
             curaCooldownAtivo = true; btnCurandeiroCura.classList.add("cooldown");
@@ -2289,6 +2773,8 @@
 
         function usarAuraSagrada() {
             if (window.estaMorto || window.auraSagradaCooldown || window.minhaClasse !== 'curandeiro') return;
+            // Aura Sagrada exige pelo menos 10% do MP máximo (regra do servidor)
+            if ((window.meuMp || 0) <= (window.meuMaxMp || 0) * 0.10) { avisoSkillLocal('mana'); return; }
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ action: 'curandeiro_aura' }));
             }
@@ -2296,6 +2782,7 @@
 
         function usarDisparoPerfurante() {
             if (window.estaMorto || perfuranteCooldownAtivo || window.minhaClasse !== 'arqueiro') return;
+            if (!checarSkill('perfurante', 18)) return;
             perfuranteCooldownAtivo = true; btnArqueiroPerfurante.classList.add("cooldown");
             setTimeout(() => { perfuranteCooldownAtivo = false; btnArqueiroPerfurante.classList.remove("cooldown"); }, 4500);
 
@@ -2317,19 +2804,42 @@
 
         function usarOgroColossal() {
             if (window.estaMorto || window.ogroColossalCooldown || window.minhaClasse !== 'summoner') return;
+            if (!checarSkill('colossal', 40)) return;
             window.ogroColossalCooldown = true; btnOgroColossal.classList.add("cooldown");
+            registrarCooldownBotao(btnOgroColossal, 45000);
             setTimeout(() => { window.ogroColossalCooldown = false; btnOgroColossal.classList.remove("cooldown"); }, 45000);
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'comando_ogro_colossal' })); }
         }
 
+        // ===== SUMMONER: MODO DO GOLEM (agressivo ataca o alvo focado / passivo só rodeia) =====
+        function atualizarUiModoOgro() {
+            let modo = window.ogroModoAtivo || 'agressivo';
+            let ag = document.querySelector('.ogro-modo-agressivo');
+            let pa = document.querySelector('.ogro-modo-passivo');
+            if (ag) ag.classList.toggle('active', modo === 'agressivo');
+            if (pa) pa.classList.toggle('active', modo === 'passivo');
+        }
+
+        function setOgroModo(modo) {
+            if (window.minhaClasse !== 'summoner') return;
+            window.ogroModoAtivo = (modo === 'passivo') ? 'passivo' : 'agressivo';
+            atualizarUiModoOgro();
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'ogro_modo', modo: window.ogroModoAtivo }));
+            }
+        }
+        window.setOgroModo = setOgroModo;
+
         function usarComandoOgro() {
             if (window.estaMorto || window.ogroSkillCooldown || window.minhaClasse !== 'summoner') return;
+            if (!checarSkill('esmagamento', 25)) return;
             window.ogroSkillCooldown = true; btnOgroSkill.classList.add("cooldown"); setTimeout(() => { window.ogroSkillCooldown = false; btnOgroSkill.classList.remove("cooldown"); }, 6000);
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'comando_pet_ogro' })); }
         }
 
         function usarComandoSaltoOgro() {
             if (window.estaMorto || window.ogroSaltoCooldown || window.minhaClasse !== 'summoner') return;
+            if (!checarSkill('salto', 20)) return;
             window.ogroSaltoCooldown = true; btnOgroSalto.classList.add("cooldown"); setTimeout(() => { window.ogroSaltoCooldown = false; btnOgroSalto.classList.remove("cooldown"); }, 8000);
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'comando_salto_ogro' })); }
         }
@@ -2338,16 +2848,17 @@
         // HABILIDADES DO ROQUEIRO
         // ===================================
 
-        function enviarAtaqueRoqueiro() {
+        function enviarAtaqueRoqueiro(anguloForcado, alvoTipo, alvoId) {
             if (window.estaMorto) return;
             tocarSomMagiaBasica();
             let alvoDetectado = obterAlvoNaMira();
-            let anguloDisparo = alvoDetectado ? alvoDetectado.angulo : window.meuAngulo;
-            if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'ataque_roqueiro', angulo: anguloDisparo })); }
+            let anguloDisparo = (anguloForcado !== undefined) ? anguloForcado : (alvoDetectado ? alvoDetectado.angulo : window.meuAngulo);
+            if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_roqueiro', angulo: anguloDisparo }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
         }
 
         function usarBateriaRoqueiro() {
             if (window.estaMorto || roqueiroBateriaCooldown || window.roqueiroBateriaLigada || window.minhaClasse !== 'roqueiro') return;
+            if (!checarSkill('bateria', 25)) return;
             roqueiroBateriaCooldown = true; btnRoqueiroBateria.classList.add("cooldown");
             setTimeout(() => { roqueiroBateriaCooldown = false; btnRoqueiroBateria.classList.remove("cooldown"); }, 6000);
 
@@ -2368,13 +2879,14 @@
                 return;
             }
             let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
-            let tx = mira ? mira.tx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 160);
-            let ty = mira ? mira.ty : (window.meuY + 16 + Math.sin(window.meuAngulo) * 160);
+            let tx = mira ? mira.rx : (window.meuX + 12 + Math.cos(window.meuAngulo) * 160);
+            let ty = mira ? mira.ry : (window.meuY + 16 + Math.sin(window.meuAngulo) * 160);
             dispararTeleporte(tx, ty);
         }
 
         function usarBandaRoqueiro() {
             if (window.estaMorto || roqueiroBandaCooldown || window.minhaClasse !== 'roqueiro') return;
+            if (!checarSkill('banda', 30)) return;
             roqueiroBandaCooldown = true; btnRoqueiroBanda.classList.add("cooldown");
             setTimeout(() => { roqueiroBandaCooldown = false; btnRoqueiroBanda.classList.remove("cooldown"); }, 15000);
 
@@ -2384,10 +2896,12 @@
         function usarGritoDeGuerraRoqueiro() {
             if (window.estaMorto || window.minhaClasse !== 'roqueiro') return;
             if (window.roqueiroGritoGuerraCooldown) return;
+            if (!checarSkill('grito_guerra', 30)) return;
 
             window.roqueiroGritoGuerraCooldown = true;
             const btn = document.getElementById('btn-roqueiro-grito');
             if (btn) btn.classList.add('cooldown');
+            registrarCooldownBotao(btn, 60000);
             setTimeout(() => {
                 window.roqueiroGritoGuerraCooldown = false;
                 if (btn) btn.classList.remove('cooldown');
@@ -2400,8 +2914,14 @@
 
         function alcanceBuscaClasse() {
             let c = window.minhaClasse;
-            if (c === 'arqueiro') return 470;
-            if (c === 'roqueiro') return 396;
+            if (c === 'arqueiro') return 250;
+            if (c === 'roqueiro') return 200;
+            if (c === 'guerreiro') return 100;
+            if (c === 'barbaro') return 100;
+            if (c === 'mago') return 200;
+            if (c === 'summoner') return 190;
+            if (c === 'curandeiro') return 200;
+            if (c === 'ladino') return 110;
             return 300;
         }
 
@@ -2432,41 +2952,199 @@
         }
 
         function executarAtaqueBasico() {
-            if (window.estaMorto || window.meuStunTimer > 0 || ataqueBasicoCooldown) return;
-            ataqueBasicoCooldown = true; btnAttack.classList.add("cooldown");
-            setTimeout(() => { ataqueBasicoCooldown = false; btnAttack.classList.remove("cooldown"); }, INTERVALO_ATAQUE_BASICO_MS);
-            
-            if (window.minhaClasse === 'mago') { enviarAtaqueMago(); } 
-            else if (window.minhaClasse === 'summoner') { enviarAtaqueSummoner(); } 
-            else if (window.minhaClasse === 'arqueiro') { enviarAtaqueArqueiro(); } 
-            else if (window.minhaClasse === 'curandeiro') { enviarAtaqueCurandeiro(); } 
-            else if (window.minhaClasse === 'barbaro') { enviarAtaqueBarbaro(); } 
-            else if (window.minhaClasse === 'roqueiro') { enviarAtaqueRoqueiro(); } 
-            else { enviarAcaoCorte(); }
+            // v1.30.2: ATAQUE BÁSICO MANUAL DESATIVADO — o único ataque básico é o auto-attack
+            // (atualizarAutoAtaque/dispararAutoAtaque). Este gatilho (botão/tecla/clique) não faz nada.
+            return;
         }
 
-        function enviarAtaqueCurandeiro() {
-            if (window.estaMorto) return; tocarSomLuzSagrada(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = alvoDetectado ? alvoDetectado.angulo : window.meuAngulo;
-            if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'ataque_curandeiro', angulo: anguloDisparo })); }
+        // ===== ATAQUE BÁSICO AUTOMÁTICO: CORE =====
+        // Espelha a fórmula do servidor (tempoAtaqueBasico + multiplicadorVelocidadeAtaque):
+        // intervalo = (base 350 melee / 300 ranged) * mult; clamp [120ms, base].
+        // Espelha a tabela do servidor (tempoBaseAtaqueBasico):
+        // mago 600 · summoner 1500 · arqueiro 430 · curandeiro 600 · roqueiro 750 · barbaro 580 · guerreiro 350
+        function baseAtaqueBasicoLocal() {
+            let c = window.minhaClasse;
+            if (c === 'mago') return 600;
+            if (c === 'summoner') return 1500;
+            if (c === 'arqueiro') return 430;
+            if (c === 'curandeiro') return 600;
+            if (c === 'roqueiro') return 750;
+            if (c === 'barbaro') return 580;
+            if (c === 'ladino') return 400;
+            return 350; // guerreiro / fallback
         }
 
-        function enviarAtaqueMago() {
-            if (window.estaMorto) return; tocarSomMagiaBasica(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = alvoDetectado ? alvoDetectado.angulo : window.meuAngulo;
-            if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'ataque_mago', angulo: anguloDisparo })); }
+        function intervaloAtaqueBasicoLocal() {
+            let base = baseAtaqueBasicoLocal();
+            let mult = 1;
+            let ef = window.meusEfeitos || [];
+            if (ef.some(e => e && e.id === 'gritoDeGuerra' && e.tempo > 0)) mult *= 0.90;
+            let inv = window.inventario || {};
+            for (let chave in inv) {
+                let it = inv[chave];
+                if (it && it.status && typeof it.status.velocidadeAtaque === 'number' && it.status.velocidadeAtaque > 0) {
+                    mult *= (1 - Math.min(0.20, it.status.velocidadeAtaque / 100));
+                }
+            }
+            if (!Number.isFinite(mult) || mult <= 0) mult = 0.4;
+            mult = Math.max(0.4, Math.min(1, mult));
+            return Math.max(120, Math.round(base * mult));
         }
 
-        function enviarAtaqueSummoner() {
-            if (window.estaMorto) return; tocarSomOrbe(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = alvoDetectado ? alvoDetectado.angulo : window.meuAngulo;
-            if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'ataque_summoner', angulo: anguloDisparo })); }
+        // Alvo estável: mantém o atual enquanto vivo/válido/em alcance; só troca quando necessário.
+        function buscarAutoAlvo() {
+            if (autoAlvo && autoAlvo.id) {
+                let alvoAtual = null;
+                if (autoAlvo.tipo === 'slime') alvoAtual = window.listaSlimes.find(s => s && s.id === autoAlvo.id);
+                else if (autoAlvo.tipo === 'boss') alvoAtual = listaBosses.find(b => b && b.id === autoAlvo.id);
+                if (alvoAtual && alvoAtual.hp > 0) {
+                    let px = window.meuX + 12, py = window.meuY + 16;
+                    let dx = alvoAtual.x - px, dy = alvoAtual.y - py;
+                    let limite = alcanceBuscaClasse();
+                    if (dx * dx + dy * dy <= limite * limite) {
+                        autoAlvo.x = alvoAtual.x; autoAlvo.y = alvoAtual.y;
+                        return;
+                    }
+                    autoAlvo = null; // saiu do alcance: libera para nova busca (movimento continua)
+                } else {
+                    autoAlvo = null; // alvo morreu/desapareceu: remove imediatamente
+                }
+            }
+            // Nova busca: mais próximo em alcance; empate resolve pela direção atual.
+            autoAlvo = null;
+            let px = window.meuX + 12, py = window.meuY + 16;
+            let limite = alcanceBuscaClasse();
+            let limite2 = limite * limite;
+            let melhor = null, melhorDist = Infinity, melhorDiff = Infinity;
+            let considerar = function (alvo, tipo) {
+                if (!alvo || alvo.hp <= 0) return;
+                let dx = alvo.x - px, dy = alvo.y - py;
+                let d2 = dx * dx + dy * dy;
+                if (d2 > limite2) return;
+                let diff = Math.abs(Math.atan2(Math.sin(window.meuAngulo - Math.atan2(dy, dx)), Math.cos(window.meuAngulo - Math.atan2(dy, dx))));
+                if (d2 < melhorDist - 0.001 || (Math.abs(d2 - melhorDist) <= 0.001 && diff < melhorDiff)) {
+                    melhorDist = d2; melhorDiff = diff;
+                    melhor = { tipo: tipo, id: alvo.id, x: alvo.x, y: alvo.y };
+                }
+            };
+            window.listaSlimes.forEach(s => considerar(s, 'slime'));
+            listaBosses.forEach(b => considerar(b, 'boss'));
+            if (melhor) autoAlvo = melhor;
         }
 
-        function enviarAtaqueArqueiro() {
-            if (window.estaMorto) return; tocarSomFlecha(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = alvoDetectado ? alvoDetectado.angulo : window.meuAngulo;
-            if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'ataque_arqueiro', angulo: anguloDisparo })); }
+        function autoAlvoEstaEmAlcance() {
+            if (!autoAlvo) return false;
+            let px = window.meuX + 12, py = window.meuY + 16;
+            let dx = autoAlvo.x - px, dy = autoAlvo.y - py;
+            let limite = alcanceBuscaClasse();
+            return (dx * dx + dy * dy) <= limite * limite;
+        }
+
+        function dispararAutoAtaque() {
+            if (!autoAlvo) return;
+            let ang = Math.atan2(autoAlvo.y - (window.meuY + 16), autoAlvo.x - (window.meuX + 12));
+            window.meuAngulo = ang; // orienta o personagem (não bloqueia o movimento)
+            let alvoTipo = autoAlvo.tipo, alvoId = autoAlvo.id;
+            if (window.minhaClasse === 'mago') { enviarAtaqueMago(ang, alvoTipo, alvoId); }
+            else if (window.minhaClasse === 'summoner') { enviarAtaqueSummoner(ang, alvoTipo, alvoId); }
+            else if (window.minhaClasse === 'arqueiro') { enviarAtaqueArqueiro(ang, alvoTipo, alvoId); }
+            else if (window.minhaClasse === 'curandeiro') { enviarAtaqueCurandeiro(ang, alvoTipo, alvoId); }
+            else if (window.minhaClasse === 'barbaro') { enviarAtaqueBarbaro(ang, alvoTipo, alvoId); }
+            else if (window.minhaClasse === 'roqueiro') { enviarAtaqueRoqueiro(ang, alvoTipo, alvoId); }
+            else if (window.minhaClasse === 'ladino') { enviarAtaqueLadino(ang, alvoTipo, alvoId); }
+            else { enviarAcaoCorte(ang, alvoTipo, alvoId); }
+        }
+
+        // Chamado 1x por frame no loop principal (sem setInterval por ataque).
+        function atualizarAutoAtaque() {
+            if (window.estaMorto || window.transicaoMapaAtiva) { autoAlvo = null; return; }
+            let ef = window.meusEfeitos || [];
+            let trava = ef.some(e => e && (e.id === 'paralisia' || e.id === 'sono') && e.tempo > 0);
+            if (window.meuStunTimer > 0 || trava || window.roqueiroBateriaLigada || window.arqueiroRajadaLigada || window.spawnAdminAberto || window.teleporteAberto) return;
+            // v1.30.2: ataque básico bloqueado durante Estrela da Morte / Dança das Adagas / Giro Descontrolado
+            if (window.ladinoEstrelaAtivo || window.ladinoDancaAtivo || window.giroDescontroladoLigado) { autoAlvo = null; return; }
+            buscarAutoAlvo();
+            if (!autoAlvo) return;
+            if (!autoAlvoEstaEmAlcance()) return; // fora do alcance: ataque para; movimento continua
+            let agora = performance.now();
+            if (agora >= proximoAutoAtaqueEm) {
+                dispararAutoAtaque();
+                proximoAutoAtaqueEm = agora + intervaloAtaqueBasicoLocal();
+                ultimoAutoAtaqueEm = agora;
+            }
+        }
+
+        // Indicador visual do alcance do ataque básico (discreto, mundo 2D).
+        // Estado 1: círculo de alcance; Estado 2: linha tracejada até o alvo;
+        // Estado 3: retículo "pronto" no alvo; Estado 4: pulso após executar.
+        function desenharIndicadorAutoAtaque() {
+            if (window.estaMorto || window.transicaoMapaAtiva) return;
+            let px = window.meuX + 12, py = window.meuY + 16;
+            let raio = alcanceBuscaClasse();
+            let agora = performance.now();
+            ctx.save();
+            ctx.strokeStyle = 'rgba(255,255,255,0.08)';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.arc(px, py, raio, 0, Math.PI * 2);
+            ctx.stroke();
+            if (!autoAlvo) { ctx.restore(); return; }
+            let dx = autoAlvo.x - px, dy = autoAlvo.y - py;
+            if ((dx * dx + dy * dy) > raio * raio) { ctx.restore(); return; }
+            ctx.strokeStyle = 'rgba(255,255,255,0.30)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([6, 6]);
+            ctx.beginPath();
+            ctx.moveTo(px, py);
+            ctx.lineTo(autoAlvo.x, autoAlvo.y);
+            ctx.stroke();
+            ctx.setLineDash([]);
+            ctx.fillStyle = 'rgba(255,255,255,0.35)';
+            ctx.beginPath();
+            ctx.arc(autoAlvo.x, autoAlvo.y, 5, 0, Math.PI * 2);
+            ctx.fill();
+            if (agora >= proximoAutoAtaqueEm) {
+                ctx.strokeStyle = 'rgba(255,255,255,0.12)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(autoAlvo.x, autoAlvo.y, 10, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            let desdeUltimo = agora - ultimoAutoAtaqueEm;
+            if (desdeUltimo < 150) {
+                let p = 1 - desdeUltimo / 150;
+                ctx.strokeStyle = 'rgba(255,230,120,' + (0.5 * p) + ')';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(autoAlvo.x, autoAlvo.y, 5 + 14 * p, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+            ctx.restore();
+        }
+
+        function enviarAtaqueCurandeiro(anguloForcado, alvoTipo, alvoId) {
+            if (window.estaMorto) return; tocarSomLuzSagrada(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = (anguloForcado !== undefined) ? anguloForcado : (alvoDetectado ? alvoDetectado.angulo : window.meuAngulo);
+            if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_curandeiro', angulo: anguloDisparo }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
+        }
+
+        function enviarAtaqueMago(anguloForcado, alvoTipo, alvoId) {
+            if (window.estaMorto) return; tocarSomMagiaBasica(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = (anguloForcado !== undefined) ? anguloForcado : (alvoDetectado ? alvoDetectado.angulo : window.meuAngulo);
+            if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_mago', angulo: anguloDisparo }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
+        }
+
+        function enviarAtaqueSummoner(anguloForcado, alvoTipo, alvoId) {
+            if (window.estaMorto) return; tocarSomOrbe(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = (anguloForcado !== undefined) ? anguloForcado : (alvoDetectado ? alvoDetectado.angulo : window.meuAngulo);
+            if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_summoner', angulo: anguloDisparo }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
+        }
+
+        function enviarAtaqueArqueiro(anguloForcado, alvoTipo, alvoId) {
+            if (window.estaMorto) return; tocarSomFlecha(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = (anguloForcado !== undefined) ? anguloForcado : (alvoDetectado ? alvoDetectado.angulo : window.meuAngulo);
+            if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_arqueiro', angulo: anguloDisparo }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
         }
 
         function usarDash() {
             if (window.estaMorto || window.meuStunTimer > 0 || dashCooldownAtivo) return;
+            if (!checarSkill('dash', 15)) return;
             dashCooldownAtivo = true; btnDash.classList.add("cooldown"); 
             setTimeout(() => { dashCooldownAtivo = false; btnDash.classList.remove("cooldown"); }, 2000); 
             tocarSomDash();
@@ -2492,6 +3170,7 @@
 
         function usarTornado() {
             if (window.estaMorto || tornadoCooldoownAtivo || window.minhaClasse !== 'guerreiro') return;
+            if (!checarSkill('tornado', 20)) return;
             tornadoCooldoownAtivo = true; btnTornado.classList.add("cooldown"); 
             setTimeout(() => { tornadoCooldoownAtivo = false; btnTornado.classList.remove("cooldown"); }, 5000);
             
@@ -2510,7 +3189,7 @@
             // Checagem de mana local
             let nivel = (window.skillsNiveis && window.skillsNiveis['provocacao']) || 1;
             let custoMp = Math.round(20 * Math.pow(1.06, nivel - 1));
-            if (window.meuMp !== undefined && window.meuMp < custoMp) return;
+            if (window.meuMp !== undefined && window.meuMp < custoMp) { avisoSkillLocal('mana'); return; }
 
             provocacaoCooldownAtivo = true;
             if (btnGuerreiroProvocacao) btnGuerreiroProvocacao.classList.add("cooldown");
@@ -2536,17 +3215,27 @@
             }
         }
 
-        function enviarAcaoCorte() {
-            if (window.estaMorto) return; tocarSomCorte(); criarEfeitoCorte(window.meuX + 12, window.meuY + 16, window.meuAngulo);
-            if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'corte' })); }
+        function enviarAcaoCorte(anguloForcado, alvoTipo, alvoId) {
+            if (window.estaMorto) return; tocarSomCorte(); let anguloCorte = (anguloForcado !== undefined) ? anguloForcado : window.meuAngulo; criarEfeitoCorte(window.meuX + 12, window.meuY + 16, anguloCorte);
+            if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'corte' }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
         }
 
         function renascer() {
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'respawn' })); }
             window.estaMorto = false;
+            autoAlvo = null; proximoAutoAtaqueEm = 0; // reativa o sistema limpo ao renascer
             window.roqueiroBateriaLigada = false;
             cancelarTodasMiras();
             ataqueBasicoCooldown = false; minhaEstamina = 100; deathScreen.style.display = "none";
+            // Respawn devolve SEMPRE para a Cidade de Davahl (espelho do server CIDADE_SPAWN_X/Y).
+            // Aplicar aqui mesmo evita que o cliente envie a posicao antiga (deserto/caverna/etc.)
+            // para o servidor apos o respawn — o que o arrastava para a borda do mapa e bugava o movimento.
+            window.meuX = window.SPAWN_CIDADE.x;
+            window.meuY = window.SPAWN_CIDADE.y;
+            window.currentMap = 'cidade';
+            window.transicaoMapaAtiva = false;
+            window.portalMapaBloqueado = { x: window.meuX + 12, y: window.meuY + 16, raio: 90 };
+            if (window.AudioManager && typeof window.AudioManager.setMapAmbient === 'function') window.AudioManager.setMapAmbient('cidade');
         }
         function criarEfeitoCorte(x, y, angulo) { slashes.push({ x: x, y: y, angulo: angulo, alpha: 1.0, escala: 0.5 }); }
 
@@ -3092,6 +3781,7 @@
             else if (window.minhaClasse === 'curandeiro') ativarPreceSmartCast();
             else if (window.minhaClasse === 'barbaro') usarFuriaBerserker();
             else if (window.minhaClasse === 'roqueiro') usarBateriaRoqueiro();
+            else if (window.minhaClasse === 'ladino') usarDancaAdagas();
             else usarDash();
         }
 
@@ -3103,6 +3793,7 @@
             else if (window.minhaClasse === 'curandeiro') ativarJulgamentoSmartCast();
             else if (window.minhaClasse === 'barbaro') ativarEsmagamentoSmartCast();
             else if (window.minhaClasse === 'roqueiro') ativarTeleporteRoqueiro();
+            else if (window.minhaClasse === 'ladino') ativarBombaSmartCast();
             else usarTornado();
         }
 
@@ -3114,6 +3805,7 @@
             else if (window.minhaClasse === 'curandeiro') usarAuraSagrada();
             else if (window.minhaClasse === 'barbaro') usarGiroDescontrolado();
             else if (window.minhaClasse === 'roqueiro') usarBandaRoqueiro();
+            else if (window.minhaClasse === 'ladino') usarCamuflagemSombria();
             else if (!window.minhaClasse || window.minhaClasse === 'guerreiro') usarGritoProvocacao();
         }
 
@@ -3207,6 +3899,10 @@
                     usarGritoDeGuerraRoqueiro();
                     return;
                 }
+                if (window.minhaClasse === 'ladino') {
+                    ativarEstrelaSmartCast();
+                    return;
+                }
             }
         });
 
@@ -3246,6 +3942,14 @@
                     let mx = Math.max(0, Math.min(WORLD_WIDTH, (touch.clientX / window.innerWidth * window.canvas.width) / ZOOM_CAMERA + camX));
                     let my = Math.max(0, Math.min(WORLD_HEIGHT, (touch.clientY / window.innerHeight * window.canvas.height) / ZOOM_CAMERA + camY));
                     if (typeof window.tentarAbrirBandeira === "function" && window.tentarAbrirBandeira(mx, my)) {
+                        if (e.cancelable) e.preventDefault();
+                        return;
+                    }
+                    if (typeof window.selecionarVfxMapa === "function" && window.selecionarVfxMapa(mx, my)) {
+                        if (e.cancelable) e.preventDefault();
+                        return;
+                    }
+                    if (typeof window.tentarAbrirVfxMapa === "function" && window.tentarAbrirVfxMapa(mx, my)) {
                         if (e.cancelable) e.preventDefault();
                         return;
                     }
@@ -3392,6 +4096,18 @@
             let camX = window.camX || 0, camY = window.camY || 0;
             let mx = Math.max(0, Math.min(WORLD_WIDTH, (e.clientX / window.innerWidth * window.canvas.width) / ZOOM_CAMERA + camX));
             let my = Math.max(0, Math.min(WORLD_HEIGHT, (e.clientY / window.innerHeight * window.canvas.height) / ZOOM_CAMERA + camY));
+            if (window.ehAdmin && typeof window.tentarAbrirBandeira === 'function' && window.tentarAbrirBandeira(mx, my)) {
+                e.preventDefault();
+                return;
+            }
+            if (window.ehAdmin && typeof window.selecionarVfxMapa === 'function' && window.selecionarVfxMapa(mx, my)) {
+                e.preventDefault();
+                return;
+            }
+            if (window.ehAdmin && typeof window.tentarAbrirVfxMapa === 'function' && window.tentarAbrirVfxMapa(mx, my)) {
+                e.preventDefault();
+                return;
+            }
             if (window.currentMap === 'cidade' && typeof window.tocarPortalViagem === 'function' && window.tocarPortalViagem(mx, my)) {
                 abrirTeleporteMapas();
                 return;
@@ -3405,10 +4121,10 @@
                 }
             }
 
-            // Smart cast exclusivo com clique do mouse no PC (com clamp de distância máxima por skill)
+            // Smart cast exclusivo com clique do mouse no PC (checagem de alcance real ANTES do clamp)
             let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
             if (mira) {
-                let tx = mira.tx, ty = mira.ty;
+                let tx = mira.rx, ty = mira.ry;
                 let s = mira.skill;
                 cancelarTodasMiras();
                 if (s === 'meteoro') dispararMeteoro(tx, ty);
@@ -3423,14 +4139,13 @@
                 return;
             }
 
-            // Ataque básico direcionado com precisão ao cursor do mouse no clique esquerdo
+            // Ataque básico manual desativado (v1.30.2): apenas orienta o personagem para o cursor.
+            // O dano vem exclusivamente do auto-attack (atualizarAutoAtaque) com alvo validado no servidor.
             let cdx = mx - (window.meuX + 12);
             let cdy = my - (window.meuY + 16);
             if (cdx !== 0 || cdy !== 0) window.meuAngulo = Math.atan2(cdy, cdx);
-            if (typeof executarAtaqueBasico === 'function') executarAtaqueBasico();
         });
 
-        let tempoAtaqueAutofarm = 0;
         let lastFpsUpdate = 0; 
         let frameCount = 0;    
 
@@ -3484,10 +4199,11 @@
             let efeitoTravaMovimento = temEf('paralisia') || temEf('sono');
             let velocidadeAtual = ((typeof window.estaNaAgua === "function" && window.estaNaAgua(window.meuX, window.meuY)) ? 2.52 : 3.6) * bonusVelocidadeFuria * bonusVelocidadeAgilidade * multEfeitosVel;
 
-            if (autofarmLigado && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.roqueiroBateriaLigada && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto) {
+            if (autofarmLigado && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.roqueiroBateriaLigada && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo) {
+                // Autofarm só cuida do DESLOCAMENTO até o inimigo; o ataque em si é o auto-attack (atualizarAutoAtaque abaixo).
                 let alvoMaisProximo = null; let menorDistancia = Infinity;
                 window.listaSlimes.forEach(slime => { if (slime.hp > 0) { let dist = Math.hypot(slime.x - window.meuX, slime.y - window.meuY); if (dist < menorDistancia) { menorDistancia = dist; alvoMaisProximo = slime; } } });
-                if (alvoMaisProximo) {
+                if (alvoMaisProximo && !autoAlvoEstaEmAlcance()) {
                     let dx = alvoMaisProximo.x - window.meuX; let dy = alvoMaisProximo.y - window.meuY; let dist = menorDistancia; window.meuAngulo = Math.atan2(dy, dx);
                     let distAtaqueIdeal = (window.minhaClasse === 'mago' || window.minhaClasse === 'summoner' || window.minhaClasse === 'arqueiro' || window.minhaClasse === 'curandeiro') ? 140 : 32;
                     if (dist > distAtaqueIdeal) {
@@ -3497,10 +4213,9 @@
                             window.meuX = novoX; window.meuY = novoY;
                             isMoving = true; window.walkCycle += 0.1;
                         }
-                    } 
-                    else { tempoAtaqueAutofarm++; if (tempoAtaqueAutofarm > 22 && !ataqueBasicoCooldown) { executarAtaqueBasico(); tempoAtaqueAutofarm = 0; } }
+                    }
                 }
-            } else if (!window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.roqueiroBateriaLigada && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && (moveX !== 0 || moveY !== 0)) {
+            } else if (!window.transicaoMapaAtiva && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.roqueiroBateriaLigada && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo && (moveX !== 0 || moveY !== 0)) {
                 let proximoX = window.meuX + (moveX / 2) * (velocidadeAtual / 1.8) * window.dt; let proximoY = window.meuY + (moveY / 2) * (velocidadeAtual / 1.8) * window.dt;
                 let colidiu = false;
                 if (window.currentMap === 'green' && typeof window.arvores !== "undefined") {
@@ -3514,18 +4229,39 @@
             if (window.meuY < 10) window.meuY = 10;
             let maxYMapa = (window.meuX >= window.LARGURA_ARENA) ? 1240 : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 1145 : ((window.meuX >= window.LARGURA_PANTANO) ? 1800 : ((window.meuX >= window.LARGURA_DESERTO) ? 9000 : ((window.meuX >= window.LARGURA_VERDE) ? 36000 : 18000))));
             if (window.meuY > maxYMapa - 40) window.meuY = maxYMapa - 40;
+            const limitesMapaAtual = { green: [0, window.LARGURA_VERDE], desert: [window.LARGURA_VERDE, window.LARGURA_DESERTO], pantano: [window.LARGURA_DESERTO, window.LARGURA_PANTANO], caverna: [window.LARGURA_PANTANO, window.FIM_CAVERNA], cidade: [window.LARGURA_CIDADE, window.FIM_CIDADE], arena: [window.LARGURA_ARENA, window.FIM_ARENA] }[window.currentMap];
+            if (limitesMapaAtual) {
+                window.meuX = Math.max(limitesMapaAtual[0] + 10, Math.min(limitesMapaAtual[1] - 42, window.meuX));
+            }
             window.currentMap = (window.meuX >= window.LARGURA_ARENA) ? 'arena' : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 'cidade' : ((window.meuX >= window.LARGURA_PANTANO) ? 'caverna' : ((window.meuX >= window.LARGURA_DESERTO) ? 'pantano' : ((window.meuX >= window.LARGURA_VERDE) ? 'desert' : 'green'))));
+            if (window.AudioManager && window._audioMapaAtual !== window.currentMap) {
+                window._audioMapaAtual = window.currentMap;
+                window.AudioManager.setMapAmbient(window.currentMap);
+            }
             if (typeof window.chainMapas === "object" && typeof window.chainMapas.onUpdatePosicao === "function") window.chainMapas.onUpdatePosicao(window.meuX, window.meuY);
             if (coordHud) coordHud.innerText = "X: " + Math.round(window.meuX + 12) + "  Y: " + Math.round(window.meuY + 16);
 
+            // ATAQUE BÁSICO AUTOMÁTICO (independente do movimento: isMoving && autoAttacking podem coexistir)
+            atualizarAutoAtaque();
+
             let agora = Date.now();
-            if (ws && ws.readyState === WebSocket.OPEN && (agora - ultimoEnvioRede > 30)) { ws.send(JSON.stringify({ x: window.meuX, y: window.meuY, angulo: window.meuAngulo, moving: isMoving })); ultimoEnvioRede = agora; }
+            // Durante Dança/Estrela o personagem NÃO reporta deslocamento próprio (a coreografia é do servidor)
+            let movingReportado = isMoving && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo;
+            if (ws && ws.readyState === WebSocket.OPEN && (agora - ultimoEnvioRede > 30)) { ws.send(JSON.stringify({ x: window.meuX, y: window.meuY, angulo: window.meuAngulo, moving: movingReportado })); ultimoEnvioRede = agora; }
 
             let larguraVisivel = canvas.width / ZOOM_CAMERA; let alturaVisivel = canvas.height / ZOOM_CAMERA;
             let cameraX = Math.max(0, Math.min(window.meuX - larguraVisivel / 2, Math.max(0, WORLD_WIDTH - larguraVisivel))); 
             let cameraY = Math.max(0, Math.min(window.meuY - alturaVisivel / 2, Math.max(0, WORLD_HEIGHT - alturaVisivel)));
             window.camX = cameraX; window.camY = cameraY;
+            const visibilidadeMargem = 150;
+            const cameraBounds = {
+                minX: cameraX - visibilidadeMargem,
+                maxX: cameraX + larguraVisivel + visibilidadeMargem,
+                minY: cameraY - visibilidadeMargem,
+                maxY: cameraY + alturaVisivel + visibilidadeMargem
+            };
 
+            ctx.setTransform(1, 0, 0, 0, 0, 0);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.fillStyle = (window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'pantano') ? "#24301a" : ((window.currentMap === 'desert') ? "#d9b45c" : ((window.currentMap === 'caverna') ? "#1a0f0f" : ((window.currentMap === 'cidade') ? "#2c2a27" : "#163f18"))));
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -3567,6 +4303,7 @@
             }
             if (typeof window.desenharPinosLocalizacao === "function") window.desenharPinosLocalizacao();
             if (typeof window.desenharBandeirasSpawn === "function") window.desenharBandeirasSpawn();
+            if (typeof window.desenharVfxMapa === "function") window.desenharVfxMapa();
             if (typeof window.desenharEfeitosMeteoro === "function") window.desenharEfeitosMeteoro();
             if (typeof window.desenharEfeitosNevasca === "function") window.desenharEfeitosNevasca();
             if (typeof window.desenharEfeitosSismicos === "function") window.desenharEfeitosSismicos();
@@ -3590,6 +4327,7 @@
             if (typeof window.desenharEfeitosMago === "function") window.desenharEfeitosMago();
             if (typeof window.desenharPedrasEnormes === "function") window.desenharPedrasEnormes();
             if (typeof window.desenharEfeitosRoqueiro === "function") window.desenharEfeitosRoqueiro();
+            if (typeof window.desenharEfeitosLadino === "function") window.desenharEfeitosLadino();
             if (typeof window.desenharMiraArcana === "function") window.desenharMiraArcana();
             if (typeof window.desenharMarcadorDrag === "function") window.desenharMarcadorDrag();
             if (typeof window.desenharMarcasBoss === "function") window.desenharMarcasBoss();
@@ -3604,6 +4342,8 @@
             if (window.currentMap === 'cidade' && typeof window.coletarCidadeSortables === "function") window.coletarCidadeSortables(tempoAnimacao, spritesSort);
 
             window.listaSlimes.forEach(slime => {
+                if (!slime || slime.hp <= 0) return;
+                if (slime.x < cameraBounds.minX || slime.x > cameraBounds.maxX || slime.y < cameraBounds.minY || slime.y > cameraBounds.maxY) return;
                 if (typeof window.desenharSlime === "function") {
                     let s = slime;
                     spritesSort.push({ y: s.y, draw: function () { window.desenharSlime(s); } });
@@ -3613,12 +4353,16 @@
             for (let lId in listaLacaios) {
                 if (typeof window.desenharLacaio === "function") {
                     let ll = listaLacaios[lId];
+                    if (!ll || ll.hp <= 0) continue;
+                    if (ll.x < cameraBounds.minX || ll.x > cameraBounds.maxX || ll.y < cameraBounds.minY || ll.y > cameraBounds.maxY) continue;
                     ll.pid = lId;
                     spritesSort.push({ y: ll.y, draw: function () { window.desenharLacaio(ll); } });
                 }
             }
 
             listaBosses.forEach(g => {
+                if (!g || g.hp <= 0) return;
+                if (g.x < cameraBounds.minX || g.x > cameraBounds.maxX || g.y < cameraBounds.minY || g.y > cameraBounds.maxY) return;
                 if (typeof window.desenharBossGolem === "function") {
                     let g2 = g;
                     spritesSort.push({ y: g2.y, draw: function () { window.desenharBossGolem(g2); } });
@@ -3627,14 +4371,19 @@
 
             (window.listaDrops || []).forEach(drop => {
                 if (!drop || !drop.item) return;
+                if (drop.x < cameraBounds.minX || drop.x > cameraBounds.maxX || drop.y < cameraBounds.minY || drop.y > cameraBounds.maxY) return;
                 let dd = drop;
                 spritesSort.push({ y: dd.y, draw: function () { window.desenharDrop(dd); } });
             });
 
             for (let id in window.todosJogadores) {
-                (function (pid) {
+                let pp = window.todosJogadores[id];
+                let posX = (id === window.meuId) ? window.meuX : (pp ? pp.x : 0);
+                let posY = (id === window.meuId) ? window.meuY : (pp ? pp.y : 0);
+                if (id !== window.meuId && (!pp || pp.hp <= 0 || posX < cameraBounds.minX || posX > cameraBounds.maxX || posY < cameraBounds.minY || posY > cameraBounds.maxY)) continue;
+                (function (pid, pj) {
                     spritesSort.push({
-                        y: (pid === window.meuId ? window.meuY : (window.todosJogadores[pid] ? window.todosJogadores[pid].y : 0)) + 16,
+                        y: (pid === window.meuId ? window.meuY : (pj ? pj.y : 0)) + 16,
                         draw: function () {
                             let pp = window.todosJogadores[pid];
                             if (!pp) return;
@@ -3644,12 +4393,17 @@
                             let mov = (pid === window.meuId) ? isMoving : pp.moving; let ang = (pid === window.meuId) ? window.meuAngulo : pp.angulo;
                             let hpVal = (pid === window.meuId) ? window.meuHp : pp.hp; let maxHpVal = pp.maxHp || 100;
 
+                            // LADINO — CAMUFLAGEM SOMBRIA: silhueta semi-transparente
+                            let efeitosInvis = (pid === window.meuId) ? (window.meusEfeitos || []) : ((pp.efeitos || []));
+                            window.personagemInvisivelAtual = efeitosInvis.some(function (e) { return e && e.id === 'invisivel' && e.tempo > 0; });
+
                             if (classeJogador === 'mago') { if (typeof window.desenharMago === "function") window.desenharMago(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'summoner') { if (typeof window.desenharSummoner === "function") window.desenharSummoner(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'arqueiro') { if (typeof window.desenharArqueiro === "function") window.desenharArqueiro(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'curandeiro') { if (typeof window.desenharCurandeiro === "function") window.desenharCurandeiro(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'barbaro') { if (typeof window.desenharBarbaro === "function") window.desenharBarbaro(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'roqueiro') { if (typeof window.desenharRoqueiro === "function") window.desenharRoqueiro(posX, posY, mov, ang, hpVal, maxHpVal); }
+                            else if (classeJogador === 'ladino') { if (typeof window.desenharLadino === "function") window.desenharLadino(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else { if (typeof window.desenharGuerreiro === "function") window.desenharGuerreiro(posX, posY, (pid === window.meuId ? "#c0392b" : "#2980b9"), mov, ang, hpVal, maxHpVal, isSpinningPlayer, window.tornadoTimers[pid] || 0, pid); }
 
                             let rajadaState = pp.rajadaAtiva && pp.rajadaFase === 'carregando' ? pp : null;
@@ -3734,14 +4488,30 @@
                             }
                         }
                     });
-                })(id);
+                })(id, pp);
             }
 
             spritesSort.sort(function (a, b) { return a.y - b.y; });
             for (let i = 0; i < spritesSort.length; i++) spritesSort[i].draw();
 
+            // Indicador do alcance do ataque básico automático (abaixo dos efeitos de cima)
+            desenharIndicadorAutoAtaque();
+
             if (typeof window.desenharBandaRoqueiro === "function") window.desenharBandaRoqueiro(window.listaBandaRoqueiro);
             
+            window.monsterSkillImpacts = window.monsterSkillImpacts || [];
+            for (let i = window.monsterSkillImpacts.length - 1; i >= 0; i--) {
+                let impacto = window.monsterSkillImpacts[i];
+                impacto.ttl--;
+                if (impacto.ttl <= 0) { window.monsterSkillImpacts.splice(i, 1); continue; }
+                ctx.save();
+                ctx.globalAlpha = impacto.ttl / 24;
+                ctx.strokeStyle = impacto.skill === 'web' ? '#d9f7ff' : (impacto.skill === 'void_laser' ? '#b56cff' : '#ff9f43');
+                ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.arc(impacto.x, impacto.y, 24 + (24 - impacto.ttl) * 4, 0, Math.PI * 2); ctx.stroke();
+                ctx.restore();
+            }
+
             listaProjeteis.forEach(p => {
                 if (p.tipo === 'besouro') {
                     // Projétil do Besouro Negro: orbe escuro 4x mais rápido
@@ -3784,6 +4554,29 @@
                     ctx.beginPath();
                     ctx.arc(p.x - raioP * 0.3, p.y - raioP * 0.3, raioP * 0.4, 0, Math.PI * 2);
                     ctx.fill();
+                } else if (p.tipo === 'caveira_flecha' || p.tipo === 'goblin_pedra') {
+                    let dx = p.vx || 1, dy = p.vy || 0;
+                    let comprimento = Math.hypot(dx, dy) || 1;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(Math.atan2(dy, dx));
+                    ctx.strokeStyle = p.tipo === 'caveira_flecha' ? '#d6c9a5' : '#92704b';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(10, 0); ctx.stroke();
+                    ctx.fillStyle = p.tipo === 'caveira_flecha' ? '#eef0dc' : '#a98255';
+                    ctx.beginPath(); ctx.moveTo(10, 0); ctx.lineTo(5, -3); ctx.lineTo(5, 3); ctx.closePath(); ctx.fill();
+                    ctx.restore();
+                } else if (p.tipo === 'void_laser') {
+                    let dx = p.vx || 1, dy = p.vy || 0;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(Math.atan2(dy, dx));
+                    ctx.shadowColor = '#b56cff'; ctx.shadowBlur = 14;
+                    ctx.strokeStyle = '#f0d9ff'; ctx.lineWidth = 4;
+                    ctx.beginPath(); ctx.moveTo(-18, 0); ctx.lineTo(18, 0); ctx.stroke();
+                    ctx.strokeStyle = '#7b32c7'; ctx.lineWidth = 9;
+                    ctx.globalAlpha = 0.45; ctx.beginPath(); ctx.moveTo(-20, 0); ctx.lineTo(20, 0); ctx.stroke();
+                    ctx.restore();
                 } else {
                     ctx.fillStyle = "#e74c3c";
                     ctx.beginPath();
@@ -3799,7 +4592,7 @@
             for (let i = window.floatingTexts.length - 1; i >= 0; i--) { let ft = window.floatingTexts[i]; ft.y -= 1.0; ft.alpha -= 0.045; if (ft.alpha <= 0) { window.floatingTexts.splice(i, 1); } else { ctx.save(); ctx.translate(ft.x, ft.y); ctx.globalAlpha = ft.alpha; window.ctx.font = "bold 22px 'Rajdhani', Arial, sans-serif"; window.ctx.lineJoin = "round"; window.ctx.lineWidth = 3; window.ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; window.ctx.strokeText(ft.text, -14, 0); window.ctx.fillStyle = ft.color; window.ctx.shadowColor = "#000"; window.ctx.shadowBlur = 4; window.ctx.fillText(ft.text, -14, 0); window.ctx.restore(); } }
             for (let i = blockEffects.length - 1; i >= 0; i--) { let b = blockEffects[i]; b.y -= 0.8; b.alpha -= 0.03; if (b.alpha <= 0) { blockEffects.splice(i, 1); } else { ctx.save(); ctx.translate(b.x, b.y); ctx.globalAlpha = b.alpha; ctx.font = "bold 18px 'Rajdhani', Arial, sans-serif"; ctx.lineJoin = "round"; ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; ctx.strokeText("🛡️ BLOCK!", -30, 0); ctx.fillStyle = "#f1c40f"; ctx.fillText("🛡️ BLOCK!", -30, 0); ctx.restore(); } }
 
-            if (typeof window.desenharOverlayColisoes === "function") window.desenharOverlayColisoes(ctx);
+            if (window.editorColisaoVisivel && typeof window.desenharOverlayColisoes === "function") window.desenharOverlayColisoes(ctx);
 
             ctx.restore();
 

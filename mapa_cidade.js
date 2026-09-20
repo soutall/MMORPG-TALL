@@ -147,6 +147,47 @@
     }
 
     let OBSTACULOS = normalizarObstaculos(DEFAULT_OBSTACULOS);
+    let CAMADAS = [];
+
+    function normalizarCamadas(lista) {
+        if (!Array.isArray(lista)) return [];
+        return lista.map(function (camada, idx) {
+            const tipo = camada.tipo === 'line' ? 'line' : 'rect';
+            const pontos = Array.isArray(camada.pontos) ? camada.pontos.map(function (pt) {
+                return { x: Math.round(Number(pt.x) || 0), y: Math.round(Number(pt.y) || 0) };
+            }) : [];
+            let x = Math.round(Number(camada.x) || 0);
+            let y = Math.round(Number(camada.y) || 0);
+            let w = Math.max(4, Math.round(Number(camada.w) || 40));
+            let h = Math.max(4, Math.round(Number(camada.h) || 40));
+            if (tipo === 'line' && pontos.length > 0) {
+                let minX = pontos[0].x, maxX = pontos[0].x, minY = pontos[0].y, maxY = pontos[0].y;
+                for (let pi = 1; pi < pontos.length; pi++) {
+                    minX = Math.min(minX, pontos[pi].x);
+                    maxX = Math.max(maxX, pontos[pi].x);
+                    minY = Math.min(minY, pontos[pi].y);
+                    maxY = Math.max(maxY, pontos[pi].y);
+                }
+                x = minX;
+                y = minY;
+                w = Math.max(4, maxX - minX);
+                h = Math.max(4, maxY - minY);
+            }
+            return {
+                id: camada.id || ('camada_' + (idx + 1) + '_' + Date.now().toString(36)),
+                tipo: tipo,
+                nome: camada.nome || ('Camada ' + (idx + 1)),
+                x: x,
+                y: y,
+                w: w,
+                h: h,
+                espessura: tipo === 'line' ? Math.max(4, Math.min(120, Math.round(Number(camada.espessura) || 16))) : undefined,
+                pontos: tipo === 'line' ? pontos : undefined,
+                baseY: Number.isFinite(Number(camada.baseY)) ? Math.round(Number(camada.baseY)) : y + h,
+                ordem: Number.isFinite(Number(camada.ordem)) ? Math.round(Number(camada.ordem)) : 0
+            };
+        });
+    }
 
     // Carregamento persistente de colisoes_cidade.json no Node.js
     if (typeof module !== 'undefined' && module.exports) {
@@ -161,6 +202,11 @@
                     OBSTACULOS = normalizarObstaculos(parsed);
                 }
             }
+            const fileCamadas = path.join(__dirname, 'camadas_cidade.json');
+            if (fs.existsSync(fileCamadas)) {
+                const rawCamadas = fs.readFileSync(fileCamadas, 'utf-8');
+                CAMADAS = normalizarCamadas(JSON.parse(rawCamadas));
+            }
         } catch (e) {
             console.error('mapa_cidade.js: Erro ao carregar colisoes_cidade.json:', e.message);
         }
@@ -168,16 +214,75 @@
 
     let grid = null;
     let _imgCidade = null;
+    let _cacheCidadeCamadas = null;
+
+    function invalidarCacheCidade() {
+        _cacheCidadeCamadas = null;
+        if (grid) grid = null;
+    }
 
     function carregarObstaculos(novos) {
         OBSTACULOS = normalizarObstaculos(novos);
-        grid = null;
+        invalidarCacheCidade();
         gerarCidade();
         return OBSTACULOS;
     }
 
     function obterObstaculos() {
         return JSON.parse(JSON.stringify(OBSTACULOS));
+    }
+
+    function carregarCamadas(novas) {
+        CAMADAS = normalizarCamadas(novas);
+        _cacheCidadeCamadas = null;
+        return CAMADAS;
+    }
+
+    function obterCamadas() {
+        return JSON.parse(JSON.stringify(CAMADAS));
+    }
+
+    function prepararCacheCidadeCamadas() {
+        if (Array.isArray(_cacheCidadeCamadas) && _cacheCidadeCamadas.length === CAMADAS.length) return _cacheCidadeCamadas;
+        _cacheCidadeCamadas = CAMADAS.map(function (camada, idx) {
+            const wx = CID_X0 + camada.x;
+            const wy = camada.y;
+            const margem = camada.tipo === 'line' ? (camada.espessura || 16) : 0;
+            const baseY = (camada.baseY || (camada.y + camada.h)) + (camada.ordem || 0) * 0.001;
+            const item = {
+                id: camada.id || ('camada_' + (idx + 1) + '_' + Date.now().toString(36)),
+                tipo: camada.tipo,
+                nome: camada.nome,
+                x: camada.x,
+                y: camada.y,
+                w: camada.w,
+                h: camada.h,
+                espessura: camada.espessura,
+                pontos: camada.pontos,
+                baseY: baseY,
+                ordem: camada.ordem || 0,
+                wx: wx,
+                wy: wy,
+                margem: margem
+            };
+            item.draw = function () {
+                if (!_imgCidade || !_imgCidade.complete) return;
+                const ctx = global.ctx;
+                if (!ctx) return;
+                ctx.save();
+                if (item.tipo === 'line' && item.pontos && item.pontos.length > 1) {
+                    ctx.beginPath();
+                    criarCaminhoFaixaCamada(ctx, item.pontos, item.espessura || 16);
+                    ctx.clip();
+                    ctx.drawImage(_imgCidade, CID_X0, 0, LARGURA, ALTURA);
+                } else {
+                    ctx.drawImage(_imgCidade, item.x, item.y, item.w, item.h, CID_X0 + item.x, item.y, item.w, item.h);
+                }
+                ctx.restore();
+            };
+            return item;
+        });
+        return _cacheCidadeCamadas;
     }
 
     // ============================================================================
@@ -311,6 +416,7 @@
 
     function onUpdatePosicao(x, y) {
         if (transicaoAtiva || global.estaMorto) return;
+        if (typeof global.portalMapaPodeDisparar === 'function' && !global.portalMapaPodeDisparar(x, y)) return;
         let info = null;
         if (x >= CID_X0) {
             info = infoPortalCidade(x, y);
@@ -324,17 +430,11 @@
         }
         if (!info) return;
 
+        if (typeof global.solicitarTeleporteMapa === 'function') {
+            global.solicitarTeleporteMapa(info.mapa, 'cidade_' + info.mapa);
+            return;
+        }
         transicaoAtiva = true;
-        setTimeout(function () {
-            global.meuX = info.alvo.x;
-            global.meuY = info.alvo.y;
-            global.currentMap = (info.alvo.x >= (global.LARGURA_ARENA || 63800)) ? 'arena' :
-                                (info.alvo.x >= CID_X0) ? 'cidade' :
-                                (info.alvo.x >= (global.LARGURA_PANTANO || 58000)) ? 'caverna' :
-                                (info.alvo.x >= (global.LARGURA_DESERTO || 50000)) ? 'pantano' :
-                                (info.alvo.x >= (global.LARGURA_VERDE || 18000)) ? 'desert' : 'green';
-            transicaoAtiva = false;
-        }, 300);
     }
 
     // ============================================================================
@@ -449,7 +549,49 @@
         ctx.restore();
     }
 
-    function coletarCidadeSortables(t, arr) {}
+    function criarCaminhoFaixaCamada(ctx, pontos, largura) {
+        const meio = Math.max(2, largura / 2);
+        const esquerda = [];
+        const direita = [];
+
+        for (let i = 0; i < pontos.length; i++) {
+            const anterior = pontos[i > 0 ? i - 1 : i];
+            const proximo = pontos[i + 1 < pontos.length ? i + 1 : i];
+            let dx = proximo.x - anterior.x;
+            let dy = proximo.y - anterior.y;
+            const comprimento = Math.hypot(dx, dy) || 1;
+            dx /= comprimento;
+            dy /= comprimento;
+            const nx = -dy * meio;
+            const ny = dx * meio;
+            esquerda.push({ x: CID_X0 + pontos[i].x + nx, y: pontos[i].y + ny });
+            direita.push({ x: CID_X0 + pontos[i].x - nx, y: pontos[i].y - ny });
+        }
+
+        ctx.moveTo(esquerda[0].x, esquerda[0].y);
+        for (let i = 1; i < esquerda.length; i++) ctx.lineTo(esquerda[i].x, esquerda[i].y);
+        for (let i = direita.length - 1; i >= 0; i--) ctx.lineTo(direita[i].x, direita[i].y);
+        ctx.closePath();
+    }
+
+    function coletarCidadeSortables(t, arr) {
+        if (!Array.isArray(arr) || !CAMADAS.length || !_imgCidade || !_imgCidade.complete || !(_imgCidade.naturalWidth || _imgCidade.width)) return;
+
+        const camX = global.camX || 0;
+        const camY = global.camY || 0;
+        const cw = ((global.canvas && global.canvas.width) || 800) / (global.ZOOM_CAMERA || 1);
+        const ch = ((global.canvas && global.canvas.height) || 600) / (global.ZOOM_CAMERA || 1);
+        const cache = prepararCacheCidadeCamadas();
+
+        for (let i = 0; i < cache.length; i++) {
+            const camada = cache[i];
+            if (camada.wx + camada.w + camada.margem < camX || camada.wx - camada.margem > camX + cw || camada.wy + camada.h + camada.margem < camY || camada.wy - camada.margem > camY + ch) continue;
+            arr.push({
+                y: camada.baseY,
+                draw: camada.draw
+            });
+        }
+    }
 
     function desenharVortex(ctx, x, y, t, cor) {
         ctx.save();
@@ -508,7 +650,9 @@
         desenharPortalCidadeRetorno: desenharPortalCidadeRetorno,
         tocarPortalViagem: tocarPortalViagem,
         carregarObstaculos: carregarObstaculos,
-        obterObstaculos: obterObstaculos
+        obterObstaculos: obterObstaculos,
+        carregarCamadas: carregarCamadas,
+        obterCamadas: obterCamadas
     };
 
     if (typeof window !== 'undefined') {

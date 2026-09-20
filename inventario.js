@@ -226,7 +226,7 @@ function renderizarComparacao(item) {
     if (!item || item.tipo !== 'equipamento' || !item.status) { el.style.display = 'none'; return; }
     let equipado = window.inventario[item.slot];
     if (!equipado || !equipado.status) { el.style.display = 'none'; return; }
-    let nomeMap = { forca: 'Força', inteligencia: 'Inteligência', agilidade: 'Agilidade', destreza: 'Destreza', vida: 'Vida', profanidade: 'Profanidade', divindade: 'Divindade', afinidade: 'Afinidade' };
+    let nomeMap = { forca: 'Força', inteligencia: 'Inteligência', agilidade: 'Agilidade', destreza: 'Destreza', vida: 'Vida', profanidade: 'Profanidade', divindade: 'Divindade', afinidade: 'Afinidade', velocidadeAtaque: '⚡ Vel. Ataque' };
     let chaves = Object.keys(Object.assign({}, equipado.status || {}, item.status || {}));
     let html = '<div class="cmp-titulo">COMPARAÇÃO</div><div class="cmp-cols">';
     html += '<div class="cmp-col"><div class="cmp-linha cmp-nome">' + (equipado.icon || '') + ' EQUIPADO</div>';

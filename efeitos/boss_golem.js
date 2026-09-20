@@ -7,6 +7,189 @@ window._pedraTrails = {};
 // Fator de escala visual do golem (0.6 = 40% menor)
 const BOSS_ESCALA = 0.6;
 
+window.__golemEscudoCache = window.__golemEscudoCache || {};
+window.__golemBolhaEscudoCache = window.__golemBolhaEscudoCache || {};
+
+function obterCorEscudo(tipo) {
+    if (tipo === 'vermelho') {
+        return {
+            r: 255,
+            g: 80,
+            b: 60,
+            glow: 'rgba(255,80,60,1)',
+            topo: 'rgba(255,255,255,0.35)',
+            meio: 'rgba(255,80,60,0.16)',
+            fundo: 'rgba(255,80,60,0.02)',
+            contorno: 'rgba(255,80,60,0.90)'
+        };
+    }
+
+    return {
+        r: 60,
+        g: 140,
+        b: 255,
+        glow: 'rgba(60,140,255,1)',
+        topo: 'rgba(255,255,255,0.35)',
+        meio: 'rgba(60,140,255,0.16)',
+        fundo: 'rgba(60,140,255,0.02)',
+        contorno: 'rgba(60,140,255,0.90)'
+    };
+}
+
+function criarCacheEscudoGolem(tipo) {
+    if (!window || typeof window === 'undefined') return null;
+
+    const cor = obterCorEscudo(tipo);
+    const tamanho = 320;
+    const canvas = (typeof OffscreenCanvas !== 'undefined') ? new OffscreenCanvas(tamanho, tamanho) : document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) return null;
+
+    canvas.width = tamanho;
+    canvas.height = tamanho;
+
+    const cx = tamanho / 2;
+    const cy = tamanho / 2;
+
+    ctx.clearRect(0, 0, tamanho, tamanho);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.shadowBlur = 45;
+    ctx.shadowColor = cor.glow;
+
+    const grad = ctx.createRadialGradient(cx, cy - 20, 8, cx, cy, 150);
+    grad.addColorStop(0, 'rgba(' + cor.r + ',' + cor.g + ',' + cor.b + ',0.05)');
+    grad.addColorStop(0.6, cor.meio);
+    grad.addColorStop(0.95, 'rgba(' + cor.r + ',' + cor.g + ',' + cor.b + ',0.30)');
+    grad.addColorStop(1, cor.fundo);
+
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 150, 118, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 0.8;
+    ctx.fillStyle = cor.topo;
+    ctx.beginPath();
+    ctx.ellipse(cx - 42, cy - 63, 30, 12, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.globalAlpha = 0.7;
+    ctx.strokeStyle = cor.contorno;
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 150, 118, 0, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.globalAlpha = 0.5;
+    for (let i = 0; i < 6; i++) {
+        const ang = (i / 6) * Math.PI * 2;
+        const px = cx + Math.cos(ang) * 160;
+        const py = cy + Math.sin(ang) * 125;
+        const rrMini = 7 + Math.sin(i * 2) * 3;
+        ctx.beginPath();
+        ctx.ellipse(px, py, rrMini, rrMini * 0.85, ang, 0, Math.PI * 2);
+        ctx.strokeStyle = cor.contorno;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fill();
+    }
+
+    ctx.restore();
+    return { canvas, tipo, cor };
+}
+
+function criarCacheBolhaEscudo(tipo) {
+    if (!window || typeof window === 'undefined') return null;
+
+    const cor = obterCorEscudo(tipo);
+    const tamanho = 72;
+    const canvas = (typeof OffscreenCanvas !== 'undefined') ? new OffscreenCanvas(tamanho, tamanho) : document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+
+    if (!ctx) return null;
+
+    canvas.width = tamanho;
+    canvas.height = tamanho;
+
+    const cx = tamanho / 2;
+    const cy = tamanho / 2;
+    ctx.clearRect(0, 0, tamanho, tamanho);
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    ctx.shadowBlur = 16;
+    ctx.shadowColor = cor.glow;
+
+    const grad = ctx.createRadialGradient(cx - 10, cy - 12, 4, cx, cy, 30);
+    grad.addColorStop(0, 'rgba(255,255,255,0.60)');
+    grad.addColorStop(0.35, 'rgba(' + cor.r + ',' + cor.g + ',' + cor.b + ',0.45)');
+    grad.addColorStop(1, 'rgba(' + cor.r + ',' + cor.g + ',' + cor.b + ',0.05)');
+
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 24, 20, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.strokeStyle = cor.contorno;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.ellipse(cx, cy, 24, 20, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    return { canvas, tipo };
+}
+
+function obterCacheEscudoGolem(tipo) {
+    const key = tipo || 'padrao';
+    if (!window.__golemEscudoCache[key]) {
+        window.__golemEscudoCache[key] = criarCacheEscudoGolem(tipo);
+    }
+    return window.__golemEscudoCache[key];
+}
+
+function obterCacheBolhaEscudo(tipo) {
+    const key = tipo || 'padrao';
+    if (!window.__golemBolhaEscudoCache[key]) {
+        window.__golemBolhaEscudoCache[key] = criarCacheBolhaEscudo(tipo);
+    }
+    return window.__golemBolhaEscudoCache[key];
+}
+
+window.desenharEscudoGolemCache = function(g, x, y, t) {
+    if (!g || !g.escudoTipo || !window.ctx) return;
+
+    const cache = obterCacheEscudoGolem(g.escudoTipo);
+    const cacheBolha = obterCacheBolhaEscudo(g.escudoTipo);
+    if (!cache || !cacheBolha) return;
+
+    const ctx = window.ctx;
+    const cy = y - 60 * BOSS_ESCALA;
+    const escudoScale = BOSS_ESCALA;
+    const alpha = 0.72 + Math.sin(t * 4) * 0.18;
+
+    ctx.save();
+    ctx.translate(x, cy);
+    ctx.globalAlpha = alpha;
+    ctx.scale(escudoScale, escudoScale);
+    ctx.drawImage(cache.canvas, -cache.canvas.width / 2, -cache.canvas.height / 2);
+
+    const radius = 150;
+    const orbitAlpha = 0.38 + Math.sin(t * 3.2) * 0.12;
+    for (let i = 0; i < 6; i++) {
+        const ang = t * 0.8 + (i / 6) * Math.PI * 2;
+        const px = Math.cos(ang) * (radius + 10);
+        const py = Math.sin(ang) * ((radius + 10) * 0.78);
+        const sx = px - cacheBolha.canvas.width / 2;
+        const sy = py - cacheBolha.canvas.height / 2;
+        ctx.globalAlpha = orbitAlpha + (i / 6) * 0.2;
+        ctx.drawImage(cacheBolha.canvas, sx, sy, cacheBolha.canvas.width, cacheBolha.canvas.height);
+    }
+    ctx.restore();
+};
+
 window.criarLevantarGolem = function(x, y) {
     if (typeof tocarSomAtaqueGolem === 'function') tocarSomAtaqueGolem();
     window.tremorTela = Math.max(window.tremorTela, 5);
@@ -204,63 +387,9 @@ window.desenharBossGolem = function(g) {
     ctx.fill();
     ctx.restore();
 
-    // ===== BOLHA BRILHANTE DO ESCUDO =====
+    // ===== ESCUDO CACHEADO =====
     if (g.escudoTipo) {
-        ctx.save();
-        let r = (g.escudoTipo === 'vermelho') ? 255 : 60;
-        let gg = (g.escudoTipo === 'vermelho') ? 80 : 140;
-        let b = (g.escudoTipo === 'vermelho') ? 60 : 255;
-        let corBase = "rgba(" + r + "," + gg + "," + b + ",1)";
-        let raioBolha = (150 + Math.sin(t * 3) * 6) * BOSS_ESCALA;
-        let cy = y - 60 * BOSS_ESCALA;
-
-        ctx.globalCompositeOperation = "lighter";
-        ctx.shadowColor = corBase;
-        ctx.shadowBlur = 45;
-
-        // corpo translúcido da bolha (gradiente radial)
-        let grad = ctx.createRadialGradient(x, cy - 20 * BOSS_ESCALA, 8, x, cy, raioBolha);
-        grad.addColorStop(0, "rgba(" + r + "," + gg + "," + b + ",0.05)");
-        grad.addColorStop(0.6, "rgba(" + r + "," + gg + "," + b + ",0.16)");
-        grad.addColorStop(0.95, "rgba(" + r + "," + gg + "," + b + ",0.30)");
-        grad.addColorStop(1, "rgba(" + r + "," + gg + "," + b + ",0.02)");
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.ellipse(x, cy, raioBolha, raioBolha * 0.78, 0, 0, Math.PI * 2);
-        ctx.fill();
-
-        // brilho no topo da bolha (reflexo de luz)
-        ctx.globalAlpha = 0.8;
-        ctx.fillStyle = "rgba(255,255,255,0.35)";
-        ctx.beginPath();
-        ctx.ellipse(x - raioBolha * 0.28, cy - raioBolha * 0.42, raioBolha * 0.2, raioBolha * 0.1, -0.5, 0, Math.PI * 2);
-        ctx.fill();
-
-        // contorno brilhante da bolha
-        ctx.globalAlpha = 0.6 + Math.sin(t * 4) * 0.25;
-        ctx.strokeStyle = corBase;
-        ctx.lineWidth = 4;
-        ctx.beginPath();
-        ctx.ellipse(x, cy, raioBolha, raioBolha * 0.78, 0, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // pequenas bolhas de sabão flutuando ao redor
-        ctx.globalAlpha = 0.5;
-        for (let i = 0; i < 6; i++) {
-            let a = t * 0.8 + (i / 6) * Math.PI * 2;
-            let raioMini = raioBolha;
-            let px = x + Math.cos(a) * (raioMini + 10);
-            let py = cy + Math.sin(a) * ((raioMini + 10) * 0.78);
-            let rrMini = (7 + Math.sin(t * 6 + i * 2) * 3) * BOSS_ESCALA;
-            ctx.beginPath();
-            ctx.ellipse(px, py, rrMini, rrMini * 0.85, a, 0, Math.PI * 2);
-            ctx.strokeStyle = corBase;
-            ctx.lineWidth = 1.5;
-            ctx.stroke();
-            ctx.fillStyle = "rgba(255,255,255,0.15)";
-            ctx.fill();
-        }
-        ctx.restore();
+        window.desenharEscudoGolemCache(g, x, y, t);
     }
 
     // ===== POEIRA AMBIENTE =====

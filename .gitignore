@@ -1,3 +1,5 @@
+# Artefatos de trabalho (fora do versionamento)
+_tmp_*
+backups/
+*.log
 node_modules/
-.env
-.DS_Store

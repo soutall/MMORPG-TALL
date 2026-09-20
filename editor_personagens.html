@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Character Forge | Editor Procedural</title>
+  <link rel="stylesheet" href="editor_personagens.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">✦</span><div><strong>CHARACTER FORGE</strong><small>Canvas procedural editor</small></div></div>
+    <div class="top-actions">
+      <button id="undoBtn" title="Desfazer">↶</button><button id="redoBtn" title="Refazer">↷</button>
+      <button id="newBtn">Novo</button><button id="saveBtn">Salvar</button><button id="loadBtn">Carregar</button>
+      <button id="exportJsonBtn">JSON</button><button id="exportJsBtn" class="accent">Exportar JS</button>
+    </div>
+  </header>
+  <main class="workspace">
+    <aside class="panel left-panel">
+      <section class="panel-section">
+        <div class="section-title">Projeto <span id="projectStatus">não salvo</span></div>
+        <input id="projectName" value="Mago Arcano" aria-label="Nome do projeto">
+        <div class="segmented"><button data-mode="character" class="active">Personagem</button><button data-mode="monster">Monstro</button><button data-mode="boss">Boss</button><button data-mode="npc">NPC</button></div>
+      </section>
+      <section class="panel-section">
+        <div class="section-title">Esqueleto base</div>
+        <div class="template-grid" id="templateGrid"></div>
+      </section>
+      <section class="panel-section">
+        <div class="section-title">Templates visuais</div>
+        <select id="visualTemplate"></select>
+        <button id="applyTemplate" class="wide accent">Usar template</button>
+        <div class="button-row"><button id="randomPlayer">Player aleatório</button><button id="randomMonster">Monstro aleatório</button></div>
+        <div class="slider-grid" id="randomSliders"></div>
+        <div class="button-row"><button id="lockColor">Travar cor</button><button id="lockBody">Travar corpo</button></div>
+      </section>
+      <section class="panel-section">
+        <div class="section-title">Classes atuais da engine</div>
+        <select id="currentClass"></select>
+        <button id="loadCurrentClass" class="wide accent">Editar visual da classe</button>
+        <div id="classSourceStatus" class="status"></div>
+      </section>
+      <section class="panel-section layers-section">
+        <div class="section-title">Camadas <button id="addPart" class="mini accent">+ Parte</button></div>
+        <select id="partTypeSelect" aria-label="Tipo da nova parte"><option value="circle">Círculo</option><option value="ellipse">Elipse</option><option value="rect">Retângulo</option><option value="line">Linha</option><option value="polygon">Polígono</option><option value="arc">Arco</option></select>
+        <div id="layerList" class="layer-list"></div>
+      </section>
+      <section class="panel-section compact-actions">
+        <button id="duplicatePart">Duplicar</button><button id="deletePart">Excluir</button><button id="moveUp">Subir</button><button id="moveDown">Descer</button>
+      </section>
+    </aside>
+
+    <section class="stage-wrap">
+      <div class="stage-toolbar"><div><button id="zoomOut">−</button><span id="zoomLabel">100%</span><button id="zoomIn">+</button><button id="fitBtn">Fit</button><button id="gridBtn">Grade</button><button id="paintBtn">Desenhar</button><button id="selectBtn" class="active">Selecionar</button></div><div class="view-tabs"><button class="active">Frente</button><button>Trás</button><button>Esquerda</button><button>Direita</button></div><div class="stage-stats"><span id="partCount">0 partes</span><span id="complexity">BAIXA</span></div></div>
+      <div class="stage" id="stage"><canvas id="preview" width="760" height="620"></canvas><div class="stage-hint">Arraste uma parte para mover · clique para selecionar</div></div>
+      <div class="timeline"><div class="timeline-head"><strong>Animação</strong><div id="animationTabs"></div><button id="playBtn">▶ Reproduzir</button><button id="addKeyframe">+ Keyframe</button></div><div class="timeline-track" id="timelineTrack"></div></div>
+    </section>
+
+    <aside class="panel right-panel">
+      <section class="panel-section"><div class="section-title">Parte selecionada</div><div id="selectionName" class="selection-name">Nenhuma parte selecionada</div><div id="properties"></div></section>
+      <section class="panel-section"><div class="section-title">Animação por parte <button id="addAnimation" class="mini accent">+ Animação</button></div><select id="animationPart"></select><div id="animationPartProps" class="status">Selecione uma parte para editar a animação.</div></section>
+      <section class="panel-section"><div class="section-title">Paleta do personagem</div><div id="palette" class="palette"></div><div class="button-row"><button id="randomPalette">Gerar paleta</button><button id="invertPalette">Inverter</button></div></section>
+      <section class="panel-section"><div class="section-title">Referência</div><input id="referenceFile" type="file" accept="image/png,image/jpeg,image/webp"><div class="button-row"><button id="toggleReference">Ocultar</button><button id="clearReference">Remover</button></div><label>Opacidade <input id="referenceOpacity" type="range" min="0" max="100" value="35"></label></section>
+      <section class="panel-section"><div class="section-title">Descrição</div><textarea id="description" placeholder="Descreva o personagem para preparar parâmetros...">Mago arcano sombrio com túnica roxa, cajado e cristal brilhante.</textarea><button id="parseDescription" class="wide">Extrair sugestões</button><div id="descriptionStatus" class="status"></div></section>
+      <section class="panel-section"><div class="section-title">Desenho livre</div><div class="button-row"><input id="paintColor" type="color" value="#f2b84b" title="Cor do pincel"><input id="paintSize" type="number" min="1" max="40" value="4" title="Tamanho do pincel"><button id="deletePaint">Excluir traço</button><button id="clearPaint">Limpar</button></div><div class="status">Ative Desenhar e trace diretamente no personagem. Clique em um traço para selecioná-lo.</div></section>
+      <section class="panel-section"><div class="section-title">VFX procedural em camadas</div><select id="vfxType"><option value="aura">Aura</option><option value="spark">Faíscas</option><option value="smoke">Fumaça volumétrica</option><option value="cloud">Nuvem</option><option value="fire">Fogo</option><option value="flame">Chamas</option><option value="ice">Gelo</option><option value="poison">Veneno</option><option value="magic">Magia</option><option value="void">Energia do vazio</option><option value="lightning">Relâmpago</option><option value="thunder">Raio ramificado</option><option value="blood">Sangue</option><option value="dust">Poeira</option><option value="wind">Vento</option><option value="water">Agua</option><option value="wave">Onda</option><option value="shadow">Sombra</option><option value="holy">Luz sagrada</option><option value="frost">Geada</option><option value="meteor">Meteoro</option><option value="web">Teia</option><option value="distortion">Distorção</option><option value="runes">Runas</option><option value="embers">Brasas</option><option value="petals">Pétalas</option><option value="rain">Chuva</option><option value="bubbles">Bolhas</option><option value="energy">Energia</option><option value="leaves">Folhas</option><option value="spiral">Espiral</option></select><div class="button-row"><button id="addVfx" class="accent">Adicionar VFX</button><button id="clearVfx">Limpar VFX</button></div><div id="vfxProperties"></div><div id="vfxList" class="vfx-list"></div></section>
+      <section class="panel-section"><div class="section-title">Prévia e arquivos</div><div class="button-row"><button id="pngBtn">PNG</button><button id="testEngine">Testar na engine</button></div><button id="importJsonBtn" class="wide">Importar JSON</button><input id="jsonFile" type="file" accept="application/json" hidden><button id="importRendererBtn" class="wide">Importar renderer existente</button><input id="rendererFile" type="file" accept=".js,text/javascript" hidden><div id="importStatus" class="status"></div></section>
+      <section class="panel-section help"><div class="section-title">Como usar</div><p>Escolha um esqueleto ou template, selecione partes no canvas, edite os valores ao vivo e exporte JSON ou JavaScript. A referência é apenas guia e não entra no renderer exportado.</p></section>
+    </aside>
+  </main>
+  <script src="editor_personagens.js"></script>
+</body>
+</html>

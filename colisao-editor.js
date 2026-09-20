@@ -11,10 +11,28 @@
     window.editorColisaoVisivel = false;
     window.colisaoSelecionadaId = null;
     window.modoFerramenta = 'select'; // 'select' | 'add_rect' | 'add_circle' | 'delete'
+    window.modoEdicaoMapa = 'colisao'; // 'colisao' | 'camada'
     window.dragEstado = null;
     window.editorMinimizado = false;
 
     const CID_X0 = 59800;
+
+    function modoCamadaAtivo() {
+        return window.modoEdicaoMapa === 'camada';
+    }
+
+    function obterListaEditor() {
+        if (!global.mapaCidade) return [];
+        if (modoCamadaAtivo() && typeof global.mapaCidade.obterCamadas === 'function') return global.mapaCidade.obterCamadas();
+        if (typeof global.mapaCidade.obterObstaculos === 'function') return global.mapaCidade.obterObstaculos();
+        return [];
+    }
+
+    function carregarListaEditor(lista) {
+        if (!global.mapaCidade) return;
+        if (modoCamadaAtivo() && typeof global.mapaCidade.carregarCamadas === 'function') global.mapaCidade.carregarCamadas(lista);
+        else if (typeof global.mapaCidade.carregarObstaculos === 'function') global.mapaCidade.carregarObstaculos(lista);
+    }
 
     // Converte Coordenadas de Tela (Mouse/Touch) para Coordenadas Locais da Cidade
     function telaParaLocalCidade(clientX, clientY) {
@@ -92,8 +110,7 @@
 
     // Hit-Test de Corpo de Obstáculo
     function testarObstaculoNoPonto(lx, ly) {
-        if (!global.mapaCidade || !global.mapaCidade.obterObstaculos) return null;
-        const lista = global.mapaCidade.obterObstaculos();
+        const lista = obterListaEditor();
         for (let i = lista.length - 1; i >= 0; i--) {
             const o = lista[i];
             if (o.tipo === 'rect') {
@@ -167,6 +184,8 @@
                 '</div>' +
                 '<div id="colisao-editor-body">' +
                     '<div class="col-toolbar">' +
+                        '<button id="tool-btn-mode-colisao" class="col-tool-btn active" onclick="window.setModoEdicaoMapa(\'colisao\')">🧱 COLISÃO</button>' +
+                        '<button id="tool-btn-mode-camada" class="col-tool-btn btn-tool-layer" onclick="window.setModoEdicaoMapa(\'camada\')">🌿 CAMADA</button>' +
                         '<button id="tool-btn-vis" class="col-tool-btn btn-toggle-vis on" onclick="window.toggleVisibilidadeColisoes()">👁️ Ver: ON</button>' +
                         '<button id="tool-btn-select" class="col-tool-btn active" onclick="window.setModoFerramenta(\'select\')">👆 Selecionar</button>' +
                         '<button id="tool-btn-line" class="col-tool-btn btn-tool-curve" onclick="window.setModoFerramenta(\'add_line\')" style="grid-column: span 2;">✏️ Linha Curva / Pincel</button>' +
@@ -251,7 +270,7 @@
 
                     '<div class="col-section">' +
                         '<div class="col-section-title">' +
-                            '<span>TODAS AS COLISÕES</span>' +
+                            '<span id="col-list-title">TODAS AS COLISÕES</span>' +
                             '<span id="col-count-badge" style="font-size:10px;color:#2ecc71;">0 ativas</span>' +
                         '</div>' +
                         '<input type="text" id="col-search-input" placeholder="🔍 Filtrar por nome..." oninput="window.filtrarListaColisoes(this.value)" style="background:#231e17;border:1px solid #5a4b36;color:#fff;padding:4px;font-size:10px;border-radius:3px;">' +
@@ -359,7 +378,30 @@
         if (badgeBtn) badgeBtn.textContent = window.editorColisaoVisivel ? '👁️ Ocultar' : '👁️ Mostrar';
     };
 
+    window.setModoEdicaoMapa = function (modo) {
+        window.modoEdicaoMapa = modo === 'camada' ? 'camada' : 'colisao';
+        window.colisaoSelecionadaId = null;
+        window.dragEstado = null;
+        const btnColisao = document.getElementById('tool-btn-mode-colisao');
+        const btnCamada = document.getElementById('tool-btn-mode-camada');
+        if (btnColisao) btnColisao.classList.toggle('active', !modoCamadaAtivo());
+        if (btnCamada) btnCamada.classList.toggle('active', modoCamadaAtivo());
+        const titulo = document.getElementById('colisao-editor-title');
+        if (titulo) titulo.textContent = modoCamadaAtivo() ? '🌿 EDITOR DE CAMADAS' : '🧱 EDITOR DE COLISÕES';
+        const listaTitulo = document.getElementById('col-list-title');
+        if (listaTitulo) listaTitulo.textContent = modoCamadaAtivo() ? 'TODAS AS CAMADAS' : 'TODAS AS COLISÕES';
+        const badge = document.getElementById('colisao-editor-hud-badge');
+        if (badge) {
+            const texto = badge.querySelector('span');
+            if (texto) texto.textContent = modoCamadaAtivo() ? '🌿 MODO EDITOR DE CAMADAS' : '🧱 MODO EDITOR DE COLISÕES';
+        }
+        window.setModoFerramenta('select');
+        window.atualizarListaColisoesUI();
+        window.atualizarPropriedadesUI();
+    };
+
     window.setModoFerramenta = function (modo) {
+        if (modoCamadaAtivo() && modo === 'add_circle') modo = 'add_rect';
         window.modoFerramenta = modo;
         ['select', 'line', 'rect', 'circle'].forEach(function (m) {
             const b = document.getElementById('tool-btn-' + m);
@@ -380,9 +422,9 @@
 
         const statusBar = document.getElementById('col-status-bar');
         if (statusBar) {
-            if (modo === 'select') statusBar.textContent = 'Modo Seleção: clique para selecionar ou arrastar';
+            if (modo === 'select') statusBar.textContent = modoCamadaAtivo() ? 'CAMADA: clique para selecionar ou arrastar' : 'Modo Seleção: clique para selecionar ou arrastar';
             else if (modo === 'add_line') statusBar.textContent = '✏️ Pincel Livre: clique, segure e arraste no mapa desenhando curvas';
-            else if (modo === 'add_rect') statusBar.textContent = 'Modo Retângulo: clique e arraste no mapa para criar';
+            else if (modo === 'add_rect') statusBar.textContent = modoCamadaAtivo() ? 'CAMADA: clique e arraste para marcar foreground' : 'Modo Retângulo: clique e arraste no mapa para criar';
             else if (modo === 'add_circle') statusBar.textContent = 'Modo Círculo: clique e arraste no mapa para criar';
         }
     };
@@ -397,8 +439,8 @@
     };
 
     window.obterColisaoSelecionada = function () {
-        if (!window.colisaoSelecionadaId || !global.mapaCidade || !global.mapaCidade.obterObstaculos) return null;
-        const lista = global.mapaCidade.obterObstaculos();
+        if (!window.colisaoSelecionadaId) return null;
+        const lista = obterListaEditor();
         for (let i = 0; i < lista.length; i++) {
             if (lista[i].id === window.colisaoSelecionadaId) return lista[i];
         }
@@ -482,8 +524,8 @@
 
     window.atualizarPropriedadeSelecionada = function (prop, valor) {
         const sel = window.obterColisaoSelecionada();
-        if (!sel || !global.mapaCidade || !global.mapaCidade.obterObstaculos) return;
-        const lista = global.mapaCidade.obterObstaculos();
+        if (!sel || !global.mapaCidade) return;
+        const lista = obterListaEditor();
 
         for (let i = 0; i < lista.length; i++) {
             if (lista[i].id === sel.id) {
@@ -513,10 +555,11 @@
                         }
                     }
                 }
+                if (modoCamadaAtivo() && lista[i].tipo === 'rect') lista[i].baseY = Math.round(lista[i].y + lista[i].h);
                 break;
             }
         }
-        global.mapaCidade.carregarObstaculos(lista);
+        carregarListaEditor(lista);
         window.atualizarListaColisoesUI();
     };
 
@@ -542,8 +585,8 @@
 
     window.atualizarListaColisoesUI = function (filtro) {
         const container = document.getElementById('col-lista-container');
-        if (!container || !global.mapaCidade || !global.mapaCidade.obterObstaculos) return;
-        const lista = global.mapaCidade.obterObstaculos();
+        if (!container || !global.mapaCidade) return;
+        const lista = obterListaEditor();
         const badgeCount = document.getElementById('col-count-badge');
         if (badgeCount) badgeCount.textContent = lista.length + ' ativas';
 
@@ -553,7 +596,7 @@
         lista.forEach(function (o, idx) {
             if (termo && (o.nome || '').toLowerCase().indexOf(termo) === -1) return;
             const isSel = o.id === window.colisaoSelecionadaId;
-            const icone = o.tipo === 'circle' ? '🔵' : (o.tipo === 'line' ? '✏️' : '⬛');
+            const icone = modoCamadaAtivo() ? '🌿' : (o.tipo === 'circle' ? '🔵' : (o.tipo === 'line' ? '✏️' : '⬛'));
             const dims = o.tipo === 'circle'
                 ? ('(X: ' + o.cx + ', Y: ' + o.cy + ' · R: ' + o.r + ')')
                 : (o.tipo === 'line'
@@ -563,14 +606,14 @@
             html +=
                 '<div class="col-list-item ' + (isSel ? 'selected' : '') + '" onclick="window.selecionarColisao(\'' + o.id + '\')">' +
                     '<div class="col-item-info">' +
-                        '<div class="col-item-name">' + icone + ' ' + (o.nome || ('Colisão ' + (idx + 1))) + '</div>' +
+                        '<div class="col-item-name">' + icone + ' ' + (o.nome || (modoCamadaAtivo() ? ('Camada ' + (idx + 1)) : ('Colisão ' + (idx + 1)))) + '</div>' +
                         '<div class="col-item-dims">' + dims + '</div>' +
                     '</div>' +
                     '<button class="col-item-del-btn" onclick="event.stopPropagation(); window.excluirColisaoPorId(\'' + o.id + '\')" title="Excluir">✕</button>' +
                 '</div>';
         });
 
-        if (!html) html = '<div style="font-size:11px;color:#7f8c8d;padding:6px;text-align:center;">Nenhuma colisão encontrada.</div>';
+        if (!html) html = '<div style="font-size:11px;color:#7f8c8d;padding:6px;text-align:center;">Nenhuma ' + (modoCamadaAtivo() ? 'camada' : 'colisão') + ' encontrada.</div>';
         container.innerHTML = html;
     };
 
@@ -582,34 +625,36 @@
     // CRIAÇÃO, DUPLICAÇÃO E EXCLUSÃO
     // ============================================================================
     window.criarColisaoNoPlayer = function () {
-        if (!global.mapaCidade || !global.mapaCidade.obterObstaculos) return;
+        if (!global.mapaCidade) return;
         const pCenterX = (typeof global.meuX === 'number' ? global.meuX : (CID_X0 + 687)) + 12;
         const pCenterY = (typeof global.meuY === 'number' ? global.meuY : 660) + 16;
         const lx = Math.max(0, Math.min(1374 - 40, Math.round(pCenterX - CID_X0 - 20)));
         const ly = Math.max(0, Math.min(1145 - 40, Math.round(pCenterY - 20)));
 
         const novo = {
-            id: 'col_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
+            id: (modoCamadaAtivo() ? 'camada_' : 'col_') + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
             tipo: 'rect',
-            nome: 'Nova Caixa Player',
+            nome: modoCamadaAtivo() ? 'Foreground Player' : 'Nova Caixa Player',
             x: lx,
             y: ly,
             w: 40,
-            h: 40
+            h: 40,
+            baseY: ly + 40,
+            ordem: 0
         };
-        const lista = global.mapaCidade.obterObstaculos();
+        const lista = obterListaEditor();
         lista.push(novo);
-        global.mapaCidade.carregarObstaculos(lista);
+        carregarListaEditor(lista);
         window.selecionarColisao(novo.id);
-        window.mostrarToast('Caixa 40x40 criada na sua posição!');
+        window.mostrarToast(modoCamadaAtivo() ? 'Camada 40x40 criada na sua posição!' : 'Caixa 40x40 criada na sua posição!');
     };
 
     window.duplicarColisaoSelecionada = function () {
         const sel = window.obterColisaoSelecionada();
-        if (!sel || !global.mapaCidade || !global.mapaCidade.obterObstaculos) return;
+        if (!sel || !global.mapaCidade) return;
         const copia = JSON.parse(JSON.stringify(sel));
-        copia.id = (copia.tipo === 'line' ? 'line_' : 'col_') + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
-        copia.nome = (copia.nome || 'Colisão') + ' (Cópia)';
+        copia.id = (modoCamadaAtivo() ? 'camada_' : (copia.tipo === 'line' ? 'line_' : 'col_')) + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
+        copia.nome = (copia.nome || (modoCamadaAtivo() ? 'Camada' : 'Colisão')) + ' (Cópia)';
         if (copia.tipo === 'rect') {
             copia.x += 20; copia.y += 20;
         } else if (copia.tipo === 'circle') {
@@ -619,9 +664,9 @@
                 return { x: pt.x + 20, y: pt.y + 20 };
             });
         }
-        const lista = global.mapaCidade.obterObstaculos();
+        const lista = obterListaEditor();
         lista.push(copia);
-        global.mapaCidade.carregarObstaculos(lista);
+        carregarListaEditor(lista);
         window.selecionarColisao(copia.id);
         window.mostrarToast('Colisão duplicada com sucesso!');
     };
@@ -645,14 +690,14 @@
     };
 
     window.excluirColisaoPorId = function (id) {
-        if (!global.mapaCidade || !global.mapaCidade.obterObstaculos) return;
-        const lista = global.mapaCidade.obterObstaculos();
+        if (!global.mapaCidade) return;
+        const lista = obterListaEditor();
         const nova = lista.filter(function (o) { return o.id !== id; });
-        global.mapaCidade.carregarObstaculos(nova);
+        carregarListaEditor(nova);
         if (window.colisaoSelecionadaId === id) window.colisaoSelecionadaId = null;
         window.atualizarPropriedadesUI();
         window.atualizarListaColisoesUI();
-        window.mostrarToast('Colisão excluída!');
+        window.mostrarToast(modoCamadaAtivo() ? 'Camada excluída!' : 'Colisão excluída!');
     };
 
     // ============================================================================
@@ -663,15 +708,17 @@
             alert('Erro: Conexão com o servidor não está aberta.');
             return;
         }
-        if (!global.mapaCidade || !global.mapaCidade.obterObstaculos) return;
+        if (!global.mapaCidade || typeof global.mapaCidade.obterObstaculos !== 'function') return;
         const obstaculos = global.mapaCidade.obterObstaculos();
+        const camadas = typeof global.mapaCidade.obterCamadas === 'function' ? global.mapaCidade.obterCamadas() : [];
 
         global.ws.send(JSON.stringify({
             action: 'admin_salvar_colisoes',
             mapa: 'cidade',
-            obstaculos: obstaculos
+            obstaculos: obstaculos,
+            camadas: camadas
         }));
-        window.mostrarToast('💾 ' + obstaculos.length + ' Colisões salvas no servidor!');
+        window.mostrarToast('💾 ' + obstaculos.length + ' colisões e ' + camadas.length + ' camadas salvas!');
     };
 
     window.mostrarToast = function (msg) {
@@ -691,11 +738,71 @@
         if (!window.editorColisaoVisivel || !global.mapaCidade || !global.mapaCidade.obterObstaculos) return;
         const lista = global.mapaCidade.obterObstaculos();
         const camX = global.camX || 0;
+        const camY = global.camY || 0;
         const zoom = (typeof global.ZOOM_CAMERA === 'number' && global.ZOOM_CAMERA > 0) ? global.ZOOM_CAMERA : 0.92;
         const cw = ((global.canvas && global.canvas.width) || 800) / zoom;
         const ch = ((global.canvas && global.canvas.height) || 600) / zoom;
 
         ctx.save();
+
+        if (typeof global.mapaCidade.obterCamadas === 'function') {
+            const camadas = global.mapaCidade.obterCamadas();
+            for (let ci = 0; ci < camadas.length; ci++) {
+                const camada = camadas[ci];
+                const wx = CID_X0 + camada.x;
+                const wy = camada.y;
+                const selecionada = camada.id === window.colisaoSelecionadaId && modoCamadaAtivo();
+                const margem = camada.tipo === 'line' ? (camada.espessura || 16) : 0;
+                if (wx + camada.w + margem < camX || wx - margem > camX + cw || wy + camada.h + margem < camY || wy - margem > camY + ch) continue;
+                if (camada.tipo === 'line' && camada.pontos && camada.pontos.length > 1) {
+                    ctx.save();
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(CID_X0 + camada.pontos[0].x, camada.pontos[0].y);
+                    for (let cpi = 1; cpi < camada.pontos.length; cpi++) ctx.lineTo(CID_X0 + camada.pontos[cpi].x, camada.pontos[cpi].y);
+                    ctx.lineWidth = camada.espessura || 16;
+                    ctx.strokeStyle = selecionada ? 'rgba(46, 204, 113, 0.55)' : 'rgba(26, 188, 156, 0.38)';
+                    ctx.stroke();
+                    ctx.lineWidth = selecionada ? 3 : 2;
+                    ctx.strokeStyle = selecionada ? '#f1c40f' : '#1abc9c';
+                    ctx.setLineDash([7, 4]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    for (let cpi = 0; cpi < camada.pontos.length; cpi++) {
+                        ctx.fillStyle = selecionada ? '#f1c40f' : '#a7f3d0';
+                        ctx.beginPath();
+                        ctx.arc(CID_X0 + camada.pontos[cpi].x, camada.pontos[cpi].y, 3, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    const pontoRotulo = camada.pontos[Math.floor(camada.pontos.length / 2)];
+                    ctx.fillStyle = 'rgba(10, 10, 10, 0.78)';
+                    ctx.font = 'bold 10px monospace';
+                    const labelLinha = '🌿 ' + (camada.nome || 'Camada Curva') + ' [esp:' + (camada.espessura || 16) + 'px]';
+                    const twLinha = ctx.measureText(labelLinha).width;
+                    ctx.fillRect(CID_X0 + pontoRotulo.x + 5, pontoRotulo.y - 18, twLinha + 6, 13);
+                    ctx.fillStyle = selecionada ? '#f1c40f' : '#a7f3d0';
+                    ctx.fillText(labelLinha, CID_X0 + pontoRotulo.x + 8, pontoRotulo.y - 8);
+                    ctx.restore();
+                    continue;
+                }
+                ctx.fillStyle = selecionada ? 'rgba(46, 204, 113, 0.42)' : 'rgba(26, 188, 156, 0.28)';
+                ctx.fillRect(wx, wy, camada.w, camada.h);
+                ctx.strokeStyle = selecionada ? '#f1c40f' : '#1abc9c';
+                ctx.lineWidth = selecionada ? 3 : 2;
+                ctx.setLineDash([7, 4]);
+                ctx.strokeRect(wx, wy, camada.w, camada.h);
+                ctx.setLineDash([]);
+                ctx.fillStyle = 'rgba(10, 10, 10, 0.78)';
+                const label = '🌿 ' + (camada.nome || 'Camada') + ' [' + camada.w + 'x' + camada.h + ']';
+                ctx.font = 'bold 10px monospace';
+                const tw = ctx.measureText(label).width;
+                ctx.fillRect(wx + 2, wy + 2, tw + 6, 13);
+                ctx.fillStyle = selecionada ? '#f1c40f' : '#a7f3d0';
+                ctx.fillText(label, wx + 5, wy + 12);
+                if (selecionada && window.colisaoEditorAtivo) desenharHandlesRetangulo(ctx, wx, wy, camada.w, camada.h);
+            }
+        }
 
         for (let i = 0; i < lista.length; i++) {
             const o = lista[i];
@@ -1112,8 +1219,8 @@
             return;
         }
 
-        if (!global.mapaCidade || !global.mapaCidade.obterObstaculos) return;
-        const lista = global.mapaCidade.obterObstaculos();
+        if (!global.mapaCidade) return;
+        const lista = obterListaEditor();
         const item = lista.find(function (o) { return o.id === de.targetId; });
         if (!item) return;
 
@@ -1174,7 +1281,12 @@
             }
         }
 
-        global.mapaCidade.carregarObstaculos(lista);
+        if (modoCamadaAtivo() && item.tipo === 'rect') item.baseY = Math.round(item.y + item.h);
+        if (modoCamadaAtivo() && item.tipo === 'line' && Array.isArray(item.pontos)) {
+            item.baseY = Math.max.apply(null, item.pontos.map(function (pt) { return pt.y; }));
+        }
+
+        carregarListaEditor(lista);
         window.atualizarPropriedadesUI();
     }
 
@@ -1202,18 +1314,20 @@
             }
             if (pts.length >= 2) {
                 const novo = {
-                    id: 'line_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
+                    id: (modoCamadaAtivo() ? 'camada_line_' : 'line_') + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
                     tipo: 'line',
-                    nome: 'Linha Curva ' + (global.mapaCidade.obterObstaculos().length + 1),
+                    nome: modoCamadaAtivo() ? 'Foreground Curvo ' + (obterListaEditor().length + 1) : 'Linha Curva ' + (global.mapaCidade.obterObstaculos().length + 1),
                     espessura: de.espessura || 16,
-                    pontos: pts
+                    pontos: pts,
+                    baseY: Math.max.apply(null, pts.map(function (pt) { return pt.y; })),
+                    ordem: 0
                 };
-                const lista = global.mapaCidade.obterObstaculos();
+                const lista = obterListaEditor();
                 lista.push(novo);
-                global.mapaCidade.carregarObstaculos(lista);
+                carregarListaEditor(lista);
                 window.selecionarColisao(novo.id);
                 window.setModoFerramenta('select');
-                window.mostrarToast('✏️ Linha curva criada com ' + pts.length + ' pontos!');
+                window.mostrarToast((modoCamadaAtivo() ? '🌿 Camada curva criada com ' : '✏️ Linha curva criada com ') + pts.length + ' pontos!');
             } else {
                 window.mostrarToast('Linha muito curta. Clique e arraste para desenhar.');
             }
@@ -1229,20 +1343,22 @@
 
             if (de.shape === 'rect' && w >= 10 && h >= 10) {
                 const novo = {
-                    id: 'col_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
+                    id: (modoCamadaAtivo() ? 'camada_' : 'col_') + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
                     tipo: 'rect',
-                    nome: 'Caixa ' + (global.mapaCidade.obterObstaculos().length + 1),
+                    nome: modoCamadaAtivo() ? 'Foreground ' + (obterListaEditor().length + 1) : 'Caixa ' + (obterListaEditor().length + 1),
                     x: Math.round(x1),
                     y: Math.round(y1),
                     w: Math.round(w),
-                    h: Math.round(h)
+                    h: Math.round(h),
+                    baseY: Math.round(y1 + h),
+                    ordem: 0
                 };
-                const lista = global.mapaCidade.obterObstaculos();
+                const lista = obterListaEditor();
                 lista.push(novo);
-                global.mapaCidade.carregarObstaculos(lista);
+                carregarListaEditor(lista);
                 window.selecionarColisao(novo.id);
                 window.setModoFerramenta('select');
-                window.mostrarToast('Retângulo criado com sucesso!');
+                window.mostrarToast(modoCamadaAtivo() ? 'Camada foreground criada!' : 'Retângulo criado com sucesso!');
             } else if (de.shape === 'circle') {
                 const r = Math.round(Math.hypot(de.currLx - de.startLx, de.currLy - de.startLy));
                 if (r >= 10) {
@@ -1254,9 +1370,9 @@
                         cy: Math.round(de.startLy),
                         r: Math.round(r)
                     };
-                    const lista = global.mapaCidade.obterObstaculos();
+                    const lista = obterListaEditor();
                     lista.push(novo);
-                    global.mapaCidade.carregarObstaculos(lista);
+                    carregarListaEditor(lista);
                     window.selecionarColisao(novo.id);
                     window.setModoFerramenta('select');
                     window.mostrarToast('Círculo criado com sucesso!');

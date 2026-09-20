@@ -4,15 +4,122 @@ Registro de todas as atualizações feitas no projeto. **Sempre** que algo novo 
 
 ---
 
-## Versão atual: **v1.23.0**
+## Versão atual: **v1.30.3**
 
 Regra de versão (semver):
-- **Nova funcionalidade** → sobe o menor componente (`v1.3.0` → `v1.4.0`)
+- **Nova funcionalidade** → sobe o menor componente (`v1.3.0` → `v1.3.1`)
 - **Correção/bug fix** → sobe o último componente (`v1.3.0` → `v1.3.1`)
 
 ---
 
 ## Histórico de versões
+
+### v1.30.3 — 20/09/2026
+
+**3 correções: Camuflagem Sombria ativando pela tecla 3 E pelo clique (sem travar para os outros ladinos), TODAS as skills avisando quando falta Mana ou está fora de alcance (sem entrar em recarga) e o taunt do Golem (Summoner) realmente puxando o foco dos monstros para ele — não só o efeito visual do rugido.**
+
+- **🌑 Ladino — Camuflagem Sombria (tecla 3 + clique):** o estado local de invisibilidade (`ladinoInvisivelAtivo`) era atualizado pela invisibilidade de **qualquer outro ladino no mapa** — a skill 3 travava para todos. Agora só o **próprio jogador** atualiza o estado (`dados.id === window.meuId`), com **timer de segurança (11s)** que nunca deixa o estado preso em cima. A skill ativa tanto pela **tecla 3** (`Digit3`/`Numpad3` → `acionarSkillSlot3`) quanto pelo **clique/tap no botão** — ambas passam pela checagem de mana local e disparam a mesma ação do servidor.
+- **💧 Todas as classes — aviso de Mana/Alcance sem entrar em recarga:** sem mana → `"💧 Sem Mana!"`; fora de alcance → `"🎯 Fora de alcance!"`. Nenhuma das duas situações ativa o cooldown: o **cliente pré-valida antes de enviar** (`checarSkill` com custo local idêntico ao servidor e coordenadas brutas antes do clamp) e o **servidor responde `mp_insuficiente`/`skill_aviso`**, sobre os quais o cliente **cancela o cooldown visual** (backstop via `window.ultimoSkillEnviado`, janela 3,5s). Aplicado a todas as skills de mira e instantâneas das 8 classes (meteoro, nevasca, vulcão, chuva, perfurante, rajada, furia, giro, bateria, banda, grito, colossal, comando ogro, dança, névoa, camuflagem, estrela, salto, teleporte, prece/cura, julgamento, esmagamento, aura, dash, tornado, provocação).
+- **🗿 Summoner — Taunt do Golem REAL:** antes, o rugido só trocava o alvo de forma visual — a resolução de alvo preferia `players[tauntId]` e os monstros continuavam mirando/atacando a **invocadora**. Agora, durante o taunt (5s = 100 ticks; antes 4s), a resolução de alvo de **slimes, monstros especiais e do boss** (`entidadeAlvo`) prioriza o **Golem (`lacaios[tauntId]`)** — o dano melee, o dano especial e os projéteis vão para o Golem de verdade (o boss agora também gira, mira e acerta o Golem, inclusive no impacto).
+- **🛡️ Banco de dados — robustez (`database.js`):** gravação **atômica** (arquivo temporário + `rename`) e **reparo automático de vírgula residual** no `jogadores.json` — o mesmo padrão de corrupção reparado na v1.30.2 não volta mais a quebrar o parse quando dois processos gravam o arquivo perto de uma leitura. Banco atual normalizado via Node: **113 jogadores, validação OK, contas de teste removidas**.
+- **🧪 Validação E2E WebSocket (18/18 ✓):** sem mana → `mp_insuficiente` e rejeição repetível (sem CD); fora de alcance → `skill_aviso` e skill dentro do alcance continua funcionando; taunt do Golem → slimes miram o Golem (`tauntId`/`targetId`), o Golem recebe dano real (90→75) e o Summoner fica intocado (hp 1048→1048).
+
+**Arquivos alterados:** `server.js`, `index.html`, `database.js`, `_tmp_e2e_v1303.js` (novo), `CHANGELOG.md`, `INFO_PROJETO.md`
+
+---
+
+### v1.30.2 — 20/09/2026
+
+**10 ajustes e correções: modo Agressivo/Passivo do Golem (Summoner), recarga visual do Golem Colossal, Grito de Guerra apenas para o Roqueiro (ícone sumia do nada para todas as classes), Rajada de Flechas em ÁREA (acertava 1 alvo só), Aura Sagrada escalando com Divindade, Giro Descontrolado bloqueando o atk básico, alcances reduzidos do Ladino (Dança 220→110 e Névoa 400→200 mantendo a área) e remoção do ataque básico manual (só auto-attack).**
+
+- **🗿 Summoner — Modo do Golem:** 2 ícones pequenos acima do botão **Golem Colossal** — 🎯 **Agressivo** (o golem ataca os inimigos que a Summoner focar, prioridade do alvo focado) e 🛡️ **Passivo** (fica SEM atacar, apenas rodeando a invocadora). Novo campo `ogroModo` persistente no save do jogador, nova ação `ogro_modo` no servidor, sincronização via `init`, e no modo **passivo** a IA do golem pula **toda** a seleção de alvos (incl. comando agressivo e perseguição por agro) — ele só acompanha.
+- **⏱️ Summoner — Golem Colossal:** o **tempo visual de recarga** agora aparece no ícone da skill (overlay de CD de 45s). O Grito de Guerra também ganhou overlay de CD (60s).
+- **📣 Grito de Guerra:** o botão aparecia para TODAS as classes (o elemento nunca era escondido na troca de classe). Agora é escondido por padrão e **só é exibido para o Roqueiro**.
+- **🏹 Arqueira — Rajada de Flechas:** o cone só acertava **um** alvo (o loop parava no primeiro hit). Agora **todos os inimigos dentro do cone do visual** (raio 230px = o alcance da animação, meio-ângulo 1.05) são atingidos — slimes **e** bosses no mesmo disparo. Os stacks de velocidade continuam acumulando no alvo primário.
+- **✝️ Curandeira — Aura Sagrada:** a cura (2% HP/s) agora é **escalada pelo atributo DIVINDADE** da Curandeira (+5% por ponto, via `calcularCuraJogador`).
+- **🌀 Berserker — Giro Descontrolado:** com a skill ativa, o **ataque básico não funciona** (bloqueio server-authoritative no `ataque_barbaro` + guard no auto-attack do cliente durante a animação).
+- **🌪️ Ladino — Dança das Adagas:** distância de busca reduzida em **50%** (220px → **110px**) — só os alvos mais próximos.
+- **🧪 Ladino — Névoa Venenosa:** alcance de arremesso reduzido em **50%** (400px → **200px**); a **área da nuvem (raio 90) é mantida**.
+- **⭐ Ladino — Estrela da Morte:** o **ataque básico fica bloqueado** enquanto a coreografia está ativa (guard no auto-attack do cliente; o servidor já rejeitava `ataque_ladino` durante a coreografia).
+- **⚔️ Todas as classes — ataque básico manual removido:** o ícone do Ataque Básico foi retirado da barra, o clique do mouse e a tecla pararam de atacar (`executarAtaqueBasico` virou no-op). O **auto-attack** (sistema automático com alvo validado no servidor) permanece como a única forma de ataque básico.
+- **🧪 Validação E2E WebSocket (37/37 ✓):** robustez na T4 da Camuflagem (margem de cadência após o whiff e seleção de alvo de referência fora da névoa do T3) para eliminar flak de timing. **Reparo do `jogadores.json`:** arquivo com vírgula final que quebrava o parse — reparado e normalizado via Node (resolveu também chaves duplicadas). Contas de teste removidas do banco.
+
+**Arquivos alterados:** `server.js`, `index.html`, `style.css`, `skills.js`, `_tmp_e2e_ladino.js`, `CHANGELOG.md`, `INFO_PROJETO.md`
+
+---
+
+### v1.30.1 — 20/09/2026
+
+**3 correções de gameplay do LADINO: limite de distância na Dança (só os mais próximos), Estrela da Morte com mobilidade travada e coreografia 50% mais lenta, e Camuflagem que zera o ataque dos inimigos (inimigos não veem/atacam o invisível).**
+
+- **🌪️ Skill 1 — Dança das Adagas:** agora tem **limite de distância real (raio 220px)** e a coreografia atinge **apenas os alvos mais próximos** (ordena por proximidade — sem teleporte para alvo distante; alvos distintos primeiro, repetições só para completar os 5 hits entre o grupo mais próximo).
+- **⭐ Skill 4 — Estrela da Morte:** enquanto a estrela está ativa a mobilidade fica **totalmente travada no cliente** (o input de movimento não anda nem é reportado) e o cliente **sempre segue a posição do servidor** durante a coreografia — a skill NÃO é mais "cancelada" ao tentar mover. A coreografia ficou **~50% mais lenta** (vértices 200ms cada, salto 600ms, queda 500ms) — a animação fica mais dramática e o dano do impacto acompanha o ritmo mais lento. Visual do pentagrama estendido para durar a sequência.
+- **🌑 Skill 3 — Camuflagem Sombria:** enquanto invisível o Ladino **não é mais alvo de inimigos** (server-authoritative): monstros não ganham agro, **soltam o agro já existente**, não miram ataques (melee/ranged/habilidades), **projéteis já em voo e AOEs de monstro não o acertam** (`aplicarDanoJogador` ignora dano de inimigo a um jogador com efeito `invisivel`; PvP continua separado via `aplicarDanoPvP`). DoT/névoa não revelam a posição (sem agro). Bônus +100% continua **sendo consumido apenas pelo primeiro dano real**.
+- **🧪 Validação E2E WebSocket atualizada (38/38 ✓):** inimigos NÃO atacam o invisível (HP perfeitamente estável por 2,5s cercado de zumbis), +100% provado pelo broadcast `texto_dano` (sem overkill), sangramento com DoT medido em zumbi (sem regen/escudo) para evitar o mascaramento da regen do boss. Contas de teste removidas do `jogadores.json` após a validação.
+
+**Arquivos alterados:** `server.js`, `index.html`, `efeitos/ladino_efeitos.js`, `debuffs.js`, `skills.js`, `_tmp_e2e_ladino.js` (38 asserções), `_tmp_limpar_e2e.js` (novo), `CHANGELOG.md`
+
+---
+
+**Nova 8ª classe assassina: 🗡️ LADINO — 6 habilidades (1 básica + 4 ativas + 1 passiva), 2 armas novas, mecânicas inéditas de solo (invisibilidade com bônus, névoa que cega, estrela com atordoamento de chefe) e sangramento por DoT.**
+
+- **🗡️ Ataque básico — Adaga:** cone curto e rápido (cadência 400ms, meio-ângulo 1.05, alcance 110, dano base 12), custo 0 de mana. Servidor autoritativo: valida alvo/distância/direção e aplica dano no cone (slimes + bosses + PvP via `danoEmBosses`).
+- **🌪️ Skill 1 — Dança das Adagas (`danca_das_adagas`):** teleporta até **5 alvos** (alvos distintos primeiro, depois repetições) em sequência rápida (~150ms/hit), **retorna à posição exata de partida**, 15 de dano por alvo, CD 12s, mana 25, busca de alvos em raio 420. *Imunidade a dano durante a coreografia (server-side); sem alvo válido = sem gasto de mana.* Movimento do jogador bloqueado durante a dança.
+- **☠️ Skill 2 — Nevoeiro Venenoso (`nevoeiro_venenoso`):** bomba de veneno (arma secundária) com trajetória visual → **zona de gás 5s (100 ticks) no servidor** (raio 90) sincronizada via `world_update → gases`. Dano contínuo a cada 0.5s + **cegueira** (`cegueira`, nova) — reaplicada a cada tick dentro do gás, expira 10 ticks após sair. Cego (monstro/jogador) **erra ataques normais corpo a corpo e à distância** (6 pontos de checagem em `monstroPodeAtacar`); **magia continua acertando** (pedra do Golem deliberadamente não bloqueada). CD 8s, mana 20.
+- **🌑 Skill 3 — Camuflagem Sombria (`camuflagem_sombria`):** 1s de atraso → **invisibilidade 10s** (200 ticks, `efeitos` invisivel) com **+100% no primeiro dano real** (consumido apenas quando o golpe atinge — whiff/erro não consome; bênção/DoT/pet não consomem). **CD de 10s começa quando a invisibilidade termina** (consumida por ação danosa ou por expiração). Re-cast durante ativo é rejeitado. CD total 20s entre casts completos. Mana 20.
+- **⭐ Skill 4 — Estrela da Morte (`estrela_da_morte`):** desenha estrela de **5 vértices** (raio 120, tap 2 ticks/vértice) percorrida por teleporte validado → **salto** → **queda** → **impacto** (raio 90, dano 25) → **STUN de 2s (40 ticks) aplicado no servidor** — o Golem de Pedra agora respeita `stunTimer` no loop do boss (novo). Jogador permanece no centro após o impacto. CD 20s, mana 30. Movimento bloqueado durante a coreografia.
+- **🩸 Passiva — Lâminas Sangrentas (`laminas_sangrentas`):** 20% de chance por dano físico do Ladino → **sangramento** (efeito existente) com **20% do dano físico por segundo por 5s**, creditado ao Ladino via `ef.autorId` (o DoT só tiqueta com autor definido). Não tem re-gatilho em loop e não consome a invisibilidade.
+- **🛠️ Armas novas:** 🗡️ **Adaga** (arma) e 🧪 **Bomba de Veneno** (armaSecundaria) em `equipamentos.js`, **restritas à classe ladino**.
+- **🖥️ UI das skills:** 6 entradas em `SKILLS_INFO` (nome/ícone/desc/custo/CD/categoria/nível 1-10/upgrade) com escalonamento padrão (+25% dano, +6% mana, +10% duração por nível).
+- **✨ VFX mobile otimizados (`efeitos/ladino_efeitos.js`):** partículas com **pooling** (sem timers por partícula, sem vazamento de memória), zona de gás com brilho pulsante, estrela traçada vértice a vértice, queda com tremor de tela, silhueta translúcida na invisibilidade.
+- **🧪 Validação E2E WebSocket (36/36 ✓):** 2 jogadores isolados (A no deserto com zumbis multi-alvo; B na caverna com o Golem 8000hp) — dano e gasto de mana corretos, dança com 5 hits exatos + retorno ao ponto + alvos distintos + CD, gás com zona/DoT/cegueira, camuflagem com whiff sem consumo + +100% no 1º dano real (44 vs 24) + CD, estrela com 5 vértices + salto/queda/impacto + stun 2s no Golem, sangramento com proc + DoT (10hp/2.6s em 5s), todos os CDs bloqueando re-cast. Contas de teste removidas do `jogadores.json` após a validação.
+
+**Arquivos alterados:** `server.js`, `index.html`, `classes/ladino.js`, `efeitos/ladino_efeitos.js`, `debuffs.js`, `skills.js`, `equipamentos.js`, `style.css`, `CHANGELOG.md`, `INFO_PROJETO.md`
+
+---
+
+### v1.29.0 — 19/09/2026
+
+**Tabela de alcance do ataque básico por classe (círculo = dano real) + ajustes de velocidade de ataque + 2 bugfixes (agro do pet e flecha dupla do arqueiro).**
+
+O ataque básico agora tem um alcance REAL por classe: a marcação na tela (círculo), a busca de alvo do auto-ataque (cliente) e a validação/dano (servidor) usam a MESMA distância — sem o descompasso anterior (círculo 300 vs dano real 66).
+
+- **Tabela de alcance (cliente `alcanceBuscaClasse` + servidor `alcanceAtaqueBasicoClasse`):**
+  - ⚔️ Guerreiro: **100** · 🪓 Bárbaro: **100**
+  - 🔮 Mago: **200** · 🦍 Summoner: **190** · ✝️ Curandeiro: **200**
+  - 🎸 Roqueiro: **200** · 🏹 Arqueiro: **250**
+- **Dano real melee alinhado ao círculo:** Guerreiro `corte` (slimes 66→100, bosses 110→100 — teste da sessão anterior oficializado) e Bárbaro `machadada` (slimes 72→100, bosses 95→100).
+- **Ranged:** o dano real já cai onde o projétil chega; todos os novos alcances (máx. 250) estão dentro da distância máxima de voo de cada projétil (mín. 600px), então não há descompasso círculo vs dano.
+- **Velocidade de ataque reduzida (intervalo base):** `tempoBaseAtaqueBasico` (servidor) + `baseAtaqueBasicoLocal` (cliente) espelhados:
+  - ⚔️ Guerreiro 350ms (sem mudança) · 🪓 Bárbaro **580ms** (−40%)
+  - 🔮 Mago **600ms** (−50%) · 🦍 Summoner **1500ms** (−80%)
+  - 🏹 Arqueiro **430ms** (−30%) · ✝️ Curandeiro **600ms** (−50%)
+  - 🎸 Roqueiro **750ms** (−60%)
+  - Ataque manual (botão/espaço) passa a usar o mesmo intervalo da classe (`intervaloAtaqueBasicoLocal`).
+- **⚡ Summoner PET (Golem/Ogro Guardião):** vel. de ataque +50% — cooldown 40→27 ticks (colossal 20→13).
+- **🐛 Fix agro do PET:** no modo agressivo (`comando_pet_ogro`), o golem só perseguia o `targetSlimeId` (gravado apenas se um slime estivesse a ≤100px do esmagamento) ou quem atacava o summoner — **nunca caçava um slime novo**. Agora o comando agressivo busca o **slime mais próximo em raio 440** (e boss em 440), fazendo o agro/perseguição funcionar de verdade.
+- **🐛 Fix flecha dupla do Arqueiro:** o atirador via 2 flechas — uma criada localmente por `criarAnimacaoFlechaBasica` (ação `action_flecha`) e outra já sincronizada por `world_update → playerProjeteis` (`desenharPlayerProjetil`). Removida a criação local duplicada; o som do disparo continua para os outros jogadores.
+
+**Arquivos alterados:** `server.js`, `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`
+
+---
+
+## Histórico de versões
+
+### v1.28.1 — 19/09/2026
+
+**Bugfix: morte fora da cidade (ex.: deserto) renascia o jogador na BORDA do mapa com movimento bugado.**
+
+- **Causa raiz (`index.html`):** o filtro espacial do `onmessage` (~linha 1164) descarta eventos de outros mapas. O `respawn_confirmado` carrega as coordenadas da Cidade de Davahl mas **não estava na lista de exceções** (só `init` e `teleporte_confirmado`). Quem morria no deserto ficava com `currentMap='desert'` quando a resposta chegava → `respawn_confirmado` era **descartado**; o cliente continuava "vivo" no deserto e o servidor (já com o jogador na cidade) recebia as posições antigas do deserto a cada 30ms, que `validarMovimentoJogador` aceitava como movimento **parcial** até a borda do mapa — o jogador ficava preso na divisa e a correção de dessincronização (>120px) o puxava para lá.
+- **FIX 1 — filtro espacial:** `respawn_confirmado` passou a ser exceção (sempre passa, como `init` e `teleporte_confirmado`), para o cliente aplicar a posição/mapa da cidade ao renascer.
+- **FIX 2 — `renascer()`:** ao apertar o botão Renascer, o cliente já aplica imediatamente `window.SPAWN_CIDADE` (60474,640, espelho do `CIDADE_SPAWN_X/Y` do servidor) + `currentMap='cidade'` + `portalMapaBloqueado`, impedindo que a posição antiga (deserto/caverna/etc.) seja enviada ao servidor depois do respawn.
+- **Nova constante `window.SPAWN_CIDADE={x:60474,y:640}`** junto às constantes de mundo.
+- **Verificação:** E2E WebSocket (porta sandbox 8127): login → teleporte deserto → respawn → `respawn_confirmado` devolve (60474,640), dentro da cidade, andável (`colideCidade` falso); simulação do filtro do cliente com `currentMap='desert'`: sem o fix a mensagem é descartada, com o fix passa; sintaxe dos 2 `<script>` inline OK.
+
+**Arquivos alterados:** `index.html`, `CHANGELOG.md`
+**Arquivo de teste novo:** `_tmp_respawn_test.js`
+
+---
 
 ### v1.23.0 — 15/09/2026
 

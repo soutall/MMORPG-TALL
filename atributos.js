@@ -111,6 +111,19 @@ function renderizarDetalhes() {
     let petVida = Math.round(90 + (g('afinidade') - 1) * 15);
     let veloc = Math.round((g('agilidade') - 1) * 0.03 * 100);
 
+    // Velocidade de ataque (mesma fórmula do servidor: buff Grito de Guerra + equipamentos)
+    let multAtaqueLocal = 1;
+    if ((window.meusEfeitos || []).some(function (e) { return e && e.id === 'gritoDeGuerra' && e.tempo > 0; })) multAtaqueLocal *= 0.90;
+    let invAtual = window.inventario || {};
+    for (let ch in invAtual) {
+        let it = invAtual[ch];
+        if (it && it.status && typeof it.status.velocidadeAtaque === 'number' && it.status.velocidadeAtaque > 0) {
+            multAtaqueLocal *= (1 - Math.min(0.20, it.status.velocidadeAtaque / 100));
+        }
+    }
+    multAtaqueLocal = Math.max(0.4, Math.min(1, multAtaqueLocal));
+    let velAtaquePct = Math.round((1 - multAtaqueLocal) * 100);
+
     let linhas = [
         { nome: '❤️ Vida Máx', valor: maxHp },
         { nome: '🔋 Mana Máx', valor: maxMana },
@@ -122,7 +135,8 @@ function renderizarDetalhes() {
         { nome: '☠️ DoT', valor: '+' + dotBonus + '%' },
         { nome: '🐾 Pet dano', valor: '+' + petDano + '%' },
         { nome: '🐾 Pet vida', valor: petVida },
-        { nome: '💨 Velocidade', valor: '+' + veloc + '%' }
+        { nome: '💨 Velocidade', valor: '+' + veloc + '%' },
+        { nome: '⚡ Vel. de ataque', valor: '+' + velAtaquePct + '%' }
     ];
 
     lista.innerHTML = "";

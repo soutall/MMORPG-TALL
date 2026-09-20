@@ -23,3 +23,14 @@
 #spawn-btn-fechar { background: #34495e; border-color: #5d6d7e; }
 
 .spawn-flutuante { pointer-events: none; font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 13px; color: #fff; text-shadow: 1px 1px 0 #000, -1px -1px 0 #000; letter-spacing: 0.5px; }
+
+.btn-util.btn-admin-vfx { background:#6c3483; border-color:#b56cff; display:none; }
+.btn-util.btn-admin-vfx.ativo { background:#b56cff; color:#fff; box-shadow:0 0 12px #b56cff; }
+#map-vfx-screen { position:fixed; inset:0; display:none; align-items:center; justify-content:center; background:rgba(8,8,18,.78); z-index:321; }
+#map-vfx-window { width:300px; max-height:90vh; overflow:auto; padding:16px; background:#171020; border:2px solid #b56cff; box-shadow:0 0 24px rgba(181,108,255,.45),5px 5px #050309; color:#f5edff; font-family:'Rajdhani',sans-serif; }
+.map-vfx-title { color:#d9a7ff; font:700 17px 'Cinzel',serif; letter-spacing:1px; margin-bottom:12px; }
+#map-vfx-window label { display:flex; flex-direction:column; gap:4px; margin:9px 0; font-weight:bold; font-size:12px; }
+#map-vfx-window select,#map-vfx-window input { width:100%; box-sizing:border-box; min-height:32px; background:#0d0a14; color:#fff; border:1px solid #5b3d78; }
+#map-vfx-pos { color:#b8f5ff; padding:7px 0; }
+.map-vfx-actions { display:flex; gap:6px; margin-top:12px; }
+.map-vfx-actions button { flex:1; padding:9px 5px; border:1px solid #8d4dff; background:#28183a; color:#fff; font-weight:bold; }

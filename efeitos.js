@@ -113,13 +113,14 @@ window.criarAnimacaoMeteoro = function(tx, ty) {
     window.meteorosAtivos.push({ startX: tx - 240, startY: ty - 420, targetX: tx, targetY: ty, progresso: 0, velocidade: 0.032, rastro: [] });
 };
 
-window.criarAnimacaoNevasca = function(tx, ty, raio) {
+window.criarAnimacaoNevasca = function(tx, ty, raio, duracaoMs) {
     if (typeof tocarSomNevasca === 'function') tocarSomNevasca();
+    const duracaoVisualMs = Number.isFinite(duracaoMs) ? duracaoMs : Math.round(480 * (1000 / 60));
     let particulasGelo = [];
     for (let i = 0; i < 45; i++) {
         particulasGelo.push({ dist: Math.random() * raio, angle: Math.random() * Math.PI * 2, speed: Math.random() * 0.06 + 0.04, size: Math.random() * 4 + 2, color: Math.random() > 0.4 ? "#00ffff" : "#ffffff", alpha: Math.random() });
     }
-    window.nevascasAtivas.push({ x: tx, y: ty, radius: raio, duracao: 480, rotacao: 0, particulas: particulasGelo });
+    window.nevascasAtivas.push({ x: tx, y: ty, radius: raio, duracao: 480, startTime: Date.now(), duracaoMs: duracaoVisualMs, rotacao: 0, particulas: particulasGelo });
     window.floatingTexts.push({ x: tx, y: ty - 40, text: "❄️ NEVASCA (LENTIDÃO 50%)", color: "#00ffff", alpha: 1.0 });
 };
 
@@ -186,6 +187,10 @@ window.desenharEfeitosNevasca = function() {
     for (let i = window.nevascasAtivas.length - 1; i >= 0; i--) {
         let n = window.nevascasAtivas[i];
         n.duracao--; n.rotacao += 0.05;
+        if (n.startTime && Date.now() - n.startTime >= n.duracaoMs) {
+            window.nevascasAtivas.splice(i, 1);
+            continue;
+        }
         if (n.duracao % 60 === 0) {
             window.listaSlimes.forEach(slime => {
                 if (slime.hp > 0 && Math.hypot(slime.x - n.x, slime.y - n.y) < n.radius) {

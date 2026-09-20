@@ -291,6 +291,7 @@
     // "CÉREBRO" DA CADEIA: substitui o chainMapas anterior (pantano)
     function onUpdatePosicao(x, y) {
         if (transicaoAtiva || global.estaMorto) return;
+        if (typeof global.portalMapaPodeDisparar === 'function' && !global.portalMapaPodeDisparar(x, y)) return;
 
         let info = null;
 
@@ -309,6 +310,10 @@
         }
 
         if (!info) return;
+        if (typeof global.solicitarTeleporteMapa === 'function') {
+            global.solicitarTeleporteMapa(info.mapa, 'caverna_' + info.mapa);
+            return;
+        }
         transicaoAtiva = true;
         switchMapaFade(function () {
             global.meuX = info.alvo.x;

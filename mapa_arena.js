@@ -236,6 +236,7 @@
 
     function onUpdatePosicao(x, y) {
         if (global.estaMorto) return;
+        if (typeof global.portalMapaPodeDisparar === 'function' && !global.portalMapaPodeDisparar(x, y)) return;
         let info = null;
         if (x >= ARENA_X0) {
             info = infoPortalArena(x, y);
@@ -244,6 +245,11 @@
             return;
         }
         if (!info) return;
+        if (typeof global.solicitarTeleporteMapa === 'function') {
+            global.solicitarTeleporteMapa(info.mapa, 'arena_' + info.mapa);
+            return;
+        }
+        transicaoAtiva = true;
         transicaoArenaFade(function () {
             global.meuX = info.alvo.x;
             global.meuY = info.alvo.y;

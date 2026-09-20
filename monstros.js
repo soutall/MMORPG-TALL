@@ -1,4 +1,59 @@
 // monstros.js - Renderização dos Slimes, Zumbis e Inimigos
+var projetoAranhaDark = null;
+var projetoAranhaDarkCarregando = false;
+
+function carregarProjetoAranhaDark() {
+    if (projetoAranhaDark || projetoAranhaDarkCarregando || typeof fetch !== 'function') return;
+    projetoAranhaDarkCarregando = true;
+    fetch('monstro/Aranha_arcana.json', { cache: 'no-store' })
+        .then(function(resposta) { return resposta.ok ? resposta.json() : null; })
+        .then(function(projeto) { projetoAranhaDark = projeto; })
+        .catch(function(erro) { console.warn('Projeto ARANHA DARK não carregado:', erro); })
+        .finally(function() { projetoAranhaDarkCarregando = false; });
+}
+
+carregarProjetoAranhaDark();
+
+function desenharAranhaDark(ctx, slime) {
+    if (!projetoAranhaDark || !Array.isArray(projetoAranhaDark.parts)) {
+        desenharMonstroNovo(ctx, slime);
+        return;
+    }
+
+    var t = Date.now() / 1000;
+    var partes = projetoAranhaDark.parts.slice().sort(function(a, b) { return (a.z || 0) - (b.z || 0); });
+    var origemX = 48;
+    var origemY = 82;
+    var respiracao = slime.fugindo ? 1 : Math.sin(t * 3) * 0.025;
+    ctx.save();
+    ctx.scale(0.72 + respiracao, 0.72 + respiracao);
+    ctx.translate(-origemX, -origemY);
+
+    partes.forEach(function(p) {
+        if (p.visible === false) return;
+        ctx.save();
+        ctx.translate(p.x || 0, p.y || 0);
+        ctx.rotate(p.rotation || 0);
+        ctx.scale(p.sx == null ? 1 : p.sx, p.sy == null ? 1 : p.sy);
+        ctx.globalAlpha = p.opacity == null ? 1 : p.opacity;
+        ctx.fillStyle = p.fill || '#17131d';
+        ctx.strokeStyle = p.stroke || '#16121a';
+        ctx.lineWidth = p.strokeWidth || 1;
+        ctx.shadowColor = p.shadowColor || 'transparent';
+        ctx.shadowBlur = p.shadowBlur || 0;
+        var pontos = p.points || [];
+        ctx.beginPath();
+        if (p.type === 'circle') ctx.arc(0, 0, 12, 0, Math.PI * 2);
+        else if (p.type === 'ellipse') ctx.ellipse(0, 0, 16, 10, 0, 0, Math.PI * 2);
+        else if (p.type === 'rect') ctx.rect(-12, -10, 24, 20);
+        else if (pontos.length) pontos.forEach(function(ponto, i) { i ? ctx.lineTo(ponto[0], ponto[1]) : ctx.moveTo(ponto[0], ponto[1]); });
+        if (p.type === 'line') ctx.stroke();
+        else if (pontos.length || p.type === 'circle' || p.type === 'ellipse' || p.type === 'rect') { ctx.closePath(); ctx.fill(); if (p.strokeWidth) ctx.stroke(); }
+        ctx.restore();
+    });
+    ctx.restore();
+}
+
 window.desenharSlime = function(slime) {
     if (slime.hp <= 0 || !window.ctx) return;
     let ctx = window.ctx;
@@ -33,6 +88,25 @@ window.desenharSlime = function(slime) {
         ctx.restore();
         if (typeof window.desenharBarraHp === "function") {
             window.desenharBarraHp(slime.x - 15, slime.y - 24, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer);
+        }
+        return;
+    }
+
+    // Monstro criado pelo Character Forge: as partes são carregadas do JSON exportado.
+    if (slime.tipo === 'aranha_dark') {
+        desenharAranhaDark(ctx, slime);
+        ctx.restore();
+        if (typeof window.desenharBarraHp === "function") {
+            window.desenharBarraHp(slime.x - 28, slime.y - 38, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer);
+        }
+        return;
+    }
+
+    if (slime.arquetipo) {
+        desenharMonstroNovo(ctx, slime);
+        ctx.restore();
+        if (typeof window.desenharBarraHp === "function") {
+            window.desenharBarraHp(slime.x - 18, slime.y - 30, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer);
         }
         return;
     }
@@ -94,6 +168,74 @@ window.desenharSlime = function(slime) {
         window.desenharBarraHp(slime.x - 15, slime.y - 20, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer);
     }
 };
+
+function desenharMonstroNovo(ctx, slime) {
+    var t = Date.now() / 1000;
+    var arqu = slime.arquetipo;
+    var fase = Math.sin(t * (slime.fugindo ? 14 : 8));
+    var escala = (arqu === 'tank_melee' ? 1.45 : (arqu === 'void_laser' ? 1.3 : 1));
+    ctx.save();
+    ctx.scale(escala, escala);
+    if (arqu === 'assassin' && slime.invisivel) ctx.globalAlpha = 0.18 + Math.sin(t * 5) * 0.06;
+
+    ctx.fillStyle = 'rgba(0,0,0,0.4)';
+    ctx.beginPath(); ctx.ellipse(0, 15, 17, 5, 0, 0, Math.PI * 2); ctx.fill();
+
+    if (arqu === 'ranged') {
+        ctx.fillStyle = '#6f6252'; ctx.fillRect(-6, -7, 12, 20);
+        ctx.fillStyle = '#b9aa87'; ctx.beginPath(); ctx.arc(0, -15, 9, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#241b1b'; ctx.beginPath(); ctx.moveTo(-10, -17); ctx.lineTo(10, -17); ctx.lineTo(6, -8); ctx.lineTo(-7, -8); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#ff7b35'; ctx.shadowColor = '#ff4b20'; ctx.shadowBlur = 7; ctx.fillRect(-4, -16, 2, 2); ctx.fillRect(2, -16, 2, 2); ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#4a2c1c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(12, -4, 12, -1.2, 1.2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(13, -14); ctx.lineTo(13, 7); ctx.stroke();
+    } else if (arqu === 'melee') {
+        ctx.fillStyle = '#3f454b'; ctx.fillRect(-11, -10, 22, 23); ctx.fillStyle = '#b9aa87'; ctx.beginPath(); ctx.arc(0, -17, 10, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ff6b35'; ctx.shadowColor = '#ff3d00'; ctx.shadowBlur = 7; ctx.fillRect(3, -19, 3, 3); ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#9d9a8b'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(8, -2); ctx.lineTo(19 + fase * 3, -18); ctx.stroke();
+    } else if (arqu === 'web') {
+        ctx.strokeStyle = '#24152f'; ctx.lineWidth = 3;
+        for (var i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(i * 5, 0); ctx.lineTo(i * 13 - 5, 15 + Math.abs(i) * 2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(i * 5, -2); ctx.lineTo(i * 13 + 5, -15 - Math.abs(i) * 2); ctx.stroke(); }
+        ctx.fillStyle = '#17131d'; ctx.beginPath(); ctx.ellipse(0, 0, 14, 18, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#552764'; ctx.beginPath(); ctx.ellipse(0, 6, 11, 12, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#ff384d'; for (var o = -1; o <= 1; o++) { ctx.beginPath(); ctx.arc(o * 5, -6 + Math.abs(o) * 2, 2, 0, Math.PI * 2); ctx.fill(); }
+    } else if (arqu === 'poison_melee') {
+        ctx.fillStyle = '#3d5535'; ctx.beginPath(); ctx.ellipse(0, 0, 14, 9, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#293323'; ctx.lineWidth = 3; for (var p = -1; p <= 1; p++) { ctx.beginPath(); ctx.moveTo(p * 6, -4); ctx.lineTo(p * 13, -14); ctx.stroke(); ctx.beginPath(); ctx.moveTo(p * 6, 4); ctx.lineTo(p * 13, 14); ctx.stroke(); }
+        ctx.strokeStyle = '#6d3aa0'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(-4, -1, 20, 0.2, 2.3); ctx.stroke(); ctx.fillStyle = '#7dff65'; ctx.beginPath(); ctx.arc(14, -4, 2, 0, Math.PI * 2); ctx.fill();
+    } else if (arqu === 'goblin') {
+        ctx.fillStyle = '#3c7138'; ctx.beginPath(); ctx.arc(0, -9, 8, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#719c3c'; ctx.beginPath(); ctx.moveTo(-6, -14); ctx.lineTo(-16, -20); ctx.lineTo(-7, -7); ctx.moveTo(6, -14); ctx.lineTo(16, -20); ctx.lineTo(7, -7); ctx.fill();
+        ctx.fillStyle = '#f4d03f'; ctx.fillRect(-4, -11, 2, 3); ctx.fillRect(2, -11, 2, 3); ctx.fillStyle = '#6e4935'; ctx.fillRect(-7, 0, 14, 13); ctx.fillStyle = '#a77b42'; ctx.beginPath(); ctx.arc(12, 1 + fase * 2, 4, 0, Math.PI * 2); ctx.fill();
+    } else if (arqu === 'meteor') {
+        ctx.fillStyle = '#24264c'; ctx.beginPath(); ctx.moveTo(-11, 11); ctx.lineTo(0, -16); ctx.lineTo(11, 11); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#3153a4'; ctx.beginPath(); ctx.arc(0, -18, 7, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#59d8ff'; ctx.shadowColor = '#59d8ff'; ctx.shadowBlur = 9; ctx.fillRect(-3, -20, 2, 2); ctx.fillRect(2, -20, 2, 2); ctx.shadowBlur = 0; ctx.strokeStyle = '#b56cff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(10, -8); ctx.lineTo(18, 13); ctx.stroke();
+    } else if (arqu === 'assassin') {
+        ctx.fillStyle = '#12121c'; ctx.fillRect(-8, -10, 16, 23); ctx.beginPath(); ctx.arc(0, -17, 9, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#e5e5ef'; ctx.fillRect(-5, -18, 3, 2); ctx.fillRect(2, -18, 3, 2); ctx.strokeStyle = '#bfc4d9'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-8, 0); ctx.lineTo(-18, -10 + fase * 2); ctx.moveTo(8, 0); ctx.lineTo(18, -10 - fase * 2); ctx.stroke();
+    } else if (arqu === 'void_laser') {
+        ctx.fillStyle = '#171020'; ctx.shadowColor = '#8d4dff'; ctx.shadowBlur = 16; ctx.beginPath(); ctx.arc(0, 0, 17, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0; ctx.fillStyle = '#4f287b'; ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#d9a7ff'; ctx.beginPath(); ctx.arc(0, 0, 6 + (slime.skillCharging ? Math.sin(t * 9) : 0), 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#050309'; ctx.beginPath(); ctx.arc(0, 0, 2, 0, Math.PI * 2); ctx.fill();
+    } else if (arqu === 'gargoyle') {
+        ctx.fillStyle = '#59616c'; ctx.beginPath(); ctx.moveTo(0, -17); ctx.lineTo(12, 10); ctx.lineTo(0, 14); ctx.lineTo(-12, 10); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#737f8e'; ctx.beginPath(); ctx.moveTo(-8, -5); ctx.lineTo(-23, -17); ctx.lineTo(-16, 4); ctx.closePath(); ctx.moveTo(8, -5); ctx.lineTo(23, -17); ctx.lineTo(16, 4); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#ffbf3c'; ctx.fillRect(-5, -8, 3, 3); ctx.fillRect(2, -8, 3, 3);
+    } else if (slime.tipo === 'ogro') {
+        ctx.fillStyle = '#68734b'; ctx.beginPath(); ctx.ellipse(0, 0, 23, 18, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#87935d'; ctx.fillRect(-18, 7, 10, 16); ctx.fillRect(8, 7, 10, 16);
+        ctx.fillStyle = '#4c573b'; ctx.beginPath(); ctx.arc(0, -17, 15, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#e8d6aa'; ctx.beginPath(); ctx.moveTo(-8, -19); ctx.lineTo(-20, -32); ctx.lineTo(-10, -13); ctx.moveTo(8, -19); ctx.lineTo(20, -32); ctx.lineTo(10, -13); ctx.fill();
+        ctx.fillStyle = '#453524'; ctx.fillRect(16, -3, 5, 27); ctx.fillStyle = '#776044'; ctx.beginPath(); ctx.arc(18, -7 + fase * 2, 9, 0, Math.PI * 2); ctx.fill();
+    } else if (slime.tipo === 'mamute') {
+        ctx.fillStyle = '#6e6254'; ctx.beginPath(); ctx.ellipse(0, 0, 25, 16, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#817364'; ctx.fillRect(-19, 7, 8, 18); ctx.fillRect(-5, 8, 8, 18); ctx.fillRect(9, 7, 8, 18);
+        ctx.fillStyle = '#786b5c'; ctx.beginPath(); ctx.arc(19, -10, 13, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#8f8170'; ctx.beginPath(); ctx.arc(28, -8, 5, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#e7d2a4'; ctx.beginPath(); ctx.moveTo(24, -13); ctx.quadraticCurveTo(37, -25, 34, -5); ctx.lineTo(27, -8); ctx.moveTo(25, -7); ctx.quadraticCurveTo(39, 2, 35, 10); ctx.lineTo(27, -3); ctx.fill();
+        ctx.strokeStyle = '#51483e'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-19, -10); ctx.lineTo(8, -15); ctx.stroke();
+    } else {
+        ctx.fillStyle = '#777'; ctx.beginPath(); ctx.ellipse(0, 0, 19, 14, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#aaa'; ctx.fillRect(-14, 5, 7, 13); ctx.fillRect(7, 5, 7, 13);
+    }
+
+    if (slime.skillCharging && slime.skillAim) {
+        var ax = slime.skillAim.x - slime.x, ay = slime.skillAim.y - slime.y;
+        ctx.globalAlpha = 0.35 + Math.sin(t * 8) * 0.12;
+        ctx.strokeStyle = slime.skillKind === 'web' ? '#d9f7ff' : (slime.skillKind === 'void_laser' ? '#b56cff' : '#ff9f43');
+        ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ax, ay, slime.skillKind === 'meteor' ? 42 : 28, 0, Math.PI * 2); ctx.stroke();
+        ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+}
 
 function desenharZumbi(ctx, slime) {
     let t = Date.now() / 1000;

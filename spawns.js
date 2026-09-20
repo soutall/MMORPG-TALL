@@ -34,7 +34,19 @@ const TIPOS_MONSTROS = {
     zumbi: { nome: 'Zumbi', emoji: '🧟', baseHp: 120, boss: false, aggroRange: 320, attackRange: 50, dano: 18, cor: '#58d68d' },
     besouro_negro: { nome: 'Besouro Negro', emoji: '🪲', baseHp: 300, boss: false, aggroRange: 420, attackRange: 340, dano: 14, cor: '#17202a' },
     morcego: { nome: 'Morcego', emoji: '🦇', baseHp: 90, boss: false, aggroRange: 340, attackRange: 45, dano: 16, cor: '#5b2c6f' },
-    golem_pedra: { nome: 'GOLEM DE PEDRA', emoji: '🗿', baseHp: 6000, boss: true, aggroRange: 520, attackRange: 90, dano: 45, cor: '#e74c3c' }
+    golem_pedra: { nome: 'GOLEM DE PEDRA', emoji: '🗿', baseHp: 6000, boss: true, aggroRange: 520, attackRange: 90, dano: 45, cor: '#e74c3c' },
+    caveira_arqueira: { nome: 'Caveira Arqueira', emoji: '🏹', baseHp: 420, nivelMinimo: 40, arquetipo: 'ranged', aggroRange: 680, attackRange: 520, dano: 34, cor: '#d6c9a5', distanciaPreferida: 340 },
+    caveira_melee: { nome: 'Caveira Melee', emoji: '💀', baseHp: 560, nivelMinimo: 40, arquetipo: 'melee', aggroRange: 460, attackRange: 62, dano: 48, cor: '#b9aa87', velocidade: 2.4 },
+    aranha_negra: { nome: 'Aranha Negra', emoji: '🕷', baseHp: 480, nivelMinimo: 40, arquetipo: 'web', aggroRange: 560, attackRange: 70, dano: 28, cor: '#24152f', velocidade: 2.8, skillRange: 420, skillCooldown: 180 },
+    aranha_dark: { nome: 'ARANHA DARK', emoji: '🕷', baseHp: 480, nivelMinimo: 1, arquetipo: 'web', aggroRange: 560, attackRange: 70, dano: 28, cor: '#17131d', velocidade: 2.8, skillRange: 420, skillCooldown: 180 },
+    escorpiao: { nome: 'Escorpião', emoji: '🦂', baseHp: 260, nivelMinimo: 15, arquetipo: 'poison_melee', aggroRange: 520, attackRange: 65, dano: 24, cor: '#3d5535', velocidade: 4.6, poisonDuration: 400 },
+    goblin: { nome: 'Goblin', emoji: '👺', baseHp: 220, nivelMinimo: 10, arquetipo: 'goblin', aggroRange: 600, attackRange: 330, dano: 20, cor: '#3c7138', velocidade: 2.6, fleeDistance: 150, distanciaPreferida: 260 },
+    mago_arcano: { nome: 'Mago Arcano', emoji: '🧙', baseHp: 300, nivelMinimo: 10, arquetipo: 'meteor', aggroRange: 720, attackRange: 520, dano: 30, cor: '#3153a4', distanciaPreferida: 380, skillRange: 620, skillCooldown: 240 },
+    assassino: { nome: 'Assassino', emoji: '🥷', baseHp: 340, nivelMinimo: 10, arquetipo: 'assassin', aggroRange: 520, attackRange: 58, dano: 52, cor: '#15151e', velocidade: 3.8, revealDistance: 250 },
+    void_master: { nome: 'Void Master', emoji: '◉', baseHp: 900, nivelMinimo: 20, arquetipo: 'void_laser', aggroRange: 850, attackRange: 680, dano: 44, cor: '#6c35a8', distanciaPreferida: 480, skillRange: 720, skillCooldown: 260 },
+    ogro: { nome: 'Ogro', emoji: '👹', baseHp: 2600, nivelMinimo: 30, arquetipo: 'tank_melee', aggroRange: 500, attackRange: 90, dano: 72, cor: '#68734b', velocidade: 1.25, maxQtd: 1, resistenciaControle: 0.65 },
+    gargula: { nome: 'Gárgula', emoji: '🦇', baseHp: 1100, nivelMinimo: 20, arquetipo: 'gargoyle', aggroRange: 620, attackRange: 75, dano: 42, cor: '#59616c', velocidade: 2.7, ignoreMapCollision: true, imuneControle: true },
+    mamute: { nome: 'Mamute', emoji: '🐘', baseHp: 3200, nivelMinimo: 30, arquetipo: 'tank_melee', aggroRange: 500, attackRange: 100, dano: 78, cor: '#6e6254', velocidade: 1.05, resistenciaControle: 0.8 }
 };
 
 // Bioma do Besouro Negro: vive APENAS no deserto (x ∈ [1800, 3400), y ∈ [0, 1800))
@@ -87,11 +99,26 @@ function criarMonstroBandeira(flag) {
         aggroRange: conf.aggroRange,
         attackRange: conf.attackRange,
         dano: conf.dano,
+        nivelMinimo: conf.nivelMinimo || 1,
+        arquetipo: conf.arquetipo || null,
+        velocidade: conf.velocidade || 2.2,
+        distanciaPreferida: conf.distanciaPreferida || null,
+        skillRange: conf.skillRange || null,
+        skillCooldownMax: conf.skillCooldown || 200,
+        skillCooldown: Math.floor(30 + Math.random() * 90),
+        fleeDistance: conf.fleeDistance || null,
+        poisonDuration: conf.poisonDuration || 400,
+        ignoreMapCollision: !!conf.ignoreMapCollision,
+        imuneControle: !!conf.imuneControle,
+        resistenciaControle: conf.resistenciaControle || 0,
+        invisivel: false,
+        efeitos: [],
         flagId: flag.id,
         flagPassivo: passivo,
         flagAgressivo: !passivo,
         respawnTick: 1000000
     };
+    if (conf.maxQtd) mob.maxSpawnQtd = conf.maxQtd;
     if (flag.tipo === 'zumbi') {
         mob.velocidade = 3.8;
         mob.goldDrop = 3;

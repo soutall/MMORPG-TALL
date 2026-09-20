@@ -250,19 +250,9 @@
             if (Math.hypot(x - PORTA_VERDE.x, y - PORTA_VERDE.y) < PORTA_VERDE.r) {
                 return { via: 'portal', mapa: 'desert', alvo: PORTA_VERDE.alvo };
             }
-            if (x >= BORDA_ESTE) {
-                return { via: 'borda', mapa: 'desert', alvo: { x: 18080, y: 4500 } };
-            }
         } else {
-            // FASE 3: cruzou o desfiladeiro leste -> entra no Pântano
-            if (x >= DES_X1 - 30) {
-                return { via: 'borda', mapa: 'pantano', alvo: ALVO_PANTANO };
-            }
             if (Math.hypot(x - PORTA_DESERTO.x, y - PORTA_DESERTO.y) < PORTA_DESERTO.r) {
-                return { via: 'portal', mapa: 'desert', alvo: PORTA_DESERTO.alvo };
-            }
-            if (x <= BORDA_OESTE) {
-                return { via: 'borda', mapa: 'desert', alvo: { x: 17020, y: 4500 } };
+                return { via: 'portal', mapa: 'green', alvo: PORTA_DESERTO.alvo };
             }
         }
         return null;
@@ -280,8 +270,13 @@
 
     function onUpdatePosicao(x, y) {
         if (transicaoAtiva || global.estaMorto) return;
+        if (typeof global.portalMapaPodeDisparar === 'function' && !global.portalMapaPodeDisparar(x, y)) return;
         let info = infoPortalDeserto(x, y);
         if (!info) return;
+        if (typeof global.solicitarTeleporteMapa === 'function') {
+            global.solicitarTeleporteMapa(info.mapa, 'deserto_' + info.mapa);
+            return;
+        }
         transicaoAtiva = true;
         switchMapaFade(function () {
             global.meuX = info.alvo.x;

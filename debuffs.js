@@ -16,6 +16,7 @@ const EFEITOS = {
     reducaoAtk: { nome: 'Enfraquecido',  classe: 'debuff', icon: '💪', cor: '#e67e22', desc: 'Dano causado reduzido em 25%.', formato: (ef) => ('' + Math.round(ef.intensidade * 100) + '%') },
     veneno:     { nome: 'Envenenado',    classe: 'debuff', icon: '☠️', cor: '#2ecc71', desc: 'Recebe dano ao longo do tempo (água venenosa do pântano).', formato: (ef) => ('' + Math.round(ef.tempo)) },
     sangramento:{ nome: 'Sangramento',   classe: 'debuff', icon: '🩸', cor: '#c0392b', desc: 'Perde vida ao longo do tempo por ferimentos profundos.', formato: (ef) => ('' + Math.round(ef.tempo)) },
+    cegueira:   { nome: 'Cego(a)',        classe: 'debuff', icon: '👁️‍🗨️', cor: '#2ecc71', desc: 'Névoa venenosa! Ataques normais erram (magia ainda acerta).', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') },
     queimadura: { nome: 'Queimadura',    classe: 'debuff', icon: '🔥', cor: '#e74c3c', desc: 'Queimando! Recebe dano de fogo ao longo do tempo.', formato: (ef) => ('' + Math.round(ef.tempo)) },
     gelo:       { nome: 'Congelado',     classe: 'debuff', icon: '🧊', cor: '#00cfff', desc: 'Congelado! Velocidade reduzida e vulnerável a reações elementais.', formato: (ef) => ('' + Math.round(ef.tempo)) },
     queimaduraCongelante: { nome: 'Queimadura Congelante', classe: 'debuff', icon: '💠', cor: '#b266ff', desc: 'Dano contínuo extremo de fogo e gelo combinados.', formato: (ef) => ('' + Math.round(ef.tempo)) },
@@ -27,7 +28,8 @@ const EFEITOS = {
     fervor:     { nome: 'Fervor',        classe: 'buff',   icon: '💢', cor: '#e74c3c', desc: 'Dano causado aumentado em 25%.', formato: (ef) => ('' + Math.round(ef.intensidade * 100) + '%') },
     velocidade: { nome: 'Velocidade',    classe: 'buff',   icon: '💨', cor: '#00bcd4', desc: 'Velocidade de movimento aumentada em 50%.', formato: (ef) => ('' + Math.round(ef.intensidade * 100) + '%') },
     gritoDeGuerra: { nome: 'Grito de Guerra', classe: 'buff', icon: '📣', cor: '#f1c40f', desc: 'Crítico maior, velocidade de ataque aumentada e vida máxima ampliada.', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') },
-    sedento:    { nome: 'Sede de Sangue', classe: 'buff',  icon: '🩸', cor: '#ff4757', desc: 'Cura uma fração do dano causado.', formato: () => '' }
+    sedento:    { nome: 'Sede de Sangue', classe: 'buff',  icon: '🩸', cor: '#ff4757', desc: 'Cura uma fração do dano causado.', formato: () => '' },
+    invisivel:  { nome: 'Camuflagem Sombria', classe: 'buff', icon: '🌑', cor: '#9b59b6', desc: 'Invisível! Inimigos não atacam (perdem o alvo). O primeiro dano causado é dobrado. Ataques ativos quebram a invisibilidade.', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') }
 };
 
 // Aplica um efeito (id) numa entidade. `tempo` em ticks de 50ms.

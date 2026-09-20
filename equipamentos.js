@@ -39,7 +39,7 @@ const BALANCE = {
         capacete: { icone: '🪖', nome: '🪖 CAPACETE', pesos: { forca: 3, divindade: 4, vida: 3, inteligencia: 2, agilidade: 1, destreza: 1 } },
         peitoral: { icone: '🛡️', nome: '🛡️ ARMADURA', pesos: { vida: 6, forca: 4, divindade: 3, inteligencia: 2, agilidade: 1, destreza: 1 } },
         capa:     { icone: '🧥', nome: '🧥 CAPA',     pesos: { agilidade: 4, vida: 3, inteligencia: 3, destreza: 2, divindade: 1 } },
-        luva:     { icone: '🧤', nome: '🧤 LUVA',     pesos: { destreza: 5, forca: 3, agilidade: 3, vida: 1, inteligencia: 1 } },
+        luva:     { icone: '🧤', nome: '🧤 LUVA',     pesos: { destreza: 5, forca: 3, agilidade: 3, vida: 1, inteligencia: 1, velocidadeAtaque: 4 } },
         bota:     { icone: '🥾', nome: '🥾 BOTA',     pesos: { agilidade: 5, destreza: 3, vida: 2, forca: 1, divindade: 1 } },
         anel:     { icone: '💍', nome: '💍 ANEL',     pesos: { afinidade: 8, destreza: 3, inteligencia: 3, forca: 2, vida: 2, divindade: 1 } },
         colar:    { icone: '📿', nome: '📿 COLAR',    pesos: { divindade: 5, inteligencia: 4, vida: 3, afinidade: 2, forca: 1 } }
@@ -57,27 +57,31 @@ const BALANCE = {
     // — equipamentos de arma NUNCA caem para essas classes).
     armas: {
         guerreiro: {
-            espada_pedra: { slot: 'arma', nome: 'Espada de Pedra',     icon: '🗡️', pesos: { forca: 7, destreza: 3, vida: 2 } },
+            espada_pedra: { slot: 'arma', nome: 'Espada de Pedra',     icon: '🗡️', pesos: { forca: 7, destreza: 3, vida: 2, velocidadeAtaque: 3 } },
             escudo_pedra: { slot: 'armaSecundaria', nome: 'Escudo de Pedra', icon: '🛡️', pesos: { vida: 7, divindade: 3, forca: 2, agilidade: 1 } }
         },
         mago: {
-            cajado_arcano: { slot: 'arma', nome: 'Cajado Arcano',      icon: '🪄', pesos: { inteligencia: 8, divindade: 3, vida: 1 } },
+            cajado_arcano: { slot: 'arma', nome: 'Cajado Arcano',      icon: '🪄', pesos: { inteligencia: 8, divindade: 3, vida: 1, velocidadeAtaque: 2 } },
             grimorio_arcano: { slot: 'armaSecundaria', nome: 'Grimório Arcano', icon: '📖', pesos: { inteligencia: 7, divindade: 3, agilidade: 2, vida: 1 } }
         },
         summoner: {
-            orbe_sombras: { slot: 'arma', nome: 'Orbe das Sombras',    icon: '🔮', pesos: { inteligencia: 5, afinidade: 6, profanidade: 2 } },
+            orbe_sombras: { slot: 'arma', nome: 'Orbe das Sombras',    icon: '🔮', pesos: { inteligencia: 5, afinidade: 6, profanidade: 2, velocidadeAtaque: 2 } },
             calice_sombras: { slot: 'armaSecundaria', nome: 'Cálice das Sombras', icon: '🏆', pesos: { afinidade: 7, inteligencia: 3, profanidade: 3, vida: 1 } }
         },
         arqueiro: {
-            arco_longo: { slot: 'arma', nome: 'Arco Longo',            icon: '🏹', pesos: { destreza: 6, forca: 3, agilidade: 3 } },
+            arco_longo: { slot: 'arma', nome: 'Arco Longo',            icon: '🏹', pesos: { destreza: 6, forca: 3, agilidade: 3, velocidadeAtaque: 4 } },
             aljava_peregrina: { slot: 'armaSecundaria', nome: 'Aljava Peregrina', icon: '🪶', pesos: { destreza: 6, agilidade: 4, vida: 2 } }
         },
         curandeiro: {
-            luz_sagrada: { slot: 'arma', nome: 'Luz Sagrada',          icon: '✨', pesos: { divindade: 7, inteligencia: 4, vida: 2 } },
+            luz_sagrada: { slot: 'arma', nome: 'Luz Sagrada',          icon: '✨', pesos: { divindade: 7, inteligencia: 4, vida: 2, velocidadeAtaque: 2 } },
             rosario_sagrado: { slot: 'armaSecundaria', nome: 'Rosário Sagrado', icon: '🕊️', pesos: { divindade: 7, inteligencia: 3, vida: 2 } }
         },
         barbaro: { },
-        roqueiro: { }
+        roqueiro: { },
+        ladino: {
+            adaga_ladino: { slot: 'arma', nome: 'Adaga do Assassino',   icon: '🗡️', pesos: { destreza: 7, forca: 3, agilidade: 3, velocidadeAtaque: 4 } },
+            bomba_veneno: { slot: 'armaSecundaria', nome: 'Bomba de Veneno', icon: '🧪', pesos: { destreza: 5, profanidade: 5, agilidade: 3, vida: 1 } }
+        }
     }
 };
 

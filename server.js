@@ -136,10 +136,24 @@ let aurasSagradas = {};
 let cooldownAuraSagrada = {};
 let cooldownRessurreicao = {};
 let dropsChao = [];
+// ===== LADINO: zonas de gás venenoso (Névoa Venenosa) =====
+// zona = { id, x, y, mapa, raio, tempo (ticks restantes), duracao (ticks), ownerId, danoBase }
+let gasesVeneno = [];
+let gasVenenoSeq = 0;
 
 // Bandeiras de spawn criadas por admins (persistidas em spawn_flags.json)
 let bandeirasSpawn = (spawnsAdmin && typeof spawnsAdmin.carregarBandeiras === 'function') ? spawnsAdmin.carregarBandeiras() : [];
 let bandeirasInicializadas = false;
+const MAP_VFX_FILE = path.join(__dirname, 'map_vfx.json');
+let mapVfx = [];
+try { mapVfx = JSON.parse(fs.readFileSync(MAP_VFX_FILE, 'utf8') || '[]'); if (!Array.isArray(mapVfx)) mapVfx = []; } catch (e) { mapVfx = []; }
+
+function salvarMapVfx() { try { fs.writeFileSync(MAP_VFX_FILE, JSON.stringify(mapVfx, null, 2), 'utf8'); } catch (e) { console.error('Erro ao salvar map_vfx.json:', e.message); } }
+function broadcastMapVfx() {
+    wss.clients.forEach(function (client) {
+        if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'map_vfx', vfx: mapVfx }));
+    });
+}
 
 const WORLD_WIDTH = 65040;
 const WORLD_HEIGHT = 36000;
@@ -258,10 +272,91 @@ function mpSkill(p, skillId, baseMp) {
 
 function tempoAtaqueBasico(p, baseMs) {
     if (!baseMs || baseMs <= 0) return 0;
-    if (efeitos && efeitos.temEfeito(p, 'gritoDeGuerra')) {
-        return Math.round(baseMs * 0.90);
+    return Math.max(120, Math.round(baseMs * multiplicadorVelocidadeAtaque(p)));
+}
+
+// ===== VELOCIDADE DE ATAQUE (fonte central ÚNICA do attack speed) =====
+// Multiplica o INTERVALO real do ataque básico: 1.0 = base; < 1.0 = mais rápido.
+// Fontes (não existe atributo distribuível de attack speed):
+//   - Buff Grito de Guerra: -10% de intervalo (regra já existente, mantida)
+//   - Equipamentos com status 'velocidadeAtaque': cada ponto = -1% de intervalo
+//     por peça (máx. 20% por peça)
+// Limites de segurança: intervalo nunca abaixo de 120ms e nunca acima do base.
+function multiplicadorVelocidadeAtaque(p) {
+    if (!p) return 1;
+    let mult = 1;
+    if (efeitos && efeitos.temEfeito(p, 'gritoDeGuerra')) mult *= 0.90;
+    if (p.inventario && p.inventario.slots) {
+        for (let s in p.inventario.slots) {
+            let it = p.inventario.slots[s];
+            if (it && it.status && typeof it.status.velocidadeAtaque === 'number' && it.status.velocidadeAtaque > 0) {
+                mult *= (1 - Math.min(0.20, it.status.velocidadeAtaque / 100));
+            }
+        }
     }
-    return baseMs;
+    if (!Number.isFinite(mult) || mult <= 0) mult = 0.4;
+    return Math.max(0.4, Math.min(1, mult));
+}
+
+// ===== ATAQUE BÁSICO AUTOMÁTICO: VALIDAÇÃO DE ALVO (server-authoritative) =====
+// O cliente apenas solicita com { alvoTipo: 'slime'|'boss', alvoId }. O servidor
+// valida existência, vida, mesmo mapa e distância REAL (quadrada) antes de aplicar
+// dano. Auto-ataque NUNCA mira em jogadores (PvP segue as regras atuais).
+function alcanceAtaqueBasicoClasse(p) {
+    if (!p) return 300;
+    if (p.classe === 'arqueiro') return 250;
+    if (p.classe === 'roqueiro') return 200;
+    if (p.classe === 'guerreiro') return 100;
+    if (p.classe === 'barbaro') return 100;
+    if (p.classe === 'mago') return 200;
+    if (p.classe === 'summoner') return 190;
+    if (p.classe === 'curandeiro') return 200;
+    if (p.classe === 'ladino') return 110;
+    return 300;
+}
+
+// Tabela de tempo base do ataque básico por classe (espelha o cliente).
+// "Diminuir attack speed em X%" = intervalo base / (1 - X):
+//   mago 300/0.5=600 · summoner 300/0.2=1500 · arqueiro 300/0.7≈430
+//   curandeiro 300/0.5=600 · roqueiro 300/0.4=750 · barbaro 350/0.6≈580 · guerreiro 350
+function tempoBaseAtaqueBasico(p) {
+    if (!p) return 300;
+    if (p.classe === 'guerreiro') return 350;
+    if (p.classe === 'barbaro') return 580;
+    if (p.classe === 'mago') return 600;
+    if (p.classe === 'summoner') return 1500;
+    if (p.classe === 'arqueiro') return 430;
+    if (p.classe === 'curandeiro') return 600;
+    if (p.classe === 'roqueiro') return 750;
+    if (p.classe === 'ladino') return 400;
+    return 300;
+}
+
+function obterAlvoAtaqueServidor(alvoTipo, alvoId) {
+    if (alvoTipo === 'slime') {
+        for (let s of slimes) { if (s.id === alvoId && s.hp > 0) return s; }
+        return null;
+    }
+    if (alvoTipo === 'boss') {
+        for (let b of bosses) { if (b.id === alvoId && b.hp > 0) return b; }
+        return null;
+    }
+    return null;
+}
+
+function validarAtaqueBasicoAlvo(p, alvoTipo, alvoId) {
+    if (!p || p.hp <= 0) return null;
+    if (!alvoTipo || !alvoId) return null;
+    let alvo = obterAlvoAtaqueServidor(alvoTipo, alvoId);
+    if (!alvo) return null;
+    let px = p.x + PLAYER_OFFSET_X;
+    let py = p.y + PLAYER_OFFSET_Y;
+    if (mapaPorCoordenada(px) !== mapaPorCoordenada(alvo.x)) return null;
+    let alc = alcanceAtaqueBasicoClasse(p);
+    let dx = alvo.x - px;
+    let dy = alvo.y - py;
+    if (dx * dx + dy * dy > alc * alc) return null;
+    return alvo;
 }
 
 function atualizarBonusMaxHpGritoGuerra(p) {
@@ -336,6 +431,13 @@ function gastarMana(ws, p, custo) {
     return true;
 }
 
+// v1.30.3: avisa o cliente quando uma skill é rejeitada por FORA DE ALCANCE
+// (o cliente usa isso para mostrar "Fora de alcance!" e cancelar o cooldown visual).
+function avisaForaAlcance(ws, skill) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type: 'skill_aviso', skill: skill || '', motivo: 'fora_alcance' }));
+}
+
 // AFINIDADE: vida do lacaio/ogro (90 base)
 function calcularVidaPet(player) {
     return 90 + (getAtr(player, 'afinidade') - 1) * 15;
@@ -379,7 +481,96 @@ function calcularDanoJogador(autorId, quantidade, tipoOrigem) {
         else if (pctHp <= 0.40) mult *= 1.10;
         else if (pctHp <= 0.60) mult *= 1.05;
     }
+    // LADINO — CAMUFLAGEM SOMBRIA: o PRIMEIRO hit real (que causa dano) recebe +100%
+    // e consome a invisibilidade na hora. Só hits com tipoOrigem 'player' consomem;
+    // DoT ('dot') e pet ('pet') nunca tocam no bônus.
+    if (tipoOrigem === 'player' && p && p.classe === 'ladino' && p.ladinoInvisivel && p.ladinoInvisivelBonus) {
+        mult *= 2;
+        finalizarInvisibilidadeLadino(p, autorId);
+    }
     return { dano: Math.round(quantidade * mult * critMult), critico: critMult > 1 };
+}
+
+// ===== LADINO: máquina de estados e helpers compartilhados =====
+
+// Encerra a invisibilidade da Camuflagem Sombria (por hit, por tempo ou morte).
+// Regra: o COOLDOWN da skill 3 só começa QUANDO a invisibilidade termina.
+function finalizarInvisibilidadeLadino(player, pid) {
+    if (!player) return;
+    if (player.ladinoInvisivel) {
+        player.ladinoInvisivel = false;
+        player.ladinoInvisivelBonus = false;
+        player.ladinoInvisivelTimer = 0;
+    }
+    player.ladinoCamuflagemDelay = 0;
+    if (!player.ladinoCamuflagemCdAtivo) {
+        player.ladinoCamuflagemCdAtivo = true;
+        player.ladinoCamuflagemCooldown = Date.now() + 10000; // CD 10s inicia ao sair da invis
+        setTimeout(() => {
+            if (players[pid]) players[pid].ladinoCamuflagemCdAtivo = false;
+        }, 10000);
+    }
+    if (efeitos) efeitos.removerEfeito(player, 'invisivel');
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'action_ladino_invisivel', id: pid, ativo: false }));
+        }
+    });
+    const wsT = playerSockets[pid];
+    if (wsT && wsT.readyState === WebSocket.OPEN) {
+        wsT.send(JSON.stringify({ type: 'efeitos_sync', id: pid, efeitos: efeitos.exporEfeitos(player) }));
+    }
+}
+
+// PASSIVA LÂMINAS SANGRENTAS: 20% de chance → sangramento 20% do dano físico/s por 5s.
+// Reutiliza o efeito 'sangramento' + autorId para creditar o dano do DoT ao Ladino.
+function tentarSangrarLadino(alvo, autorId, danoFisico) {
+    if (!alvo || !alvo.hp || alvo.hp <= 0 || !danoFisico || danoFisico <= 0) return;
+    const p = players[autorId];
+    if (!p || p.classe !== 'ladino') return;
+    if (Math.random() >= 0.20) return;
+    const danoPorSegundo = Math.max(1, Math.round(danoFisico * 0.20));
+    efeitos.aplicarEfeito(alvo, 'sangramento', 100, danoPorSegundo); // 5s de DoT
+    const ef = efeitos.pegarEfeito(alvo, 'sangramento');
+    if (ef) ef.autorId = autorId;
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'action_ladino_sangue', x: alvo.x, y: alvo.y, alvoId: alvo.id }));
+        }
+    });
+}
+
+// Coleta alvos válidos para a Dança das Adagas (até `max` por tipo; mescla slimes+bosses).
+// Retorna array de { id, tipo } — entidades vivas, mesmo mapa, dentro do alcance.
+function coletarAlvosDancaLadino(player, alcance) {
+    if (!player) return [];
+    const px = player.x + PLAYER_OFFSET_X;
+    const py = player.y + PLAYER_OFFSET_Y;
+    const mapa = mapaPorCoordenada(px);
+    const candidatos = [];
+    slimes.forEach(s => {
+        if (s.hp > 0 && mapaPorCoordenada(s.x) === mapa) {
+            const d2 = (s.x - px) * (s.x - px) + (s.y - py) * (s.y - py);
+            if (d2 <= alcance * alcance) candidatos.push({ id: s.id, tipo: 'slime', x: s.x, y: s.y });
+        }
+    });
+    bosses.forEach(b => {
+        if (b.hp > 0 && mapaPorCoordenada(b.x) === mapa) {
+            const d2 = (b.x - px) * (b.x - px) + (b.y - py) * (b.y - py);
+            if (d2 <= alcance * alcance) candidatos.push({ id: b.id, tipo: 'boss', x: b.x, y: b.y });
+        }
+    });
+    // Embaralha (Fisher–Yates) e depois garante a prioridade por proximidade
+    for (let i = candidatos.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        const tmp = candidatos[i]; candidatos[i] = candidatos[j]; candidatos[j] = tmp;
+    }
+    candidatos.sort((a, b) => {
+        const da = (a.x - px) * (a.x - px) + (a.y - py) * (a.y - py);
+        const db = (b.x - px) * (b.x - px) + (b.y - py) * (b.y - py);
+        return da - db;
+    });
+    return candidatos;
 }
 
 // Cura DIVINDADE: +5% por ponto (influencia cura e escudos)
@@ -458,6 +649,239 @@ function podeAndar(x, y) {
     return false;
 }
 
+// Validação central de posição do jogador. As coordenadas do jogador são o
+// canto superior esquerdo; os mapas/colisões recebem o centro físico.
+const PLAYER_OFFSET_X = 12;
+const PLAYER_OFFSET_Y = 16;
+const PLAYER_COLLISION_RADIUS = 12;
+const MAX_PLAYER_COLLISION_STEP = 12;
+
+function mapaPorCoordenada(x) {
+    if (!Number.isFinite(x)) return null;
+    if (x < LARGURA_VERDE) return 'green';
+    if (x < LARGURA_DESERTO) return 'desert';
+    if (x < LARGURA_PANTANO) return 'pantano';
+    if (x < FIM_CAVERNA) return 'caverna';
+    if (x < FIM_CIDADE) return 'cidade';
+    if (x >= LARGURA_ARENA && x < FIM_ARENA) return 'arena';
+    return null;
+}
+
+function entidadeNoMapa(entidade, mapa) {
+    return entidade && mapaPorCoordenada(entidade.x) === mapa;
+}
+
+function filtrarPorMapa(lista, mapa) {
+    return Array.isArray(lista) ? lista.filter(function (item) { return entidadeNoMapa(item, mapa); }) : [];
+}
+
+function jogadorPodeUsarPortalMapa(player, destino) {
+    if (!player) return false;
+    const mapaAtual = mapaPorCoordenada(player.x + PLAYER_OFFSET_X);
+    const cx = player.x + PLAYER_OFFSET_X;
+    const cy = player.y + PLAYER_OFFSET_Y;
+    const perto = function (x, y, raio) { return Math.hypot(cx - x, cy - y) <= (raio || 150); };
+    if (destino === 'green') {
+        return (mapaAtual === 'cidade' && (perto(60474, 640) || perto(60487, 1080))) ||
+            (mapaAtual === 'desert' && perto(18090, 4500, 260)) ||
+            (mapaAtual === 'caverna' && perto(58080, 820));
+    }
+    if (destino === 'desert') {
+        return (mapaAtual === 'cidade' && perto(60474, 640)) ||
+            (mapaAtual === 'green' && perto(17080, 4500));
+    }
+    if (destino === 'pantano' || destino === 'caverna' || destino === 'arena') {
+        return mapaAtual === 'cidade' && perto(60474, 640);
+    }
+    if (destino !== 'cidade') return false;
+    if (mapaAtual === 'cidade') return true;
+    const portaisRetorno = [
+        { x: 5000, y: 1200, r: 150 },
+        { x: 52000, y: 4500, r: 150 },
+        { x: 63980, y: 460, r: 150 }
+    ];
+    return portaisRetorno.some(function (portal) { return Math.hypot(cx - portal.x, cy - portal.y) <= portal.r; });
+}
+
+function distanciaEntidadesQuadrada(a, b) {
+    if (!a || !b || !Number.isFinite(a.x) || !Number.isFinite(a.y) || !Number.isFinite(b.x) || !Number.isFinite(b.y)) return Infinity;
+    const dx = a.x - b.x;
+    const dy = a.y - b.y;
+    return dx * dx + dy * dy;
+}
+
+const DISTANCIA_RETORNO_INIMIGO = 720;
+const DISTANCIA_TOLERANCIA_ORIGEM = 28;
+
+function garantirOrigemInimigo(inimigo) {
+    if (!inimigo) return;
+    if (!Number.isFinite(inimigo.origemX)) inimigo.origemX = inimigo.x;
+    if (!Number.isFinite(inimigo.origemY)) inimigo.origemY = inimigo.y;
+    if (!Number.isFinite(inimigo.patrulhaFase)) inimigo.patrulhaFase = Math.random() * Math.PI * 2;
+}
+
+function moverInimigoParaOrigem(inimigo, fatorLentidao) {
+    garantirOrigemInimigo(inimigo);
+    const dx = inimigo.origemX - inimigo.x;
+    const dy = inimigo.origemY - inimigo.y;
+    const distancia = Math.hypot(dx, dy);
+    if (distancia <= DISTANCIA_TOLERANCIA_ORIGEM) {
+        inimigo.x = inimigo.origemX;
+        inimigo.y = inimigo.origemY;
+        inimigo.retornandoAoLar = false;
+        inimigo.patrolTimer = 0;
+        inimigo.dx = 0;
+        inimigo.dy = 0;
+        return true;
+    }
+
+    const velocidade = Math.max(1.2, (inimigo.velocidade || 2.2) * 0.85) * fatorLentidao;
+    const passo = Math.min(velocidade, distancia);
+    const proximoX = inimigo.x + (dx / distancia) * passo;
+    const proximoY = inimigo.y + (dy / distancia) * passo;
+    if (podeAndar(proximoX, proximoY)) {
+        inimigo.x = proximoX;
+        inimigo.y = proximoY;
+    } else {
+        inimigo.retornandoAoLar = false;
+        inimigo.patrolTimer = 0;
+    }
+    return true;
+}
+
+function podeEntidadeAtacarAlvo(entidade, alvo, alcance) {
+    if (!entidade || !alvo || alvo.hp <= 0) return false;
+    // LADINO invisível (Camuflagem Sombria): inimigos não o enxergam —
+    // não miram nele (agro) nem acertam ataques normais/projéteis.
+    if (efeitos && efeitos.temEfeito(alvo, 'invisivel')) return false;
+    if (mapaPorCoordenada(entidade.x) !== mapaPorCoordenada(alvo.x)) return false;
+    if (!Number.isFinite(alcance)) return false;
+    return distanciaEntidadesQuadrada(entidade, alvo) <= alcance * alcance;
+}
+
+function alvoDentroDaVisao(entidade, alvo) {
+    const visao = Number(entidade && entidade.aggroRange);
+    return podeEntidadeAtacarAlvo(entidade, alvo, Number.isFinite(visao) ? visao : 320);
+}
+
+// CEGUEIRA do Ladino (Névoa Venenosa): monstro cego NÃO consegue acertar
+// ataques normais (melee/ranged). Habilidades especiais/mágicas continuam.
+function monstroPodeAtacar(entidade) {
+    if (!entidade) return true;
+    return !(efeitos && efeitos.temEfeito(entidade, 'cegueira'));
+}
+
+function limitesMapaJogador(cx, cy) {
+    if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
+    if (cx < 0 || cy < 0) return null;
+
+    if (cx < LARGURA_VERDE) return { minX: 0, maxX: LARGURA_VERDE, maxY: ALTO_VERDE };
+    if (cx < LARGURA_DESERTO) return { minX: LARGURA_VERDE, maxX: LARGURA_DESERTO, maxY: ALTO_DESERTO };
+    if (cx < LARGURA_PANTANO) return { minX: LARGURA_DESERTO, maxX: LARGURA_PANTANO, maxY: ALTO_PANTANO };
+    if (cx < FIM_CAVERNA) return { minX: LARGURA_CAVERNA, maxX: FIM_CAVERNA, maxY: ALTO_CAVERNA };
+    if (cx < FIM_CIDADE) return { minX: LARGURA_CIDADE, maxX: FIM_CIDADE, maxY: ALTO_CIDADE };
+    if (cx >= LARGURA_ARENA && cx < FIM_ARENA) return { minX: LARGURA_ARENA, maxX: FIM_ARENA, maxY: ALTO_ARENA };
+    return null;
+}
+
+function colideMapaJogador(cx, cy) {
+    if (cx < LARGURA_VERDE) return false;
+    if (cx < LARGURA_DESERTO) return !!(mapaDeserto && mapaDeserto.colideDeserto(cx, cy, PLAYER_COLLISION_RADIUS));
+    if (cx < LARGURA_PANTANO) return !!(mapaPantano && mapaPantano.colidePantano(cx, cy, PLAYER_COLLISION_RADIUS));
+    if (cx < FIM_CAVERNA) return !!(mapaCaverna && mapaCaverna.colideCaverna(cx, cy, PLAYER_COLLISION_RADIUS));
+    if (cx < FIM_CIDADE) return !!(mapaCidade && mapaCidade.colideCidade(cx, cy, PLAYER_COLLISION_RADIUS));
+    if (cx >= LARGURA_ARENA && cx < FIM_ARENA) return !!(mapaArena && mapaArena.colideArena(cx, cy, PLAYER_COLLISION_RADIUS));
+    return true;
+}
+
+function posicaoJogadorValida(x, y) {
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+    const cx = x + PLAYER_OFFSET_X;
+    const cy = y + PLAYER_OFFSET_Y;
+    const limites = limitesMapaJogador(cx, cy);
+    if (!limites) return false;
+    if (cx - PLAYER_COLLISION_RADIUS < limites.minX || cx + PLAYER_COLLISION_RADIUS >= limites.maxX ||
+        cy - PLAYER_COLLISION_RADIUS < 0 || cy + PLAYER_COLLISION_RADIUS >= limites.maxY) return false;
+    return !colideMapaJogador(cx, cy);
+}
+
+function validarMovimentoJogador(player, targetX, targetY, opcoes) {
+    opcoes = opcoes || {};
+    if (!player || !Number.isFinite(targetX) || !Number.isFinite(targetY)) {
+        return { aceito: false, bloqueado: true, x: player ? player.x : targetX, y: player ? player.y : targetY };
+    }
+
+    let inicioX = Number(player.x);
+    let inicioY = Number(player.y);
+    if (!Number.isFinite(inicioX) || !Number.isFinite(inicioY)) {
+        return { aceito: false, bloqueado: true, x: inicioX, y: inicioY };
+    }
+
+    const mapaInicial = mapaPorCoordenada(inicioX + PLAYER_OFFSET_X);
+
+    if (!posicaoJogadorValida(inicioX, inicioY)) {
+        const posicaoEmergencia = encontrarPosicaoJogadorSegura(player, inicioX, inicioY) ||
+            (posicaoJogadorValida(CIDADE_SPAWN_X, CIDADE_SPAWN_Y) ? { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y } : null);
+        if (!posicaoEmergencia) return { aceito: false, bloqueado: true, x: inicioX, y: inicioY };
+        inicioX = posicaoEmergencia.x;
+        inicioY = posicaoEmergencia.y;
+        player.x = inicioX;
+        player.y = inicioY;
+    }
+
+    let dx = targetX - inicioX;
+    let dy = targetY - inicioY;
+    const distancia = Math.hypot(dx, dy);
+    const maxDistance = Number(opcoes.maxDistance);
+    if (Number.isFinite(maxDistance) && distancia > maxDistance && distancia > 0) {
+        const fator = maxDistance / distancia;
+        dx *= fator;
+        dy *= fator;
+        targetX = inicioX + dx;
+        targetY = inicioY + dy;
+    }
+
+    const passos = Math.max(1, Math.ceil(Math.hypot(targetX - inicioX, targetY - inicioY) / (opcoes.maxStep || MAX_PLAYER_COLLISION_STEP)));
+    let ultimoX = inicioX;
+    let ultimoY = inicioY;
+    for (let passo = 1; passo <= passos; passo++) {
+        const progresso = passo / passos;
+        const proximoX = inicioX + (targetX - inicioX) * progresso;
+        const proximoY = inicioY + (targetY - inicioY) * progresso;
+        if (!posicaoJogadorValida(proximoX, proximoY)) {
+            return { aceito: false, bloqueado: true, parcial: ultimoX !== inicioX || ultimoY !== inicioY, x: ultimoX, y: ultimoY };
+        }
+        if (mapaPorCoordenada(proximoX + PLAYER_OFFSET_X) !== mapaInicial) {
+            return { aceito: false, bloqueado: true, parcial: ultimoX !== inicioX || ultimoY !== inicioY, x: ultimoX, y: ultimoY };
+        }
+        ultimoX = proximoX;
+        ultimoY = proximoY;
+    }
+    return { aceito: true, bloqueado: false, parcial: false, x: ultimoX, y: ultimoY };
+}
+
+function validarDestinoJogador(targetX, targetY) {
+    if (!posicaoJogadorValida(targetX, targetY)) {
+        return { aceito: false, bloqueado: true, x: targetX, y: targetY };
+    }
+    return { aceito: true, bloqueado: false, x: targetX, y: targetY };
+}
+
+function encontrarPosicaoJogadorSegura(player, x, y) {
+    if (posicaoJogadorValida(x, y)) return { x: x, y: y };
+    const raios = [20, 40, 60, 80, 120, 160];
+    for (let ri = 0; ri < raios.length; ri++) {
+        const raio = raios[ri];
+        for (let amostra = 0; amostra < 16; amostra++) {
+            const angulo = (amostra / 16) * Math.PI * 2;
+            const candidatoX = x + Math.cos(angulo) * raio;
+            const candidatoY = y + Math.sin(angulo) * raio;
+            if (posicaoJogadorValida(candidatoX, candidatoY)) return { x: candidatoX, y: candidatoY };
+        }
+    }
+    return null;
+}
+
 function gerarPosicaoValida() {
     let x, y;
     do {
@@ -500,8 +924,14 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
     let danoFinal = calc.dano;
     if (!slime.tabelaDano) slime.tabelaDano = {};
     slime.tabelaDano[autorId] = (slime.tabelaDano[autorId] || 0) + danoFinal;
-    if (!slime.flagPassivo) slime.targetId = autorId;
+    if (!slime.flagPassivo) {
+        const autorP = players[autorId];
+        // LADINO invisível: dano de DoT/névoa NÃO revela a posição (sem agro)
+        if (!autorP || !(efeitos && efeitos.temEfeito(autorP, 'invisivel'))) slime.targetId = autorId;
+    }
     slime.hp -= danoFinal;
+    // LADINO — PASSIVA LÂMINAS SANGRENTAS (20% → sangramento 20% do dano físico/s por 5s)
+    if (tipoOrigem === 'player' && danoFinal > 0) tentarSangrarLadino(slime, autorId, danoFinal);
     if (calc.critico) broadcastCritico(slime.x, slime.y, autorId);
     if (danoFinal > 0 && players[autorId] && tipoOrigem !== 'pet') broadcastDanoFlut(slime.x, slime.y, danoFinal, autorId);
 
@@ -587,6 +1017,13 @@ function distribuirXpMorte(slime) {
 function aplicarDanoJogador(pid, origemX, origemY, dano) {
     let jogador = players[pid];
     if (!jogador || jogador.hp <= 0) return false;
+
+    // LADINO — DANÇA DAS ADAGAS: imune a dano durante a sequência de teleportes
+    if (jogador.ladinoDancaAtivo) return true;
+
+    // LADINO — CAMUFLAGEM SOMBRIA: invisível = inimigos NÃO o acertam (nem melee,
+    // nem projéteis em voo, nem AOE de monstro). PvP usa aplicarDanoPvP (separado).
+    if (efeitos && efeitos.temEfeito(jogador, 'invisivel')) return true;
 
     if (jogador.classe === 'guerreiro' && jogador.estamina >= 15) {
         let anguloAtaque = Math.atan2(origemY - (jogador.y + 16), origemX - (jogador.x + 12));
@@ -683,6 +1120,8 @@ function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem) {
     boss.tabelaDano[autorId] = (boss.tabelaDano[autorId] || 0) + danoFinal;
     boss.hp -= danoFinal;
     if (boss.hp < 0) boss.hp = 0;
+    // LADINO — PASSIVA LÂMINAS SANGRENTAS em Bosses
+    if (tipoOrigem === 'player' && danoFinal > 0) tentarSangrarLadino(boss, autorId, danoFinal);
     if (calc.critico) broadcastCritico(boss.x, boss.y, autorId);
     if (danoFinal > 0 && players[autorId] && tipoOrigem !== 'pet') broadcastDanoFlut(boss.x, boss.y, danoFinal, autorId);
     return { dano: danoFinal, critico: calc.critico };
@@ -774,6 +1213,14 @@ function cancelarTrade(pid) {
 function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
     let p2 = players[defId];
     if (!p2 || p2.hp <= 0) return;
+    // LADINO — imune durante a Dança das Adagas (server-side, inclusive PvP)
+    if (p2.ladinoDancaAtivo) return;
+    // LADINO — CAMUFLAGEM SOMBRIA: primeiro acerto em PvP também consome o bônus +100%
+    let atk = players[atkId];
+    if (atk && atk.classe === 'ladino' && atk.ladinoInvisivel && atk.ladinoInvisivelBonus) {
+        dano = Math.round(dano * 2);
+        finalizarInvisibilidadeLadino(atk, atkId);
+    }
     if (aliadoNaAura(atkId)) dano = Math.round(dano * 1.05);
     if (aliadoNaAura(defId)) dano = Math.round(dano * 0.90);
     p2.hp -= dano;
@@ -782,8 +1229,9 @@ function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
     if (p2.hp <= 0) {
         if (tentarRessurreicaoAutomatica(defId)) return;
         p2.hp = p2.maxHp;
-        p2.x = CIDADE_SPAWN_X;
-        p2.y = CIDADE_SPAWN_Y;
+        const posicaoRessurgimento = encontrarPosicaoJogadorSegura(p2, CIDADE_SPAWN_X, CIDADE_SPAWN_Y);
+        p2.x = posicaoRessurgimento ? posicaoRessurgimento.x : CIDADE_SPAWN_X;
+        p2.y = posicaoRessurgimento ? posicaoRessurgimento.y : CIDADE_SPAWN_Y;
     }
 }
 
@@ -857,6 +1305,9 @@ function spawnMonstroBandeira(flag) {
         mob.x = pos.x;
         mob.y = pos.y;
         mob.targetId = null;
+        mob.origemX = flag.x;
+        mob.origemY = flag.y;
+        mob.retornandoAoLar = false;
         mob.stunTimer = 0;
         mob.slowTimer = 0;
         mob.respawnTimer = 0;
@@ -878,6 +1329,8 @@ function spawnMonstroBandeira(flag) {
 
 function preencherBandeira(flag) {
     if (!spawnsAdmin) return;
+    const config = spawnsAdmin.TIPOS_MONSTROS[flag.tipo];
+    if (config && config.maxQtd) flag.maxQtd = Math.min(flag.maxQtd, config.maxQtd);
     let ehBoss = spawnsAdmin.TIPOS_MONSTROS[flag.tipo] && spawnsAdmin.TIPOS_MONSTROS[flag.tipo].boss;
     let vivos = 0;
     if (ehBoss) {
@@ -891,6 +1344,8 @@ function preencherBandeira(flag) {
 }
 
 function sincronizarMonstrosBandeira(flag) {
+    const config = spawnsAdmin && spawnsAdmin.TIPOS_MONSTROS[flag.tipo];
+    if (config && config.maxQtd) flag.maxQtd = Math.min(flag.maxQtd, config.maxQtd);
     let vivos = [];
     for (let i = slimes.length - 1; i >= 0; i--) {
         let s = slimes[i];
@@ -1046,6 +1501,9 @@ function verificarEventoHorda() {
             flagAgressivo: true,
             isHorda: true
         };
+        mob.origemX = sx;
+        mob.origemY = sy;
+        mob.retornandoAoLar = false;
         slimes.push(mob);
     }
 }
@@ -1055,6 +1513,8 @@ function validarDadosBandeira(data) {
     if (!data.tipo || !spawnsAdmin.TIPOS_MONSTROS[data.tipo]) return null;
     let maxQtd = Math.floor(Number(data.maxQtd));
     if (!isFinite(maxQtd) || maxQtd < 1 || maxQtd > 50) return null;
+    const tipoConfig = spawnsAdmin.TIPOS_MONSTROS[data.tipo];
+    if (tipoConfig.maxQtd) maxQtd = Math.min(maxQtd, tipoConfig.maxQtd);
     let comportamento = data.comportamento === 'passivo' ? 'passivo' : 'agressivo';
     let hpBase = Math.floor(Number(data.hpBase));
     if (!isFinite(hpBase) || hpBase < 10 || hpBase > 200000) return null;
@@ -1226,11 +1686,154 @@ function criarGolemPedra() {
         proximoEscudo: 120,
         lastEscudo: 'azul',
         tauntId: null,
-        tauntTimer: 0
+        tauntTimer: 0,
+        stunTimer: 0 // stun (Estrela da Morte do Ladino): 40 ticks = 2s
     });
 }
 
 criarGolemPedra();
+
+function moverMonstroEspecial(slime, dx, dy, velocidade, fatorLentidao) {
+    const distancia = Math.hypot(dx, dy) || 1;
+    const passo = velocidade * fatorLentidao;
+    const proximoX = slime.x + (dx / distancia) * passo;
+    const proximoY = slime.y + (dy / distancia) * passo;
+    if (slime.ignoreMapCollision || podeAndar(proximoX, proximoY)) {
+        slime.x = proximoX;
+        slime.y = proximoY;
+    }
+}
+
+function dispararProjetilMonstro(slime, alvo, tipo, dano, velocidade, vida) {
+    if (!alvo || !podeEntidadeAtacarAlvo(slime, alvo, slime.skillRange || slime.attackRange || 320)) return false;
+    const dx = alvo.x - slime.x;
+    const dy = alvo.y - slime.y;
+    const distancia = Math.hypot(dx, dy) || 1;
+    projeteis.push({
+        x: slime.x,
+        y: slime.y - 10,
+        vx: (dx / distancia) * velocidade,
+        vy: (dy / distancia) * velocidade,
+        vida: vida || 80,
+        mapa: mapaPorCoordenada(slime.x),
+        tipo: tipo,
+        raio: tipo === 'void_laser' ? 7 : 8,
+        dano: dano,
+        ownerMonstro: slime.id,
+        petAlvo: (slime.tauntTimer > 0 && slime.tauntId && alvo === lacaios[slime.tauntId]) ? slime.tauntId : null
+    });
+    return true;
+}
+
+function resolverSkillEspecial(slime, alvo) {
+    const tx = slime.skillAim ? slime.skillAim.x : (alvo ? alvo.x : slime.x);
+    const ty = slime.skillAim ? slime.skillAim.y : (alvo ? alvo.y : slime.y);
+    const distancia = Math.hypot(tx - slime.x, ty - slime.y);
+    if (distancia > (slime.skillRange || 500) || mapaPorCoordenada(slime.x) !== mapaPorCoordenada(tx)) {
+        slime.skillCharging = false;
+        slime.skillAim = null;
+        return;
+    }
+
+    if (slime.skillKind === 'void_laser') {
+        dispararProjetilMonstro(slime, { x: tx, y: ty, hp: 1 }, 'void_laser', slime.dano + 12, 18, 55);
+    } else {
+        const raio = slime.skillKind === 'meteor' ? 105 : 95;
+        for (let pid in players) {
+            const player = players[pid];
+            if (player.hp <= 0 || mapaPorCoordenada(player.x) !== mapaPorCoordenada(slime.x)) continue;
+            if (Math.hypot(player.x + 12 - tx, player.y + 16 - ty) > raio) continue;
+            if (slime.skillKind === 'web') {
+                aplicarDanoJogador(pid, tx, ty, slime.dano);
+                efeitos.aplicarEfeito(player, 'lentidao', 100, 0.5);
+                player.slowTimer = Math.max(player.slowTimer || 0, 100);
+            } else {
+                aplicarDanoJogador(pid, tx, ty, slime.dano + 14);
+                efeitos.aplicarEfeito(player, 'queimadura', 100, 4);
+            }
+        }
+    }
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'monster_skill_impact', id: slime.id, skill: slime.skillKind, x: tx, y: ty, mapa: mapaPorCoordenada(slime.x) }));
+        }
+    });
+    slime.skillCharging = false;
+    slime.skillAim = null;
+    slime.skillCooldown = slime.skillCooldownMax || 200;
+}
+
+function atualizarMonstroEspecial(slime, alvo, dx, dy, dist, fatorLentidao) {
+    const tipo = slime.arquetipo;
+    if (!tipo) return false;
+
+    if (slime.skillCharging) {
+        slime.skillChargeTimer--;
+        if (slime.skillChargeTimer <= 0) resolverSkillEspecial(slime, alvo);
+        return true;
+    }
+    if (slime.skillCooldown > 0) slime.skillCooldown--;
+
+    if (tipo === 'assassin') {
+        slime.invisivel = dist > (slime.revealDistance || 250);
+    } else {
+        slime.invisivel = false;
+    }
+
+    if (tipo === 'goblin' && dist < (slime.fleeDistance || 150)) {
+        moverMonstroEspecial(slime, -dx, -dy, slime.velocidade || 2.6, fatorLentidao);
+        slime.fugindo = true;
+        return true;
+    }
+    slime.fugindo = false;
+
+    if ((tipo === 'web' || tipo === 'meteor' || tipo === 'void_laser') &&
+        slime.skillCooldown <= 0 && dist <= (slime.skillRange || 500)) {
+        slime.skillKind = tipo;
+        slime.skillCharging = true;
+        slime.skillChargeMax = tipo === 'web' ? 24 : 36;
+        slime.skillChargeTimer = slime.skillChargeMax;
+        slime.skillAim = { x: alvo.x, y: alvo.y };
+        return true;
+    }
+
+    const ataqueDistancia = slime.attackRange || 60;
+    if (tipo === 'ranged' || tipo === 'goblin') {
+        const preferida = slime.distanciaPreferida || Math.max(ataqueDistancia * 0.7, 220);
+        if (dist > preferida + 35) moverMonstroEspecial(slime, dx, dy, slime.velocidade || 2.2, fatorLentidao);
+        else if (dist < preferida - 35) moverMonstroEspecial(slime, -dx, -dy, slime.velocidade || 2.2, fatorLentidao);
+        slime.attackCooldown++;
+        if (slime.attackCooldown > 55 && dist <= ataqueDistancia) {
+            // CEGUEIRA: ranged cego não dispara flechas/pedras normais
+            if (monstroPodeAtacar(slime) && dispararProjetilMonstro(slime, alvo, tipo === 'goblin' ? 'goblin_pedra' : 'caveira_flecha', slime.dano, 11, 80)) slime.attackCooldown = 0;
+        }
+        return true;
+    }
+
+    if (dist > ataqueDistancia) {
+        moverMonstroEspecial(slime, dx, dy, slime.velocidade || 2.3, fatorLentidao);
+    } else {
+        slime.attackCooldown++;
+        if (slime.attackCooldown > (tipo === 'tank_melee' ? 65 : 42)) {
+            // CEGUEIRA (Ladino): monstro cego erra ataques normais — só habilidades seguem
+            if (monstroPodeAtacar(slime)) {
+                // v1.30.3: monstro especial TAUNTADO atinge o Golem (não só o jogador)
+                if (tipo === 'poison_melee' && alvo && Array.isArray(alvo.efeitos)) {
+                    efeitos.aplicarEfeito(alvo, 'veneno', slime.poisonDuration || 400, 2);
+                }
+                if (players[slime.targetId] && alvo === players[slime.targetId]) {
+                    aplicarDanoJogador(slime.targetId, slime.x, slime.y, slime.dano);
+                } else if (alvo && slime.tauntTimer > 0 && slime.tauntId && alvo === lacaios[slime.tauntId]) {
+                    danoCausadoAoOgro(slime.tauntId, slime.dano, alvo.x, alvo.y);
+                } else if (alvo) {
+                    alvo.hp = Math.max(0, (alvo.hp || 0) - slime.dano);
+                }
+                slime.attackCooldown = 0;
+            }
+        }
+    }
+    return true;
+}
 
 function dispararSkillZumbi(slime) {
     slime.skillCharging = false;
@@ -1253,6 +1856,7 @@ function dispararSkillZumbi(slime) {
         vx: (dx / dist) * vel,
         vy: (dy / dist) * vel,
         vida: 80,
+        mapa: mapaPorCoordenada(slime.x),
         tipo: 'fedido',
         raio: 9,
         dano: 16,
@@ -1278,7 +1882,16 @@ setInterval(() => {
         if (player.giroDescontroladoCooldown > 0) {
             player.giroDescontroladoCooldown--;
         }
-        if (player.giroDescontroladoTimer > 0) {
+        if (player.giroDescontroladoAtivo && player.giroDescontroladoExpiresAt && Date.now() >= player.giroDescontroladoExpiresAt) {
+            player.giroDescontroladoTimer = 0;
+            player.giroDescontroladoAtivo = false;
+            player.giroDescontroladoCooldown = 240;
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({ type: 'action_barbaro_giro_end', id: pid }));
+                }
+            });
+        } else if (player.giroDescontroladoTimer > 0) {
             player.giroDescontroladoTimer--;
             if (player.giroDescontroladoTimer <= 0) {
                 player.giroDescontroladoAtivo = false;
@@ -1291,7 +1904,7 @@ setInterval(() => {
             }
         }
 
-        if (player.giroDescontroladoAtivo) {
+        if (player.giroDescontroladoAtivo && (!player.giroDescontroladoExpiresAt || Date.now() < player.giroDescontroladoExpiresAt)) {
             const tx = player.x + 12;
             const ty = player.y + 16;
             const danoGiro = dmgSkill(player, 'giro_descontrolado', 18);
@@ -1317,6 +1930,142 @@ setInterval(() => {
         if (player.estamina === undefined) player.estamina = 100;
         if (player.estamina < 100) player.estamina = Math.min(100, player.estamina + 0.75);
 
+        // ===== LADINO: máquinas de estado das skills (Dança / Camuflagem / Estrela) =====
+        if (player.classe === 'ladino' && player.hp > 0) {
+            // --- DANÇA DAS ADAGAS (sequência de teleportes + imunidade) ---
+            if (player.ladinoDancaAtivo && player.ladinoDanca) {
+                let d = player.ladinoDanca;
+                d.step--;
+                if (d.step <= 0) {
+                    d.step = 3; // 1 hit a cada ~150ms — sequência rápida
+                    if (d.idx < d.seq.length) {
+                        const seqAlvo = d.seq[d.idx];
+                        d.idx++;
+                        let alvo = null;
+                        if (seqAlvo.tipo === 'slime') for (let s of slimes) { if (s.id === seqAlvo.id && s.hp > 0) { alvo = s; break; } }
+                        else for (let b of bosses) { if (b.id === seqAlvo.id && b.hp > 0) { alvo = b; break; } }
+                        if (alvo) {
+                            // Teleporte até o alvo (posição validada pelo servidor)
+                            const destDanca = validarDestinoJogador(alvo.x - PLAYER_OFFSET_X, alvo.y - PLAYER_OFFSET_Y);
+                            if (destDanca.aceito) { player.x = destDanca.x; player.y = destDanca.y; }
+                            // 1 hit no alvo
+                            if (alvo.hp > 0) {
+                                if (seqAlvo.tipo === 'slime') registrarDanoMonstro(alvo, pid, d.danoBase, 'player');
+                                else registrarDanoBoss(alvo, pid, d.danoBase, 'skill', 'player');
+                            }
+                        }
+                        wss.clients.forEach((client) => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({ type: 'action_ladino_danca_hit', id: pid, idx: d.idx - 1, x: player.x + PLAYER_OFFSET_X, y: player.y + PLAYER_OFFSET_Y, alvoId: seqAlvo.id, alvoTipo: seqAlvo.tipo }));
+                            }
+                        });
+                    } else {
+                        // Fim da sequência: volta à POSIÇÃO INICIAL exata
+                        const ret = validarDestinoJogador(d.startX, d.startY);
+                        if (ret.aceito) { player.x = ret.x; player.y = ret.y; }
+                        player.ladinoDancaAtivo = false;
+                        player.ladinoDanca = null;
+                        wss.clients.forEach((client) => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({ type: 'action_ladino_danca_end', id: pid, x: player.x + PLAYER_OFFSET_X, y: player.y + PLAYER_OFFSET_Y }));
+                            }
+                        });
+                    }
+                }
+            }
+            // --- CAMUFLAGEM SOMBRIA (delay 1s → invis 10s → CD inicia ao sair) ---
+            if (player.ladinoCamuflagemDelay > 0) {
+                player.ladinoCamuflagemDelay--;
+                if (player.ladinoCamuflagemDelay <= 0) {
+                    player.ladinoInvisivel = true;
+                    player.ladinoInvisivelTimer = 200; // 10s = 200 ticks
+                    player.ladinoInvisivelBonus = true;
+                    efeitos.aplicarEfeito(player, 'invisivel', 200, 1);
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'action_ladino_invisivel', id: pid, ativo: true }));
+                        }
+                    });
+                    const wsT = playerSockets[pid];
+                    if (wsT && wsT.readyState === WebSocket.OPEN) {
+                        wsT.send(JSON.stringify({ type: 'efeitos_sync', id: pid, efeitos: efeitos.exporEfeitos(player) }));
+                    }
+                }
+            }
+            if (player.ladinoInvisivel) {
+                player.ladinoInvisivelTimer--;
+                if (player.ladinoInvisivelTimer <= 0) {
+                    finalizarInvisibilidadeLadino(player, pid); // tempo esgotou: invis acaba, CD começa
+                }
+            }
+            // --- ESTRELA DA MORTE (5 vértices → centro → salto → queda + stun) ---
+            if (player.ladinoEstrela && player.hp > 0) {
+                let e = player.ladinoEstrela;
+                e.step--;
+                if (e.step <= 0) {
+                    if (e.fase === 'star') {
+                        e.idx++;
+                        if (e.idx < e.pontos.length) {
+                            e.step = 4; // ~200ms por vértice — coreografia 50% mais lenta e legível
+                            const pt = e.pontos[e.idx];
+                            const destPonto = validarDestinoJogador(pt.x, pt.y);
+                            if (destPonto.aceito) { player.x = destPonto.x; player.y = destPonto.y; }
+                            wss.clients.forEach((client) => {
+                                if (client.readyState === WebSocket.OPEN) {
+                                    client.send(JSON.stringify({ type: 'action_ladino_estrela_ponto', id: pid, idx: e.idx, x: player.x + PLAYER_OFFSET_X, y: player.y + PLAYER_OFFSET_Y }));
+                                }
+                            });
+                        } else {
+                            // Terminou os vértices: vai ao CENTRO e salta (600ms)
+                            e.fase = 'jump';
+                            e.step = 12;
+                            const destCentro = validarDestinoJogador(e.centroX - PLAYER_OFFSET_X, e.centroY - PLAYER_OFFSET_Y);
+                            if (destCentro.aceito) { player.x = destCentro.x; player.y = destCentro.y; }
+                            wss.clients.forEach((client) => {
+                                if (client.readyState === WebSocket.OPEN) {
+                                    client.send(JSON.stringify({ type: 'action_ladino_estrela_salto', id: pid, x: player.x + PLAYER_OFFSET_X, y: player.y + PLAYER_OFFSET_Y }));
+                                }
+                            });
+                        }
+                    } else if (e.fase === 'jump') {
+                        e.fase = 'fall';
+                        e.step = 10; // queda 500ms
+                        wss.clients.forEach((client) => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({ type: 'action_ladino_estrela_queda', id: pid, x: player.x + PLAYER_OFFSET_X, y: player.y + PLAYER_OFFSET_Y }));
+                            }
+                        });
+                    } else if (e.fase === 'fall') {
+                        // IMPACTO CENTRAL: dano + STUN 2s (40 ticks) server-side
+                        const cx = e.centroX, cy = e.centroY;
+                        slimes.forEach(slim => {
+                            if (slim.hp > 0 && Math.hypot(slim.x - cx, slim.y - cy) < 90) {
+                                registrarDanoMonstro(slim, pid, e.danoBase, 'player');
+                                slim.stunTimer = 40; // 2s de stun
+                            }
+                        });
+                        danoEmBosses(cx, cy, 90, pid, e.danoBase, 'skill');
+                        bosses.forEach(bb => {
+                            if (bb.hp > 0 && Math.hypot(bb.x - cx, bb.y - cy) < 90) bb.stunTimer = 40;
+                        });
+                        wss.clients.forEach((client) => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({ type: 'action_ladino_estrela_impacto', id: pid, x: cx, y: cy, raio: 90 }));
+                            }
+                        });
+                        player.ladinoEstrela = null;
+                    }
+                }
+            }
+            // Cancelamento de segurança ao morrer (nunca deixa imune presa)
+            if (player.hp <= 0) {
+                player.ladinoDancaAtivo = false;
+                player.ladinoDanca = null;
+                player.ladinoEstrela = null;
+                if (player.ladinoInvisivel) finalizarInvisibilidadeLadino(player, pid);
+            }
+        }
+
         if (player.classe === 'summoner' && player.hp > 0) {
             if (petRespawnTimer[pid] !== undefined) {
                 petRespawnTimer[pid]--;
@@ -1329,6 +2078,7 @@ setInterval(() => {
                     skillCooldown: 0, skill2Cooldown: 0,
                     isJumping: false, jumpStart: null, jumpTarget: null, jumpProgress: 0,
                     targetSlimeId: null, modoAgressivoTimer: 0, focoAlvo: null,
+                    modo: (player && (player.ogroModo === 'passivo' ? 'passivo' : 'agressivo')) || 'agressivo',
                     rugidoTimer: 200, rugindoTimer: 0
                 };
             }
@@ -1353,13 +2103,14 @@ setInterval(() => {
                         ogro.colossalPedraCd = (ogro.colossalPedraCd || 0) + 1;
                         if (ogro.colossalPedraCd >= 20) {
                             ogro.colossalPedraCd = 0;
+                            const alcancePedraColossal = 650;
                             let classesRanged = ['mago', 'arqueiro', 'curandeiro', 'summoner'];
                             let alvoPedra = null, melhorPrio = -1, melhorDist = 99999;
                             for (let pid2 in players) {
                                 let alvoP = players[pid2];
                                 if (!alvoP || alvoP.hp <= 0 || pid2 === pid) continue;
                                 let d = Math.hypot(alvoP.x - ogro.x, alvoP.y - ogro.y);
-                                if (d > 900) continue;
+                                if (d > alcancePedraColossal) continue;
                                 let prio = classesRanged.indexOf(alvoP.classe) !== -1 ? 1 : 0;
                                 if (prio > melhorPrio || (prio === melhorPrio && d < melhorDist)) {
                                     melhorPrio = prio; melhorDist = d; alvoPedra = { pid: pid2, x: alvoP.x, y: alvoP.y };
@@ -1369,7 +2120,7 @@ setInterval(() => {
                                 slimes.forEach(sl => {
                                     if (sl.hp > 0) {
                                         let d = Math.hypot(sl.x - ogro.x, sl.y - ogro.y);
-                                        if (d < 900 && d < melhorDist) { melhorDist = d; alvoPedra = { pid: null, x: sl.x, y: sl.y, slimeId: sl.id }; }
+                                        if (d < alcancePedraColossal && d < melhorDist) { melhorDist = d; alvoPedra = { pid: null, x: sl.x, y: sl.y, slimeId: sl.id }; }
                                     }
                                 });
                             }
@@ -1425,7 +2176,7 @@ setInterval(() => {
                         if (slime.flagPassivo) return; // passivos não são provocados
                         if (Math.hypot(slime.x - ogro.x, slime.y - ogro.y) > 300) return;
                         slime.tauntId = pid;
-                        slime.tauntTimer = 80; // 4 segundos
+                        slime.tauntTimer = 100; // 5 segundos
                         slime.targetId = pid;
                     });
                     bosses.forEach(g => {
@@ -1433,7 +2184,7 @@ setInterval(() => {
                         if (g.flagPassivo) return; // passivos não são provocados
                         if (Math.hypot(g.x - ogro.x, g.y - ogro.y) > 300) return;
                         g.tauntId = pid;
-                        g.tauntTimer = 80; // 4 segundos
+                        g.tauntTimer = 100; // 5 segundos
                     });
                 }
             }
@@ -1480,8 +2231,9 @@ setInterval(() => {
                 let slimeAlvo = null;
                 let bossAlvo = null;
 
-                // 1) o inimigo focado pelo summoner tem prioridade absoluta
-                if (ogro.focoAlvo) {
+                // MODO PASSIVO: o golem (modo === 'passivo') NÃO ataca — só rodeia a invocadora.
+                // Nesse modo a seleção de alvos abaixo é pulada e ele permanece no "segue ao lado".
+                if (ogro.modo !== 'passivo' && ogro.focoAlvo) {
                     if (ogro.focoAlvo.tipo === 'slime') {
                         let s = slimes.find(x => x.id === ogro.focoAlvo.id && x.hp > 0);
                         if (s) slimeAlvo = s; else ogro.focoAlvo = null;
@@ -1492,7 +2244,7 @@ setInterval(() => {
                 }
 
                 // 2) sem alvo focado: persegue quem mira o summoner / comando agressivo / boss próximo
-                if (!slimeAlvo && !bossAlvo) {
+                if (ogro.modo !== 'passivo' && !slimeAlvo && !bossAlvo) {
                     slimes.forEach(slime => {
                         if (slime.hp > 0 && slime.targetId === pid) slimeAlvo = slime;
                     });
@@ -1502,12 +2254,22 @@ setInterval(() => {
                         if (encontrado) slimeAlvo = encontrado;
                     }
 
+                    // FIX AGRO: comando agressivo caça o slime mais próximo (raio 440)
                     if (!slimeAlvo && ogro.modoAgressivoTimer > 0) {
-                        let menorBossDist = 440;
-                        for (let bb of bosses) {
-                            if (bb.hp > 0) {
-                                let db = Math.hypot(bb.x - ogro.x, bb.y - ogro.y);
-                                if (db < menorBossDist) { menorBossDist = db; bossAlvo = bb; }
+                        let menorSlimeDist = 440;
+                        for (let s of slimes) {
+                            if (s.hp > 0 && !s.flagPassivo) {
+                                let ds = Math.hypot(s.x - ogro.x, s.y - ogro.y);
+                                if (ds < menorSlimeDist) { menorSlimeDist = ds; slimeAlvo = s; }
+                            }
+                        }
+                        if (!slimeAlvo) {
+                            let menorBossDist = 440;
+                            for (let bb of bosses) {
+                                if (bb.hp > 0) {
+                                    let db = Math.hypot(bb.x - ogro.x, bb.y - ogro.y);
+                                    if (db < menorBossDist) { menorBossDist = db; bossAlvo = bb; }
+                                }
                             }
                         }
                     } else if (!slimeAlvo) {
@@ -1522,7 +2284,7 @@ setInterval(() => {
                 }
 
                 // 3) se o alvo focado ficar longe do summoner, o lacaio retorna e desfoca
-                if ((slimeAlvo || bossAlvo) && ogro.focoAlvo) {
+                if (ogro.modo !== 'passivo' && (slimeAlvo || bossAlvo) && ogro.focoAlvo) {
                     let leash = Math.hypot(ogro.x - player.x, ogro.y - player.y);
                     if (leash > 560) {
                         ogro.focoAlvo = null;
@@ -1541,7 +2303,7 @@ setInterval(() => {
                         ogro.y += (dy / dist) * 4.16;
                     } else {
                         ogro.attackCooldown++;
-                        if (ogro.attackCooldown > (ogro.colossalAtivo ? 20 : 40)) {
+                        if (ogro.attackCooldown > (ogro.colossalAtivo ? 13 : 27)) {
                             let r = registrarDanoMonstro(slimeAlvo, pid, dmgSkill(players[pid], 'ogro', 15), 'pet');
                             broadcastDanoLacaio(slimeAlvo.x, slimeAlvo.y, r.dano);
                             let db = danoEmBosses(ogro.x, ogro.y, 95, pid, dmgSkill(players[pid], 'ogro', 15), 'basico', 'pet');
@@ -1558,7 +2320,7 @@ setInterval(() => {
                         ogro.y += (dyB / distB) * 4.16;
                     } else {
                         ogro.attackCooldown++;
-                        if (ogro.attackCooldown > (ogro.colossalAtivo ? 20 : 40)) {
+                        if (ogro.attackCooldown > (ogro.colossalAtivo ? 13 : 27)) {
                             registrarDanoBoss(bossAlvo, pid, dmgSkill(players[pid], 'ogro', 15), 'basico');
                             ogro.attackCooldown = 0;
                         }
@@ -1643,8 +2405,10 @@ setInterval(() => {
                     }
                 }
             }
-            if (efeitos.temEfeito(p, 'veneno') && global.venenoTick % 10 === 0) {
-                p.hp = Math.max(0, p.hp - 5);
+            // LADINO — Dança das Adagas: imune inclusive ao veneno do pântano
+            if (!p.ladinoDancaAtivo && efeitos.temEfeito(p, 'veneno') && global.venenoTick % 10 === 0) {
+                const veneno = efeitos.pegarEfeito(p, 'veneno');
+                p.hp = Math.max(0, p.hp - Math.max(5, Math.round(5 * ((veneno && veneno.intensidade) || 1))));
             }
         }
     }
@@ -1678,6 +2442,70 @@ setInterval(() => {
     // Atualizar efeitos nos mobs
     slimes.forEach(slime => { if (slime.hp > 0) efeitos.atualizarEfeitos(slime); });
     bosses.forEach(b => { if (b.hp > 0) efeitos.atualizarEfeitos(b); });
+
+    // ============ LADINO: NÉVOA VENENOSA (zonas de gás persistente) ============
+    // Cada tick: aplica CEGUEIRA (refresh) em quem está dentro; a cada 10 ticks (0,5s)
+    // aplica dano contínuo controlado. Zona vive 5s (100 ticks).
+    for (let i = gasesVeneno.length - 1; i >= 0; i--) {
+        const zona = gasesVeneno[i];
+        zona.tempo--;
+        if (zona.tempo <= 0) {
+            gasesVeneno.splice(i, 1);
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({ type: 'action_ladino_gas_fim', id: zona.id, x: zona.x, y: zona.y }));
+                }
+            });
+            continue;
+        }
+        const dono = players[zona.ownerId];
+        // Cegueira enquanto permanece na área (duração acima do intervalo do tick)
+        slimes.forEach(slim => {
+            if (slim.hp > 0 && mapaPorCoordenada(slim.x) === zona.mapa && Math.hypot(slim.x - zona.x, slim.y - zona.y) < zona.raio) {
+                efeitos.aplicarEfeito(slim, 'cegueira', 10, 1);
+            }
+        });
+        bosses.forEach(bb => {
+            if (bb.hp > 0 && mapaPorCoordenada(bb.x) === zona.mapa && Math.hypot(bb.x - zona.x, bb.y - zona.y) < zona.raio) {
+                efeitos.aplicarEfeito(bb, 'cegueira', 10, 1);
+            }
+        });
+        // Dano contínuo em intervalos controlados (a cada 0,5s)
+        if (zona.tempo % 10 === 0 && dono) {
+            slimes.forEach(slim => {
+                if (slim.hp > 0 && mapaPorCoordenada(slim.x) === zona.mapa && Math.hypot(slim.x - zona.x, slim.y - zona.y) < zona.raio) {
+                    registrarDanoMonstro(slim, zona.ownerId, zona.danoBase, 'dot');
+                }
+            });
+            danoEmBosses(zona.x, zona.y, zona.raio, zona.ownerId, zona.danoBase, 'skill', 'dot');
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({ type: 'action_ladino_gas_dano', id: zona.id, x: zona.x, y: zona.y }));
+                }
+            });
+        }
+    }
+
+    // ============ LADINO: SANGRAMENTO (passiva Lâminas Sangrentas) ============
+    // A cada 20 ticks (1s) aplica 20% do dano físico que originou o sangramento.
+    // Reutiliza o DoT do efeito; crédito/dano via registrarDano* (tipoOrigem 'dot').
+    global.sangramentoTick = ((global.sangramentoTick || 0) + 1);
+    if (global.sangramentoTick % 20 === 0) {
+        slimes.forEach(slim => {
+            if (slim.hp <= 0) return;
+            const efSang = efeitos.pegarEfeito(slim, 'sangramento');
+            if (efSang && efSang.intensidade > 0 && efSang.autorId) {
+                registrarDanoMonstro(slim, efSang.autorId, Math.round(efSang.intensidade), 'dot');
+            }
+        });
+        bosses.forEach(bb => {
+            if (bb.hp <= 0) return;
+            const efSang = efeitos.pegarEfeito(bb, 'sangramento');
+            if (efSang && efSang.intensidade > 0 && efSang.autorId) {
+                registrarDanoBoss(bb, efSang.autorId, Math.round(efSang.intensidade), 'skill', 'dot');
+            }
+        });
+    }
 
     // ============ PASSIVA: QUEIMADURA CONGELANTE EXTREMA ============
     // Se fogo (queimadura) atingir um mob com gelo, converter para queimaduraCongelante
@@ -1734,7 +2562,8 @@ setInterval(() => {
             }
             let consumoAura = Math.max(1, Math.ceil(healer.maxMp * 0.08));
             healer.mana = Math.max(0, healer.mana - consumoAura);
-            let curaAura = Math.max(1, Math.round(healer.maxHp * 0.02));
+            // Cura base 2% HP/s ESCALADA pelo atributo DIVINDADE da Curandeira (+5% por ponto).
+            let curaAura = Math.max(1, calcularCuraJogador(healerId, Math.round(healer.maxHp * 0.02)));
             let alvos = [];
             for (let alvoId in players) {
                 let alvo = players[alvoId];
@@ -1838,6 +2667,13 @@ setInterval(() => {
 
     for (let i = blizzards.length - 1; i >= 0; i--) {
         let b = blizzards[i];
+        if (b.expiresAt && Date.now() >= b.expiresAt) {
+            blizzards.splice(i, 1);
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'sound_event', action: 'stop', soundId: b.soundId }));
+            });
+            continue;
+        }
         b.duracao--;
         slimes.forEach(slime => {
             if (slime.hp > 0 && Math.hypot(slime.x - b.x, slime.y - b.y) < b.radius) {
@@ -1856,7 +2692,12 @@ setInterval(() => {
                 }
             });
         }
-        if (b.duracao <= 0) blizzards.splice(i, 1);
+        if (b.duracao <= 0 || (b.expiresAt && Date.now() >= b.expiresAt)) {
+            blizzards.splice(i, 1);
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'sound_event', action: 'stop', soundId: b.soundId }));
+            });
+        }
     }
 
     for (let vi = vulcoes.length - 1; vi >= 0; vi--) {
@@ -1918,6 +2759,10 @@ setInterval(() => {
 
     for (let i = chuvasServidor.length - 1; i >= 0; i--) {
         let ch = chuvasServidor[i];
+        if (ch.expiresAt && Date.now() >= ch.expiresAt) {
+            chuvasServidor.splice(i, 1);
+            continue;
+        }
         ch.duracao--;
         slimes.forEach(slime => {
             if (slime.hp > 0 && Math.hypot(slime.x - ch.x, slime.y - ch.y) < 65) {
@@ -1928,7 +2773,7 @@ setInterval(() => {
             }
         });
         if (ch.duracao % 20 === 0) danoEmBosses(ch.x, ch.y, 70, ch.ownerId, ch.danoChuva || 8, 'skill');
-        if (ch.duracao <= 0) chuvasServidor.splice(i, 1);
+        if (ch.duracao <= 0 || (ch.expiresAt && Date.now() >= ch.expiresAt)) chuvasServidor.splice(i, 1);
     }
 
     for (let i = projeteis.length - 1; i >= 0; i--) {
@@ -1957,7 +2802,7 @@ setInterval(() => {
         if (!projectileRemoved && p.petAlvo && lacaios[p.petAlvo]) {
             let ogroAlvo = lacaios[p.petAlvo];
             let raioHitOgro = (p.raio || 5) + 24;
-            if (Math.hypot(ogroAlvo.x - p.x, ogroAlvo.y - p.y) < raioHitOgro) {
+            if ((!p.mapa || p.mapa === mapaPorCoordenada(ogroAlvo.x)) && Math.hypot(ogroAlvo.x - p.x, ogroAlvo.y - p.y) < raioHitOgro) {
                 danoCausadoAoOgro(p.petAlvo, p.dano || 10, ogroAlvo.x, ogroAlvo.y);
                 projeteis.splice(i, 1);
                 projectileRemoved = true;
@@ -1966,7 +2811,7 @@ setInterval(() => {
         if (!projectileRemoved) for (let pid in players) {
             let player = players[pid];
             let raioHit = (p.raio || 5) + 15;
-            if (player.hp > 0 && Math.hypot(player.x + 12 - p.x, player.y + 16 - p.y) < raioHit) {
+            if (player.hp > 0 && (!p.mapa || p.mapa === mapaPorCoordenada(player.x)) && Math.hypot(player.x + 12 - p.x, player.y + 16 - p.y) < raioHit) {
                 aplicarDanoJogador(pid, p.x, p.y, p.dano || 10);
                 projeteis.splice(i, 1);
                 projectileRemoved = true;
@@ -2049,9 +2894,22 @@ setInterval(() => {
             let dist = Math.hypot(dx, dy);
 
             if (dist > 30 && player.dashFrames > 0) {
-                player.x += (dx / dist) * 18;
-                player.y += (dy / dist) * 18;
+                const passoDash = validarMovimentoJogador(
+                    player,
+                    player.x + (dx / dist) * 18,
+                    player.y + (dy / dist) * 18,
+                    { maxStep: MAX_PLAYER_COLLISION_STEP }
+                );
+                if (passoDash.aceito || passoDash.parcial) {
+                    player.x = passoDash.x;
+                    player.y = passoDash.y;
+                }
                 player.dashFrames--;
+                if (passoDash.bloqueado) {
+                    player.isDashing = false;
+                    player.dashTarget = null;
+                    player.dashFrames = 0;
+                }
             } else {
                 slimes.forEach(slime => {
                     if (slime.hp > 0 && Math.hypot((player.x + 12) - slime.x, (player.y + 16) - slime.y) < 55) {
@@ -2083,7 +2941,13 @@ setInterval(() => {
                 slime.hp = slime.maxHp;
                 slime.x = novaPos.x;
                 slime.y = novaPos.y;
+                slime.origemX = novaPos.x;
+                slime.origemY = novaPos.y;
+                slime.retornandoAoLar = false;
                 slime.targetId = null;
+                slime.efeitos = [];
+                slime.invisivel = false;
+                slime.fugindo = false;
                 slime.stunTimer = 0;
                 slime.slowTimer = 0;
                 slime.respawnTimer = 0;
@@ -2104,7 +2968,7 @@ setInterval(() => {
             return;
         }
 
-        if (slime.stunTimer > 0) {
+        if (slime.stunTimer > 0 && !slime.imuneControle) {
             slime.stunTimer--;
             return;
         }
@@ -2115,12 +2979,26 @@ setInterval(() => {
         }
 
         let fatorLentidao = 1.0;
-        if (slime.slowTimer > 0) {
+        if (slime.imuneControle) {
+            slime.stunTimer = 0;
+            slime.slowTimer = 0;
+            if (Array.isArray(slime.efeitos)) {
+                slime.efeitos = slime.efeitos.filter(ef => !['stun', 'lentidao', 'paralisia', 'sono', 'gelo'].includes(ef.id));
+            }
+        }
+        if (slime.slowTimer > 0 && !slime.imuneControle) {
             slime.slowTimer--;
             fatorLentidao = 0.5;
         }
 
         let permiteAgroProximidade = !slime.flagPassivo && (slime.flagAgressivo || slime.tipo === "zumbi");
+        garantirOrigemInimigo(slime);
+
+        if (slime.retornandoAoLar) {
+            moverInimigoParaOrigem(slime, fatorLentidao);
+            return;
+        }
+
         if (!slime.flagPassivo && slime.tauntTimer > 0 && (players[slime.tauntId] || lacaios[slime.tauntId])) {
             slime.targetId = slime.tauntId;
         } else if (permiteAgroProximidade && !slime.targetId) {
@@ -2129,23 +3007,44 @@ setInterval(() => {
             for (let pid in players) {
                 let p = players[pid];
                 if (p.hp <= 0) continue;
-                let d = Math.hypot(p.x - slime.x, p.y - slime.y);
-                if (d < menorDist) { menorDist = d; alvoProximo = pid; }
+                if (!alvoDentroDaVisao(slime, p)) continue;
+                let d2 = distanciaEntidadesQuadrada(p, slime);
+                if (d2 < menorDist * menorDist) { menorDist = Math.sqrt(d2); alvoProximo = pid; }
             }
             if (alvoProximo) slime.targetId = alvoProximo;
         }
 
         if (slime.targetId && (players[slime.targetId] || lacaios[slime.targetId])) {
             let alvo = players[slime.targetId] || lacaios[slime.targetId];
+            // TAUNT do Golem (v1.30.3): o Golem vive em `lacaios[pid]` com a MESMA chave do
+            // jogador, então durante o rugido o LACAIO deve vencer o `players` na resolução.
             if (slime.tauntTimer > 0 && slime.tauntId) {
-                if (players[slime.tauntId]) alvo = players[slime.tauntId];
-                else if (lacaios[slime.tauntId]) alvo = lacaios[slime.tauntId];
+                if (lacaios[slime.tauntId]) alvo = lacaios[slime.tauntId];
+                else if (players[slime.tauntId]) alvo = players[slime.tauntId];
+            }
+            // LADINO invisível: o alvo some da visão — solta o agro e volta a patrulhar
+            if (efeitos && efeitos.temEfeito(alvo, 'invisivel')) {
+                slime.targetId = null;
+                return;
             }
             let dx = alvo.x - slime.x;
             let dy = alvo.y - slime.y;
             let dist = Math.hypot(dx, dy);
+            let distanciaDesiste = Math.max(slime.aggroRange || 320, DISTANCIA_RETORNO_INIMIGO);
 
-            if (slime.tipo === "melee") {
+            if (mapaPorCoordenada(slime.x) !== mapaPorCoordenada(alvo.x) || dist > distanciaDesiste) {
+                slime.targetId = null;
+                slime.retornandoAoLar = true;
+                slime.skillCharging = false;
+                slime.skillChargeTimer = 0;
+                slime.skillAim = null;
+                slime.attackCooldown = 0;
+                return;
+            }
+
+            if (slime.arquetipo && atualizarMonstroEspecial(slime, alvo, dx, dy, dist, fatorLentidao)) {
+                return;
+            } else if (slime.tipo === "melee") {
                 if (dist > 55) {
                     let velSlime = 3.2 * fatorLentidao;
                     let proximoX = slime.x + (dx / dist) * velSlime;
@@ -2157,18 +3056,22 @@ setInterval(() => {
                 } else {
                     slime.attackCooldown++;
                     if (slime.attackCooldown > 45) {
-                        if (alvo === players[slime.targetId]) {
-                            aplicarDanoJogador(slime.targetId, slime.x, slime.y, 12);
-                        } else if (alvo && slime.tauntTimer > 0 && slime.tauntId && alvo === lacaios[slime.tauntId]) {
-                            danoCausadoAoOgro(slime.tauntId, 12, alvo.x, alvo.y);
-                        } else if (alvo) {
-                            alvo.hp -= 12;
-                            if (alvo.hp < 0) alvo.hp = 0;
+                        // CEGUEIRA: melee cego erra a mordida/corte normal
+                        if (monstroPodeAtacar(slime)) {
+                            if (alvo === players[slime.targetId]) {
+                                aplicarDanoJogador(slime.targetId, slime.x, slime.y, 12);
+                            } else if (alvo && slime.tauntTimer > 0 && slime.tauntId && alvo === lacaios[slime.tauntId]) {
+                                danoCausadoAoOgro(slime.tauntId, 12, alvo.x, alvo.y);
+                            } else if (alvo) {
+                                alvo.hp -= 12;
+                                if (alvo.hp < 0) alvo.hp = 0;
+                            }
                         }
                         slime.attackCooldown = 0;
                     }
                 }
             } else if (slime.tipo === "ranged") {
+                const alcanceAtaqueRanged = slime.attackRange || 220;
                 if (dist > 220) {
                     let velArqueiro = 1.04 * fatorLentidao;
                     let proximoX = slime.x + (dx / dist) * velArqueiro;
@@ -2183,7 +3086,7 @@ setInterval(() => {
                 }
 
                 slime.attackCooldown++;
-                if (slime.attackCooldown > 60) {
+                if (slime.attackCooldown > 60 && monstroPodeAtacar(slime) && podeEntidadeAtacarAlvo(slime, alvo, alcanceAtaqueRanged)) {
                     let ang = Math.atan2(dy, dx);
                     projeteis.push({
                         x: slime.x,
@@ -2191,6 +3094,7 @@ setInterval(() => {
                         vx: Math.cos(ang) * 10.125,
                         vy: Math.sin(ang) * 10.125,
                         vida: 70,
+                        mapa: mapaPorCoordenada(slime.x),
                         petAlvo: (slime.tauntTimer > 0 && slime.tauntId && lacaios[slime.tauntId]) ? slime.tauntId : null
                     });
                     slime.attackCooldown = 0;
@@ -2219,13 +3123,16 @@ setInterval(() => {
                     } else {
                         slime.attackCooldown++;
                         if (slime.attackCooldown > 50) {
-                            if (players[slime.targetId] && alvo === players[slime.targetId]) {
-                                aplicarDanoJogador(slime.targetId, slime.x, slime.y, slime.dano || 18);
-                            } else if (alvo && slime.tauntTimer > 0 && slime.tauntId && alvo === lacaios[slime.tauntId]) {
-                                danoCausadoAoOgro(slime.tauntId, slime.dano || 18, alvo.x, alvo.y);
-                            } else if (alvo) {
-                                alvo.hp -= (slime.dano || 18);
-                                if (alvo.hp < 0) alvo.hp = 0;
+                            // CEGUEIRA: zumbi cego erra a mordida normal (cuspida tóxica é skill e continua)
+                            if (monstroPodeAtacar(slime)) {
+                                if (players[slime.targetId] && alvo === players[slime.targetId]) {
+                                    aplicarDanoJogador(slime.targetId, slime.x, slime.y, slime.dano || 18);
+                                } else if (alvo && slime.tauntTimer > 0 && slime.tauntId && alvo === lacaios[slime.tauntId]) {
+                                    danoCausadoAoOgro(slime.tauntId, slime.dano || 18, alvo.x, alvo.y);
+                                } else if (alvo) {
+                                    alvo.hp -= (slime.dano || 18);
+                                    if (alvo.hp < 0) alvo.hp = 0;
+                                }
                             }
                             slime.attackCooldown = 0;
                         }
@@ -2315,7 +3222,8 @@ setInterval(() => {
                     }
 
                     slime.attackCooldown++;
-                    if (slime.attackCooldown > 20) {
+                    const alcanceAtaqueBesouro = slime.attackRange || 320;
+                    if (slime.attackCooldown > 20 && podeEntidadeAtacarAlvo(slime, alvo, alcanceAtaqueBesouro)) {
                         let ang = Math.atan2(dy, dx);
                         projeteis.push({
                             x: slime.x,
@@ -2323,6 +3231,7 @@ setInterval(() => {
                             vx: Math.cos(ang) * 40.5, // 4x a velocidade padrão (10.125)
                             vy: Math.sin(ang) * 40.5,
                             vida: 90,
+                            mapa: mapaPorCoordenada(slime.x),
                             dano: slime.dano || 14,
                             tipo: 'besouro',
                             raio: 7,
@@ -2376,32 +3285,44 @@ setInterval(() => {
                     slime.attackCooldown++;
                     if (slime.attackCooldown > 35) {
                         slime.attackCooldown = 0;
-                        if (players[slime.targetId] && alvo === players[slime.targetId]) {
-                            aplicarDanoJogador(slime.targetId, slime.x, slime.y, slime.dano || 16);
-                        } else if (alvo && slime.tauntTimer > 0 && slime.tauntId && alvo === lacaios[slime.tauntId]) {
-                            danoCausadoAoOgro(slime.tauntId, slime.dano || 16, alvo.x, alvo.y);
-                        } else if (alvo) {
-                            alvo.hp -= (slime.dano || 16);
-                            if (alvo.hp < 0) alvo.hp = 0;
+                        // CEGUEIRA: morcego cego erra a mordida normal
+                        if (monstroPodeAtacar(slime)) {
+                            if (players[slime.targetId] && alvo === players[slime.targetId]) {
+                                aplicarDanoJogador(slime.targetId, slime.x, slime.y, slime.dano || 16);
+                            } else if (alvo && slime.tauntTimer > 0 && slime.tauntId && alvo === lacaios[slime.tauntId]) {
+                                danoCausadoAoOgro(slime.tauntId, slime.dano || 16, alvo.x, alvo.y);
+                            } else if (alvo) {
+                                alvo.hp -= (slime.dano || 16);
+                                if (alvo.hp < 0) alvo.hp = 0;
+                            }
                         }
                     }
                 }
             }
 
-            let distanciaDesiste = (slime.tipo === "zumbi" || slime.tipo === "besouro_negro" || slime.tipo === "morcego") ? 700 : 450;
             if (alvo.hp <= 0) {
                 slime.targetId = null;
                 slime.tauntTimer = 0;
                 slime.tauntId = null;
             } else if (dist > distanciaDesiste && slime.tauntTimer <= 0) {
                 slime.targetId = null;
+                slime.retornandoAoLar = true;
+                slime.attackCooldown = 0;
             }
         } else {
+            const distanciaOrigem = Math.hypot(slime.x - slime.origemX, slime.y - slime.origemY);
+            if (distanciaOrigem > DISTANCIA_RETORNO_INIMIGO) {
+                slime.retornandoAoLar = true;
+                moverInimigoParaOrigem(slime, fatorLentidao);
+                return;
+            }
+
             slime.patrolTimer++;
             if (slime.patrolTimer > 120) {
                 let fatorVel = (slime.tipo === "melee" ? 0.84 : 0.65) * fatorLentidao;
-                slime.dx = (Math.random() - 0.5) * fatorVel;
-                slime.dy = (Math.random() - 0.5) * fatorVel;
+                slime.patrulhaFase += (Math.random() - 0.5) * 0.7;
+                slime.dx = Math.cos(slime.patrulhaFase) * fatorVel;
+                slime.dy = Math.sin(slime.patrulhaFase) * fatorVel;
                 slime.patrolTimer = 0;
             }
 
@@ -2423,7 +3344,7 @@ setInterval(() => {
         }
     });
 
-    // ROQUEIRO: canal de bateria (5s = 250 ticks; batida a cada 10 ticks = 500ms; cancela se mover/morrer)
+    // ROQUEIRO: canal de bateria (5s = 100 ticks; batida a cada 10 ticks = 500ms; cancela se mover/morrer)
     for (let pid in bateriaCanal) {
         let canal = bateriaCanal[pid];
         let player = players[pid];
@@ -2517,22 +3438,24 @@ setInterval(() => {
                 let pX = player.x + 12;
                 let pY = player.y + 16;
                 let ang = canal.angulo;
-                let cone = 0.9;
+                let cone = 1.05; // meia-abertura do cone do VISUAL da rajada (~60°)
+                let raioCone = 230; // alcança até onde o visual da rajada percorre (~230px)
                 let dano = dmgSkill(player, 'rajada', 18 + Math.min(14, Math.floor((200 - canal.timer) / 15)));
-                let alvoHit = null;
+                let alvosAtingidos = 0;
 
+                // Dano em ÁREA: TODOS os inimigos dentro do cone do visual são atingidos (slimes e bosses)
                 slimes.forEach(slime => {
-                    if (!slime || slime.hp <= 0 || alvoHit) return;
+                    if (!slime || slime.hp <= 0) return;
                     let dx = slime.x - pX;
                     let dy = slime.y - pY;
                     let dist = Math.hypot(dx, dy);
-                    if (dist > 170) return;
+                    if (dist > raioCone) return;
                     let angAlvo = Math.atan2(dy, dx);
                     let diff = Math.atan2(Math.sin(ang - angAlvo), Math.cos(ang - angAlvo));
                     if (Math.abs(diff) <= cone) {
                         if (canal.stackTargetId === slime.id && canal.stackCount > 0) {
                             canal.stackCount = Math.min(6, canal.stackCount + 1);
-                        } else {
+                        } else if (alvosAtingidos === 0) {
                             canal.stackCount = 1;
                             canal.stackTargetId = slime.id;
                         }
@@ -2544,46 +3467,47 @@ setInterval(() => {
 
                         let bonus = 1 + (canal.stackCount - 1) * 0.12;
                         registrarDanoMonstro(slime, pid, dano * bonus, 'skill');
-                        alvoHit = slime;
+                        alvosAtingidos++;
+                        wss.clients.forEach((client) => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({ type: 'action_arqueiro_rajada_hit', id: pid, x: slime.x, y: slime.y, stacks: player.rajadaStacks || 0 }));
+                            }
+                        });
                     }
                 });
 
-                if (!alvoHit) {
-                    bosses.forEach(boss => {
-                        if (!boss || boss.hp <= 0 || alvoHit) return;
-                        let dx = boss.x - pX;
-                        let dy = boss.y - pY;
-                        let dist = Math.hypot(dx, dy);
-                        if (dist > 185) return;
-                        let angAlvo = Math.atan2(dy, dx);
-                        let diff = Math.atan2(Math.sin(ang - angAlvo), Math.cos(ang - angAlvo));
-                        if (Math.abs(diff) <= cone) {
-                            if (canal.stackTargetId === boss.id && canal.stackCount > 0) {
-                                canal.stackCount = Math.min(6, canal.stackCount + 1);
-                            } else {
-                                canal.stackCount = 1;
-                                canal.stackTargetId = boss.id;
+                // Bosses também são atingidos na mesma rajada (área do cone)
+                bosses.forEach(boss => {
+                    if (!boss || boss.hp <= 0) return;
+                    let dx = boss.x - pX;
+                    let dy = boss.y - pY;
+                    let dist = Math.hypot(dx, dy);
+                    if (dist > raioCone) return;
+                    let angAlvo = Math.atan2(dy, dx);
+                    let diff = Math.atan2(Math.sin(ang - angAlvo), Math.cos(ang - angAlvo));
+                    if (Math.abs(diff) <= cone) {
+                        if (canal.stackTargetId === boss.id && canal.stackCount > 0) {
+                            canal.stackCount = Math.min(6, canal.stackCount + 1);
+                        } else if (alvosAtingidos === 0) {
+                            canal.stackCount = 1;
+                            canal.stackTargetId = boss.id;
+                        }
+                        player.rajadaStacks = canal.stackCount;
+                        player.rajadaStackTargetId = boss.id;
+                        player.rajadaStackTimer = 120;
+                        player.velocidadeCrescenteStacks = canal.stackCount;
+                        player.velocidadeCrescenteTimer = 120;
+
+                        let bonus = 1 + (canal.stackCount - 1) * 0.12;
+                        registrarDanoBoss(boss, pid, dano * bonus, 'skill', 'skill');
+                        alvosAtingidos++;
+                        wss.clients.forEach((client) => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({ type: 'action_arqueiro_rajada_hit', id: pid, x: boss.x, y: boss.y, stacks: player.rajadaStacks || 0 }));
                             }
-                            player.rajadaStacks = canal.stackCount;
-                            player.rajadaStackTargetId = boss.id;
-                            player.rajadaStackTimer = 120;
-                            player.velocidadeCrescenteStacks = canal.stackCount;
-                            player.velocidadeCrescenteTimer = 120;
-
-                            let bonus = 1 + (canal.stackCount - 1) * 0.12;
-                            registrarDanoBoss(boss, pid, dano * bonus, 'skill', 'skill');
-                            alvoHit = boss;
-                        }
-                    });
-                }
-
-                if (alvoHit) {
-                    wss.clients.forEach((client) => {
-                        if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_arqueiro_rajada_hit', id: pid, x: alvoHit.x || pX, y: alvoHit.y || pY, stacks: player.rajadaStacks || 0 }));
-                        }
-                    });
-                }
+                        });
+                    }
+                });
             }
 
             if (canal.timer <= 0) {
@@ -2638,6 +3562,17 @@ setInterval(() => {
     for (let i = bosses.length - 1; i >= 0; i--) {
         let g = bosses[i];
 
+        // STUN (Ladino — Estrela da Morte): golem parado por 2s (40 ticks)
+        if (g.stunTimer > 0) {
+            g.stunTimer--;
+            if (g.stunTimer > 0) {
+                // pedra orbital continua orbitando visualmente (o corpo fica imóvel)
+                g.pedraX = g.x + Math.cos(g.pedraOrbita) * 58;
+                g.pedraY = g.y - 30 + Math.sin(g.pedraOrbita) * 46;
+                continue;
+            }
+        }
+
 if (g.hp <= 0) {
                 g.mortoTimer++;
                 if (!g.mortoAnunciado) {
@@ -2675,6 +3610,7 @@ if (g.hp <= 0) {
                 g.lastEscudo = 'azul';
                 g.tauntId = null;
                 g.tauntTimer = 0;
+                g.stunTimer = 0;
             }
             continue;
         }
@@ -2689,14 +3625,23 @@ if (g.hp <= 0) {
             for (let pid in players) {
                 let p = players[pid];
                 if (p.hp <= 0) continue;
+                // LADINO invisível: o golem não o enxerga (só o taunt obriga o ataque)
+                if (efeitos && efeitos.temEfeito(p, 'invisivel')) continue;
+                if (mapaPorCoordenada(g.x) !== mapaPorCoordenada(p.x)) continue;
                 let d = Math.hypot((p.x + 12) - g.x, (p.y + 16) - g.y);
                 if (d < menorDist) {
                     menorDist = d;
                     melhorJogador = pid;
                 }
             }
-            if (g.tauntTimer > 0 && g.tauntId && players[g.tauntId] && players[g.tauntId].hp > 0) melhorJogador = g.tauntId;
+            if (g.tauntTimer > 0 && g.tauntId && (lacaios[g.tauntId] || (players[g.tauntId] && players[g.tauntId].hp > 0))) melhorJogador = g.tauntId;
         }
+
+        // v1.30.3: alvo CONCRETO do bait — quando o taunt veio do Golem (lacaio com mesma
+        // chave do jogador), o boss mira e acerta o GOLEM, não o summoner.
+        let entidadeAlvo = null;
+        if (g.tauntTimer > 0 && g.tauntId && lacaios[g.tauntId]) entidadeAlvo = lacaios[g.tauntId];
+        else if (melhorJogador && players[melhorJogador]) entidadeAlvo = players[melhorJogador];
 
         // Enrage: quanto mais HP perdido, mais dano e mais velocidade
         let ratioHp = g.hp / g.maxHp;
@@ -2725,9 +3670,8 @@ if (g.hp <= 0) {
         }
 
         // Vira lentamente para o alvo
-        if (melhorJogador) {
-            let p = players[melhorJogador];
-            let alvoAng = Math.atan2((p.y + 16) - g.y, (p.x + 12) - g.x);
+        if (entidadeAlvo) {
+            let alvoAng = Math.atan2((entidadeAlvo.y + 16) - g.y, (entidadeAlvo.x + 12) - g.x);
             g.angulo += Math.atan2(Math.sin(alvoAng - g.angulo), Math.cos(alvoAng - g.angulo)) * 0.12;
         }
 
@@ -2737,10 +3681,9 @@ if (g.hp <= 0) {
                 g.pedraX = g.x + Math.cos(g.pedraOrbita) * 58;
                 g.pedraY = g.y - 32 + Math.sin(g.pedraOrbita) * 46;
                 g.cooldown--;
-                if (g.cooldown <= 0 && melhorJogador) {
-                    let p = players[melhorJogador];
-                    g.alvoX = p.x + 12;
-                    g.alvoY = p.y + 16;
+                if (g.cooldown <= 0 && melhorJogador && entidadeAlvo) {
+                    g.alvoX = entidadeAlvo.x + 12;
+                    g.alvoY = entidadeAlvo.y + 16;
                     g.alvoPosX = g.pedraX;
                     g.alvoPosY = g.pedraY;
                     g.durFase = Math.max(4, Math.round(14 / fatorVel));
@@ -2802,8 +3745,15 @@ if (g.hp <= 0) {
                     });
                     for (let pid in players) {
                         let p = players[pid];
-                        if (p.hp > 0 && Math.hypot((p.x + 12) - g.alvoX, (p.y + 16) - g.alvoY) < 90) {
+                        if (p.hp > 0 && mapaPorCoordenada(p.x) === mapaPorCoordenada(g.x) && Math.hypot((p.x + 12) - g.alvoX, (p.y + 16) - g.alvoY) < 90) {
                             aplicarDanoJogador(pid, g.alvoX, g.alvoY, danoAtual);
+                        }
+                    }
+                    // Boss tauntado pelo Golem: a pedra também acerta o próprio Golem
+                    if (g.tauntTimer > 0 && g.tauntId && lacaios[g.tauntId] && lacaios[g.tauntId].hp > 0) {
+                        const ogroBoss = lacaios[g.tauntId];
+                        if (mapaPorCoordenada(ogroBoss.x) === mapaPorCoordenada(g.x) && Math.hypot(ogroBoss.x - g.alvoX, ogroBoss.y - g.alvoY) < 90) {
+                            danoCausadoAoOgro(g.tauntId, danoAtual, ogroBoss.x, ogroBoss.y);
                         }
                     }
                 }
@@ -2852,22 +3802,29 @@ if (g.hp <= 0) {
         playersVisivel[pid].auraSagradaAliado = !!aliadoNaAura(pid);
     }
 
-    let estadoMundo = {
-        type: 'world_update',
-        players: playersVisivel,
-        slimes: slimes,
-        projeteis: projeteis,
-        playerProjeteis: playerProjeteis,
-        lacaios: lacaios,
-        bandas: bandas,
-        bosses: bosses,
-        drops: dropsChao
-    };
-
     wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(estadoMundo), () => {});
+        if (client.readyState !== WebSocket.OPEN) return;
+        const jogadorCliente = client._playerId ? players[client._playerId] : null;
+        const mapaCliente = jogadorCliente ? mapaPorCoordenada(jogadorCliente.x + PLAYER_OFFSET_X) : null;
+        const jogadoresDoMapa = {};
+        if (mapaCliente) {
+            for (const pid in playersVisivel) {
+                if (entidadeNoMapa(playersVisivel[pid], mapaCliente)) jogadoresDoMapa[pid] = playersVisivel[pid];
+            }
         }
+        client.send(JSON.stringify({
+            type: 'world_update',
+            players: jogadoresDoMapa,
+            slimes: filtrarPorMapa(slimes, mapaCliente),
+            projeteis: filtrarPorMapa(projeteis, mapaCliente),
+            playerProjeteis: filtrarPorMapa(playerProjeteis, mapaCliente),
+            lacaios: Object.fromEntries(Object.entries(lacaios).filter(function (entry) { return entidadeNoMapa(entry[1], mapaCliente); })),
+            bandas: Object.fromEntries(Object.entries(bandas).filter(function (entry) { return players[entry[0]] && mapaPorCoordenada(players[entry[0]].x + PLAYER_OFFSET_X) === mapaCliente; })),
+            bosses: filtrarPorMapa(bosses, mapaCliente),
+            drops: filtrarPorMapa(dropsChao, mapaCliente),
+            gases: filtrarPorMapa(gasesVeneno, mapaCliente),
+            mapVfx: mapVfx.filter(function (v) { return v.mapa === mapaCliente; })
+        }), () => {});
     });
 }, 50);
 
@@ -2887,6 +3844,7 @@ wss.on('connection', (ws) => {
             if (data.action === 'login') {
                 userId = (data.userId || data.id || "Guerreiro").trim();
                 playerId = "heroi_" + userId;
+                ws._playerId = playerId;
                 playerSockets[playerId] = ws;
 
                 let ehAdminConta = (userId.toLowerCase() === 'admin') || (spawnsAdmin ? spawnsAdmin.ehAdmin(userId) : false);
@@ -2925,6 +3883,7 @@ wss.on('connection', (ws) => {
                     inventario: (dadosSalvos && dadosSalvos.inventario) ? dadosSalvos.inventario : inventarioPadrao(),
                     uiLayout: (dadosSalvos && dadosSalvos.uiLayout) ? dadosSalvos.uiLayout : {},
                     isDashing: false,
+                    mapaTransicaoAte: 0,
                     furiaTimer: 0,
                     giroDescontroladoTimer: 0,
                     giroDescontroladoCooldown: 0,
@@ -2932,12 +3891,35 @@ wss.on('connection', (ws) => {
                     furiaCrescenteNivel: 0,
                     stunTimer: 0,
                     lastBasicAttack: 0,
+                    // ===== LADINO (estado de skills — server-authoritative) =====
+                    ladinoDancaAtivo: false,
+                    ladinoDanca: null,
+                    ladinoDancaCooldown: 0,
+                    ladinoInvisivel: false,
+                    ladinoInvisivelTimer: 0,
+                    ladinoInvisivelBonus: false,
+                    ladinoCamuflagemDelay: 0,
+                    ladinoCamuflagemCdAtivo: false,
+                    ladinoCamuflagemCooldown: 0,
+                    ladinoBombaCooldown: 0,
+                    ladinoEstrela: null,
+                    ladinoEstrelaCooldown: 0,
+                    // SUMMONER: modo do Golem (agressivo ataca o alvo focado; passivo só rodeia a invocadora)
+                    ogroModo: (dadosSalvos && (dadosSalvos.ogroModo === 'agressivo' || dadosSalvos.ogroModo === 'passivo')) ? dadosSalvos.ogroModo : 'agressivo',
                     isAdmin: ehAdminConta
                 };
                 players[playerId].maxHp = calcularMaxHp(players[playerId]);
                 if (players[playerId].hp > players[playerId].maxHp) players[playerId].hp = players[playerId].maxHp;
                 players[playerId].maxMp = calcularMaxMp(players[playerId]);
                 if (players[playerId].mana > players[playerId].maxMp) players[playerId].mana = players[playerId].maxMp;
+                const posicaoLogin = encontrarPosicaoJogadorSegura(players[playerId], players[playerId].x, players[playerId].y);
+                if (posicaoLogin) {
+                    players[playerId].x = posicaoLogin.x;
+                    players[playerId].y = posicaoLogin.y;
+                } else {
+                    players[playerId].x = CIDADE_SPAWN_X;
+                    players[playerId].y = CIDADE_SPAWN_Y;
+                }
 
                 if (spawnsAdmin) {
                     bandeirasSpawn = spawnsAdmin.carregarBandeiras();
@@ -2961,6 +3943,7 @@ wss.on('connection', (ws) => {
                     pontosHabilidade: players[playerId].pontosHabilidade,
                     mana: Math.round(players[playerId].mana),
                     maxMp: players[playerId].maxMp,
+                    ogroModo: players[playerId].ogroModo || 'agressivo',
                     admin: ehAdminConta
                 }));
                 ws.send(JSON.stringify({
@@ -2973,11 +3956,13 @@ wss.on('connection', (ws) => {
                 if (ehAdminConta) {
                     ws.send(JSON.stringify({ type: 'spawn_flags', bandeiras: bandeirasSpawn }));
                 }
+                ws.send(JSON.stringify({ type: 'map_vfx', vfx: mapVfx }));
                 if (mapaCidade && typeof mapaCidade.obterObstaculos === 'function') {
                     ws.send(JSON.stringify({
                         type: 'colisoes_atualizadas',
                         mapa: 'cidade',
-                        obstaculos: mapaCidade.obterObstaculos()
+                        obstaculos: mapaCidade.obterObstaculos(),
+                        camadas: typeof mapaCidade.obterCamadas === 'function' ? mapaCidade.obterCamadas() : []
                     }));
                 }
                 if (players[playerId].uiLayout && Object.keys(players[playerId].uiLayout).length) {
@@ -3363,7 +4348,7 @@ wss.on('connection', (ws) => {
                 if (data.classe === 'summoner') {
                     delete petRespawnTimer[playerId];
                     let petHp = calcularVidaPet(players[playerId]);
-                    lacaios[playerId] = { x: players[playerId].x + 35, y: players[playerId].y + 35, hp: petHp, maxHp: petHp, attackCooldown: 0, angleOffset: 0, skillCooldown: 0, skill2Cooldown: 0, isJumping: false, targetSlimeId: null, modoAgressivoTimer: 0, focoAlvo: null, rugidoTimer: 200, rugindoTimer: 0 };
+                    lacaios[playerId] = { x: players[playerId].x + 35, y: players[playerId].y + 35, hp: petHp, maxHp: petHp, attackCooldown: 0, angleOffset: 0, skillCooldown: 0, skill2Cooldown: 0, isJumping: false, targetSlimeId: null, modoAgressivoTimer: 0, focoAlvo: null, modo: (players[playerId].ogroModo === 'passivo' ? 'passivo' : 'agressivo'), rugidoTimer: 200, rugindoTimer: 0 };
                 } else {
                     delete lacaios[playerId];
                     delete petRespawnTimer[playerId];
@@ -3381,6 +4366,19 @@ wss.on('connection', (ws) => {
                     });
                 } else {
                     delete bandas[playerId];
+                }
+                // Ladino: limpa máquinas de estado ao trocar de classe
+                {
+                    let lp = players[playerId];
+                    lp.ladinoDancaAtivo = false;
+                    lp.ladinoDanca = null;
+                    lp.ladinoEstrela = null;
+                    lp.ladinoInvisivel = false;
+                    lp.ladinoInvisivelBonus = false;
+                    lp.ladinoInvisivelTimer = 0;
+                    lp.ladinoCamuflagemDelay = 0;
+                    lp.ladinoCamuflagemCdAtivo = false;
+                    if (efeitos) efeitos.removerEfeito(lp, 'invisivel');
                 }
             }
 
@@ -3422,6 +4420,24 @@ wss.on('connection', (ws) => {
                 return;
             }
 
+            if (data.action === 'admin_map_vfx' || data.action === 'admin_map_vfx_excluir') {
+                let p = players[playerId];
+                if (!p || !p.isAdmin) return;
+                if (data.action === 'admin_map_vfx_excluir') {
+                    mapVfx = mapVfx.filter(function (v) { return v.id !== data.id; });
+                } else if (data.vfx && ['criar', 'editar'].includes(data.sub)) {
+                    let v = data.vfx;
+                    let mapa = mapaPorCoordenada(Number(v.x));
+                    if (!mapa || !Number.isFinite(Number(v.x)) || !Number.isFinite(Number(v.y))) return;
+                    let lim = mapVfx.find(function (item) { return item.id === v.id; });
+                    let limpo = { id: String(v.id || ('vfx_' + Date.now().toString(36))), mapa: mapa, x: Math.round(Number(v.x)), y: Math.round(Number(v.y)), tipo: String(v.tipo || 'lampada').slice(0, 32), escala: Math.max(.3, Math.min(4, Number(v.escala) || 1)), intensidade: Math.max(.1, Math.min(2, Number(v.intensidade) || 1)), raio: Math.max(20, Math.min(260, Number(v.raio) || 80)), cor: /^#[0-9a-fA-F]{6}$/.test(v.cor || '') ? v.cor : '#ffd166' };
+                    if (lim) Object.assign(lim, limpo); else mapVfx.push(limpo);
+                }
+                salvarMapVfx();
+                broadcastMapVfx();
+                return;
+            }
+
             // ===== ADMIN: EDITOR DE COLISÕES (validação estrita de cargo) =====
             if (data.action === 'admin_salvar_colisoes') {
                 let p = players[playerId];
@@ -3442,11 +4458,22 @@ wss.on('connection', (ws) => {
                     } catch (err) {
                         console.error('Erro ao salvar colisoes_cidade.json:', err.message);
                     }
+                    if (Array.isArray(data.camadas) && mapaCidade && typeof mapaCidade.carregarCamadas === 'function') {
+                        mapaCidade.carregarCamadas(data.camadas);
+                        try {
+                            const fileCamadas = path.join(__dirname, 'camadas_cidade.json');
+                            fs.writeFileSync(fileCamadas, JSON.stringify(data.camadas, null, 2), 'utf-8');
+                            console.log('[ADMIN] Camadas da cidade salvas com sucesso (' + data.camadas.length + ' áreas).');
+                        } catch (err) {
+                            console.error('Erro ao salvar camadas_cidade.json:', err.message);
+                        }
+                    }
                     // Broadcast para todos os clientes conectados
                     const msg = JSON.stringify({
                         type: 'colisoes_atualizadas',
                         mapa: 'cidade',
-                        obstaculos: (mapaCidade && typeof mapaCidade.obterObstaculos === 'function') ? mapaCidade.obterObstaculos() : data.obstaculos
+                        obstaculos: (mapaCidade && typeof mapaCidade.obterObstaculos === 'function') ? mapaCidade.obterObstaculos() : data.obstaculos,
+                        camadas: (mapaCidade && typeof mapaCidade.obterCamadas === 'function') ? mapaCidade.obterCamadas() : (data.camadas || [])
                     });
                     wss.clients.forEach(function (c) {
                         if (c.readyState === WebSocket.OPEN) c.send(msg);
@@ -3455,7 +4482,8 @@ wss.on('connection', (ws) => {
                         ws.send(JSON.stringify({
                             type: 'colisoes_salvas',
                             sucesso: true,
-                            total: data.obstaculos.length
+                            total: data.obstaculos.length,
+                            totalCamadas: Array.isArray(data.camadas) ? data.camadas.length : 0
                         }));
                     } catch (_) {}
                 }
@@ -3652,14 +4680,57 @@ wss.on('connection', (ws) => {
                 return;
             }
 
+            // Respawn tem prioridade sobre a janela de transicao do teleporte:
+            // morrer e renascer deve sempre devolver o jogador para a cidade.
+            if (data.action === 'respawn' && players[playerId]) {
+                if (aurasSagradas[playerId]) desativarAuraSagrada(playerId, 'respawn');
+                players[playerId].hp = players[playerId].maxHp;
+                players[playerId].estamina = 100;
+                players[playerId].mana = players[playerId].maxMp;
+                players[playerId].stunTimer = 0;
+                players[playerId].efeitos = [];
+                players[playerId].gritoGuerraBonus = 0;
+                players[playerId].furiaTimer = 0;
+                players[playerId].giroDescontroladoTimer = 0;
+                players[playerId].isDashing = false;
+                players[playerId].dashTarget = null;
+                const destinoRespawnPrioritario = encontrarPosicaoJogadorSegura(players[playerId], CIDADE_SPAWN_X, CIDADE_SPAWN_Y);
+                players[playerId].x = destinoRespawnPrioritario ? destinoRespawnPrioritario.x : CIDADE_SPAWN_X;
+                players[playerId].y = destinoRespawnPrioritario ? destinoRespawnPrioritario.y : CIDADE_SPAWN_Y;
+                players[playerId].mapaTransicaoAte = 0;
+                delete bateriaCanal[playerId];
+                if (players[playerId].classe === 'summoner') {
+                    delete petRespawnTimer[playerId];
+                    let petHp = calcularVidaPet(players[playerId]);
+                    lacaios[playerId] = { x: players[playerId].x + 30, y: players[playerId].y + 30, hp: petHp, maxHp: petHp, attackCooldown: 0, angleOffset: 0, skillCooldown: 0, skill2Cooldown: 0, isJumping: false, targetSlimeId: null, modoAgressivoTimer: 0, focoAlvo: null, modo: (players[playerId].ogroModo === 'passivo' ? 'passivo' : 'agressivo'), rugidoTimer: 200, rugindoTimer: 0 };
+                }
+                salvarProgresso(userId, { hp: players[playerId].hp, x: players[playerId].x, y: players[playerId].y });
+                ws.send(JSON.stringify({ type: 'respawn_confirmado', mapa: 'cidade', x: players[playerId].x, y: players[playerId].y }));
+                return;
+            }
+
             if (players[playerId].hp > 0) {
+                if (players[playerId].mapaTransicaoAte && players[playerId].mapaTransicaoAte > Date.now()) {
+                    if (data.angulo !== undefined) players[playerId].angulo = data.angulo;
+                    return;
+                }
                 let podeMover = players[playerId].stunTimer <= 0;
+                // LADINO: movimento travado durante a Dança das Adagas e a Estrela da Morte
+                // (o servidor controla a posição na coreografia; o cliente não deve interromper)
+                if (podeMover && (players[playerId].ladinoDancaAtivo || players[playerId].ladinoEstrela)) {
+                    podeMover = false;
+                }
                 if (efeitos && podeMover) {
                     podeMover = !efeitos.temEfeito(players[playerId], 'paralisia') && !efeitos.temEfeito(players[playerId], 'sono');
                 }
                 if (podeMover) {
-                    if (data.x !== undefined) players[playerId].x = data.x;
-                    if (data.y !== undefined) players[playerId].y = data.y;
+                    const targetX = data.x !== undefined ? Number(data.x) : players[playerId].x;
+                    const targetY = data.y !== undefined ? Number(data.y) : players[playerId].y;
+                    const movimento = validarMovimentoJogador(players[playerId], targetX, targetY);
+                    if (movimento.aceito || movimento.parcial) {
+                        players[playerId].x = movimento.x;
+                        players[playerId].y = movimento.y;
+                    }
                     if (data.moving !== undefined) players[playerId].moving = data.moving;
                 }
                 if (data.angulo !== undefined) players[playerId].angulo = data.angulo;
@@ -3705,11 +4776,20 @@ wss.on('connection', (ws) => {
 
                 // ATAQUE BÁSICO DO BÁRBARO: MACHADADA ENSANGUENTADA (20 DANO + VAMPIRISMO EM FÚRIA)
                 if (data.action === 'ataque_barbaro') {
-                    if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], 350)) return;
+                    // GIRO DESCONTROLADO ativo: o ataque básico NÃO funciona (server-authoritative)
+                    if (players[playerId].giroDescontroladoAtivo) return;
+                    if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], tempoBaseAtaqueBasico(players[playerId]))) return;
                     players[playerId].lastBasicAttack = agora;
+
+                    // Auto-ataque com alvo informado exige validação completa no servidor
+                    let alvoAuto = validarAtaqueBasicoAlvo(players[playerId], data.alvoTipo, data.alvoId);
+                    if (data.alvoTipo || data.alvoId) {
+                        if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
+                    }
 
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
+                    let anguloMachado = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : players[playerId].angulo;
 
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
@@ -3721,9 +4801,9 @@ wss.on('connection', (ws) => {
                     slimes.forEach(slime => {
                         if (slime.hp > 0) {
                             let dist = Math.hypot(pX - slime.x, pY - slime.y);
-                            if (dist < 72) {
+                            if (dist < 100) {
                                 let anguloAteSlime = Math.atan2(slime.y - pY, slime.x - pX);
-                                let diff = Math.atan2(Math.sin(players[playerId].angulo - anguloAteSlime), Math.cos(players[playerId].angulo - anguloAteSlime));
+                                let diff = Math.atan2(Math.sin(anguloMachado - anguloAteSlime), Math.cos(anguloMachado - anguloAteSlime));
 
                                 if (Math.abs(diff) < 1.1) {
                                     registrarDanoMonstro(slime, playerId, danoMachado);
@@ -3736,7 +4816,7 @@ wss.on('connection', (ws) => {
                             }
                         }
                     });
-                    danoEmBosses(pX, pY, 95, playerId, 20, 'basico');
+                    danoEmBosses(pX, pY, 100, playerId, 20, 'basico');
                     if (players[playerId].furiaTimer > 0 && bosses.some(bb => bb.hp > 0 && Math.hypot(pX - bb.x, pY - bb.y) < 95)) {
                         aplicarCuraAoJogador(playerId, 8);
                     }
@@ -3749,7 +4829,7 @@ wss.on('connection', (ws) => {
                     efeitos.aplicarEfeito(players[playerId], 'furia', 120, 0.25);
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_barbaro_furia', id: playerId }));
+                            client.send(JSON.stringify({ type: 'action_barbaro_furia', id: playerId, duracaoMs: 6000 }));
                         }
                     });
                     const wsTarget = playerSockets[playerId];
@@ -3760,24 +4840,31 @@ wss.on('connection', (ws) => {
 
                 // HABILIDADE 2 DO BÁRBARO: SALTO ESMAGADOR (35 de dano em área + Salto)
                 if (data.action === 'barbaro_esmagamento') {
+                    const alvoEsmagamentoX = Number(data.targetX);
+                    const alvoEsmagamentoY = Number(data.targetY);
+                    const destinoEsmagamento = validarDestinoJogador(
+                        alvoEsmagamentoX - PLAYER_OFFSET_X,
+                        alvoEsmagamentoY - PLAYER_OFFSET_Y
+                    );
+                    if (!destinoEsmagamento.aceito) return;
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'esmagamento-barbaro', 25))) return;
-                    players[playerId].x = data.targetX - 12;
-                    players[playerId].y = data.targetY - 16;
+                    players[playerId].x = destinoEsmagamento.x;
+                    players[playerId].y = destinoEsmagamento.y;
 
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_barbaro_esmagamento', x: data.targetX, y: data.targetY }));
+                            client.send(JSON.stringify({ type: 'action_barbaro_esmagamento', x: players[playerId].x + PLAYER_OFFSET_X, y: players[playerId].y + PLAYER_OFFSET_Y }));
                         }
                     });
 
                     let danoEsmaga = dmgSkill(players[playerId], 'esmagamento-barbaro', 35);
                     slimes.forEach(slime => {
-                        if (slime.hp > 0 && Math.hypot(slime.x - data.targetX, slime.y - data.targetY) < 75) {
+                        if (slime.hp > 0 && Math.hypot(slime.x - (players[playerId].x + PLAYER_OFFSET_X), slime.y - (players[playerId].y + PLAYER_OFFSET_Y)) < 75) {
                             registrarDanoMonstro(slime, playerId, danoEsmaga);
                             slime.stunTimer = 25;
                         }
                     });
-                    danoEmBosses(data.targetX, data.targetY, 90, playerId, danoEsmaga, 'skill');
+                    danoEmBosses(players[playerId].x + PLAYER_OFFSET_X, players[playerId].y + PLAYER_OFFSET_Y, 90, playerId, danoEsmaga, 'skill');
                 }
 
                 // HABILIDADE 3 DO BÁRBARO: GIRO DESCONTROLADO (10s de dano em área + sangramento + redução 10%)
@@ -3787,24 +4874,33 @@ wss.on('connection', (ws) => {
                     if (p.giroDescontroladoTimer > 0 || p.giroDescontroladoCooldown > 0) return;
                     if (!gastarMana(ws, p, mpSkill(p, 'giro_descontrolado', 30))) return;
 
-                    p.giroDescontroladoTimer = 200; // 10s
+                    const duracaoGiroMs = 10000;
+                    p.giroDescontroladoTimer = Math.ceil(duracaoGiroMs / 50);
+                    p.giroDescontroladoExpiresAt = Date.now() + duracaoGiroMs;
                     p.giroDescontroladoAtivo = true;
                     p.giroDescontroladoCooldown = 240; // 12s de cooldown
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_barbaro_giro_start', id: playerId, x: p.x + 12, y: p.y + 16 }));
+                            client.send(JSON.stringify({ type: 'action_barbaro_giro_start', id: playerId, x: p.x + 12, y: p.y + 16, duracaoMs: duracaoGiroMs }));
                         }
                     });
                 }
 
                 // ROQUEIRO: RIFF DE GUITARRA (Ataque básico)
                 if (data.action === 'ataque_roqueiro') {
-                    if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], 300)) return;
+                    if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], tempoBaseAtaqueBasico(players[playerId]))) return;
                     players[playerId].lastBasicAttack = agora;
+
+                    // Auto-ataque com alvo informado exige validação completa no servidor
+                    let alvoAuto = validarAtaqueBasicoAlvo(players[playerId], data.alvoTipo, data.alvoId);
+                    if (data.alvoTipo || data.alvoId) {
+                        if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
+                    }
 
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
                     let ang = (data.angulo !== undefined) ? data.angulo : players[playerId].angulo;
+                    if (alvoAuto) ang = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX); // mira o alvo validado
 
                     playerProjeteis.push({
                         ownerId: playerId,
@@ -3830,7 +4926,7 @@ wss.on('connection', (ws) => {
                 if (data.action === 'roqueiro_bateria') {
                     if (bateriaCanal[playerId]) return;
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'bateria', 25))) return;
-                    bateriaCanal[playerId] = { timer: 250, beat: 0, startX: players[playerId].x, startY: players[playerId].y, danoBateria: dmgSkill(players[playerId], 'bateria', 30) };
+                    bateriaCanal[playerId] = { timer: 100, beat: 0, startX: players[playerId].x, startY: players[playerId].y, danoBateria: dmgSkill(players[playerId], 'bateria', 30) };
 
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
@@ -3851,11 +4947,16 @@ wss.on('connection', (ws) => {
 
                 // ROQUEIRO: STAGE DIVE (Teletransporte direcionado)
                 if (data.action === 'roqueiro_teleporte') {
+                    const tx = Number(data.targetX);
+                    const ty = Number(data.targetY);
+                    const destinoTeleporte = validarDestinoJogador(
+                        tx - PLAYER_OFFSET_X,
+                        ty - PLAYER_OFFSET_Y
+                    );
+                    if (!destinoTeleporte.aceito) return;
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'teleporte', 15))) return;
-                    let tx = Math.max(20, Math.min(WORLD_WIDTH - 40, data.targetX));
-                    let ty = Math.max(20, Math.min(WORLD_HEIGHT - 40, data.targetY));
-                    players[playerId].x = tx - 12;
-                    players[playerId].y = ty - 16;
+                    players[playerId].x = destinoTeleporte.x;
+                    players[playerId].y = destinoTeleporte.y;
 
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
@@ -3927,10 +5028,212 @@ wss.on('connection', (ws) => {
                     });
                 }
 
+                // ===== LADINO: ATAQUE BÁSICO (ADAGA) — cone curto e rápido =====
+                if (data.action === 'ataque_ladino') {
+                    let pA = players[playerId];
+                    if (!pA || pA.hp <= 0) return;
+                    // Travado durante coreografias (servidor controla a posição)
+                    if (pA.ladinoDancaAtivo || pA.ladinoEstrela) return;
+                    if (agora - pA.lastBasicAttack < tempoAtaqueBasico(pA, tempoBaseAtaqueBasico(pA))) return;
+                    pA.lastBasicAttack = agora;
+
+                    // Auto-ataque com alvo informado exige validação completa no servidor
+                    let alvoAuto = validarAtaqueBasicoAlvo(pA, data.alvoTipo, data.alvoId);
+                    if (data.alvoTipo || data.alvoId) {
+                        if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
+                    }
+
+                    let pX = pA.x + 12;
+                    let pY = pA.y + 16;
+                    let anguloAdaga = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : ((data.angulo !== undefined) ? data.angulo : pA.angulo);
+
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'action_ladino_golpe', id: playerId, x: pX, y: pY, angulo: anguloAdaga }));
+                        }
+                    });
+
+                    let danoAdaga = dmgSkill(pA, 'adaga', 12);
+                    const alcanceAdaga = alcanceAtaqueBasicoClasse(pA); // 110
+                    slimes.forEach(slime => {
+                        if (slime.hp <= 0) return;
+                        let dist = Math.hypot(pX - slime.x, pY - slime.y);
+                        if (dist < alcanceAdaga) {
+                            let anguloAteSlime = Math.atan2(slime.y - pY, slime.x - pX);
+                            let diff = Math.atan2(Math.sin(anguloAdaga - anguloAteSlime), Math.cos(anguloAdaga - anguloAteSlime));
+                            if (Math.abs(diff) < 1.05) {
+                                registrarDanoMonstro(slime, playerId, danoAdaga, 'player');
+                            }
+                        }
+                    });
+                    danoEmBosses(pX, pY, alcanceAdaga, playerId, danoAdaga, 'basico', 'player');
+                }
+
+                // ===== LADINO SKILL 1: DANÇA DAS ADAGAS (5 teleportes/hits + retorno + imune) =====
+                if (data.action === 'ladino_danca') {
+                    let pD = players[playerId];
+                    if (!pD || pD.hp <= 0) return;
+                    if (pD.ladinoDancaAtivo || (agora - pD.ladinoDancaCooldown) < 0) return;
+                    // Busca alvos ANTES de gastar mana: sem alvo válido = skill não consome nada.
+                    // LIMITE DE DISTÂNCIA: a dança só alcança os alvos MAIS PRÓXIMOS (110px = ~50% do antigo 220px).
+                    const alvosDanca = coletarAlvosDancaLadino(pD, 110);
+                    if (alvosDanca.length === 0) { avisaForaAlcance(ws, 'ladino_danca'); return; }
+                    if (!gastarMana(ws, pD, mpSkill(pD, 'danca_das_adagas', 25))) return;
+                    pD.ladinoDancaCooldown = agora + 12000; // CD 12s
+
+                    // Monta a sequência de até 5 hits: `coletarAlvosDancaLadino` já devolve
+                    // ordenado por proximidade — a coreografia atinge até 5 alvos MAIS PRÓXIMOS
+                    // (distintos primeiro) sem teleporte para alvo distante, e repete entre
+                    // esse grupo para completar os 5 hits quando houver menos de 5 alvos.
+                    const proximosDanca = alvosDanca.slice(0, Math.min(5, alvosDanca.length));
+                    const seqDanca = [];
+                    for (let i = 0; i < proximosDanca.length; i++) seqDanca.push({ id: proximosDanca[i].id, tipo: proximosDanca[i].tipo });
+                    while (seqDanca.length < 5) {
+                        const esc = proximosDanca[Math.floor(Math.random() * proximosDanca.length)];
+                        seqDanca.push({ id: esc.id, tipo: esc.tipo });
+                    }
+
+                    pD.ladinoDancaAtivo = true;
+                    pD.ladinoDanca = {
+                        seq: seqDanca,
+                        idx: 0,
+                        step: 1, // primeiro hit imediato
+                        startX: pD.x,
+                        startY: pD.y,
+                        danoBase: dmgSkill(pD, 'danca_das_adagas', 15)
+                    };
+
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({
+                                type: 'action_ladino_danca',
+                                id: playerId,
+                                startX: pD.x + 12,
+                                startY: pD.y + 16,
+                                alvos: alvosDanca.map(a => ({ x: a.x, y: a.y, tipo: a.tipo }))
+                            }));
+                        }
+                    });
+                }
+
+                // ===== LADINO SKILL 2: NÉVOA VENENOSA (bomba → zona de gás 5s + cegueira) =====
+                if (data.action === 'ladino_bomba') {
+                    let pB = players[playerId];
+                    if (!pB || pB.hp <= 0) return;
+                    if (agora - pB.ladinoBombaCooldown < 0) return;
+                    const bombX = Number(data.targetX);
+                    const bombY = Number(data.targetY);
+                    if (!Number.isFinite(bombX) || !Number.isFinite(bombY)) return;
+                    const pBx = pB.x + PLAYER_OFFSET_X;
+                    const pBy = pB.y + PLAYER_OFFSET_Y;
+                    // Mesmo mapa e alcance máximo de 400px (mira validada)
+                    if (mapaPorCoordenada(pBx) !== mapaPorCoordenada(bombX)) return;
+                    const distBomba = Math.hypot(bombX - pBx, bombY - pBy);
+                    if (distBomba > 200) { avisaForaAlcance(ws, 'ladino_bomba'); return; } // alcance de arremesso reduzido ~50% (era 400px); a área da nuvem (raio 90) permanece
+                    if (!gastarMana(ws, pB, mpSkill(pB, 'nevoeiro_venenoso', 20))) return;
+                    pB.ladinoBombaCooldown = agora + 8000; // CD 8s
+
+                    gasVenenoSeq++;
+                    const zonaId = 'gas_' + playerId + '_' + gasVenenoSeq;
+                    gasesVeneno.push({
+                        id: zonaId,
+                        x: bombX,
+                        y: bombY,
+                        mapa: mapaPorCoordenada(bombX),
+                        raio: 90,
+                        tempo: 100,      // 5s = 100 ticks de 50ms
+                        duracao: 100,
+                        ownerId: playerId,
+                        danoBase: dmgSkill(pB, 'nevoeiro_venenoso', 8)
+                    });
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'action_ladino_bomba', id: zonaId, x: bombX, y: bombY, raio: 90, ownerId: playerId }));
+                        }
+                    });
+                }
+
+                // ===== LADINO SKILL 3: CAMUFLAGEM SOMBRIA (delay 1s → invis 10s → CD travado) =====
+                if (data.action === 'ladino_camuflagem') {
+                    let pC = players[playerId];
+                    if (!pC || pC.hp <= 0) return;
+                    // Não reativa durante delay/invis; CD só inicia quando a invis TERMINA
+                    if (pC.ladinoCamuflagemDelay > 0 || pC.ladinoInvisivel || pC.ladinoCamuflagemCdAtivo) return;
+                    if (!gastarMana(ws, pC, mpSkill(pC, 'camuflagem_sombria', 20))) return;
+                    pC.ladinoCamuflagemDelay = 20; // 1s = 20 ticks
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'action_ladino_camuflagem', id: playerId }));
+                        }
+                    });
+                }
+
+                // ===== LADINO SKILL 4: ESTRELA DA MORTE (5 vértices → centro → salto → stun 2s) =====
+                if (data.action === 'ladino_estrela') {
+                    let pE = players[playerId];
+                    if (!pE || pE.hp <= 0) return;
+                    if (pE.ladinoEstrela || (agora - pE.ladinoEstrelaCooldown) < 0) return;
+                    const estrelaX = Number(data.targetX);
+                    const estrelaY = Number(data.targetY);
+                    if (!Number.isFinite(estrelaX) || !Number.isFinite(estrelaY)) return;
+                    const pEx = pE.x + PLAYER_OFFSET_X;
+                    const pEy = pE.y + PLAYER_OFFSET_Y;
+                    if (mapaPorCoordenada(pEx) !== mapaPorCoordenada(estrelaX)) return;
+                    const distEstrela = Math.hypot(estrelaX - pEx, estrelaY - pEy);
+                    if (distEstrela > 380) { avisaForaAlcance(ws, 'ladino_estrela'); return; }
+                    if (!gastarMana(ws, pE, mpSkill(pE, 'estrela_da_morte', 30))) return;
+                    pE.ladinoEstrelaCooldown = agora + 20000; // CD 20s
+
+                    // 5 vértices de uma estrela de 5 pontas em volta do centro (raio 120)
+                    const centroE = { x: estrelaX, y: estrelaY };
+                    const raioE = 120;
+                    const pontosE = [];
+                    for (let i = 0; i < 5; i++) {
+                        const angE = (i * 0.8) * Math.PI * 2; // passos de 144° = caminho de estrela
+                        pontosE.push({
+                            x: centroE.x + Math.cos(angE) * raioE - PLAYER_OFFSET_X,
+                            y: centroE.y + Math.sin(angE) * raioE - PLAYER_OFFSET_Y
+                        });
+                    }
+
+                    pE.ladinoEstrela = {
+                        centroX: centroE.x,
+                        centroY: centroE.y,
+                        pontos: pontosE,
+                        idx: -1,
+                        step: 2,
+                        fase: 'star',
+                        danoBase: dmgSkill(pE, 'estrela_da_morte', 25)
+                    };
+
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({
+                                type: 'action_ladino_estrela',
+                                id: playerId,
+                                cx: centroE.x,
+                                cy: centroE.y,
+                                raio: raioE,
+                                pontos: pontosE.map(pt => ({ x: pt.x + PLAYER_OFFSET_X, y: pt.y + PLAYER_OFFSET_Y }))
+                            }));
+                        }
+                    });
+                }
+
                 if (data.action === 'dash') {
+                    const dashX = Number(data.novoX);
+                    const dashY = Number(data.novoY);
+                    const destinoDash = validarMovimentoJogador(
+                        players[playerId],
+                        dashX,
+                        dashY,
+                        { maxStep: MAX_PLAYER_COLLISION_STEP, maxDistance: 160 }
+                    );
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'dash', 15))) return;
-                    if (data.novoX !== undefined) players[playerId].x = data.novoX;
-                    if (data.novoY !== undefined) players[playerId].y = data.novoY;
+                    if (destinoDash.aceito || destinoDash.parcial) {
+                        players[playerId].x = destinoDash.x;
+                        players[playerId].y = destinoDash.y;
+                    }
 
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
@@ -4024,8 +5327,14 @@ wss.on('connection', (ws) => {
                 }
 
                 if (data.action === 'corte') {
-                    if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], 350)) return;
+                    if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], tempoBaseAtaqueBasico(players[playerId]))) return;
                     players[playerId].lastBasicAttack = agora;
+
+                    // Auto-ataque com alvo informado exige validação completa no servidor
+                    let alvoAuto = validarAtaqueBasicoAlvo(players[playerId], data.alvoTipo, data.alvoId);
+                    if (data.alvoTipo || data.alvoId) {
+                        if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
+                    }
 
                     wss.clients.forEach((client) => {
                         if (client !== ws && client.readyState === WebSocket.OPEN) {
@@ -4035,15 +5344,16 @@ wss.on('connection', (ws) => {
 
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
+                    let anguloCorte = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : players[playerId].angulo;
                     let danoCorte = dmgSkill(players[playerId], 'corte', 12);
 
                     slimes.forEach(slime => {
                         if (slime.hp > 0) {
                             let dist = Math.hypot(pX - slime.x, pY - slime.y);
 
-                            if (dist < 66) {
+                            if (dist < 100) { // TESTE: dano real do guerreiro = 100 (era 66)
                                 let anguloAteSlime = Math.atan2(slime.y - pY, slime.x - pX);
-                                let diff = Math.atan2(Math.sin(players[playerId].angulo - anguloAteSlime), Math.cos(players[playerId].angulo - anguloAteSlime));
+                                let diff = Math.atan2(Math.sin(anguloCorte - anguloAteSlime), Math.cos(anguloCorte - anguloAteSlime));
 
                                 if (Math.abs(diff) < 1.0) {
                                     registrarDanoMonstro(slime, playerId, danoCorte);
@@ -4051,12 +5361,18 @@ wss.on('connection', (ws) => {
                             }
                         }
                     });
-                    danoEmBosses(pX, pY, 110, playerId, danoCorte, 'basico');
+                    danoEmBosses(pX, pY, 100, playerId, danoCorte, 'basico'); // TESTE: dano real do guerreiro em boss = 100 (era 110)
                 }
 
                 if (data.action === 'ataque_mago' || data.action === 'ataque_summoner' || data.action === 'ataque_arqueiro' || data.action === 'ataque_curandeiro') {
-                    if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], 300)) return;
+                    if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], tempoBaseAtaqueBasico(players[playerId]))) return;
                     players[playerId].lastBasicAttack = agora;
+
+                    // Auto-ataque com alvo informado exige validação completa no servidor
+                    let alvoAuto = validarAtaqueBasicoAlvo(players[playerId], data.alvoTipo, data.alvoId);
+                    if (data.alvoTipo || data.alvoId) {
+                        if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
+                    }
 
                     if (data.action === 'ataque_summoner' && lacaios[playerId]) {
                         if (data.alvoTipo === 'slime' && data.alvoId) {
@@ -4071,6 +5387,7 @@ wss.on('connection', (ws) => {
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
                     let ang = (data.angulo !== undefined) ? data.angulo : players[playerId].angulo;
+                    if (alvoAuto) ang = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX); // mira o alvo validado
                     
                     let danoProj = dmgSkill(players[playerId], 'magia', 15);
                     if (data.action === 'ataque_summoner') danoProj = dmgSkill(players[playerId], 'orbe', 6);
@@ -4178,10 +5495,11 @@ wss.on('connection', (ws) => {
 
                 if (data.action === 'arqueiro_chuva') {
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'chuva', 22))) return;
-                    chuvasServidor.push({ ownerId: playerId, x: data.targetX, y: data.targetY, duracao: 140, danoChuva: dmgSkill(players[playerId], 'chuva', 8) });
+                    const duracaoChuvaMs = Math.round(140 * (1000 / 60));
+                    chuvasServidor.push({ ownerId: playerId, x: data.targetX, y: data.targetY, duracao: Math.ceil(duracaoChuvaMs / 50), expiresAt: Date.now() + duracaoChuvaMs, danoChuva: dmgSkill(players[playerId], 'chuva', 8) });
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_arqueiro_chuva', targetX: data.targetX, targetY: data.targetY }));
+                            client.send(JSON.stringify({ type: 'action_arqueiro_chuva', targetX: data.targetX, targetY: data.targetY, duracaoMs: duracaoChuvaMs }));
                         }
                     });
                 }
@@ -4256,10 +5574,12 @@ wss.on('connection', (ws) => {
 
                 if (data.action === 'nevasca') {
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'nevasca', 35))) return;
-                    blizzards.push({ ownerId: playerId, x: data.targetX, y: data.targetY, radius: 115, duracao: 480, danoNevasca: dmgSkill(players[playerId], 'nevasca', 6) });
+                    const duracaoNevascaMs = Math.round(480 * (1000 / 60));
+                    const soundIdNevasca = 'nevasca_' + playerId + '_' + Date.now();
+                    blizzards.push({ ownerId: playerId, x: data.targetX, y: data.targetY, radius: 115, duracao: Math.ceil(duracaoNevascaMs / 50), expiresAt: Date.now() + duracaoNevascaMs, soundId: soundIdNevasca, danoNevasca: dmgSkill(players[playerId], 'nevasca', 6) });
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_nevasca', targetX: data.targetX, targetY: data.targetY, radius: 115 }));
+                            client.send(JSON.stringify({ type: 'action_nevasca', targetX: data.targetX, targetY: data.targetY, radius: 115, duracaoMs: duracaoNevascaMs, soundId: soundIdNevasca }));
                         }
                     });
                 }
@@ -4288,6 +5608,19 @@ wss.on('connection', (ws) => {
                             }));
                         }
                     });
+                }
+
+                // SUMMONER: alterna o MODO do Golem — 'agressivo' (ataca o que a summoner focar)
+                // ou 'passivo' (fica só rodeando a invocadora, sem atacar). Persiste no save.
+                if (data.action === 'ogro_modo') {
+                    if (!players[playerId] || players[playerId].classe !== 'summoner') return;
+                    let modoOgro = (data.modo === 'passivo') ? 'passivo' : 'agressivo';
+                    players[playerId].ogroModo = modoOgro;
+                    if (lacaios[playerId]) {
+                        lacaios[playerId].modo = modoOgro;
+                        if (modoOgro === 'passivo') lacaios[playerId].focoAlvo = null;
+                    }
+                    salvarProgresso(userId, { ogroModo: modoOgro });
                 }
 
                 if (data.action === 'comando_pet_ogro') {
@@ -4388,8 +5721,17 @@ wss.on('connection', (ws) => {
             if (data.action === 'teleporte_mapa') {
                 let destino = PONTOS_TELEPORTE[data.mapa];
                 if (!destino || !playerId || !players[playerId]) return;
-                players[playerId].x = destino.x + (Math.random() * 20 - 10);
-                players[playerId].y = destino.y + (Math.random() * 20 - 10);
+                if (!jogadorPodeUsarPortalMapa(players[playerId], data.mapa)) {
+                    ws.send(JSON.stringify({ type: 'teleporte_recusado', mapa: data.mapa }));
+                    return;
+                }
+                const destinoSolicitadoX = destino.x + (Math.random() * 20 - 10);
+                const destinoSolicitadoY = destino.y + (Math.random() * 20 - 10);
+                const destinoSeguro = encontrarPosicaoJogadorSegura(players[playerId], destinoSolicitadoX, destinoSolicitadoY);
+                if (!destinoSeguro) return;
+                players[playerId].x = destinoSeguro.x;
+                players[playerId].y = destinoSeguro.y;
+                players[playerId].mapaTransicaoAte = Date.now() + 500;
                 if (players[playerId].classe === 'summoner' && lacaios[playerId]) {
                     lacaios[playerId].x = players[playerId].x + 30;
                     lacaios[playerId].y = players[playerId].y + 30;
@@ -4410,15 +5752,28 @@ wss.on('connection', (ws) => {
                 players[playerId].estamina = 100;
                 players[playerId].mana = players[playerId].maxMp;
                 players[playerId].stunTimer = 0;
-                players[playerId].x = CIDADE_SPAWN_X;
-                players[playerId].y = CIDADE_SPAWN_Y;
+                players[playerId].efeitos = [];
+                players[playerId].gritoGuerraBonus = 0;
+                players[playerId].furiaTimer = 0;
+                players[playerId].giroDescontroladoTimer = 0;
+                players[playerId].isDashing = false;
+                players[playerId].dashTarget = null;
+                const destinoRespawn = encontrarPosicaoJogadorSegura(players[playerId], CIDADE_SPAWN_X, CIDADE_SPAWN_Y);
+                players[playerId].x = destinoRespawn ? destinoRespawn.x : CIDADE_SPAWN_X;
+                players[playerId].y = destinoRespawn ? destinoRespawn.y : CIDADE_SPAWN_Y;
                 delete bateriaCanal[playerId];
                 if (players[playerId].classe === 'summoner') {
                     delete petRespawnTimer[playerId];
                     let petHp = calcularVidaPet(players[playerId]);
-                    lacaios[playerId] = { x: CIDADE_SPAWN_X + 30, y: CIDADE_SPAWN_Y + 30, hp: petHp, maxHp: petHp, attackCooldown: 0, angleOffset: 0, skillCooldown: 0, skill2Cooldown: 0, isJumping: false, targetSlimeId: null, modoAgressivoTimer: 0, focoAlvo: null, rugidoTimer: 200, rugindoTimer: 0 };
+                    lacaios[playerId] = { x: CIDADE_SPAWN_X + 30, y: CIDADE_SPAWN_Y + 30, hp: petHp, maxHp: petHp, attackCooldown: 0, angleOffset: 0, skillCooldown: 0, skill2Cooldown: 0, isJumping: false, targetSlimeId: null, modoAgressivoTimer: 0, focoAlvo: null, modo: (players[playerId].ogroModo === 'passivo' ? 'passivo' : 'agressivo'), rugidoTimer: 200, rugindoTimer: 0 };
                 }
                 salvarProgresso(userId, { hp: players[playerId].hp, x: players[playerId].x, y: players[playerId].y });
+                ws.send(JSON.stringify({
+                    type: 'respawn_confirmado',
+                    mapa: 'cidade',
+                    x: players[playerId].x,
+                    y: players[playerId].y
+                }));
             }
         } catch (e) {}
     });

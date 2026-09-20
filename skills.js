@@ -120,11 +120,11 @@ const SKILLS_INFO = {
           area: 'Projétil', alcance: 'Vel. 18',
           duracao: null, duracaoBase: null, extras: ['Perfurante: atravessa alvos'] },
         { id: 'rajada', nome: 'Rajada de Flechas', icon: '🏹', categoria: 'ataque',
-          desc: 'Carrega por 2s e dispara uma rajada em cone por 4s, com dano crescente conforme o fluxo de flechas.',
+          desc: 'Carrega por 2s e dispara uma rajada em cone por 4s, com dano crescente conforme o fluxo de flechas. Atinge TODOS os inimigos dentro do cone do visual (230px).',
           danoBase: 18, danoUnidade: 'físico', danoNota: 'por flecha',
           mp: 30, cd: 12, escala: 'dano',
-          area: 'Cone em expansão', alcance: 'Frente do arqueiro',
-          duracao: '2s carregando + 4s disparo', duracaoBase: null, extras: ['Bloqueia movimento e ataques durante o carregamento', 'Cancela se andar'] }
+          area: 'Cone em expansão (até 230px)', alcance: 'Frente do arqueiro',
+          duracao: '2s carregando + 4s disparo', duracaoBase: null, extras: ['Dano em ÁREA: acerta todos os inimigos no cone', 'Bloqueia movimento e ataques durante o carregamento', 'Cancela se andar'] }
     ],
     curandeiro: [
         { id: 'sagrado', nome: 'Luz Sagrada', icon: '✨', categoria: 'ataque',
@@ -146,12 +146,12 @@ const SKILLS_INFO = {
           area: 'Raio 65', alcance: 'Mira 140px',
           duracao: null, duracaoBase: null, extras: [] },
         { id: 'aura-sagrada', nome: 'Aura Sagrada', icon: '✝️', categoria: 'buff',
-          desc: 'Mantém uma zona divina que protege, fortalece e cura aliados próximos enquanto houver mana.',
-          danoBase: null, danoUnidade: null, danoNota: 'Cura 2% HP/s',
+          desc: 'Mantém uma zona divina que protege, fortalece e cura aliados próximos enquanto houver mana. A cura escala com o atributo DIVINDADE (+5% por ponto).',
+          danoBase: null, danoUnidade: null, danoNota: 'Cura 2% HP/s x Divindade',
           mp: 1, cd: 10, escala: 'nenhum',
           area: 'Raio 190', alcance: 'Ao redor do Curandeiro',
           duracao: 'Contínua', duracaoBase: null,
-          extras: ['-10% dano recebido', '+5% dano causado', '+10% cura recebida'] },
+          extras: ['-10% dano recebido', '+5% dano causado', '+10% cura recebida', 'Cura escalada pela Divindade'] },
         { id: 'ressurreicao-automatica', nome: 'Ressurreição Automática', icon: '🕊️', categoria: 'passiva',
           desc: 'Ressuscita automaticamente um aliado próximo quando ele morrer.',
           danoBase: null, danoUnidade: null, danoNota: null,
@@ -224,12 +224,50 @@ const SKILLS_INFO = {
           mp: 30, cd: 60, escala: 'buff',
           area: 'Raio 220', alcance: 'Ao redor do Roqueiro',
           duracao: '30s', duracaoBase: 30, extras: ['Aumenta crítico e HP máximo temporariamente', 'Todos ao redor ganham ímpeto de combate'] }
+    ],
+    ladino: [
+        { id: 'adaga', nome: 'Estocada de Adaga', icon: '🗡️', categoria: 'ataque',
+          desc: 'Estocada rápida de adaga em cone à frente. Dano físico rápido (400ms).',
+          danoBase: 12, danoUnidade: 'físico', danoNota: null,
+          mp: 0, cd: 0.4, escala: 'dano',
+          area: 'Cone frontal (110px)', alcance: 'Corpo a corpo',
+          duracao: null, duracaoBase: null, extras: [] },
+        { id: 'danca_das_adagas', nome: 'Dança das Adagas', icon: '💫', categoria: 'mobilidade',
+          desc: 'Teleporta entre os inimigos MAIS PRÓXIMOS (limite de 110px) atacando até 5 (inimigos diferentes primeiro) e volta à posição inicial. Fica IMUNE a dano durante a sequência e NÃO consome mana se não houver alvo.',
+          danoBase: 15, danoUnidade: 'físico', danoNota: null,
+          mp: 25, cd: 12, escala: 'dano',
+          area: 'Alvos no raio 110 (mais próximos)', alcance: 'Teleporte entre alvos',
+          duracao: null, duracaoBase: null, extras: ['Só os alvos mais próximos', 'Imune durante a dança', 'Retorna à posição inicial'] },
+        { id: 'nevoeiro_venenoso', nome: 'Névoa Venenosa', icon: '🧪', categoria: 'zona',
+          desc: 'Arremessa uma bomba de veneno que cria uma nuvem tóxica por 5s: cegueira (inimigos cegos erram ataques normais) + dano contínuo. Sair da nuvem remove a cegueira.',
+          danoBase: 8, danoUnidade: 'físico', danoNota: ' por 0.5s',
+          mp: 20, cd: 8, escala: 'dano',
+          area: 'Nuvem raio 90 (mantida)', alcance: 'Lança até 200px (antigo 400px)',
+          duracao: '5s', duracaoBase: 5, extras: ['Cegueira enquanto estiver dentro', 'Dano a cada 0.5s'] },
+        { id: 'camuflagem_sombria', nome: 'Camuflagem Sombria', icon: '🌑', categoria: 'zona',
+          desc: 'Após 1s de canalização, fica INVISÍVEL por 10s. Enquanto invisível os INIMIGOS não atacam (perdem o alvo). O primeiro golpe real que CAUSA dano é dobrado (+100%) e quebra a invisibilidade. O cooldown só começa quando a invisibilidade termina.',
+          danoBase: null, danoUnidade: null, danoNota: '+100% no 1º hit',
+          mp: 20, cd: 10, escala: 'buff',
+          area: 'Auto', alcance: 'Em si mesmo',
+          duracao: '10s', duracaoBase: 10, extras: ['Inimigos perdem o alvo (não atacam)', 'Bônus não é gasto por ataques errados', 'CD inicia ao sair da invisibilidade'] },
+        { id: 'estrela_da_morte', nome: 'Estrela da Morte', icon: '⭐', categoria: 'aoe',
+          desc: 'Traça uma estrela de 5 pontas, percorre os vértices em movimentação dramática e mais lenta, salta ao centro e cai: dano em área + STUN 2s em todos os inimigos na área central. Mobilidade fica TRAVADA durante a coreografia.',
+          danoBase: 25, danoUnidade: 'físico', danoNota: '+ Stun 2s',
+          mp: 30, cd: 20, escala: 'dano',
+          area: 'Estrela raio 120 + impacto raio 90', alcance: 'Marca até 380px',
+          duracao: null, duracaoBase: null, extras: ['Coreografia 50% mais lenta', 'Stun 2s nos atingidos', 'Mobilidade travada'] },
+        { id: 'laminas_sangrentas', nome: 'Lâminas Sangrentas', icon: '🩸', categoria: 'passiva',
+          desc: 'Passiva: 20% de chance de causar SANGRAMENTO — 20% do dano físico causado por segundo durante 5s.',
+          danoBase: null, danoUnidade: null, danoNota: '20% /s por 5s',
+          mp: 0, cd: 0, escala: 'nenhum',
+          area: 'Passiva', alcance: 'Sempre ativa',
+          duracao: '5s', duracaoBase: 5, extras: ['Qualquer dano físico seu pode causar'] }
     ]
 };
 
 const NOMES_CLASSES = {
     guerreiro: 'GUERREIRO', mago: 'MAGO', summoner: 'SUMMONER', arqueiro: 'ARQUEIRO',
-    curandeiro: 'CURANDEIRO', barbaro: 'BÁRBARO', roqueiro: 'ROQUEIRO'
+    curandeiro: 'CURANDEIRO', barbaro: 'BÁRBARO', roqueiro: 'ROQUEIRO', ladino: 'LADINO'
 };
 
 const LABELS_CATEGORIA = {

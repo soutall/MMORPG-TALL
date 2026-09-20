@@ -1,0 +1,46 @@
+[
+  {
+    "id": "vfx_mu90mt01",
+    "mapa": "cidade",
+    "x": 60571,
+    "y": 287,
+    "tipo": "lampada",
+    "escala": 1.1,
+    "intensidade": 0.8,
+    "raio": 30,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_mu90quat",
+    "mapa": "cidade",
+    "x": 60890,
+    "y": 591,
+    "tipo": "cinzas",
+    "escala": 1,
+    "intensidade": 1,
+    "raio": 80,
+    "cor": "#c800ff"
+  },
+  {
+    "id": "vfx_mu90rplk",
+    "mapa": "cidade",
+    "x": 60900,
+    "y": 293,
+    "tipo": "fogo",
+    "escala": 0.5,
+    "intensidade": 0.3,
+    "raio": 80,
+    "cor": "#ff6b35"
+  },
+  {
+    "id": "vfx_mu98r2gd",
+    "mapa": "green",
+    "x": 5001,
+    "y": 1199,
+    "tipo": "grama",
+    "escala": 1,
+    "intensidade": 0.7,
+    "raio": 75,
+    "cor": "#72b75b"
+  }
+]
