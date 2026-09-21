@@ -9,6 +9,9 @@ window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
     let ctx = window.ctx;
     const t = Date.now() / 1000;
 
+    ctx.save();
+    ctx.translate(x, y);
+
     // Aura passiva de notas musicais
     if (!window.notasMusicais) window.notasMusicais = [];
     let chanceNota = window.roqueiroBateriaLigada ? 0.6 : 0.10;
@@ -304,6 +307,8 @@ window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
     ctx.restore();
 
     ctx.restore(); // fim guitarra/mira
+
+    ctx.restore(); // fim translate principal
 
     if (typeof window.desenharBarraHp === "function") {
         window.desenharBarraHp(x - 3, y - 8, hp, maxHp);
