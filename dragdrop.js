@@ -96,6 +96,9 @@
         var el = document.elementFromPoint(x, y);
         for (var i = 0; el && i < 7; i++) {
             if (el.classList) {
+                if (el.classList.contains("ferreiro-slot")) {
+                    return { destino: "ferreiro", el: el };
+                }
                 if (el.classList.contains("mochila-slot")) {
                     var id = el.getAttribute("data-id");
                     return { destino: "mochila", id: (id !== null ? id : null), el: el };
@@ -130,12 +133,16 @@
                 var ok = item && item.tipo === "equipamento";
                 if (ok && typeof classePodeUsarItemNoCliente === "function") ok = classePodeUsarItemNoCliente(item);
                 obj.el.classList.add(ok ? "dnd-alvo-slot" : "dnd-alvo-invalido");
+            } else if (obj.destino === "ferreiro") {
+                var okF = item && item.tipo === "equipamento" && !item.locked;
+                obj.el.classList.add(okF ? "dnd-alvo-slot" : "dnd-alvo-invalido");
             } else if (obj.destino === "mochila") {
                 if (obj.id !== null && String(obj.id) === String(arrastro.id)) return;
                 obj.el.classList.add("dnd-alvo-mochila");
             }
         } else if (arrastro.tipo === "slot") {
             if (obj.destino === "mochila") obj.el.classList.add("dnd-alvo-mochila");
+            else if (obj.destino === "ferreiro") obj.el.classList.add("dnd-alvo-slot");
             else if (obj.destino === "slot") obj.el.classList.add("dnd-alvo-invalido");
         }
     }
@@ -168,12 +175,37 @@
                 ws.send(JSON.stringify({ action: "mover_item_mochila", id: item.id, targetId: obj.id }));
             }
             mensaje("Reordenando mochila...");
+            return;
+        }
+
+        if (obj.destino === "ferreiro") {
+            if (item.tipo !== "equipamento") {
+                mensaje("⚠️ Apenas EQUIPAMENTOS entram na forja.");
+                return;
+            }
+            if (item.locked) {
+                mensaje("🔒 Item bloqueado — desbloqueie no inventário.");
+                if (window.floatingTexts) window.floatingTexts.push({ x: (window.meuX || 0) + 12, y: (window.meuY || 0) - 30, text: "🔒 Bloqueado", color: "#f39c12", alpha: 1.0 });
+                return;
+            }
+            if (typeof window.ferreiroColocarItem === "function") {
+                window.ferreiroColocarItem(item.id);
+                mensaje("Equipamento na forja! 🔨");
+            }
         }
     }
 
     function resolverDropSlot(a, obj) {
         if (!obj || obj.destino !== "mochila") {
             if (obj && obj.destino === "slot") mensaje("Arrastre o ítem equipado até a mochila para desequipar.");
+            if (obj && obj.destino === "ferreiro") {
+                // arrastou um item EQUIPADO para o slot da forja
+                if (!slotOcupado(a.slot)) return;
+                if (typeof window.ferreiroColocarEquipado === "function") {
+                    window.ferreiroColocarEquipado(a.slot);
+                    mensaje("Equipamento na forja! 🔨");
+                }
+            }
             return;
         }
         if (!slotOcupado(a.slot)) return;
@@ -264,9 +296,9 @@
         if (t.closest("button")) return; // não interceptar botões (⚔️/🗑️/↩️/✕)
 
         // 1) Janela arrastrable
-        var handle = t.closest("#inv-title, #skills-header, #settings-header, #atributos-title, #detalhes-title, #big-map-top, #teleport-title");
+        var handle = t.closest("#inv-title, #skills-header, #settings-header, #atributos-title, #detalhes-title, #big-map-top, #teleport-title, #ferreiro-title");
         if (handle) {
-            var win = handle.closest("#inv-window, #skills-window, #atributos-dupla, #settings-window, #big-map-window, #teleport-window");
+            var win = handle.closest("#inv-window, #skills-window, #atributos-dupla, #settings-window, #big-map-window, #teleport-window, #ferreiro-window");
             if (win && win.getBoundingClientRect) {
                 var r = win.getBoundingClientRect();
                 arrastro = {
@@ -373,7 +405,8 @@
         { sel: "#atributos-dupla",   handles: ["#atributos-title", "#detalhes-title"] },
         { sel: "#settings-window",   handles: ["#settings-header"] },
         { sel: "#big-map-window",    handles: ["#big-map-top"] },
-        { sel: "#teleport-window",   handles: ["#teleport-title"] }
+        { sel: "#teleport-window",   handles: ["#teleport-title"] },
+        { sel: "#ferreiro-window",   handles: ["#ferreiro-title"] }
     ];
 
     for (var j = 0; j < JANELAS.length; j++) {

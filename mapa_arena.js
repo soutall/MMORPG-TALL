@@ -79,7 +79,8 @@
 
     function colideMapaAtivo(x, y, raio) {
         const m = global.currentMap;
-        if (m === 'arena') return !isArena(x, y) || colideArena(x, y, raio);
+        // 'solari' compartilha EXATAMENTE a geometria da Arena (faixa leste)
+        if (m === 'arena' || m === 'solari') return !isArena(x, y) || colideArena(x, y, raio);
         if (m === 'cidade') return (global.colideCidade ? global.colideCidade(x, y, raio) : false);
         if (m === 'caverna') return (global.colideCaverna ? global.colideCaverna(x, y, raio) : false);
         if (m === 'pantano') return (global.colidePantano ? global.colidePantano(x, y, raio) : false);
@@ -89,7 +90,7 @@
 
     function colideProjetilMapaAtivo(x, y) {
         const m = global.currentMap;
-        if (m === 'arena') return !isArena(x, y) || colideProjetilArena(x, y);
+        if (m === 'arena' || m === 'solari') return !isArena(x, y) || colideProjetilArena(x, y);
         if (m === 'cidade') return (global.colideProjetilCidade ? global.colideProjetilCidade(x, y) : false);
         if (m === 'caverna') return (global.colideProjetilCaverna ? global.colideProjetilCaverna(x, y) : false);
         if (m === 'pantano') return (global.colideProjetilPantano ? global.colideProjetilPantano(x, y) : false);
@@ -146,6 +147,19 @@
             }
         }
         desenharPortalArenaRetorno(ctx, t, camX, camY, cw, ch);
+        // Arena de Solari: leve brilho roxo no cenário para diferenciar da Arena normal
+        if (global.currentMap === 'solari') {
+            const gx0 = Math.max(ARENA_X0, camX - 80), gy0 = Math.max(0, camY - 80);
+            const gx1 = Math.min(ARENA_X1, camX + cw + 80), gy1 = Math.min(ARENA_Y1, camY + ch + 80);
+            if (gx1 > gx0 && gy1 > gy0) {
+                const tg = ctx.createLinearGradient(gx0, gy0, gx1, gy1);
+                tg.addColorStop(0, 'rgba(124, 58, 237, 0.10)');
+                tg.addColorStop(0.5, 'rgba(168, 85, 247, 0.06)');
+                tg.addColorStop(1, 'rgba(88, 28, 135, 0.14)');
+                ctx.fillStyle = tg;
+                ctx.fillRect(gx0, gy0, gx1 - gx0, gy1 - gy0);
+            }
+        }
     }
 
     function desenharPortalArenaRetorno(ctx, t, camX, camY, cw, ch) {
@@ -153,22 +167,25 @@
         if (p.x + p.r + 60 < camX || p.x - p.r - 60 > camX + cw || p.y + p.r + 60 < camY || p.y - p.r - 60 > camY + ch) return;
         const pulsar = 1 + Math.sin(t * 3.2) * 0.14;
         const R = p.r * pulsar + 6;
+        // Arena de Solari: o portal de retorno fica ROXO (combina com a nova arena)
+        const ehSolari = global.currentMap === 'solari';
+        const corPortal = ehSolari ? '#c77dff' : '#00e5ff';
         ctx.save();
         ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
         ctx.beginPath();
         ctx.ellipse(p.x, p.y + 12, R * 1.15, R * 0.55, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = '#00e5ff';
+        ctx.strokeStyle = corPortal;
         ctx.lineWidth = 3.5;
-        ctx.shadowColor = '#00e5ff';
+        ctx.shadowColor = corPortal;
         ctx.shadowBlur = 22;
         ctx.beginPath();
         ctx.arc(p.x, p.y, R, 0, Math.PI * 2);
         ctx.stroke();
         const grad = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, R);
-        grad.addColorStop(0, '#e0f7fa');
-        grad.addColorStop(0.35, '#00b0ff');
-        grad.addColorStop(0.75, '#1565c0');
+        grad.addColorStop(0, ehSolari ? '#f3e8ff' : '#e0f7fa');
+        grad.addColorStop(0.35, ehSolari ? '#a855f7' : '#00b0ff');
+        grad.addColorStop(0.75, ehSolari ? '#5b21b6' : '#1565c0');
         grad.addColorStop(1, '#050c18');
         ctx.fillStyle = grad;
         ctx.beginPath();
@@ -177,18 +194,18 @@
         ctx.lineWidth = 2.5;
         for (let i = 0; i < 4; i++) {
             const rot = t * 2.2 + (i * Math.PI) / 2;
-            ctx.strokeStyle = (i % 2 === 0) ? 'rgba(255, 255, 255, 0.85)' : 'rgba(0, 229, 255, 0.75)';
+            ctx.strokeStyle = (i % 2 === 0) ? 'rgba(255, 255, 255, 0.85)' : (ehSolari ? 'rgba(199, 125, 255, 0.75)' : 'rgba(0, 229, 255, 0.75)');
             ctx.beginPath();
             ctx.arc(p.x, p.y, (R * 0.75) - i * 6, rot, rot + 1.2);
             ctx.stroke();
         }
         ctx.shadowBlur = 8;
-        ctx.shadowColor = '#00e5ff';
+        ctx.shadowColor = corPortal;
         ctx.fillStyle = '#ffffff';
         ctx.font = 'bold 13px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText('PORTAL DA ARENA', p.x, p.y + R + 22);
-        ctx.fillStyle = '#80d8ff';
+        ctx.fillText(ehSolari ? 'SAIR DA SOLARI' : 'PORTAL DA ARENA', p.x, p.y + R + 22);
+        ctx.fillStyle = ehSolari ? '#e3c8ff' : '#80d8ff';
         ctx.font = '11px Arial';
         ctx.fillText('Voltar a Davahl', p.x, p.y + R + 36);
         ctx.restore();

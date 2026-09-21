@@ -56,6 +56,31 @@ function renderizarInventario() {
         let chave = slotEl.getAttribute("data-slot");
         let ocupado = !!window.inventario[chave];
         slotEl.classList.toggle("ocupado", ocupado);
+        // auras/bloqueio/upgrade do item equipado
+        slotEl.classList.remove("upg-glow-10", "upg-glow-15", "upg-glow-20");
+        let badgeAntigo = slotEl.querySelector(':scope > .upg-badge');
+        if (badgeAntigo) badgeAntigo.remove();
+        let lockAntigo = slotEl.querySelector(':scope > .lock-ico');
+        if (lockAntigo) lockAntigo.remove();
+        if (ocupado) {
+            let item = window.inventario[chave];
+            let nivelUp = Math.max(0, item.upgrade || 0);
+            if (nivelUp >= 20) slotEl.classList.add('upg-glow-20');
+            else if (nivelUp >= 15) slotEl.classList.add('upg-glow-15');
+            else if (nivelUp >= 10) slotEl.classList.add('upg-glow-10');
+            if (nivelUp > 0) {
+                let b = document.createElement("span");
+                b.className = "upg-badge";
+                b.textContent = "+" + nivelUp;
+                slotEl.appendChild(b);
+            }
+            if (item.locked) {
+                let c = document.createElement("span");
+                c.className = "lock-ico";
+                c.textContent = "🔒";
+                slotEl.appendChild(c);
+            }
+        }
         let mini = slotEl.querySelector('.inv-slot-mini');
         if (mini) mini.remove();
         if (ocupado) {
@@ -123,23 +148,33 @@ const ABAS_MOCHILA = [
     { chave: 'consumiveis', nome: 'CONSUMÍVEIS', filtro: 'consumivel' },
     { chave: 'itens', nome: 'ITENS', filtro: 'item' },
     { chave: 'equipamentos', nome: '⚔️ EQUIP.', filtro: 'equipamento' },
+    { chave: 'pedras', nome: '💠 PEDRAS', filtro: 'pedra' },
     { chave: 'quest', nome: 'QUEST', filtro: 'quest' },
     { chave: 'cosmeticos', nome: 'COSMÉTICOS', filtro: 'cosmetico' }
 ];
+
+// Mapeia um item do SERVIDOR para o cliente (fonte única do formato de item).
+// Inclui os campos do sistema de upgrade: uid (itemInstanceId), upgrade,
+// upgradeExtras, locked e pedra (empilháveis da forja).
+window.mapearItemServidor = function (i) {
+    return {
+        id: i.id, nome: i.nome, tipo: i.tipo, icon: i.icon,
+        quantidade: i.quantidade || 1, desc: i.desc || "", slot: i.slot || null,
+        raridade: i.raridade || null, raridadeNome: i.raridadeNome || null,
+        status: i.status || null, cor: i.cor || null,
+        classe: i.classe || null, armaChave: i.armaChave || null,
+        uid: i.uid || null, upgrade: i.upgrade || 0,
+        upgradeExtras: i.upgradeExtras || null, locked: !!i.locked,
+        pedra: i.pedra || null, stackavel: i.stackavel !== false
+    };
+};
 
 function adicionarItemNaMochila(item) {
     let existente = window.mochila.find(i => i.id === item.id);
     if (existente && item.stackavel !== false) {
         existente.quantidade = (existente.quantidade || 1) + (item.quantidade || 1);
     } else {
-        window.mochila.push({
-            id: item.id, nome: item.nome, tipo: item.tipo, icon: item.icon,
-            quantidade: item.quantidade || 1, desc: item.desc || "",
-            slot: item.slot || null,
-            raridade: item.raridade || null, raridadeNome: item.raridadeNome || null,
-            status: item.status || null, cor: item.cor || null,
-            classe: item.classe || null, armaChave: item.armaChave || null
-        });
+        window.mochila.push(window.mapearItemServidor(item));
     }
     renderizarMochila();
 }
@@ -177,6 +212,26 @@ function renderizarMochila() {
         div.innerHTML = '<span class="slot-ico">' + item.icon + '</span>'
             + (item.quantidade > 1 ? '<span class="qtd-badge">' + item.quantidade + '</span>' : '');
 
+        // +N de upgrade + aura por nível (client-side, leve)
+        if (item.tipo === 'equipamento') {
+            let nivelUp = Math.max(0, item.upgrade || 0);
+            if (nivelUp >= 20) div.classList.add('upg-glow-20');
+            else if (nivelUp >= 15) div.classList.add('upg-glow-15');
+            else if (nivelUp >= 10) div.classList.add('upg-glow-10');
+            if (nivelUp > 0) {
+                let b = document.createElement("span");
+                b.className = "upg-badge";
+                b.textContent = "+" + nivelUp;
+                div.appendChild(b);
+            }
+            if (item.locked) {
+                let c = document.createElement("span");
+                c.className = "lock-ico";
+                c.textContent = "🔒";
+                div.appendChild(c);
+            }
+        }
+
         if (item.tipo === 'equipamento') {
             let podeEq = classePodeUsarItemNoCliente(item);
             let btnEq = document.createElement("button");
@@ -185,6 +240,11 @@ function renderizarMochila() {
             btnEq.title = podeEq ? "Equipar" : "Sua classe não pode usar esse item";
             btnEq.addEventListener("click", function(e) {
                 e.stopPropagation();
+                if (item.locked) {
+                    invInfo.innerText = "🔒 " + (item.nome || "Item") + " bloqueado — desbloqueie antes de equipar? (itens bloqueados PODEM ser equipados)";
+                    equiparItemSelecionado(item);
+                    return;
+                }
                 if (!podeEq) {
                     invInfo.innerText = "⚠️ " + (item.nome || "Item") + " — sua classe não pode usar!";
                     window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 30, text: "⚠️ Classe não pode usar", color: "#f39c12", alpha: 1.0 });
@@ -197,10 +257,18 @@ function renderizarMochila() {
 
         let btnLx = document.createElement("button");
         btnLx.className = "mochila-mini mochila-mini-lx";
-        btnLx.textContent = "🗑️";
-        btnLx.title = "Destruir";
+        btnLx.textContent = item.locked ? "🔒" : "🗑️";
+        btnLx.title = item.locked ? "Bloqueado (toque para desbloquear)" : "Destruir";
         btnLx.addEventListener("click", function(e) {
             e.stopPropagation();
+            if (item.locked) {
+                // desbloqueia direto (rápido) — o servidor valida de novo
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ action: 'desbloquear_item', id: item.id, uid: item.uid || null }));
+                }
+                invInfo.innerText = "🔓 Desbloqueando " + (item.nome || "item") + "...";
+                return;
+            }
             destruirItemConfirm(item);
         });
         div.appendChild(btnLx);
@@ -256,12 +324,35 @@ function selecionarItemMochila(item) {
         info += "\n" + (item.raridadeNome || '') + " | " + bonus.join(', ');
         if (item.classe) info += " [" + item.classe.toUpperCase() + "]";
         if (item.classe && item.classe !== window.minhaClasse) info += " ⚠️ CLASSE ERRADA";
+        // Upgrade: nível atual + status principal
+        let nivelUp = Math.max(0, item.upgrade || 0);
+        if (nivelUp > 0) info += "\n🔨 UPGRADE +" + nivelUp;
+        if (item.locked) info += "\n🔒 BLOQUEADO (não vende/destrói/troca/melhora)";
     }
     invInfo.innerText = info;
     let btnDest = document.getElementById('btn-inv-destruir');
     if (btnDest) btnDest.style.display = '';
+    let btnBloq = document.getElementById('btn-inv-bloquear');
+    if (btnBloq) {
+        if (item.tipo === 'equipamento') {
+            btnBloq.style.display = '';
+            btnBloq.textContent = item.locked ? "🔓 DESBLOQUEAR" : "🔒 BLOQUEAR";
+        } else {
+            btnBloq.style.display = 'none';
+        }
+    }
     renderizarComparacao(item);
 }
+
+// Bloqueia/desbloqueia o item selecionado na mochila (o SERVIDOR valida e persiste)
+window.alternarBloqueioItemSelecionado = function() {
+    let item = window._mochilaItemSelecionado;
+    if (!item || item.tipo !== 'equipamento') return;
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ action: item.locked ? 'desbloquear_item' : 'bloquear_item', id: item.id, uid: item.uid || null }));
+    }
+    invInfo.innerText = item.locked ? "🔓 Desbloqueando..." : "🔒 Bloqueando...";
+};
 
 let _mochilaItemSelecionado = null;
 window._mochilaItemSelecionado = null;
@@ -299,6 +390,11 @@ window.desequiparSlotSelecionado = function(slot) {
 
 window.destruirItemConfirm = function(item) {
     if (!item) return;
+    if (item.locked) {
+        invInfo.innerText = "🔒 Item bloqueado — desbloqueie antes de destruir.";
+        if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 30, text: "🔒 Bloqueado", color: "#f39c12", alpha: 1.0 });
+        return;
+    }
     if (typeof mostrarConfirmacao === 'function') {
         mostrarConfirmacao("Destruir " + (item.nome || "este item") + "? Essa ação não pode ser desfeita!", function () {
             destruirItem(item);

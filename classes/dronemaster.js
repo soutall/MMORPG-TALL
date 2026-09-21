@@ -13,6 +13,46 @@ window.dmOrbitarDrone = function() {
     return { x: window.dmDroneX, y: window.dmDroneY };
 };
 
+// MODO ASSALTO (self): o Drone se DESPRENDE do DroneMaster e vira um Mini Robô melee que
+// corre atrás dos inimigos próximos a 3x a velocidade do DroneMaster (10.8 = 3 × 3.6).
+// Quando a skill termina (action_dm_assalto_fim), o handler do cliente recoloca ele em cima do dono.
+window.dmDroneAssaltoPasso = function(dt) {
+    if (!dt) dt = window.dt || 1;
+    const vel = 10.8 * dt; // 3x a velocidade base do DroneMaster (3.6)
+    const cx = (window.meuX || 0) + 12;
+    const cy = (window.meuY || 0) + 16;
+    const leash = 340; // mesma correia do servidor (DRONE_MAX_DISTANCE_FROM_OWNER)
+    if (window.dmDroneX === undefined || window.dmDroneY === undefined) { window.dmDroneX = cx; window.dmDroneY = cy - 14; }
+    // busca o inimigo vivo mais próximo do robô (slimes + bosses)
+    let melhor = null, melhorDist = leash * leash;
+    const candidatos = (window.listaSlimes || []).concat(window.listaBosses || []);
+    for (let i = 0; i < candidatos.length; i++) {
+        const e = candidatos[i];
+        if (!e || e.hp <= 0) continue;
+        if (e.mapa && e.mapa !== window.currentMap) continue;
+        if (Math.hypot(e.x - cx, e.y - cy) > leash) continue; // nunca longe demais do dono
+        const d = Math.hypot(e.x - window.dmDroneX, e.y - window.dmDroneY);
+        if (d < melhorDist) { melhorDist = d; melhor = e; }
+    }
+    if (melhor) {
+        const dx = melhor.x - window.dmDroneX, dy = melhor.y - window.dmDroneY;
+        const dist = Math.hypot(dx, dy) || 1;
+        if (dist > 40) {
+            const passo = Math.min(vel, dist - 40);
+            window.dmDroneX += (dx / dist) * passo;
+            window.dmDroneY += (dy / dist) * passo;
+        }
+    } else {
+        // sem alvo próximo: volta ligeiro para junto do DroneMaster (última frame vira órbita de novo)
+        const dx = (cx + 26) - window.dmDroneX, dy = (cy - 16) - window.dmDroneY;
+        const dist = Math.hypot(dx, dy) || 1;
+        const passo = Math.min(vel, dist);
+        window.dmDroneX += (dx / dist) * passo;
+        window.dmDroneY += (dy / dist) * passo;
+    }
+    return { x: window.dmDroneX, y: window.dmDroneY };
+};
+
 // Desenha o Drone Companheiro (quadricóptero compacto).
 window.desenharDrone = function(x, y, angulo, estado) {
     if (!window.ctx) return;
@@ -221,7 +261,8 @@ window.desenharDronemaster = function(x, y, isMoving, angulo, hp, maxHp, extra) 
     // Posição do Drone Companheiro
     let droneX, droneY;
     if (ehEu) {
-        window.dmOrbitarDrone();
+        if (window.dmAssaltoVisual > 0) { window.dmDroneAssaltoPasso(); }
+        else { window.dmOrbitarDrone(); }
         droneX = window.dmDroneX; droneY = window.dmDroneY;
     } else {
         droneX = pp ? pp.dmDroneX : (x + 26);
@@ -348,7 +389,8 @@ window.desenharDronemaster = function(x, y, isMoving, angulo, hp, maxHp, extra) 
 // Ataque básico: o Drone Companheiro dispara (o dano é do servidor; o flash é visual local)
 window.enviarAtaqueDronemaster = function(ang, alvoTipo, alvoId) {
     if (window.estaMorto) return;
-    if (typeof window.dmOrbitarDrone === 'function') window.dmOrbitarDrone();
+    if (window.tocarSonoro) window.tocarSonoro('dronemaster_atk');
+    if (typeof window.dmOrbitarDrone === 'function' && !window.dmAssaltoVisual) window.dmOrbitarDrone();
     window.dmUltimoTiroEm = Date.now();
     let msg = { action: 'ataque_dronemaster' };
     if (alvoTipo) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; }

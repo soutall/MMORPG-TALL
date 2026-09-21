@@ -16,49 +16,67 @@
 //       redesenhava o ogro à mão (e ia ficar dessincronizado do visual novo).
 // ============================================================================
 
-// Paleta do golem: pedra quente + cristal violeta + olhos azuis
+// Paleta da Pedra Flutuante: rocha roxa + cristal violeta + aura
 const GOLEM_COR = {
-    pedraClara: '#a2957f',
-    pedraMedia: '#7d7261',
-    pedraEscura: '#514839',
-    pedraSombra: '#3a332a',
-    rachadura: '#2e2820',
-    cristalClaro: '#c9a2ff',
-    cristal: '#9a63e8',
-    cristalEscuro: '#5f2fa8',
-    olho: '#9fe8ff',
-    olhoGlow: '#3fb8f0'
+    faceClara: '#9a86c9',
+    faceMedia: '#6f5aa0',
+    faceEscura: '#463a70',
+    faceSombra: '#2a2245',
+    rachadura: '#1e1833',
+    cristalClaro: '#efd9ff',
+    cristal: '#b878ff',
+    cristalEscuro: '#7c2fe0',
+    glow: '#a94fff',
+    brilho: '#e9ccff'
 };
 
 // ---------------------------------------------------------------------------
-// Corpo do Golem de Pedra (referencial local; pé em y+21*escala)
+// Pedra Flutuante (pet do Summoner) — rocha roxa levitando com cristais,
+// aura de invocação e uma pedra menor orbitando ao redor (referencial local)
 // ---------------------------------------------------------------------------
 window.desenharCorpoGolem = function (x, y, escala) {
     const ctx = window.ctx;
     if (!ctx) return;
     const e = escala || 1;
     const t = Date.now() / 1000;
-    const respira = Math.sin(t * 1.6) * 0.6;
-    const pulsoCristal = 0.72 + Math.sin(t * 2.6) * 0.28;
+    const flutua = Math.sin(t * 1.8) * 4.2;         // balanço de flutuação
+    const pulso = 0.75 + Math.sin(t * 2.4) * 0.25;  // pulso dos cristais
+    const balanca = Math.sin(t * 1.15) * 0.06;      // leve inclinação
 
     ctx.save();
-    ctx.translate(x, y);
+    ctx.translate(x, y - flutua);
     ctx.scale(e, e);
+    ctx.rotate(balanca);
 
-    // ---------- pedras flutuantes ao redor ----------
-    const shards = [
-        { ang: 0.4, dist: 31, yy: -24, tam: 3.4, fase: 0.0 },
-        { ang: 2.3, dist: 35, yy: -13, tam: 2.6, fase: 1.9 },
-        { ang: 4.1, dist: 30, yy: -28, tam: 2.9, fase: 3.4 },
-        { ang: 5.4, dist: 36, yy: -6, tam: 2.2, fase: 5.1 }
+    // ---------- AURA roxa ao redor da pedra ----------
+    const gAura = ctx.createRadialGradient(0, -12, 2, 0, -12, 46 * pulso);
+    gAura.addColorStop(0, 'rgba(170,90,255,0.30)');
+    gAura.addColorStop(0.6, 'rgba(140,60,230,0.12)');
+    gAura.addColorStop(1, 'rgba(140,60,230,0)');
+    ctx.save();
+    ctx.fillStyle = gAura;
+    ctx.beginPath();
+    ctx.arc(0, -12, 46 * pulso, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // ---------- cascalhos pequenos flutuando na aura ----------
+    const detritos = [
+        { ang: 0.9, dist: 30, yy: -26, tam: 2.6, fase: 0.0 },
+        { ang: 2.9, dist: 33, yy: -10, tam: 2.1, fase: 1.7 },
+        { ang: 4.6, dist: 29, yy: 2, tam: 2.3, fase: 3.2 },
+        { ang: 5.8, dist: 34, yy: -20, tam: 1.9, fase: 4.8 }
     ];
-    ctx.fillStyle = GOLEM_COR.pedraMedia;
-    ctx.strokeStyle = GOLEM_COR.pedraSombra;
+    ctx.fillStyle = GOLEM_COR.faceMedia;
+    ctx.strokeStyle = GOLEM_COR.faceSombra;
     ctx.lineWidth = 0.7;
-    for (let i = 0; i < shards.length; i++) {
-        const s = shards[i];
-        const sx = Math.cos(s.ang + t * 0.35) * s.dist;
-        const sy = s.yy + Math.sin(t * 1.3 + s.fase) * 3;
+    for (let i = 0; i < detritos.length; i++) {
+        const s = detritos[i];
+        const sx = Math.cos(s.ang + t * 0.5) * s.dist;
+        const sy = s.yy + Math.sin(t * 1.4 + s.fase) * 3;
+        ctx.save();
+        ctx.shadowColor = GOLEM_COR.glow;
+        ctx.shadowBlur = 6 * pulso;
         ctx.beginPath();
         ctx.moveTo(sx - s.tam, sy + s.tam * 0.6);
         ctx.lineTo(sx, sy - s.tam);
@@ -67,202 +85,231 @@ window.desenharCorpoGolem = function (x, y, escala) {
         ctx.closePath();
         ctx.fill();
         ctx.stroke();
+        ctx.restore();
     }
 
-    ctx.translate(0, respira * 0.5);
-
-    // ---------- pernas ----------
-    const gPerna = ctx.createLinearGradient(0, 4, 0, 21);
-    gPerna.addColorStop(0, GOLEM_COR.pedraMedia);
-    gPerna.addColorStop(1, GOLEM_COR.pedraEscura);
-    ctx.fillStyle = gPerna;
-    ctx.strokeStyle = GOLEM_COR.pedraSombra;
-    ctx.lineWidth = 1.0;
-    [[-12], [5]].forEach(function (p) {
-        const px = p[0];
+    // ---------- PEDRA MENOR orbitando a rocha principal ----------
+    const orbAng = t * 0.85;
+    const oxOrb = Math.cos(orbAng) * 40;
+    const oyOrb = -12 + Math.sin(orbAng * 1.35) * 10;
+    // rastro roxo atrás da pedra menor
+    for (let r = 1; r <= 3; r++) {
+        const angRastro = orbAng - r * 0.055;
+        const rx = Math.cos(angRastro) * 40;
+        const ry = -12 + Math.sin(angRastro * 1.35) * 10;
+        ctx.fillStyle = 'rgba(170,90,255,' + (0.16 / r).toFixed(3) + ')';
         ctx.beginPath();
-        ctx.moveTo(px, 4);
-        ctx.lineTo(px + 9, 4);
-        ctx.lineTo(px + 10.5, 18);
-        ctx.lineTo(px + 8, 21);
-        ctx.lineTo(px + 1, 21);
-        ctx.lineTo(px - 1, 17);
-        ctx.closePath();
+        ctx.arc(rx, ry, 4.4 - r * 1.1, 0, Math.PI * 2);
         ctx.fill();
-        ctx.stroke();
-    });
-
-    // ---------- braços + punhos ----------
-    [[-15], [15]].forEach(function (lado) {
-        const baseX = lado[0];
-        const s = (baseX < 0) ? -1 : 1;
-        const gBraco = ctx.createLinearGradient(baseX, -18, baseX, 10);
-        gBraco.addColorStop(0, GOLEM_COR.pedraClara);
-        gBraco.addColorStop(0.55, GOLEM_COR.pedraMedia);
-        gBraco.addColorStop(1, GOLEM_COR.pedraEscura);
-        ctx.fillStyle = gBraco;
-        ctx.strokeStyle = GOLEM_COR.pedraSombra;
-        ctx.lineWidth = 1.0;
-        ctx.beginPath();
-        ctx.moveTo(baseX - 5 * s, -19);
-        ctx.lineTo(baseX + 7 * s, -16);
-        ctx.lineTo(baseX + 8 * s, 3);
-        ctx.lineTo(baseX + 6.5 * s, 9);
-        ctx.lineTo(baseX - 1 * s, 10);
-        ctx.lineTo(baseX - 6.5 * s, 6);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = GOLEM_COR.pedraEscura;
-        ctx.beginPath();
-        ctx.ellipse(baseX + 1.5 * s, 10, 6.4, 5.2, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.stroke();
-        ctx.fillStyle = GOLEM_COR.pedraClara;
-        ctx.beginPath();
-        ctx.ellipse(baseX, -18, 7.4, 3.6, 0, Math.PI, Math.PI * 2);
-        ctx.fill();
-    });
-
-    // ---------- tronco ----------
-    const gTronco = ctx.createLinearGradient(-17, -22, 17, 8);
-    gTronco.addColorStop(0, GOLEM_COR.pedraClara);
-    gTronco.addColorStop(0.45, GOLEM_COR.pedraMedia);
-    gTronco.addColorStop(1, GOLEM_COR.pedraEscura);
-    ctx.fillStyle = gTronco;
-    ctx.strokeStyle = GOLEM_COR.pedraSombra;
-    ctx.lineWidth = 1.1;
+    }
+    ctx.save();
+    ctx.translate(oxOrb, oyOrb);
+    ctx.rotate(orbAng * 0.5);
+    ctx.shadowColor = GOLEM_COR.glow;
+    ctx.shadowBlur = 10 * pulso;
+    const gOrb = ctx.createLinearGradient(-6, -3, 6, 4);
+    gOrb.addColorStop(0, GOLEM_COR.faceClara);
+    gOrb.addColorStop(0.5, GOLEM_COR.faceMedia);
+    gOrb.addColorStop(1, GOLEM_COR.faceEscura);
+    ctx.fillStyle = gOrb;
+    ctx.strokeStyle = GOLEM_COR.faceSombra;
+    ctx.lineWidth = 0.9;
     ctx.beginPath();
-    ctx.moveTo(-13, -22);
-    ctx.lineTo(0, -25);
-    ctx.lineTo(13, -22);
-    ctx.lineTo(16, -10);
-    ctx.lineTo(14, 3);
-    ctx.lineTo(9, 8);
-    ctx.lineTo(-9, 8);
-    ctx.lineTo(-14, 3);
-    ctx.lineTo(-16, -10);
+    ctx.moveTo(-6, 1);
+    ctx.lineTo(-3, -5);
+    ctx.lineTo(3, -5);
+    ctx.lineTo(6, 2);
+    ctx.lineTo(2, 5);
+    ctx.lineTo(-4, 4);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-
-    // rachaduras entre as placas de pedra
-    ctx.strokeStyle = GOLEM_COR.rachadura;
-    ctx.lineWidth = 0.9;
+    // cristalzinho roxo cravado na pedra menor
+    ctx.fillStyle = GOLEM_COR.cristal;
     ctx.beginPath();
-    ctx.moveTo(-11, -14); ctx.lineTo(-2, -16); ctx.lineTo(-4, -5);
-    ctx.moveTo(4, -19); ctx.lineTo(10, -13); ctx.lineTo(5, -7);
-    ctx.moveTo(-8, 2); ctx.lineTo(0, 0); ctx.lineTo(7, 3);
-    ctx.stroke();
-
-    // ---------- NÚCLEO DE CRISTAL no peito ----------
-    ctx.save();
-    ctx.shadowColor = GOLEM_COR.cristal;
-    ctx.shadowBlur = 14 * pulsoCristal;
-    const gCristal = ctx.createLinearGradient(0, -13, 0, 1);
-    gCristal.addColorStop(0, GOLEM_COR.cristalClaro);
-    gCristal.addColorStop(0.5, GOLEM_COR.cristal);
-    gCristal.addColorStop(1, GOLEM_COR.cristalEscuro);
-    ctx.fillStyle = gCristal;
-    ctx.beginPath();
-    ctx.moveTo(0, -13.5);
-    ctx.lineTo(6.2, -6);
-    ctx.lineTo(0, 1.5);
-    ctx.lineTo(-6.2, -6);
+    ctx.moveTo(0, -6);
+    ctx.lineTo(2.6, -1.5);
+    ctx.lineTo(0, 2);
+    ctx.lineTo(-2.6, -1.5);
     ctx.closePath();
     ctx.fill();
     ctx.restore();
-    ctx.fillStyle = 'rgba(255,255,255,0.42)';
-    ctx.beginPath();
-    ctx.moveTo(0, -12.2); ctx.lineTo(2.8, -6); ctx.lineTo(0, -0.2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = 'rgba(30,0,60,0.30)';
-    ctx.beginPath();
-    ctx.moveTo(0, -12.2); ctx.lineTo(-2.8, -6); ctx.lineTo(0, -0.2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,' + pulsoCristal.toFixed(3) + ')';
-    ctx.beginPath();
-    ctx.ellipse(0, -6, 1.5, 2.2, 0, 0, Math.PI * 2);
-    ctx.fill();
 
-    // ---------- cabeça ----------
-    const gCabeca = ctx.createLinearGradient(-10, -36, 10, -22);
-    gCabeca.addColorStop(0, GOLEM_COR.pedraClara);
-    gCabeca.addColorStop(0.5, GOLEM_COR.pedraMedia);
-    gCabeca.addColorStop(1, GOLEM_COR.pedraEscura);
-    ctx.fillStyle = gCabeca;
-    ctx.strokeStyle = GOLEM_COR.pedraSombra;
-    ctx.lineWidth = 1.1;
+    // ---------- ROCHA PRINCIPAL FLUTUANTE ----------
+    ctx.save();
+    ctx.shadowColor = 'rgba(150,60,255,0.85)';
+    ctx.shadowBlur = 16 * pulso;
+
+    const gRocha = ctx.createLinearGradient(-22, -32, 22, 4);
+    gRocha.addColorStop(0, GOLEM_COR.faceClara);
+    gRocha.addColorStop(0.45, GOLEM_COR.faceMedia);
+    gRocha.addColorStop(1, GOLEM_COR.faceEscura);
+    ctx.fillStyle = gRocha;
+    ctx.strokeStyle = GOLEM_COR.faceSombra;
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(-9, -23);
-    ctx.lineTo(-8, -32);
-    ctx.lineTo(-3, -36);
-    ctx.lineTo(4, -36);
+    ctx.moveTo(0, -33);
     ctx.lineTo(9, -31);
-    ctx.lineTo(9, -23);
-    ctx.lineTo(4, -20.5);
-    ctx.lineTo(-4, -20.5);
+    ctx.lineTo(17, -25);
+    ctx.lineTo(22, -16);
+    ctx.lineTo(23, -7);
+    ctx.lineTo(17, 0);
+    ctx.lineTo(9, 3);
+    ctx.lineTo(0, 4);
+    ctx.lineTo(-8, 3);
+    ctx.lineTo(-16, -1);
+    ctx.lineTo(-21, -8);
+    ctx.lineTo(-22, -17);
+    ctx.lineTo(-16, -26);
+    ctx.lineTo(-8, -31);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
-    ctx.strokeStyle = GOLEM_COR.rachadura;
-    ctx.lineWidth = 0.9;
+    ctx.shadowBlur = 0;
+
+    // facetas de luz (topo/lado esquerdo)
+    ctx.fillStyle = 'rgba(233,204,255,0.35)';
     ctx.beginPath();
-    ctx.moveTo(-2, -35); ctx.lineTo(-4, -30); ctx.lineTo(0, -28);
+    ctx.moveTo(-8, -30);
+    ctx.lineTo(1, -31);
+    ctx.lineTo(-2, -24);
+    ctx.lineTo(-12, -22);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(233,204,255,0.22)';
+    ctx.beginPath();
+    ctx.moveTo(8, -28);
+    ctx.lineTo(15, -20);
+    ctx.lineTo(6, -15);
+    ctx.lineTo(2, -22);
+    ctx.closePath();
+    ctx.fill();
+
+    // sombreado da base
+    ctx.fillStyle = 'rgba(30,24,50,0.40)';
+    ctx.beginPath();
+    ctx.moveTo(-16, -3);
+    ctx.lineTo(-7, 3);
+    ctx.lineTo(6, 3);
+    ctx.lineTo(15, -2);
+    ctx.lineTo(10, -8);
+    ctx.lineTo(-8, -6);
+    ctx.closePath();
+    ctx.fill();
+
+    // rachaduras
+    ctx.strokeStyle = GOLEM_COR.rachadura;
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-8, -26); ctx.lineTo(-10, -16); ctx.lineTo(-5, -10);
+    ctx.moveTo(6, -22); ctx.lineTo(10, -13); ctx.lineTo(14, -8);
+    ctx.moveTo(-2, 2); ctx.lineTo(3, -4);
     ctx.stroke();
 
-    // ---------- olhos azuis brilhantes ----------
-    ctx.save();
-    ctx.shadowColor = GOLEM_COR.olhoGlow;
-    ctx.shadowBlur = 8 * pulsoCristal;
-    ctx.fillStyle = 'rgba(190,245,255,' + pulsoCristal.toFixed(3) + ')';
-    ctx.beginPath();
-    ctx.ellipse(-4.4, -28, 2.4, 1.5, 0, 0, Math.PI * 2);
-    ctx.ellipse(4.4, -28, 2.4, 1.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    // crateras com brilho roxo interior
+    const crateras = [[-11, -13, 3.4], [12, -10, 2.8], [-4, 1, 2.4], [4, -20, 2.2]];
+    ctx.fillStyle = GOLEM_COR.faceSombra;
+    for (let i = 0; i < crateras.length; i++) {
+        const c = crateras[i];
+        ctx.beginPath();
+        ctx.ellipse(c[0], c[1], c[2], c[2] * 0.72, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.fillStyle = 'rgba(169,79,255,' + (0.30 * pulso).toFixed(3) + ')';
+    for (let i = 0; i < crateras.length; i++) {
+        const c = crateras[i];
+        ctx.beginPath();
+        ctx.ellipse(c[0], c[1], c[2] * 0.55, c[2] * 0.4, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
 
+    // ---------- CRISTAIS ROXOS cravados na rocha ----------
+    const cristais = [
+        { cx: -9, cy: -20, altura: 6.5, base: 2.8, fase: 0 },
+        { cx: 13, cy: -12, altura: 5.2, base: 2.2, fase: 2.1 },
+        { cx: -3, cy: -6, altura: 4.4, base: 2.0, fase: 4.0 }
+    ];
+    for (let i = 0; i < cristais.length; i++) {
+        const cr = cristais[i];
+        const brilho = 0.75 + Math.sin(t * 2.4 + cr.fase) * 0.25;
+        ctx.save();
+        ctx.shadowColor = GOLEM_COR.cristal;
+        ctx.shadowBlur = 10 * brilho;
+        const gCr = ctx.createLinearGradient(cr.cx, cr.cy - cr.altura, cr.cx, cr.cy);
+        gCr.addColorStop(0, GOLEM_COR.cristalClaro);
+        gCr.addColorStop(0.5, GOLEM_COR.cristal);
+        gCr.addColorStop(1, GOLEM_COR.cristalEscuro);
+        ctx.fillStyle = gCr;
+        ctx.beginPath();
+        ctx.moveTo(cr.cx - cr.base, cr.cy);
+        ctx.lineTo(cr.cx, cr.cy - cr.altura);
+        ctx.lineTo(cr.cx + cr.base, cr.cy);
+        ctx.closePath();
+        ctx.fill();
+        ctx.restore();
+    }
+
+    ctx.restore(); // fim da rocha (reseta glow)
     ctx.restore();
 };
 
 // ---------------------------------------------------------------------------
-// Pet: Golem de Pedra (sombra + corpo + aura + barra de vida)
+// Pet: Pedra Flutuante (aura no chão + sombra + corpo + energia + vida)
 // ---------------------------------------------------------------------------
 window.desenharLacaio = function (lacaio) {
     if (lacaio.isJumping || !window.ctx) return;
     const ctx = window.ctx;
+    const t = Date.now() / 1000;
+    const pulso = 0.78 + Math.sin(t * 2.2) * 0.22;
 
-    const gSombra = ctx.createRadialGradient(lacaio.x, lacaio.y + 21, 1, lacaio.x, lacaio.y + 21, 27);
+    // ---------- aura roxa no chão (círculo de invocação) ----------
+    ctx.save();
+    const gAuraChao = ctx.createRadialGradient(lacaio.x, lacaio.y + 18, 2, lacaio.x, lacaio.y + 18, 30);
+    gAuraChao.addColorStop(0, 'rgba(150,70,255,' + (0.34 * pulso).toFixed(3) + ')');
+    gAuraChao.addColorStop(0.6, 'rgba(120,50,220,0.14)');
+    gAuraChao.addColorStop(1, 'rgba(120,50,220,0)');
+    ctx.fillStyle = gAuraChao;
+    ctx.beginPath();
+    ctx.ellipse(lacaio.x, lacaio.y + 18, 30 * pulso, 9 * pulso, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(180,110,255,' + (0.5 * pulso).toFixed(3) + ')';
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.ellipse(lacaio.x, lacaio.y + 18, 22, 6.5, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+
+    // ---------- sombra da rocha flutuante (mais fraca, no chão) ----------
+    const gSombra = ctx.createRadialGradient(lacaio.x, lacaio.y + 18, 1, lacaio.x, lacaio.y + 18, 21);
     gSombra.addColorStop(0, 'rgba(6,4,10,0.55)');
-    gSombra.addColorStop(0.7, 'rgba(6,4,10,0.30)');
+    gSombra.addColorStop(0.7, 'rgba(6,4,10,0.28)');
     gSombra.addColorStop(1, 'rgba(6,4,10,0)');
     ctx.fillStyle = gSombra;
     ctx.beginPath();
-    ctx.ellipse(lacaio.x, lacaio.y + 21, 27, 9.5, 0, 0, Math.PI * 2);
+    ctx.ellipse(lacaio.x, lacaio.y + 18, 21, 7, 0, 0, Math.PI * 2);
     ctx.fill();
 
     let escalaGolem = (window.lacaioColossal && lacaio.pid && window.lacaioColossal[lacaio.pid]) ? 1.4 : 1;
     window.desenharCorpoGolem(lacaio.x, lacaio.y, escalaGolem);
 
-    // energia de invocação subindo pelas pernas
-    const t = Date.now() / 1000;
+    // ---------- energia roxa subindo pela rocha ----------
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    for (let i = 0; i < 4; i++) {
-        const a = t * 0.9 + i * (Math.PI * 2 / 4);
-        const px = lacaio.x + Math.cos(a) * 25;
-        const py = lacaio.y + 20 + Math.sin(a) * 7 - ((t * 26 + i * 30) % 60) * 0.5;
-        ctx.fillStyle = 'rgba(154,99,232,0.55)';
+    for (let i = 0; i < 5; i++) {
+        const a = t * 0.9 + i * (Math.PI * 2 / 5);
+        const px = lacaio.x + Math.cos(a) * 24;
+        const py = lacaio.y + 14 + Math.sin(a) * 6 - ((t * 30 + i * 32) % 60) * 0.55;
+        ctx.fillStyle = 'rgba(190,120,255,' + (0.28 + Math.sin(t * 3 + i) * 0.12).toFixed(3) + ')';
+        ctx.shadowColor = '#a94fff';
+        ctx.shadowBlur = 6;
         ctx.beginPath();
-        ctx.ellipse(px, py, 2.1, 3.0, 0, 0, Math.PI * 2);
+        ctx.ellipse(px, py, 2.2, 3.4, 0, 0, Math.PI * 2);
         ctx.fill();
     }
     ctx.restore();
 
     if (typeof window.desenharBarraHp === "function") {
-        window.desenharBarraHp(lacaio.x - 18, lacaio.y - 36, lacaio.hp, lacaio.maxHp);
+        window.desenharBarraHp(lacaio.x - 18, lacaio.y - 44, lacaio.hp, lacaio.maxHp);
     }
 };
 

@@ -245,11 +245,15 @@ window.desenharEfeitosSismicos = function() {
         let alturaArco = Math.sin(Math.min(salto.progresso, 1.0) * Math.PI) * 75;
 
         window.ctx.save();
-        window.ctx.fillStyle = "rgba(0,0,0,0.3)"; window.ctx.beginPath(); window.ctx.ellipse(curX, curY + 16, 12, 5, 0, 0, Math.PI * 2); window.ctx.fill();
+        window.ctx.fillStyle = "rgba(0,0,0,0.35)"; window.ctx.beginPath(); window.ctx.ellipse(curX, curY + 16, 13, 5, 0, 0, Math.PI * 2); window.ctx.fill();
         window.ctx.translate(curX, curY - alturaArco);
-        window.ctx.fillStyle = "#784212"; window.ctx.beginPath(); window.ctx.arc(0, 0, 15, 0, Math.PI * 2); window.ctx.fill();
-        window.ctx.fillStyle = "#566573"; window.ctx.fillRect(-16, -9, 9, 6); window.ctx.fillRect(7, -9, 9, 6);
-        window.ctx.fillStyle = "#f1c40f"; window.ctx.fillRect(-4, -14, 3, 3); window.ctx.fillRect(2, -14, 3, 3);
+        if (typeof window.desenharCorpoGolem === "function") {
+            window.desenharCorpoGolem(0, 0, 1);
+        } else {
+            window.ctx.fillStyle = "#784212"; window.ctx.beginPath(); window.ctx.arc(0, 0, 15, 0, Math.PI * 2); window.ctx.fill();
+            window.ctx.fillStyle = "#566573"; window.ctx.fillRect(-16, -9, 9, 6); window.ctx.fillRect(7, -9, 9, 6);
+            window.ctx.fillStyle = "#f1c40f"; window.ctx.fillRect(-4, -14, 3, 3); window.ctx.fillRect(2, -14, 3, 3);
+        }
         window.ctx.restore();
 
         if (salto.progresso >= 1.0) {

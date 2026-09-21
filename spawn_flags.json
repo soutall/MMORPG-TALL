@@ -195,19 +195,6 @@
     "timerRespawn": 20
   },
   {
-    "id": "flag_mu633dwe_2yhkp",
-    "criadoEm": 1789683074078,
-    "tipo": "golem_pedra",
-    "maxQtd": 3,
-    "comportamento": "passivo",
-    "hpBase": 8000,
-    "respawnSeg": 10,
-    "x": 64421,
-    "y": 589,
-    "temPosicao": true,
-    "timerRespawn": 200
-  },
-  {
     "id": "flag_mu7ue0ds_cm9wf",
     "criadoEm": 1789789385584,
     "tipo": "mamute",

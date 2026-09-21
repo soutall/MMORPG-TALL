@@ -1,0 +1,234 @@
+/* ============================================================
+   intro.css — TELA DE ABERTURA / INTRODUÇÃO CINEMATOGRÁFICA
+   Camada inicial do MMORPG: estúdio → transição → LOADING fake
+   ============================================================ */
+
+/* Enquanto a intro está ativa: fundo preto + nenhuma rolagem.
+   A classe é aplicada por um <script> inline logo após <body> abrir,
+   então a tela nunca "pisca" com o jogo antes da intro. */
+html.intro-ativa,
+html.intro-ativa body {
+    background: #000 !important;
+}
+
+body.intro-ativa {
+    overflow: hidden;
+    height: 100%;
+}
+
+/* GAMBIARRA DE EMERGÊNCIA: se a intro ficar travada por >6s, força visibilidade do canvas */
+html.intro-ativa canvas {
+    display: none !important;
+}
+
+html:not(.intro-ativa) canvas {
+    display: block !important;
+}
+
+/* ---------- Overlay da intro (cobre 100% da viewport) ---------- */
+#intro-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 2147483000;               /* acima de tudo (HUD, menu, canvas) */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #000;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 550ms ease;
+    font-family: 'Cinzel', 'Rajdhani', Georgia, serif;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+}
+
+#intro-overlay.intro-saindo {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ---------- Vinheta / iluminação sutil (fase do estúdio) ---------- */
+.intro-vinheta {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background:
+        radial-gradient(120% 90% at 50% 40%, rgba(255, 236, 205, 0.07), transparent 55%),
+        radial-gradient(170% 130% at 50% 50%, transparent 60%, rgba(0, 0, 0, 0.9) 100%);
+    opacity: 0;
+    transition: opacity 1.2s ease;
+}
+
+#intro-overlay.intro-fase-logo .intro-vinheta {
+    opacity: 1;
+}
+
+/* ---------- Transição (pulso de brilho, dissolve leve) ---------- */
+.intro-brilho {
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(90% 70% at 50% 50%, rgba(255, 246, 232, 0.85), rgba(255, 240, 220, 0.38) 45%, transparent 78%);
+    opacity: 0;
+    pointer-events: none;
+}
+
+#intro-overlay.intro-fase-transicao .intro-brilho {
+    animation: introBrilho 470ms ease forwards;
+}
+
+@keyframes introBrilho {
+    0% { opacity: 0; }
+    30% { opacity: 1; }
+    100% { opacity: 0; }
+}
+
+/* ---------- Nome do estúdio ---------- */
+.intro-estudio {
+    position: relative;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(12px) scale(0.985);
+    transition: opacity 900ms ease, transform 900ms ease;
+    will-change: opacity, transform;
+}
+
+#intro-overlay.intro-fase-logo .intro-estudio {
+    opacity: 1;
+    transform: none;
+}
+
+#intro-overlay.intro-fase-saida-logo .intro-estudio {
+    opacity: 0;
+    transform: translateY(-8px) scale(0.995);
+}
+
+.intro-estudio-nome {
+    font-size: clamp(26px, 6.2vw, 60px);
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;              /* compensa o letter-spacing (centraliza) */
+    color: #e9e3d6;
+    text-shadow:
+        0 0 16px rgba(255, 214, 150, 0.26),
+        0 0 44px rgba(200, 150, 100, 0.18);
+    white-space: nowrap;
+    line-height: 1.15;
+}
+
+.intro-estudio-linha {
+    width: min(360px, 48vw);
+    height: 1px;
+    margin: 14px auto 0;
+    background: linear-gradient(90deg, transparent, rgba(233, 227, 214, 0.6), transparent);
+    opacity: 0;
+    transition: opacity 900ms ease 220ms;
+}
+
+#intro-overlay.intro-fase-logo .intro-estudio-linha {
+    opacity: 1;
+}
+
+.intro-estudio-sub {
+    margin-top: 10px;
+    font-family: 'Rajdhani', Arial, sans-serif;
+    font-size: clamp(10px, 2.2vw, 14px);
+    font-weight: 600;
+    letter-spacing: 0.5em;
+    text-indent: 0.5em;
+    text-transform: uppercase;
+    color: rgba(233, 227, 214, 0.42);
+    opacity: 0;
+    transition: opacity 900ms ease 380ms;
+}
+
+#intro-overlay.intro-fase-logo .intro-estudio-sub {
+    opacity: 1;
+}
+
+/* ---------- LOADING fake ---------- */
+.intro-loading {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: clamp(52px, 15vh, 150px);
+    margin: 0 auto;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    width: min(430px, 74vw);
+    text-align: center;
+    font-family: 'Rajdhani', Arial, sans-serif;
+}
+
+#intro-overlay.intro-fase-loading .intro-loading,
+#intro-overlay.intro-fase-completo .intro-loading {
+    display: flex;
+}
+
+.intro-loading-titulo {
+    font-size: clamp(12px, 2.6vw, 16px);
+    font-weight: 700;
+    letter-spacing: 0.5em;
+    text-indent: 0.5em;
+    color: rgba(233, 227, 214, 0.9);
+}
+
+.intro-barracao {
+    width: 100%;
+    margin-top: 14px;
+}
+
+.intro-barra-trilho {
+    width: 100%;
+    height: 5px;
+    background: rgba(233, 227, 214, 0.14);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.intro-barra-preenchimento {
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, #cdb98a, #efe3c0 60%, #f4ecd4);
+    transform: scaleX(0);
+    transform-origin: left center;
+    border-radius: 999px;
+    box-shadow: 0 0 12px rgba(240, 214, 160, 0.5);
+    will-change: transform;
+}
+
+#intro-overlay.intro-fase-completo .intro-barra-preenchimento {
+    transform: scaleX(1);
+}
+
+.intro-barra-pct {
+    margin-top: 8px;
+    font-size: clamp(10px, 2vw, 12px);
+    font-weight: 600;
+    letter-spacing: 0.2em;
+    color: rgba(233, 227, 214, 0.5);
+}
+
+.intro-loading-sub {
+    margin-top: 10px;
+    font-size: clamp(9px, 1.9vw, 11px);
+    font-weight: 600;
+    letter-spacing: 0.42em;
+    text-indent: 0.42em;
+    text-transform: uppercase;
+    color: rgba(233, 227, 214, 0.4);
+    opacity: 0;
+    transition: opacity 600ms ease;
+}
+
+#intro-overlay.intro-fase-completo .intro-loading-sub {
+    opacity: 1;
+}
+
+/* ---------- Suporte a Orientação: tudo centralizado ----------
+   (portrait/landscape) — layout 100% responsivo, sem scroll. */
+@media (max-height: 420px) {
+    .intro-loading {
+        bottom: 24px;
+    }
+}

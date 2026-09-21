@@ -1,7 +1,7 @@
 // classes/comum.js - Funções compartilhadas entre todas as classes
-window.desenharBarraHp = function(x, y, hp, maxHp, stunTimer = 0, slowTimer = 0) {
+window.desenharBarraHp = function(x, y, hp, maxHp, stunTimer = 0, slowTimer = 0, larguraCustom = 0) {
     if (!window.ctx) return;
-    let largura = 30, altura = 4;
+    let largura = larguraCustom || 30, altura = 4;
     let porcentagem = Math.max(0, hp / maxHp);
     window.ctx.fillStyle = "rgba(0,0,0,0.6)";
     window.ctx.fillRect(x - 3, y - 10, largura + 6, altura + 4);

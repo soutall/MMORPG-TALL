@@ -77,6 +77,15 @@ try {
     console.log("Aviso: equipamentos.js não carregado: " + e.message);
 }
 
+// ============ SISTEMA DE UPGRADE DE EQUIPAMENTOS (NPC FERREIRO) ============
+let ferreiroMod = null;
+try {
+    ferreiroMod = require('./upgrade.js');
+    console.log("Sistema de Upgrade do Ferreiro carregado.");
+} catch (e) {
+    console.log("Aviso: upgrade.js não carregado: " + e.message);
+}
+
 // ============ SISTEMA DE DEBUFFS/BUFFS ============
 let efeitos = null;
 try {
@@ -87,15 +96,26 @@ try {
 }
 
 const server = http.createServer((req, res) => {
-    let urlSemQuery = req.url.split('?')[0]; 
+    let urlSemQuery = req.url.split('?')[0];
+    try { urlSemQuery = decodeURIComponent(urlSemQuery); } catch (e) { /* mantém original */ }
     let urlFinal = urlSemQuery === '/' ? '/index.html' : urlSemQuery;
     let filePath = path.join(__dirname, urlFinal);
+    // Segurança: nunca servir arquivos fora da pasta do projeto
+    const raizProjeto = __dirname + path.sep;
+    if (filePath !== __dirname && filePath.indexOf(raizProjeto) !== 0) {
+        res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
+        res.end("Acesso negado.");
+        return;
+    }
     let extname = path.extname(filePath);
     let contentType = 'text/html; charset=utf-8';
     
     if (extname === '.js') contentType = 'text/javascript; charset=utf-8';
     if (extname === '.css') contentType = 'text/css; charset=utf-8';
     if (extname === '.json') contentType = 'application/json; charset=utf-8';
+    if (extname === '.wav') contentType = 'audio/wav';
+    if (extname === '.mp3') contentType = 'audio/mpeg';
+    if (extname === '.ogg') contentType = 'audio/ogg';
 
     fs.readFile(filePath, (err, data) => {
         if (err) {
@@ -121,6 +141,11 @@ let trades = {}; // { tradeId: { p1: id1, p2: id2, items1: [], items2: [], conf1
 let tradeCounter = 1;
 let parties = {}; // { partyId: [playerId1, playerId2, ...] }
 let partyCounter = 1;
+
+// ===== ARENA DE SOLARI — estado global da sessão (1 instância por vez) =====
+// membros: [{ id, ok, mortoEm, morreuX, morreuY }]; liderId controla convite e START.
+let solariSessao = null;
+let solariCounter = 1;
 let slimes = [];
 let projeteis = [];
 let playerProjeteis = [];
@@ -185,6 +210,8 @@ const MOITAS_SNIPER = [
 ];
 const SNIPER_DETECTION_RADIUS = 420;      // Skill 4: raio de detecção de invisíveis
 const DRONE_MAX_DISTANCE_FROM_OWNER = 340; // DroneMaster: distância máxima do Drone ao dono
+// Mini Robô (Modo Assalto): 3x a velocidade base do DroneMaster (3.6) por tick do servidor
+const DRONE_ASSALTO_VELOCIDADE = 10.8;
 
 function sniperNoMato(x, y) {
     for (let m of MOITAS_SNIPER) {
@@ -217,6 +244,56 @@ function broadcastMapObjetos() {
     });
 }
 
+// ============================================================================
+// EDITOR DE MAPA (Admin) — Objetos persistentes com colisão/camada/efeito.
+// Espelha o catálogo de TIPO_OBJETOS_MAPA do cliente (mapa-editor.js).
+// ============================================================================
+const TIPOS_OBJETOS_MAPA = [
+    // Árvores
+    'arvore', 'arvore_pinheiro', 'arvore_florida', 'arvore_dupla', 'arvore_outono', 'palmeira',
+    'arvore_sakura', 'arvore_carvalho', 'muda',
+    // Paredes Vivas (Labirintos)
+    'parede_viva', 'parede_viva_florida', 'parede_viva_curva', 'roseiral',
+    // Pedras
+    'pedra', 'pedra2', 'rocha_grande', 'pedregulho', 'pedra_pontuda',
+    'pedra_musgo', 'laje', 'pilha_pedra', 'cristais_rocha', 'pedra_lunar',
+    // Montanhas / Blocos
+    'montanha', 'bloco_pedra', 'bloco_granito', 'coluna', 'obelisco', 'ruina',
+    'muro_pedra', 'muralha', 'portao', 'ponte',
+    // Paredes / Estruturas
+    'parede_tijolo', 'parede_madeira', 'cerca', 'torre',
+    'parede_troncos', 'tocha', 'fogueira',
+    // Vegetação
+    'moita', 'moita2', 'moita_esconderijo', 'arbusto', 'grama', 'capim', 'samambaia', 'bambu', 'cogumelo', 'tronco', 'toco',
+    'arbusto_florido', 'samambaia_gigante', 'planta_carnivora', 'cogumelo_gigante', 'campo_flores', 'caminho_pedras', 'teia', 'osso',
+    // Plantas / Flores
+    'planta', 'planta_dupla', 'rosa_vermelha', 'rosa_amarela', 'flor_roxa', 'girassol', 'tulipa', 'cacto_florido',
+    'flor_branca', 'flor_laranja', 'flor_azul',
+    // Água
+    'agua_quadrado', 'lagoa', 'canal',
+    // Decoração
+    'banco', 'lamparina', 'estaca_flamejante', 'bandeira', 'ancoradouro',
+    'fonte', 'poco', 'caixa', 'barril', 'carroca', 'placa',
+    // Zonas pintadas (colisão livre / frente livre)
+    'zona_colisao', 'zona_frente'
+];
+
+function colisaoObjetosDoMapa(mapa, cx, cy, raio) {
+    const r = (typeof raio === 'number') ? raio : PLAYER_COLLISION_RADIUS;
+    for (let i = 0; i < mapObjetos.length; i++) {
+        const o = mapObjetos[i];
+        if (!o || o.mapa !== mapa || !o.colisao) continue;
+        const w = o.w || 40, h = o.h || 40;
+        const cxo = o.x + w / 2, cyo = o.y + h / 2;
+        const dx = Math.abs(cx - cxo), dy = Math.abs(cy - cyo);
+        if (dx >= w / 2 + r || dy >= h / 2 + r) continue;
+        const ox = dx - w / 2, oy = dy - h / 2;
+        if (ox <= 0 || oy <= 0) return true;
+        if (ox * ox + oy * oy <= r * r) return true;
+    }
+    return false;
+}
+
 const WORLD_WIDTH = 65040;
 const WORLD_HEIGHT = 36000;
 const LARGURA_VERDE = 18000; // Fase 1 (mapa verde — 10x maior)
@@ -234,6 +311,30 @@ const CIDADE_SPAWN_X = 60474, CIDADE_SPAWN_Y = 640;
 // senao o cliente detecta o portal e dispara transicao falsa (tela preta).
 // arena: 64180/460 = PONTO_CHEGADA de mapa_arena.js (portal fica em 63980/460, r=62).
 const PONTOS_TELEPORTE = { green: { x: 5000, y: 1200 }, desert: { x: 18300, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, arena: { x: 64180, y: 460 } };
+
+// ============ ARENA DE SOLARI (v1.32) ============
+// Portal ROXO na Cidade de Davahl (60488,236) → partida em grupo de até 4
+// jogadores com 10 rounds. Usa a MESMA geometria da Arena de Davahl (faixa
+// leste: x em [63800,65040), y em [0,1240)) mas como mapa próprio 'solari'.
+// Recompensas: leilão final com dado 1-100 (bônus +20 para a classe do item).
+const PORTAL_ROXO_SOLARI = { x: 60488, y: 236, r: 42 };
+const SOLARI_MAX_MEMBROS = 4;
+const SOLARI_ROUNDS = [
+    { round: 1,  danoMult: 1.00, hpMult: 1.00, total: 30  },
+    { round: 2,  danoMult: 1.20, hpMult: 1.30, total: 40  },
+    { round: 3,  danoMult: 1.25, hpMult: 1.35, total: 80  },
+    { round: 4,  danoMult: 1.30, hpMult: 1.40, total: 100 },
+    { round: 5,  danoMult: 1.35, hpMult: 1.45, total: 150, elite: true },
+    { round: 6,  danoMult: 1.45, hpMult: 1.50, total: 180 },
+    { round: 7,  danoMult: 1.55, hpMult: 1.60, total: 200 },
+    { round: 8,  danoMult: 2.25, hpMult: 2.50, total: 220 },
+    { round: 9,  danoMult: 3.25, hpMult: 3.00, total: 230 },
+    { round: 10, danoMult: 3.55, hpMult: 6.00, total: 500 }
+];
+// Tipos usados na arena (sem clamp de bioma, sem projéteis invisíveis e com
+// dano escalável): melee, zumbi, caveira_melee, escorpiao, assassino, ogro,
+// gargula, mamute. 2 tipos aleatórios por round.
+const SOLARI_TIPOS = ['melee', 'zumbi', 'caveira_melee', 'escorpiao', 'assassino', 'ogro', 'gargula', 'mamute'];
 
 const tabelaXp = {};
 for (let lvl = 1; lvl <= 60; lvl++) {
@@ -374,6 +475,7 @@ function alcanceAtaqueBasicoClasse(p) {
     if (p.classe === 'summoner') return 190;
     if (p.classe === 'curandeiro') return 200;
     if (p.classe === 'ladino') return 110;
+    if (p.classe === 'dronemaster') return (p.dmTitaAtivo ? 242 : 124); // +15% (108→124; Tita 210→242)
     return 300;
 }
 
@@ -877,7 +979,13 @@ function mapaPorCoordenada(x) {
 }
 
 function entidadeNoMapa(entidade, mapa) {
-    return entidade && mapaPorCoordenada(entidade.x) === mapa;
+    if (!entidade) return false;
+    // Monstros/entidades da Arena de Solari: só aparecem para membros da sessão.
+    if (entidade.solari === true) return mapa === 'solari';
+    const mp = mapaPorCoordenada(entidade.x);
+    // Cliente da Solari enxerga tudo que está na faixa da arena (x [63800,65040)).
+    if (mapa === 'solari') return mp === 'arena';
+    return mp === mapa;
 }
 
 function filtrarPorMapa(lista, mapa) {
@@ -995,11 +1103,11 @@ function limitesMapaJogador(cx, cy) {
 
 function colideMapaJogador(cx, cy) {
     if (cx < LARGURA_VERDE) return false;
-    if (cx < LARGURA_DESERTO) return !!(mapaDeserto && mapaDeserto.colideDeserto(cx, cy, PLAYER_COLLISION_RADIUS));
-    if (cx < LARGURA_PANTANO) return !!(mapaPantano && mapaPantano.colidePantano(cx, cy, PLAYER_COLLISION_RADIUS));
-    if (cx < FIM_CAVERNA) return !!(mapaCaverna && mapaCaverna.colideCaverna(cx, cy, PLAYER_COLLISION_RADIUS));
-    if (cx < FIM_CIDADE) return !!(mapaCidade && mapaCidade.colideCidade(cx, cy, PLAYER_COLLISION_RADIUS));
-    if (cx >= LARGURA_ARENA && cx < FIM_ARENA) return !!(mapaArena && mapaArena.colideArena(cx, cy, PLAYER_COLLISION_RADIUS));
+    if (cx < LARGURA_DESERTO) { if (mapaDeserto && mapaDeserto.colideDeserto(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('desert', cx, cy); }
+    if (cx < LARGURA_PANTANO) { if (mapaPantano && mapaPantano.colidePantano(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('pantano', cx, cy); }
+    if (cx < FIM_CAVERNA) { if (mapaCaverna && mapaCaverna.colideCaverna(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('caverna', cx, cy); }
+    if (cx < FIM_CIDADE) { if (mapaCidade && mapaCidade.colideCidade(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('cidade', cx, cy); }
+    if (cx >= LARGURA_ARENA && cx < FIM_ARENA) { if (mapaArena && mapaArena.colideArena(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('arena', cx, cy); }
     return true;
 }
 
@@ -1146,7 +1254,12 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
 
     if (slime.hp <= 0) {
         slime.hp = 0;
-        gerarDropNoChao(slime.x, slime.y, slime.tabelaDano, slime.baseHp || slime.maxHp || 0, false);
+        if (slime.solari) {
+            // Monstros da Arena de Solari: NÃO dropam item (recompensa só no leilão final).
+            if (solariSessao && solariSessao.vivos > 0) solariSessao.vivos--;
+        } else {
+            gerarDropNoChao(slime.x, slime.y, slime.tabelaDano, slime.baseHp || slime.maxHp || 0, false);
+        }
         distribuirXpMorte(slime);
     }
     return { dano: danoFinal, critico: calc.critico };
@@ -1300,7 +1413,10 @@ function aplicarDanoJogador(pid, origemX, origemY, dano) {
 
     jogador.hp -= dano;
     if (jogador.hp < 0) jogador.hp = 0;
-    if (jogador.hp <= 0) tentarRessurreicaoAutomatica(pid);
+    if (jogador.hp <= 0) {
+        solariMarcaMorte(pid);
+        tentarRessurreicaoAutomatica(pid);
+    }
     // DRONEMASTER — PROTOCOLO TITÃ: morrendo na forma Robô NÃO morre definitivamente.
     // Cancela a forma, "revive" com 50% da vida máxima e entra em CD de 5 minutos.
     if (jogador.hp <= 0 && jogador.classe === 'dronemaster' && jogador.dmTitaAtivo && jogador.dmTitaReviveCooldown <= Date.now()) {
@@ -1427,6 +1543,628 @@ function adicionarAoInventario(pid, item) {
     else p.inventario.mochila.push(item);
 }
 
+// ============================================================================
+// HELPERS DO SISTEMA DE UPGRADE (NPC FERREIRO)
+// Localização de item por instância (id único + uid = itemInstanceId).
+// O item pode estar na mochila OU equipado num slot — nunca nos dois ao mesmo
+// tempo (equipar move entre mochila e slots).
+// ============================================================================
+function localizarItemInstancia(p, id, uid) {
+    if (!p || !p.inventario || id === undefined || id === null) return null;
+    let res = null;
+    if (Array.isArray(p.inventario.mochila)) {
+        for (let i = 0; i < p.inventario.mochila.length; i++) {
+            let it = p.inventario.mochila[i];
+            if (!it || it.tipo === 'vazio') continue;
+            if (String(it.id) === String(id) && (!uid || it.uid === uid)) {
+                res = { item: it, onde: 'mochila' };
+                break;
+            }
+        }
+    }
+    if (!res && p.inventario.slots) {
+        for (let ch in p.inventario.slots) {
+            let it = p.inventario.slots[ch];
+            if (!it) continue;
+            if (String(it.id) === String(id) && (!uid || it.uid === uid)) {
+                res = { item: it, onde: ch };
+                break;
+            }
+        }
+    }
+    return res;
+}
+
+function contarPedra(p, pedra) {
+    if (!p || !p.inventario || !Array.isArray(p.inventario.mochila)) return 0;
+    let total = 0;
+    for (let i = 0; i < p.inventario.mochila.length; i++) {
+        let it = p.inventario.mochila[i];
+        if (it && it.tipo === 'pedra' && it.pedra === pedra) total += (it.quantidade || 1);
+    }
+    return total;
+}
+
+function consumirPedra(p, pedra, qtd) {
+    if (!p || !p.inventario || !Array.isArray(p.inventario.mochila)) return 0;
+    let restante = qtd;
+    for (let i = p.inventario.mochila.length - 1; i >= 0 && restante > 0; i--) {
+        let it = p.inventario.mochila[i];
+        if (it && it.tipo === 'pedra' && it.pedra === pedra) {
+            let disp = it.quantidade || 1;
+            if (disp <= restante) {
+                p.inventario.mochila.splice(i, 1);
+                restante -= disp;
+            } else {
+                it.quantidade = disp - restante;
+                restante = 0;
+            }
+        }
+    }
+    return qtd - restante;
+}
+
+function adicionarPedra(pid, pedra, qtd) {
+    let p = players[pid];
+    if (!p) return;
+    if (!p.inventario) p.inventario = inventarioPadrao();
+    if (!p.inventario.mochila) p.inventario.mochila = [];
+    for (let i = 0; i < p.inventario.mochila.length; i++) {
+        let it = p.inventario.mochila[i];
+        if (it && it.tipo === 'pedra' && it.pedra === pedra) {
+            it.quantidade = (it.quantidade || 1) + qtd;
+            return;
+        }
+    }
+    if (ferreiroMod) {
+        let novoItem = ferreiroMod.novoItemPedra(pedra, qtd);
+        if (novoItem) p.inventario.mochila.push(novoItem);
+    }
+}
+
+// ============================================================================
+// ARENA DE SOLARI — partida em grupo (recrutamento → rounds → leilão)
+// ============================================================================
+function solariEmSessao(pid) {
+    if (!solariSessao || !pid) return null;
+    const mi = solariSessao.membros.findIndex(function (m) { return m.id === pid; });
+    return mi === -1 ? null : solariSessao.membros[mi];
+}
+
+function solariEnviarA(pid, tipo, dados) {
+    const wsS = playerSockets[pid];
+    if (wsS && wsS.readyState === WebSocket.OPEN) wsS.send(JSON.stringify(Object.assign({ type: tipo }, dados || {})));
+}
+
+function solariBroadcast(tipo, dados) {
+    if (!solariSessao) return;
+    solariSessao.membros.forEach(function (m) { solariEnviarA(m.id, tipo, dados); });
+}
+
+function solariEstado() {
+    const s = solariSessao;
+    if (!s) return null;
+    return {
+        fase: s.fase,
+        round: s.round,
+        liderId: s.liderId,
+        membros: s.membros.map(function (m) {
+            const p = players[m.id];
+            return { id: m.id, nick: p ? p.nome : '?', lvl: p ? p.level : 1, classe: p ? p.classe : '?', ok: !!m.ok, vivo: !!p && p.hp > 0 };
+        })
+    };
+}
+
+function solariEnviarEstado() { solariBroadcast('solari_estado', solariEstado()); }
+
+function solariCriarSessao(pid) {
+    solariSessao = {
+        liderId: pid,
+        fase: 'recrutando',
+        round: 0,
+        membros: [{ id: pid, ok: false }],
+        convites: {},
+        spawned: 0,
+        vivos: 0,
+        eliteSpawnou: false,
+        tiposRound: [],
+        rodandoInicio: 0,
+        proximoSpawnEm: 0,
+        contagemFimEm: 0,
+        contagemUltimoSeg: -1,
+        transicaoFimEm: 0,
+        transicaoUltimoSeg: -1,
+        ultimaAtividade: Date.now(),
+        todosMortosDesde: 0,
+        fimEm: 0,
+        leilao: null
+    };
+}
+
+function solariAbrir(pid) {
+    const p = players[pid];
+    if (!p) return;
+    // Sessão órfã (líder deslogou/saiu): descarta para um novo grupo poder nascer
+    if (solariSessao && solariSessao.fase === 'recrutando' && solariSessao.liderId !== pid && !players[solariSessao.liderId]) {
+        solariEncerrarSessao();
+    }
+    console.log('[SOLARI] abrir por ' + p.nome + ' (' + pid + ') sessao=' + (solariSessao ? solariSessao.liderId : 'nenhuma'));
+    if (solariEmSessao(pid)) { solariSessao.ultimaAtividade = Date.now(); solariEnviarA(pid, 'solari_painel', solariEstado()); return; }
+    if (solariSessao && solariSessao.fase !== 'recrutando') {
+        solariEnviarA(pid, 'solari_painel', { bloqueado: true, mensagem: 'A Arena de Solari já está em andamento. Volte depois!' });
+        return;
+    }
+    if (!solariSessao) {
+        solariCriarSessao(pid);
+    } else {
+        if (solariSessao.membros.length >= SOLARI_MAX_MEMBROS) {
+            solariEnviarA(pid, 'solari_painel', { bloqueado: true, mensagem: 'O grupo da Arena está lotado (máx 4).' });
+            return;
+        }
+    }
+    solariSessao.ultimaAtividade = Date.now();
+    solariEnviarA(pid, 'solari_painel', solariEstado());
+    solariEnviarEstado();
+}
+
+function solariConvidar(dePid, alvoPid) {
+    const s = solariSessao;
+    if (!s || s.fase !== 'recrutando') return false;
+    if (s.liderId !== dePid) return false;
+    if (s.membros.length >= SOLARI_MAX_MEMBROS) return false;
+    if (solariEmSessao(alvoPid)) return false;
+    const alvo = players[alvoPid];
+    if (!alvo) return false;
+    if (alvo.hp <= 0) return false;
+    const cx = alvo.x + PLAYER_OFFSET_X, cy = alvo.y + PLAYER_OFFSET_Y;
+    if (Math.hypot(cx - PORTAL_ROXO_SOLARI.x, cy - PORTAL_ROXO_SOLARI.y) > 460) return false;
+    const deP = players[dePid];
+    s.convites[alvoPid] = { deId: dePid, deNick: deP ? deP.nome : '?', expiraEm: Date.now() + 20000 };
+    s.ultimaAtividade = Date.now();
+    solariEnviarA(alvoPid, 'solari_convite', { deId: dePid, deNick: s.convites[alvoPid].deNick });
+    // NÃO envia solari_painel junto — o cliente apagaria o modal do convite.
+    // O painel chega quando o convidado ACEITAR.
+    return true;
+}
+
+function solariAceitar(pid, deId) {
+    const s = solariSessao;
+    if (!s || s.fase !== 'recrutando') return false;
+    if (solariEmSessao(pid)) return false;
+    const convite = s.convites && s.convites[pid];
+    if (!convite || convite.deId !== deId || convite.expiraEm < Date.now()) return false;
+    if (s.membros.length >= SOLARI_MAX_MEMBROS) return false;
+    delete s.convites[pid];
+    s.membros.push({ id: pid, ok: false });
+    s.ultimaAtividade = Date.now();
+    solariEnviarA(pid, 'solari_painel', solariEstado());
+    solariEnviarEstado();
+    return true;
+}
+
+function solariRecusar(pid, deId) {
+    const s = solariSessao;
+    if (!s || !s.convites) return false;
+    const convite = s.convites[pid];
+    if (convite && convite.deId === deId) delete s.convites[pid];
+    return true;
+}
+
+function solariDarOk(pid) {
+    const s = solariSessao;
+    const m = s ? solariEmSessao(pid) : null;
+    if (!s || !m || s.fase !== 'recrutando') return;
+    m.ok = !m.ok;
+    s.ultimaAtividade = Date.now();
+    solariEnviarEstado();
+}
+
+function solariTeleportarParaArena(pid) {
+    const p = players[pid];
+    if (!p) return;
+    const destino = encontrarPosicaoJogadorSegura(p, 64180 + (Math.random() * 40 - 20), 460 + (Math.random() * 40 - 20));
+    p.x = destino ? destino.x : 64180;
+    p.y = destino ? destino.y : 460;
+    p.mapaTransicaoAte = Date.now() + 500;
+    solariEnviarA(pid, 'teleporte_confirmado', { mapa: 'solari', x: p.x, y: p.y });
+}
+
+function solariIniciar(pid) {
+    const s = solariSessao;
+    if (!s || s.fase !== 'recrutando') return false;
+    if (s.liderId !== pid) return false;
+    if (s.membros.length < 1) return false;
+    const todosOk = s.membros.every(function (m) { return m.ok; });
+    if (!todosOk) return false;
+    s.fase = 'contagem';
+    s.contagemFimEm = Date.now() + 10000;
+    s.contagemUltimoSeg = -1;
+    s.membros.forEach(function (m) { if (players[m.id]) solariTeleportarParaArena(m.id); });
+    solariEnviarEstado();
+    solariBroadcast('solari_contagem', { seg: 10, mensagem: '' });
+    solariBroadcast('solari_banner', { texto: 'ARENA DE SOLARI', cor: '#c77dff', fim: false });
+    return true;
+}
+
+function solariEscolherDoisTipos() {
+    const t1 = SOLARI_TIPOS[Math.floor(Math.random() * SOLARI_TIPOS.length)];
+    let t2 = t1;
+    while (t2 === t1) t2 = SOLARI_TIPOS[Math.floor(Math.random() * SOLARI_TIPOS.length)];
+    return [t1, t2];
+}
+
+function solariPosAleatoria() {
+    const quad = Math.floor(Math.random() * 4);
+    for (let tent = 0; tent < 24; tent++) {
+        let x, y;
+        if (quad === 0) { x = 63960 + Math.random() * 460; y = 160 + Math.random() * 320; }
+        else if (quad === 1) { x = 64860 - Math.random() * 460; y = 160 + Math.random() * 320; }
+        else if (quad === 2) { x = 63960 + Math.random() * 460; y = 1120 - Math.random() * 320; }
+        else { x = 64860 - Math.random() * 460; y = 1120 - Math.random() * 320; }
+        if (!mapaArena.colideArena(x, y, 12)) return { x: Math.round(x), y: Math.round(y) };
+    }
+    return { x: 64400, y: 620 };
+}
+
+function solariSpawnarUm(s, conf) {
+    const tipo = s.tiposRound[Math.random() < 0.5 ? 0 : 1];
+    const confBase = (spawnsAdmin && spawnsAdmin.TIPOS_MONSTROS[tipo]) || { aggroRange: 320, attackRange: 55, dano: 12, baseHp: 60, arquetipo: null };
+    const elite = !!(conf.elite && !s.eliteSpawnou);
+    if (elite) s.eliteSpawnou = true;
+    const hpBase = Math.max(10, Math.round((confBase.baseHp || 60) * conf.hpMult));
+    const danoBase = Math.max(1, Math.round((confBase.dano || 12) * conf.danoMult));
+    const hp = elite ? hpBase * 3 : hpBase;
+    const dano = elite ? danoBase * 3 : danoBase;
+    const pos = solariPosAleatoria();
+    const alvo = (function () {
+        const vivos = s.membros.filter(function (m) { return players[m.id] && players[m.id].hp > 0; });
+        return vivos.length ? vivos[Math.floor(Math.random() * vivos.length)].id : null;
+    })();
+    const mob = {
+        id: 'solari_' + (solariCounter++) + '_' + Date.now(),
+        tipo: tipo,
+        solari: true,
+        elite: elite,
+        escala: elite ? 1.5 : 1,
+        x: pos.x, y: pos.y,
+        origemX: pos.x, origemY: pos.y,
+        hp: hp, maxHp: hp,
+        targetId: alvo,
+        respawnTimer: 0,
+        attackCooldown: 0,
+        stunTimer: 0,
+        slowTimer: 0,
+        dx: (Math.random() - 0.5) * 0.7,
+        dy: (Math.random() - 0.5) * 0.7,
+        patrolTimer: 0,
+        patrulhaFase: Math.random() * Math.PI * 2,
+        tabelaDano: {},
+        aggroRange: Math.round((confBase.aggroRange || 320) * 1.25),
+        attackRange: confBase.attackRange || 55,
+        dano: dano,
+        nivelMinimo: 1,
+        arquetipo: confBase.arquetipo || null,
+        velocidade: confBase.velocidade || 2.2,
+        distanciaPreferida: confBase.distanciaPreferida,
+        skillRange: confBase.skillRange || null,
+        skillCooldown: Math.floor(30 + Math.random() * 90),
+        skillCooldownMax: confBase.skillCooldown || 200,
+        skillCharging: false,
+        skillChargeTimer: 0,
+        skillChargeMax: confBase.skillChargeMax || 20,
+        skillAim: null,
+        fleaDistance: null,
+        fleeDistance: confBase.fleeDistance || null,
+        poisonDuration: confBase.poisonDuration || 400,
+        ignoreMapCollision: !!confBase.ignoreMapCollision,
+        imuneControle: !!confBase.imuneControle,
+        resistenciaControle: confBase.resistenciaControle || 0,
+        invisivel: false,
+        efeitos: [],
+        flagPassivo: false,
+        flagAgressivo: true,
+        isHorda: false,
+        retornandoAoLar: false,
+        tauntTimer: 0,
+        tauntId: null,
+        fugindo: false
+    };
+    slimes.push(mob);
+    s.spawned++;
+    s.vivos++;
+}
+
+function solariLimparMonstros() {
+    for (let i = slimes.length - 1; i >= 0; i--) {
+        if (slimes[i] && slimes[i].solari) slimes.splice(i, 1);
+    }
+    const s = solariSessao;
+    if (s) s.vivos = 0;
+}
+
+// Cada round sorteia 5 itens entre os membros ANTES dos monstros aparecerem.
+function solariIniciarSorteio() {
+    const s = solariSessao;
+    if (!s) return;
+    const classes = s.membros.map(function (m) { const p = players[m.id]; return p ? p.classe : 'guerreiro'; });
+    const itens = [];
+    for (let i = 0; i < 5; i++) {
+        const classe = classes[Math.floor(Math.random() * classes.length)];
+        if (equipamentos && typeof equipamentos.gerarEquipamento === 'function') {
+            const item = equipamentos.gerarEquipamento(classe);
+            if (item) itens.push(item);
+        }
+    }
+    if (!itens.length && equipamentos && typeof equipamentos.gerarEquipamento === 'function') {
+        for (let i = 0; i < 5; i++) {
+            const item = equipamentos.gerarEquipamento('guerreiro');
+            if (item) itens.push(item);
+        }
+    }
+    const conf = SOLARI_ROUNDS[s.round - 1];
+    if (!conf) { solariEncerrarSessao(); return; }
+    s.tiposRound = solariEscolherDoisTipos();
+    s.fase = 'leilao';
+    s.leilao = { itens: itens, indice: 0, rolagens: {}, ultimaRolagemEm: 0, itemAbertoEm: Date.now(), estado: 'aberto', vencedorId: undefined };
+    solariBroadcast('solari_round', { round: s.round, total: conf.total, elite: !!conf.elite });
+    solariBroadcast('solari_leilao', { fase: 'abrir', indice: 1, total: itens.length, item: itens[0], classeBonus: true, round: s.round, roundsTotal: 10 });
+    solariBroadcast('solari_banner', { texto: '🎲 SORTEIO DA RODADA ' + s.round, cor: '#ffd700', fim: false });
+    console.log('[SOLARI] round=' + s.round + ' sorteio=' + itens.length + ' itens (combate só depois)');
+    solariEnviarEstado();
+}
+
+// Combate da rodada começa só DEPOIS do sorteio dos 5 itens.
+function solariComecarCombate() {
+    const s = solariSessao;
+    if (!s) return;
+    const conf = SOLARI_ROUNDS[s.round - 1];
+    s.tiposRound = s.tiposRound || solariEscolherDoisTipos();
+    s.spawned = 0;
+    s.vivos = 0;
+    s.eliteSpawnou = false;
+    s.rodandoInicio = Date.now();
+    s.proximoSpawnEm = Date.now() + 800;
+    s.fase = 'rodando';
+    solariBroadcast('solari_round', { round: s.round, total: conf ? conf.total : 0, elite: !!(conf && conf.elite) });
+    solariBroadcast('solari_banner', { texto: '⚔️ ROUND ' + s.round + ' — OS MONSTROS ESTÃO CHEGANDO!', cor: '#ff7b00', fim: false });
+    console.log('[SOLARI] round=' + s.round + ' combate iniciado (' + (conf ? conf.total : 0) + ' monstros)');
+    solariEnviarEstado();
+}
+
+function solariMarcaMorte(pid) {
+    const m = solariEmSessao(pid);
+    if (!m) return;
+    const p = players[pid];
+    if (p && p.hp <= 0 && !m.mortoEm) {
+        m.mortoEm = Date.now();
+        m.morreuX = p.x;
+        m.morreuY = p.y;
+    }
+}
+
+function solariReviveNoLocal(pid) {
+    const m = solariEmSessao(pid);
+    if (m) { m.mortoEm = 0; m.morreuX = 0; m.morreuY = 0; }
+}
+
+function solariRemoverMembro(pid, motivo) {
+    const s = solariSessao;
+    if (!s) return false;
+    const idx = s.membros.findIndex(function (m) { return m.id === pid; });
+    if (idx === -1) return false;
+    s.membros.splice(idx, 1);
+    if (s.convites && s.convites[pid]) delete s.convites[pid];
+    if (s.liderId === pid) s.liderId = s.membros.length ? s.membros[0].id : null;
+    if (!s.membros.length) {
+        solariEncerrarSessao();
+        return true;
+    }
+    solariEnviarEstado();
+    return true;
+}
+
+function solariEncerrarSessao() {
+    const s = solariSessao;
+    if (!s) return;
+    for (let i = slimes.length - 1; i >= 0; i--) {
+        if (slimes[i] && slimes[i].solari) slimes.splice(i, 1);
+    }
+    solariSessao = null;
+}
+
+function solariVoltarCidade(pid) {
+    const p = players[pid];
+    if (!p) return;
+    p.hp = p.maxHp;
+    p.estamina = 100;
+    p.mana = p.maxMp;
+    p.stunTimer = 0;
+    p.efeitos = [];
+    const dest = encontrarPosicaoJogadorSegura(p, CIDADE_SPAWN_X, CIDADE_SPAWN_Y);
+    p.x = dest ? dest.x : CIDADE_SPAWN_X;
+    p.y = dest ? dest.y : CIDADE_SPAWN_Y;
+    solariEnviarA(pid, 'respawn_confirmado', { mapa: 'cidade', x: p.x, y: p.y });
+}
+
+// Lógica da partida rodada a cada tick do servidor (50ms)
+function atualizarSolari() {
+    const s = solariSessao;
+    if (!s) return;
+    const agora = Date.now();
+
+    if (s.convites) {
+        for (const cid in s.convites) {
+            if (s.convites[cid].expiraEm < agora) delete s.convites[cid];
+        }
+    }
+
+    // Morte: janela de 20s p/ ser revivido no local; senão volta pra cidade.
+    if (s.membros.length) {
+        const copia = s.membros.slice();
+        for (const m of copia) {
+            const p = players[m.id];
+            if (m.mortoEm) {
+                if (p && p.hp > 0) { m.mortoEm = 0; m.morreuX = 0; m.morreuY = 0; }
+                else if (agora - m.mortoEm >= 20000) {
+                    solariVoltarCidade(m.id);
+                    solariRemoverMembro(m.id, 'tempo');
+                }
+            }
+        }
+        if (!solariSessao) return;
+    }
+
+    // Contagem regressiva de entrada (10s) → START.
+    if (s.fase === 'contagem') {
+        const restante = Math.max(0, Math.ceil((s.contagemFimEm - agora) / 1000));
+        if (restante !== s.contagemUltimoSeg) {
+            s.contagemUltimoSeg = restante;
+            solariBroadcast('solari_contagem', { seg: restante, mensagem: '' });
+        }
+        if (agora >= s.contagemFimEm) {
+            s.fase = 'leilao';
+            s.round = 1;
+            solariBroadcast('solari_contagem', { seg: 0, mensagem: '' });
+            solariIniciarSorteio();
+        }
+        return;
+    }
+
+    // Rodando: nasce 1 monstro a cada 0.5s (0.3s com 10s de arena, 0.2s com 30s).
+    if (s.fase === 'rodando') {
+        const conf = SOLARI_ROUNDS[s.round - 1];
+        if (conf) {
+            const tempoRodando = agora - (s.rodandoInicio || agora);
+            let intervalo = 500;
+            if (tempoRodando >= 30000) intervalo = 200;
+            else if (tempoRodando >= 10000) intervalo = 300;
+            if (s.spawned < conf.total && agora >= s.proximoSpawnEm) {
+                s.proximoSpawnEm = agora + intervalo;
+                solariSpawnarUm(s, conf);
+            }
+            // Reconta os slimes Solari realmente vivos a cada tick: o round só é
+            // dado como limpo quando NÃO resta nenhum (não depende só do contador).
+            let vivosReais = 0;
+            for (let i = 0; i < slimes.length; i++) {
+                if (slimes[i] && slimes[i].solari && slimes[i].hp > 0) vivosReais++;
+            }
+            s.vivos = vivosReais;
+            const roundCompleto = s.spawned >= conf.total && vivosReais <= 0;
+            // Tempo máximo por round: se estourar, os monstros restantes morrem e o
+            // round é dado como limpo (a partida segue nos 10 rounds).
+            const estourouTempo = tempoRodando >= 120000;
+            if (roundCompleto || estourouTempo) {
+                if (estourouTempo) solariLimparMonstros();
+                if (s.round >= 10) {
+                    s.fase = 'fim';
+                    s.fimEm = agora + 6000;
+                    solariBroadcast('solari_banner', { texto: '🏆 ARENA DE SOLARI CONCLUÍDA!', cor: '#ffd700', fim: true });
+                    solariEnviarEstado();
+                } else {
+                    s.fase = 'transicao';
+                    s.transicaoFimEm = agora + 10000;
+                    s.transicaoUltimoSeg = -1;
+                    solariBroadcast('solari_contagem', { seg: 10, mensagem: 'PARABÉNS! BORA PRO PRÓXIMO ROUND!' });
+                    solariEnviarEstado();
+                }
+            }
+        }
+        return;
+    }
+
+    // Transição entre rounds (10s com a mensagem piscando).
+    if (s.fase === 'transicao') {
+        const restante = Math.max(0, Math.ceil((s.transicaoFimEm - agora) / 1000));
+        if (restante !== s.transicaoUltimoSeg) {
+            s.transicaoUltimoSeg = restante;
+            solariBroadcast('solari_contagem', { seg: restante, mensagem: 'PARABÉNS! BORA PRO PRÓXIMO ROUND!' });
+        }
+        if (agora >= s.transicaoFimEm) {
+            s.round++;
+            solariIniciarSorteio();
+        }
+        return;
+    }
+
+    // Sorteio da rodada: 5 itens, dados 1-100, +20 para a classe do item,
+    // doação se ninguém rolar. Quando acaba → os monstros da rodada aparecem.
+    if (s.fase === 'leilao' && s.leilao) {
+        const L = s.leilao;
+        const itemAtual = L.itens[L.indice];
+        if (!itemAtual) { solariComecarCombate(); return; }
+        if (L.estado === 'aberto') {
+            const todosRolaram = s.membros.every(function (m) { return L.rolagens[m.id] !== undefined; });
+            const fimItem = todosRolaram ? (L.ultimaRolagemEm + 2200) : (L.itemAbertoEm + 30000);
+            if (agora >= fimItem) {
+                let vencedor = null, maior = -1;
+                for (const m of s.membros) {
+                    const dado = L.rolagens[m.id];
+                    if (dado === undefined) continue;
+                    const p = players[m.id];
+                    let efetivo = dado;
+                    if (itemAtual.classe && p && p.classe === itemAtual.classe) efetivo += 20;
+                    if (efetivo > maior) { maior = efetivo; vencedor = m.id; }
+                }
+                if (!vencedor) {
+                    const sorteado = s.membros[Math.floor(Math.random() * s.membros.length)];
+                    vencedor = sorteado ? sorteado.id : null;
+                }
+                L.vencedorId = vencedor;
+                L.doado = !s.membros.some(function (m) { return L.rolagens[m.id] !== undefined; });
+                if (vencedor && itemAtual) {
+                    adicionarAoInventario(vencedor, itemAtual);
+                    syncInventario(vencedor);
+                }
+                const nick = vencedor && players[vencedor] ? players[vencedor].nome : '?';
+                L.estado = 'resultado';
+                L.estadoEm = agora;
+                solariBroadcast('solari_leilao', {
+                    fase: 'resultado',
+                    indice: L.indice + 1,
+                    total: L.itens.length,
+                    item: itemAtual,
+                    rolagens: L.rolagens,
+                    vencedorId: vencedor,
+                    vencedorNick: nick,
+                    doado: !!L.doado,
+                    round: s.round,
+                    roundsTotal: 10
+                });
+            }
+        } else if (L.estado === 'resultado') {
+            if (agora - L.estadoEm >= 7000) {
+                L.indice++;
+                if (L.indice >= L.itens.length) {
+                    // Sorteio da rodada terminou → agora sim os monstros aparecem.
+                    solariComecarCombate();
+                } else {
+                    L.estado = 'aberto';
+                    L.rolagens = {};
+                    L.ultimaRolagemEm = 0;
+                    L.itemAbertoEm = agora;
+                    L.vencedorId = undefined;
+                    solariBroadcast('solari_leilao', { fase: 'abrir', indice: L.indice + 1, total: L.itens.length, item: L.itens[L.indice], classeBonus: true, round: s.round, roundsTotal: 10 });
+                }
+            }
+        }
+        return;
+    }
+
+    // Fim: volta todos pra cidade e encerra a sessão.
+    if (s.fase === 'fim') {
+        if (agora >= s.fimEm) {
+            s.membros.forEach(function (m) { solariVoltarCidade(m.id); });
+            solariEncerrarSessao();
+        }
+        return;
+    }
+
+    // Recrutando: sessão ociosa encerra após 3 minutos.
+    if (s.fase === 'recrutando' && agora - s.ultimaAtividade > 180000) {
+        solariEncerrarSessao();
+    }
+}
+
 function cancelarTrade(pid) {
     let p = players[pid];
     if (!p || !p.tradeId) return;
@@ -1480,10 +2218,19 @@ function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
             return;
         }
         if (tentarRessurreicaoAutomatica(defId)) return;
+        // Arena de Solari: morreu por PvP → sai da partida de forma limpa
+        if (solariEmSessao(defId)) {
+            solariMarcaMorte(defId);
+            solariRemoverMembro(defId, 'pvp');
+        }
         p2.hp = p2.maxHp;
         const posicaoRessurgimento = encontrarPosicaoJogadorSegura(p2, CIDADE_SPAWN_X, CIDADE_SPAWN_Y);
         p2.x = posicaoRessurgimento ? posicaoRessurgimento.x : CIDADE_SPAWN_X;
         p2.y = posicaoRessurgimento ? posicaoRessurgimento.y : CIDADE_SPAWN_Y;
+        const wsPvp = playerSockets[defId];
+        if (wsPvp && wsPvp.readyState === WebSocket.OPEN) {
+            wsPvp.send(JSON.stringify({ type: 'respawn_confirmado', mapa: 'cidade', x: p2.x, y: p2.y }));
+        }
     }
 }
 
@@ -1950,10 +2697,116 @@ function moverMonstroEspecial(slime, dx, dy, velocidade, fatorLentidao) {
     const passo = velocidade * fatorLentidao;
     const proximoX = slime.x + (dx / distancia) * passo;
     const proximoY = slime.y + (dy / distancia) * passo;
-    if (slime.ignoreMapCollision || podeAndar(proximoX, proximoY)) {
+    if (slime.ignoreMapCollision || (podeAndar(proximoX, proximoY) && !petBloqueiaMonstro(slime, proximoX, proximoY))) {
         slime.x = proximoX;
         slime.y = proximoY;
     }
+}
+
+// ===== COLISÃO DOS PETs/LACAIOS (Ogro/Golem do Summoner) =====
+// O lacaio respeita os grids de colisão de cada bioma + objetos do mapa
+// (como o jogador) e o corpo dos inimigos (slimes/bosses).
+const PET_COLLISION_RADIUS = 24;
+const PET_DISTANCIA_INIMIGO = 30;      // distância mínima do corpo dos slimes
+const PET_DISTANCIA_BOSS = 34;         // bosses são maiores
+
+function posicaoPetValida(ox, oy) {
+    if (!Number.isFinite(ox) || !Number.isFinite(oy)) return false;
+    if (ox < 0 || oy < 0) return false;
+    if (ox < LARGURA_VERDE) return oy < ALTO_VERDE;
+    if (ox < LARGURA_DESERTO) {
+        if (oy >= ALTO_DESERTO) return false;
+        if (mapaDeserto && mapaDeserto.colideDeserto(ox, oy, PET_COLLISION_RADIUS)) return false;
+        return !colisaoObjetosDoMapa('desert', ox, oy);
+    }
+    if (ox < LARGURA_PANTANO) {
+        if (oy >= ALTO_PANTANO) return false;
+        if (mapaPantano && mapaPantano.colidePantano(ox, oy, PET_COLLISION_RADIUS)) return false;
+        return !colisaoObjetosDoMapa('pantano', ox, oy);
+    }
+    if (ox < FIM_CAVERNA) {
+        if (oy >= ALTO_CAVERNA) return false;
+        if (mapaCaverna && mapaCaverna.colideCaverna(ox, oy, PET_COLLISION_RADIUS)) return false;
+        return !colisaoObjetosDoMapa('caverna', ox, oy);
+    }
+    if (ox < FIM_CIDADE) {
+        if (oy >= ALTO_CIDADE) return false;
+        if (mapaCidade && mapaCidade.colideCidade(ox, oy, PET_COLLISION_RADIUS)) return false;
+        return !colisaoObjetosDoMapa('cidade', ox, oy);
+    }
+    if (ox >= LARGURA_ARENA && ox < FIM_ARENA) {
+        if (oy >= ALTO_ARENA) return false;
+        if (mapaArena && mapaArena.colideArena(ox, oy, PET_COLLISION_RADIUS)) return false;
+        return !colisaoObjetosDoMapa('arena', ox, oy);
+    }
+    return false;
+}
+
+// O corpo dos inimigos bloqueia o pet (ignorarId = slime/boss que ele já está atacando)
+function petColideComInimigo(ox, oy, ignorarId) {
+    for (let i = 0; i < slimes.length; i++) {
+        const s = slimes[i];
+        if (s.hp <= 0 || (ignorarId && s.id === ignorarId)) continue;
+        const dx = s.x - ox, dy = s.y - oy;
+        if (dx * dx + dy * dy < PET_DISTANCIA_INIMIGO * PET_DISTANCIA_INIMIGO) return true;
+    }
+    for (let i = 0; i < bosses.length; i++) {
+        const b = bosses[i];
+        if (b.hp <= 0 || (ignorarId && b.id === ignorarId)) continue;
+        const dx2 = b.x - ox, dy2 = b.y - oy;
+        if (dx2 * dx2 + dy2 * dy2 < PET_DISTANCIA_BOSS * PET_DISTANCIA_BOSS) return true;
+    }
+    return false;
+}
+
+// Move o pet com colisão de Mapa + Inimigos (desliza nas paredes em vez de travar).
+// Se ficar totalmente bloqueado por ~1,25s (ex.: atrás de uma multidão de slimes),
+// libera o atravessamento de inimigos por 1s para nunca ficar preso — mas a colisão
+// com o MAPA (paredes/obstáculos) é SEMPRE respeitada.
+function moverPetComColisao(ogro, dx, dy, passo, ignorarInimigoId) {
+    const dist = Math.hypot(dx, dy) || 1;
+    const nx = (dx / dist) * passo;
+    const ny = (dy / dist) * passo;
+    const atravessar = (ogro.atravessarInimigos || 0) > 0;
+    if (posicaoPetValida(ogro.x + nx, ogro.y + ny) && (atravessar || !petColideComInimigo(ogro.x + nx, ogro.y + ny, ignorarInimigoId))) {
+        ogro.x += nx; ogro.y += ny;
+        ogro.petBloqueioTicks = 0;
+        if (atravessar) ogro.atravessarInimigos--;
+        return;
+    }
+    if (nx !== 0 && posicaoPetValida(ogro.x + nx, ogro.y) && (atravessar || !petColideComInimigo(ogro.x + nx, ogro.y, ignorarInimigoId))) {
+        ogro.x += nx;
+        ogro.petBloqueioTicks = 0;
+        if (atravessar) ogro.atravessarInimigos--;
+        return;
+    }
+    if (ny !== 0 && posicaoPetValida(ogro.x, ogro.y + ny) && (atravessar || !petColideComInimigo(ogro.x, ogro.y + ny, ignorarInimigoId))) {
+        ogro.y += ny;
+        ogro.petBloqueioTicks = 0;
+        if (atravessar) ogro.atravessarInimigos--;
+        return;
+    }
+    ogro.petBloqueioTicks = (ogro.petBloqueioTicks || 0) + 1;
+    if (ogro.petBloqueioTicks > 25) {
+        ogro.petBloqueioTicks = 0;
+        ogro.atravessarInimigos = 20; // atravessa a multidão por ~1s
+    }
+}
+
+// O pet bloqueia monstros (slimes) que tentem atravessar o corpo dele
+function petBloqueiaMonstro(slime, proximoX, proximoY) {
+    for (let pid in lacaios) {
+        const ogro = lacaios[pid];
+        if (!ogro) continue;
+        if (slime.targetId === pid) continue; // monstro que já está atacando o pet não é bloqueado
+        const somaRaios = PET_COLLISION_RADIUS + (slime.raioColisao || 16);
+        // Se o monstro já está DENTRO do corpo (ex.: nasceu por cima), deixa ele sair — nunca prende.
+        const dxAtual = slime.x - ogro.x, dyAtual = slime.y - ogro.y;
+        if (dxAtual * dxAtual + dyAtual * dyAtual < somaRaios * somaRaios) continue;
+        const dx = proximoX - ogro.x, dy = proximoY - ogro.y;
+        if (dx * dx + dy * dy < somaRaios * somaRaios) return true;
+    }
+    return false;
 }
 
 function dispararProjetilMonstro(slime, alvo, tipo, dano, velocidade, vida) {
@@ -2111,7 +2964,7 @@ function dispararSkillZumbi(slime) {
         mapa: mapaPorCoordenada(slime.x),
         tipo: 'fedido',
         raio: 9,
-        dano: 16,
+        dano: slime.dano || 16,
         petAlvo: petAlvoZumbi,
         ownerMonstro: slime.id
     });
@@ -2159,7 +3012,7 @@ setInterval(() => {
         if (player.giroDescontroladoAtivo && (!player.giroDescontroladoExpiresAt || Date.now() < player.giroDescontroladoExpiresAt)) {
             const tx = player.x + 12;
             const ty = player.y + 16;
-            const danoGiro = dmgSkill(player, 'giro_descontrolado', 18);
+            const danoGiro = Math.round(dmgSkill(player, 'giro_descontrolado', 18) * 0.2); // v-cXX: dano reduzido em 80%
             slimes.forEach(slime => {
                 if (slime.hp > 0 && Math.hypot(slime.x - tx, slime.y - ty) < 90) {
                     registrarDanoMonstro(slime, pid, danoGiro, 'player');
@@ -2421,15 +3274,16 @@ setInterval(() => {
                     const distDonoRobo = Math.hypot(player.dmDroneX - pCx, player.dmDroneY - pCy);
                     const distRobo = Math.hypot(alvoRobo.x - player.dmDroneX, alvoRobo.y - player.dmDroneY);
                     if (distDonoRobo > DRONE_MAX_DISTANCE_FROM_OWNER) {
-                        // ultrapassou o limite: abandona o alvo e volta para o DroneMaster
+                        // ultrapassou o limite: abandona o alvo e volta rápido para o DroneMaster
                         const angV = Math.atan2(pCy - player.dmDroneY, pCx - player.dmDroneX);
-                        player.dmDroneX += Math.cos(angV) * 6;
-                        player.dmDroneY += Math.sin(angV) * 6;
+                        player.dmDroneX += Math.cos(angV) * DRONE_ASSALTO_VELOCIDADE;
+                        player.dmDroneY += Math.sin(angV) * DRONE_ASSALTO_VELOCIDADE;
                         player.dmDroneAlvo = null;
                     } else if (distRobo > 42) {
+                        // Mini Robô MUITO rápido: 3x a velocidade do DroneMaster (corre atrás do alvo)
                         const angV = Math.atan2(alvoRobo.y - player.dmDroneY, alvoRobo.x - player.dmDroneX);
-                        player.dmDroneX += Math.cos(angV) * 5;
-                        player.dmDroneY += Math.sin(angV) * 5;
+                        player.dmDroneX += Math.cos(angV) * DRONE_ASSALTO_VELOCIDADE;
+                        player.dmDroneY += Math.sin(angV) * DRONE_ASSALTO_VELOCIDADE;
                     } else {
                         // ataque corpo a corpo mecânico (2x dano do básico, ~0,6s)
                         player.dmDroneAtaqueCd--;
@@ -2449,7 +3303,10 @@ setInterval(() => {
                     player.dmDroneAlvo = null;
                 }
                 if (player.dmAssaltoTimer <= 0) {
+                    // Tempo acabou: o Mini Robô volta a ser um Drone ACOPLADO em cima do DroneMaster
                     player.dmDroneAlvo = null;
+                    player.dmDroneX = player.x + PLAYER_OFFSET_X + 26;
+                    player.dmDroneY = player.y + PLAYER_OFFSET_Y - 16;
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'action_dm_assalto_fim', id: pid }));
@@ -2514,12 +3371,23 @@ setInterval(() => {
                 if (petRespawnTimer[pid] <= 0) delete petRespawnTimer[pid];
             } else if (!lacaios[pid]) {
                 let petHp = calcularVidaPet(player);
+                let petSpawnX = player.x + 35, petSpawnY = player.y + 35;
+                // Spawn respeita colisão: se a posição padrão cair em parede/obstáculo,
+                // procura o ponto livre mais próximo do summoner.
+                if (!posicaoPetValida(petSpawnX, petSpawnY)) {
+                    const ofsetSpawn = [[0, 0], [45, 0], [-45, 0], [0, 45], [0, -45], [60, 60], [-60, 60], [60, -60], [-60, -60], [90, 0], [-90, 0], [0, 90], [0, -90]];
+                    for (let i = 0; i < ofsetSpawn.length; i++) {
+                        const cxx = player.x + ofsetSpawn[i][0], cyy = player.y + ofsetSpawn[i][1];
+                        if (posicaoPetValida(cxx, cyy)) { petSpawnX = cxx; petSpawnY = cyy; break; }
+                    }
+                }
                 lacaios[pid] = { 
-                    x: player.x + 35, y: player.y + 35, hp: petHp, maxHp: petHp, 
+                    x: petSpawnX, y: petSpawnY, hp: petHp, maxHp: petHp, 
                     attackCooldown: 0, angleOffset: Math.random() * Math.PI * 2, 
                     skillCooldown: 0, skill2Cooldown: 0,
                     isJumping: false, jumpStart: null, jumpTarget: null, jumpProgress: 0,
                     targetSlimeId: null, modoAgressivoTimer: 0, focoAlvo: null,
+                    petBloqueioTicks: 0, atravessarInimigos: 0,
                     modo: (player && (player.ogroModo === 'passivo' ? 'passivo' : 'agressivo')) || 'agressivo',
                     rugidoTimer: 200, rugindoTimer: 0
                 };
@@ -2636,8 +3504,21 @@ setInterval(() => {
                 if (ogro.jumpProgress >= 1.0) {
                     ogro.jumpProgress = 1.0;
                     ogro.isJumping = false;
-                    ogro.x = ogro.jumpTarget.x;
-                    ogro.y = ogro.jumpTarget.y;
+                    // Pouso respeita a colisão do mapa: se o alvo do salto caiu em parede/obstáculo,
+                    // acha o ponto livre mais próximo (espiral até 120px do ponto alvo).
+                    let pousoX = ogro.jumpTarget.x, pousoY = ogro.jumpTarget.y;
+                    if (!posicaoPetValida(pousoX, pousoY)) {
+                        let achouPouso = false;
+                        for (let raio = 10; raio <= 120 && !achouPouso; raio += 10) {
+                            for (let ang = 0; ang < Math.PI * 2 && !achouPouso; ang += Math.PI / 8) {
+                                const cxx = ogro.jumpTarget.x + Math.cos(ang) * raio;
+                                const cyy = ogro.jumpTarget.y + Math.sin(ang) * raio;
+                                if (posicaoPetValida(cxx, cyy)) { pousoX = cxx; pousoY = cyy; achouPouso = true; }
+                            }
+                        }
+                    }
+                    ogro.x = pousoX;
+                    ogro.y = pousoY;
 
                     slimes.forEach(slime => {
                         if (slime.hp > 0 && Math.hypot(slime.x - ogro.x, slime.y - ogro.y) < 70) {
@@ -2741,8 +3622,7 @@ setInterval(() => {
                     let dist = Math.hypot(dx, dy);
 
                     if (dist > 38) {
-                        ogro.x += (dx / dist) * 4.16;
-                        ogro.y += (dy / dist) * 4.16;
+                        moverPetComColisao(ogro, dx, dy, 4.16, slimeAlvo.id);
                     } else {
                         ogro.attackCooldown++;
                         if (ogro.attackCooldown > (ogro.colossalAtivo ? 13 : 27)) {
@@ -2758,8 +3638,7 @@ setInterval(() => {
                     let dyB = bossAlvo.y - ogro.y;
                     let distB = Math.hypot(dxB, dyB);
                     if (distB > 42) {
-                        ogro.x += (dxB / distB) * 4.16;
-                        ogro.y += (dyB / distB) * 4.16;
+                        moverPetComColisao(ogro, dxB, dyB, 4.16, bossAlvo.id);
                     } else {
                         ogro.attackCooldown++;
                         if (ogro.attackCooldown > (ogro.colossalAtivo ? 13 : 27)) {
@@ -2778,8 +3657,7 @@ setInterval(() => {
 
                     if (dist > 6) {
                         let velocidadePet = player.moving ? 4.68 : 2.6; 
-                        ogro.x += (dx / dist) * Math.min(dist, velocidadePet);
-                        ogro.y += (dy / dist) * Math.min(dist, velocidadePet);
+                        moverPetComColisao(ogro, dx, dy, Math.min(dist, velocidadePet), null);
                     }
                 }
             }
@@ -3458,8 +4336,8 @@ setInterval(() => {
 
     slimes.forEach(slime => {
         if (slime.hp <= 0) {
-            // Se for monstro de horda aleatória, não respawna (remove após a morte)
-            if (slime.isHorda) {
+            // Se for monstro de horda aleatória ou da Arena de Solari, não respawna (remove após a morte)
+            if (slime.isHorda || slime.solari) {
                 let idx = slimes.indexOf(slime);
                 if (idx !== -1) slimes.splice(idx, 1);
                 return;
@@ -3598,7 +4476,8 @@ setInterval(() => {
                         // CEGUEIRA: melee cego erra a mordida/corte normal
                         if (monstroPodeAtacar(slime)) {
                             if (alvo === players[slime.targetId]) {
-                                aplicarDanoJogador(slime.targetId, slime.x, slime.y, 12);
+                                // melee padrão usa o dano escalável (Arena de Solari usa isso)
+                                aplicarDanoJogador(slime.targetId, slime.x, slime.y, slime.dano || 12);
                             } else if (alvo && slime.tauntTimer > 0 && slime.tauntId && alvo === lacaios[slime.tauntId]) {
                                 danoCausadoAoOgro(slime.tauntId, 12, alvo.x, alvo.y);
                             } else if (alvo) {
@@ -4333,6 +5212,9 @@ if (g.hp <= 0) {
         }
     }
 
+    // ===== ARENA DE SOLARI — lógica da partida (contagem, rounds, leilão) =====
+    atualizarSolari();
+
     // Players visíveis: sem inventário privado (sincronizado só com o dono)
     // e com atributosTotais (base + bônus de equipamento) para o cliente exibir
     let playersVisivel = {};
@@ -4360,11 +5242,18 @@ if (g.hp <= 0) {
     wss.clients.forEach((client) => {
         if (client.readyState !== WebSocket.OPEN) return;
         const jogadorCliente = client._playerId ? players[client._playerId] : null;
-        const mapaCliente = jogadorCliente ? mapaPorCoordenada(jogadorCliente.x + PLAYER_OFFSET_X) : null;
+        const clienteEmSolari = !!(client._playerId && solariSessao && solariEmSessao(client._playerId));
+        const mapaCliente = clienteEmSolari ? 'solari' : (jogadorCliente ? mapaPorCoordenada(jogadorCliente.x + PLAYER_OFFSET_X) : null);
         const jogadoresDoMapa = {};
         if (mapaCliente) {
             for (const pid in playersVisivel) {
-                if (entidadeNoMapa(playersVisivel[pid], mapaCliente)) jogadoresDoMapa[pid] = playersVisivel[pid];
+                if (clienteEmSolari) {
+                    // Durante a Solari: só enxerga os colegas da partida
+                    if (solariEmSessao(pid)) jogadoresDoMapa[pid] = playersVisivel[pid];
+                } else {
+                    if (solariEmSessao(pid)) continue;
+                    if (entidadeNoMapa(playersVisivel[pid], mapaCliente)) jogadoresDoMapa[pid] = playersVisivel[pid];
+                }
             }
         }
         client.send(JSON.stringify({
@@ -4374,7 +5263,7 @@ if (g.hp <= 0) {
             projeteis: filtrarPorMapa(projeteis, mapaCliente),
             playerProjeteis: filtrarPorMapa(playerProjeteis, mapaCliente),
             lacaios: Object.fromEntries(Object.entries(lacaios).filter(function (entry) { return entidadeNoMapa(entry[1], mapaCliente); })),
-            bandas: Object.fromEntries(Object.entries(bandas).filter(function (entry) { return players[entry[0]] && mapaPorCoordenada(players[entry[0]].x + PLAYER_OFFSET_X) === mapaCliente; })),
+            bandas: Object.fromEntries(Object.entries(bandas).filter(function (entry) { return players[entry[0]] && (clienteEmSolari ? solariEmSessao(entry[0]) : mapaPorCoordenada(players[entry[0]].x + PLAYER_OFFSET_X) === mapaCliente); })),
             bosses: filtrarPorMapa(bosses, mapaCliente),
             drops: filtrarPorMapa(dropsChao, mapaCliente),
             gases: filtrarPorMapa(gasesVeneno, mapaCliente),
@@ -4482,6 +5371,7 @@ wss.on('connection', (ws) => {
                     dmTitaReviveCooldown: 0,    // 5 min após o revive do robô
                     dmDashEscudo: 0,            // Dash = Escudo (50% vida máx, 3s)
                     dmDashEscudoExpirador: 0,
+                    dmDashEscudoCooldown: 0,    // Escudo de Energia: CD 10s
                     dmHealTick: 0,              // passiva: +2% vida máx/s
                     // ===== ARQUEIRO ARCANO (estado das skills — server-authoritative) =====
 aaCometasCooldown: 0,
@@ -4506,7 +5396,17 @@ aaCometasCooldown: 0,
                 if (players[playerId].hp > players[playerId].maxHp) players[playerId].hp = players[playerId].maxHp;
                 players[playerId].maxMp = calcularMaxMp(players[playerId]);
                 if (players[playerId].mana > players[playerId].maxMp) players[playerId].mana = players[playerId].maxMp;
-                const posicaoLogin = encontrarPosicaoJogadorSegura(players[playerId], players[playerId].x, players[playerId].y);
+                // CORREÇÃO (canto preso): se a posição salva caiu na "zona morta" entre o fim
+                // da cidade (FIM_CIDADE) e o início da arena (LARGURA_ARENA) — onde NÃO existe
+                // mapa — o char não consegue andar nem teleportar. Nesse caso, devolve para a
+                // cidade de Davahl no login.
+                let posXLogin = players[playerId].x;
+                let posYLogin = players[playerId].y;
+                if (posXLogin >= FIM_CIDADE && posXLogin < LARGURA_ARENA) {
+                    posXLogin = CIDADE_SPAWN_X;
+                    posYLogin = CIDADE_SPAWN_Y;
+                }
+                const posicaoLogin = encontrarPosicaoJogadorSegura(players[playerId], posXLogin, posYLogin);
                 if (posicaoLogin) {
                     players[playerId].x = posicaoLogin.x;
                     players[playerId].y = posicaoLogin.y;
@@ -4551,6 +5451,7 @@ aaCometasCooldown: 0,
                     ws.send(JSON.stringify({ type: 'spawn_flags', bandeiras: bandeirasSpawn }));
                 }
                 ws.send(JSON.stringify({ type: 'map_vfx', vfx: mapVfx }));
+                ws.send(JSON.stringify({ type: 'map_objetos', objetos: mapObjetos }));
                 if (mapaCidade && typeof mapaCidade.obterObstaculos === 'function') {
                     ws.send(JSON.stringify({
                         type: 'colisoes_atualizadas',
@@ -4700,6 +5601,11 @@ aaCometasCooldown: 0,
                     let isP1 = (trade.p1 === playerId);
                     let myItems = isP1 ? trade.items1 : trade.items2;
                     if (myItems.length < 4 && p.inventario.mochila[idx] && p.inventario.mochila[idx].tipo !== 'vazio') {
+                        // 🔒 Item bloqueado não pode ir para a troca (validação no servidor)
+                        if (p.inventario.mochila[idx].locked) {
+                            ws.send(JSON.stringify({ type: 'inventario_erro', motivo: '🔒 Item bloqueado não pode ser colocado na troca.' }));
+                            return;
+                        }
                         let item = p.inventario.mochila.splice(idx, 1)[0];
                         p.inventario.mochila.splice(idx, 0, { tipo: 'vazio' });
                         myItems.push(item);
@@ -4856,9 +5762,168 @@ aaCometasCooldown: 0,
                 if (!p.inventario || !p.inventario.mochila) return;
                 let idx = p.inventario.mochila.findIndex(i => i.id === data.id);
                 if (idx === -1) return;
+                // 🔒 Item bloqueado não pode ser destruído (validação no servidor)
+                if (p.inventario.mochila[idx].locked) {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: '🔒 Item bloqueado — desbloqueie no inventário antes de destruir.' }));
+                    return;
+                }
                 p.inventario.mochila.splice(idx, 1);
                 salvarProgresso(userId, { inventario: p.inventario });
                 ws.send(JSON.stringify({ type: 'inventario_sync', inventario: p.inventario }));
+                return;
+            }
+
+            // ===== BLOQUEAR / DESBLOQUEAR item (🔒 persistente, server-authoritative) =====
+            if (data.action === 'bloquear_item' || data.action === 'desbloquear_item') {
+                let p = players[playerId];
+                if (!p || !p.inventario) return;
+                let ref = localizarItemInstancia(p, data.id, data.uid);
+                if (!ref || !ref.item) {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Item não encontrado para bloquear/desbloquear.' }));
+                    return;
+                }
+                ref.item.locked = (data.action === 'bloquear_item');
+                salvarProgresso(userId, { inventario: p.inventario });
+                ws.send(JSON.stringify({ type: 'inventario_sync', inventario: p.inventario }));
+                return;
+            }
+
+            // ===== FERREIRO: tentativa de upgrade (100% server-authoritative) =====
+            if (data.action === 'ferreiro_upgrade') {
+                let p = players[playerId];
+                if (!p || !p.inventario) {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Jogador inválido.' }));
+                    return;
+                }
+                if (!ferreiroMod || !ferreiroMod.FERREIRO_NPC) {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Sistema de forja indisponível.' }));
+                    return;
+                }
+                // 1) Proximidade do FERREIRO (o cliente não decide onde o upgrade vale)
+                let npcF = ferreiroMod.FERREIRO_NPC;
+                if (p.x < LARGURA_CIDADE || p.x >= FIM_CIDADE || Math.hypot(p.x - npcF.x, p.y - npcF.y) > npcF.raioInteracao) {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Você precisa estar perto do FERREIRO para usar a forja.' }));
+                    return;
+                }
+                // 2) Não pode estar em troca
+                if (p.tradeId) {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Você está em uma negociação. Finalize ou cancele antes de usar a forja.' }));
+                    return;
+                }
+                // 3) Item existe, pertence ao jogador e é a MESMA instância (uid)
+                let itemRef = localizarItemInstancia(p, data.id, data.uid);
+                if (!itemRef || !itemRef.item) {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Item não encontrado. Ele pode ter sido vendido, destruído ou trocado.' }));
+                    return;
+                }
+                let itemUp = itemRef.item;
+                if (itemUp.tipo !== 'equipamento') {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Apenas EQUIPAMENTOS podem ser melhorados na forja.' }));
+                    return;
+                }
+                // itemInstanceId (uid): garante identidade física única (itens antigos sem uid ganham um agora)
+                if (!itemUp.uid) itemUp.uid = ferreiroMod.novoUid();
+                // 4) Item bloqueado → recusa
+                if (itemUp.locked) {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: '🔒 Item bloqueado — desbloqueie no inventário para melhorar.' }));
+                    return;
+                }
+                // 5) Nível válido
+                let nivelAtual = Math.min(ferreiroMod.UPGRADE_MAX, Math.max(0, Number(itemUp.upgrade) || 0));
+                if (nivelAtual >= ferreiroMod.UPGRADE_MAX) {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Este item já está no nível máximo (+' + ferreiroMod.UPGRADE_MAX + ')!' }));
+                    return;
+                }
+                // 6) Idempotência: mesma transação reenviada (lag/toque duplo/reconexão) → reenvia o MESMO resultado
+                let txnId = data.transactionId;
+                if (txnId && p.upgradeTxn && p.upgradeTxn.id === txnId) {
+                    let payload = Object.assign({ type: 'ferreiro_upgrade_resultado', repetido: true }, p.upgradeTxn.resultado || {});
+                    ws.send(JSON.stringify(payload));
+                    return;
+                }
+                // 7) Operação única por jogador (anti-spam de duplo clique)
+                let agoraUp = Date.now();
+                if (p.upgradeEmAte && agoraUp < p.upgradeEmAte) {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'A forja ainda está processando sua operação. Aguarde...' }));
+                    return;
+                }
+                // 8) Material necessário existe e o jogador tem 1 unidade
+                let alvo = nivelAtual + 1;
+                let pedraInfo = ferreiroMod.pedraParaNivel(alvo);
+                if (!pedraInfo || !ferreiroMod.PEDRAS[pedraInfo.pedra]) {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Erro na tabela de pedras.' }));
+                    return;
+                }
+                let qtdPedras = contarPedra(p, pedraInfo.pedra);
+                if (qtdPedras < 1) {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Material insuficiente: precisa de 1x ' + ferreiroMod.PEDRAS[pedraInfo.pedra].nome + ' para chegar a +' + alvo + '.' }));
+                    return;
+                }
+
+                // Trava anti-spam da operação (aproximadamente a duração da animação)
+                p.upgradeEmAte = agoraUp + 2600;
+
+                // 9) Decisão do resultado SOMENTE no servidor
+                let chance = ferreiroMod.chanceParaNivel(nivelAtual);
+                let sucesso = Math.random() < chance;
+                let infoUpgrade = null;
+                if (sucesso) {
+                    itemUp.upgrade = alvo;
+                    infoUpgrade = ferreiroMod.aplicarUpgrade(itemUp, alvo);
+                }
+
+                // 10) Consome a pedra (após decidir; se já era sucesso, o nível já subiu)
+                consumirPedra(p, pedraInfo.pedra, 1);
+
+                // 11) Recalcula atributos/vida (o item pode estar EQUIPADO — reflete imediatamente)
+                p.maxHp = calcularMaxHp(p);
+                if (p.hp > p.maxHp) p.hp = p.maxHp;
+                p.maxMp = calcularMaxMp(p);
+                if (p.mana > p.maxMp) p.mana = p.maxMp;
+
+                // 12) Persiste a transação inteira (item novo estado + pedra consumida + vida)
+                salvarProgresso(userId, { inventario: p.inventario, maxHp: p.maxHp, hp: p.hp, maxMp: p.maxMp, mana: p.mana });
+
+                let resultado = {
+                    sucesso: sucesso,
+                    repetido: false,
+                    upgrade: itemUp.upgrade || nivelAtual,
+                    nivelAnterior: nivelAtual,
+                    chance: chance,
+                    pedra: pedraInfo.pedra,
+                    item: itemUp,
+                    infoUpgrade: infoUpgrade,
+                    inventario: p.inventario,
+                    maxHp: p.maxHp, hp: p.hp,
+                    maxMp: p.maxMp, mana: (typeof p.mana === 'number' ? Math.round(p.mana) : (p.mana || 0)),
+                    atributosTotais: atributosTotais(p)
+                };
+                // 13) Registra transação para idempotência em reenvios
+                p.upgradeTxn = { id: txnId || null, resultado: resultado };
+
+                // 14) Envia o resultado final (o cliente só anima por ~3s e revela)
+                ws.send(JSON.stringify(Object.assign({ type: 'ferreiro_upgrade_resultado' }, resultado)));
+                console.log(`[LOG UPGRADE] ${playerId} ${itemUp.nome} +${nivelAtual} → +${itemUp.upgrade} (${sucesso ? 'SUCESSO' : 'FALHA'}, pedra ${pedraInfo.pedra}, chance ${(chance * 100).toFixed(1)}%)`);
+                return;
+            }
+
+            // ===== FERREIRO (ADMIN): gerar pedras para teste =====
+            if (data.action === 'ferreiro_admin_pedra') {
+                let pa = players[playerId];
+                let ehAdmin = (pa && pa.isAdmin) || (ws && ws.ehAdminCliente) || (typeof userId === 'string' && userId.toLowerCase() === 'admin');
+                if (!ehAdmin) {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Apenas ADMINS podem gerar pedras.' }));
+                    return;
+                }
+                let pedra = String(data.pedra || '').toUpperCase();
+                let qtd = Math.max(1, Math.min(200, parseInt(data.qtd, 10) || 1));
+                if (!ferreiroMod || !ferreiroMod.PEDRAS[pedra]) {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Pedra inválida. Use FADEO, MURK, DIVINE ou STONE_GOD.' }));
+                    return;
+                }
+                adicionarPedra(playerId, pedra, qtd);
+                syncInventario(playerId);
+                if (ws) ws.send(JSON.stringify({ type: 'ferreiro_aviso', motivo: 'Pedras adicionadas: ' + qtd + 'x ' + ferreiroMod.PEDRAS[pedra].nome + '.' }));
                 return;
             }
 
@@ -4983,6 +6048,7 @@ aaCometasCooldown: 0,
                     np.dmTitaTimer = 0;
                     np.dmDroneAlvo = null;
                     np.dmDashEscudo = 0;
+                    np.dmDashEscudoCooldown = 0;
                     np.escudoAbsoluto = 0;
                     np.snAim = null;
                     np.snPosicao = false;
@@ -5049,6 +6115,75 @@ aaCometasCooldown: 0,
                 }
                 salvarMapVfx();
                 broadcastMapVfx();
+                return;
+            }
+
+            // ===== ADMIN: EDITOR DE MAPA (objetos persistentes: criar/editar/excluir/limpar) =====
+            if (data.action === 'admin_map_objetos' || data.action === 'admin_map_objetos_excluir' || data.action === 'admin_map_objetos_limpar' || data.action === 'admin_map_objetos_sync') {
+                let p = players[playerId];
+                let ehAdmin = (p && p.isAdmin) || (ws && ws.ehAdminCliente) || (p && p.nome && p.nome.toLowerCase() === 'admin');
+                if (!ehAdmin) {
+                    console.warn('[SEGURANÇA] Tentativa não autorizada de editar mapa por: ' + (p ? p.nome : 'desconhecido'));
+                    return;
+                }
+                if (data.action === 'admin_map_objetos_sync') {
+                    broadcastMapObjetos();
+                    return;
+                }
+
+                function normalizarMapaObjeto(o) {
+                    if (!o || typeof o !== 'object') return null;
+                    const x = Number(o.x), y = Number(o.y);
+                    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+                    const mapa = mapaPorCoordenada(x);
+                    if (!mapa) return null;
+                    const tipo = String(o.tipo || '').slice(0, 32);
+                    if (TIPOS_OBJETOS_MAPA.indexOf(tipo) === -1) return null;
+                    if (x < 0 || y < 0 || y > WORLD_HEIGHT) return null;
+                    return {
+                        id: String(o.id || ('obj_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7))),
+                        tipo: tipo,
+                        mapa: mapa,
+                        x: Math.round(x),
+                        y: Math.round(y),
+                        w: Math.max(4, Math.min(500, Math.round(Number(o.w) || 40))),
+                        h: Math.max(4, Math.min(500, Math.round(Number(o.h) || 40))),
+                        escala: Math.max(0.2, Math.min(4, Number(o.escala) || 1)),
+                        variante: Math.max(0, Math.min(8, Math.round(Number(o.variante) || 0))),
+                        colisao: !!o.colisao,
+                        camada: (o.camada === 'chao' || o.camada === 'frente') ? o.camada : 'meio',
+                        efeito: String(o.efeito || '').slice(0, 24),
+                        efeitoCor: /^#[0-9a-fA-F]{6}$/.test(o.efeitoCor || '') ? o.efeitoCor : ''
+                    };
+                }
+
+                if (data.action === 'admin_map_objetos_excluir') {
+                    mapObjetos = mapObjetos.filter(function (o) { return o && o.id !== data.id; });
+                    salvarMapObjetos();
+                    broadcastMapObjetos();
+                    return;
+                }
+                if (data.action === 'admin_map_objetos_limpar') {
+                    if (data.mapa) {
+                        mapObjetos = mapObjetos.filter(function (o) { return o && o.mapa !== data.mapa; });
+                    } else {
+                        mapObjetos = [];
+                    }
+                    salvarMapObjetos();
+                    broadcastMapObjetos();
+                    return;
+                }
+                const objeto = normalizarMapaObjeto(data.objeto);
+                if (!objeto) return;
+                if (data.sub === 'editar') {
+                    const existe = mapObjetos.find(function (o) { return o && o.id === objeto.id; });
+                    if (existe) Object.assign(existe, objeto); else mapObjetos.push(objeto);
+                } else {
+                    mapObjetos.push(objeto);
+                }
+                salvarMapObjetos();
+                broadcastMapObjetos();
+                try { ws.send(JSON.stringify({ type: 'map_objeto_salvo', ok: true, id: objeto.id })); } catch (_) {}
                 return;
             }
 
@@ -5297,6 +6432,8 @@ aaCometasCooldown: 0,
             // Respawn tem prioridade sobre a janela de transicao do teleporte:
             // morrer e renascer deve sempre devolver o jogador para a cidade.
             if (data.action === 'respawn' && players[playerId]) {
+                // Arena de Solari: renascer (botão) = sair da partida e voltar pra cidade
+                if (solariEmSessao(playerId)) solariRemoverMembro(playerId, 'respawn');
                 if (aurasSagradas[playerId]) desativarAuraSagrada(playerId, 'respawn');
                 players[playerId].hp = players[playerId].maxHp;
                 players[playerId].estamina = 100;
@@ -5476,7 +6613,7 @@ aaCometasCooldown: 0,
 
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_barbaro_esmagamento', x: players[playerId].x + PLAYER_OFFSET_X, y: players[playerId].y + PLAYER_OFFSET_Y }));
+                            client.send(JSON.stringify({ type: 'action_barbaro_esmagamento', id: playerId, x: players[playerId].x + PLAYER_OFFSET_X, y: players[playerId].y + PLAYER_OFFSET_Y }));
                         }
                     });
 
@@ -5847,6 +6984,7 @@ aaCometasCooldown: 0,
                 if (data.action === 'ataque_dronemaster') {
                     let pD = players[playerId];
                     if (!pD || pD.hp <= 0) return;
+                    if (pD.dmAssaltoTimer > 0) return; // durante o Assalto o Drone é o mini robô (sem tiro básico)
                     if (pD.dmTitaAtivo) {
                         // Forma Robô: ataque à distância tecnológico (mesmo handler, outro dano)
                         if (Date.now() - pD.lastBasicAttack < tempoAtaqueBasico(pD, 416)) return;
@@ -5862,7 +7000,7 @@ aaCometasCooldown: 0,
                             if (s.hp <= 0 || mapaPorCoordenada(s.x) !== mapaPorCoordenada(pD.x)) continue;
                             let ddx = s.x - pXR, ddy = s.y - pYR;
                             let distR = Math.hypot(ddx, ddy);
-                            if (distR > 210) continue;
+                            if (distR > 242) continue; // Tita: alcance +15% (210 → 242)
                             let angS = Math.atan2(ddy, ddx);
                             if (mesmosLados(angS, angR, 0.35)) {
                                 // primeiro alvo no caminho (o mais próximo)
@@ -5875,7 +7013,7 @@ aaCometasCooldown: 0,
                             }
                         });
                         if (atingiuR) registrarDanoMonstro(atingiuR.s, playerId, danoR, 'player');
-                        danoEmBosses(pXR, pYR, 210, playerId, danoR, 'basico', 'player');
+                        danoEmBosses(pXR, pYR, 242, playerId, danoR, 'basico', 'player');
                         return;
                     }
                     // Drone normal: tiro à distância do Drone (range 90)
@@ -5892,7 +7030,7 @@ aaCometasCooldown: 0,
                         if (s.hp <= 0 || mapaPorCoordenada(s.x) !== mapaPorCoordenada(pD.x)) continue;
                         let ddx = s.x - pX, ddy = s.y - pY;
                         let distD = Math.hypot(ddx, ddy);
-                        if (distD > 108) continue; // v1.32: range do Drone +20% (90 → 108)
+                        if (distD > 124) continue; // v1.32: range do Drone +15% (108 → 124)
                         if (mesmosLados(Math.atan2(ddy, ddx), angulo, 0.5)) {
                             if (!alvoTiro || distD < alvoTiro.dist) alvoTiro = { s: s, dist: distD };
                         }
@@ -5903,7 +7041,7 @@ aaCometasCooldown: 0,
                         }
                     });
                     if (alvoTiro) registrarDanoMonstro(alvoTiro.s, playerId, danoDrone, 'player');
-                    danoEmBosses(pX, pY, 108, playerId, danoDrone, 'basico', 'player');
+                    danoEmBosses(pX, pY, 124, playerId, danoDrone, 'basico', 'player');
                 }
 
                 // ---- DRONEMASTER SKILL 1: MODO SUPRESSÃO (até 3 alvos) ----
@@ -6385,8 +7523,10 @@ aaCometasCooldown: 0,
                     // DRONEMASTER: o Dash vira um ESCUDO tecnológico (50% vida máx, 3s)
                     const pDm = players[playerId];
                     if (pDm && pDm.classe === 'dronemaster') {
+                        if (pDm.dmDashEscudoCooldown && Date.now() < pDm.dmDashEscudoCooldown) return; // CD 10s
                         if (pDm.escudoAbsoluto > 0 && pDm.escudoAbsolutoExpirador > Date.now()) return; // já ativo
                         if (!gastarMana(ws, pDm, mpSkill(pDm, 'dash', 15))) return;
+                        pDm.dmDashEscudoCooldown = Date.now() + 10000; // Escudo de Energia: 10s de recarga
                         const escudoDash = Math.round(pDm.maxHp * 0.50);
                         darEscudoAbsorvente(pDm, escudoDash, 3000);
                         pDm.dmDashEscudo = escudoDash;
@@ -6896,6 +8036,8 @@ aaCometasCooldown: 0,
             }
 
             if (data.action === 'teleporte_mapa') {
+                // Arena de Solari: sair pelo portal de retorno = deixar a partida
+                if (data.mapa === 'cidade' && solariEmSessao(playerId)) solariRemoverMembro(playerId, 'portal');
                 let destino = PONTOS_TELEPORTE[data.mapa];
                 if (!destino || !playerId || !players[playerId]) return;
                 if (!jogadorPodeUsarPortalMapa(players[playerId], data.mapa)) {
@@ -6917,6 +8059,53 @@ aaCometasCooldown: 0,
                 return;
             }
 
+            // ===== ARENA DE SOLARI — painel, convites, START e leilão =====
+            if (data.action === 'solari_abrir') {
+                if (players[playerId]) solariAbrir(playerId);
+                return;
+            }
+            if (data.action === 'solari_convidar') {
+                if (players[playerId] && data.alvoId && players[data.alvoId]) solariConvidar(playerId, data.alvoId);
+                return;
+            }
+            if (data.action === 'solari_convidar_nick') {
+                if (!players[playerId]) return;
+                const nickT = String(data.nick || '').trim();
+                if (!nickT) return;
+                let alvoId = null;
+                for (const id in players) {
+                    if (players[id] && players[id].nome && players[id].nome.toLowerCase() === nickT.toLowerCase()) { alvoId = id; break; }
+                }
+                if (!alvoId) { ws.send(JSON.stringify({ type: 'solari_aviso', texto: 'Jogador "' + nickT + '" não encontrado.' })); return; }
+                if (!solariConvidar(playerId, alvoId)) ws.send(JSON.stringify({ type: 'solari_aviso', texto: 'Não foi possível convidar (grupo cheio, já no grupo ou longe do portal).' }));
+                return;
+            }
+            if (data.action === 'solari_aceitar') {
+                if (players[playerId]) solariAceitar(playerId, data.deId);
+                return;
+            }
+            if (data.action === 'solari_recusar') {
+                if (players[playerId]) solariRecusar(playerId, data.deId);
+                return;
+            }
+            if (data.action === 'solari_ok') { solariDarOk(playerId); return; }
+            if (data.action === 'solari_start') { solariIniciar(playerId); return; }
+            if (data.action === 'solari_sair') {
+                if (players[playerId] && solariEmSessao(playerId)) solariRemoverMembro(playerId, 'sair');
+                return;
+            }
+            if (data.action === 'solari_rolar_dado') {
+                const sSol = solariSessao;
+                const mSol = solariEmSessao(playerId);
+                if (sSol && mSol && sSol.fase === 'leilao' && sSol.leilao && sSol.leilao.estado === 'aberto' && sSol.leilao.rolagens[playerId] === undefined) {
+                    const dado = 1 + Math.floor(Math.random() * 100);
+                    sSol.leilao.rolagens[playerId] = dado;
+                    sSol.leilao.ultimaRolagemEm = Date.now();
+                    solariBroadcast('solari_leilao', { fase: 'rolagem', dado: dado, quem: playerId, rolagens: sSol.leilao.rolagens, nick: players[playerId] ? players[playerId].nome : '' });
+                }
+                return;
+            }
+
             if (data.action === 'toggle_pvp') {
                 if (players[playerId]) {
                     players[playerId].pvpAtivo = !players[playerId].pvpAtivo;
@@ -6924,6 +8113,8 @@ aaCometasCooldown: 0,
             }
 
             if (data.action === 'respawn') {
+                // Arena de Solari: renascer (botão) = sair da partida e voltar pra cidade
+                if (solariEmSessao(playerId)) solariRemoverMembro(playerId, 'respawn');
                 if (aurasSagradas[playerId]) desativarAuraSagrada(playerId, 'respawn');
                 players[playerId].hp = players[playerId].maxHp;
                 players[playerId].estamina = 100;
@@ -6957,6 +8148,13 @@ aaCometasCooldown: 0,
 
     ws.on('close', () => {
         if (playerId && players[playerId] && userId) {
+            // Arena de Solari: saiu da partida → volta pra cidade ao reconectar
+            if (solariEmSessao(playerId)) {
+                players[playerId].x = CIDADE_SPAWN_X;
+                players[playerId].y = CIDADE_SPAWN_Y;
+                players[playerId].hp = players[playerId].maxHp;
+                solariRemoverMembro(playerId, 'desconexao');
+            }
             salvarProgresso(userId, {
                 level: players[playerId].level,
                 xp: players[playerId].xp,

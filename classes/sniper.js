@@ -290,6 +290,7 @@ window.enviarAtaqueSniper = function(ang, alvoTipo, alvoId) {
     let msg = { action: 'ataque_sniper' };
     if (alvoTipo) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; }
     if (ang !== undefined) msg.angulo = ang;
+    if (window.tocarSonoro) window.tocarSonoro('sniper_atk');
     if (window.ws && window.ws.readyState === 1) {
         window.ws.send(JSON.stringify(msg));
     }

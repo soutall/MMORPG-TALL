@@ -1,0 +1,123 @@
+/* ============================================================================
+   JANELA DO FERREIRO — FORJA DE EQUIPAMENTOS (+ upgrade visual dos itens)
+   Visual integrado ao MMORPG: fundo escuro, borda dourada, sombras pixeladas.
+   Mobile-first: botões grandes, textos legíveis, janela rolável.
+   ============================================================================ */
+
+/* ---------- Tela / janela principal ---------- */
+#ferreiro-screen { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(8, 8, 8, 0.35); display: none; align-items: center; justify-content: center; z-index: 380; pointer-events: none; }
+#ferreiro-window { pointer-events: auto; background: #201d1a; border: 3px solid #f1c40f; box-shadow: 8px 8px 0 #000, inset 3px 3px 0 #3a3528; padding: 12px 14px 16px 14px; width: min(96vw, 440px); max-height: 94vh; overflow-y: auto; text-align: center; font-family: 'Rajdhani', sans-serif; box-sizing: border-box; }
+#ferreiro-title { font-family: 'Cinzel', serif; font-weight: bold; font-size: 18px; color: #f1c40f; letter-spacing: 2px; text-shadow: 2px 2px 0 #000; margin: 0 0 4px 0; cursor: grab; display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+#ferreiro-title span { font-size: 12px; color: #c9a227; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
+#btn-ferreiro-fechar { background: #c0392b; color: #fff; border: 3px solid #e74c3c; font-size: 16px; font-weight: bold; width: 40px; height: 40px; min-height: 40px; cursor: pointer; box-shadow: 3px 3px 0 #000; }
+#btn-ferreiro-fechar:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #000; }
+
+/* ---------- Slot do equipamento (também alvo de drag & drop) ---------- */
+#ferreiro-slot-wrap { margin: 8px 0 10px 0; display: flex; justify-content: center; }
+.ferreiro-slot { width: 78px; height: 78px; border: 3px dashed #b7950b; background: rgba(90, 75, 45, 0.22); box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; box-shadow: 4px 4px 0 rgba(0,0,0,0.6), inset 2px 2px 0 rgba(255,255,255,0.08); transition: background 0.1s, border-color 0.1s, transform 0.1s; position: relative; }
+.ferreiro-slot:active { transform: scale(0.96); }
+.ferreiro-slot.ocupado { border-style: solid; border-color: #f1c40f; background: rgba(46, 204, 113, 0.18); }
+.ferreiro-slot.dnd-alvo-slot { border-color: #2ecc71; background: rgba(46, 204, 113, 0.30); }
+.ferreiro-slot.dnd-alvo-invalido { border-color: #e74c3c; background: rgba(231, 76, 60, 0.25); }
+.ferreiro-slot-ico { font-size: 30px; line-height: 1; filter: drop-shadow(1px 1px 0 #000); }
+.ferreiro-slot-label { font-family: 'Rajdhani', sans-serif; font-size: 9px; font-weight: bold; color: #a8a49a; letter-spacing: 0.5px; margin-top: 3px; }
+.ferreiro-slot .upg-badge { top: -10px; right: -10px; font-size: 12px; }
+
+/* ---------- Informações do item no slot ---------- */
+#ferreiro-info { font-family: 'Rajdhani', sans-serif; font-size: 14px; font-weight: 600; color: #e8e4da; background: #161412; border: 2px solid #5a5344; padding: 10px; margin: 0 0 12px 0; min-height: 60px; box-shadow: 3px 3px 0 #000; text-align: left; line-height: 1.45; box-sizing: border-box; }
+#ferreiro-info .fi-nome { font-size: 16px; font-weight: 800; margin-bottom: 2px; }
+#ferreiro-info .fi-raridade { font-size: 12px; font-weight: 700; opacity: 0.95; margin-bottom: 4px; }
+#ferreiro-info .fi-status { font-size: 13px; color: #cfc9b8; }
+#ferreiro-info .fi-linha { border-top: 1px dashed #5a5344; margin-top: 6px; padding-top: 6px; font-size: 14px; }
+#ferreiro-info .fi-chance { color: #f1c40f; font-weight: 800; }
+#ferreiro-info .fi-material { color: #9ecbff; font-weight: 700; }
+#ferreiro-info .fi-indisponivel { color: #e74c3c; font-weight: 800; }
+#ferreiro-info .fi-aviso { color: #f39c12; font-weight: 700; }
+
+/* ---------- Botão UPGRADE (grande, touch-friendly) ---------- */
+#btn-ferreiro-upgrade { width: 100%; min-height: 58px; font-family: 'Cinzel', serif; font-weight: bold; font-size: 20px; letter-spacing: 3px; color: #111; background: linear-gradient(#ffd166, #f1c40f); border: 3px solid #f9e79f; box-shadow: 4px 4px 0 #000; cursor: pointer; margin-bottom: 10px; }
+#btn-ferreiro-upgrade:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #000; }
+#btn-ferreiro-upgrade:disabled { background: #5a5344; border-color: #7a7260; color: #2c2a27; cursor: not-allowed; transform: none; box-shadow: 3px 3px 0 #000; }
+
+/* ---------- Botões secundários (categorias + regras + admin) ---------- */
+#ferreiro-extra-botoes { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: 8px; }
+.ferreiro-btn-acao { font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 14px; padding: 10px 12px; min-height: 44px; color: #fff; background: #1f618d; border: 3px solid #2980b9; box-shadow: 3px 3px 0 #000; cursor: pointer; letter-spacing: 1px; flex: 1; min-width: 96px; }
+.ferreiro-btn-acao:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #000; }
+.ferreiro-btn-acao.ativo { background: #27ae60; border-color: #2ecc71; }
+#btn-ferreiro-regras { background: #6c3483; border-color: #9b59b6; }
+#btn-ferreiro-admin { background: #922b21; border-color: #e74c3c; }
+
+/* ---------- Listas (equipados / mochila) ---------- */
+.ferreiro-lista { display: none; max-height: 34vh; overflow-y: auto; margin-bottom: 10px; text-align: left; }
+.ferreiro-lista-titulo { font-family: 'Cinzel', serif; font-size: 12px; color: #f1c40f; letter-spacing: 2px; margin: 4px 0; }
+.ferreiro-card { display: flex; align-items: center; gap: 8px; width: 100%; min-height: 56px; background: #161412; border: 2px solid #5a5344; box-shadow: 3px 3px 0 #000; padding: 6px 8px; box-sizing: border-box; cursor: pointer; margin-bottom: 6px; text-align: left; }
+.ferreiro-card:active { transform: scale(0.98); border-color: #f1c40f; }
+.ferreiro-card .fc-ico { font-size: 24px; line-height: 1; filter: drop-shadow(1px 1px 0 #000); flex: 0 0 auto; }
+.ferreiro-card .fc-info { flex: 1; min-width: 0; }
+.ferreiro-card .fc-nome { font-size: 15px; font-weight: 800; color: #e8e4da; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ferreiro-card .fc-status { font-size: 12px; color: #a89f8a; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ferreiro-card .fc-nivel { font-size: 14px; font-weight: 800; color: #f1c40f; flex: 0 0 auto; }
+.ferreiro-card.locked { opacity: 0.6; }
+.ferreiro-card.locked .fc-nome::after { content: " 🔒"; }
+#ferreiro-lista-mochila { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-start; }
+#ferreiro-lista-mochila .ferreiro-tile { width: 56px; height: 56px; border: 3px solid #4a5f70; background: rgba(74, 95, 112, 0.22); display: flex; align-items: center; justify-content: center; cursor: pointer; position: relative; box-shadow: 3px 3px 0 rgba(0,0,0,0.6); }
+#ferreiro-lista-mochila .ferreiro-tile:active { transform: scale(0.95); border-color: #f1c40f; }
+#ferreiro-lista-mochila .ferreiro-tile .slot-ico { font-size: 24px; line-height: 1; filter: drop-shadow(1px 1px 0 #000); }
+
+/* ---------- Badge de nível +N e bloqueio (inventário + forja) ---------- */
+.upg-badge { position: absolute; top: -9px; left: -9px; background: #f1c40f; border: 2px solid #000; color: #111; font-family: 'Rajdhani', sans-serif; font-weight: 800; font-size: 10px; line-height: 1; padding: 2px 4px; box-shadow: 2px 2px 0 #000; z-index: 7; }
+.lock-ico { position: absolute; top: -9px; right: -9px; font-size: 12px; line-height: 1; z-index: 7; filter: drop-shadow(1px 1px 0 #000); }
+
+/* Aura por nível (cliente renderiza; o servidor só manda o estado upgrade=N) */
+.mochila-slot.upg-glow-10, .inv-slot.upg-glow-10, .ferreiro-slot.upg-glow-10 { box-shadow: 0 0 10px #3498db, 0 0 2px #3498db, 3px 3px 0 rgba(0,0,0,0.6); border-color: #5dade2; }
+.mochila-slot.upg-glow-15, .inv-slot.upg-glow-15, .ferreiro-slot.upg-glow-15 { border-color: #a855f7; animation: upgGlow15 1.4s ease-in-out infinite; }
+.mochila-slot.upg-glow-20, .inv-slot.upg-glow-20, .ferreiro-slot.upg-glow-20 { border-color: #ffd700; animation: upgGlow20 1.1s ease-in-out infinite; }
+@keyframes upgGlow15 { 0%, 100% { box-shadow: 0 0 8px #a855f7, 3px 3px 0 rgba(0,0,0,0.6); } 50% { box-shadow: 0 0 22px #c77dff, 3px 3px 0 rgba(0,0,0,0.6); } }
+@keyframes upgGlow20 { 0%, 100% { box-shadow: 0 0 10px #ffd700, 3px 3px 0 rgba(0,0,0,0.6); } 50% { box-shadow: 0 0 28px #ffe066, 3px 3px 0 rgba(0,0,0,0.6); } }
+
+/* ---------- Painel de REGRAS ---------- */
+#ferreiro-regras-painel { pointer-events: auto; position: fixed; inset: 0; background: rgba(8, 8, 8, 0.55); display: none; align-items: center; justify-content: center; z-index: 390; }
+#ferreiro-regras-box { background: #201d1a; border: 3px solid #f1c40f; box-shadow: 8px 8px 0 #000; width: min(94vw, 460px); max-height: 92vh; overflow-y: auto; padding: 14px; text-align: left; font-family: 'Rajdhani', sans-serif; color: #e8e4da; box-sizing: border-box; }
+#ferreiro-regras-box h2 { font-family: 'Cinzel', serif; color: #f1c40f; font-size: 17px; text-align: center; margin: 0 0 8px 0; letter-spacing: 2px; }
+#ferreiro-regras-box h3 { font-family: 'Rajdhani', sans-serif; color: #9b59b6; font-size: 14px; margin: 12px 0 4px 0; letter-spacing: 1px; border-bottom: 2px dashed #5a5344; padding-bottom: 3px; }
+#ferreiro-regras-box .fr-tabela { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 14px; font-size: 13px; font-weight: 600; }
+#ferreiro-regras-box .fr-linha { display: flex; justify-content: space-between; }
+#ferreiro-regras-box .fr-pedra { display: flex; justify-content: space-between; padding: 3px 0; font-weight: 700; }
+#btn-ferreiro-regras-fechar { width: 100%; min-height: 50px; margin-top: 12px; font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 16px; background: #c0392b; color: #fff; border: 3px solid #e74c3c; box-shadow: 3px 3px 0 #000; cursor: pointer; }
+
+/* ---------- Animação de 3s (UPGRADING...) ---------- */
+#ferreiro-anim { pointer-events: auto; position: fixed; inset: 0; background: rgba(8, 8, 8, 0.78); display: none; align-items: center; justify-content: center; z-index: 400; }
+.ferreiro-anim-box { width: min(90vw, 360px); background: #161412; border: 3px solid #f1c40f; box-shadow: 8px 8px 0 #000; padding: 22px 18px; text-align: center; font-family: 'Rajdhani', sans-serif; }
+.ferreiro-anim-titulo { font-family: 'Cinzel', serif; font-size: 20px; color: #ffd166; letter-spacing: 3px; text-shadow: 0 0 12px #f1c40f; animation: upgPisca 0.8s step-start infinite; margin-bottom: 14px; }
+#fa-barra { width: 100%; height: 22px; border: 3px solid #5a5344; background: #0e0d0b; box-shadow: inset 2px 2px 0 #000; overflow: hidden; }
+#fa-preenchimento { width: 0%; height: 100%; background: linear-gradient(90deg, #e74c3c, #f1c40f, #fff); box-shadow: 0 0 14px #f1c40f; transition: width 0.1s linear; }
+.ferreiro-anim-item { font-size: 15px; font-weight: 700; color: #e8e4da; margin-top: 10px; }
+.ferreiro-anim-item b { color: #f1c40f; }
+.ferreiro-anim-fogo { font-size: 30px; letter-spacing: 6px; margin-top: 6px; animation: upgFogo 0.5s ease-in-out infinite alternate; }
+@keyframes upgPisca { 50% { opacity: 0.55; } }
+@keyframes upgFogo { from { transform: scale(1); } to { transform: scale(1.25); } }
+
+/* ---------- Resultado SUCESSO / FALHA ---------- */
+#ferreiro-resultado { pointer-events: auto; position: fixed; inset: 0; background: rgba(8, 8, 8, 0.82); display: none; align-items: center; justify-content: center; z-index: 410; }
+.ferreiro-result-box { width: min(90vw, 380px); background: #201d1a; border: 3px solid #f1c40f; box-shadow: 8px 8px 0 #000; padding: 24px 18px; text-align: center; font-family: 'Rajdhani', sans-serif; box-sizing: border-box; }
+.fr-titulo { font-family: 'Cinzel', serif; font-size: 34px; font-weight: bold; letter-spacing: 4px; margin-bottom: 8px; }
+.fr-sucesso .fr-titulo { color: #ffd700; text-shadow: 0 0 18px #ffd700; animation: upgPisca 0.6s step-start infinite; }
+.fr-falha .fr-titulo { color: #e74c3c; text-shadow: 0 0 14px #e74c3c; }
+.fr-item { font-size: 18px; font-weight: 800; color: #e8e4da; margin: 4px 0; }
+.fr-info { font-size: 15px; font-weight: 600; color: #cfc9b8; margin: 6px 0; line-height: 1.5; }
+.fr-info .destaque { color: #f1c40f; font-weight: 800; }
+.fr-info .destaque-verde { color: #2ecc71; font-weight: 800; }
+.fr-info .destaque-vermelho { color: #e74c3c; font-weight: 800; }
+#btn-ferreiro-result-ok { width: 100%; min-height: 54px; margin-top: 14px; font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 17px; color: #111; background: linear-gradient(#ffd166, #f1c40f); border: 3px solid #f9e79f; box-shadow: 3px 3px 0 #000; cursor: pointer; }
+#btn-ferreiro-result-ok:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #000; }
+
+/* ---------- Ajustes mobile (landscape curto) ---------- */
+@media (max-height: 560px) {
+    #ferreiro-window { max-height: 96vh; }
+    .ferreiro-lista { max-height: 26vh; }
+}
+
+@media (max-width: 380px) {
+    #ferreiro-info { font-size: 13px; }
+    .ferreiro-btn-acao { min-width: 44%; font-size: 13px; }
+}

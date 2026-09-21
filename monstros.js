@@ -1204,15 +1204,48 @@ function _tanque(ctx, slime, est, info) {
     _stunStar(ctx, slime, -26);
 }// ============ DISPATCHER PRINCIPAL ============
 // Barra de vida acima do monstro (renderização do client, via classes/comum.js)
-function _barraHp(slime, dx, dy) {
+function _barraHp(slime, dx, dy, largura) {
     if (typeof window.desenharBarraHp === "function") {
-        window.desenharBarraHp(slime.x + dx, slime.y + dy, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer);
+        window.desenharBarraHp(slime.x + dx, slime.y + dy, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer, largura || 0);
+    }
+}
+
+// Marca visual do ELITE da Arena de Solari: aura dourada pulsante + anel piscando
+function _desenharEliteMark(slime, escala) {
+    var ctx = window.ctx;
+    if (!ctx) return;
+    var t = Date.now() / 1000;
+    var R = 26 * (escala || 1);
+    var blink = (Math.floor(t * 5) % 2 === 0);
+    ctx.save();
+    // Aura dourada no chão (pulsante)
+    var pulso = 0.5 + Math.sin(t * 6) * 0.5;
+    ctx.globalAlpha = 0.20 + pulso * 0.20;
+    ctx.fillStyle = '#ffd700';
+    ctx.shadowColor = '#ffd700';
+    ctx.shadowBlur = 24;
+    ctx.beginPath();
+    ctx.ellipse(slime.x, slime.y + 8 * escala, R * 1.35, R * 0.55, 0, 0, Math.PI * 2);
+    ctx.fill();
+    // Anel piscando ao redor do ELITE (50% maior)
+    ctx.globalAlpha = blink ? 0.95 : 0.30;
+    ctx.lineWidth = 4;
+    ctx.strokeStyle = '#ffd700';
+    ctx.beginPath();
+    ctx.ellipse(slime.x, slime.y + 4 * escala, R, R * 0.42, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+    // Barra de vida MAIOR para o ELITE
+    if (typeof window.desenharBarraHp === "function") {
+        window.desenharBarraHp(slime.x - 23 * escala, slime.y - 34 * escala, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer, 46 * escala);
     }
 }
 
 window.desenharSlime = function(slime) {
     if (slime.hp <= 0 || !window.ctx) return;
     var ctx = window.ctx;
+    var elite = !!slime.elite;
+    var escala = (elite && slime.escala) ? slime.escala : 1;
 
     var tp = (slime.tipo || '').toLowerCase();
     var arq = (slime.arquetipo || '').toLowerCase();
@@ -1220,9 +1253,11 @@ window.desenharSlime = function(slime) {
     if (tp.indexOf('zumbi') !== -1) {
         ctx.save();
         ctx.translate(slime.x, slime.y);
+        if (escala !== 1) ctx.scale(escala, escala);
         desenharZumbi(ctx, slime);
         ctx.restore();
-        _barraHp(slime, -15, -24);
+        _barraHp(slime, -15 * escala, -24 * escala);
+        if (elite) _desenharEliteMark(slime, escala);
         return;
     }
 
@@ -1234,12 +1269,15 @@ window.desenharSlime = function(slime) {
 
     ctx.save();
     ctx.translate(slime.x, slime.y);
+    if (escala !== 1) ctx.scale(escala, escala);
     _sombra(ctx, info.raio / 14);
     _desenharAura(ctx, slime, est, info.cor, info.raio);
     ctx.restore();
 
     ctx.save();
     ctx.translate(slime.x, slime.y);
+    if (escala !== 1) ctx.scale(escala, escala);
+    if (elite) ctx.globalAlpha = 0.55 + ((Math.floor(Date.now() / 160) % 2 === 0) ? 0.45 : 0); // piscando
     var foi = true;
     if (arq === 'poison_melee' || tp.indexOf('esc') !== -1) _escorpiao(ctx, slime, est, info);
     else if (arq === 'web' || tp.indexOf('aranha') !== -1) _aranha(ctx, slime, est, info);
@@ -1258,7 +1296,8 @@ window.desenharSlime = function(slime) {
     ctx.restore();
 
     var offs = (arq === 'web' || tp.indexOf('aranha') !== -1) ? [-28, -38] : (foi ? [-18, -30] : [-15, -20]);
-    _barraHp(slime, offs[0], offs[1]);
+    _barraHp(slime, offs[0] * escala, offs[1] * escala);
+    if (elite) _desenharEliteMark(slime, escala);
 };
 
 // ============ ZUMBI (mantido do visual antigo) ============
