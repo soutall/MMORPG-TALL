@@ -216,7 +216,6 @@ function broadcastMapObjetos() {
         if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'map_objetos', objetos: mapObjetos }));
     });
 }
-}
 
 const WORLD_WIDTH = 65040;
 const WORLD_HEIGHT = 36000;
