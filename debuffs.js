@@ -26,6 +26,7 @@ const EFEITOS = {
     // ===== BUFFS =====
     furia:      { nome: 'Fúria Berserker', classe: 'buff', icon: '🩸', cor: '#e74c3c', desc: 'Lifesteal e dano aumentado durante a fúria.', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') },
     escudo:     { nome: 'Escudo',        classe: 'buff',   icon: '🛡️', cor: '#2ecc71', desc: 'Dano recebido reduzido em 20%.', formato: (ef) => ('' + Math.round(ef.intensidade * 100) + '%') },
+    escudoEnergia: { nome: 'Escudo de Energia', classe: 'buff', icon: '🛡️', cor: '#ecf0f1', desc: 'Escudo de energia por cima da vida (barra branca): absorve o dano antes do HP.', formato: (ef) => ('' + Math.round((ef.intensidade || 0) * 100) + '%') },
     fogo:       { nome: 'Ardente',       classe: 'buff',   icon: '🔥', cor: '#e74c3c', desc: 'Causa dano extra '+ 'por tick.', formato: (ef) => ('' + Math.round(ef.intensidade) + '/tick') },
     fervor:     { nome: 'Fervor',        classe: 'buff',   icon: '💢', cor: '#e74c3c', desc: 'Dano causado aumentado em 25%.', formato: (ef) => ('' + Math.round(ef.intensidade * 100) + '%') },
     velocidade: { nome: 'Velocidade',    classe: 'buff',   icon: '💨', cor: '#00bcd4', desc: 'Velocidade de movimento aumentada em 50%.', formato: (ef) => ('' + Math.round(ef.intensidade * 100) + '%') },

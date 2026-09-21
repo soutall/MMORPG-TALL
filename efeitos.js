@@ -381,7 +381,7 @@ window.desenharPlayerProjetil = function(pp) {
     let tipo = pp.tipo || ('normal');
     let ang = Math.atan2(pp.vy || 0, pp.vx || 1);
 
-    let corRastro = (tipo === 'magia') ? '#9b59b6' : (tipo === 'orbe') ? '#2ecc71' : (tipo === 'sagrado') ? '#f1c40f' : (tipo === 'riff') ? '#e67e22' : '#f39c12';
+    let corRastro = (tipo === 'magia') ? '#9b59b6' : (tipo === 'orbe') ? '#2ecc71' : (tipo === 'sagrado') ? '#f1c40f' : (tipo === 'riff') ? '#e67e22' : (tipo === 'dm_laser' || tipo === 'dm_tita_laser') ? '#00ffff' : (tipo === 'sniper_tiro' || tipo === 'sniper_super') ? '#ffe08a' : (tipo === 'flecha_arcana') ? '#f39c12' : '#f39c12';
     window.trailProjeteis.push({ x: pp.x, y: pp.y, cor: corRastro, vida: 1.0 });
     for (let i = window.trailProjeteis.length - 1; i >= 0; i--) { let t = window.trailProjeteis[i]; t.vida -= 0.08; if (t.vida <= 0) window.trailProjeteis.splice(i, 1); }
     window.trailProjeteis.forEach(t => { ctx.save(); ctx.globalAlpha = t.vida * 0.35; ctx.fillStyle = t.cor; ctx.beginPath(); ctx.arc(t.x, t.y, 2.5, 0, Math.PI * 2); ctx.fill(); ctx.restore(); });
@@ -412,6 +412,84 @@ window.desenharPlayerProjetil = function(pp) {
     } else if (tipo === 'orbe') {
         ctx.shadowColor = '#2ecc71'; ctx.shadowBlur = 10;
         ctx.fillStyle = '#27ae60'; ctx.beginPath(); ctx.arc(pp.x, pp.y, 6, 0, Math.PI * 2); ctx.fill();
+    } else if (tipo === 'dm_laser') {
+        // Tiro de energia do Drone (DroneMaster)
+        let pulso = 1 + Math.sin((pp.vida || 1) * 0.7) * 0.2;
+        ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 16;
+        ctx.strokeStyle = 'rgba(0,255,255,0.5)'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(pp.x - 5, pp.y); ctx.lineTo(pp.x + 5, pp.y); ctx.stroke();
+        ctx.fillStyle = '#d9ffff';
+        ctx.beginPath(); ctx.arc(pp.x, pp.y, 5.5 * pulso, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#00e5ff';
+        ctx.beginPath(); ctx.arc(pp.x, pp.y, 3.4 * pulso, 0, Math.PI * 2); ctx.fill();
+        for (let k = 0; k < 3; k++) {
+            let a = (pp.vida || 1) * 0.8 + k * 2.1;
+            ctx.fillStyle = 'rgba(0,229,255,0.9)';
+            ctx.beginPath(); ctx.arc(pp.x + Math.cos(a) * 8 * pulso, pp.y + Math.sin(a) * 8 * pulso, 1.4, 0, Math.PI * 2); ctx.fill();
+        }
+    } else if (tipo === 'dm_tita_laser') {
+        // Laser da Forma Titã (DroneMaster robô)
+        let pulso = 1 + Math.sin((pp.vida || 1) * 0.6) * 0.2;
+        ctx.shadowColor = '#9b59b6'; ctx.shadowBlur = 18;
+        ctx.strokeStyle = 'rgba(155,89,182,0.55)'; ctx.lineWidth = 6;
+        ctx.beginPath(); ctx.moveTo(pp.x - 8, pp.y); ctx.lineTo(pp.x + 8, pp.y); ctx.stroke();
+        ctx.fillStyle = '#e8d9ff';
+        ctx.beginPath(); ctx.arc(pp.x, pp.y, 8 * pulso, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#8e44ad';
+        ctx.beginPath(); ctx.arc(pp.x, pp.y, 5 * pulso, 0, Math.PI * 2); ctx.fill();
+        for (let k = 0; k < 4; k++) {
+            let a = (pp.vida || 1) * 0.7 + k * 1.57;
+            ctx.fillStyle = 'rgba(168,120,255,0.9)';
+            ctx.beginPath(); ctx.arc(pp.x + Math.cos(a) * 12 * pulso, pp.y + Math.sin(a) * 12 * pulso, 1.8, 0, Math.PI * 2); ctx.fill();
+        }
+    } else if (tipo === 'flecha_astral' || tipo === 'flecha_arcana') {
+        // Disparo Estelar (Arqueiro Astral): flecha-cometa de luz com cauda cósmica
+        let corEstelar = pp.cor || '#fff6c2';
+        ctx.translate(pp.x, pp.y); ctx.rotate(ang);
+        // cauda do cometa (fumaça de estrelas, se afinando)
+        ctx.globalAlpha = 0.55;
+        ctx.strokeStyle = '#8fd8ff'; ctx.lineWidth = 5;
+        ctx.shadowColor = '#c39bff'; ctx.shadowBlur = 8;
+        ctx.beginPath(); ctx.moveTo(-3, 0); ctx.lineTo(-24, 0); ctx.stroke();
+        ctx.globalAlpha = 0.9;
+        ctx.strokeStyle = corEstelar; ctx.lineWidth = 2.2;
+        ctx.shadowColor = corEstelar; ctx.shadowBlur = 12;
+        ctx.beginPath(); ctx.moveTo(-16, 0); ctx.lineTo(7, 0); ctx.stroke();
+        // coração do cometa (ponta da estrela)
+        ctx.fillStyle = '#fff6c2'; ctx.shadowBlur = 14;
+        ctx.beginPath(); ctx.moveTo(7, -4.2); ctx.lineTo(16, 0); ctx.lineTo(7, 4.2); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = corEstelar; ctx.shadowBlur = 16;
+        ctx.beginPath(); ctx.arc(2, 0, 3.2, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath(); ctx.arc(2, 0, 1.5, 0, Math.PI * 2); ctx.fill();
+    } else if (tipo === 'sniper_tiro') {
+        // Traçador longo do Tiro de Barrett (perfurante)
+        let comp = Math.hypot(pp.vx || 0, pp.vy || 0) || 300;
+        ctx.save();
+        ctx.translate(pp.x, pp.y);
+        ctx.rotate(ang);
+        ctx.globalAlpha = 0.9;
+        ctx.strokeStyle = '#ffe08a'; ctx.lineWidth = 3;
+        ctx.shadowColor = '#ffb347'; ctx.shadowBlur = 12;
+        ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(34, 0); ctx.stroke();
+        ctx.globalAlpha = 0.4;
+        ctx.strokeStyle = '#fff3c4'; ctx.lineWidth = 8;
+        ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(40, 0); ctx.stroke();
+        ctx.restore();
+    } else if (tipo === 'sniper_super') {
+        // Super tiro (3x) do Disparo Supremo
+        ctx.save();
+        ctx.translate(pp.x, pp.y);
+        ctx.rotate(ang);
+        ctx.globalAlpha = 0.95;
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 5;
+        ctx.shadowColor = '#ffe08a'; ctx.shadowBlur = 20;
+        ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(60, 0); ctx.stroke();
+        ctx.globalAlpha = 0.5;
+        ctx.strokeStyle = '#ffd166'; ctx.lineWidth = 12;
+        ctx.beginPath(); ctx.moveTo(-16, 0); ctx.lineTo(70, 0); ctx.stroke();
+        ctx.restore();
     } else {
         ctx.shadowColor = '#9b59b6'; ctx.shadowBlur = 8;
         ctx.fillStyle = '#00ffff'; ctx.beginPath(); ctx.arc(pp.x, pp.y, 6, 0, Math.PI * 2); ctx.fill();

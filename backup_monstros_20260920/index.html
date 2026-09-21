@@ -542,7 +542,7 @@
     <script src="efeitos.js?v=234"></script>
     <script src="debuffs.js?v=2"></script>
     <script src="efeitos/boss_golem.js?v=230"></script>
-    <script src="monstros.js?v=2002"></script>
+    <script src="monstros.js?v=1000"></script>
     <script src="inventario.js?v=132"></script>
     <script src="skills.js?v=145"></script>
     <script src="config.js?v=143"></script>
@@ -4911,8 +4911,6 @@
             if (window.currentMap === 'caverna' && typeof window.coletarCavernaSortables === "function") window.coletarCavernaSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'cidade' && typeof window.coletarCidadeSortables === "function") window.coletarCidadeSortables(tempoAnimacao, spritesSort);
 
-            if (typeof window.verificarMortesMonstros === "function") window.verificarMortesMonstros();
-
             window.listaSlimes.forEach(slime => {
                 if (!slime || slime.hp <= 0) return;
                 if (slime.x < cameraBounds.minX || slime.x > cameraBounds.maxX || slime.y < cameraBounds.minY || slime.y > cameraBounds.maxY) return;
@@ -5084,8 +5082,6 @@
 
             spritesSort.sort(function (a, b) { return a.y - b.y; });
             for (let i = 0; i < spritesSort.length; i++) spritesSort[i].draw();
-
-            if (typeof window.desenharMortesMonstros === "function") window.desenharMortesMonstros();
 
             // Indicador do alcance do ataque básico automático (abaixo dos efeitos de cima)
             desenharIndicadorAutoAtaque();

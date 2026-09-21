@@ -920,21 +920,21 @@
     "pontosDisponiveis": 3
   },
   "Admin": {
-    "level": 11,
-    "xp": 1637,
-    "classe": "barbaro",
-    "hp": 692,
-    "x": 60487,
-    "y": 660,
-    "ultimoLogin": 1789655938966,
+    "level": 14,
+    "xp": 2071,
+    "classe": "ladino",
+    "hp": 420,
+    "x": 4868,
+    "y": 966,
+    "ultimoLogin": 1789930451959,
     "atributos": {
-      "forca": 3,
-      "inteligencia": 7,
+      "forca": 4,
+      "inteligencia": 1,
       "agilidade": 1,
-      "destreza": 1,
+      "destreza": 14,
       "vida": 1,
       "profanidade": 1,
-      "divindade": 6,
+      "divindade": 1,
       "afinidade": 1
     },
     "pontosDisponiveis": 0,
@@ -1249,13 +1249,147 @@
           "cor": "#ffffff",
           "classe": null,
           "armaChave": null
+        },
+        {
+          "id": "drop_1789912251076_38",
+          "uid": "mu9vjg04-823ox46yk",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "🥾 BOTA LENDÁRIO",
+          "icon": "🥾",
+          "status": {
+            "destreza": 6,
+            "agilidade": 11,
+            "vida": 9,
+            "divindade": 12
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789914402377_2",
+          "uid": "mu9wtjyh-pde3nrujv",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🛡️ ARMADURA ÉPICO",
+          "icon": "🛡️",
+          "status": {
+            "agilidade": 6,
+            "divindade": 5,
+            "destreza": 8
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789929294144_3",
+          "uid": "mua5oqio-28o3ogkwi",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🥾 BOTA COMUM",
+          "icon": "🥾",
+          "status": {
+            "agilidade": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789929267688_2",
+          "uid": "mua5o63s-db9d7lnih",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🪖 CAPACETE RARO",
+          "icon": "🪖",
+          "status": {
+            "agilidade": 4,
+            "divindade": 3
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789929244027_1",
+          "uid": "mua5nnuj-9q9t5xoqk",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "📿 COLAR RARO",
+          "icon": "📿",
+          "status": {
+            "inteligencia": 3,
+            "afinidade": 3
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789929346503_6",
+          "uid": "mua5pux3-wiljv7kze",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🪖 CAPACETE ÉPICO",
+          "icon": "🪖",
+          "status": {
+            "divindade": 8,
+            "inteligencia": 6
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789930328342_12",
+          "uid": "mua6awie-5bsfkwnfe",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🛡️ ARMADURA COMUM",
+          "icon": "🛡️",
+          "status": {
+            "forca": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
         }
       ]
     },
     "maxHp": 684,
     "skills": {},
     "pontosHabilidade": 0,
-    "mana": 160
+    "mana": 100,
+    "uiLayout": {
+      "actions": {
+        "x": 436,
+        "y": 214
+      },
+      "hud-buffs": {
+        "x": 0,
+        "y": 73
+      },
+      "hud-status-window": {
+        "x": 0,
+        "y": 0
+      }
+    }
   },
   "Admin2": {
     "level": 3,
@@ -5807,5 +5941,209 @@
     "pontosHabilidade": 0,
     "mana": 50,
     "ogroModo": "passivo"
+  },
+  "Adminddd": {
+    "level": 4,
+    "xp": 144,
+    "classe": "ladino",
+    "hp": 124,
+    "x": 60537,
+    "y": 624,
+    "ultimoLogin": 1789929214165,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 5,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 2,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": {
+          "id": "drop_1789927512288_4",
+          "uid": "mua4mjmo-q8brdsvnr",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🔫 Barrett Antimatéria ÉPICO",
+          "icon": "🔫",
+          "status": {
+            "destreza": 8,
+            "forca": 6
+          },
+          "cor": "#a855f7",
+          "classe": "sniper",
+          "armaChave": "barrett_antimateria"
+        },
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": [
+        {
+          "id": "drop_1789927469753_3",
+          "uid": "mua4lmt6-e2tviz78s",
+          "tipo": "equipamento",
+          "slot": "capa",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🧥 CAPA ÉPICO",
+          "icon": "🧥",
+          "status": {
+            "vida": 6,
+            "destreza": 7
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789927649025_9",
+          "uid": "mua4ph4x-94rqnb990",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🛡️ ARMADURA ÉPICO",
+          "icon": "🛡️",
+          "status": {
+            "forca": 6,
+            "vida": 4,
+            "divindade": 4
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789927634379_7",
+          "uid": "mua4p5u3-18on4tiim",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🥾 BOTA RARO",
+          "icon": "🥾",
+          "status": {
+            "agilidade": 3,
+            "destreza": 2
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789927635912_8",
+          "uid": "mua4p70o-cfs13pycy",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "📿 COLAR RARO",
+          "icon": "📿",
+          "status": {
+            "inteligencia": 4,
+            "vida": 2
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        }
+      ]
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50,
+    "uiLayout": {
+      "actions": {
+        "x": 436,
+        "y": 236
+      }
+    },
+    "maxHp": 124
+  },
+  "TestObserver_1789929811689": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 60471,
+    "y": 653,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50,
+    "ultimoLogin": 1789929813710
+  },
+  "ObsGreen_1789929826112": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 5005,
+    "y": 1205,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50,
+    "ultimoLogin": 1789929828213
   }
 }

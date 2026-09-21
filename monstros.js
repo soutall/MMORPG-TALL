@@ -1,242 +1,1267 @@
-// monstros.js - Renderização dos Slimes, Zumbis e Inimigos
-var projetoAranhaDark = null;
-var projetoAranhaDarkCarregando = false;
+// monstros.js v2 - visual minimalista com auras, animações (idle/mov/atk) e morte
+// (o Zumbi foi mantido com o visual antigo - fora do escopo do redesenho)
 
-function carregarProjetoAranhaDark() {
-    if (projetoAranhaDark || projetoAranhaDarkCarregando || typeof fetch !== 'function') return;
-    projetoAranhaDarkCarregando = true;
-    fetch('monstro/Aranha_arcana.json', { cache: 'no-store' })
-        .then(function(resposta) { return resposta.ok ? resposta.json() : null; })
-        .then(function(projeto) { projetoAranhaDark = projeto; })
-        .catch(function(erro) { console.warn('Projeto ARANHA DARK não carregado:', erro); })
-        .finally(function() { projetoAranhaDarkCarregando = false; });
+window.monstrosMortes = window.monstrosMortes || [];
+var _estadosMonstros = {};
+var _contadorVisitas = 0;
+
+function _chave(slime) {
+    return slime.id != null ? String(slime.id) : (slime.x + '_' + slime.y);
 }
 
-carregarProjetoAranhaDark();
+function _estado(slime) {
+    var k = _chave(slime);
+    if (!_estadosMonstros[k]) {
+        _estadosMonstros[k] = {
+            x: slime.x, y: slime.y,
+            fase: (slime.x * 0.013) % 6.28,
+            prevCd: 0, prevHp: 0,
+            atkT: 0, flash: 0,
+            movendo: false, face: 0, morto: false, visita: _contadorVisitas
+        };
+    }
+    return _estadosMonstros[k];
+}
 
-function desenharAranhaDark(ctx, slime) {
-    if (!projetoAranhaDark || !Array.isArray(projetoAranhaDark.parts)) {
-        desenharMonstroNovo(ctx, slime);
+function _atualizarEstado(slime, est) {
+    var dx = slime.x - est.x, dy = slime.y - est.y;
+    var dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist > 0.8) {
+        est.movendo = true;
+        est.face = Math.atan2(dy, dx);
+        est.x = slime.x;
+        est.y = slime.y;
+    } else {
+        est.movendo = false;
+    }
+    if ((slime.attackCooldown === 0 || slime.attackCooldown == null) && est.prevCd > 0) {
+        est.atkT = 24;
+        est.flash = 10;
+    }
+    if (est.atkT > 0) est.atkT--;
+    if (est.flash > 0) est.flash--;
+    est.prevCd = (slime.attackCooldown != null) ? slime.attackCooldown : 0;
+}
+
+// ---------- DETECCAO DE MORTE ----------
+window.verificarMortesMonstros = function () {
+    var lista = window.listaSlimes || [];
+    var presentes = {};
+    for (var i = 0; i < lista.length; i++) {
+        var s = lista[i];
+        if (!s) continue;
+        var k = _chave(s);
+        presentes[k] = 1;
+        var est = _estado(s);
+        if (s.hp <= 0 && est.prevHp > 0 && !est.morto) {
+            est.morto = true;
+            window.monstrosMortes.push({ x: s.x, y: s.y, t: 0, max: 32, tipo: s.tipo, arq: s.arquetipo, id: k });
+        }
+        est.prevHp = s.hp;
+        if (s.hp > 0 && est.morto) est.morto = false;
+    }
+    _contadorVisitas++;
+    for (var kk in _estadosMonstros) {
+        if (_contadorVisitas - _estadosMonstros[kk].visita > 300) delete _estadosMonstros[kk];
+    }
+};
+
+// ---------- ANIMACAO DE MORTE ----------
+window.desenharMortesMonstros = function () {
+    var ctx = window.ctx;
+    if (!ctx) return;
+    var arr = window.monstrosMortes;
+    for (var i = arr.length - 1; i >= 0; i--) {
+        var m = arr[i];
+        m.t++;
+        var p = m.t / m.max;
+        if (p >= 1) { arr.splice(i, 1); continue; }
+        var cor = _corDeMorte(m.tipo, m.arq);
+        ctx.save();
+        ctx.translate(m.x, m.y);
+        ctx.globalAlpha = (1 - p) * 0.75;
+        ctx.strokeStyle = cor;
+        ctx.lineWidth = 3 * (1 - p) + 0.5;
+        ctx.shadowColor = cor;
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(0, 0, 6 + p * 34, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = (1 - p) * 0.5;
+        ctx.fillStyle = cor;
+        ctx.beginPath();
+        ctx.ellipse(0, 3, 20 * (1 - p) + 3, 13 * (1 - p) + 2, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        for (var k = 0; k < 7; k++) {
+            var a = m.t * 0.6 + k * 1.01 + (m.id ? m.id.length : 0);
+            var rr = 5 + p * 18;
+            var px = Math.cos(a) * rr;
+            var py = -Math.sin(a * 0.7 + k) * rr * 0.55 - p * 24;
+            ctx.globalAlpha = Math.max(0, 1 - p - 0.08 * k);
+            ctx.fillStyle = (k % 2) ? cor : '#ffffff';
+            ctx.beginPath();
+            ctx.arc(px, py, 2.2 * (1 - p) + 0.3, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+};
+
+// ---------- AJUDANTES COMPARTILHADOS ----------
+function _pulso(t, sp) { return (Math.sin(t * (sp || 3)) + 1) / 2; }
+
+function _ton(hex, f) {
+    var n = parseInt(hex.slice(1), 16);
+    var r = Math.min(255, Math.round(((n >> 16) & 255) * f));
+    var g = Math.min(255, Math.round(((n >> 8) & 255) * f));
+    var b = Math.min(255, Math.round((n & 255) * f));
+    return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1);
+}
+
+function _corEstado(slime, base) {
+    if (slime.stunTimer > 0) return '#efc321';
+    if (slime.slowTimer > 0 && slime.stunTimer <= 0) return '#39e6ff';
+    return base;
+}
+
+function _corDeMorte(tipo, arq) {
+    var sl = { tipo: tipo || 'slime', arquetipo: arq || null };
+    return _info(sl).cor;
+}
+
+function _info(slime) {
+    var arq = slime.arquetipo, tp = slime.tipo;
+    if (arq === 'web' || tp === 'aranha_dark') return { cor: '#6ee7ff', raio: 21 };
+    if (arq === 'ranged' || tp === 'caveira_arqueira') return { cor: '#ffd29e', raio: 19 };
+    if (arq === 'melee' || tp === 'caveira_melee') return { cor: '#ded3bd', raio: 21 };
+    if (arq === 'poison_melee' || tp === 'escorpiao') return { cor: '#9dff6b', raio: 20 };
+    if (arq === 'goblin' || tp === 'goblin') return { cor: '#8dff5e', raio: 18 };
+    if (arq === 'assassin' || tp === 'assassino') return { cor: '#ff5e7a', raio: 19 };
+    if (arq === 'gargoyle' || tp === 'gargula') return { cor: '#ffe08a', raio: 21 };
+    if (arq === 'meteor' || tp === 'mago_arcano') return { cor: '#7fd8ff', raio: 21 };
+    if (arq === 'void_laser' || tp === 'void_master') return { cor: '#b56cff', raio: 22 };
+    if (tp === 'ogro') return { cor: '#c1e36a', raio: 24 };
+    if (tp === 'mamute') return { cor: '#ffd98a', raio: 26 };
+    if (tp === 'besouro_negro') return { cor: '#b56cff', raio: 22 };
+    if (tp === 'morcego') return { cor: '#ff4d6d', raio: 19 };
+    if (tp === 'ranged') return { cor: '#c77dff', raio: 17 };
+    return { cor: '#58ff9c', raio: 17 };
+}
+
+function _sombra(ctx, escala) {
+    ctx.fillStyle = 'rgba(0,0,0,0.3)';
+    ctx.beginPath();
+    ctx.ellipse(0, 14 * escala, 14 * escala, 4.5 * escala, 0, 0, Math.PI * 2);
+    ctx.fill();
+}
+
+function _desenharAura(ctx, slime, est, cor, raio) {
+    var t = Date.now() / 1000 + est.fase;
+    ctx.save();
+    ctx.globalAlpha = 0.16 + _pulso(t, 2.2) * 0.14;
+    ctx.strokeStyle = cor;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.ellipse(0, 2, raio + Math.sin(t * 2) * 2, raio * 0.42 + Math.sin(t * 2.4) * 1.2, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.globalAlpha = 0.1 + _pulso(t, 1.8) * 0.1;
+    ctx.fillStyle = cor;
+    ctx.shadowColor = cor;
+    ctx.shadowBlur = 10;
+    ctx.beginPath();
+    ctx.ellipse(0, 2, raio + 4, raio * 0.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    for (var i = 0; i < 3; i++) {
+        var a = t * 0.9 + i * 2.09 + (slime.x || 0) * 0.02;
+        var mx = Math.cos(a) * (raio + 7);
+        var my = Math.sin(a) * (raio * 0.35 + 3) + Math.cos(a * 2.0) * 3 - 3;
+        ctx.globalAlpha = 0.35 + _pulso(t * 1.4 + i, 2.6) * 0.3;
+        ctx.fillStyle = cor;
+        ctx.shadowColor = cor;
+        ctx.shadowBlur = 6;
+        ctx.beginPath();
+        ctx.arc(mx, my, 1.5 + _pulso(t + i, 3) * 0.8, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+}
+
+function _lunge(est) {
+    if (est.atkT <= 0) return { x: 0, y: 0, rot: 0, s: 1 };
+    var p = 1 - est.atkT / 24;
+    var f = Math.sin(Math.min(1, p) * Math.PI);
+    return { x: f * 6, y: 0, rot: f * 0.14, s: 1 + f * 0.08 };
+}
+
+function _golpeArco(ctx, est, cor) {
+    if (est.flash <= 0) return;
+    var p = 1 - est.flash / 10;
+    ctx.save();
+    ctx.rotate(est.face);
+    ctx.globalAlpha = (1 - p) * 0.85;
+    ctx.strokeStyle = cor;
+    ctx.lineWidth = 3;
+    ctx.shadowColor = cor;
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(0, 0, 16 + p * 6, -0.4, -0.4 + p * 1.6);
+    ctx.stroke();
+    ctx.restore();
+}
+
+function _piscar(slime) {
+    var t = Date.now() / 1000 + (slime.x || 0) * 0.01;
+    var ciclo = t % 3.6;
+    return ciclo > 3.35;
+}
+
+function _stunStar(ctx, slime, dy) {
+    if (!(slime.stunTimer > 0)) return;
+    var ts = Date.now() / 90;
+    ctx.fillStyle = '#f1c40f';
+    ctx.font = '12px Arial';
+    ctx.fillText('💫', Math.cos(ts) * 12 - 6, (dy || -22) + Math.sin(ts) * 2);
+}
+
+// ============ SLIME CLASSICO (verde / roxo ranged) ============
+function _slime(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+
+    ctx.save();
+    ctx.translate(0, -2);
+    var resp = Math.sin(t * 2.6) * 0.05;
+    var sy = 1 + resp - (est.movendo ? 0.06 : 0);
+    var sx = 1 - resp + (est.movendo ? 0.06 : 0);
+    var ln = _lunge(est);
+    ctx.rotate(ln.rot);
+    ctx.scale(sx * ln.s, sy * ln.s);
+    ctx.translate(ln.x, 0);
+
+    ctx.fillStyle = _ton(cor, 0.45);
+    ctx.beginPath();
+    ctx.moveTo(-15, 0);
+    ctx.quadraticCurveTo(-15, -17, 0, -17);
+    ctx.quadraticCurveTo(15, -17, 15, 0);
+    ctx.quadraticCurveTo(15, 12, 0, 12);
+    ctx.quadraticCurveTo(-15, 12, -15, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = _ton(cor, 1.5);
+    ctx.globalAlpha = 0.5;
+    ctx.beginPath();
+    ctx.ellipse(-5, -9, 4, 2.4, -0.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    var abrindo = est.atkT > 0 ? Math.min(1, est.atkT / 9) : 0;
+    ctx.fillStyle = 'rgba(0,0,0,0.55)';
+    ctx.beginPath();
+    ctx.ellipse(0, 3.8, 4 + abrindo * 2, 1.8 + abrindo * 2.6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    var fechado = _piscar(slime);
+    ctx.fillStyle = '#10220f';
+    if (fechado) {
+        ctx.fillRect(-6, -4, 5, 1.4);
+        ctx.fillRect(1, -4, 5, 1.4);
+    } else {
+        ctx.beginPath(); ctx.arc(-3.5, -4, 1.9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(3.5, -4, 1.9, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.arc(-3, -4.8, 0.7, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(4, -4.8, 0.7, 0, Math.PI * 2); ctx.fill();
+    }
+
+    for (var i = 0; i < 3; i++) {
+        var f = ((t * 0.85 + i * 0.33) % 1.15) / 1.15;
+        var bx = -9 + i * 9 + Math.sin(t * 1.3 + i) * 1.5;
+        var by = -16 + f * 26;
+        ctx.globalAlpha = 0.55 + 0.4 * (1 - f);
+        ctx.fillStyle = cor;
+        ctx.beginPath();
+        ctx.arc(bx, by, 1.7 - f, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        if (f > 0.82) {
+            ctx.globalAlpha = (1 - f) * 1.6;
+            ctx.strokeStyle = cor;
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.ellipse(bx, 13, 6 * (1 - f), 2 * (1 - f), 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.globalAlpha = 1;
+        }
+    }
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+}
+
+// ============ BESOURO NEGRO (deserto) ============
+function _besouro(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var voando = !!slime.dashing;
+    var carregando = !!slime.skillCharging;
+    var cor = _corEstado(slime, info.cor);
+
+    if (voando) {
+        ctx.save();
+        ctx.rotate(est.face);
+        ctx.fillStyle = '#18181f';
+        ctx.beginPath(); ctx.ellipse(-3, 0, 27, 10, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#35354a';
+        ctx.beginPath(); ctx.ellipse(9, 0, 12, 6, 0, 0, Math.PI * 2); ctx.fill();
+        var bat = Math.sin(t * 42) * 0.5;
+        ctx.fillStyle = 'rgba(185,170,225,0.45)';
+        ctx.beginPath(); ctx.ellipse(-15, -10 + bat * 3, 8, 4, -0.35, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(-15, 10 - bat * 3, 8, 4, 0.35, 0, Math.PI * 2); ctx.fill();
+        ctx.restore();
+        _golpeArco(ctx, est, cor);
         return;
     }
 
-    var t = Date.now() / 1000;
-    var partes = projetoAranhaDark.parts.slice().sort(function(a, b) { return (a.z || 0) - (b.z || 0); });
-    var origemX = 48;
-    var origemY = 82;
-    var respiracao = slime.fugindo ? 1 : Math.sin(t * 3) * 0.025;
     ctx.save();
-    ctx.scale(0.72 + respiracao, 0.72 + respiracao);
-    ctx.translate(-origemX, -origemY);
-
-    partes.forEach(function(p) {
-        if (p.visible === false) return;
-        ctx.save();
-        ctx.translate(p.x || 0, p.y || 0);
-        ctx.rotate(p.rotation || 0);
-        ctx.scale(p.sx == null ? 1 : p.sx, p.sy == null ? 1 : p.sy);
-        ctx.globalAlpha = p.opacity == null ? 1 : p.opacity;
-        ctx.fillStyle = p.fill || '#17131d';
-        ctx.strokeStyle = p.stroke || '#16121a';
-        ctx.lineWidth = p.strokeWidth || 1;
-        ctx.shadowColor = p.shadowColor || 'transparent';
-        ctx.shadowBlur = p.shadowBlur || 0;
-        var pontos = p.points || [];
+    ctx.scale(1, 1 + Math.sin(t * 2.2) * 0.03);
+    ctx.fillStyle = _corEstado(slime, '#191922');
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 19, 13, 0, 0, Math.PI * 2);
+    ctx.fill();
+    if (carregando) {
+        ctx.fillStyle = _ton(cor, 0.14);
+        ctx.globalAlpha = 0.35 + _pulso(t, 9) * 0.3;
+        ctx.shadowColor = cor;
+        ctx.shadowBlur = 16;
         ctx.beginPath();
-        if (p.type === 'circle') ctx.arc(0, 0, 12, 0, Math.PI * 2);
-        else if (p.type === 'ellipse') ctx.ellipse(0, 0, 16, 10, 0, 0, Math.PI * 2);
-        else if (p.type === 'rect') ctx.rect(-12, -10, 24, 20);
-        else if (pontos.length) pontos.forEach(function(ponto, i) { i ? ctx.lineTo(ponto[0], ponto[1]) : ctx.moveTo(ponto[0], ponto[1]); });
-        if (p.type === 'line') ctx.stroke();
-        else if (pontos.length || p.type === 'circle' || p.type === 'ellipse' || p.type === 'rect') { ctx.closePath(); ctx.fill(); if (p.strokeWidth) ctx.stroke(); }
-        ctx.restore();
-    });
+        ctx.ellipse(0, -2, 16, 10, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+    ctx.lineWidth = 1;
+    for (var i = -2; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * 5, -9);
+        ctx.lineTo(i * 4 + (i > 0 ? 4 : 0), 10);
+        ctx.stroke();
+    }
+    ctx.strokeStyle = '#0d0d12';
+    ctx.lineWidth = 2.5;
+    for (var l = 0; l < 3; l++) {
+        var lx = -10 + l * 7;
+        var pass = Math.sin(t * (est.movendo ? 16 : 3) + l) * 2;
+        ctx.beginPath();
+        ctx.moveTo(lx, 8);
+        ctx.lineTo(lx - 5 - l + pass, 15);
+        ctx.moveTo(lx + 4, 8);
+        ctx.lineTo(lx + 8 + l - pass, 15);
+        ctx.stroke();
+    }
+    var brilhoOlho = 0.7 + _pulso(t, 5) * 0.4;
+    ctx.fillStyle = '#ff3b3b';
+    ctx.shadowColor = '#ff0000';
+    ctx.shadowBlur = 7 * brilhoOlho;
+    ctx.beginPath(); ctx.arc(-8, -3, 2.4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(8, -3, 2.4, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+    if (carregando) {
+        var bat2 = Math.sin(t * 38) * 0.5;
+        ctx.fillStyle = 'rgba(200,190,240,0.4)';
+        ctx.beginPath(); ctx.ellipse(-17, -5 + bat2 * 3, 7, 4, -0.4, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.ellipse(17, -5 - bat2 * 3, 7, 4, 0.4, 0, Math.PI * 2); ctx.fill();
+    }
     ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, -32);
+}
+
+// ============ MORCEGO (caverna) ============
+function _morcego(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+    var altura = -13 + Math.sin(t * 2.3 + (slime.x || 0) * 0.01) * 3;
+    var flap = Math.sin(t * ((est.movendo || est.atkT > 0) ? 13 : 2.1));
+    var abrir = Math.abs(flap);
+
+    ctx.save();
+    ctx.translate(0, altura);
+    ctx.fillStyle = 'rgba(90,60,105,0.9)';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(-10 * abrir, -8 * abrir, -15 * abrir, 0);
+    ctx.quadraticCurveTo(-10 * abrir, 6 * abrir, -2, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(10 * abrir, -8 * abrir, 15 * abrir, 0);
+    ctx.quadraticCurveTo(10 * abrir, 6 * abrir, 2, 3);
+    ctx.closePath();
+    ctx.fill();
+
+    var ln = _lunge(est);
+    ctx.scale(1 + ln.s * 0.1, 1);
+    ctx.beginPath();
+    ctx.moveTo(-4, -4);
+    ctx.lineTo(-6, -10);
+    ctx.lineTo(-1, -6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(4, -4);
+    ctx.lineTo(6, -10);
+    ctx.lineTo(1, -6);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = _ton(cor, 0.16);
+    ctx.beginPath();
+    ctx.ellipse(0, 1, 5.5, 6.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    var brilhoOlho = 0.7 + _pulso(t, 5) * 0.4;
+    ctx.fillStyle = '#ff4d6d';
+    ctx.shadowColor = '#ff0000';
+    ctx.shadowBlur = 7 * brilhoOlho;
+    ctx.beginPath(); ctx.arc(-2, -1, 1.7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(2, -1, 1.7, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#efe9dc';
+    ctx.beginPath();
+    ctx.moveTo(-2.5, 5); ctx.lineTo(-1.5, 8); ctx.lineTo(0, 5); ctx.closePath();
+    ctx.beginPath();
+    ctx.moveTo(0, 5); ctx.lineTo(1.5, 8); ctx.lineTo(2.5, 5); ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, altura - 24);
+}
+
+// ============ ARANHA (web / aranha dark) ============
+function _aranha(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+    var andando = est.movendo;
+    var pass = t * (andando ? 11 : 2.2);
+    var carregando = !!slime.skillCharging;
+
+    ctx.save();
+    var ln = _lunge(est);
+    ctx.scale(1 + ln.s * 0.04, 1);
+    ctx.translate(ln.x, 0);
+
+    ctx.strokeStyle = '#24152f';
+    ctx.lineWidth = 1.6;
+    for (var i = 0; i < 4; i++) {
+        var sw = Math.sin(pass + i * 0.9) * 2.5;
+        ctx.beginPath();
+        ctx.moveTo(-4, -4); ctx.lineTo(-10 - i, i * 2 - 2 + sw);
+        ctx.moveTo(4, -4); ctx.lineTo(10 + i, i * 2 - 2 + sw);
+        ctx.moveTo(-4, 4); ctx.lineTo(-11 - i, i * 1.5 + 7 + sw);
+        ctx.moveTo(4, 4); ctx.lineTo(11 + i, i * 1.5 + 7 + sw);
+        ctx.stroke();
+    }
+
+    ctx.fillStyle = _ton(cor, 0.14);
+    ctx.beginPath();
+    ctx.ellipse(-6, 0, 7, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+    if (carregando) {
+        ctx.fillStyle = cor;
+        ctx.globalAlpha = 0.5 + _pulso(t, 9) * 0.4;
+        ctx.shadowColor = cor;
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.ellipse(-6, 0, 5.5, 7.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = _ton(cor, 0.5);
+    ctx.beginPath();
+    ctx.arc(6, -3, 4.6, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = cor;
+    ctx.shadowColor = cor;
+    ctx.shadowBlur = 5;
+    ctx.beginPath(); ctx.arc(7, -4, 1.1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(8.5, -3, 1.1, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    if (carregando) {
+        ctx.globalAlpha = 0.4 + _pulso(t, 6) * 0.3;
+        ctx.strokeStyle = cor;
+        ctx.lineWidth = 1.2;
+        for (var s = 0; s < 6; s++) {
+            var a = t * 1.5 + (s / 6) * Math.PI * 2;
+            ctx.beginPath();
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(a) * 14, Math.sin(a) * 14);
+            ctx.stroke();
+        }
+        ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, -26);
+}
+
+// ============ ESCORPIAO (veneno) ============
+function _escorpiao(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+    var andando = est.movendo;
+    var pass = t * (andando ? 13 : 2.4);
+
+    ctx.save();
+    var ln = _lunge(est);
+    ctx.translate(ln.x, 0);
+
+    ctx.strokeStyle = _ton(cor, 0.3);
+    ctx.lineWidth = 1.7;
+    for (var i = 0; i < 3; i++) {
+        var sw = Math.sin(pass + i) * 2;
+        ctx.beginPath();
+        ctx.moveTo(-7, 0); ctx.lineTo(-13 - i * 2, 9 + sw);
+        ctx.moveTo(7, 0); ctx.lineTo(13 + i * 2, 9 + sw);
+        ctx.stroke();
+    }
+
+    ctx.fillStyle = _ton(cor, 0.22);
+    ctx.beginPath();
+    ctx.ellipse(-8, -2, 7, 8, -0.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = _ton(cor, 0.5);
+    ctx.beginPath();
+    ctx.ellipse(7, 0, 9, 6, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    var caudaA = t * 2.2 + (est.atkT > 0 ? est.atkT * 0.25 : 0);
+    ctx.strokeStyle = _ton(cor, 0.35);
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(10, -1);
+    ctx.quadraticCurveTo(17, -9, 13 + Math.cos(caudaA) * 5, -13 - Math.sin(caudaA) * 3);
+    ctx.stroke();
+    ctx.fillStyle = cor;
+    ctx.shadowColor = cor;
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.arc(13 + Math.cos(caudaA) * 5, -13 - Math.sin(caudaA) * 3, 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.fillStyle = '#0c241a';
+    ctx.beginPath(); ctx.arc(3, -2, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(6, -2, 1.5, 0, Math.PI * 2); ctx.fill();
+
+    for (var b = 0; b < 3; b++) {
+        var f = ((t * 0.85 + b * 0.4) % 1.15) / 1.15;
+        ctx.globalAlpha = 0.5 + 0.4 * (1 - f);
+        ctx.fillStyle = cor;
+        ctx.beginPath();
+        ctx.arc(-8 + b * 5, -9 + f * 14, 1.5 - f, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, -24);
+}// ============ GOBLIN ============
+function _goblin(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+    var rapido = !!slime.fugindo;
+    var ritmo = rapido ? 3.2 : 1;
+    var salto = Math.abs(Math.sin(t * ritmo * 5));
+    var inclina = rapido ? 0.35 : Math.sin(t * (est.movendo ? 8 : 2)) * 0.08;
+
+    ctx.save();
+    ctx.translate(0, -salto * 2);
+    ctx.rotate(inclina);
+    var ln = _lunge(est);
+    ctx.translate(ln.x * 0.6, 0);
+
+    ctx.strokeStyle = _ton(cor, 0.3);
+    ctx.lineWidth = 1.6;
+    var pf = Math.sin(t * ritmo * 13);
+    ctx.beginPath();
+    ctx.moveTo(-4, 2); ctx.lineTo(-8 + pf * 3, 12);
+    ctx.moveTo(4, 2); ctx.lineTo(8 - pf * 3, 12);
+    ctx.stroke();
+
+    ctx.fillStyle = _ton(cor, 0.85);
+    ctx.beginPath();
+    ctx.arc(0, -3, 8.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = _ton(cor, 1.5);
+    ctx.globalAlpha = 0.6;
+    ctx.beginPath();
+    ctx.moveTo(-10, -9); ctx.lineTo(-2, -4); ctx.lineTo(-3, -11); ctx.closePath();
+    ctx.moveTo(10, -9); ctx.lineTo(2, -4); ctx.lineTo(3, -11); ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = 1;
+
+    var fechado = _piscar(slime);
+    ctx.fillStyle = '#10220f';
+    if (fechado) { ctx.fillRect(-5, -6, 4, 1.3); ctx.fillRect(1, -6, 4, 1.3); }
+    else {
+        ctx.beginPath(); ctx.arc(-3, -5, 1.6, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(3, -5, 1.6, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.fillStyle = '#45e32f';
+    ctx.fillRect(-2, 0, 4, 2);
+
+    if (est.atkT > 0) {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.2;
+        ctx.globalAlpha = 0.7;
+        ctx.beginPath();
+        ctx.moveTo(8, -1); ctx.lineTo(14, -3);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, -22);
+}
+
+// ============ ARQUEIRO VOADOR (caveira arqueira / ranged) ============
+function _arqueiroVoador(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+    var altura = -14 + Math.sin(t * 2) * 3;
+    var raioFlutua = Math.sin(t * 2 + 2) * 2;
+
+    ctx.save();
+    ctx.translate(0, altura);
+    var ln = _lunge(est);
+    ctx.translate(ln.x, ln.y * 0.3);
+    ctx.rotate(slime.fugindo ? 0.3 : 0);
+
+    ctx.fillStyle = _ton(cor, 0.12);
+    ctx.beginPath();
+    ctx.ellipse(raioFlutua, -4, 9, 8.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    if (slime.skillCharging) {
+        ctx.fillStyle = '#9fd3ff';
+        ctx.globalAlpha = 0.25 + _pulso(t, 9) * 0.2;
+        ctx.shadowColor = '#7ab8ff';
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.arc(raioFlutua, -4, 7, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+    }
+    ctx.fillStyle = _ton(cor, 0.75);
+    ctx.strokeStyle = _ton(cor, 0.4);
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.ellipse(raioFlutua, -4, 6, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    var brilhoOlho = 0.6 + _pulso(t, 5) * 0.5;
+    ctx.fillStyle = '#ff5722';
+    ctx.shadowColor = '#ff3d00';
+    ctx.shadowBlur = 7 * brilhoOlho;
+    ctx.beginPath(); ctx.arc(raioFlutua - 2, -5.5, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(raioFlutua + 2, -5.5, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    if (slime.skillCharging) {
+        ctx.strokeStyle = _ton(cor, 2);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(raioFlutua + 7, -1);
+        ctx.lineTo(raioFlutua + 15 + Math.sin(t * 6) * 2, -3 + Math.sin(t * 7) * 2);
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(raioFlutua + 15 + _pulso(t, 9) * 4, -3, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, altura - 22);
+}
+
+// ============ CAVEIRA MELEE (guerreiro esqueleto) ============
+function _caveiraMelee(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+    var pass = t * (est.movendo ? 11 : 2.2);
+    var prepara = !!slime.skillCharging;
+
+    ctx.save();
+    if (prepara) {
+        ctx.globalAlpha = 0.5 + _pulso(t, 9) * 0.4;
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#fff';
+        ctx.shadowBlur = 10;
+        ctx.beginPath();
+        ctx.arc(0, -2, 14 + Math.sin(t * 5) * 2, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+    }
+
+    ctx.strokeStyle = _ton(cor, 0.4);
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.moveTo(-5, 2); ctx.lineTo(-6 + Math.sin(pass + 1) * 4, 12);
+    ctx.moveTo(5, 2); ctx.lineTo(6 - Math.sin(pass + 2) * 4, 12);
+    ctx.stroke();
+
+    ctx.fillStyle = _ton(cor, 0.65);
+    ctx.beginPath();
+    ctx.moveTo(-10, -2);
+    ctx.lineTo(10, -2);
+    ctx.lineTo(8, 4);
+    ctx.lineTo(-8, 4);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = _ton(cor, 1.0);
+    ctx.strokeStyle = _ton(cor, 0.45);
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(0, -9, 6.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(-2.5, -9.5, 1.6, 0, Math.PI * 2);
+    ctx.arc(2.5, -9.5, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#0a0a12';
+    ctx.beginPath(); ctx.arc(-2.5, -9.5, 0.9, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(2.5, -9.5, 0.9, 0, Math.PI * 2); ctx.fill();
+
+    var espadaAng = prepara ? (0.6 + _pulso(t, 7) * 0.3) : (est.atkT > 0 ? 0.5 : -0.25);
+    ctx.save();
+    ctx.translate(9, -6);
+    ctx.rotate(espadaAng);
+    ctx.fillStyle = '#e8e8f0';
+    ctx.fillRect(6, -1, 10, 2);
+    ctx.restore();
+
+    if (prepara) {
+        ctx.fillStyle = '#c77dff';
+        ctx.globalAlpha = 0.4 + _pulso(t, 6) * 0.3;
+        ctx.shadowColor = '#b56cff';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.arc(0, -4, 9 + _pulso(t, 5) * 4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+    }
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, -26);
+}
+
+// ============ MAGO ARCANO (meteor) ============
+function _magoArcano(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+    var altura = -13 + Math.sin(t * 2.2) * 3;
+    var carregando = !!slime.skillCharging;
+
+    ctx.save();
+    ctx.translate(0, altura);
+
+    if (carregando) {
+        var orb = (_pulso(t, 8) * 0.5 + 0.5);
+        ctx.fillStyle = _ton(cor, 1.8);
+        ctx.globalAlpha = 0.3 + orb * 0.5;
+        ctx.shadowColor = cor;
+        ctx.shadowBlur = 20;
+        ctx.beginPath();
+        ctx.arc(Math.sin(t * 3) * 3, -4, 8 + orb * 6, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+    }
+
+    ctx.fillStyle = _ton(cor, 0.3);
+    ctx.beginPath();
+    ctx.moveTo(-9, 0);
+    ctx.quadraticCurveTo(-10, 6, 0, 7);
+    ctx.quadraticCurveTo(10, 6, 9, 0);
+    ctx.quadraticCurveTo(8, -7, 0, -9);
+    ctx.quadraticCurveTo(-8, -7, -9, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = _ton(cor, 0.5);
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(6, 2);
+    ctx.lineTo(11, 14);
+    ctx.stroke();
+    ctx.fillStyle = cor;
+    ctx.shadowColor = cor;
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.arc(11, 15, 1.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    var fechado = _piscar(slime);
+    ctx.fillStyle = '#b39ddb';
+    if (fechado) { ctx.fillRect(-5, -4, 4, 1.2); ctx.fillRect(1, -4, 4, 1.2); }
+    else {
+        ctx.beginPath(); ctx.arc(-2.5, -4.5, 1.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(2.5, -4.5, 1.5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 0.5 + _pulso(t, 3) * 0.2;
+    ctx.fillStyle = cor;
+    ctx.beginPath();
+    ctx.arc(0, -1, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, altura - 24);
+}// ============ ASSASSINO ============
+function _assassino(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+    var correndo = !!slime.dashing;
+
+    if (correndo) {
+        ctx.save();
+        ctx.globalAlpha = 0.25;
+        ctx.fillStyle = _ton(cor, 0.3);
+        ctx.beginPath();
+        ctx.moveTo(-16, 4); ctx.lineTo(-8, -2); ctx.lineTo(-6, 4); ctx.closePath();
+        ctx.fill();
+        ctx.globalAlpha = 1;
+        ctx.restore();
+    }
+    ctx.save();
+    ctx.rotate(0.15 + Math.sin(t * 3) * 0.02);
+    var ln = _lunge(est);
+    ctx.translate(ln.x, 0);
+
+    ctx.fillStyle = _ton(cor, 0.22);
+    ctx.beginPath();
+    ctx.moveTo(-7, -2);
+    ctx.quadraticCurveTo(-9, -12, 0, -15);
+    ctx.quadraticCurveTo(9, -12, 7, -2);
+    ctx.closePath();
+    ctx.fill();
+
+    var capuz = Math.sin(t * 2) * 0.03;
+    ctx.fillStyle = _ton(cor, 0.5);
+    ctx.beginPath();
+    ctx.moveTo(-8, -4);
+    ctx.quadraticCurveTo(0, -18 + capuz * 4, 8, -4);
+    ctx.closePath();
+    ctx.fill();
+
+    var brilhoOlho = 0.6 + _pulso(t, 6) * 0.5;
+    ctx.fillStyle = '#ff435d';
+    ctx.shadowColor = '#ff0033';
+    ctx.shadowBlur = 7 * brilhoOlho;
+    ctx.beginPath(); ctx.arc(-2.5, -7, 1.1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(2.5, -7, 1.1, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
+
+    ctx.strokeStyle = '#dce3ef';
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(-6, -2); ctx.lineTo(-10, 6);
+    ctx.moveTo(6, -2); ctx.lineTo(10, 6);
+    ctx.stroke();
+
+    if (est.atkT > 0) {
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(8, 0); ctx.lineTo(15, -4);
+        ctx.moveTo(-8, 0); ctx.lineTo(-15, -4);
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+    }
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, -26);
+}
+
+// ============ VOID MASTER ============
+function _voidMaster(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+    var altura = -14 + Math.sin(t * 1.8) * 4;
+    var carregando = !!slime.skillCharging;
+
+    if (carregando && slime.skillAim) {
+        ctx.save();
+        ctx.strokeStyle = cor;
+        ctx.lineWidth = 2;
+        ctx.globalAlpha = 0.5 + _pulso(t, 8) * 0.4;
+        ctx.shadowColor = cor;
+        ctx.shadowBlur = 10;
+        ctx.setLineDash([6, 5]);
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.lineTo(slime.skillAim.x - slime.x, slime.skillAim.y - slime.y);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
+        ctx.restore();
+    }
+    ctx.save();
+    ctx.translate(0, altura);
+
+    ctx.fillStyle = 'rgba(20,16,30,0.85)';
+    ctx.beginPath();
+    ctx.moveTo(-11, 0);
+    ctx.quadraticCurveTo(-9, -11, 0, -13);
+    ctx.quadraticCurveTo(9, -11, 11, 0);
+    ctx.quadraticCurveTo(8, 7, 0, 7);
+    ctx.quadraticCurveTo(-8, 7, -11, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = cor;
+    ctx.globalAlpha = 0.55 + _pulso(t, 4) * 0.35;
+    ctx.shadowColor = cor;
+    ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.arc(Math.sin(t * 3) * 2, -3, 4 + _pulso(t, 5) * 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+
+    ctx.strokeStyle = 'rgba(185,150,255,0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-11, -2);
+    ctx.quadraticCurveTo(-15, -8, -12, -13);
+    ctx.moveTo(11, -2);
+    ctx.quadraticCurveTo(15, -8, 12, -13);
+    ctx.stroke();
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, altura - 26);
+}
+
+// ============ GARGULA ============
+function _gargula(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+    var voa = !!slime.dashing;
+
+    if (voa) {
+        ctx.save();
+        ctx.rotate(est.face);
+        ctx.fillStyle = _ton(cor, 0.3);
+        var bat = Math.sin(t * 20) * 0.6;
+        ctx.beginPath();
+        ctx.ellipse(-12, -6 - bat * 4, 9, 6, -0.4, 0, Math.PI * 2);
+        ctx.beginPath();
+        ctx.ellipse(12, -6 - bat * 4, 9, 6, 0.4, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        _golpeArco(ctx, est, cor);
+        return;
+    }
+    ctx.save();
+    ctx.scale(1, 1 + Math.sin(t * 2) * 0.02);
+    ctx.fillStyle = _ton(cor, 0.3);
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 12, 9, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = _ton(cor, 0.55);
+    ctx.strokeStyle = _ton(cor, 0.3);
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.arc(-7, -3, 5, 0, Math.PI * 2);
+    ctx.arc(7, -3, 5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.arc(0, -7, 7.5, Math.PI, 0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    var caudaAng = Math.sin(t * 3) * 0.4;
+    ctx.save();
+    ctx.translate(-11, 2);
+    ctx.rotate(caudaAng);
+    ctx.strokeStyle = _ton(cor, 0.35);
+    ctx.lineWidth = 2.4;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(4, 9, 12, 8);
+    ctx.stroke();
+    ctx.fillStyle = _ton(cor, 0.6);
+    ctx.beginPath();
+    ctx.moveTo(8, 10); ctx.lineTo(12, 5); ctx.lineTo(16, 11); ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    ctx.fillStyle = _ton(cor, 0.75);
+    ctx.save();
+    ctx.translate(-7, -6);
+    ctx.rotate(slime.skillCharging ? _pulso(t, 7) * 0.5 : Math.sin(t * 2) * 0.15);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 6.5, 3.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.save();
+    ctx.translate(7, -6);
+    ctx.rotate(slime.skillCharging ? -_pulso(t, 7) * 0.5 : -Math.sin(t * 2) * 0.15);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 6.5, 3.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, -30);
+}
+
+// ============ OGRO ============
+function _ogro(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+    var pass = t * (est.movendo ? 7 : 1.6);
+
+    ctx.save();
+    var ln = _lunge(est);
+    ctx.rotate(ln.rot * 0.5);
+    ctx.translate(ln.x * 0.5, 0);
+    ctx.scale(1 + ln.s * 0.3, 1 + ln.s * 0.3);
+
+    ctx.strokeStyle = _ton(cor, 0.3);
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(-8, 4); ctx.lineTo(-9 + Math.sin(pass + 1) * 4, 15);
+    ctx.moveTo(8, 4); ctx.lineTo(11 - Math.sin(pass + 2) * 4, 16);
+    ctx.stroke();
+
+    ctx.fillStyle = _ton(cor, 0.6);
+    ctx.beginPath();
+    ctx.moveTo(-10, -9);
+    ctx.quadraticCurveTo(-12, 5, -8, 7);
+    ctx.quadraticCurveTo(0, 11, 8, 7);
+    ctx.quadraticCurveTo(12, 5, 10, -9);
+    ctx.quadraticCurveTo(0, -14, -10, -9);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = _ton(cor, 1.0);
+    ctx.beginPath();
+    ctx.arc(0, -15, 7.5, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = '#c8a26a';
+    ctx.beginPath(); ctx.arc(-2.5, -13, 1.4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(2.5, -13, 1.4, 0, Math.PI * 2); ctx.fill();
+
+    ctx.strokeStyle = _ton(cor, 0.35);
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(-9, -2);
+    ctx.lineTo(-14, 6);
+    ctx.moveTo(9, -2);
+    ctx.lineTo(14, 6);
+    ctx.stroke();
+
+    var clavaAng = (est.atkT > 0 ? -0.9 + ln.s * 0.5 : 0.2 + Math.sin(t * 2) * 0.05);
+    ctx.save();
+    ctx.translate(2, -8);
+    ctx.rotate(clavaAng);
+    ctx.strokeStyle = _ton(cor, 0.4);
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, 0); ctx.lineTo(12, 12);
+    ctx.stroke();
+    ctx.fillStyle = _ton(cor, 0.7);
+    ctx.beginPath();
+    ctx.ellipse(13, 13, 4, 3, 0.6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, -30);
+}
+
+// ============ MAMUTE ============
+function _mamute(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+    var pass = t * (est.movendo ? 6 : 1.4);
+    var carga = !!slime.dashing;
+    var ln = _lunge(est);
+
+    ctx.save();
+    ctx.translate(ln.x, 0);
+    var inclinacao = carga ? 0.3 : (est.movendo ? 0.05 : 0);
+    ctx.rotate(inclinacao);
+
+    ctx.strokeStyle = _ton(cor, 0.35);
+    ctx.lineWidth = 4;
+    ctx.beginPath();
+    ctx.moveTo(-9, 2); ctx.lineTo(-10 + Math.sin(pass) * 3, 16);
+    ctx.moveTo(9, 2); ctx.lineTo(12 - Math.sin(pass) * 3, 17);
+    ctx.stroke();
+
+    ctx.fillStyle = _ton(cor, 0.55);
+    ctx.beginPath();
+    ctx.moveTo(-15, -4);
+    ctx.quadraticCurveTo(-16, -14, 0, -15);
+    ctx.quadraticCurveTo(16, -14, 15, -4);
+    ctx.quadraticCurveTo(16, 6, 0, 7);
+    ctx.quadraticCurveTo(-16, 6, -15, -4);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = _ton(cor, 1.2);
+    ctx.beginPath();
+    ctx.arc(0, -22, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = _ton(cor, 0.8);
+    ctx.beginPath();
+    ctx.arc(0, -25, 8.5, Math.PI, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = '#e8e4d0';
+    ctx.beginPath();
+    ctx.moveTo(-6, -14); ctx.lineTo(-13, -20); ctx.lineTo(-8, -21); ctx.lineTo(-4, -15); ctx.closePath();
+    ctx.moveTo(6, -14); ctx.lineTo(13, -20); ctx.lineTo(8, -21); ctx.lineTo(4, -15); ctx.closePath();
+    ctx.fill();
+
+    var tronco = Math.sin(t * 2.4) * 4;
+    ctx.strokeStyle = _ton(cor, 0.7);
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(0, -12);
+    ctx.quadraticCurveTo(4, -6, 8 + tronco, 2);
+    ctx.stroke();
+
+    ctx.fillStyle = '#c0392b';
+    ctx.globalAlpha = 0.6 + _pulso(t, 5) * 0.4;
+    ctx.beginPath(); ctx.arc(-4, -24, 1.3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(4, -24, 1.3, 0, Math.PI * 2); ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, -34);
+}
+
+// ============ TANQUE / PADRÃO ============
+function _tanque(ctx, slime, est, info) {
+    var t = Date.now() / 1000 + est.fase;
+    var cor = _corEstado(slime, info.cor);
+    var ln = _lunge(est);
+
+    ctx.save();
+    ctx.translate(ln.x, 0);
+    ctx.rotate(ln.rot);
+    var b = 1 + Math.sin(t * 3) * 0.03;
+    ctx.scale(b, b);
+
+    ctx.fillStyle = _ton(cor, 0.4);
+    ctx.beginPath();
+    ctx.moveTo(-14, 0);
+    ctx.quadraticCurveTo(-14, -15, 0, -15);
+    ctx.quadraticCurveTo(14, -15, 14, 0);
+    ctx.quadraticCurveTo(14, 10, 0, 10);
+    ctx.quadraticCurveTo(-14, 10, -14, 0);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle = _ton(cor, 1.4);
+    ctx.lineWidth = 1.8;
+    ctx.beginPath();
+    ctx.rect(-9, -11, 18, 9);
+    ctx.stroke();
+    ctx.fillStyle = _ton(cor, 1.4);
+    ctx.globalAlpha = 0.75;
+    ctx.beginPath();
+    ctx.arc(0, -6.5, 3.2 + _pulso(t, 4) * 1.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
+    ctx.restore();
+    _golpeArco(ctx, est, cor);
+    _stunStar(ctx, slime, -26);
+}// ============ DISPATCHER PRINCIPAL ============
+// Barra de vida acima do monstro (renderização do client, via classes/comum.js)
+function _barraHp(slime, dx, dy) {
+    if (typeof window.desenharBarraHp === "function") {
+        window.desenharBarraHp(slime.x + dx, slime.y + dy, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer);
+    }
 }
 
 window.desenharSlime = function(slime) {
     if (slime.hp <= 0 || !window.ctx) return;
-    let ctx = window.ctx;
+    var ctx = window.ctx;
 
-    ctx.save();
-    // Posição fixa no solo (sem elevação vertical)
-    ctx.translate(slime.x, slime.y);
+    var tp = (slime.tipo || '').toLowerCase();
+    var arq = (slime.arquetipo || '').toLowerCase();
 
-    // Zumbi usa o próprio corpo ereto + efeito de fedido
-    if (slime.tipo === 'zumbi') {
+    if (tp.indexOf('zumbi') !== -1) {
+        ctx.save();
+        ctx.translate(slime.x, slime.y);
         desenharZumbi(ctx, slime);
         ctx.restore();
-        if (typeof window.desenharBarraHp === "function") {
-            window.desenharBarraHp(slime.x - 15, slime.y - 24, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer);
-        }
+        _barraHp(slime, -15, -24);
         return;
     }
 
-    // Besouro Negro: rinoceronte preto blindado do deserto
-    if (slime.tipo === 'besouro_negro') {
-        desenharBesouroNegro(ctx, slime);
-        ctx.restore();
-        if (typeof window.desenharBarraHp === "function") {
-            window.desenharBarraHp(slime.x - 15, slime.y - 24, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer);
-        }
-        return;
-    }
+    if (slime.invisivel) return;
 
-    // Morcego: voador rápido da caverna
-    if (slime.tipo === 'morcego') {
-        desenharMorcego(ctx, slime);
-        ctx.restore();
-        if (typeof window.desenharBarraHp === "function") {
-            window.desenharBarraHp(slime.x - 15, slime.y - 24, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer);
-        }
-        return;
-    }
+    var info = _info(slime);
+    var est = _estado(slime);
+    _atualizarEstado(slime, est);
 
-    // Monstro criado pelo Character Forge: as partes são carregadas do JSON exportado.
-    if (slime.tipo === 'aranha_dark') {
-        desenharAranhaDark(ctx, slime);
-        ctx.restore();
-        if (typeof window.desenharBarraHp === "function") {
-            window.desenharBarraHp(slime.x - 28, slime.y - 38, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer);
-        }
-        return;
-    }
-
-    if (slime.arquetipo) {
-        desenharMonstroNovo(ctx, slime);
-        ctx.restore();
-        if (typeof window.desenharBarraHp === "function") {
-            window.desenharBarraHp(slime.x - 18, slime.y - 30, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer);
-        }
-        return;
-    }
-
-    // ---- SLIME padrão ----
-    // Sombra no chão
-    ctx.fillStyle = "rgba(0,0,0,0.35)";
-    ctx.beginPath();
-    ctx.ellipse(0, 14, 14, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Definição de cores de estado
-    let corSlime = (slime.tipo === 'ranged') ? "#8e44ad" : "#27ae60";
-    if (slime.stunTimer > 0) corSlime = "#f1c40f"; // Fica amarelo quando atordoado
-    if (slime.slowTimer > 0 && slime.stunTimer <= 0) corSlime = "#00ffff"; // Fica ciano na lentidão
-
-    // Corpo do monstro achatado no chão
-    ctx.fillStyle = corSlime;
-    ctx.beginPath();
-    ctx.arc(0, 0, 16, Math.PI, 0, false);
-    ctx.lineTo(16, 12);
-    ctx.lineTo(-16, 12);
-    ctx.closePath();
-    ctx.fill();
-
-    // Olhos normais ou olhos de atordoamento (X X) quando em Stun
-    if (slime.stunTimer > 0) {
-        ctx.strokeStyle = "#111";
-        ctx.lineWidth = 2;
-        // Olho esquerdo em X
-        ctx.beginPath();
-        ctx.moveTo(-7, -4); ctx.lineTo(-3, 0);
-        ctx.moveTo(-3, -4); ctx.lineTo(-7, 0);
-        // Olho direito em X
-        ctx.moveTo(3, -4); ctx.lineTo(7, 0);
-        ctx.moveTo(7, -4); ctx.lineTo(3, 0);
-        ctx.stroke();
-
-        // Estrelinhas girando sobre a cabeça indicando Stun
-        let tempoStun = Date.now() / 150;
-        let starX = Math.cos(tempoStun) * 12;
-        let starY = Math.sin(tempoStun) * 5 - 18;
-        ctx.fillStyle = "#f1c40f";
-        ctx.font = "12px Arial";
-        ctx.fillText("💫", starX - 6, starY);
-    } else {
-        ctx.fillStyle = "#fff";
-        ctx.fillRect(-6, -4, 4, 5);
-        ctx.fillRect(2, -4, 4, 5);
-        ctx.fillStyle = "#000";
-        ctx.fillRect(-5, -3, 2, 3);
-        ctx.fillRect(3, -3, 2, 3);
-    }
-
+    ctx.save();
+    ctx.translate(slime.x, slime.y);
+    _sombra(ctx, info.raio / 14);
+    _desenharAura(ctx, slime, est, info.cor, info.raio);
     ctx.restore();
 
-    // Barra de HP do monstro
-    if (typeof window.desenharBarraHp === "function") {
-        window.desenharBarraHp(slime.x - 15, slime.y - 20, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer);
-    }
+    ctx.save();
+    ctx.translate(slime.x, slime.y);
+    var foi = true;
+    if (arq === 'poison_melee' || tp.indexOf('esc') !== -1) _escorpiao(ctx, slime, est, info);
+    else if (arq === 'web' || tp.indexOf('aranha') !== -1) _aranha(ctx, slime, est, info);
+    else if (tp.indexOf('besouro') !== -1) _besouro(ctx, slime, est, info);
+    else if (tp.indexOf('morcego') !== -1) _morcego(ctx, slime, est, info);
+    else if (arq === 'goblin' || tp.indexOf('goblin') !== -1) _goblin(ctx, slime, est, info);
+    else if (arq === 'ranged' || tp.indexOf('arqueira') !== -1) _arqueiroVoador(ctx, slime, est, info);
+    else if (arq === 'melee' || tp.indexOf('melee') !== -1) _caveiraMelee(ctx, slime, est, info);
+    else if (arq === 'meteor' || tp.indexOf('arcano') !== -1) _magoArcano(ctx, slime, est, info);
+    else if (arq === 'assassin' || tp.indexOf('assas') !== -1) _assassino(ctx, slime, est, info);
+    else if (arq === 'void_laser' || tp.indexOf('void') !== -1) _voidMaster(ctx, slime, est, info);
+    else if (arq === 'gargoyle' || tp.indexOf('garg') !== -1) _gargula(ctx, slime, est, info);
+    else if (tp.indexOf('ogro') !== -1) _ogro(ctx, slime, est, info);
+    else if (tp.indexOf('mamute') !== -1) _mamute(ctx, slime, est, info);
+    else { _tanque(ctx, slime, est, info); foi = false; }
+    ctx.restore();
+
+    var offs = (arq === 'web' || tp.indexOf('aranha') !== -1) ? [-28, -38] : (foi ? [-18, -30] : [-15, -20]);
+    _barraHp(slime, offs[0], offs[1]);
 };
 
-function desenharMonstroNovo(ctx, slime) {
-    var t = Date.now() / 1000;
-    var arqu = slime.arquetipo;
-    var fase = Math.sin(t * (slime.fugindo ? 14 : 8));
-    var escala = (arqu === 'tank_melee' ? 1.45 : (arqu === 'void_laser' ? 1.3 : 1));
-    ctx.save();
-    ctx.scale(escala, escala);
-    if (arqu === 'assassin' && slime.invisivel) ctx.globalAlpha = 0.18 + Math.sin(t * 5) * 0.06;
-
-    ctx.fillStyle = 'rgba(0,0,0,0.4)';
-    ctx.beginPath(); ctx.ellipse(0, 15, 17, 5, 0, 0, Math.PI * 2); ctx.fill();
-
-    if (arqu === 'ranged') {
-        ctx.fillStyle = '#6f6252'; ctx.fillRect(-6, -7, 12, 20);
-        ctx.fillStyle = '#b9aa87'; ctx.beginPath(); ctx.arc(0, -15, 9, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#241b1b'; ctx.beginPath(); ctx.moveTo(-10, -17); ctx.lineTo(10, -17); ctx.lineTo(6, -8); ctx.lineTo(-7, -8); ctx.closePath(); ctx.fill();
-        ctx.fillStyle = '#ff7b35'; ctx.shadowColor = '#ff4b20'; ctx.shadowBlur = 7; ctx.fillRect(-4, -16, 2, 2); ctx.fillRect(2, -16, 2, 2); ctx.shadowBlur = 0;
-        ctx.strokeStyle = '#4a2c1c'; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(12, -4, 12, -1.2, 1.2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(13, -14); ctx.lineTo(13, 7); ctx.stroke();
-    } else if (arqu === 'melee') {
-        ctx.fillStyle = '#3f454b'; ctx.fillRect(-11, -10, 22, 23); ctx.fillStyle = '#b9aa87'; ctx.beginPath(); ctx.arc(0, -17, 10, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#ff6b35'; ctx.shadowColor = '#ff3d00'; ctx.shadowBlur = 7; ctx.fillRect(3, -19, 3, 3); ctx.shadowBlur = 0;
-        ctx.strokeStyle = '#9d9a8b'; ctx.lineWidth = 4; ctx.beginPath(); ctx.moveTo(8, -2); ctx.lineTo(19 + fase * 3, -18); ctx.stroke();
-    } else if (arqu === 'web') {
-        ctx.strokeStyle = '#24152f'; ctx.lineWidth = 3;
-        for (var i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(i * 5, 0); ctx.lineTo(i * 13 - 5, 15 + Math.abs(i) * 2); ctx.stroke(); ctx.beginPath(); ctx.moveTo(i * 5, -2); ctx.lineTo(i * 13 + 5, -15 - Math.abs(i) * 2); ctx.stroke(); }
-        ctx.fillStyle = '#17131d'; ctx.beginPath(); ctx.ellipse(0, 0, 14, 18, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#552764'; ctx.beginPath(); ctx.ellipse(0, 6, 11, 12, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#ff384d'; for (var o = -1; o <= 1; o++) { ctx.beginPath(); ctx.arc(o * 5, -6 + Math.abs(o) * 2, 2, 0, Math.PI * 2); ctx.fill(); }
-    } else if (arqu === 'poison_melee') {
-        ctx.fillStyle = '#3d5535'; ctx.beginPath(); ctx.ellipse(0, 0, 14, 9, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = '#293323'; ctx.lineWidth = 3; for (var p = -1; p <= 1; p++) { ctx.beginPath(); ctx.moveTo(p * 6, -4); ctx.lineTo(p * 13, -14); ctx.stroke(); ctx.beginPath(); ctx.moveTo(p * 6, 4); ctx.lineTo(p * 13, 14); ctx.stroke(); }
-        ctx.strokeStyle = '#6d3aa0'; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(-4, -1, 20, 0.2, 2.3); ctx.stroke(); ctx.fillStyle = '#7dff65'; ctx.beginPath(); ctx.arc(14, -4, 2, 0, Math.PI * 2); ctx.fill();
-    } else if (arqu === 'goblin') {
-        ctx.fillStyle = '#3c7138'; ctx.beginPath(); ctx.arc(0, -9, 8, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#719c3c'; ctx.beginPath(); ctx.moveTo(-6, -14); ctx.lineTo(-16, -20); ctx.lineTo(-7, -7); ctx.moveTo(6, -14); ctx.lineTo(16, -20); ctx.lineTo(7, -7); ctx.fill();
-        ctx.fillStyle = '#f4d03f'; ctx.fillRect(-4, -11, 2, 3); ctx.fillRect(2, -11, 2, 3); ctx.fillStyle = '#6e4935'; ctx.fillRect(-7, 0, 14, 13); ctx.fillStyle = '#a77b42'; ctx.beginPath(); ctx.arc(12, 1 + fase * 2, 4, 0, Math.PI * 2); ctx.fill();
-    } else if (arqu === 'meteor') {
-        ctx.fillStyle = '#24264c'; ctx.beginPath(); ctx.moveTo(-11, 11); ctx.lineTo(0, -16); ctx.lineTo(11, 11); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#3153a4'; ctx.beginPath(); ctx.arc(0, -18, 7, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#59d8ff'; ctx.shadowColor = '#59d8ff'; ctx.shadowBlur = 9; ctx.fillRect(-3, -20, 2, 2); ctx.fillRect(2, -20, 2, 2); ctx.shadowBlur = 0; ctx.strokeStyle = '#b56cff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(10, -8); ctx.lineTo(18, 13); ctx.stroke();
-    } else if (arqu === 'assassin') {
-        ctx.fillStyle = '#12121c'; ctx.fillRect(-8, -10, 16, 23); ctx.beginPath(); ctx.arc(0, -17, 9, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#e5e5ef'; ctx.fillRect(-5, -18, 3, 2); ctx.fillRect(2, -18, 3, 2); ctx.strokeStyle = '#bfc4d9'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(-8, 0); ctx.lineTo(-18, -10 + fase * 2); ctx.moveTo(8, 0); ctx.lineTo(18, -10 - fase * 2); ctx.stroke();
-    } else if (arqu === 'void_laser') {
-        ctx.fillStyle = '#171020'; ctx.shadowColor = '#8d4dff'; ctx.shadowBlur = 16; ctx.beginPath(); ctx.arc(0, 0, 17, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0; ctx.fillStyle = '#4f287b'; ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#d9a7ff'; ctx.beginPath(); ctx.arc(0, 0, 6 + (slime.skillCharging ? Math.sin(t * 9) : 0), 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#050309'; ctx.beginPath(); ctx.arc(0, 0, 2, 0, Math.PI * 2); ctx.fill();
-    } else if (arqu === 'gargoyle') {
-        ctx.fillStyle = '#59616c'; ctx.beginPath(); ctx.moveTo(0, -17); ctx.lineTo(12, 10); ctx.lineTo(0, 14); ctx.lineTo(-12, 10); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#737f8e'; ctx.beginPath(); ctx.moveTo(-8, -5); ctx.lineTo(-23, -17); ctx.lineTo(-16, 4); ctx.closePath(); ctx.moveTo(8, -5); ctx.lineTo(23, -17); ctx.lineTo(16, 4); ctx.closePath(); ctx.fill(); ctx.fillStyle = '#ffbf3c'; ctx.fillRect(-5, -8, 3, 3); ctx.fillRect(2, -8, 3, 3);
-    } else if (slime.tipo === 'ogro') {
-        ctx.fillStyle = '#68734b'; ctx.beginPath(); ctx.ellipse(0, 0, 23, 18, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#87935d'; ctx.fillRect(-18, 7, 10, 16); ctx.fillRect(8, 7, 10, 16);
-        ctx.fillStyle = '#4c573b'; ctx.beginPath(); ctx.arc(0, -17, 15, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#e8d6aa'; ctx.beginPath(); ctx.moveTo(-8, -19); ctx.lineTo(-20, -32); ctx.lineTo(-10, -13); ctx.moveTo(8, -19); ctx.lineTo(20, -32); ctx.lineTo(10, -13); ctx.fill();
-        ctx.fillStyle = '#453524'; ctx.fillRect(16, -3, 5, 27); ctx.fillStyle = '#776044'; ctx.beginPath(); ctx.arc(18, -7 + fase * 2, 9, 0, Math.PI * 2); ctx.fill();
-    } else if (slime.tipo === 'mamute') {
-        ctx.fillStyle = '#6e6254'; ctx.beginPath(); ctx.ellipse(0, 0, 25, 16, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#817364'; ctx.fillRect(-19, 7, 8, 18); ctx.fillRect(-5, 8, 8, 18); ctx.fillRect(9, 7, 8, 18);
-        ctx.fillStyle = '#786b5c'; ctx.beginPath(); ctx.arc(19, -10, 13, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#8f8170'; ctx.beginPath(); ctx.arc(28, -8, 5, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#e7d2a4'; ctx.beginPath(); ctx.moveTo(24, -13); ctx.quadraticCurveTo(37, -25, 34, -5); ctx.lineTo(27, -8); ctx.moveTo(25, -7); ctx.quadraticCurveTo(39, 2, 35, 10); ctx.lineTo(27, -3); ctx.fill();
-        ctx.strokeStyle = '#51483e'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-19, -10); ctx.lineTo(8, -15); ctx.stroke();
-    } else {
-        ctx.fillStyle = '#777'; ctx.beginPath(); ctx.ellipse(0, 0, 19, 14, 0, 0, Math.PI * 2); ctx.fill(); ctx.fillStyle = '#aaa'; ctx.fillRect(-14, 5, 7, 13); ctx.fillRect(7, 5, 7, 13);
-    }
-
-    if (slime.skillCharging && slime.skillAim) {
-        var ax = slime.skillAim.x - slime.x, ay = slime.skillAim.y - slime.y;
-        ctx.globalAlpha = 0.35 + Math.sin(t * 8) * 0.12;
-        ctx.strokeStyle = slime.skillKind === 'web' ? '#d9f7ff' : (slime.skillKind === 'void_laser' ? '#b56cff' : '#ff9f43');
-        ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(ax, ay, slime.skillKind === 'meteor' ? 42 : 28, 0, Math.PI * 2); ctx.stroke();
-        ctx.globalAlpha = 1;
-    }
-    ctx.restore();
-}
-
+// ============ ZUMBI (mantido do visual antigo) ============
 function desenharZumbi(ctx, slime) {
     let t = Date.now() / 1000;
     let carregando = !!slime.skillCharging;
@@ -301,7 +1326,7 @@ function desenharZumbi(ctx, slime) {
         ctx.shadowColor = "#33cc22";
         ctx.shadowBlur = 12;
         ctx.beginPath();
-        ctx.ellipse(ax, ay, 20 + pulsarMira * 6, 20 + pulsarMira * 6, 0, 0, Math.PI * 2);
+        ctx.ellipse(ax, ay, 20 + pulsarMira * 6, 20 + pulsarMira * 6, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
     }
@@ -457,336 +1482,4 @@ function desenharZumbi(ctx, slime) {
 
 function aberto(t) {
     return Math.sin(t * 1.2);
-}
-
-// ============ BESOURO NEGRO ============
-var trailBesouro = {};
-
-function desenharBesouroNegro(ctx, slime) {
-    let t = Date.now() / 1000;
-    let carregando = !!slime.skillCharging;
-    let voando = !!slime.dashing;
-
-    // Sombra no chão (some durante o voo)
-    if (!voando) {
-        ctx.fillStyle = "rgba(0,0,0,0.45)";
-        ctx.beginPath();
-        ctx.ellipse(0, 15, 17, 6, 0, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    // ===== RASTRO DO VOO (afterimages) =====
-    if (voando) {
-        let arr = trailBesouro[slime.id] || (trailBesouro[slime.id] = []);
-        arr.push({ x: slime.x, y: slime.y });
-        if (arr.length > 8) arr.shift();
-        for (let i = 0; i < arr.length; i++) {
-            let e = arr[i];
-            ctx.save();
-            ctx.globalAlpha = (i / arr.length) * 0.4;
-            ctx.fillStyle = "#0b0b0f";
-            ctx.beginPath();
-            ctx.ellipse(e.x - slime.x, e.y - slime.y, 15, 11, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-        }
-    } else if (trailBesouro[slime.id]) {
-        trailBesouro[slime.id] = [];
-    }
-
-    // ===== FEIXES DE VELOCIDADE enquanto voa =====
-    if (voando) {
-        ctx.save();
-        ctx.strokeStyle = "rgba(150, 120, 255, 0.4)";
-        ctx.lineWidth = 2;
-        for (let i = 0; i < 3; i++) {
-            let sy = (i - 1) * 8;
-            ctx.beginPath();
-            ctx.moveTo(-26, sy);
-            ctx.lineTo(-8, sy);
-            ctx.stroke();
-        }
-        ctx.restore();
-    }
-
-    // ===== AURA DE CARREGAMENTO =====
-    if (carregando) {
-        let pulso = 0.5 + Math.sin(t * 10) * 0.3;
-        ctx.save();
-        ctx.globalAlpha = 0.35 + pulso * 0.25;
-        ctx.fillStyle = "#9b59b6";
-        ctx.shadowColor = "#9b59b6";
-        ctx.shadowBlur = 18 * (1 + pulso);
-        ctx.beginPath();
-        ctx.ellipse(0, 0, 22 + pulso * 6, 17 + pulso * 5, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-
-        // Asas vibrando (prontas pra decolar)
-        let bat = Math.sin(t * 40) * 0.6;
-        ctx.save();
-        ctx.fillStyle = "rgba(220, 220, 240, 0.35)";
-        ctx.beginPath();
-        ctx.ellipse(-18, -6 + bat * 3, 8, 5, -0.5 + bat * 0.4, 0, Math.PI * 2);
-        ctx.ellipse(18, -6 - bat * 3, 8, 5, 0.5 - bat * 0.4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-
-        // Marcador da mira no chão (vai atravessar voando)
-        if (slime.skillAim) {
-            let ax = slime.skillAim.x - slime.x;
-            let ay = slime.skillAim.y - slime.y;
-            let pulsarMira = 0.6 + Math.sin(t * 7) * 0.4;
-            ctx.save();
-            ctx.globalAlpha = 0.3 + pulsarMira * 0.2;
-            ctx.fillStyle = "#b354f0";
-            ctx.shadowColor = "#9b59b6";
-            ctx.shadowBlur = 14;
-            ctx.beginPath();
-            ctx.ellipse(ax, ay, 18 + pulsarMira * 5, 18 + pulsarMira * 5, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-        }
-    }
-
-    // ===== BARRA DE CARREGAMENTO (skill) =====
-    if (carregando && slime.skillChargeMax) {
-        let prog = 1 - (slime.skillChargeTimer / slime.skillChargeMax);
-        if (prog > 1) prog = 1;
-        let bx = -16, by = -40, larg = 32, alt = 5;
-        ctx.save();
-        ctx.fillStyle = "rgba(0,0,0,0.6)";
-        ctx.fillRect(bx - 1, by - 1, larg + 2, alt + 2);
-        ctx.fillStyle = "#4a1a6e";
-        ctx.fillRect(bx, by, larg * prog, alt);
-        ctx.fillStyle = "#b354f0";
-        ctx.fillRect(bx, by, larg * prog, alt * 0.6);
-        ctx.strokeStyle = "#e0c3ff";
-        ctx.lineWidth = 1;
-        ctx.strokeRect(bx, by, larg, alt);
-        ctx.restore();
-    }
-
-    // ===== CORPO =====
-    // Corpo: carapaça preta achatada e blindada
-    let corCorpo = (slime.stunTimer > 0) ? "#8a7a2a" : (slime.slowTimer > 0 ? "#20504a" : "#141419");
-    ctx.fillStyle = corCorpo;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 19, 13, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Brilho metalizado no dorso
-    let grad = ctx.createLinearGradient(0, -12, 0, 12);
-    grad.addColorStop(0, "#3a3a45");
-    grad.addColorStop(0.5, "#141419");
-    grad.addColorStop(1, "#09090c");
-    ctx.fillStyle = grad;
-    ctx.beginPath();
-    ctx.ellipse(0, 0, 17, 11, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Linha central do élitro
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(0, -11);
-    ctx.lineTo(0, 12);
-    ctx.stroke();
-
-    // Listras das placas (élitros)
-    ctx.strokeStyle = "rgba(255,255,255,0.12)";
-    ctx.lineWidth = 1;
-    for (let i = -2; i <= 2; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * 5, -9);
-        ctx.lineTo(i * 4 + (i > 0 ? 4 : 0), 10);
-        ctx.stroke();
-    }
-
-    // Chifres (mandíbulas) na frente - rinoceronte
-    ctx.fillStyle = "#0e0e12";
-    ctx.beginPath();
-    ctx.moveTo(14, -7);
-    ctx.quadraticCurveTo(24, -10, 27, -4);
-    ctx.quadraticCurveTo(22, -3, 15, -2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(14, 7);
-    ctx.quadraticCurveTo(24, 10, 27, 4);
-    ctx.quadraticCurveTo(22, 3, 15, 2);
-    ctx.closePath();
-    ctx.fill();
-
-    // Pernas (3 de cada lado)
-    ctx.strokeStyle = "#0c0c10";
-    ctx.lineWidth = 2.5;
-    for (let i = 0; i < 3; i++) {
-        let lx = -10 + i * 7;
-        ctx.beginPath();
-        ctx.moveTo(lx, 8);
-        ctx.lineTo(lx - 4 - i, 15);
-        ctx.lineTo(lx - 7 - i, 14);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(lx + 4, 8);
-        ctx.lineTo(lx + 7 + i, 15);
-        ctx.lineTo(lx + 10 + i, 14);
-        ctx.stroke();
-    }
-
-    // Olhos vermelhos brilhantes (pulsam; ficam intensos ao carregar/voar)
-    let brilhoOlho = (0.6 + Math.sin(t * 5) * 0.35) * (carregando || voando ? 1.7 : 1);
-    ctx.save();
-    if (slime.stunTimer > 0) {
-        ctx.strokeStyle = "#111";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(-10, -4); ctx.lineTo(-6, 0);
-        ctx.moveTo(-6, -4); ctx.lineTo(-10, 0);
-        ctx.stroke();
-    } else {
-        ctx.fillStyle = "#ff2d2d";
-        ctx.shadowColor = "#ff0000";
-        ctx.shadowBlur = 8 * brilhoOlho;
-        ctx.beginPath();
-        ctx.arc(-8, -3, carregando ? 2.6 : 2.1, 0, Math.PI * 2);
-        ctx.fill();
-    }
-    ctx.restore();
-    ctx.save();
-    if (slime.stunTimer > 0) {
-        ctx.strokeStyle = "#111";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(6, -4); ctx.lineTo(10, 0);
-        ctx.moveTo(10, -4); ctx.lineTo(6, 0);
-        ctx.stroke();
-    } else {
-        ctx.fillStyle = "#ff2d2d";
-        ctx.shadowColor = "#ff0000";
-        ctx.shadowBlur = 8 * brilhoOlho;
-        ctx.beginPath();
-        ctx.arc(8, -3, carregando ? 2.6 : 2.1, 0, Math.PI * 2);
-        ctx.fill();
-    }
-    ctx.restore();
-
-    // Estrelinha de atordoamento
-    if (slime.stunTimer > 0) {
-        let tempoStun = Date.now() / 150;
-        ctx.fillStyle = "#f1c40f";
-        ctx.font = "12px Arial";
-        ctx.fillText("💫", Math.cos(tempoStun) * 12 - 6, -38);
-    }
-}
-// ============ MORCEGO (voador da caverna) ============
-function desenharMorcego(ctx, slime) {
-    let t = Date.now() / 1000;
-    let atordoado = slime.stunTimer > 0;
-    let lento = slime.slowTimer > 0;
-
-    // Sombra no chão (pulsa com o voo)
-    ctx.fillStyle = "rgba(0,0,0,0.3)";
-    ctx.beginPath();
-    ctx.ellipse(0, 15, 11, 4, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Altura do voo (oscila suavemente)
-    let alturaVoo = -13 + Math.sin(t * 2.2 + slime.x * 0.01) * 3;
-
-    // Batimento das asas (mais lento se atordoado/lento)
-    let flap = atordoado ? 0.15 : (lento ? Math.sin(t * 3) * 0.5 : Math.sin(t * 11));
-    let abrir = Math.abs(flap);
-    let abertura = 13 + abrir * 17;
-
-    // ===== ASAS (membrana) =====
-    let corAsa = atordoado ? "rgba(138,122,42,0.85)" : (lento ? "rgba(40,80,150,0.8)" : "rgba(75,60,100,0.92)");
-
-    // Asa esquerda
-    ctx.fillStyle = corAsa;
-    ctx.beginPath();
-    ctx.moveTo(0, alturaVoo);
-    ctx.quadraticCurveTo(-abertura * 0.55, alturaVoo - 8 * abrir, -abertura, alturaVoo - 1);
-    ctx.quadraticCurveTo(-abertura * 0.6, alturaVoo + 7 * abrir, -2, alturaVoo + 3);
-    ctx.closePath();
-    ctx.fill();
-
-    // Asa direita
-    ctx.fillStyle = corAsa;
-    ctx.beginPath();
-    ctx.moveTo(0, alturaVoo);
-    ctx.quadraticCurveTo(abertura * 0.55, alturaVoo - 8 * abrir, abertura, alturaVoo - 1);
-    ctx.quadraticCurveTo(abertura * 0.6, alturaVoo + 7 * abrir, 2, alturaVoo + 3);
-    ctx.closePath();
-    ctx.fill();
-
-    // Veias das asas
-    ctx.strokeStyle = "rgba(35,28,50,0.55)";
-    ctx.lineWidth = 1;
-    for (let i = 1; i <= 3; i++) {
-        ctx.beginPath();
-        ctx.moveTo(0, alturaVoo);
-        ctx.lineTo(-abertura * (i / 3), alturaVoo + ((i % 2) ? 0 : -2));
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(0, alturaVoo);
-        ctx.lineTo(abertura * (i / 3), alturaVoo + ((i % 2) ? -2 : 0));
-        ctx.stroke();
-    }
-
-    // ===== CORPO =====
-    let corCorpo = atordoado ? "#8a7a2a" : (lento ? "#2860a0" : "#241c2e");
-    ctx.fillStyle = corCorpo;
-    ctx.beginPath();
-    ctx.ellipse(0, alturaVoo + 1, 5.5, 6.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // Orelhas pontudas
-    ctx.beginPath();
-    ctx.moveTo(-4, alturaVoo - 3);
-    ctx.lineTo(-6, alturaVoo - 9);
-    ctx.lineTo(-1, alturaVoo - 5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(4, alturaVoo - 3);
-    ctx.lineTo(6, alturaVoo - 9);
-    ctx.lineTo(1, alturaVoo - 5);
-    ctx.closePath();
-    ctx.fill();
-
-    // Olhos vermelhos brilhantes
-    let brilhoOlho = 0.6 + Math.sin(t * 5) * 0.3;
-    ctx.fillStyle = "#ff2d2d";
-    ctx.shadowColor = "#ff0000";
-    ctx.shadowBlur = 7 * brilhoOlho;
-    ctx.beginPath();
-    ctx.arc(-2, alturaVoo - 1, 1.6, 0, Math.PI * 2);
-    ctx.arc(2, alturaVoo - 1, 1.6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-
-    // Presas
-    ctx.fillStyle = "#e8e4d0";
-    ctx.beginPath();
-    ctx.moveTo(-2.5, alturaVoo + 5);
-    ctx.lineTo(-1.5, alturaVoo + 8);
-    ctx.lineTo(-0, alturaVoo + 5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(0, alturaVoo + 5);
-    ctx.lineTo(1.5, alturaVoo + 8);
-    ctx.lineTo(2.5, alturaVoo + 5);
-    ctx.closePath();
-    ctx.fill();
-
-    // Estrelinha de atordoamento
-    if (atordoado) {
-        let tempoStun = Date.now() / 150;
-        ctx.fillStyle = "#f1c40f";
-        ctx.font = "12px Arial";
-        ctx.fillText("💫", Math.cos(tempoStun) * 12 - 6, alturaVoo - 26);
-    }
 }

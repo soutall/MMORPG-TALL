@@ -23,7 +23,7 @@
     "x": 3600,
     "y": 2200,
     "temPosicao": true,
-    "timerRespawn": 20
+    "timerRespawn": 80
   },
   {
     "id": "flag_verde_selvagem",
@@ -271,5 +271,31 @@
     "y": 1222,
     "temPosicao": true,
     "timerRespawn": 40
+  },
+  {
+    "id": "flag_mu9wwo8s_yqqwy",
+    "criadoEm": 1789914547900,
+    "tipo": "melee",
+    "maxQtd": 3,
+    "comportamento": "agressivo",
+    "hpBase": 5000,
+    "respawnSeg": 5,
+    "x": 4309,
+    "y": 1369,
+    "temPosicao": true,
+    "timerRespawn": 100
+  },
+  {
+    "id": "flag_mua6cb7s_2nybp",
+    "criadoEm": 1789930394056,
+    "tipo": "gargula",
+    "maxQtd": 3,
+    "comportamento": "passivo",
+    "hpBase": 1100,
+    "respawnSeg": 9,
+    "x": 5055,
+    "y": 1007,
+    "temPosicao": true,
+    "timerRespawn": 180
   }
 ]

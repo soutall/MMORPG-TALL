@@ -145,16 +145,16 @@ let gasVenenoSeq = 0;
 // caixa de ferramentas (DroneMaster), chamas/poças/tornados/poços (Arqueiro Arcano),
 // redes de arame (Sniper). Cada zona segue o MESMO padrão das gasesVeneno.
 let caixasFerramentas = [];
-let chamasArcano = [];
-let pocasGeloArcano = [];
-let tornadosFogo = [];
-let pocosGeloArcano = [];
+let chuvasCometas = [];        // ARQUEIRO ASTRAL: chuva de cometas (4s DoT)
+let orbeConstelacoes = [];     // ARQUEIRO ASTRAL: orbe de constelação (cativeiro 2s + implosão)
 let redesSniper = [];
 let seqZonaNova = 0;
 
-// ===== MOITAS DE MATO (Sniper — Camuflagem Natural), mapa verde =====
+// ===== MOITAS DE MATO (Sniper — Camuflagem Natural) =====
 // Zonas fixas de camuflagem detectadas pelo SERVIDOR (nunca pelo cliente).
+// Espalhadas por todos os mapas/biomas EXCETO Cidade e Arena.
 const MOITAS_SNIPER = [
+    // green
     { x: 4200,  y: 1500,  raio: 100 },
     { x: 8200,  y: 3800,  raio: 95  },
     { x: 12800, y: 6200,  raio: 100 },
@@ -162,7 +162,26 @@ const MOITAS_SNIPER = [
     { x: 11200, y: 15000, raio: 100 },
     { x: 6600,  y: 13000, raio: 95  },
     { x: 2400,  y: 9800,  raio: 100 },
-    { x: 16800, y: 2600,  raio: 95  }
+    { x: 16800, y: 2600,  raio: 95  },
+    // desert
+    { x: 20000, y: 4000,  raio: 100 },
+    { x: 26000, y: 8000,  raio: 95  },
+    { x: 32000, y: 18000, raio: 100 },
+    { x: 38000, y: 26000, raio: 95  },
+    { x: 44000, y: 12000, raio: 100 },
+    { x: 23000, y: 22000, raio: 95  },
+    { x: 47000, y: 30000, raio: 100 },
+    { x: 47500, y: 5000,  raio: 95  },
+    // pantano
+    { x: 51000, y: 1500,  raio: 95  },
+    { x: 52500, y: 4500,  raio: 100 },
+    { x: 54000, y: 7200,  raio: 95  },
+    { x: 55500, y: 2000,  raio: 100 },
+    { x: 57200, y: 6000,  raio: 95  },
+    // caverna / DG
+    { x: 58400, y: 900,  raio: 90 },
+    { x: 59050, y: 700,  raio: 90 },
+    { x: 59550, y: 1400, raio: 90 }
 ];
 const SNIPER_DETECTION_RADIUS = 420;      // Skill 4: raio de detecção de invisíveis
 const DRONE_MAX_DISTANCE_FROM_OWNER = 340; // DroneMaster: distância máxima do Drone ao dono
@@ -181,11 +200,22 @@ const MAP_VFX_FILE = path.join(__dirname, 'map_vfx.json');
 let mapVfx = [];
 try { mapVfx = JSON.parse(fs.readFileSync(MAP_VFX_FILE, 'utf8') || '[]'); if (!Array.isArray(mapVfx)) mapVfx = []; } catch (e) { mapVfx = []; }
 
+const MAP_OBJETOS_FILE = path.join(__dirname, 'map_objetos.json');
+let mapObjetos = [];
+try { mapObjetos = JSON.parse(fs.readFileSync(MAP_OBJETOS_FILE, 'utf8') || '[]'); if (!Array.isArray(mapObjetos)) mapObjetos = []; } catch (e) { mapObjetos = []; }
+
 function salvarMapVfx() { try { fs.writeFileSync(MAP_VFX_FILE, JSON.stringify(mapVfx, null, 2), 'utf8'); } catch (e) { console.error('Erro ao salvar map_vfx.json:', e.message); } }
 function broadcastMapVfx() {
     wss.clients.forEach(function (client) {
         if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'map_vfx', vfx: mapVfx }));
     });
+}
+function salvarMapObjetos() { try { fs.writeFileSync(MAP_OBJETOS_FILE, JSON.stringify(mapObjetos, null, 2), 'utf8'); } catch (e) { console.error('Erro ao salvar map_objetos.json:', e.message); } }
+function broadcastMapObjetos() {
+    wss.clients.forEach(function (client) {
+        if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'map_objetos', objetos: mapObjetos }));
+    });
+}
 }
 
 const WORLD_WIDTH = 65040;
@@ -488,7 +518,25 @@ function darEscudoAbsorvente(p, quantidade, duracaoMs) {
     if (wsD && wsD.readyState === WebSocket.OPEN) {
         wsD.send(JSON.stringify({ type: 'escudo_sync', escudo: p.escudoAbsoluto, escudoMax: p.escudoAbsolutoMax, expiraEm: p.escudoAbsolutoExpirador - Date.now() }));
     }
+    // Buff "Escudo de Energia": barra branca sobre o HP (visível no dono E nos aliados)
+    if (efeitos && typeof efeitos.aplicarEfeito === 'function') {
+        const ticks = Math.max(1, Math.round(duracaoMs / 50));
+        const frac = (p.maxHp > 0) ? Math.min(1, p.escudoAbsoluto / p.maxHp) : 0.5;
+        efeitos.aplicarEfeito(p, 'escudoEnergia', ticks, frac);
+        sincronizarEfeitos(donoId, p);
+    }
     return true;
+}
+
+// Reenvia os efeitos/status de um jogador para TODOS os clientes (visuais multiplayer:
+// ícones de buff/debuff e barra de escudo aparecem para o dono E para os aliados)
+function sincronizarEfeitos(pid, p) {
+    if (!efeitos || !p || !pid || !wss) return;
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ type: 'efeitos_sync', id: pid, efeitos: efeitos.exporEfeitos(p) }));
+        }
+    });
 }
 
 // Zona de chão com remoção + broadcast de fim (padrão gasesVeneno)
@@ -544,10 +592,7 @@ function finalizarCamuflagemSniper(p, pid, motivo) {
             client.send(JSON.stringify({ type: 'action_sniper_camuflagem_fim', id: pid, motivo: motivo || 'ataque' }));
         }
     });
-    const wsT = playerSockets[pid];
-    if (wsT && wsT.readyState === WebSocket.OPEN) {
-        wsT.send(JSON.stringify({ type: 'efeitos_sync', id: pid, efeitos: efeitos.exporEfeitos(p) }));
-    }
+    sincronizarEfeitos(pid, p);
 }
 
 // ==== SNIPER: congela os cooldowns enquanto camuflado (server-side) ====
@@ -558,64 +603,7 @@ function congelarCooldownsSniper(p, ticks) {
     if (p.snPosicaoCd > 0) p.snPosicaoCd += ticks;
 }
 
-// ==== ARQUEIRO ARCANO: combos por servidor ====
-function tentarComboTornadoFogo(p, ws, agoraTicks) {
-    // SKILL 1 (fogo) → SKILL 2 (gelo) dentro de 2s em região próxima → TORNADO DE FOGO (5s)
-    if (p.aaLastFire > 0 && agoraTicks - p.aaLastFire <= 40) {
-        const distanciaRegioes = Math.hypot(p.aaFireX - p.aaIceX, p.aaFireY - p.aaIceY);
-        if (distanciaRegioes > 180) return false; // regiões distantes: sem combo
-        p.aaLastFire = 0;
-        const x = p.aaFireX, y = p.aaFireY;
-        tornadosFogo.push({
-            id: 'torn_' + playerIdZ(p) + '_' + (++seqZonaNova),
-            x: x, y: y,
-            mapa: mapaPorCoordenada(x),
-            raio: 85,
-            tempo: 100, duracao: 100, // 5s
-            ownerId: playerIdZ(p),
-            danoBase: dmgSkill(p, 'tornado_fogo', 14)
-        });
-        wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({ type: 'action_arcano_tornado_fogo', id: tornadosFogo[tornadosFogo.length - 1].id, x: x, y: y, raio: 85, ownerId: playerIdZ(p) }));
-            }
-        });
-        return true;
-    }
-    return false;
-}
 
-function tentarComboPocoGlacial(p, ws, agoraTicks) {
-    // SKILL 2 (gelo) → SKILL 3 (vento) dentro de 2s → POÇO GLACIAL (puxa + congela)
-    if (p.aaLastIce > 0 && agoraTicks - p.aaLastIce <= 40) {
-        // a onda de vento parte do jogador — precisa estar perto da poça
-        const distVento = Math.hypot((p.x + PLAYER_OFFSET_X) - p.aaIceX, (p.y + PLAYER_OFFSET_Y) - p.aaIceY);
-        if (distVento > 280) return false; // longe demais: sem combo
-        p.aaLastIce = 0;
-        const x = p.aaIceX, y = p.aaIceY;
-        pocosGeloArcano.push({
-            id: 'poco_' + playerIdZ(p) + '_' + (++seqZonaNova),
-            x: x, y: y,
-            mapa: mapaPorCoordenada(x),
-            raio: 130,
-            tempo: 100, duracao: 100, // 5s
-            ownerId: playerIdZ(p),
-            danoBase: dmgSkill(p, 'poco_glacial', 16)
-        });
-        wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({ type: 'action_arcano_poco_glacial', id: pocosGeloArcano[pocosGeloArcano.length - 1].id, x: x, y: y, raio: 130, ownerId: playerIdZ(p) }));
-            }
-        });
-        return true;
-    }
-    return false;
-}
-
-function playerIdZ(p) {
-    for (let pid in players) { if (players[pid] === p) return pid; }
-    return '?';
-}
 
 // congelar inimigos numa zona (slimes/bosses/players PvP)
 function congelarNaZona(z, tempoTicks, danoBase, ownerId) {
@@ -741,10 +729,7 @@ function finalizarInvisibilidadeLadino(player, pid) {
             client.send(JSON.stringify({ type: 'action_ladino_invisivel', id: pid, ativo: false }));
         }
     });
-    const wsT = playerSockets[pid];
-    if (wsT && wsT.readyState === WebSocket.OPEN) {
-        wsT.send(JSON.stringify({ type: 'efeitos_sync', id: pid, efeitos: efeitos.exporEfeitos(player) }));
-    }
+    sincronizarEfeitos(pid, player);
 }
 
 // PASSIVA LÂMINAS SANGRENTAS: 20% de chance → sangramento 20% do dano físico/s por 5s.
@@ -1307,6 +1292,10 @@ function aplicarDanoJogador(pid, origemX, origemY, dano) {
         let wsT = playerSockets[pid];
         if (wsT && wsT.readyState === WebSocket.OPEN) {
             wsT.send(JSON.stringify({ type: 'escudo_sync', escudo: jogador.escudoAbsoluto }));
+        }
+        // Escudo esgotou: remove o buff da barra branca para todos verem
+        if (jogador.escudoAbsoluto <= 0 && efeitos && efeitos.removerEfeito(jogador, 'escudoEnergia')) {
+            sincronizarEfeitos(pid, jogador);
         }
     }
 
@@ -2250,10 +2239,7 @@ setInterval(() => {
                             client.send(JSON.stringify({ type: 'action_ladino_invisivel', id: pid, ativo: true }));
                         }
                     });
-                    const wsT = playerSockets[pid];
-                    if (wsT && wsT.readyState === WebSocket.OPEN) {
-                        wsT.send(JSON.stringify({ type: 'efeitos_sync', id: pid, efeitos: efeitos.exporEfeitos(player) }));
-                    }
+                    sincronizarEfeitos(pid, player);
                 }
             }
             if (player.ladinoInvisivel) {
@@ -2351,6 +2337,7 @@ setInterval(() => {
                 player.escudoAbsoluto = 0;
                 const wsE = playerSockets[pid];
                 if (wsE && wsE.readyState === WebSocket.OPEN) wsE.send(JSON.stringify({ type: 'escudo_sync', escudo: 0 }));
+                if (efeitos && efeitos.removerEfeito(player, 'escudoEnergia')) sincronizarEfeitos(pid, player);
             }
             if (player.dmDashEscudo > 0 && Date.now() >= player.dmDashEscudoExpirador) player.dmDashEscudo = 0;
 
@@ -2471,13 +2458,6 @@ setInterval(() => {
                     });
                 }
             }
-        }
-
-        // --- ARQUEIRO ARCANO: janelas de combo expiram em 2s ---
-        if (player.classe === 'arqueiro_arcano' && player.hp > 0) {
-            const agoraTk = Date.now() / 50 | 0;
-            if (player.aaLastFire > 0 && agoraTk - player.aaLastFire > 40) player.aaLastFire = 0;
-            if (player.aaLastIce > 0 && agoraTk - player.aaLastIce > 40) player.aaLastIce = 0;
         }
 
         // --- SNIPER ---
@@ -2845,10 +2825,7 @@ setInterval(() => {
         if (Object.keys(efeitosMudaram).length > 0) {
             for (let pid in efeitosMudaram) {
                 let p = players[pid];
-                let wsTarget = playerSockets[pid];
-                if (wsTarget && wsTarget.readyState === WebSocket.OPEN) {
-                    wsTarget.send(JSON.stringify({ type: 'efeitos_sync', efeitos: efeitos.exporEfeitos(p) }));
-                }
+                sincronizarEfeitos(pid, p);
             }
         }
     }
@@ -2862,10 +2839,7 @@ setInterval(() => {
             if (sobVenenoPantano(p.x, p.y)) {
                 if (!efeitos.temEfeito(p, 'veneno')) {
                     efeitos.aplicarEfeito(p, 'veneno', 100, 1);
-                    let wsTarget = playerSockets[pid];
-                    if (wsTarget && wsTarget.readyState === WebSocket.OPEN) {
-                        wsTarget.send(JSON.stringify({ type: 'efeitos_sync', efeitos: efeitos.exporEfeitos(p) }));
-                    }
+                    sincronizarEfeitos(pid, p);
                 }
             }
             // LADINO — Dança das Adagas: imune inclusive ao veneno do pântano
@@ -2978,38 +2952,38 @@ setInterval(() => {
         }
     }
 
-    // --- CHAMAS ARCANO (Arqueiro Arcano — Flecha Fênix): fogo no chão 4s ---
-    for (let i = chamasArcano.length - 1; i >= 0; i--) {
-        const z = chamasArcano[i];
+    // --- CHUVA DE COMETAS (Arqueiro Astral — Chuva de Cometas): chuva 4s ---
+    for (let i = chuvasCometas.length - 1; i >= 0; i--) {
+        const z = chuvasCometas[i];
         z.tempo--;
-        if (z.tempo <= 0) { removerZonaNova(chamasArcano, i, 'action_arcano_chamas_fim'); continue; }
+        if (z.tempo <= 0) { removerZonaNova(chuvasCometas, i, 'action_arcano_cometas_fim'); continue; }
         if (z.tempo % 10 === 0) {
             causarDanoZona(z, z.danoBase);
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({ type: 'action_arcano_chamas_dano', id: z.id, x: z.x, y: z.y }));
+                    client.send(JSON.stringify({ type: 'action_arcano_cometas_dano', id: z.id, x: z.x, y: z.y }));
                 }
             });
         }
     }
 
-    // --- POÇA CONGELANTE (Arqueiro Arcano): congela 2s → dano ao descongelar ---
-    for (let i = pocasGeloArcano.length - 1; i >= 0; i--) {
-        const z = pocasGeloArcano[i];
+    // --- ORBE DE CONSTELAÇÃO (Arqueiro Astral): cativeiro 2s → implosão ---
+    for (let i = orbeConstelacoes.length - 1; i >= 0; i--) {
+        const z = orbeConstelacoes[i];
         z.tempo--;
         if (z.tempo <= 0) {
-            // fim do congelamento: dano de quebra de gelo
+            // fim do cativeiro: implosão estelar (dano de quebra)
             causarDanoZona(z, z.danoBase);
             slimes.forEach(s => { if (s.hp > 0 && Math.hypot(s.x - z.x, s.y - z.y) <= z.raio) { s.stunTimer = Math.max(0, (s.stunTimer || 0)); } });
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({ type: 'action_arcano_poca_quebra', id: z.id, x: z.x, y: z.y }));
+                    client.send(JSON.stringify({ type: 'action_arcano_orbe_quebra', id: z.id, x: z.x, y: z.y }));
                 }
             });
-            removerZonaNova(pocasGeloArcano, i, 'action_arcano_poca_fim');
+            removerZonaNova(orbeConstelacoes, i, 'action_arcano_orbe_fim');
             continue;
         }
-        // mantém congelados enquanto dentro (refresh)
+        // mantém cativados (congelados) enquanto dentro (refresh)
         if (z.tempo % 10 === 0) {
             slimes.forEach(s => {
                 if (s.hp > 0 && mapaPorCoordenada(s.x) === z.mapa && Math.hypot(s.x - z.x, s.y - z.y) <= z.raio) {
@@ -3021,54 +2995,6 @@ setInterval(() => {
                 if (b.hp > 0 && mapaPorCoordenada(b.x) === z.mapa && Math.hypot(b.x - z.x, b.y - z.y) <= z.raio) {
                     b.stunTimer = Math.max(b.stunTimer || 0, 10);
                     efeitos.aplicarEfeito(b, 'congelado', 10, 1);
-                }
-            });
-        }
-    }
-
-    // --- TORNADO DE FOGO (combo Flecha Fênix → Poça Congelante): 5s ---
-    for (let i = tornadosFogo.length - 1; i >= 0; i--) {
-        const z = tornadosFogo[i];
-        z.tempo--;
-        if (z.tempo <= 0) { removerZonaNova(tornadosFogo, i, 'action_arcano_tornado_fim'); continue; }
-        if (z.tempo % 10 === 0) {
-            causarDanoZona(z, z.danoBase);
-            wss.clients.forEach((client) => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({ type: 'action_arcano_tornado_dano', id: z.id, x: z.x, y: z.y }));
-                }
-            });
-        }
-    }
-
-    // --- POÇO GLACIAL (combo Poça Congelante → Onda de Vento): puxa + congela + dano ---
-    for (let i = pocosGeloArcano.length - 1; i >= 0; i--) {
-        const z = pocosGeloArcano[i];
-        z.tempo--;
-        if (z.tempo <= 0) { removerZonaNova(pocosGeloArcano, i, 'action_arcano_poco_fim'); continue; }
-        // PULL server-side: inimigos são atraídos para o centro (nunca o cliente decide a posição)
-        slimes.forEach(s => {
-            if (s.hp <= 0 || mapaPorCoordenada(s.x) !== z.mapa) return;
-            const d = Math.hypot(s.x - z.x, s.y - z.y);
-            if (d <= z.raio * 1.25) {
-                const angT = Math.atan2(z.y - s.y, z.x - s.x);
-                const passo = Math.min(2.2, d * 0.12);
-                const novoX = s.x + Math.cos(angT) * passo;
-                const novoY = s.y + Math.sin(angT) * passo;
-                // mantém dentro dos limites do mundo (sem colisão própria para mobs)
-                s.x = Math.max(0, Math.min(WORLD_WIDTH, novoX));
-                s.y = Math.max(0, Math.min(WORLD_HEIGHT, novoY));
-                if (d <= z.raio) {
-                    s.stunTimer = Math.max(s.stunTimer || 0, 10);
-                    efeitos.aplicarEfeito(s, 'congelado', 10, 1);
-                }
-            }
-        });
-        if (z.tempo % 10 === 0) {
-            causarDanoZona(z, z.danoBase);
-            wss.clients.forEach((client) => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({ type: 'action_arcano_poco_dano', id: z.id, x: z.x, y: z.y }));
                 }
             });
         }
@@ -4456,10 +4382,8 @@ if (g.hp <= 0) {
             mapVfx: mapVfx.filter(function (v) { return v.mapa === mapaCliente; }),
             // ===== NOVAS CLASSES (v1.31): zonas de chão + moitas =====
             caixasFerramentas: filtrarPorMapa(caixasFerramentas, mapaCliente),
-            chamasArcano: filtrarPorMapa(chamasArcano, mapaCliente),
-            pocasGeloArcano: filtrarPorMapa(pocasGeloArcano, mapaCliente),
-            tornadosFogo: filtrarPorMapa(tornadosFogo, mapaCliente),
-            pocosGeloArcano: filtrarPorMapa(pocosGeloArcano, mapaCliente),
+            chuvasCometas: filtrarPorMapa(chuvasCometas, mapaCliente),
+            orbeConstelacoes: filtrarPorMapa(orbeConstelacoes, mapaCliente),
             redesSniper: filtrarPorMapa(redesSniper, mapaCliente),
             moitas: MOITAS_SNIPER
         }), () => {});
@@ -4561,13 +4485,9 @@ wss.on('connection', (ws) => {
                     dmDashEscudoExpirador: 0,
                     dmHealTick: 0,              // passiva: +2% vida máx/s
                     // ===== ARQUEIRO ARCANO (estado das skills — server-authoritative) =====
-                    aaFenixCooldown: 0,
-                    aaPocaCooldown: 0,
-                    aaVentoCooldown: 0,
-                    aaLastFire: 0,              // timestamp do último Flecha Fênix (combo)
-                    aaLastIce: 0,               // timestamp da última Poça Congelante (combo)
-                    aaFireX: 0, aaFireY: 0,
-                    aaIceX: 0, aaIceY: 0,
+aaCometasCooldown: 0,
+                   aaOrbeCooldown: 0,
+                   aaCascataCooldown: 0,
                     // ===== SNIPER (estado das skills — server-authoritative) =====
                     snAim: null,                // { timer (ticks), fired } — Disparo Supremo
                     snAimCooldown: 0,
@@ -5065,8 +4985,6 @@ wss.on('connection', (ws) => {
                     np.dmDroneAlvo = null;
                     np.dmDashEscudo = 0;
                     np.escudoAbsoluto = 0;
-                    np.aaLastFire = 0;
-                    np.aaLastIce = 0;
                     np.snAim = null;
                     np.snPosicao = false;
                     if (np.snCamuflado) finalizarCamuflagemSniper(np, playerId, 'classe_alterada');
@@ -5472,7 +5390,7 @@ wss.on('connection', (ws) => {
                     'ataque_roqueiro', 'roqueiro_bateria', 'roqueiro_teleporte', 'roqueiro_banda',
                     'dash', 'tornado', 'corte', 'guerreiro_provocacao', 'ataque_mago', 'mago_vulcao', 'ataque_summoner', 'ataque_arqueiro', 'ataque_curandeiro',
                     'ataque_dronemaster', 'dronemaster_supressao', 'dronemaster_assalto', 'dronemaster_caixa', 'dronemaster_tita',
-                    'ataque_arqueiro_arcano', 'arqueiro_fenix', 'arqueiro_poca', 'arqueiro_vento',
+                    'ataque_arqueiro_arcano', 'arqueiro_cometas', 'arqueiro_orbe', 'arqueiro_cascata',
                     'ataque_sniper', 'sniper_apontar', 'sniper_fogo', 'sniper_rede', 'sniper_camuflagem', 'sniper_posicao'
                 ];
                 if (ccAtivo && acoesBloqueadasPorCC.indexOf(data.action) !== -1) {
@@ -5541,10 +5459,7 @@ wss.on('connection', (ws) => {
                             client.send(JSON.stringify({ type: 'action_barbaro_furia', id: playerId, duracaoMs: 6000 }));
                         }
                     });
-                    const wsTarget = playerSockets[playerId];
-                    if (wsTarget && wsTarget.readyState === WebSocket.OPEN) {
-                        wsTarget.send(JSON.stringify({ type: 'efeitos_sync', efeitos: efeitos.exporEfeitos(players[playerId]) }));
-                    }
+                    sincronizarEfeitos(playerId, players[playerId]);
                 }
 
                 // HABILIDADE 2 DO BÁRBARO: SALTO ESMAGADOR (35 de dano em área + Salto)
@@ -5722,11 +5637,7 @@ wss.on('connection', (ws) => {
                         atualizarBonusMaxHpGritoGuerra(alvo);
                         alvo.hp = Math.min(alvo.maxHp, alvo.hp + bonusMaxHp);
                         efeitos.aplicarEfeito(alvo, 'gritoDeGuerra', 600, 1);
-
-                        let wsTarget = playerSockets[alvoId];
-                        if (wsTarget && wsTarget.readyState === WebSocket.OPEN) {
-                            wsTarget.send(JSON.stringify({ type: 'efeitos_sync', efeitos: efeitos.exporEfeitos(alvo) }));
-                        }
+                        sincronizarEfeitos(alvoId, alvo);
                     });
 
                     p.gritoGuerraCooldown = agora + 60000;
@@ -5939,7 +5850,7 @@ wss.on('connection', (ws) => {
                     if (!pD || pD.hp <= 0) return;
                     if (pD.dmTitaAtivo) {
                         // Forma Robô: ataque à distância tecnológico (mesmo handler, outro dano)
-                        if (Date.now() - pD.lastBasicAttack < tempoAtaqueBasico(pD, 520)) return;
+                        if (Date.now() - pD.lastBasicAttack < tempoAtaqueBasico(pD, 416)) return;
                         pD.lastBasicAttack = Date.now();
                         let alvoAutoR = validarAtaqueBasicoAlvo(pD, data.alvoTipo, data.alvoId);
                         if (data.alvoTipo || data.alvoId) { if (!alvoAutoR) return; }
@@ -5952,7 +5863,7 @@ wss.on('connection', (ws) => {
                             if (s.hp <= 0 || mapaPorCoordenada(s.x) !== mapaPorCoordenada(pD.x)) continue;
                             let ddx = s.x - pXR, ddy = s.y - pYR;
                             let distR = Math.hypot(ddx, ddy);
-                            if (distR > 480) continue;
+                            if (distR > 210) continue;
                             let angS = Math.atan2(ddy, ddx);
                             if (mesmosLados(angS, angR, 0.35)) {
                                 // primeiro alvo no caminho (o mais próximo)
@@ -5965,11 +5876,11 @@ wss.on('connection', (ws) => {
                             }
                         });
                         if (atingiuR) registrarDanoMonstro(atingiuR.s, playerId, danoR, 'player');
-                        danoEmBosses(pXR, pYR, 480, playerId, danoR, 'basico', 'player');
+                        danoEmBosses(pXR, pYR, 210, playerId, danoR, 'basico', 'player');
                         return;
                     }
-                    // Drone normal: tiro à distância do Drone (range 290)
-                    if (Date.now() - pD.lastBasicAttack < tempoAtaqueBasico(pD, 700)) return;
+                    // Drone normal: tiro à distância do Drone (range 90)
+                    if (Date.now() - pD.lastBasicAttack < tempoAtaqueBasico(pD, 560)) return;
                     pD.lastBasicAttack = Date.now();
                     let alvoAuto = validarAtaqueBasicoAlvo(pD, data.alvoTipo, data.alvoId);
                     if (data.alvoTipo || data.alvoId) { if (!alvoAuto) return; }
@@ -5982,7 +5893,7 @@ wss.on('connection', (ws) => {
                         if (s.hp <= 0 || mapaPorCoordenada(s.x) !== mapaPorCoordenada(pD.x)) continue;
                         let ddx = s.x - pX, ddy = s.y - pY;
                         let distD = Math.hypot(ddx, ddy);
-                        if (distD > 290) continue;
+                        if (distD > 108) continue; // v1.32: range do Drone +20% (90 → 108)
                         if (mesmosLados(Math.atan2(ddy, ddx), angulo, 0.5)) {
                             if (!alvoTiro || distD < alvoTiro.dist) alvoTiro = { s: s, dist: distD };
                         }
@@ -5993,7 +5904,7 @@ wss.on('connection', (ws) => {
                         }
                     });
                     if (alvoTiro) registrarDanoMonstro(alvoTiro.s, playerId, danoDrone, 'player');
-                    danoEmBosses(pX, pY, 290, playerId, danoDrone, 'basico', 'player');
+                    danoEmBosses(pX, pY, 108, playerId, danoDrone, 'basico', 'player');
                 }
 
                 // ---- DRONEMASTER SKILL 1: MODO SUPRESSÃO (até 3 alvos) ----
@@ -6049,15 +5960,20 @@ wss.on('connection', (ws) => {
                         id: 'cx_' + playerId + '_' + (++seqZonaNova),
                         x: cx, y: cy,
                         mapa: mapaPorCoordenada(cx),
-                        raio: 100,
+                        raio: 140,
                         tempo: 200, duracao: 200, // 10s
                         ownerId: playerId,
                         escudoBase: escudoCaixa,
                         aplicados: {} // controle anti reapply por aliado
                     });
+                    const zonaCaixa = caixasFerramentas[caixasFerramentas.length - 1];
+                    // O DroneMaster SEMPRE recebe o escudo ao armar a caixa (não fica dependente do raio)
+                    darEscudoAbsorvente(pC, escudoCaixa, 10000);
+                    zonaCaixa.aplicados[playerId] = Date.now() + 10000;
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_dm_caixa', id: caixasFerramentas[caixasFerramentas.length - 1].id, x: cx, y: cy, raio: 100, ownerId: playerId }));
+                            client.send(JSON.stringify({ type: 'action_dm_caixa', id: zonaCaixa.id, x: cx, y: cy, raio: 140, ownerId: playerId }));
+                            client.send(JSON.stringify({ type: 'action_dm_caixa_escudo', id: zonaCaixa.id, pid: playerId, x: pC.x, y: pC.y }));
                         }
                     });
                 }
@@ -6112,88 +6028,80 @@ wss.on('connection', (ws) => {
                     danoEmBosses(pX, pY, 260, playerId, danoFlecha, 'basico', 'player');
                 }
 
-                // ---- ARQUEIRO ARCANO SKILL 1: FLECHA FÊNIX (impacto + chão em chamas 4s) ----
-                if (data.action === 'arqueiro_fenix') {
+                // ---- ARQUEIRO ASTRAAL SKILL 1: CHUVA DE COMETAS (impacto + chuva 4s) ----
+                if (data.action === 'arqueiro_cometas') {
                     let pF = players[playerId];
                     if (!pF || pF.hp <= 0) return;
-                    if (Date.now() - pF.aaFenixCooldown < 0) return;
+                    if (Date.now() - pF.aaCometasCooldown < 0) return;
                     const fx = Number(data.targetX), fy = Number(data.targetY);
                     if (!Number.isFinite(fx) || !Number.isFinite(fy)) return;
                     if (mapaPorCoordenada(pF.x + PLAYER_OFFSET_X) !== mapaPorCoordenada(fx)) return;
-                    const distFenix = Math.hypot(fx - (pF.x + PLAYER_OFFSET_X), fy - (pF.y + PLAYER_OFFSET_Y));
-                    if (distFenix > 300) { avisaForaAlcance(ws, 'arqueiro_fenix'); return; }
-                    if (!gastarMana(ws, pF, mpSkill(pF, 'fenix_fogo', 25))) return;
-                    pF.aaFenixCooldown = Date.now() + 7000;
-                    // Combo: registra a skill de FOGO
-                    pF.aaLastFire = Date.now() / 50 | 0; // em ticks (50ms)
-                    pF.aaFireX = fx; pF.aaFireY = fy;
-                    // Dano de impacto em área + chão em chamas (4s)
-                    const danoImpacto = dmgSkill(pF, 'fenix_fogo', 22);
-                    chamasArcano.push({
-                        id: 'ch_' + playerId + '_' + (++seqZonaNova),
+                    const distCometas = Math.hypot(fx - (pF.x + PLAYER_OFFSET_X), fy - (pF.y + PLAYER_OFFSET_Y));
+                    if (distCometas > 300) { avisaForaAlcance(ws, 'arqueiro_cometas'); return; }
+                    if (!gastarMana(ws, pF, mpSkill(pF, 'cometas_astral', 25))) return;
+                    pF.aaCometasCooldown = Date.now() + 7000;
+                    // Dano de impacto em área + chuva de cometas (4s)
+                    const danoImpacto = dmgSkill(pF, 'cometas_astral', 22);
+                    chuvasCometas.push({
+                        id: 'ast_' + playerId + '_' + (++seqZonaNova),
                         x: fx, y: fy,
                         mapa: mapaPorCoordenada(fx),
-                        raio: 70,
+                        raio: 85,
                         tempo: 80, duracao: 80, // 4s
                         ownerId: playerId,
-                        danoBase: dmgSkill(pF, 'fenix_fogo', 8)
+                        danoBase: dmgSkill(pF, 'cometas_astral', 9)
                     });
                     slimes.forEach(s => {
-                        if (s.hp > 0 && mapaPorCoordenada(s.x) === mapaPorCoordenada(fx) && Math.hypot(s.x - fx, s.y - fy) <= 70) {
+                        if (s.hp > 0 && mapaPorCoordenada(s.x) === mapaPorCoordenada(fx) && Math.hypot(s.x - fx, s.y - fy) <= 85) {
                             registrarDanoMonstro(s, playerId, danoImpacto, 'player');
                         }
                     });
-                    danoEmBosses(fx, fy, 70, playerId, danoImpacto, 'skill', 'player');
+                    danoEmBosses(fx, fy, 85, playerId, danoImpacto, 'skill', 'player');
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_arcano_fenix', id: chamasArcano[chamasArcano.length - 1].id, x: fx, y: fy, raio: 70, ownerId: playerId, ang: Math.atan2(fy - (pF.y + PLAYER_OFFSET_Y), fx - (pF.x + PLAYER_OFFSET_X)) }));
+                            client.send(JSON.stringify({ type: 'action_arcano_cometas', id: chuvasCometas[chuvasCometas.length - 1].id, x: fx, y: fy, raio: 85, ownerId: playerId, ang: Math.atan2(fy - (pF.y + PLAYER_OFFSET_Y), fx - (pF.x + PLAYER_OFFSET_X)) }));
                         }
                     });
                 }
 
-                // ---- ARQUEIRO ARCANO SKILL 2: POÇA CONGELANTE (freeze 2s → dano) ----
-                if (data.action === 'arqueiro_poca') {
+                // ---- ARQUEIRO ASTRAAL SKILL 2: ORBE DE CONSTELAÇÃO (cativeiro 2s → implosão) ----
+                if (data.action === 'arqueiro_orbe') {
                     let pP = players[playerId];
                     if (!pP || pP.hp <= 0) return;
-                    if (Date.now() - pP.aaPocaCooldown < 0) return;
+                    if (Date.now() - pP.aaOrbeCooldown < 0) return;
                     const px = Number(data.targetX), py = Number(data.targetY);
                     if (!Number.isFinite(px) || !Number.isFinite(py)) return;
                     if (mapaPorCoordenada(pP.x + PLAYER_OFFSET_X) !== mapaPorCoordenada(px)) return;
-                    const distPoca = Math.hypot(px - (pP.x + PLAYER_OFFSET_X), py - (pP.y + PLAYER_OFFSET_Y));
-                    if (distPoca > 260) { avisaForaAlcance(ws, 'arqueiro_poca'); return; }
-                    if (!gastarMana(ws, pP, mpSkill(pP, 'poca_gelo', 25))) return;
-                    pP.aaPocaCooldown = Date.now() + 8000;
-                    // Combo: registra a skill de GELO
-                    pP.aaLastIce = Date.now() / 50 | 0;
-                    pP.aaIceX = px; pP.aaIceY = py;
-                    // COMBO 1: Flecha Fênix → Poça Congelante (2s) = TORNADO DE FOGO
-                    tentarComboTornadoFogo(pP, ws, Date.now() / 50 | 0);
-                    pocasGeloArcano.push({
-                        id: 'pc_' + playerId + '_' + (++seqZonaNova),
+                    const distOrbe = Math.hypot(px - (pP.x + PLAYER_OFFSET_X), py - (pP.y + PLAYER_OFFSET_Y));
+                    if (distOrbe > 260) { avisaForaAlcance(ws, 'arqueiro_orbe'); return; }
+                    if (!gastarMana(ws, pP, mpSkill(pP, 'orbe_constelacao', 25))) return;
+                    pP.aaOrbeCooldown = Date.now() + 8000;
+                    orbeConstelacoes.push({
+                        id: 'orb_' + playerId + '_' + (++seqZonaNova),
                         x: px, y: py,
                         mapa: mapaPorCoordenada(px),
-                        raio: 85,
-                        tempo: 40, duracao: 40, // 2s congelando (fase 1)
+                        raio: 100,
+                        tempo: 40, duracao: 40, // 2s cativando (fase 1)
                         fase: 1,
                         ownerId: playerId,
-                        danoBase: dmgSkill(pP, 'poca_gelo', 26)
+                        danoBase: dmgSkill(pP, 'orbe_constelacao', 26)
                     });
-                    // Congela quem está dentro AGORA
-                    congelarNaZona(pocasGeloArcano[pocasGeloArcano.length - 1], 40, 0, playerId);
+                    // Cativa quem está dentro AGORA
+                    congelarNaZona(orbeConstelacoes[orbeConstelacoes.length - 1], 40, 0, playerId);
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_arcano_poca', id: pocasGeloArcano[pocasGeloArcano.length - 1].id, x: px, y: py, raio: 85, ownerId: playerId }));
+                            client.send(JSON.stringify({ type: 'action_arcano_orbe', id: orbeConstelacoes[orbeConstelacoes.length - 1].id, x: px, y: py, raio: 100, ownerId: playerId }));
                         }
                     });
                 }
 
-                // ---- ARQUEIRO ARCANO SKILL 3: ONDA DE VENTO (root/trava 2s em cone) ----
-                if (data.action === 'arqueiro_vento') {
+                // ---- ARQUEIRO ASTRAAL SKILL 3: CASCATA ESTELAR (onda de estrelas — trava 2s em cone) ----
+                if (data.action === 'arqueiro_cascata') {
                     let pV = players[playerId];
                     if (!pV || pV.hp <= 0) return;
-                    if (Date.now() - pV.aaVentoCooldown < 0) return;
-                    if (!gastarMana(ws, pV, mpSkill(pV, 'onda_vento', 25))) return;
-                    pV.aaVentoCooldown = Date.now() + 8000;
+                    if (Date.now() - pV.aaCascataCooldown < 0) return;
+                    if (!gastarMana(ws, pV, mpSkill(pV, 'cascata_estelar', 25))) return;
+                    pV.aaCascataCooldown = Date.now() + 8000;
                     const angV = (data.angulo !== undefined) ? Number(data.angulo) : pV.angulo;
                     const vx0 = pV.x + PLAYER_OFFSET_X, vy0 = pV.y + PLAYER_OFFSET_Y;
                     const ALCANCE_VENTO = 280, LARGURA_VENTO = 160;
@@ -6234,21 +6142,19 @@ wss.on('connection', (ws) => {
                     }
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_arcano_vento', id: playerId, x: vx0, y: vy0, ang: angV }));
+                            client.send(JSON.stringify({ type: 'action_arcano_cascata', id: playerId, x: vx0, y: vy0, ang: angV }));
                         }
                     });
-                    // COMBO 2: Poça Congelante → Onda de Vento (2s) = POÇO GLACIAL (pull + freeze)
-                    tentarComboPocoGlacial(pV, ws, Date.now() / 50 | 0);
                 }
 
                 // ---- SNIPER: ATAQUE BÁSICO (Barrett — tiro perfurante em linha) ----
                 if (data.action === 'ataque_sniper') {
                     let pS = players[playerId];
                     if (!pS || pS.hp <= 0) return;
-                    // Camuflado: o primeiro tiro quebra a camuflagem
-                    if (pS.snCamuflado) finalizarCamuflagemSniper(pS, playerId, 'ataque');
+                    // Camuflado na moita: ataque básico BLOQUEADO até usar uma skill (que quebra a camuflagem)
+                    if (pS.snCamuflado) return;
                     if (pS.snAim) return; // não atira básico enquanto mira o super tiro
-                    if (Date.now() - pS.lastBasicAttack < tempoAtaqueBasico(pS, 900)) return;
+                    if (Date.now() - pS.lastBasicAttack < tempoAtaqueBasico(pS, 936)) return;
                     pS.lastBasicAttack = Date.now();
                     let alvoAuto = validarAtaqueBasicoAlvo(pS, data.alvoTipo, data.alvoId);
                     if (data.alvoTipo || data.alvoId) { if (!alvoAuto) return; }
@@ -6281,15 +6187,7 @@ wss.on('connection', (ws) => {
                     let pA = players[playerId];
                     if (!pA || pA.hp <= 0) return;
                     if (pA.snAim || Date.now() - pA.snAimCooldown < 0) return;
-                    // Usar o Disparo Supremo obriga a sair da Posição de Franco-Atirador
-                    if (pA.snPosicao) {
-                        pA.snPosicao = false;
-                        wss.clients.forEach((client) => {
-                            if (client.readyState === WebSocket.OPEN) {
-                                client.send(JSON.stringify({ type: 'action_sniper_posicao', id: playerId, ativo: false }));
-                            }
-                        });
-                    }
+                    // Deitado (Posição de Franco-Atirador): mira sem sair da posição
                     if (!gastarMana(ws, pA, mpSkill(pA, 'disparo_supremo', 30))) return;
                     pA.snAim = { timer: 60, fired: false }; // 3s de preparação
                     wss.clients.forEach((client) => {
@@ -6308,30 +6206,34 @@ wss.on('connection', (ws) => {
                     if (pF.snCamuflado) finalizarCamuflagemSniper(pF, playerId, 'tiro');
                     const angF = (data.angulo !== undefined) ? Number(data.angulo) : pF.angulo;
                     const fx0 = pF.x + PLAYER_OFFSET_X, fy0 = pF.y + PLAYER_OFFSET_Y;
-                    // 1 inimigo: o mais próximo na linha de visão (range 700)
+                    // Ponto selecionado (cliente envia onde o jogador clicou/mirou)
+                    let tpX = (data.targetX !== undefined) ? Number(data.targetX) : fx0 + Math.cos(angF) * 400;
+                    let tpY = (data.targetY !== undefined) ? Number(data.targetY) : fy0 + Math.sin(angF) * 400;
+                    if (!Number.isFinite(tpX) || !Number.isFinite(tpY)) { tpX = fx0 + Math.cos(angF) * 400; tpY = fy0 + Math.sin(angF) * 400; }
+                    const distTP = Math.hypot(tpX - fx0, tpY - fy0);
+                    if (distTP > 700) { tpX = fx0 + ((tpX - fx0) / distTP) * 700; tpY = fy0 + ((tpY - fy0) / distTP) * 700; }
+                    // 1 inimigo: o mais próximo do ponto mirado (alcance 700)
                     let alvoF = null;
                     for (let s of slimes) {
                         if (s.hp <= 0 || mapaPorCoordenada(s.x) !== mapaPorCoordenada(pF.x)) continue;
-                        let dx = s.x - fx0, dy = s.y - fy0;
-                        let dist = Math.hypot(dx, dy);
+                        let dist = Math.hypot(s.x - fx0, s.y - fy0);
                         if (dist > 700) continue;
-                        let lateral = Math.abs(Math.sin(angF) * dx - Math.cos(angF) * dy);
-                        if (lateral <= 26) { if (!alvoF || dist < alvoF.dist) alvoF = { s: s, dist: dist }; }
+                        let dp = Math.hypot(s.x - tpX, s.y - tpY);
+                        if (dp <= 42) { if (!alvoF || dp < alvoF.dp) alvoF = { s: s, dp: dp, dist: dist }; }
                     }
                     let danoFinal = Math.round(dmgSkill(pF, 'disparo_supremo', 45) * 3); // 3x dano
                     let bossAlvo = null;
                     if (!alvoF) {
                         for (let b of bosses) {
                             if (b.hp <= 0 || mapaPorCoordenada(b.x) !== mapaPorCoordenada(pF.x)) continue;
-                            let dx = b.x - fx0, dy = b.y - fy0;
-                            let dist = Math.hypot(dx, dy);
+                            let dist = Math.hypot(b.x - fx0, b.y - fy0);
                             if (dist > 700) continue;
-                            let lateral = Math.abs(Math.sin(angF) * dx - Math.cos(angF) * dy);
-                            if (lateral <= 26) { if (!bossAlvo || dist < bossAlvo.dist) bossAlvo = { b: b, dist: dist, x: b.x, y: b.y }; }
+                            let dp = Math.hypot(b.x - tpX, b.y - tpY);
+                            if (dp <= 42) { if (!bossAlvo || dp < bossAlvo.dp) bossAlvo = { b: b, dp: dp, dist: dist, x: b.x, y: b.y }; }
                         }
                     }
-                    const tx = alvoF ? alvoF.s.x : (bossAlvo ? bossAlvo.b.x : fx0 + Math.cos(angF) * 400);
-                    const ty = alvoF ? alvoF.s.y : (bossAlvo ? bossAlvo.b.y : fy0 + Math.sin(angF) * 400);
+                    const tx = alvoF ? alvoF.s.x : (bossAlvo ? bossAlvo.b.x : Math.round(tpX));
+                    const ty = alvoF ? alvoF.s.y : (bossAlvo ? bossAlvo.b.y : Math.round(tpY));
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'action_sniper_super_tiro', id: playerId, x: fx0, y: fy0, tx: tx, ty: ty }));
@@ -6372,6 +6274,16 @@ wss.on('connection', (ws) => {
                     if (!gastarMana(ws, pR, mpSkill(pR, 'arame_rede', 15))) return;
                     pR.snRedeCooldown = Date.now() + 10000;
                     if (pR.snCamuflado) finalizarCamuflagemSniper(pR, playerId, 'skill');
+                    // Zona de arame no chão (visual + root em área por 3s, como as outras zonas)
+                    const redeZona = {
+                        id: 'rd_' + playerId + '_' + (++seqZonaNova),
+                        x: rx, y: ry,
+                        mapa: mapaPorCoordenada(rx),
+                        raio: 60,
+                        tempo: 60, duracao: 60, // 3s
+                        ownerId: playerId
+                    };
+                    redesSniper.push(redeZona);
                     let alvoRede = null;
                     for (let s of slimes) {
                         if (!alvoRede && s.hp > 0 && Math.hypot(s.x - rx, s.y - ry) <= 60) { alvoRede = { tipo: 'slime', ent: s }; }
@@ -6408,7 +6320,7 @@ wss.on('connection', (ws) => {
                     }
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_sniper_rede', id: playerId, x: rx, y: ry }));
+                            client.send(JSON.stringify({ type: 'action_sniper_rede', id: playerId, x: rx, y: ry, redeId: redeZona.id }));
                         }
                     });
                 }
@@ -6439,10 +6351,7 @@ wss.on('connection', (ws) => {
                             client.send(JSON.stringify({ type: 'action_sniper_camuflagem', id: playerId }));
                         }
                     });
-                    const wsC = playerSockets[playerId];
-                    if (wsC && wsC.readyState === WebSocket.OPEN) {
-                        wsC.send(JSON.stringify({ type: 'efeitos_sync', id: playerId, efeitos: efeitos.exporEfeitos(pC) }));
-                    }
+                    sincronizarEfeitos(playerId, pC);
                 }
 
                 // ---- SNIPER SKILL 4: POSIÇÃO DE FRANCO-ATIRADOR (deitado — +100% dano, detecta invis) ----
