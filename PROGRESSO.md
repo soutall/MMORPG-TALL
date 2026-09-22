@@ -1,3 +1,70 @@
+# PROGRESSO — Sessão de 21/09/2026 (v1.34.0: Big Batch — Poções, Stamina, Drops, HUD, Inventário, Skills)
+
+> Checkpoint rápido desta sessão (detalhes no CHANGELOG v1.34.0). Ponto de salvamento: `backup_seguranca_20260921_231150`.
+
+## Big batch v1.34 ✅
+
+1. [x] **Poções HP/MP ×3 níveis droppáveis** + 2 slots (🧪 HP / 🔮 MP) no topo esquerdo do HUD com contador; uso via `usar_pocao`; empilham por subtipo+nível.
+2. [x] **Stamina substitui mana no DASH** — barra laranja na HUD; custo 25 (normal) / 40 (Dronemaster); servidor valida `gastarEstamina()` e responde `stamina_insuficiente`.
+3. [x] **HUD redesenhado:** retrato do personagem em tempo real (canvas 150ms), barras fortes vermelho/azul/laranja, buffs integrados, contador de ouro, **XP centralizado embaixo dos slots de skill** (amarelo + azul-claro, moldura pixel-art).
+4. [x] **Pedras de Upgrade** com tabela de raridade por dificuldade + brilho roxo + som de arpejo + popup ao dropar; autocoleta; destaque na aba PEDRAS.
+5. [x] **Ouro** cai de ~90% dos monstros e de todos os bosses; autocoleta; carteira `ouro` sincronizada (`ouro_ganho` / HUD).
+6. [x] **Autocoleta:** ouro, poções, pedras de upgrade e itens lendários são coletados automaticamente ao passar por cima; equipamentos normais seguem manuais (`coletar_item`).
+7. [x] **Inventário redesenhado:** boneco removido (grade 3×3 pixel-art), janela de comparação ao lado, botões somente ícone + ✕ no topo, janela ~10% mais larga (295px), abas TODOS/CONS/ITENS/EQUIP/PEDRAS.
+8. [x] **Janela de Skills:** maior (600px), skills lado a lado (2 colunas) e fonte legível.
+9. [x] **Anel de cooldown nos slots de skill** (todas as classes): borda drena no sentido horário + brilho dourado pulsante quando pronta.
+10. [x] **Runas/Item de Quest** marcados como "futuro update".
+
+## Para testar manualmente (após o 1º restart planejado)
+
+- Recarregar `http://localhost:8080` (Ctrl+F5) e entrar com `admin2`.
+- **Dash:** usar sem gastar mana — barra laranja de stamina diminui (25) e recupera; sem stamina o aviso ⚡ aparece.
+- **Drops:** matar slimes/lobos → ouro cai (autocoleta), poções (~30% de chance) e às vezes pedra de upgrade (brilho roxo + som); matar boss → ouro + 2 poções garantidos.
+- **Poções:** tocar nos slots 🧪/🔮 no HUD cura no ato (HP/MP); contar quantidades; sem poção o slot fica cinza.
+- **HUD:** retrato, barras HP/MP/Stamina, buffs, ouro e XP central (amarelo + azul-claro) funcionando.
+- **Inventário:** abrir (I) — sem boneco, comparação ao lado ao selecionar equipamento, botões ícone, ✕ no topo.
+- **Skills:** abrir (K) — janela grande com skills lado a lado; dar ataque → anel de CD drenando horário + brilho dourado ao ficar pronta.
+
+## ✅ Testes REAIS executados (servidor reiniciado 1x, código novo ativo)
+
+1. [x] **Dash = STAMINA (não mana)**: login como guerreiro de teste → 5 dashes: 100→75→59→43→26→9; 6º dash → `stamina_insuficiente ✓` (custo 25); **mana permaneceu 50/50 o tempo todo** (regen de mana global é pré-existente).
+2. [x] **Drops + autocoleta em combate real**: matou slime no Campo Verde → `item_coletado: 🧪 Poção de Vida I` + `ouro_ganho +7` (e em outra execução `+3`) — ouro e poção coletados automaticamente ao passar por cima.
+3. [x] **`usar_pocao` de ponta a ponta**: com Poção de Vida I na mochila → `pocao_usada ✓ nivel=1` + `hp_sync: 100/100` (cura +20%) + consumo de 1 unidade (item some da mochila).
+4. [x] **Geradores (unit test, 20k iterações)**: ouro monstro normal min 3/max 8 (média ~5,5, prop. dificuldade), boss = 25 fixo; poções níveis 1/2/3 conforme baseHp com pct correto (HP 20/40/100%, MP 20/30/100%); pedras — baseHp=60 → mais comum/raro, baseHp=4000 → épico+lendário disparam (lendário 573→1460). Todos `autocoleta: true`.
+5. [x] **Sintaxe**: node --check em server.js, equipamentos.js, inventario.js, skills.js + extração do JS do index.html (3 scripts) — 0 erros.
+6. [x] **Versão**: `GAME_VERSION`/login/HUD = v1.34.0 (sem resquícios de v1.33).
+
+> ⚠️ Observação: os personagens de teste `zz_teste_v134_*` criados durante os testes ficam marcados para remoção (mesma lista dos `zz_*`/`sTest*` já pendentes, quando o servidor estiver parado).
+
+---
+
+# PROGRESSO — Sessão de 21/09/2026 (v1.33.4: Portal da Solari + Otimização de Horda)
+
+> Checkpoint rápido desta sessão (detalhes no CHANGELOG v1.33.4).
+
+## Portal de retorno removido da Arena de Solari ✅ (v1.33.4)
+
+1. [x] **Portal "SAIR DA SOLARI" removido de dentro da arena:** durante uma partida o
+       `PORTAL_ARENA_RETORNO` (63980,460) não é mais desenhado nem dispara teleporte
+       para a cidade (`mapa_arena.js` — guard `currentMap === 'solari'` no desenho e
+       na detecção `infoPortalArena`). Saída continua pelo painel Sair / Renascer /
+       fim do round. Portal da Arena de Davahl e portal roxo da cidade intactos.
+2. [x] **Otimização mobile (trava da Bateria no meio da horda):** aura dos monstros sem
+       `shadowBlur` + skip automático com >55 desenhados (`monstros.js`); ícones de
+       stun/lentidão a cada 350ms (`classes/comum.js`); anéis roqueiro com sombra
+       reduzida (`efeitos/roqueiro_efeitos.js`); textos de dano sem shadow
+       (`index.html`).
+
+## Para testar manualmente
+
+- Recarregar `http://localhost:8080` (Ctrl+F5 para forçar o cache) e entrar com `admin2`.
+- **Solari:** iniciar uma partida e rodar até a arena — **o portal roxo "SAIR DA SOLARI"
+  não deve existir dentro da arena**; sair funciona pelo painel.
+- **Bateria (Roqueiro):** usar a Bateria no meio dos monstros — a tela não deve travar.
+- **STATUS / projéteis (v1.33.3):** continuam funcionando sem regressão.
+
+---
+
 # PROGRESSO — Sessão de 16/09/2026 (Editor de Interface + Drag & Drop)
 
 > Checkpoint rápido desta sessão (detalle no CHANGELOG v1.24.0 e v1.25.0).

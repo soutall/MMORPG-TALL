@@ -23,7 +23,8 @@
     pointer-events: auto;
 }
 
-#hud-status-window > #hud-level,
+#hud-status-window > #hud-status-main,
+#hud-status-window > #hud-buffs,
 #hud-status-window > #hud-dps {
     position: relative !important;
     left: auto !important;
@@ -33,6 +34,8 @@
     transform: none !important;
     display: block;
 }
+
+#hud-status-window > #hud-status-main { display: flex !important; }
 
 /* --- Manillas de arrastre ------------------------------------------- */
 #inv-title, #skills-header, #settings-header, #atributos-title,

@@ -381,6 +381,45 @@ function atributosTotais(player) {
     return total;
 }
 
+// v1.34: DROPS AUXILIARES — Ouro (quase todo monstro), Poções (chance) e
+// Pedras de Upgrade (raridade escala com a dificuldade do monstro).
+// Não precisam de "criador de drop" — caem com chance própria.
+function gerarDropsAuxiliares(x, y, baseHp, ehBoss) {
+    if (!equipamentos) return;
+    const bal = equipamentos.BALANCE;
+
+    // OURO: pequena quantidade em quase todos os monstros (90%)
+    if (!ehBoss && Math.random() < (bal.chanceOuroMonstro || 0.9)) {
+        let ouro = equipamentos.gerarOuro(baseHp, false);
+        dropsChao.push({ id: ouro.id, x: x, y: y, criadoEm: Date.now(), item: ouro });
+    }
+    if (ehBoss) {
+        let ouro = equipamentos.gerarOuro(baseHp, true);
+        dropsChao.push({ id: ouro.id, x: x, y: y, criadoEm: Date.now(), item: ouro });
+    }
+
+    // POÇÕES: 30% dos monstros comuns; boss sempre larga 2
+    if (ehBoss) {
+        for (let i = 0; i < 2; i++) {
+            let pocao = equipamentos.gerarPocao(Math.random() < 0.5 ? 'hp' : 'mp', equipamentos.sortearPocao(baseHp || 100));
+            dropsChao.push({ id: pocao.id, x: x + (Math.random() * 30 - 15), y: y + (Math.random() * 30 - 15), criadoEm: Date.now(), item: pocao });
+        }
+    } else if (Math.random() < (bal.chancePocaoMonstro || 0.3)) {
+        let pocao = equipamentos.gerarPocao(Math.random() < 0.5 ? 'hp' : 'mp', equipamentos.sortearPocao(baseHp || 30));
+        dropsChao.push({ id: pocao.id, x: x, y: y, criadoEm: Date.now(), item: pocao });
+    }
+
+    // PEDRAS DE UPGRADE: raridade conforme dificuldade
+    let pedra = equipamentos.gerarPedraUpgrade(baseHp || 0);
+    if (pedra) {
+        dropsChao.push({ id: pedra.id, x: x, y: y, criadoEm: Date.now(), item: pedra });
+        let msg = JSON.stringify({ type: 'drop_raro', dropId: pedra.id, x: x, y: y, raridade: pedra.raridade, nome: pedra.nome || 'Item', especial: 'pedra' });
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) client.send(msg);
+        });
+    }
+}
+
 // Spawna o drop no chão na morte de um monstro/boss.
 // A classe do item é decidida pela ÚNICA regra isolada em equipamentos.js
 // (escolherCriadorDrop = maior contribuidor de dano).
@@ -476,6 +515,7 @@ function alcanceAtaqueBasicoClasse(p) {
     if (p.classe === 'curandeiro') return 200;
     if (p.classe === 'ladino') return 110;
     if (p.classe === 'dronemaster') return (p.dmTitaAtivo ? 242 : 124); // +15% (108→124; Tita 210→242)
+    if (p.classe === 'sniper') return 384; // range reduzido em 20% (480 -> 384)
     return 300;
 }
 
@@ -556,8 +596,15 @@ function desativarAuraSagrada(healerId, motivo) {
     aura.ativa = false;
     delete aurasSagradas[healerId];
     if (players[healerId]) players[healerId].auraSagradaAtiva = false;
-    if (motivo === 'mana_baixa') cooldownAuraSagrada[healerId] = Date.now() + 10000;
-    transmitirAura('action_aura_sagrada_end', healerId, { motivo: motivo || 'manual' });
+    let cdMs = 0;
+    if (motivo === 'manual') {
+        cdMs = 5000; // CD de 5 segundos somente quando a skill for usada novamente
+        cooldownAuraSagrada[healerId] = Date.now() + cdMs;
+    } else if (motivo === 'mana_baixa') {
+        cdMs = 10000;
+        cooldownAuraSagrada[healerId] = Date.now() + cdMs;
+    }
+    transmitirAura('action_aura_sagrada_end', healerId, { motivo: motivo || 'manual', cooldownMs: cdMs });
 }
 
 function tentarRessurreicaoAutomatica(alvoId) {
@@ -592,6 +639,19 @@ function gastarMana(ws, p, custo) {
     }
     p.mana = Math.max(0, Math.round(p.mana - custo));
     ws.send(JSON.stringify({ type: 'mp_sync', mp: p.mana, maxMp: p.maxMp }));
+    return true;
+}
+
+// v1.34: STAMINA — o DASH passa a consumir stamina (não mana).
+// Igual ao gastarMana, mas usa a barra laranja de estamina.
+function gastarEstamina(ws, p, custo) {
+    if (!custo || custo <= 0) return true;
+    if ((p.estamina || 0) < custo) {
+        ws.send(JSON.stringify({ type: 'stamina_insuficiente', custo: custo, estamina: Math.round(p.estamina || 0) }));
+        return false;
+    }
+    p.estamina = Math.max(0, Math.round(p.estamina - custo));
+    ws.send(JSON.stringify({ type: 'stamina_sync', estamina: p.estamina }));
     return true;
 }
 
@@ -760,7 +820,7 @@ function calcularDanoJogador(autorId, quantidade, tipoOrigem) {
     } else if (tipoOrigem === 'dot') {
         mult += (getAtr(p, 'profanidade') - 1) * 0.05;
     } else {
-        let ehMagico = ['mago', 'summoner', 'curandeiro', 'roqueiro'].indexOf(p.classe) !== -1;
+        let ehMagico = ['mago', 'summoner', 'curandeiro', 'roqueiro', 'arqueiro_arcano', 'arqueiro_astral'].indexOf(p.classe) !== -1;
         mult += (getAtr(p, ehMagico ? 'inteligencia' : 'forca') - 1) * 0.05;
         // DESTREZA: 5% base + 1% por ponto de chance; 1.5x + 3% por ponto de multiplicador
         let chanceCritico = 0.05 + (getAtr(p, 'destreza') - 1) * 0.01;
@@ -772,9 +832,10 @@ function calcularDanoJogador(autorId, quantidade, tipoOrigem) {
             mult *= 1.30;
             chanceCritico += 0.20;
         }
-        // SNIPER — POSIÇÃO DE FRANCO-ATIRADOR: +100% dano (×2)
+        // SNIPER — POSIÇÃO DE FRANCO-ATIRADOR: +100% dano (×2) e +100% taxa crítica garantida
         if (p.classe === 'sniper' && p.snPosicao) {
             mult *= 2.0;
+            chanceCritico += 1.0;
         }
         if (Math.random() < chanceCritico) {
             critMult = 1.5 + (getAtr(p, 'destreza') - 1) * 0.03;
@@ -1259,6 +1320,7 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
             if (solariSessao && solariSessao.vivos > 0) solariSessao.vivos--;
         } else {
             gerarDropNoChao(slime.x, slime.y, slime.tabelaDano, slime.baseHp || slime.maxHp || 0, false);
+            gerarDropsAuxiliares(slime.x, slime.y, slime.baseHp || slime.maxHp || 0, false);
         }
         distribuirXpMorte(slime);
     }
@@ -1641,6 +1703,30 @@ function solariBroadcast(tipo, dados) {
     solariSessao.membros.forEach(function (m) { solariEnviarA(m.id, tipo, dados); });
 }
 
+// Mapa efetivo de um jogador (leva em conta a sessão Solari).
+function mapaDoJogador(pid) {
+    const p = players && players[pid];
+    if (!p) return null;
+    if (solariSessao && solariEmSessao(pid)) return 'solari';
+    return mapaPorCoordenada(p.x + PLAYER_OFFSET_X);
+}
+
+// Envia um pacote apenas para os clientes que estão no MESMO mapa que o jogador `pid`.
+// Evita que efeitos/áudios (ex.: Bateria do Roqueiro) sejam disparados em clientes
+// de outros mapas — e reduz spam visual/travamento (tela verde) entre muitos jogadores.
+function enviarParaMapaDoJogador(pid, tipo, dados) {
+    const mapaDono = mapaDoJogador(pid);
+    if (!mapaDono) return;
+    const payload = JSON.stringify(Object.assign({ type: tipo }, dados || {}));
+    wss.clients.forEach((client) => {
+        if (client.readyState !== WebSocket.OPEN) return;
+        const jogadorCliente = client._playerId ? players[client._playerId] : null;
+        const clienteEmSolari = !!(client._playerId && solariSessao && solariEmSessao(client._playerId));
+        const mapaCliente = clienteEmSolari ? 'solari' : (jogadorCliente ? mapaPorCoordenada(jogadorCliente.x + PLAYER_OFFSET_X) : null);
+        if (mapaCliente === mapaDono) client.send(payload);
+    });
+}
+
 function solariEstado() {
     const s = solariSessao;
     if (!s) return null;
@@ -1882,7 +1968,7 @@ function solariLimparMonstros() {
     if (s) s.vivos = 0;
 }
 
-// Cada round sorteia 5 itens entre os membros ANTES dos monstros aparecerem.
+// Cada round sorteia 5 itens entre os membros APÓS a finalização do combate daquele round.
 function solariIniciarSorteio() {
     const s = solariSessao;
     if (!s) return;
@@ -1903,22 +1989,20 @@ function solariIniciarSorteio() {
     }
     const conf = SOLARI_ROUNDS[s.round - 1];
     if (!conf) { solariEncerrarSessao(); return; }
-    s.tiposRound = solariEscolherDoisTipos();
     s.fase = 'leilao';
     s.leilao = { itens: itens, indice: 0, rolagens: {}, ultimaRolagemEm: 0, itemAbertoEm: Date.now(), estado: 'aberto', vencedorId: undefined };
-    solariBroadcast('solari_round', { round: s.round, total: conf.total, elite: !!conf.elite });
     solariBroadcast('solari_leilao', { fase: 'abrir', indice: 1, total: itens.length, item: itens[0], classeBonus: true, round: s.round, roundsTotal: 10 });
     solariBroadcast('solari_banner', { texto: '🎲 SORTEIO DA RODADA ' + s.round, cor: '#ffd700', fim: false });
-    console.log('[SOLARI] round=' + s.round + ' sorteio=' + itens.length + ' itens (combate só depois)');
+    console.log('[SOLARI] round=' + s.round + ' sorteio pós-combate=' + itens.length + ' itens');
     solariEnviarEstado();
 }
 
-// Combate da rodada começa só DEPOIS do sorteio dos 5 itens.
+// Combate da rodada (inicia diretamente na entrada do round)
 function solariComecarCombate() {
     const s = solariSessao;
     if (!s) return;
     const conf = SOLARI_ROUNDS[s.round - 1];
-    s.tiposRound = s.tiposRound || solariEscolherDoisTipos();
+    s.tiposRound = solariEscolherDoisTipos();
     s.spawned = 0;
     s.vivos = 0;
     s.eliteSpawnou = false;
@@ -2014,7 +2098,7 @@ function atualizarSolari() {
         if (!solariSessao) return;
     }
 
-    // Contagem regressiva de entrada (10s) → START.
+    // Contagem regressiva de entrada (10s) → START (ROUND 1 direto no combate).
     if (s.fase === 'contagem') {
         const restante = Math.max(0, Math.ceil((s.contagemFimEm - agora) / 1000));
         if (restante !== s.contagemUltimoSeg) {
@@ -2022,10 +2106,9 @@ function atualizarSolari() {
             solariBroadcast('solari_contagem', { seg: restante, mensagem: '' });
         }
         if (agora >= s.contagemFimEm) {
-            s.fase = 'leilao';
             s.round = 1;
             solariBroadcast('solari_contagem', { seg: 0, mensagem: '' });
-            solariIniciarSorteio();
+            solariComecarCombate();
         }
         return;
     }
@@ -2054,19 +2137,9 @@ function atualizarSolari() {
             // round é dado como limpo (a partida segue nos 10 rounds).
             const estourouTempo = tempoRodando >= 120000;
             if (roundCompleto || estourouTempo) {
-                if (estourouTempo) solariLimparMonstros();
-                if (s.round >= 10) {
-                    s.fase = 'fim';
-                    s.fimEm = agora + 6000;
-                    solariBroadcast('solari_banner', { texto: '🏆 ARENA DE SOLARI CONCLUÍDA!', cor: '#ffd700', fim: true });
-                    solariEnviarEstado();
-                } else {
-                    s.fase = 'transicao';
-                    s.transicaoFimEm = agora + 10000;
-                    s.transicaoUltimoSeg = -1;
-                    solariBroadcast('solari_contagem', { seg: 10, mensagem: 'PARABÉNS! BORA PRO PRÓXIMO ROUND!' });
-                    solariEnviarEstado();
-                }
+                solariLimparMonstros();
+                // Premiação só acontece APÓS a finalização de cada round
+                solariIniciarSorteio();
             }
         }
         return;
@@ -2081,17 +2154,31 @@ function atualizarSolari() {
         }
         if (agora >= s.transicaoFimEm) {
             s.round++;
-            solariIniciarSorteio();
+            solariComecarCombate();
         }
         return;
     }
 
     // Sorteio da rodada: 5 itens, dados 1-100, +20 para a classe do item,
-    // doação se ninguém rolar. Quando acaba → os monstros da rodada aparecem.
+    // doação se ninguém rolar. Ocorre APÓS a finalização de cada round.
     if (s.fase === 'leilao' && s.leilao) {
         const L = s.leilao;
         const itemAtual = L.itens[L.indice];
-        if (!itemAtual) { solariComecarCombate(); return; }
+        if (!itemAtual) {
+            if (s.round >= 10) {
+                s.fase = 'fim';
+                s.fimEm = agora + 6000;
+                solariBroadcast('solari_banner', { texto: '🏆 ARENA DE SOLARI CONCLUÍDA!', cor: '#ffd700', fim: true });
+                solariEnviarEstado();
+            } else {
+                s.fase = 'transicao';
+                s.transicaoFimEm = agora + 10000;
+                s.transicaoUltimoSeg = -1;
+                solariBroadcast('solari_contagem', { seg: 10, mensagem: 'PARABÉNS! BORA PRO PRÓXIMO ROUND!' });
+                solariEnviarEstado();
+            }
+            return;
+        }
         if (L.estado === 'aberto') {
             const todosRolaram = s.membros.every(function (m) { return L.rolagens[m.id] !== undefined; });
             const fimItem = todosRolaram ? (L.ultimaRolagemEm + 2200) : (L.itemAbertoEm + 30000);
@@ -2135,8 +2222,19 @@ function atualizarSolari() {
             if (agora - L.estadoEm >= 7000) {
                 L.indice++;
                 if (L.indice >= L.itens.length) {
-                    // Sorteio da rodada terminou → agora sim os monstros aparecem.
-                    solariComecarCombate();
+                    // Sorteio pós-round finalizado!
+                    if (s.round >= 10) {
+                        s.fase = 'fim';
+                        s.fimEm = agora + 6000;
+                        solariBroadcast('solari_banner', { texto: '🏆 ARENA DE SOLARI CONCLUÍDA!', cor: '#ffd700', fim: true });
+                        solariEnviarEstado();
+                    } else {
+                        s.fase = 'transicao';
+                        s.transicaoFimEm = agora + 10000;
+                        s.transicaoUltimoSeg = -1;
+                        solariBroadcast('solari_contagem', { seg: 10, mensagem: 'PARABÉNS! BORA PRO PRÓXIMO ROUND!' });
+                        solariEnviarEstado();
+                    }
                 } else {
                     L.estado = 'aberto';
                     L.rolagens = {};
@@ -2990,7 +3088,7 @@ setInterval(() => {
         if (player.giroDescontroladoAtivo && player.giroDescontroladoExpiresAt && Date.now() >= player.giroDescontroladoExpiresAt) {
             player.giroDescontroladoTimer = 0;
             player.giroDescontroladoAtivo = false;
-            player.giroDescontroladoCooldown = 240;
+            player.giroDescontroladoCooldown = 300; // 15s de cooldown
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify({ type: 'action_barbaro_giro_end', id: pid }));
@@ -3000,7 +3098,7 @@ setInterval(() => {
             player.giroDescontroladoTimer--;
             if (player.giroDescontroladoTimer <= 0) {
                 player.giroDescontroladoAtivo = false;
-                player.giroDescontroladoCooldown = 240; // 12s de cooldown
+                player.giroDescontroladoCooldown = 300; // 15s de cooldown
                 wss.clients.forEach((client) => {
                     if (client.readyState === WebSocket.OPEN) {
                         client.send(JSON.stringify({ type: 'action_barbaro_giro_end', id: pid }));
@@ -3285,10 +3383,10 @@ setInterval(() => {
                         player.dmDroneX += Math.cos(angV) * DRONE_ASSALTO_VELOCIDADE;
                         player.dmDroneY += Math.sin(angV) * DRONE_ASSALTO_VELOCIDADE;
                     } else {
-                        // ataque corpo a corpo mecânico (2x dano do básico, ~0,6s)
+                        // ataque corpo a corpo mecânico (2x dano do básico, ~0,4s / +50% vel ataque)
                         player.dmDroneAtaqueCd--;
                         if (player.dmDroneAtaqueCd <= 0) {
-                            player.dmDroneAtaqueCd = 12;
+                            player.dmDroneAtaqueCd = 8; // velocidade de ataque aumentada em +50% (era 12)
                             const danoAssaltoD = Math.round(dmgSkill(player, 'assalto_dm', 13) * 2);
                             if (player.dmDroneAlvo.tipo === 'slime') registrarDanoMonstro(alvoRobo, pid, danoAssaltoD, 'player');
                             else registrarDanoBoss(alvoRobo, pid, danoAssaltoD, 'skill', 'player');
@@ -4039,13 +4137,13 @@ setInterval(() => {
                 let dy = slimeAlvo.y - m.y;
                 let dist = Math.hypot(dx, dy);
                 if (dist > 30) {
-                    m.x += (dx / dist) * 2.2;
-                    m.y += (dy / dist) * 2.2;
+                    m.x += (dx / dist) * 3.3; // +50% vel movimento (era 2.2)
+                    m.y += (dy / dist) * 3.3;
                 } else {
                     m.attackCooldown++;
-                    if (m.attackCooldown > 40) {
-                        registrarDanoMonstro(slimeAlvo, pid, dmgSkill(players[pid], 'banda', 10), 'pet');
-                        danoEmBosses(m.x, m.y, 45, pid, dmgSkill(players[pid], 'banda', 10), 'basico', 'pet');
+                    if (m.attackCooldown > 22) { // +80% vel ataque (era 40)
+                        registrarDanoMonstro(slimeAlvo, pid, dmgSkill(players[pid], 'banda', 12), 'pet'); // +20% dano (era 10)
+                        danoEmBosses(m.x, m.y, 45, pid, dmgSkill(players[pid], 'banda', 12), 'basico', 'pet');
                         m.attackCooldown = 0;
                     }
                 }
@@ -4054,12 +4152,12 @@ setInterval(() => {
                 let dyB = bossAlvo.y - m.y;
                 let distB = Math.hypot(dxB, dyB);
                 if (distB > 34) {
-                    m.x += (dxB / distB) * 2.2;
-                    m.y += (dyB / distB) * 2.2;
+                    m.x += (dxB / distB) * 3.3; // +50% vel movimento (era 2.2)
+                    m.y += (dyB / distB) * 3.3;
                 } else {
                     m.attackCooldown++;
-                    if (m.attackCooldown > 40) {
-                        registrarDanoBoss(bossAlvo, pid, dmgSkill(players[pid], 'banda', 10), 'basico');
+                    if (m.attackCooldown > 22) { // +80% vel ataque (era 40)
+                        registrarDanoBoss(bossAlvo, pid, dmgSkill(players[pid], 'banda', 12), 'basico'); // +20% dano (era 10)
                         m.attackCooldown = 0;
                     }
                 }
@@ -4068,8 +4166,8 @@ setInterval(() => {
                 let dy = player.y - m.y;
                 let dist = Math.hypot(dx, dy);
                 if (dist > 28) {
-                    m.x += (dx / dist) * Math.min(dist, 3.2);
-                    m.y += (dy / dist) * Math.min(dist, 3.2);
+                    m.x += (dx / dist) * Math.min(dist, 4.8); // +50% vel retorno (era 3.2)
+                    m.y += (dy / dist) * Math.min(dist, 4.8);
                 }
             }
         }
@@ -4205,7 +4303,7 @@ setInterval(() => {
             projeteis.splice(i, 1);
             projectileRemoved = true;
         }
-        if (!projectileRemoved && mapaCidade && p.x >= LARGURA_CIDADE && mapaCidade.colideProjetilCidade(p.x, p.y)) {
+        if (!projectileRemoved && mapaCidade && p.x >= LARGURA_CIDADE && p.x < FIM_CIDADE && mapaCidade.colideProjetilCidade(p.x, p.y)) {
             projeteis.splice(i, 1);
             projectileRemoved = true;
         }
@@ -4250,7 +4348,7 @@ setInterval(() => {
             playerProjeteis.splice(i, 1);
             removido = true;
         }
-        if (!removido && mapaCidade && pp.x >= LARGURA_CIDADE && mapaCidade.colideProjetilCidade(pp.x, pp.y)) {
+        if (!removido && mapaCidade && pp.x >= LARGURA_CIDADE && pp.x < FIM_CIDADE && mapaCidade.colideProjetilCidade(pp.x, pp.y)) {
             playerProjeteis.splice(i, 1);
             removido = true;
         }
@@ -4776,11 +4874,7 @@ setInterval(() => {
 
         if (cancelar || canal.timer <= 0) {
             delete bateriaCanal[pid];
-            wss.clients.forEach((client) => {
-                if (client.readyState === WebSocket.OPEN) {
-                    client.send(JSON.stringify({ type: 'action_roqueiro_bateria_end', id: pid }));
-                }
-            });
+            enviarParaMapaDoJogador(pid, 'action_roqueiro_bateria_end', { id: pid });
             continue;
         }
 
@@ -4792,19 +4886,15 @@ setInterval(() => {
         let pX = player.x + 12;
         let pY = player.y + 16;
 
-        wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({ type: 'action_roqueiro_bateria', x: pX, y: pY }));
-            }
-        });
+        enviarParaMapaDoJogador(pid, 'action_roqueiro_bateria', { x: pX, y: pY });
 
         slimes.forEach(slime => {
             if (slime.hp > 0 && Math.hypot(slime.x - pX, slime.y - pY) < 110) {
-                registrarDanoMonstro(slime, pid, dmgSkill(players[pid], 'bateria', 30));
+                registrarDanoMonstro(slime, pid, dmgSkill(players[pid], 'bateria', 21)); // -30% dano (era 30)
                 slime.stunTimer = 25;
             }
         });
-        danoEmBosses(pX, pY, 115, pid, dmgSkill(players[pid], 'bateria', 30), 'skill');
+        danoEmBosses(pX, pY, 115, pid, dmgSkill(players[pid], 'bateria', 21), 'skill');
     }
 
     // ARQUEIRO: rajada de flechas (1s carregando + disparo, cancela ao mover)
@@ -4844,6 +4934,12 @@ setInterval(() => {
                 canal.timer = 200;
                 player.rajadaFase = 'disparo';
                 player.rajadaProgresso = 0;
+                // Notifica clientes: fase de disparo começou (som "soltar")
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({ type: 'action_arqueiro_rajada_fire', id: pid, angulo: canal.angulo, x: player.x + 12, y: player.y + 16 }));
+                    }
+                });
             }
             continue;
         }
@@ -5002,6 +5098,7 @@ if (g.hp <= 0) {
                     g.mortoAnunciado = true;
                     distribuirXpBoss(g);
                     gerarDropNoChao(g.x, g.y, g.tabelaDano, g.maxHp || 0, true);
+                    gerarDropsAuxiliares(g.x, g.y, g.maxHp || 0, true);
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'boss_golem_morte', x: g.x, y: g.y }));
@@ -5212,6 +5309,58 @@ if (g.hp <= 0) {
         }
     }
 
+    // ===== v1.34: COLETA AUTOMÁTICA — itens com autocoleta (ouro, poções,
+    // pedras e lendários) são pegos ao passar por cima. Autoritativo no servidor. =====
+    if (equipamentos && dropsChao.length) {
+        let raioAuto = (equipamentos.BALANCE.raioToqueCliente || 48) + 12;
+        for (let pid2 in players) {
+            let pJ = players[pid2];
+            if (!pJ || pJ.hp <= 0) continue;
+            let wsJ = playerSockets[pid2];
+            if (!wsJ || wsJ.readyState !== WebSocket.OPEN) continue;
+            for (let i = dropsChao.length - 1; i >= 0; i--) {
+                let dInfo = dropsChao[i];
+                if (!dInfo || !dInfo.item || !dInfo.item.autocoleta) continue;
+                // só coleta no mesmo mapa do jogador
+                if (mapaPorCoordenada(dInfo.x) !== mapaPorCoordenada(pJ.x + PLAYER_OFFSET_X)) continue;
+                let distAuto = Math.hypot((pJ.x + 12) - dInfo.x, (pJ.y + 16) - dInfo.y);
+                if (distAuto <= raioAuto) {
+                    // coleta e notifica o dono
+                    let itemAuto = dInfo.item;
+                    dropsChao.splice(i, 1);
+                    if (itemAuto.tipo === 'ouro') {
+                        let qtd = Math.max(1, Math.round(itemAuto.quantidade || 1));
+                        pJ.ouro = Math.max(0, (pJ.ouro || 0) + qtd);
+                        wsJ.send(JSON.stringify({ type: 'ouro_ganho', quantidade: qtd, ouro: pJ.ouro }));
+                    } else {
+                        if (!pJ.inventario) pJ.inventario = inventarioPadrao();
+                        if (!pJ.inventario.mochila) pJ.inventario.mochila = [];
+                        let chaveStack = null;
+                        if (itemAuto.tipo === 'consumivel') chaveStack = 'pocao:' + (itemAuto.subtipo || itemAuto.tipo) + ':' + (itemAuto.nivel || 0);
+                        else if (itemAuto.tipo === 'pedra') chaveStack = 'pedra:' + (itemAuto.raridade || 'comum');
+                        if (chaveStack) {
+                            let existente = pJ.inventario.mochila.find(mi => mi && (
+                                (mi.tipo === 'consumivel' && chaveStack === 'pocao:' + (mi.subtipo || mi.tipo) + ':' + (mi.nivel || 0)) ||
+                                (mi.tipo === 'pedra' && chaveStack === 'pedra:' + (mi.raridade || 'comum'))
+                            ));
+                            if (existente) { existente.quantidade = (existente.quantidade || 1) + 1; }
+                            else { itemAuto.quantidade = itemAuto.quantidade || 1; pJ.inventario.mochila.push(itemAuto); }
+                        } else {
+                            pJ.inventario.mochila.push(itemAuto);
+                        }
+                        salvarProgresso(pJ.nome, { inventario: pJ.inventario, ouro: pJ.ouro || 0 });
+                        wsJ.send(JSON.stringify({ type: 'item_coletado', item: itemAuto, equipadoMsg: null }));
+                    }
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'item_removido_chao', dropId: dInfo.id }));
+                        }
+                    });
+                }
+            }
+        }
+    }
+
     // ===== ARENA DE SOLARI — lógica da partida (contagem, rounds, leilão) =====
     atualizarSolari();
 
@@ -5326,8 +5475,12 @@ wss.on('connection', (ws) => {
                     atributos: (dadosSalvos && dadosSalvos.atributos) ? dadosSalvos.atributos : atributosIniciais(),
                     pontosDisponiveis: pontosInit,
                     skills: (dadosSalvos && dadosSalvos.skills) ? dadosSalvos.skills : {},
-                    pontosHabilidade: 0,
+                    // FIX: antes era hardcoded 0 — zerava os pontos de habilidade a cada login,
+                    // ignorando o valor salvo em disco (salvarProgresso grava pontosHabilidade).
+                    pontosHabilidade: (dadosSalvos && typeof dadosSalvos.pontosHabilidade === 'number') ? dadosSalvos.pontosHabilidade : 0,
                     pvpAtivo: false,
+                    ouro: dadosSalvos && typeof dadosSalvos.ouro === 'number' ? dadosSalvos.ouro : 0,
+                    pocoes: (dadosSalvos && Array.isArray(dadosSalvos.pocoes)) ? dadosSalvos.pocoes : [], // v1.34: estoque de poções
                     mana: (dadosSalvos && dadosSalvos.mana !== undefined) ? dadosSalvos.mana : 50,
                     maxMp: 50,
                     inventario: (dadosSalvos && dadosSalvos.inventario) ? dadosSalvos.inventario : inventarioPadrao(),
@@ -5670,7 +5823,58 @@ aaCometasCooldown: 0,
 
             if (!playerId || !players[playerId]) return;
 
-            // ===== DROP: coleta de equipamento no chão (autoritário no servidor) =====
+            // ===== DROP: coleta de item no chão (autoritário no servidor) =====
+            // v1.34: além de equipamentos, coleta OURO (vira gold), POÇÕES e PEDRAS.
+            function coletarDropEspecifico(idxDrop, userIdColeta, wsColeta, playerIdColeta) {
+                if (idxDrop < 0 || idxDrop >= dropsChao.length) return;
+                let pC = players[playerIdColeta];
+                if (!pC || pC.hp <= 0) return;
+                let drop = dropsChao[idxDrop];
+                dropsChao.splice(idxDrop, 1);
+                let item = drop.item || {};
+                if (item.tipo === 'ouro') { // cai como "gold" direto na carteira
+                    let qtdOuro = Math.max(1, Math.round(item.quantidade || 1));
+                    pC.ouro = Math.max(0, (pC.ouro || 0) + qtdOuro);
+                    wsColeta.send(JSON.stringify({ type: 'ouro_ganho', quantidade: qtdOuro, ouro: pC.ouro }));
+                    console.log(`[LOG DROP] Ouro +${qtdOuro} coletado por ${playerIdColeta}`);
+                } else {
+                    if (!pC.inventario) pC.inventario = inventarioPadrao();
+                    if (!pC.inventario.mochila) pC.inventario.mochila = [];
+                    // v1.34: poções e pedras empilham (mesmo subtipo+nível / tipo+raridade)
+                    let chaveStack = null;
+                    if (item.tipo === 'consumivel') chaveStack = 'pocao:' + (item.subtipo || item.tipo) + ':' + (item.nivel || 0);
+                    else if (item.tipo === 'pedra') chaveStack = 'pedra:' + (item.raridade || 'comum');
+                    if (chaveStack) {
+                        let existente = pC.inventario.mochila.find(mi => mi && (mi._stackChave === chaveStack || (
+                            (mi.tipo === 'consumivel' && chaveStack === 'pocao:' + (mi.subtipo || mi.tipo) + ':' + (mi.nivel || 0)) ||
+                            (mi.tipo === 'pedra' && chaveStack === 'pedra:' + (mi.raridade || 'comum'))
+                        )));
+                        if (existente) {
+                            existente.quantidade = (existente.quantidade || 1) + 1;
+                            existente._stackChave = chaveStack;
+                        } else {
+                            item.quantidade = item.quantidade || 1;
+                            item._stackChave = chaveStack;
+                            pC.inventario.mochila.push(item);
+                        }
+                    } else {
+                        pC.inventario.mochila.push(item);
+                    }
+                    salvarProgresso(userIdColeta, { inventario: pC.inventario, ouro: pC.ouro || 0 });
+                    console.log(`[LOG DROP] Item UID ${item.uid || item.id} (${item.nome || item.tipo}) coletado por ${playerIdColeta}`);
+                    wsColeta.send(JSON.stringify({ type: 'item_coletado', item: item, equipadoMsg: null }));
+                    if (pC.pocoes && item.tipo === 'consumivel') {
+                        // mantém o HUD de poções sincronizado
+                        wsColeta.send(JSON.stringify({ type: 'pocoes_sync', pocoes: pC.pocoes }));
+                    }
+                }
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) {
+                        client.send(JSON.stringify({ type: 'item_removido_chao', dropId: drop.id }));
+                    }
+                });
+            }
+
             if (data.action === 'coletar_item') {
                 let p = players[playerId];
                 if (p.hp <= 0) return;
@@ -5680,18 +5884,43 @@ aaCometasCooldown: 0,
                 let drop = dropsChao[idxDrop];
                 let distDrop = Math.hypot((p.x + 12) - drop.x, (p.y + 16) - drop.y);
                 if (distDrop > (equipamentos ? equipamentos.BALANCE.raioColeta : 70)) return;
-                dropsChao.splice(idxDrop, 1);
-                if (!p.inventario) p.inventario = inventarioPadrao();
-                if (!p.inventario.mochila) p.inventario.mochila = [];
-                p.inventario.mochila.push(drop.item);
-                salvarProgresso(userId, { inventario: p.inventario });
-                console.log(`[LOG DROP] Item UID ${drop.item.uid || drop.item.id} (${drop.item.nome}) coletado por ${playerId}`);
-                ws.send(JSON.stringify({ type: 'item_coletado', item: drop.item, equipadoMsg: null }));
-                wss.clients.forEach((client) => {
-                    if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({ type: 'item_removido_chao', dropId: drop.id }));
-                    }
-                });
+                coletarDropEspecifico(idxDrop, userId, ws, playerId);
+                return;
+            }
+
+            // ===== v1.34: USAR POÇÃO (slot HP/MP do HUD) =====
+            if (data.action === 'usar_pocao') {
+                let pP = players[playerId];
+                if (!pP || pP.hp <= 0) return;
+                let subtipo = (data.subtipo === 'mp') ? 'pocao_mp' : 'pocao_hp';
+                if (!pP.inventario || !pP.inventario.mochila) return;
+                // escolhe a poção de maior nível disponível no tipo
+                let candidatas = pP.inventario.mochila.filter(mi => mi && mi.tipo === 'consumivel' && (mi.subtipo || '') === subtipo);
+                if (!candidatas.length) {
+                    ws.send(JSON.stringify({ type: 'pocao_indisponivel', subtipo: subtipo }));
+                    return;
+                }
+                candidatas.sort((a, b) => (b.nivel || 0) - (a.nivel || 0));
+                let pocao = candidatas[0];
+                let pct = pocao.pctCura || (pocao.nivel === 3 ? 1 : (pocao.nivel === 2 ? 0.4 : 0.2));
+                if (subtipo === 'pocao_mp') {
+                    let curaMp = Math.round((pP.maxMp || 50) * pct);
+                    pP.mana = Math.min(pP.maxMp || 50, (pP.mana || 0) + curaMp);
+                    ws.send(JSON.stringify({ type: 'mp_sync', mp: pP.mana, maxMp: pP.maxMp }));
+                    ws.send(JSON.stringify({ type: 'pocao_usada', subtipo: subtipo, nivel: pocao.nivel, nome: pocao.nome }));
+                } else {
+                    let curaHp = Math.round((pP.maxHp || 100) * pct);
+                    pP.hp = Math.min(pP.maxHp || 100, pP.hp + curaHp);
+                    ws.send(JSON.stringify({ type: 'hp_sync', hp: pP.hp, maxHp: pP.maxHp }));
+                    ws.send(JSON.stringify({ type: 'pocao_usada', subtipo: subtipo, nivel: pocao.nivel, nome: pocao.nome }));
+                }
+                // consome 1 unidade
+                pocao.quantidade = (pocao.quantidade || 1) - 1;
+                if (pocao.quantidade <= 0) {
+                    pP.inventario.mochila = pP.inventario.mochila.filter(mi => mi !== pocao);
+                }
+                salvarProgresso(userId, { inventario: pP.inventario });
+                ws.send(JSON.stringify({ type: 'inventario_sync', inventario: JSON.parse(JSON.stringify(pP.inventario)) }));
                 return;
             }
 
@@ -6585,9 +6814,11 @@ aaCometasCooldown: 0,
                     }
                 }
 
-                // HABILIDADE 1 DO BÁRBARO: FÚRIA BERSERKER (6s de buff de vampirismo)
+                // HABILIDADE 1 DO BÁRBARO: FÚRIA BERSERKER (6s de buff de vampirismo, CD 15s)
                 if (data.action === 'barbaro_furia') {
+                    if (players[playerId].furiaCooldown && Date.now() < players[playerId].furiaCooldown) return;
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'furia', 20))) return;
+                    players[playerId].furiaCooldown = Date.now() + 15000;
                     players[playerId].furiaTimer = 120; // 6 segundos
                     efeitos.aplicarEfeito(players[playerId], 'furia', 120, 0.25);
                     wss.clients.forEach((client) => {
@@ -6627,18 +6858,18 @@ aaCometasCooldown: 0,
                     danoEmBosses(players[playerId].x + PLAYER_OFFSET_X, players[playerId].y + PLAYER_OFFSET_Y, 90, playerId, danoEsmaga, 'skill');
                 }
 
-                // HABILIDADE 3 DO BÁRBARO: GIRO DESCONTROLADO (10s de dano em área + sangramento + redução 10%)
+                // HABILIDADE 3 DO BÁRBARO: GIRO DESCONTROLADO (4s de dano em área + sangramento + redução 10%, CD 15s)
                 if (data.action === 'barbaro_giro_descontrolado') {
                     let p = players[playerId];
                     if (!p || p.hp <= 0) return;
                     if (p.giroDescontroladoTimer > 0 || p.giroDescontroladoCooldown > 0) return;
                     if (!gastarMana(ws, p, mpSkill(p, 'giro_descontrolado', 30))) return;
 
-                    const duracaoGiroMs = 10000;
+                    const duracaoGiroMs = 4000;
                     p.giroDescontroladoTimer = Math.ceil(duracaoGiroMs / 50);
                     p.giroDescontroladoExpiresAt = Date.now() + duracaoGiroMs;
                     p.giroDescontroladoAtivo = true;
-                    p.giroDescontroladoCooldown = 240; // 12s de cooldown
+                    p.giroDescontroladoCooldown = 300; // 15s de cooldown
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'action_barbaro_giro_start', id: playerId, x: p.x + 12, y: p.y + 16, duracaoMs: duracaoGiroMs }));
@@ -6662,6 +6893,7 @@ aaCometasCooldown: 0,
                     let ang = (data.angulo !== undefined) ? data.angulo : players[playerId].angulo;
                     if (alvoAuto) ang = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX); // mira o alvo validado
 
+                    const ownerInSolari = !!(solariSessao && solariEmSessao(playerId));
                     playerProjeteis.push({
                         ownerId: playerId,
                         x: pX,
@@ -6672,7 +6904,8 @@ aaCometasCooldown: 0,
                         vida: 55,
                         perfurante: false,
                         tipo: 'riff',
-                        origemBasica: true
+                        origemBasica: true,
+                        solari: ownerInSolari
                     });
 
                     wss.clients.forEach((client) => {
@@ -6682,30 +6915,38 @@ aaCometasCooldown: 0,
                     });
                 }
 
-                // ROQUEIRO: BATERIA SOLO (Canal de 5s: dano em área repetido a cada batida, cancela ao mover)
+                // ROQUEIRO: BATERIA SOLO (Canal de 5s: dano em área repetido a cada batida, cancela ao mover ou clicar novamente)
                 if (data.action === 'roqueiro_bateria') {
-                    if (bateriaCanal[playerId]) return;
+                    if (bateriaCanal[playerId]) {
+                        // Clicar novamente cancela o uso contínuo da bateria
+                        delete bateriaCanal[playerId];
+                        enviarParaMapaDoJogador(playerId, 'action_roqueiro_bateria_end', { id: playerId });
+                        return;
+                    }
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'bateria', 25))) return;
-                    bateriaCanal[playerId] = { timer: 100, beat: 0, startX: players[playerId].x, startY: players[playerId].y, danoBateria: dmgSkill(players[playerId], 'bateria', 30) };
+                    bateriaCanal[playerId] = { timer: 100, beat: 0, startX: players[playerId].x, startY: players[playerId].y, danoBateria: dmgSkill(players[playerId], 'bateria', 21) };
 
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
 
-                    wss.clients.forEach((client) => {
-                        if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_roqueiro_bateria', x: pX, y: pY }));
-                        }
-                    });
+                    enviarParaMapaDoJogador(playerId, 'action_roqueiro_bateria', { x: pX, y: pY });
 
                     slimes.forEach(slime => {
                         if (slime.hp > 0 && Math.hypot(slime.x - pX, slime.y - pY) < 110) {
-                            registrarDanoMonstro(slime, playerId, dmgSkill(players[playerId], 'bateria', 30));
+                            registrarDanoMonstro(slime, playerId, dmgSkill(players[playerId], 'bateria', 21)); // -30% dano (era 30)
                             slime.stunTimer = 25;
                         }
                     });
                 }
 
-                // ROQUEIRO: STAGE DIVE (Teletransporte direcionado)
+                if (data.action === 'roqueiro_bateria_cancelar') {
+                    if (bateriaCanal[playerId]) {
+                        delete bateriaCanal[playerId];
+                        enviarParaMapaDoJogador(playerId, 'action_roqueiro_bateria_end', { id: playerId });
+                    }
+                }
+
+                // ROQUEIRO: STAGE DIVE (Teletransporte direcionado — NÃO cancela o uso contínuo da Bateria)
                 if (data.action === 'roqueiro_teleporte') {
                     const tx = Number(data.targetX);
                     const ty = Number(data.targetY);
@@ -6717,6 +6958,12 @@ aaCometasCooldown: 0,
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'teleporte', 15))) return;
                     players[playerId].x = destinoTeleporte.x;
                     players[playerId].y = destinoTeleporte.y;
+
+                    // Se a Bateria estiver ativa, atualiza a posição de origem para que NÃO cancele a Bateria
+                    if (bateriaCanal[playerId]) {
+                        bateriaCanal[playerId].startX = destinoTeleporte.x;
+                        bateriaCanal[playerId].startY = destinoTeleporte.y;
+                    }
 
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
@@ -7067,8 +7314,8 @@ aaCometasCooldown: 0,
                     if (pA.dmAssaltoTimer > 0 || Date.now() - pA.dmAssaltoCooldown < 0) return;
                     if (pA.dmSupressaoTimer > 0) return;
                     if (!gastarMana(ws, pA, mpSkill(pA, 'assalto_dm', 25))) return;
-                    pA.dmAssaltoCooldown = Date.now() + 10000;
-                    pA.dmAssaltoTimer = 60; // 3s de transformação
+                    pA.dmAssaltoCooldown = Date.now() + 15000;
+                    pA.dmAssaltoTimer = 160; // 8s de transformação (160 ticks * 50ms = 8000ms)
                     // O robô nasce ao lado do dono
                     pA.dmDroneX = pA.x + PLAYER_OFFSET_X + 20;
                     pA.dmDroneY = pA.y + PLAYER_OFFSET_Y - 10;
@@ -7298,13 +7545,13 @@ aaCometasCooldown: 0,
                     let pX = pS.x + PLAYER_OFFSET_X, pY = pS.y + PLAYER_OFFSET_Y;
                     let angulo = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : ((data.angulo !== undefined) ? data.angulo : pS.angulo);
                     let danoBarrett = dmgSkill(pS, 'tiro_barrett', 30);
-                    // perfurante: acerta TODOS na linha (range 480)
+                    // perfurante: acerta TODOS na linha (range 384, -20%)
                     let alvosLinha = [];
                     for (let s of slimes) {
                         if (s.hp <= 0 || mapaPorCoordenada(s.x) !== mapaPorCoordenada(pS.x)) continue;
                         let dx = s.x - pX, dy = s.y - pY;
                         let dist = Math.hypot(dx, dy);
-                        if (dist > 480) continue;
+                        if (dist > 384) continue;
                         let lateral = Math.abs(Math.sin(angulo) * dx - Math.cos(angulo) * dy);
                         if (lateral <= 14) alvosLinha.push({ s: s, dist: dist });
                     }
@@ -7316,7 +7563,7 @@ aaCometasCooldown: 0,
                         }
                     });
                     alvosLinha.forEach(ent => registrarDanoMonstro(ent.s, playerId, danoBarrett, 'player'));
-                    danoEmBosses(pX, pY, 480, playerId, danoBarrett, 'basico', 'player');
+                    danoEmBosses(pX, pY, 384, playerId, danoBarrett, 'basico', 'player');
                 }
 
                 // ---- SNIPER SKILL 1: DISPARO SUPREMO — APONTAR (estado AIMING, 3s) ----
@@ -7358,7 +7605,7 @@ aaCometasCooldown: 0,
                         let dp = Math.hypot(s.x - tpX, s.y - tpY);
                         if (dp <= 42) { if (!alvoF || dp < alvoF.dp) alvoF = { s: s, dp: dp, dist: dist }; }
                     }
-                    let danoFinal = Math.round(dmgSkill(pF, 'disparo_supremo', 45) * 3); // 3x dano
+                    let danoFinal = Math.round(dmgSkill(pF, 'disparo_supremo', 54) * 3); // 3x dano (base 54, +20%)
                     let bossAlvo = null;
                     if (!alvoF) {
                         for (let b of bosses) {
@@ -7499,10 +7746,11 @@ aaCometasCooldown: 0,
                     if (!gastarMana(ws, pP, mpSkill(pP, 'posicao_sniper', 30))) return;
                     pP.snPosicao = true;
                     pP.snPosicaoCd = Date.now() + 15000;
+                    pP.snAimCooldown = 0; // Reset imediato do CD do Disparo Supremo
                     if (pP.snCamuflado) finalizarCamuflagemSniper(pP, playerId, 'skill');
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_sniper_posicao', id: playerId, ativo: true }));
+                            client.send(JSON.stringify({ type: 'action_sniper_posicao', id: playerId, ativo: true, resetCdDisparo: true }));
                         }
                     });
                 }
@@ -7525,7 +7773,7 @@ aaCometasCooldown: 0,
                     if (pDm && pDm.classe === 'dronemaster') {
                         if (pDm.dmDashEscudoCooldown && Date.now() < pDm.dmDashEscudoCooldown) return; // CD 10s
                         if (pDm.escudoAbsoluto > 0 && pDm.escudoAbsolutoExpirador > Date.now()) return; // já ativo
-                        if (!gastarMana(ws, pDm, mpSkill(pDm, 'dash', 15))) return;
+                        if (!gastarEstamina(ws, pDm, 40)) return; // v1.34: DASH usa STAMINA (dronemaster: 40)
                         pDm.dmDashEscudoCooldown = Date.now() + 10000; // Escudo de Energia: 10s de recarga
                         const escudoDash = Math.round(pDm.maxHp * 0.50);
                         darEscudoAbsorvente(pDm, escudoDash, 3000);
@@ -7546,7 +7794,7 @@ aaCometasCooldown: 0,
                         dashY,
                         { maxStep: MAX_PLAYER_COLLISION_STEP, maxDistance: 160 }
                     );
-                    if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'dash', 15))) return;
+                    if (!gastarEstamina(ws, players[playerId], 25)) return; // v1.34: DASH usa STAMINA (25)
                     if (destinoDash.aceito || destinoDash.parcial) {
                         players[playerId].x = destinoDash.x;
                         players[playerId].y = destinoDash.y;
@@ -7722,6 +7970,7 @@ aaCometasCooldown: 0,
                                    (data.action === 'ataque_summoner') ? 'orbe' :
                                    (data.action === 'ataque_arqueiro') ? 'flecha' : 'sagrado';
 
+                    const ownerInSolari = !!(solariSessao && solariEmSessao(playerId));
                     playerProjeteis.push({
                         ownerId: playerId,
                         x: pX,
@@ -7732,7 +7981,8 @@ aaCometasCooldown: 0,
                         vida: vidaProj,
                         perfurante: false,
                         tipo: tipoProj,
-                        origemBasica: true
+                        origemBasica: true,
+                        solari: ownerInSolari
                     });
 
                     let tipoAcao = 'action_magia_basica';
@@ -7802,12 +8052,12 @@ aaCometasCooldown: 0,
 
                     let danoJulg = dmgSkill(players[playerId], 'julgamento', 28);
                     slimes.forEach(slime => {
-                        if (slime.hp > 0 && Math.hypot(slime.x - data.targetX, slime.y - data.targetY) < 65) {
+                        if (slime.hp > 0 && Math.hypot(slime.x - data.targetX, slime.y - data.targetY) < 78) {
                             registrarDanoMonstro(slime, playerId, danoJulg);
                             slime.slowTimer = 35;
                         }
                     });
-                    danoEmBosses(data.targetX, data.targetY, 85, playerId, danoJulg, 'skill');
+                    danoEmBosses(data.targetX, data.targetY, 102, playerId, danoJulg, 'skill');
                 }
 
                 if (data.action === 'arqueiro_chuva') {
@@ -7828,6 +8078,7 @@ aaCometasCooldown: 0,
                     let ang = (data.angulo !== undefined) ? data.angulo : players[playerId].angulo;
                     let vel = 18.0;
 
+                    const ownerInSolari = !!(solariSessao && solariEmSessao(playerId));
                     playerProjeteis.push({
                         ownerId: playerId,
                         x: pX,
@@ -7837,7 +8088,8 @@ aaCometasCooldown: 0,
                         dano: dmgSkill(players[playerId], 'perfurante', 32),
                         vida: 40,
                         perfurante: true,
-                        origemBasica: false
+                        origemBasica: false,
+                        solari: ownerInSolari
                     });
 
                     wss.clients.forEach((client) => {

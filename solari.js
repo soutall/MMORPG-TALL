@@ -475,6 +475,7 @@
                 enviar({ action: 'solari_rolar_dado' });
                 btnDado.disabled = true;
                 btnDado.textContent = '🎲 A ROLAR...';
+                if (window.tocarSonoro) window.tocarSonoro('solari_rolar');
             });
         }
     }
@@ -528,12 +529,16 @@
                 S.leilao = null;
                 definirRound(dados.round, dados.total);
                 mostrarBanner('ROUND ' + dados.round, '#ffd700', false);
+                if (dados.round === 1) {
+                    if (window.tocarSonoro) window.tocarSonoro('solari_round_1');
+                }
                 break;
             case 'solari_banner':
                 if (dados.fim) {
                     limparOverlays();
                     limparPainelRodape();
                     mostrarBanner(dados.texto, dados.cor, true);
+                    if (window.tocarSonoro) window.tocarSonoro('solari_round_10_fim');
                 } else {
                     mostrarBanner(dados.texto, dados.cor, false);
                 }
@@ -543,9 +548,14 @@
                     S.painelAberto = false;
                     if (S.sessao) S.sessao.fase = 'leilao';
                     mostrarLeilao(dados);
+                    if (dados.indice === 1) {
+                        if (window.tocarSonoro) window.tocarSonoro('solari_round_fim');
+                    }
                 } else if (dados.fase === 'rolagem') {
+                    if (window.tocarSonoro) window.tocarSonoro('solari_rolar');
                     if (leilaoEl) atualizarLeilao(Object.assign({}, S.leilao, { rolagens: dados.rolagens }));
                 } else if (dados.fase === 'resultado') {
+                    if (window.tocarSonoro) window.tocarSonoro('solari_ganhar');
                     if (leilaoEl) atualizarLeilao(dados);
                 }
                 break;

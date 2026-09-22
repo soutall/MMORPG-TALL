@@ -163,6 +163,9 @@
     }
 
     function desenharPortalArenaRetorno(ctx, t, camX, camY, cw, ch) {
+        // FIX v1.33.4: portal de retorno REMOVIDO dentro da Arena de Solari —
+        // no meio da partida não existe portal; a saída é pelo painel da Solari.
+        if (global.currentMap === 'solari') return;
         const p = PORTAL_ARENA_RETORNO;
         if (p.x + p.r + 60 < camX || p.x - p.r - 60 > camX + cw || p.y + p.r + 60 < camY || p.y - p.r - 60 > camY + ch) return;
         const pulsar = 1 + Math.sin(t * 3.2) * 0.14;
@@ -215,6 +218,9 @@
 
 
     function infoPortalArena(x, y) {
+        // FIX v1.33.4: sem portal de retorno dentro da Solari — não dispara
+        // teleporte pra cidade no meio da partida.
+        if (global.currentMap === 'solari') return null;
         if (x >= ARENA_X0) {
             if (Math.hypot(x - PORTAL_ARENA_RETORNO.x, y - PORTAL_ARENA_RETORNO.y) < PORTAL_ARENA_RETORNO.r) {
                 return { via: 'portal', mapa: 'cidade', alvo: PORTAL_ARENA_RETORNO.alvo };

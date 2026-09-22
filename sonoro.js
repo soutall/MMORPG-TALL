@@ -26,7 +26,12 @@
         summoner_teleport:     { caminho: 'Sonoro/Summoner/summoner_teleport.ogg',  volume: 0.75 },
         summoner_salto:        { caminho: 'Sonoro/Summoner/summoner_salto.ogg',     volume: 0.8 },
         summoner_comandoPET:   { caminho: 'Sonoro/Summoner/summoner_comandoPET.ogg', volume: 0.8 },
-        summoner_buff_golem:   { caminho: 'Sonoro/Summoner/summoner_buff_golem.ogg', volume: 0.8 },
+        // ===== ARQUEIRA =====
+        arqueira_atk:             { caminho: 'Sonoro/arqueira/atk_basico.ogg',           volume: 0.55 },
+        arqueira_chuva:           { caminho: 'Sonoro/arqueira/chuva%20de%20flacha.ogg',   volume: 0.65 },
+        arqueira_perfurante:      { caminho: 'Sonoro/arqueira/disparo%20perfurante.ogg',  volume: 0.7 },
+        arqueira_rajada_carregar: { caminho: 'Sonoro/arqueira/Rajada%20e%20Flechas%201.ogg', volume: 0.6 },
+        arqueira_rajada_soltar:   { caminho: 'Sonoro/arqueira/Rajada%20e%20Flechas%202.ogg', volume: 0.7 },
         // ===== BERSERKER (BÁRBARO) =====
         barbaro_atk:           { caminho: 'Sonoro/Berseker/atk_basico.ogg',         volume: 0.6 },
         barbaro_furia:         { caminho: 'Sonoro/Berseker/Furia.ogg',              volume: 0.8 },
@@ -39,51 +44,107 @@
         dronemaster_caixa:     { caminho: 'Sonoro/DroneMaster/Caixa%20de%20ferramenta.ogg', volume: 0.75 },
         dronemaster_tita:      { caminho: 'Sonoro/DroneMaster/Protocolo_Titan.ogg',         volume: 0.85 },
         dronemaster_escudo:    { caminho: 'Sonoro/DroneMaster/Escudo_energia.ogg',          volume: 0.7 },
-        cidade_bgm:            { caminho: 'Sonoro/Cidade/dentro_cidade.ogg',        volume: 0.35 }
+        cidade_bgm:            { caminho: 'Sonoro/Cidade/dentro_cidade.ogg',        volume: 0.35 },
+        // ===== ROQUEIRO (GUITARRISTA) =====
+        roqueiro_atk:          { caminho: 'Sonoro/Roqueiro/atk_basico.mp3',        volume: 0.65 },
+        roqueiro_banda:        { caminho: 'Sonoro/Roqueiro/Banda.ogg',             volume: 0.8 },
+        roqueiro_bateria:      { caminho: 'Sonoro/Roqueiro/Bateria.mp3',           volume: 0.75 },
+        roqueiro_dash:         { caminho: 'Sonoro/Roqueiro/Dash.mp3',              volume: 0.7 },
+        // ===== ARENA DE SOLARE =====
+        solari_bgm:            { caminho: 'Sonoro/Arena%20Solare/Musica%20fundo%20arena%20solare.ogg', volume: 0.4 },
+        solari_round_1:        { caminho: 'Sonoro/Arena%20Solare/Roud%201.ogg',                     volume: 0.85 },
+        solari_round_fim:      { caminho: 'Sonoro/Arena%20Solare/Ao%20finalizar%20Round.ogg',       volume: 0.85 },
+        solari_round_10_fim:   { caminho: 'Sonoro/Arena%20Solare/Final%20Roud%2010.ogg',            volume: 0.95 },
+        solari_rolar:          { caminho: 'Sonoro/Arena%20Solare/ao%20rolar%20a%20chance%20de%20ganhar%20o%20item.ogg', volume: 0.75 },
+        solari_ganhar:         { caminho: 'Sonoro/Arena%20Solare/ao%20ganhar%20o%20item.ogg',       volume: 0.85 }
     };
 
     // Fallback simples em <audio> quando o WebAudio do jogo não estiver disponível.
     var _fallbackAudio = {};
+    var _bateriaAudio = null;
+
+    global.pararSomBateria = function () {
+        try {
+            if (_bateriaAudio) {
+                _bateriaAudio.pause();
+                _bateriaAudio.currentTime = 0;
+            }
+        } catch (e) { }
+    };
 
     function volumeGeral() {
-        return Math.max(0, Math.min(1, Number(global.volumeGeral) || 0.8));
+        return Math.max(0, Math.min(1, global.volumeGeral !== undefined ? Number(global.volumeGeral) : 0.8));
+    }
+    function volumeBgm() {
+        return Math.max(0, Math.min(1, global.volumeBgm !== undefined ? Number(global.volumeBgm) : 0.8));
+    }
+    function volumeSfx() {
+        return Math.max(0, Math.min(1, global.volumeSfx !== undefined ? Number(global.volumeSfx) : 0.8));
     }
 
+    global.atualizarBgmVolume = function () {
+        if (_bgmAudio) {
+            _bgmAudio.volume = ARQUIVOS.cidade_bgm.volume * volumeGeral() * volumeBgm();
+        }
+        if (_bgmSolariAudio) {
+            _bgmSolariAudio.volume = ARQUIVOS.solari_bgm.volume * volumeGeral() * volumeBgm();
+        }
+    };
+
     // Toca um som de skill (uma vez). Todo som de skill parte de um gesto do usuário,
-    // por isso também serve de "desbloqueio de autoplay" para o BGM da cidade.
+    // por isso também serve de "desbloqueio de autoplay" para o BGM da cidade/solari.
     global.tocarSonoro = function (chave) {
         try {
             var cfg = ARQUIVOS[chave];
             if (!cfg) return;
+
+            if (chave === 'roqueiro_bateria') {
+                global.pararSomBateria();
+                _bateriaAudio = new Audio(cfg.caminho);
+                _bateriaAudio.volume = cfg.volume * volumeGeral() * volumeSfx();
+                _bateriaAudio.play().catch(function () { });
+                tentarTocarBgm();
+                return;
+            }
+
             if (typeof global.tocarSomArquivo === 'function') {
                 global.tocarSomArquivo(cfg.caminho, cfg.volume);
             } else {
                 var a = _fallbackAudio[chave] || new Audio();
                 _fallbackAudio[chave] = a;
                 a.src = cfg.caminho;
-                a.volume = cfg.volume * volumeGeral();
+                a.volume = cfg.volume * volumeGeral() * volumeSfx();
                 a.play().catch(function () { });
             }
-            // Tenta tocar/iniciar o BGM da cidade (estamos dentro de um gesto do usuário)
+            // Tenta tocar/iniciar o BGM (estamos dentro de um gesto do usuário)
             tentarTocarBgm();
         } catch (e) { }
     };
 
-    // ===== BGM da Cidade (dentro_cidade.ogg em loop) =====
-    // Inicia AUTOMATICAMENTE assim que o jogador entra no mapa da cidade.
-    // Navegadores podem bloquear o 1º play (política de autoplay): re-tentamos
-    // dentro do 1º gesto do usuário (pointerdown/keydown) e a cada 1s enquanto
-    // estiver na cidade, até conseguir tocar.
+    // ===== BGM da Cidade e da Arena de Solari em loop =====
     var _bgmAudio = null;
+    var _bgmSolariAudio = null;
     var _bgmMapa = null;
     var _ultimaTentativaBgm = 0;
 
+    function mapaAtual() {
+        if (global.solariAtivo || global.currentMap === 'solari') return 'solari';
+        return global.currentMap || 'green';
+    }
+
     function tentarTocarBgm() {
         try {
-            if (!global.bgmLiberado || !_bgmAudio || global.currentMap !== 'cidade') return;
-            _bgmAudio.volume = ARQUIVOS.cidade_bgm.volume * volumeGeral();
-            var p = _bgmAudio.play();
-            if (p && typeof p.catch === 'function') p.catch(function () { });
+            if (!global.bgmLiberado) return;
+            var mapa = mapaAtual();
+            if (mapa === 'cidade' && _bgmAudio) {
+                _bgmAudio.volume = ARQUIVOS.cidade_bgm.volume * volumeGeral() * volumeBgm();
+                var p = _bgmAudio.play();
+                if (p && typeof p.catch === 'function') p.catch(function () { });
+            } else if (mapa === 'solari' && _bgmSolariAudio) {
+                _bgmSolariAudio.volume = ARQUIVOS.solari_bgm.volume * volumeGeral() * volumeBgm();
+                var pSol = _bgmSolariAudio.play();
+                if (pSol && typeof pSol.catch === 'function') pSol.catch(function () { });
+            }
         } catch (e) { }
     }
 
@@ -95,37 +156,60 @@
 
     global.atualizarBgmCidade = function () {
         try {
-            // O BGM da cidade só entra em ação DEPOIS de clicar em JOGAR.
+            // O BGM só entra em ação DEPOIS de clicar em JOGAR.
             if (!global.bgmLiberado) {
                 if (_bgmAudio && !_bgmAudio.paused) _bgmAudio.pause();
+                if (_bgmSolariAudio && !_bgmSolariAudio.paused) _bgmSolariAudio.pause();
                 return;
             }
-            var mapa = global.currentMap;
+            var mapa = mapaAtual();
             if (mapa === _bgmMapa) {
-                // Continua na cidade: garante o volume e re-tenta (1x/s) se ainda pausado
+                // Continua no mesmo mapa: garante o volume e re-tenta (1x/s) se pausado
                 if (mapa === 'cidade' && _bgmAudio) {
-                    _bgmAudio.volume = ARQUIVOS.cidade_bgm.volume * volumeGeral();
+                    _bgmAudio.volume = ARQUIVOS.cidade_bgm.volume * volumeGeral() * volumeBgm();
                     var agora = Date.now();
                     if (_bgmAudio.paused && agora - _ultimaTentativaBgm > 1000) {
                         _ultimaTentativaBgm = agora;
+                        tentarTocarBgm();
+                    }
+                } else if (mapa === 'solari' && _bgmSolariAudio) {
+                    _bgmSolariAudio.volume = ARQUIVOS.solari_bgm.volume * volumeGeral() * volumeBgm();
+                    var agoraSol = Date.now();
+                    if (_bgmSolariAudio.paused && agoraSol - _ultimaTentativaBgm > 1000) {
+                        _ultimaTentativaBgm = agoraSol;
                         tentarTocarBgm();
                     }
                 }
                 return;
             }
             _bgmMapa = mapa;
-            if (mapa !== 'cidade') {
-                if (_bgmAudio) _bgmAudio.pause();
-                return;
+
+            if (mapa !== 'cidade' && _bgmAudio && !_bgmAudio.paused) {
+                _bgmAudio.pause();
             }
-            if (!_bgmAudio) {
-                _bgmAudio = new Audio(ARQUIVOS.cidade_bgm.caminho);
-                _bgmAudio.loop = true;
-                _bgmAudio.preload = 'auto';
+            if (mapa !== 'solari' && _bgmSolariAudio && !_bgmSolariAudio.paused) {
+                _bgmSolariAudio.pause();
             }
-            _bgmAudio.volume = ARQUIVOS.cidade_bgm.volume * volumeGeral();
-            _ultimaTentativaBgm = Date.now();
-            tentarTocarBgm(); // inicia automaticamente ao entrar no mapa
+
+            if (mapa === 'cidade') {
+                if (!_bgmAudio) {
+                    _bgmAudio = new Audio(ARQUIVOS.cidade_bgm.caminho);
+                    _bgmAudio.loop = true;
+                    _bgmAudio.preload = 'auto';
+                }
+                _bgmAudio.volume = ARQUIVOS.cidade_bgm.volume * volumeGeral() * volumeBgm();
+                _ultimaTentativaBgm = Date.now();
+                tentarTocarBgm();
+            } else if (mapa === 'solari') {
+                if (!_bgmSolariAudio) {
+                    _bgmSolariAudio = new Audio(ARQUIVOS.solari_bgm.caminho);
+                    _bgmSolariAudio.loop = true;
+                    _bgmSolariAudio.preload = 'auto';
+                }
+                _bgmSolariAudio.volume = ARQUIVOS.solari_bgm.volume * volumeGeral() * volumeBgm();
+                _ultimaTentativaBgm = Date.now();
+                tentarTocarBgm();
+            }
         } catch (e) { }
     };
 
@@ -133,6 +217,7 @@
     global.pararBgmCidade = function () {
         try {
             if (_bgmAudio) _bgmAudio.pause();
+            if (_bgmSolariAudio) _bgmSolariAudio.pause();
             _bgmMapa = null;
         } catch (e) { }
     };

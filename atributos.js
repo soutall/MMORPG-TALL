@@ -18,17 +18,33 @@ window.meusAtributos = window.meusAtributos || { forca: 1, inteligencia: 1, agil
 window.pontosDisponiveis = window.pontosDisponiveis || 0;
 window.meuMaxHp = window.meuMaxHp || 100;
 
+let _intervaloAtributos = null;
+
 function abrirAtributos() {
     if (window.estaMorto) return;
     if (charSelectScreen && charSelectScreen.style.display === "flex") return;
     window.atributosAberto = true;
     ATRIBUTOS_SCREEN.style.display = "flex";
     renderizarAtributos();
+    if (!_intervaloAtributos) {
+        _intervaloAtributos = setInterval(function () {
+            if (window.atributosAberto) {
+                renderizarAtributos();
+            } else {
+                clearInterval(_intervaloAtributos);
+                _intervaloAtributos = null;
+            }
+        }, 200);
+    }
 }
 
 function fecharAtributos() {
     window.atributosAberto = false;
     ATRIBUTOS_SCREEN.style.display = "none";
+    if (_intervaloAtributos) {
+        clearInterval(_intervaloAtributos);
+        _intervaloAtributos = null;
+    }
 }
 
 function toggleAtributos() {
@@ -44,48 +60,79 @@ function renderizarAtributos() {
     if (elPontos) elPontos.innerText = "Pontos disponíveis: " + pts;
 
     let elResumo = document.getElementById("atributos-hp-resumo");
-    if (elResumo) elResumo.innerText = "❤️ Vida: " + Math.round(window.meuHp || 100) + " / " + (window.meuMaxHp || 100);
+    let hpAtual = Math.round(window.meuHp !== undefined ? window.meuHp : 100);
+    let hpMax = Math.round(window.meuMaxHp || 100);
+    if (elResumo) elResumo.innerText = "❤️ Vida: " + hpAtual + " / " + hpMax;
 
     let btnReset = document.getElementById("btn-atributos-resetar");
+    // Restaura SEMPRE o botão RESETAR (o "..." é só o estado transitório de envio,
+    // não pode travar o botão para sempre na re-renderização).
     if (btnReset) { btnReset.disabled = false; btnReset.textContent = "RESETAR"; }
 
-    lista.innerHTML = "";
-    ATRIBUTOS_INFO.forEach(attr => {
-        let valor = (window.meusAtributos && window.meusAtributos[attr.chave]) || 1;
-        let bonus = 0;
-        if (window.atributosTotais && window.atributosTotais[attr.chave] !== undefined) {
-            bonus = window.atributosTotais[attr.chave] - valor;
-        }
+    let linhasExistentes = lista.querySelectorAll(".atributo-linha");
+    if (linhasExistentes.length === ATRIBUTOS_INFO.length) {
+        ATRIBUTOS_INFO.forEach(function (attr, idx) {
+            let linha = linhasExistentes[idx];
+            let valor = (window.meusAtributos && window.meusAtributos[attr.chave]) || 1;
+            let bonus = 0;
+            if (window.atributosTotais && window.atributosTotais[attr.chave] !== undefined) {
+                bonus = window.atributosTotais[attr.chave] - valor;
+            }
+            let btnPlus = linha.querySelector(".atributo-btn-mais");
+            // FIX: antes, se o texto fosse "..." (estado pós-clique), o botão NUNCA era
+            // reativado — travava a distribuição de pontos (o jogador só conseguia colocar
+            // poucos pontos por atributo). Agora o botão volta a "+" e fica habilitado
+            // enquanto houver pontos disponíveis (liberdade total de distribuição).
+            if (btnPlus) {
+                if (btnPlus.textContent === "...") btnPlus.textContent = "+";
+                btnPlus.disabled = pts <= 0;
+            }
+            let elValor = linha.querySelector(".atributo-valor");
+            if (elValor) {
+                elValor.innerHTML = valor + (bonus > 0 ? ' <b class="atributo-bonus-equip">+' + bonus + '</b>' : '');
+            }
+        });
+    } else {
+        lista.innerHTML = "";
+        ATRIBUTOS_INFO.forEach(attr => {
+            let valor = (window.meusAtributos && window.meusAtributos[attr.chave]) || 1;
+            let bonus = 0;
+            if (window.atributosTotais && window.atributosTotais[attr.chave] !== undefined) {
+                bonus = window.atributosTotais[attr.chave] - valor;
+            }
 
-        let btnPlus = document.createElement("button");
-        btnPlus.className = "atributo-btn-mais";
-        btnPlus.textContent = "+";
-        btnPlus.disabled = pts <= 0;
-        btnPlus.onclick = function () {
-            if ((window.pontosDisponiveis || 0) <= 0) return;
-            btnPlus.disabled = true;
-            btnPlus.textContent = "...";
-            distribuirPontoAtributo(attr.chave);
-        };
+            let btnPlus = document.createElement("button");
+            btnPlus.className = "atributo-btn-mais";
+            btnPlus.textContent = "+";
+            btnPlus.disabled = pts <= 0;
+            btnPlus.onclick = function () {
+                if ((window.pontosDisponiveis || 0) <= 0) return;
+                btnPlus.disabled = true;
+                btnPlus.textContent = "...";
+                distribuirPontoAtributo(attr.chave);
+            };
 
-        let colunaInfo = document.createElement("div");
-        colunaInfo.className = "atributo-info";
-        colunaInfo.innerHTML =
-            '<div class="atributo-icone">' + attr.icone + '</div>' +
-            '<div class="atributo-texto">' +
-                '<div class="atributo-nome">' + attr.nome + ' <span class="atributo-valor">' + valor
-                    + (bonus > 0 ? ' <b class="atributo-bonus-equip">+' + bonus + '</b>' : '') + '</span></div>' +
-                '<div class="atributo-bonus">' + attr.bonus + '</div>' +
-            '</div>';
+            let colunaInfo = document.createElement("div");
+            colunaInfo.className = "atributo-info";
+            colunaInfo.innerHTML =
+                '<div class="atributo-icone">' + attr.icone + '</div>' +
+                '<div class="atributo-texto">' +
+                    '<div class="atributo-nome">' + attr.nome + ' <span class="atributo-valor">' + valor
+                        + (bonus > 0 ? ' <b class="atributo-bonus-equip">+' + bonus + '</b>' : '') + '</span></div>' +
+                    '<div class="atributo-bonus">' + attr.bonus + '</div>' +
+                '</div>';
 
-        let linha = document.createElement("div");
-        linha.className = "atributo-linha";
-        linha.appendChild(btnPlus);
-        linha.appendChild(colunaInfo);
+            let linha = document.createElement("div");
+            linha.className = "atributo-linha";
+            linha.appendChild(btnPlus);
+            linha.appendChild(colunaInfo);
 
-        lista.appendChild(linha);
-    });
+            lista.appendChild(linha);
+        });
+    }
 }
+
+window.renderizarAtributos = renderizarAtributos;
 
 function distribuirPontoAtributo(chave) {
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -99,10 +146,26 @@ function renderizarDetalhes() {
     if (!lista) return;
     let a = window.atributosTotais || window.meusAtributos || {};
     let g = function (k) { return a[k] || 1; };
+
+    let temGrito = (window.meusEfeitos || []).some(function (e) {
+        return e && (e.id === 'gritoDeGuerra' || e.tipo === 'gritoDeGuerra') && (e.tempo > 0 || e.duracao > 0);
+    });
+
     let maxHp = Math.round(100 + (g('vida') - 1) * 20 + (g('forca') - 1) * 4);
+    if (temGrito) maxHp = Math.round(maxHp * 1.05); // +5% Vida Máxima do Grito de Guerra
+
     let maxMana = Math.round(50 + (g('inteligencia') - 1) * 10);
-    let critChance = Math.round((0.05 + (g('destreza') - 1) * 0.01) * 100);
-    let critMult = Math.round((1.5 + (g('destreza') - 1) * 0.03) * 100) / 100;
+
+    let critChance = (0.05 + (g('destreza') - 1) * 0.01);
+    if (temGrito) critChance += 0.30; // +30% de chance de crítico do Grito de Guerra
+    let sniperPos = (window.minhaClasse === 'sniper' && window.sniperPosicaoAtiva);
+    if (sniperPos) critChance += 1.0; // +100% de chance de crítico na Posição de Franco-Atirador
+    let critChancePct = Math.min(100, Math.round(critChance * 100));
+
+    let critMult = 1.5 + (g('destreza') - 1) * 0.03;
+    if (temGrito) critMult *= 1.5; // +50% multiplicador de dano crítico do Grito de Guerra
+    critMult = Math.round(critMult * 100) / 100;
+
     let danoFisico = Math.round((g('forca') - 1) * 0.05 * 100);
     let danoMagico = Math.round((g('inteligencia') - 1) * 0.05 * 100);
     let curaBonus = Math.round((g('divindade') - 1) * 0.05 * 100);
@@ -113,7 +176,7 @@ function renderizarDetalhes() {
 
     // Velocidade de ataque (mesma fórmula do servidor: buff Grito de Guerra + equipamentos)
     let multAtaqueLocal = 1;
-    if ((window.meusEfeitos || []).some(function (e) { return e && e.id === 'gritoDeGuerra' && e.tempo > 0; })) multAtaqueLocal *= 0.90;
+    if (temGrito) multAtaqueLocal *= 0.90; // +10% velocidade de ataque
     let invAtual = window.inventario || {};
     for (let ch in invAtual) {
         let it = invAtual[ch];
@@ -124,19 +187,22 @@ function renderizarDetalhes() {
     multAtaqueLocal = Math.max(0.4, Math.min(1, multAtaqueLocal));
     let velAtaquePct = Math.round((1 - multAtaqueLocal) * 100);
 
+    let gritoBadge = temGrito ? ' <span style="color:#f1c40f;font-size:10px;" title="Buff Grito de Guerra Ativo">📣</span>' : '';
+    let sniperBadge = sniperPos ? ' <span style="color:#2ecc71;font-size:10px;" title="Posição de Franco-Atirador Ativa">🎯</span>' : '';
+
     let linhas = [
-        { nome: '❤️ Vida Máx', valor: maxHp },
+        { nome: '❤️ Vida Máx' + (temGrito ? gritoBadge : ''), valor: maxHp },
         { nome: '🔋 Mana Máx', valor: maxMana },
-        { nome: '🎯 Crít. chance', valor: critChance + '%' },
-        { nome: '💥 Dano crítico', valor: 'x' + critMult },
-        { nome: '⚔️ Dano físico', valor: '+' + danoFisico + '%' },
+        { nome: '🎯 Crít. chance' + gritoBadge + sniperBadge, valor: critChancePct + '%' },
+        { nome: '💥 Dano crítico' + gritoBadge, valor: 'x' + critMult },
+        { nome: '⚔️ Dano físico' + (sniperPos ? ' (x2)' : ''), valor: '+' + danoFisico + '%' },
         { nome: '🔮 Dano mágico', valor: '+' + danoMagico + '%' },
         { nome: '✨ Cura', valor: '+' + curaBonus + '%' },
         { nome: '☠️ DoT', valor: '+' + dotBonus + '%' },
         { nome: '🐾 Pet dano', valor: '+' + petDano + '%' },
         { nome: '🐾 Pet vida', valor: petVida },
         { nome: '💨 Velocidade', valor: '+' + veloc + '%' },
-        { nome: '⚡ Vel. de ataque', valor: '+' + velAtaquePct + '%' }
+        { nome: '⚡ Vel. de ataque' + gritoBadge, valor: '+' + velAtaquePct + '%' }
     ];
 
     lista.innerHTML = "";

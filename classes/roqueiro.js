@@ -14,8 +14,10 @@ window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
 
     // Aura passiva de notas musicais
     if (!window.notasMusicais) window.notasMusicais = [];
-    let chanceNota = window.roqueiroBateriaLigada ? 0.6 : 0.10;
-    if (Math.random() < chanceNota) {
+    // FIX tela verde: com a Bateria ligada a taxa de spawn 0.6/frame estourava o canvas
+    // (centenas de fillText + filtros). Reduzimos a taxa e limitamos a pilha de notas.
+    let chanceNota = window.roqueiroBateriaLigada ? 0.22 : 0.10;
+    if (window.notasMusicais.length < 40 && Math.random() < chanceNota) {
         window.notasMusicais.push({
             x: 12 + (Math.random() - 0.5) * 40,
             y: 16 + (Math.random() - 0.5) * 40,

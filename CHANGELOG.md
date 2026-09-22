@@ -4,15 +4,246 @@ Registro de todas as atualizações feitas no projeto. **Sempre** que algo novo 
 
 ---
 
-## Versão atual: **v1.30.3**
+## Versão atual: **v1.34.1**
+
+> 🚨 **REGRA MANDATÓRIA:** O game está sendo desenvolvido para **PC e Mobile**, então a otimização tem que ser feita para **AMBOS**, e tudo o que for feito no projeto é pensando em ambos os lados (controles via teclado/mouse no PC e touch/joystick no mobile, interfaces responsivas sem corte nem sobreposição, e alto desempenho em todas as resoluções).
+
+### 📊 Tabela de Atualizações Recentes (Regra Obrigatória para IAs)
+
+| Versão | Data / Hora | O que foi feito | Arquivos Alterados |
+|---|---|---|---|
+| **v1.34.1** | 22/09/2026 (hora local) | Atalhos de teclado das poções no PC: **Q = Poção de Vida (HP)** e **E = Poção de Mana (MP)**; tecla **Q removida da Skill 4** (Roqueiro Grito / Ladino Estrela / DroneMaster Titã / Sniper Camuflagem) que passa a ser acionada **somente pela tecla 4** (Numpad4 também); badges de tecla adicionados aos slots de poção (Q/E no canto superior, sem sobrepor o contador) e badges/títulos das Skills 4 trocados de "Q" para "4"; clique/toque nos slots de poção mantidos no mobile + **Inventário (tecla I) +30% na horizontal** (295 → 384px, com max-width 92vw) e janela de comparação reposicionada (168 → 208px) para acompanhar + **Correção do Social (tecla O)**: o modal abria FORA da tela (canto superior esquerdo) porque o drag-drop salvava `left/top` + `transform:none`, anulando o `translate(-50%,-50%)` central — agora `abrirSocialModal` SEMPRE centraliza (limpa posição salva e reaplica o translate) + novo `soltarFoco()` que libera o foco ao entrar no jogo (login com Enter deixava o foco preso no input escondido e TODAS as teclas de atalho ficavam mortas) e ao fechar modais | `index.html`, `style.css`, `inventario.css`, `INFO_PROJETO.md`, `CHANGELOG.md`, `REGRAS_IA.md` |
+| **v1.34.0** | 21/09/2026 23:31 | Big batch mobile v1.34: Poções de HP/MP ×3 níveis droppáveis + 2 slots de poção no topo esquerdo do HUD; Stamina (barra laranja) substitui a mana no DASH (25 normal / 40 Dronemaster); HUD redesenhado (retrato em tempo real, barras fortes vermelho/azul/laranja, buffs, XP amarelo sobre fundo azul-claro centralizado abaixo das skills); Pedras de Upgrade com tabela de raridade + brilho/som únicos ao dropar; Ouro droppa de quase todos os monstros + autocoleta (ouro, poções, pedras e lendários automáticos); Inventário redesenhado (sem boneco, grade 3×3, comparação ao lado, botões-só-ícone + X no topo, +10% largura, abas TODOS/CONS/ITENS/EQUIP/PEDRAS); Janela de Skills maior com skills lado a lado e fonte legível; Anel de CD nos slots circulares drenando no sentido horário + brilho dourado quando pronta (todas as classes); Runas/Quest marcados como "futuro update" | `server.js`, `equipamentos.js`, `index.html`, `style.css`, `dragdrop.css`, `inventario.js`, `inventario.css`, `skills.css`, `INFO_PROJETO.md`, `CHANGELOG.md`, `REGRAS_IA.md`, `PROGRESSO.md` |
+| **v1.33.4** | 21/09/2026 23:05 | Removido o portal de retorno ("SAIR DA SOLARI" / "PORTAL DA ARENA") de dentro da Arena de Solari — durante uma partida o portal roxo não é mais desenhado nem dispara teleporte para a cidade no meio do combate; a saída da partida continua disponível pelo painel da Solari (botão Sair), pelo botão Renascer e pelo fim natural do round. O portal da Arena de Davahl normal e o portal roxo de convite na cidade permanecem. + Otimização de performance para celular no render dos monstros (trava de tela ao usar a Bateria do Roqueiro no meio da horda) | `mapa_arena.js`, `index.html`, `monstros.js`, `classes/comum.js`, `efeitos/roqueiro_efeitos.js`, `INFO_PROJETO.md`, `CHANGELOG.md`, `REGRAS_IA.md` |
+| **v1.33.2** | 21/09/2026 17:25 | Adição e integração completa dos efeitos sonoros da classe Guitarrista/Roqueiro (ataque básico, solo de bateria com interrupção instantânea ao cancelar, stage dive/dash e banda) e da Arena de Solare (BGM ambiente em loop integrado aos controles de volume, início do Round 1, conclusão do round, fanfarra de vitória no Round 10, rolagem de dados e ganho de item no leilão) para PC e Mobile | `sonoro.js`, `solari.js`, `index.html`, `REGRAS_IA.md`, `INFO_PROJETO.md`, `CHANGELOG.md` |
+| **v1.33.1** | 21/09/2026 16:45 | Correção do fluxo de premiação da Arena de Solari: o sorteio/leilão de 5 itens foi reposicionado para ocorrer estritamente APÓS a finalização de cada round. O Round 1 agora inicia direto em combate após a contagem de entrada sem premiar de antemão. Ao limpar o round (ou estourar o tempo), os 5 itens são sorteados via dados; finalizado o sorteio, avança para a transição de 10s rumo ao próximo round (ou conclui a Arena com vitória no Round 10) | `server.js`, `index.html`, `REGRAS_IA.md`, `INFO_PROJETO.md`, `CHANGELOG.md` |
+| **v1.33.0** | 21/09/2026 16:30 | Balanceamento completo de classes (Berserker Fúria 15s CD e Giro 4s/15s CD; Curandeira Aura 5s CD no recast e Julgamento +20% área; Roqueiro Bateria -30% dano cancelável por andar/clique e mantida no Teleporte, Grito de Guerra com atualização em tempo real na tecla C, Banda +50% mov/+80% atk spd/+20% atk; DroneMaster Modo Assalto 8s e +50% atk spd; Arqueiro Astral full dano mágico/INT e painel K completo; Sniper alcance 384px, Disparo Supremo +20% dano e Posição resetando CD com +100% crítico) + 3 Sliders de volume em tempo real (Geral, BGM e SFX) no menu ESC salvando no localStorage + Interface Responsiva com Drag-and-Drop universal em todas as janelas sem corte de tela + Desacoplamento da mira no PC (arma e skills seguem o mouse, WASD apenas move o corpo) | `server.js`, `index.html`, `skills.js`, `atributos.js`, `config.js`, `config.css`, `sonoro.js`, `dragdrop.js`, `REGRAS_IA.md`, `INFO_PROJETO.md`, `CHANGELOG.md` |
+| **v1.32.2** | 21/09/2026 15:50 | Desacoplamento da mira do WASD no PC: o item/arma na mão segue continuamente o ponteiro do mouse, as skills ativas disparam na direção do cursor do mouse, e o WASD controla exclusivamente a movimentação do corpo | `index.html`, `INFO_PROJETO.md`, `CHANGELOG.md`, `REGRAS_IA.md` |
+| **v1.32.1** | 21/09/2026 15:35 | Implementação completa dos efeitos sonoros reais da Arqueira (ataque básico, chuva de flechas, disparo perfurante, rajada carregar e rajada soltar) integrados via `sonoro.js`, `audio-manager.js`, `server.js` e `index.html` | `sonoro.js`, `audio-manager.js`, `server.js`, `index.html`, `INFO_PROJETO.md`, `CHANGELOG.md`, `REGRAS_IA.md` |
+| **v1.32.0** | 21/09/2026 15:30 | Exibição visual da versão no canto inferior da tela (tela inicial de login e HUD in-game) + Criação e fixação da regra mandatória para IAs com registro obrigatório em tabela nos arquivos `.MD` | `index.html`, `style.css`, `INFO_PROJETO.md`, `CHANGELOG.md`, `REGRAS_IA.md` |
+| **v1.32.0** | 21/09/2026 10:55 | Correção visual Roqueiro + Intro robusta + Ferreiro com interface e upgrades + Sistema sonoro integrado | `classes/roqueiro.js`, `ferreiro.js`, `ferreiro.css`, `intro.js`, `intro.css`, `sonoro.js`, `upgrade.js`, `solari.js`, `server.js`, `index.html` |
+| **v1.31.0** | 20/09/2026 21:00 | Implementação das 3 novas classes server-side (DroneMaster, Arqueiro Arcano e Sniper) | `server.js`, `classes/dronemaster.js`, `classes/arqueiro_arcano.js`, `classes/sniper.js`, `index.html` |
+
+---
 
 Regra de versão (semver):
-- **Nova funcionalidade** → sobe o menor componente (`v1.3.0` → `v1.3.1`)
+- **Nova funcionalidade** → sobe o menor componente (`v1.3.0` → `v1.3.1` ou `v1.31` → `v1.32`)
 - **Correção/bug fix** → sobe o último componente (`v1.3.0` → `v1.3.1`)
 
 ---
 
 ## Histórico de versões
+
+### v1.34.1 — 22/09/2026
+
+- **Atalhos de teclado para as poções (PC):**
+  - **Q** → usa a **Poção de Vida (HP)**; **E** → usa a **Poção de Mana (MP)** (`usarPocao('hp')` / `usarPocao('mp')`);
+  - Badges de tecla **Q/E** nos slots de poção do HUD (canto superior, sem sobrepor o contador de quantidade — CSS `.pocao-slot .key-badge`) e títulos atualizados ("Usar Poção de Vida (Q)" / "Usar Poção de Mana (E)");
+  - O clique/toque nos slots continua funcionando no mobile (PC e Mobile).
+
+- **Skill 4 — tecla Q removida, agora só no 4:**
+  - O atalho **Q** deixou de disparar a Skill 4 (Roqueiro **Grito de Guerra**, Ladino **Estrela da Morte**, DroneMaster **Protocolo Titã** e Sniper **Camuflagem Natural**);
+  - A Skill 4 agora é acionada **somente pela tecla 4** (ou Numpad4), como as skills 1-3;
+  - Badges e títulos dos 4 botões corrigidos de "Q" → "4".
+
+- **Inventário (tecla I) +30% na horizontal:**
+  - `#inv-window` de **295px → 384px** (+30% sobre a janela da v1.34), com `max-width: 92vw` para não estourar em telas estreitas (dual PC & Mobile);
+  - Janela de comparação (`#inv-comparacao`) reposicionada para acompanhar a largura nova (`left: calc(50% + 208px)` antes 168px); cache-buster `inventario.css?v=134 → v=135`.
+
+- **Correção do Social — modal abria FORA da tela (tecla O):**
+  - **Causa raiz:** o drag-drop (`dragdrop.js`) salvava `left/top` + `transform:"none"` da última posição arrastada do `#social-modal` (`mmorpg_jv_win_social-modal`) e, ao restaurar, **anulava o `translate(-50%,-50%)`** que centralizava o modal — por isso ele abria solto no canto superior esquerdo (parecia que a tecla O "não abria");
+  - **Correção (`abrirSocialModal`):** agora o modal **sempre abre centralizado** — limpa `left/top` residuais, reaplica `transform: translate(-50%,-50%)`, remove a posição salva do localStorage e protege contra `getElementById` nulo;
+  - **Bônus (`soltarFoco()`):** novo helper `window.soltarFoco()` chamado ao entrar no jogo (login via **Enter** deixava o foco preso no `#input-userid` escondido — com o guard `INPUT/TEXTAREA` do keydown global, **TODAS** as teclas de atalho ficavam inertes) e ao fechar a janela Social (o input da busca recebia/podia segurar o foco). Isso garante que O/I/K/C/WASD/Space voltem a responder sempre após login e após fechar modais.
+
+- **Versão:** `GAME_VERSION`, tela de login e HUD atualizados para **v1.34.1**. Sintaxe dos 3 scripts inline validada (`node --check`) e reprodução em Node com stub de DOM confirmando que a tecla O seta o modal (abertura + centralização).
+
+### v1.34.0 — 21/09/2026
+
+- **Poções (HP/MP) ×3 níveis droppáveis:**
+  - **Poções de Vida:** Pequena (+20%), Média (+40%), Grande (+100%);
+  - **Poções de Mana:** Pequena (+20%), Média (+30%), Grande (+100%);
+  - Droppam de monstros normais (~30% de chance) e bosses **sempre** dropam 2 poções + ouro;
+  - Empilham na mochila por subtipo+nível (`_stackChave`) e são coletadas **automaticamente** (`autocoleta`);
+  - **2 slots fixos no topo esquerdo** do HUD (`#hud-pocoes`): botão 🧪 HP e 🔮 MP, com contador de quantidade; tocar o botão envia `usar_pocao` ao servidor;
+  - Botão cinza/desabilitado quando não há poção daquele tipo.
+
+- **Stamina substitui a mana no DASH:**
+  - Barra laranja `#stamina-bar-fill` na HUD principal;
+  - Dash custa **25 de stamina** (normal) e **40** (Escudo de Energia do Dronemaster);
+  - Servidor valida com `gastarEstamina()` — sem stamina o servidor responde `stamina_insuficiente` e o cliente mostra "⚡ Sem Stamina!";
+  - `world_update` sincroniza `estamina` em tempo real.
+
+- **HUD redesenhado (v1.34):**
+  - **Retrato em tempo real** (`#hud-retrato` canvas 46px): desenha o sprite do personagem a cada 150ms usando o mesmo dispatch de classes do jogo;
+  - Barras fortes: vermelho (vida), azul (mana), laranja (stamina) com molduras pixel-art;
+  - Painel de buffs integrado + contador de ouro 🪙 no HUD;
+  - **Barra de XP centralizada embaixo dos slots de skill** (`#hud-xp-central`): preenchimento **amarelo** + restante **azul-claro**, moldura pixel-art.
+
+- **Pedras de Upgrade com raridade:**
+  - Tabela de raridade por dificuldade do monstro (chance base + bônus em monstros mais fortes);
+  - Drop único: **brilho de anéis roxos** + **arpejo cristalino** (`tocarSomPedraUpgrade`) + popup "💎 PEDRA DE UPGRADE!";
+  - Autocoleta + destaque roxo no inventário (aba PEDRAS);
+  - Upgrade de equipamento continua raridade-escalado (`upgradeExtras`).
+
+- **Ouro:**
+  - ~90% dos monstros normais dropam ouro em pequenas quantidades; **boss sempre** dropa ouro;
+  - Autocoleta ao passar por cima (`autocoleta: true`), somatório na carteira do jogador (`ouro`);
+  - Sincronização: `ouro_ganho` (WS) + HUD `#hud-ouro` + sync via `world_update`/`inventario_sync`.
+
+- **Inventário redesenhado (v1.34):**
+  - **Boneco removido** — grade 3×3 limpa de slots de equipamento (pixel-art);
+  - **Janela de comparação ao lado** (mini-window à direita, item equipado vs. inventário) quando um equipamento é selecionado;
+  - Botões inferiores **somente ícone** (🗂️ organizar / 🗑️ destruir / 🔒 bloquear); **X de fechar no topo**;
+  - Janela **~10% mais larga** (268 → 295px) + novo alinhamento das abas (TODOS / CONS / ITENS / EQUIP / PEDRAS).
+
+- **Janela de Skills (v1.34):**
+  - Janela maior (300 → 600px), skills **lado a lado (2 colunas)** e fontes maiores/legíveis.
+
+- **Anel de cooldown nos slots de skill (todas as classes):**
+  - Borda circular ao redor de cada `btn-action` que **drena no sentido horário** conforme o CD passa (variável `--cd-pct`);
+  - **Brilho dourado pulsante** quando a skill fica pronta (animação `cdProntoPulso`);
+  - Atualizado a cada 250ms pelo `atualizarCooldownSkillHUD`.
+
+- **Runas / Item de Quest:** mantidos no inventário marcados como **"futuro update"** (sem gameplay ainda).
+
+- **Servidor:** `gastarEstamina()`, drops auxiliares (`gerarDropsAuxiliares`), autocoleta no tick principal, `usar_pocao` (com CD de 1s e sem uso morto), `ouro` no jogador, `coletar_item` suportando ouro/poções/pedras com empilhamento. **1 restart de servidor planejado** no fim do batch.
+
+### v1.33.4 — 21/09/2026
+
+- **Remoção do portal de retorno dentro da Arena de Solari:**
+  - O `PORTAL_ARENA_RETORNO` (portão oeste da arena, 63980,460) aparecia dentro da arena **durante a partida de Solari** como o portal roxo "SAIR DA SOLARI", permitindo escapar do combate no meio do round;
+  - **Correção (`mapa_arena.js`):** com `currentMap === 'solari'` o portal **não é mais desenhado** (`desenharPortalArenaRetorno` retorna cedo) e **não dispara teleporte** para a cidade (`infoPortalArena` retorna `null`);
+  - A saída da partida continua funcionando pelos meios oficiais: botão **Sair no painel da Solari** (`solari_sair`), botão **Renascer** e fim natural do round/partida (`solariVoltarCidade`);
+  - O portal da **Arena de Davahl normal** e o **portal roxo de convite na cidade** (60488,236) permanecem intactos;
+  - Cache-buster do `mapa_arena.js` atualizado (`v=4` → `v=5`) para o navegador baixar a versão nova.
+
+- **Otimização de performance (mobile) para a trava de tela com a Bateria do Roqueiro no meio da horda:**
+  - `monstros.js`: aura dos monstros **sem `shadowBlur`** (antes 4 sombras por monstro por frame → com ~60-100 monstros visíveis congelava o canvas no celular); em hordas com **>55 monstros desenhados** a aura é pulada automaticamente; flash de ataque (`_golpeArco`) sem `shadowBlur`;
+  - `classes/comum.js`: ícones de stun/lentidão (💫/❄️) re-renderizam a cada **350ms** por monstro (antes todo frame — Bateria stunava a horda inteira);
+  - `efeitos/roqueiro_efeitos.js`: sombra dos anéis da Bateria/teleporte/grito reduzida (15→5, 20→6, 18→6);
+  - `index.html`: textos flutuantes de dano sem `shadowBlur` + contador adaptativo `_monstrosDesenhados` por frame;
+  - Cache-busters atualizados: `monstros.js?v=2004`, `classes/comum.js?v=1001`, `efeitos/roqueiro_efeitos.js?v=231`.
+
+### v1.33.3 — 21/09/2026
+
+- **Bug 1 — Ataque básico/projéteis invisíveis na Arena de Solari (CAUSA RAIZ ENCONTRADA E TESTADA):**
+  - O tick de projéteis do servidor aplicava a colisão da cidade para qualquer projétil com `x >= LARGURA_CIDADE` (59800) — o que **incluía a faixa da arena** (x ≥ 63800);
+  - Como `colideCidade()` retorna `true` para qualquer coordenada **fora do grid da cidade**, **todo projétil disparado na Arena/Solari era destruído no primeiro tick**, antes de qualquer `world_update` conseguir exibi-lo (o dano funcionava, mas o visual nunca aparecia);
+  - **Correção:** limite superior `x < FIM_CIDADE` adicionado nas checagens de colisão da cidade, tanto no loop de projéteis de **jogador** (`playerProjeteis`) quanto no de projéteis de **monstros** (`projeteis`);
+  - Projéteis de jogadores em sessão Solari agora carregam a flag `solari: true` (boolean) nos 3 pontos de criação (Roqueiro riff, básico Mago/Summoner/Arqueiro/Curandeiro e Arqueiro Perfurante);
+  - **Validado por teste** (cliente WebSocket na Solari): antes do fix, ataque com espaço livre = 0 projéteis no `world_update`; depois, o projétil viaja e aparece com `solari: true`. ✅
+
+- **Bug 2 — Tela verde ao usar a Bateria do Roqueiro entre monstros:**
+  - **Servidor:** novos helpers `mapaDoJogador()` e `enviarParaMapaDoJogador()` — os broadcasts da Bateria (ativação, cada batida e fim/cancelamento) agora vão **apenas para clientes no MESMO mapa** do Roqueiro, eliminando o spam visual/sonoro entre mapas;
+  - **Validação:** teste com dois clientes — jogador na arena gerou 11 batidas (recebidas por outro jogador no mesmo mapa) e **nenhum** pacote chegou ao cliente na cidade. ✅
+  - **Cliente (`classes/roqueiro.js`):** spawn de notas com Bateria reduzido de **0.6 → 0.22 por frame** e pilha de notas limitada a **40** (antes era ilimitada → centenas de `fillText` por frame);
+  - **Cliente (`efeitos/roqueiro_efeitos.js`):** anéis de choque (`shadowBlur`) da Bateria limitados a **24** ativos e tremor de tela reduzido de 5 → 3;
+  - **Cliente (`index.html`):** trava anti-"stuck" por timestamp — `roqueiroBateriaIniciadaEm` registrado ao ativar e verificação no loop principal que **expira o estado da Bateria em 5s** mesmo se o `setTimeout` for atrasado em celular/página pesada (também limpo no cancelar, no `action_roqueiro_bateria_end` e no renascer).
+
+- **Bug 3 — STATUS travado (~2 pontos por atributo):**
+  - **Causa raiz:** regressão do patch de auto-attack (19/09) — `renderizarAtributos()` passou a atualizar as linhas existentes do DOM, mas só reativava o botão "+" se o texto **não** fosse `"..."`; após o primeiro clique o botão ficava preso em `"..."` e desabilitado para sempre;
+  - **Evidência no save:** personagem `admin` (lvl 15) com `forca:2, profanidade:2` e 15 pontos parados sem conseguir distribuir;
+  - **Correção (`atributos.js`):** na re-renderização o botão "+" volta sempre ao texto `"+"` e fica habilitado **enquanto houver pontos disponíveis** (mesma regra aplicada ao botão RESETAR); liberdade total de distribuição (ex.: colocar os 13 pontos onde quiser);
+  - **Validado por teste** (cliente WebSocket): 3 pontos distribuídos livremente em Força (1 → 4), um por clique, sem trava de 2; 4º clique corretamente rejeitado com pontos zerados. ✅
+
+- **Bug 4 — Pontos de habilidade zerando a cada login:**
+  - O login em `server.js` gravava `pontosHabilidade: 0` fixo, ignorando o valor salvo (os saves gravam corretamente em `salvarProgresso`);
+  - **Correção:** `pontosHabilidade` agora é carregado de `dadosSalvos.pontosHabilidade` quando presente.
+
+- **Bug 5 — `admins.json` corrompido:**
+  - O arquivo continha a chave `"admins"` duplicada sem vírgula (JSON inválido) → `spawns.js` carregava **zero** admins e as ferramentas de admin (editor de mapa, spawns, etc.) ficavam bloqueadas;
+  - **Correção:** arquivo reescrito em JSON válido com a lista de admins (`admin`, `Admin`, `admin1`, `Admin1`, `admin2`, `Admin2`) e sem erro de leitura no servidor.
+
+- **Otimização Dual PC & Mobile:** todas as correções mantêm o desempenho e a compatibilidade com controles de teclado/mouse e touch mobile (limites de partículas/efeitos e escopo de broadcasts por mapa).
+
+### v1.33.2 — 21/09/2026
+
+- **Sistema de Áudio do Guitarrista (Roqueiro):**
+  - **Ataque Básico (`atk_basico.mp3`):** Disparado em cada palhetada de guitarra / ataque básico da classe.
+  - **Habilidade 1 - Solo de Bateria (`Bateria.mp3`):** Executado em modo streaming (`HTMLAudioElement`) para máxima fidelidade sonora e performance sem travamentos. Vinculado a `pararSomBateria()` para interromper instantaneamente caso o jogador ande, clique novamente para cancelar ou o efeito expire.
+  - **Habilidade 2 - Stage Dive / Dash (`Dash.mp3`):** Disparado ao usar o dash ou teleporte de palco do Roqueiro.
+  - **Habilidade 3 - Solo de Banda (`Banda.ogg`):** Disparado no buff da banda.
+- **Sistema de Áudio da Arena de Solare:**
+  - **Trilha Sonora da Arena (`Musica fundo arena solare.ogg`):** Transição e loop automático de BGM ao entrar na Arena de Solari, respeitando os controles de volume Geral e BGM em tempo real, retornando à BGM da cidade ao sair da arena.
+  - **Início do Round 1 (`Roud 1.ogg`):** Efeito solene no exato momento em que o combate do Round 1 se inicia.
+  - **Finalização de Round (`Ao finalizar Round.ogg`):** Tocado assim que o round é limpo e a janela de distribuição dos 5 itens de recompensa surge.
+  - **Fanfarra Final (`Final Roud 10.ogg`):** Tocado no banner de conclusão e vitória após limpar o Round 10.
+  - **Sorteio dos Dados (`ao rolar a chance de ganhar o item.ogg`):** Tocado a cada rolagem de dados no leilão/sorteio de drops.
+  - **Recompensa Obtida (`ao ganhar o item.ogg`):** Efeito de celebração quando o resultado do leilão atribui o item vencedor.
+- **Otimização Dual PC & Mobile:**
+  - Sistema com suporte total a controles de teclado/mouse e touch mobile, com mixagem de canais Web Audio API e streaming de áudio.
+
+- **Arena de Solari — Correção no Ciclo de Premiação:**
+  - **Premiação Pós-Round:** O sorteio/leilão de 5 itens (`solariIniciarSorteio`) foi reposicionado para disparar exclusivamente **após** a conclusão de cada round (quando todos os monstros são abatidos ou o tempo limite de 120s estoura).
+  - **Round 1 sem Premiação Precoce:** A contagem regressiva inicial de entrada de 10s agora transiciona diretamente para o início do combate do Round 1 (`solariComecarCombate`), eliminando a distribuição antecipada de recompensas.
+  - **Fluxo Contínuo entre Rounds:** Ao término do sorteio dos 5 itens de cada round, o sistema verifica se ainda há rounds pendentes (`s.round < 10`): caso afirmativo, entra em transição de 10s ("PARABÉNS! BORA PRO PRÓXIMO ROUND!") e começa imediatamente o combate do round subsequente; ao concluir o Round 10, exibe o banner de vitória e teletransporta os jogadores para a cidade.
+  - **Otimização Dual (PC & Mobile):** Modais e banners de sorteio e contagem sincronizados sem bloqueio de comandos ou interface em ambas as plataformas.
+
+### v1.33.0 — 21/09/2026
+
+- **Equilíbrio & Balanceamento Multi-Classes:**
+  - **Berserker (Bárbaro):**
+    - Habilidade *Fúria*: Cooldown ajustado para 15 segundos.
+    - Habilidade *Giro Descontrolado*: Duração reduzida para 4 segundos e cooldown aumentado para 15 segundos.
+  - **Curandeira:**
+    - Habilidade *Aura Sagrada*: Cooldown de 5 segundos aplicado exclusivamente quando desativada/recastada.
+    - Habilidade *Julgamento Divino*: Área/hitbox aumentada em 20% (raio slimes 78 / bosses 102).
+  - **Roqueiro:**
+    - Habilidade *Bateria*: Dano base reduzido em 30% (base 21); Teleporte (Stage Dive) agora não cancela a Bateria ativa; cancelamento da Bateria acontece única e exclusivamente ao andar (WASD/joystick) ou clicar nela novamente.
+    - Habilidade *Grito de Guerra*: Buffs (+30% chance crítica, +50% dano crítico, +5% vida máxima, +10% velocidade de ataque) refletidos em tempo real na tela de atributos (tecla C com badge e live loop de 200ms).
+    - Habilidade *Banda*: Velocidade de movimento aumentada em +50% (3.3), velocidade de ataque aumentada em +80% (intervalo 22 ticks) e ataque base aumentado em +20% (12).
+  - **DroneMaster:**
+    - Habilidade *Modo Assalto*: Duração aumentada para 8 segundos e velocidade de ataque aumentada em +50% (intervalo 8 ticks).
+  - **Arqueiro Astral (Arqueiro Arcano):**
+    - Todo o dano (ataque básico e habilidades) agora é Dano Mágico e escala com Inteligência (INT);
+    - Painel de Habilidades (tecla K) agora lista e renderiza corretamente todas as habilidades para todas as classes.
+  - **Sniper:**
+    - Alcance do ataque básico reduzido em ~20% (384px);
+    - Habilidade *Disparo Supremo*: Dano aumentado em 20% (base 54);
+    - Habilidade *Posição de Franco-Atirador*: Reseta instantaneamente o cooldown do Disparo Supremo e concede +100% de chance crítica enquanto posicionada.
+- **Configurações & Controles de Áudio (Menu ESC):**
+  - Três sliders independentes e em tempo real: **Volume Geral** (Master), **Volume BGM** (músicas de fundo dos biomas) e **Volume Efeitos** (SFX de passos, ataques e skills).
+  - Salvamento automático sem botão de salvar por ID de usuário no `localStorage`.
+- **Interface Inteligente & Drag-and-Drop Universal:**
+  - Auto-scaling responsivo que previne qualquer modal de extrapolar a viewport (`clampPosElemento` no redimensionamento da janela).
+  - Suporte universal a drag-and-drop por mouse e touch para todas as janelas do game (Inventário, Skills, Atributos, Config, Social, Ferreiro, Teleporte, Trade, Invites), respeitando os salvamentos do Editor de Interface.
+- **Desacoplamento da Mira com o Mouse no PC:**
+  - O item em mãos e skills ativas seguem estritamente o ponteiro do mouse, e as teclas WASD controlam exclusivamente a locomoção do corpo do personagem.
+
+---
+
+### v1.32.2 — 21/09/2026
+
+- **Controle de Mira com Mouse Desacoplado do WASD (PC):**
+  - **Item/Arma na Mão:** O item na mão do personagem (arco, espada, cajado, etc.) agora rastreia continuamente a posição do ponteiro do mouse na tela através da nova função `atualizarMiraMouse()`, chamada a cada frame no loop principal e no evento `mousemove`.
+  - **Movimentação WASD Independente:** O teclado WASD agora manipula única e exclusivamente o deslocamento corporal do herói (`moveX` e `moveY`), sem jamais sobrescrever a orientação da arma (`window.meuAngulo`).
+  - **Disparo Direcional de Skills:** Habilidades direcionais ativas (`Disparo Perfurante`, `Rajada de Flechas`, `Cascata Estelar`, `Dash`, etc.) disparam e se propagam rigorosamente na direção para a qual o mouse está apontando.
+  - **Ataque Automático e Mobile:** No mobile, os controles com joystick virtual touch mantêm a rotação pelo toque. No PC, o auto-ataque envia a direção correta do alvo ao servidor sem desviar a arma apontada pelo jogador no cursor.
+
+---
+
+### v1.32.1 — 21/09/2026
+
+- **Efeitos Sonoros Reais da Arqueira:**
+  - **Ataque Básico:** Vinculado `Sonoro/arqueira/atk_basico.ogg` (substituindo sintetizador de onda dente-de-serra por áudio real de arco e flecha).
+  - **Chuva de Flechas:** Vinculado `Sonoro/arqueira/chuva de flacha.ogg` via `window.tocarSonoro('arqueira_chuva')`.
+  - **Disparo Perfurante:** Vinculado `Sonoro/arqueira/disparo perfurante.ogg` via `window.tocarSonoro('arqueira_perfurante')`.
+  - **Rajada de Flechas (2 fases):**
+    - Fase 1 (carregamento/canalização): Vinculado `Sonoro/arqueira/Rajada e Flechas 1.ogg`.
+    - Fase 2 (disparo/soltar): Broadcast do servidor `action_arqueiro_rajada_fire` e disparo de `Sonoro/arqueira/Rajada e Flechas 2.ogg`.
+  - **Pré-carregamento no gesto:** Ao escolher a classe Arqueira na tela de seleção, o som `atk_basico.ogg` é pré-carregado no buffer de áudio do navegador.
+
+---
+
+### v1.32.0 — 21/09/2026
+
+- **Exibição visual da versão:** No canto inferior da tela inicial (login) e fixado no canto inferior durante o jogo (`.game-version-display`).
+- **Regra mandatória para IAs:** Registro obrigatório em formato de tabela de tudo o que foi feito e dos arquivos alterados em `INFO_PROJETO.md`, `CHANGELOG.md` e `REGRAS_IA.md`.
+- **Ferreiro & Forja:** Sistema completo de upgrade de itens (`ferreiro.js`, `upgrade.js`, `ferreiro.css`).
+- **Intro e Áudio:** Sistema de tela de abertura com watchdog (`intro.js`) e gerenciador de áudio integrado (`sonoro.js`).
+- **Visual do Roqueiro:** Novo visual humano estilizado com guitarra e amplificadores (`classes/roqueiro.js`).
+
+---
 
 ### v1.30.3 — 20/09/2026
 

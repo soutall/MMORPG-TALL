@@ -159,6 +159,12 @@ function _sombra(ctx, escala) {
 }
 
 function _desenharAura(ctx, slime, est, cor, raio) {
+    // FIX tela trava: cada monstro desenhava 4 sombras (shadowBlur) por frame. Com 60+
+    // monstros na tela (ex.: skill da Bateria no meio da horda), isso congelava o canvas
+    // em mobile. Agora o brilho usa só alpha (bem mais barato) e, em hordas grandes,
+    // a aura é pulada para manter o FPS (frentes de batalha densas ficam mais limpas).
+    var cont = window._monstrosDesenhados || 0;
+    if (cont > 55) return;
     var t = Date.now() / 1000 + est.fase;
     ctx.save();
     ctx.globalAlpha = 0.16 + _pulso(t, 2.2) * 0.14;
@@ -169,20 +175,15 @@ function _desenharAura(ctx, slime, est, cor, raio) {
     ctx.stroke();
     ctx.globalAlpha = 0.1 + _pulso(t, 1.8) * 0.1;
     ctx.fillStyle = cor;
-    ctx.shadowColor = cor;
-    ctx.shadowBlur = 10;
     ctx.beginPath();
     ctx.ellipse(0, 2, raio + 4, raio * 0.5, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.shadowBlur = 0;
     for (var i = 0; i < 3; i++) {
         var a = t * 0.9 + i * 2.09 + (slime.x || 0) * 0.02;
         var mx = Math.cos(a) * (raio + 7);
         var my = Math.sin(a) * (raio * 0.35 + 3) + Math.cos(a * 2.0) * 3 - 3;
         ctx.globalAlpha = 0.35 + _pulso(t * 1.4 + i, 2.6) * 0.3;
         ctx.fillStyle = cor;
-        ctx.shadowColor = cor;
-        ctx.shadowBlur = 6;
         ctx.beginPath();
         ctx.arc(mx, my, 1.5 + _pulso(t + i, 3) * 0.8, 0, Math.PI * 2);
         ctx.fill();
@@ -205,8 +206,6 @@ function _golpeArco(ctx, est, cor) {
     ctx.globalAlpha = (1 - p) * 0.85;
     ctx.strokeStyle = cor;
     ctx.lineWidth = 3;
-    ctx.shadowColor = cor;
-    ctx.shadowBlur = 8;
     ctx.beginPath();
     ctx.arc(0, 0, 16 + p * 6, -0.4, -0.4 + p * 1.6);
     ctx.stroke();
@@ -1206,7 +1205,7 @@ function _tanque(ctx, slime, est, info) {
 // Barra de vida acima do monstro (renderização do client, via classes/comum.js)
 function _barraHp(slime, dx, dy, largura) {
     if (typeof window.desenharBarraHp === "function") {
-        window.desenharBarraHp(slime.x + dx, slime.y + dy, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer, largura || 0);
+        window.desenharBarraHp(slime.x + dx, slime.y + dy, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer, largura || 0, slime);
     }
 }
 
@@ -1237,12 +1236,13 @@ function _desenharEliteMark(slime, escala) {
     ctx.restore();
     // Barra de vida MAIOR para o ELITE
     if (typeof window.desenharBarraHp === "function") {
-        window.desenharBarraHp(slime.x - 23 * escala, slime.y - 34 * escala, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer, 46 * escala);
+        window.desenharBarraHp(slime.x - 23 * escala, slime.y - 34 * escala, slime.hp, slime.maxHp, slime.stunTimer, slime.slowTimer, 46 * escala, slime);
     }
 }
 
 window.desenharSlime = function(slime) {
     if (slime.hp <= 0 || !window.ctx) return;
+    if (typeof window._monstrosDesenhados === 'number') window._monstrosDesenhados++;
     var ctx = window.ctx;
     var elite = !!slime.elite;
     var escala = (elite && slime.escala) ? slime.escala : 1;

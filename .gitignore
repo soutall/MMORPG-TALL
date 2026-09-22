@@ -1,5 +1,9 @@
-# Artefatos de trabalho (fora do versionamento)
-_tmp_*
+# Backups de segurança locais (não sobem para o GitHub)
+backup_seguranca_*/
+backup_monstros_*/
 backups/
+
+# Logs e temporários
 *.log
+server.log
 node_modules/

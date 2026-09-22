@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=239">
-    <link rel="stylesheet" href="inventario.css?v=134">
+    <link rel="stylesheet" href="style.css?v=241">
+    <link rel="stylesheet" href="inventario.css?v=135">
     <link rel="stylesheet" href="skills.css?v=143">
     <link rel="stylesheet" href="config.css?v=146">
     <link rel="stylesheet" href="atributos.css?v=5">
@@ -71,6 +71,7 @@
             <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" autofocus />
             <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
         </div>
+        <div class="game-version-display">v1.34.1</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -117,19 +118,38 @@
     <div id="status" data-ui="status">Desconectado</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
     <div id="coord-hud" data-ui="coord">X: 0  Y: 0</div>
+    <div id="hud-version" class="game-version-display">v1.34.1</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
-        <div id="hud-level" data-ui="hud-level">
-            <span id="level-text">LVL 1</span>
-            <div id="xp-bar-container"><div id="xp-bar-fill"></div></div>
-            <div id="stamina-bar-container"><div id="stamina-bar-fill"></div></div>
-            <div id="mp-bar-container"><div id="mp-bar-fill"></div></div>
+        <div id="hud-status-main">
+            <canvas id="hud-retrato" width="46" height="46"></canvas>
+            <div id="hud-barras">
+                <div id="level-text-wrap"><span id="level-text">LVL 1</span></div>
+                <div id="hp-bar-container" title="Vida"><div id="hp-bar-fill"></div></div>
+                <div id="mp-bar-container" title="Mana"><div id="mp-bar-fill"></div></div>
+                <div id="stamina-bar-container" title="Stamina (Dash)"><div id="stamina-bar-fill"></div></div>
+            </div>
+            <div id="hud-pocoes">
+                <div class="pocao-slot-wrap">
+                    <button id="btn-pocao-hp" class="pocao-slot" onclick="usarPocao('hp')" title="Usar Poção de Vida (Q)">🧪<span class="pocao-qtd" id="pocao-hp-qtd">0</span><span class="key-badge">Q</span></button>
+                </div>
+                <div class="pocao-slot-wrap">
+                    <button id="btn-pocao-mp" class="pocao-slot" onclick="usarPocao('mp')" title="Usar Poção de Mana (E)">🔮<span class="pocao-qtd" id="pocao-mp-qtd">0</span><span class="key-badge">E</span></button>
+                </div>
+            </div>
         </div>
+
+        <div id="hud-ouro" title="Ouro coletado">🪙 <span id="hud-ouro-qtd">0</span></div>
 
         <div id="hud-buffs" class="hud-buffs-panel" data-ui="hud-buffs">
             <div class="hud-buffs-title">BUFFS</div>
             <div id="hud-buffs-bar" class="hud-buffs-bar"></div>
         </div>
+    </div>
+
+    <!-- v1.34: BARRA DE XP NO CENTRO INFERIOR (abaixo dos slots de skill) -->
+    <div id="hud-xp-central" data-ui="hud-xp-central">
+        <div id="xp-bar-container"><div id="xp-bar-fill"></div></div>
     </div>
 
     <style>
@@ -327,19 +347,19 @@
         <button id="btn-roqueiro-bateria" class="btn-action btn-roqueiro-bateria" ontouchstart="usarBateriaRoqueiro(); event.stopPropagation();" onclick="usarBateriaRoqueiro();" title="Bateria (1)">🥁<span class="key-badge">1</span></button>
         <button id="btn-roqueiro-teleporte" class="btn-action btn-roqueiro-teleporte" ontouchstart="iniciarDragSkill(event,'teleporte'); event.preventDefault(); event.stopPropagation();" onclick="ativarTeleporteRoqueiro();" title="Teleporte (2)">🌠<span class="key-badge">2</span></button>
         <button id="btn-roqueiro-banda" class="btn-action btn-roqueiro-banda" ontouchstart="usarBandaRoqueiro(); event.stopPropagation();" onclick="usarBandaRoqueiro();" title="Banda (3)">🎸<span class="key-badge">3</span></button>
-        <button id="btn-roqueiro-grito" class="btn-action btn-roqueiro-grito" ontouchstart="usarGritoDeGuerraRoqueiro(); event.stopPropagation();" onclick="usarGritoDeGuerraRoqueiro();" title="Grito de Guerra (Q)">📣<span class="key-badge">Q</span></button>
+        <button id="btn-roqueiro-grito" class="btn-action btn-roqueiro-grito" ontouchstart="usarGritoDeGuerraRoqueiro(); event.stopPropagation();" onclick="usarGritoDeGuerraRoqueiro();" title="Grito de Guerra (4)">📣<span class="key-badge">4</span></button>
         
         <!-- BOTOES DO LADINO -->
         <button id="btn-ladino-danca" class="btn-action btn-ladino-danca" ontouchstart="usarDancaAdagas(); event.stopPropagation();" onclick="usarDancaAdagas();" title="Dança das Adagas (1)">💫<span class="key-badge">1</span></button>
         <button id="btn-ladino-bomba" class="btn-action btn-ladino-bomba" ontouchstart="iniciarDragSkill(event,'bomba'); event.preventDefault(); event.stopPropagation();" onclick="ativarBombaSmartCast();" title="Névoa Venenosa (2)">🧪<span class="key-badge">2</span></button>
         <button id="btn-ladino-camuflagem" class="btn-action btn-ladino-camuflagem" ontouchstart="usarCamuflagemSombria(); event.stopPropagation();" onclick="usarCamuflagemSombria();" title="Camuflagem Sombria (3)">🌑<span class="key-badge">3</span></button>
-        <button id="btn-ladino-estrela" class="btn-action btn-ladino-estrela" ontouchstart="iniciarDragSkill(event,'estrela'); event.preventDefault(); event.stopPropagation();" onclick="ativarEstrelaSmartCast();" title="Estrela da Morte (Q)">⭐<span class="key-badge">Q</span></button>
+        <button id="btn-ladino-estrela" class="btn-action btn-ladino-estrela" ontouchstart="iniciarDragSkill(event,'estrela'); event.preventDefault(); event.stopPropagation();" onclick="ativarEstrelaSmartCast();" title="Estrela da Morte (4)">⭐<span class="key-badge">4</span></button>
         
         <!-- BOTOES DO DRONEMASTER -->
         <button id="btn-dm-supressao" class="btn-action btn-dm-supressao" ontouchstart="usarSupressaoDronemaster(); event.stopPropagation();" onclick="usarSupressaoDronemaster();" title="Modo Supressão (1)">🎯<span class="key-badge">1</span></button>
         <button id="btn-dm-assalto" class="btn-action btn-dm-assalto" ontouchstart="usarAssaltoDronemaster(); event.stopPropagation();" onclick="usarAssaltoDronemaster();" title="Modo Assalto (2)">🤖<span class="key-badge">2</span></button>
         <button id="btn-dm-caixa" class="btn-action btn-dm-caixa" ontouchstart="iniciarDragSkill(event,'caixa'); event.preventDefault(); event.stopPropagation();" onclick="ativarCaixaSmartCast();" title="Caixa de Ferramentas (3)">🧰<span class="key-badge">3</span></button>
-        <button id="btn-dm-tita" class="btn-action btn-dm-tita" ontouchstart="usarTitaDronemaster(); event.stopPropagation();" onclick="usarTitaDronemaster();" title="Protocolo Titã (Q)">🦾<span class="key-badge">Q</span></button>
+        <button id="btn-dm-tita" class="btn-action btn-dm-tita" ontouchstart="usarTitaDronemaster(); event.stopPropagation();" onclick="usarTitaDronemaster();" title="Protocolo Titã (4)">🦾<span class="key-badge">4</span></button>
         
         <!-- BOTOES DO ARQUEIRO ARCANO -->
         <button id="btn-arcano-cometas" class="btn-action btn-arcano-cometas" ontouchstart="iniciarDragSkill(event,'cometas'); event.preventDefault(); event.stopPropagation();" onclick="ativarCometasSmartCast();" title="Chuva de Cometas (1)">☄️<span class="key-badge">1</span></button>
@@ -350,7 +370,7 @@
         <button id="btn-sniper-apontar" class="btn-action btn-sniper-apontar" ontouchstart="ativarSniperTiroSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarSniperTiroSmartCast();" title="Disparo Supremo (1)">💥<span class="key-badge">1</span></button>
         <button id="btn-sniper-rede" class="btn-action btn-sniper-rede" ontouchstart="iniciarDragSkill(event,'rede'); event.preventDefault(); event.stopPropagation();" onclick="ativarRedeSmartCast();" title="Arame Prendedor (2)">🕸️<span class="key-badge">2</span></button>
         <button id="btn-sniper-posicao" class="btn-action btn-sniper-posicao" ontouchstart="usarPosicaoSniper(); event.stopPropagation();" onclick="usarPosicaoSniper();" title="Posição de Franco-Atirador (3)">🎯<span class="key-badge">3</span></button>
-        <button id="btn-sniper-camuflagem" class="btn-action btn-sniper-camuflagem" ontouchstart="usarCamuflagemSniper(); event.stopPropagation();" onclick="usarCamuflagemSniper();" title="Camuflagem Natural (Q)">🌿<span class="key-badge">Q</span></button>
+        <button id="btn-sniper-camuflagem" class="btn-action btn-sniper-camuflagem" ontouchstart="usarCamuflagemSniper(); event.stopPropagation();" onclick="usarCamuflagemSniper();" title="Camuflagem Natural (4)">🌿<span class="key-badge">4</span></button>
         
         <!-- ATAQUE BÁSICO MANUAL REMOVIDO (v1.30.2): só o auto-attack fica ativo; botão oculto -->
         <button id="btn-attack" class="btn-action btn-attack" style="display:none;" title="Ataque Básico desativado (use o auto-attack)">⚔️</button>
@@ -427,20 +447,8 @@
     <div id="inventory-screen">
         <div id="inv-window">
             <div id="inv-title"> INVENT&#193;RIO </div>
+            <button id="btn-inv-fechar" onclick="fecharInventario()" title="Fechar (I)">✕</button>
             <div id="equip-body">
-                <div class="px-block px-capa"></div>
-                <div class="px-block px-cabeca"></div>
-                <div class="px-block px-pescoco"></div>
-                <div class="px-block px-tronco"></div>
-                <div class="px-block px-braco-esq"></div>
-                <div class="px-block px-braco-dir"></div>
-                <div class="px-block px-mao-esq"></div>
-                <div class="px-block px-mao-dir"></div>
-                <div class="px-block px-perna-esq"></div>
-                <div class="px-block px-perna-dir"></div>
-                <div class="px-block px-pe-esq"></div>
-                <div class="px-block px-pe-dir"></div>
-
                 <div class="inv-slot slot-capacete" data-slot="capacete"><span class="slot-ico">🪖</span><span class="slot-label">CAPACETE</span></div>
                 <div class="inv-slot slot-colar" data-slot="colar"><span class="slot-ico">📿</span><span class="slot-label">COLAR</span></div>
                 <div class="inv-slot slot-peitoral" data-slot="peitoral"><span class="slot-ico">🛡️</span><span class="slot-label">PEITORAL</span></div>
@@ -457,19 +465,17 @@
                 <button class="mochila-aba" data-aba="consumiveis">🍶 CONS.</button>
                 <button class="mochila-aba" data-aba="itens">🧰 ITENS</button>
                 <button class="mochila-aba" data-aba="equipamentos">⚔️ EQUIP.</button>
-                <button class="mochila-aba" data-aba="quest">📜 QUEST</button>
-                <button class="mochila-aba" data-aba="cosmeticos">🎭 COSM.</button>
+                <button class="mochila-aba" data-aba="pedras">💠 PEDRAS</button>
             </div>
             <div id="mochila-grade"></div>
-            <div id="inv-comparacao"></div>
             <div id="inv-info">Toque em um slot para inspecionar.</div>
             <div id="inv-botoes">
-                <button id="btn-inv-organizar" class="btn-inv-acao" onclick="organizarMochila()">🗂️ ORGANIZAR</button>
-                <button id="btn-inv-destruir" class="btn-inv-acao btn-inv-vermelho" style="display:none;" onclick="destruirItemSelecionado()">🗑️ DESTRUIR</button>
-                <button id="btn-inv-bloquear" class="btn-inv-acao btn-inv-bloquear" style="display:none;" onclick="alternarBloqueioItemSelecionado()">🔒 BLOQUEAR</button>
-                <button id="btn-inv-fechar" onclick="fecharInventario()">FECHAR</button>
+                <button id="btn-inv-organizar" class="btn-inv-acao" onclick="organizarMochila()" title="Organizar">🗂️</button>
+                <button id="btn-inv-destruir" class="btn-inv-acao btn-inv-vermelho" style="display:none;" onclick="destruirItemSelecionado()" title="Destruir">🗑️</button>
+                <button id="btn-inv-bloquear" class="btn-inv-acao btn-inv-bloquear" style="display:none;" onclick="alternarBloqueioItemSelecionado()" title="Bloquear">🔒</button>
             </div>
         </div>
+        <div id="inv-comparacao"></div>
     </div>
 
     <!-- ==================== FERREIRO — FORJA DE EQUIPAMENTOS ==================== -->
@@ -609,9 +615,27 @@
                 <div class="settings-label">🔊 VOLUME GERAL</div>
                 <div class="volume-row">
                     <span class="vol-icone">🔈</span>
-                    <input type="range" id="volume-slider" min="0" max="100" value="80" oninput="mudarVolume(this.value)">
+                    <input type="range" id="volume-slider" min="0" max="100" value="80" oninput="mudarVolumeGeral(this.value)">
                     <span class="vol-icone">🔊</span>
                     <span id="volume-valor">80%</span>
+                </div>
+            </div>
+            <div class="settings-linha">
+                <div class="settings-label">🎵 VOLUME BGM (MÚSICA DO MAPA)</div>
+                <div class="volume-row">
+                    <span class="vol-icone">🔈</span>
+                    <input type="range" id="volume-bgm-slider" min="0" max="100" value="80" oninput="mudarVolumeBgm(this.value)">
+                    <span class="vol-icone">🎵</span>
+                    <span id="volume-bgm-valor">80%</span>
+                </div>
+            </div>
+            <div class="settings-linha">
+                <div class="settings-label">💥 VOLUME EFEITOS (SFX / SKILLS)</div>
+                <div class="volume-row">
+                    <span class="vol-icone">🔈</span>
+                    <input type="range" id="volume-sfx-slider" min="0" max="100" value="80" oninput="mudarVolumeSfx(this.value)">
+                    <span class="vol-icone">💥</span>
+                    <span id="volume-sfx-valor">80%</span>
                 </div>
             </div>
             <div class="settings-linha">
@@ -623,7 +647,7 @@
             <div class="settings-linha">
                 <button id="btn-sair-jogo" class="btn-config-acao btn-sair" onclick="sairDoJogo()">🚪 SAIR DO JOGO</button>
             </div>
-            <div id="settings-roda-pe">MMORPG MOBILE</div>
+            <div id="settings-roda-pe">MMORPG PC &amp; MOBILE</div>
         </div>
     </div>
 
@@ -636,7 +660,7 @@
     <script src="https://unpkg.com/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
     <script src="mapa_cidade.js?v=7"></script>
     <!-- <script src="mapa_cidade_three.js?v=1"></script> -->
-    <script src="mapa_arena.js?v=4"></script>
+    <script src="mapa_arena.js?v=5"></script>
     <script src="solari.js?v=5"></script>
     <script>
         (function () {
@@ -651,7 +675,7 @@
             }
         })();
     </script>
-    <script src="classes/comum.js?v=1000"></script>
+    <script src="classes/comum.js?v=1001"></script>
     <script src="classes/guerreiro.js?v=1002"></script>
     <script src="classes/mago.js?v=1000"></script>
     <script src="classes/summoner.js?v=1000"></script>
@@ -668,12 +692,12 @@
     <script src="efeitos/barbaro_efeitos.js?v=231"></script>
     <script src="efeitos/guerreiro_efeitos.js?v=235"></script>
     <script src="efeitos/mago_efeitos.js?v=1"></script>
-    <script src="efeitos/roqueiro_efeitos.js?v=230"></script>
+    <script src="efeitos/roqueiro_efeitos.js?v=231"></script>
     <script src="efeitos/ladino_efeitos.js?v=1300"></script>
     <script src="efeitos.js?v=234"></script>
     <script src="debuffs.js?v=2"></script>
     <script src="efeitos/boss_golem.js?v=230"></script>
-    <script src="monstros.js?v=2003"></script>
+    <script src="monstros.js?v=2004"></script>
     <script src="inventario.js?v=133"></script>
     <script src="skills.js?v=145"></script>
     <script src="config.js?v=143"></script>
@@ -684,11 +708,13 @@
     <script src="ferreiro.js?v=1"></script>
     <script src="colisao-editor.js?v=2"></script>
     <script src="mapa-editor.js?v=1"></script>
-    <script src="audio-manager.js?v=1"></script>
-    <script src="sonoro.js?v=3"></script>
+    <script src="audio-manager.js?v=2"></script>
+    <script src="sonoro.js?v=5"></script>
     <script src="intro.js?v=1"></script>
 
     <script>
+        const GAME_VERSION = 'v1.34.1';
+        window.GAME_VERSION = GAME_VERSION;
         const WORLD_WIDTH = 65040;
         const WORLD_HEIGHT = 36000;
         window.WORLD_WIDTH = WORLD_WIDTH;
@@ -785,6 +811,8 @@
         const xpBarFill = document.getElementById("xp-bar-fill");
         const staminaBarFill = document.getElementById("stamina-bar-fill");
         const mpBarFill = document.getElementById("mp-bar-fill");
+        const hpBarFill = document.getElementById("hp-bar-fill");
+        window.hpBarFill = hpBarFill;
         const levelUpPopup = document.getElementById("level-up-popup");
         const btnAutofarm = document.getElementById("btn-autofarm");
         const btnDash = document.getElementById("btn-dash");
@@ -1028,7 +1056,7 @@
             nevasca:     { raio: 115, alcanceMax: 350, classe: 'mago',       cor: '#00ffff', nome: '❄️ NEVASCA' },
             vulcao:      { raio: 140, alcanceMax: 380, classe: 'mago',       cor: '#e74c3c', nome: '🌋 VULCÃO' },
             chuva:       { raio: 75,  alcanceMax: 420, classe: 'arqueiro',   cor: '#1abc9c', nome: '🌧️ CHUVA DE FLECHAS' },
-            julgamento:  { raio: 65,  alcanceMax: 340, classe: 'curandeiro', cor: '#f1c40f', nome: '⚡ JULGAMENTO' },
+            julgamento:  { raio: 78,  alcanceMax: 340, classe: 'curandeiro', cor: '#f1c40f', nome: '⚡ JULGAMENTO' },
             prece:       { raio: 100, alcanceMax: 320, classe: 'curandeiro', cor: '#2ecc71', nome: '✨ CURA EM ÁREA' },
             esmagamento: { raio: 75,  alcanceMax: 240, classe: 'barbaro',    cor: '#e74c3c', nome: '🪓 ESMAGAMENTO' },
             teleporte:   { raio: 25,  alcanceMax: 300, classe: 'roqueiro',   cor: '#e67e22', nome: '🌠 STAGE DIVE' },
@@ -1152,8 +1180,8 @@
             if (window.floatingTexts) window.floatingTexts.push({
                 x: window.meuX + 12,
                 y: window.meuY - 34,
-                text: (tipo === 'mana') ? "💧 Sem Mana!" : "🎯 Fora de alcance!",
-                color: (tipo === 'mana') ? "#3498db" : "#e74c3c",
+                text: (tipo === 'mana') ? "💧 Sem Mana!" : (tipo === 'stamina' || tipo === 'estamina') ? "⚡ Sem Stamina!" : (tipo === 'pocao_hp') ? "🧪 Sem Poção de Vida!" : (tipo === 'pocao_mp') ? "🔮 Sem Poção de Mana!" : "🎯 Fora de alcance!",
+                color: (tipo === 'mana') ? "#3498db" : (tipo === 'stamina' || tipo === 'estamina') ? "#f39c12" : (tipo === 'pocao_hp' || tipo === 'pocao_mp') ? "#e74c3c" : "#e74c3c",
                 alpha: 1.0
             });
         }
@@ -1162,6 +1190,13 @@
         function custoManaLocal(skillId, baseMp) {
             let nivel = (window.skillsNiveis && window.skillsNiveis[skillId]) || 1;
             return Math.round(baseMp * Math.pow(1.06, nivel - 1));
+        }
+
+        // v1.34: STAMINA — verifica (e dá aviso) ANTES de usar o dash.
+        // O DASH não gasta mais mana: gasta stamina (barra laranja).
+        function checarEstamina(custo) {
+            if (custo > 0 && (minhaEstamina || 0) < custo) { avisoSkillLocal('stamina'); return false; }
+            return true;
         }
 
         // Verifica mana/alcance ANTES de ativar o cooldown visual da skill.
@@ -1304,6 +1339,7 @@
 
         function usarRajadaFlechas() {
             if (window.estaMorto || window.arqueiroRajadaCooldown || window.arqueiroRajadaLigada || window.minhaClasse !== 'arqueiro') return;
+            if (typeof window.atualizarMiraMouse === 'function') window.atualizarMiraMouse();
             if (!checarSkill('rajada', 30)) return;
             window.arqueiroRajadaCooldown = true;
             window.arqueiroRajadaLigada = true;
@@ -1355,6 +1391,8 @@
             cancelarTodasMiras();
             roqueiroTeleporteCooldown = true; btnRoqueiroTeleporte.classList.add("cooldown"); registrarCooldownBotao(btnRoqueiroTeleporte, 8000);
             setTimeout(() => { roqueiroTeleporteCooldown = false; btnRoqueiroTeleporte.classList.remove("cooldown"); btnRoqueiroTeleporte.dataset.cdUntil = ''; }, 8000);
+
+            if (window.tocarSonoro) window.tocarSonoro('roqueiro_dash');
 
             window.meuX = tx - 12;
             window.meuY = ty - 16;
@@ -1626,6 +1664,7 @@
 
         function usarCascataEstelar() {
             if (window.estaMorto || window.arcanoCascataCooldown || window.minhaClasse !== 'arqueiro_arcano') return;
+            if (typeof window.atualizarMiraMouse === 'function') window.atualizarMiraMouse();
             if (!checarSkill('cascata_estelar', 25)) return;
             cancelarTodasMiras();
             window.arcanoCascataCooldown = true; btnArcanoCascata.classList.add("cooldown"); registrarCooldownBotao(btnArcanoCascata, 8000);
@@ -1727,6 +1766,7 @@
             if (window.estaMorto || window.minhaClasse !== 'sniper') return;
             if (window.snPosicaoAtivo) {
                 window.snPosicaoAtivo = false;
+                window.sniperPosicaoAtiva = false;
                 btnSniperPosicao.classList.remove("active");
                 if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'sniper_cancelar_posicao' })); }
                 return;
@@ -1739,10 +1779,14 @@
             window.ultimoSkillEnviado = { skill: 'sniper_posicao', ts: Date.now() };
             setTimeout(() => { window.sniperPosicaoCooldown = false; btnSniperPosicao.classList.remove("cooldown"); btnSniperPosicao.dataset.cdUntil = ''; }, 15000);
             window.snPosicaoAtivo = true;
+            window.sniperPosicaoAtiva = true;
+            // Posição de Franco-Atirador reseta o CD do Disparo Supremo imediatamente
+            window.sniperAimCooldown = false;
+            limparCdBotao(btnSniperApontar);
             btnSniperPosicao.classList.add("active");
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'sniper_posicao' })); }
             // Deitou na Posição de Franco-Atirador → ativa automaticamente a mira do Disparo Supremo (skill 1)
-            if (!window.sniperAimCooldown && checarSkill('disparo_supremo', 30)) {
+            if (checarSkill('disparo_supremo', 30)) {
                 iniciarMiraSniper();
             }
         }
@@ -1768,6 +1812,7 @@
         let ultimoAutoAtaqueEm = 0;     // feedback visual de ataque executado
         let historicoDano = []; let danoTotalAcumulado = 0;
         window.meuId = null; window.meuX = 60474, window.meuY = 640; window.meuHp = 100, window.meuMaxHp = 100; window.estaMorto = false;
+        window.meuOuro = 0; window.pedraBrilhoFx = [];
         window.meuEscudoAbsoluto = 0; window.meuEscudoAbsolutoMax = 0;
         let _tickBateria = 0; window.ultimoWorldUpdateAt = 0;
         let moveX = 0, moveY = 0; window.meuAngulo = 0; window.walkCycle = 0;
@@ -1782,6 +1827,113 @@
         function atualizarHudXp() { let xpMax = tabelaXp[meuLevel] || 100; xpBarFill.style.width = Math.min(100, (meuXp / xpMax) * 100) + "%"; levelText.innerText = `LVL ${meuLevel}`; }
         function atualizarHudEstamina() { staminaBarFill.style.width = Math.max(0, minhaEstamina) + "%"; }
         function atualizarHudMp() { if (!mpBarFill) return; let max = window.meuMaxMp || 50; let m = window.meuMp || 0; mpBarFill.style.width = Math.max(0, Math.min(100, (m / max) * 100)) + "%"; }
+        // v1.34: barra de VIDA (vermelho forte) na HUD
+        function atualizarHudHp() { if (!window.hpBarFill) return; let max = window.meuMaxHp || 100; let h = window.meuHp || 0; window.hpBarFill.style.width = Math.max(0, Math.min(100, (h / max) * 100)) + "%"; }
+
+        // v1.34: contador de OURO na HUD
+        function atualizarHudOuro() {
+            let el = document.getElementById("hud-ouro-qtd");
+            if (el) el.textContent = window.meuOuro || 0;
+        }
+        window.atualizarHudOuro = atualizarHudOuro;
+
+        // v1.34: som único ao dropar PEDRA DE UPGRADE (WebAudio simples)
+        function tocarSomPedraUpgrade() {
+            try {
+                let AC = window.AudioContext || window.webkitAudioContext;
+                if (!AC) return;
+                if (!window._pedraCtx) window._pedraCtx = new AC();
+                let ctx = window._pedraCtx;
+                if (ctx.state === 'suspended') ctx.resume();
+                let t = ctx.currentTime;
+                // arpejo cristalino (3 notas rápidas)
+                [880, 1174.66, 1567.98].forEach(function (f, i) {
+                    let o = ctx.createOscillator();
+                    let g = ctx.createGain();
+                    o.type = 'sine';
+                    o.frequency.value = f;
+                    g.gain.setValueAtTime(0.0001, t + i * 0.055);
+                    g.gain.exponentialRampToValueAtTime(0.12, t + i * 0.055 + 0.015);
+                    g.gain.exponentialRampToValueAtTime(0.0001, t + i * 0.055 + 0.28);
+                    o.connect(g); g.connect(ctx.destination);
+                    o.start(t + i * 0.055); o.stop(t + i * 0.055 + 0.3);
+                });
+            } catch (e) { /* sem áudio */ }
+        }
+        window.tocarSomPedraUpgrade = tocarSomPedraUpgrade;
+
+        // v1.34: RETRATO em tempo real — desenha o sprite do personagem num canvas
+        // pequeno da HUD, espelhando o mesmo dispatch de desenho do jogo.
+        function atualizarRetrato() {
+            let c = document.getElementById("hud-retrato");
+            if (!c || !window.minhaClasse || !window.meuId) return;
+            let rctx = c.getContext("2d");
+            rctx.clearRect(0, 0, c.width, c.height);
+            if (window.estaMorto) {
+                rctx.fillStyle = "rgba(80,80,80,0.9)"; rctx.fillRect(0, 0, c.width, c.height);
+                return;
+            }
+            let off = window._retratoOff;
+            if (!off) { off = document.createElement("canvas"); off.width = 60; off.height = 60; window._retratoOff = off; }
+            let octx = off.getContext("2d");
+            octx.clearRect(0, 0, 60, 60);
+            let oldCtx = window.ctx;
+            window.ctx = octx; // as funções de desenho usam window.ctx
+            try {
+                let mov = (window.moveX || window.moveY) ? true : false;
+                let ang = window.meuAngulo || 0;
+                let hpVal = Math.max(1, window.meuHp || 1);
+                let maxHpVal = Math.max(1, window.meuMaxHp || 1);
+                let cls = window.minhaClasse;
+                let pid = window.meuId;
+                let px = 8, py = 22; // corpo centralizado no tile 60x60
+                if (cls === 'mago' && window.desenharMago) window.desenharMago(px, py, mov, ang, hpVal, maxHpVal);
+                else if (cls === 'summoner' && window.desenharSummoner) window.desenharSummoner(px, py, mov, ang, hpVal, maxHpVal);
+                else if (cls === 'arqueiro' && window.desenharArqueiro) window.desenharArqueiro(px, py, mov, ang, hpVal, maxHpVal, pid);
+                else if (cls === 'curandeiro' && window.desenharCurandeiro) window.desenharCurandeiro(px, py, mov, ang, hpVal, maxHpVal);
+                else if (cls === 'barbaro' && window.desenharBarbaro) window.desenharBarbaro(px, py, mov, ang, hpVal, maxHpVal, pid);
+                else if (cls === 'roqueiro' && window.desenharRoqueiro) window.desenharRoqueiro(px, py, mov, ang, hpVal, maxHpVal, pid);
+                else if (cls === 'ladino' && window.desenharLadino) window.desenharLadino(px, py, mov, ang, hpVal, maxHpVal);
+                else if (cls === 'dronemaster' && window.desenharDronemaster) window.desenharDronemaster(px, py, mov, ang, hpVal, maxHpVal, { eu: true, pp: null });
+                else if (cls === 'arqueiro_arcano' && window.desenharArqueiroArcano) window.desenharArqueiroArcano(px, py, mov, ang, hpVal, maxHpVal, { eu: true, pp: null });
+                else if (cls === 'sniper' && window.desenharSniper) window.desenharSniper(px, py, mov, ang, hpVal, maxHpVal, { eu: true, pp: null });
+                else if (window.desenharGuerreiro) window.desenharGuerreiro(px, py, "#c0392b", mov, ang, hpVal, maxHpVal, false, 0, pid);
+            } catch (e) { /* ignorar falha de desenho do retrato */ }
+            finally { window.ctx = oldCtx; }
+            rctx.imageSmoothingEnabled = false;
+            rctx.drawImage(off, 0, 0, 60, 60, 0, 0, c.width, c.height);
+        }
+        setInterval(atualizarRetrato, 150);
+
+        // v1.34: POÇÕES — conta as poções de cada tipo na mochila e atualiza os slots [HP] [MP]
+        function contarPocoes() {
+            let hp = 0, mp = 0;
+            (window.mochila || []).forEach(i => {
+                if (!i || i.tipo !== 'consumivel') return;
+                if (i.subtipo === 'pocao_mp') mp += Math.max(1, i.quantidade || 1);
+                else if (i.subtipo === 'pocao_hp') hp += Math.max(1, i.quantidade || 1);
+            });
+            return { hp: hp, mp: mp };
+        }
+        function atualizarHudPocoes() {
+            let c = contarPocoes();
+            let elHp = document.getElementById('pocao-hp-qtd');
+            let elMp = document.getElementById('pocao-mp-qtd');
+            let btnHp = document.getElementById('btn-pocao-hp');
+            let btnMp = document.getElementById('btn-pocao-mp');
+            if (elHp) elHp.textContent = c.hp;
+            if (elMp) elMp.textContent = c.mp;
+            if (btnHp) btnHp.classList.toggle('sem-pocao', c.hp <= 0);
+            if (btnMp) btnMp.classList.toggle('sem-pocao', c.mp <= 0);
+        }
+        function usarPocao(tipo) {
+            if (window.estaMorto) return;
+            let c = contarPocoes();
+            if (tipo === 'hp' && c.hp <= 0) { avisoSkillLocal('pocao_hp'); return; }
+            if (tipo === 'mp' && c.mp <= 0) { avisoSkillLocal('pocao_mp'); return; }
+            if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'usar_pocao', subtipo: tipo })); }
+        }
+        window.usarPocao = usarPocao;
 
         function atualizarCooldownSkillHUD() {
             const map = [
@@ -1793,10 +1945,10 @@
                 ['btn-arqueiro-rajada', () => window.arqueiroRajadaCooldown, 12],
                 ['btn-curandeiro-cura', () => curaCooldownAtivo, 6],
                 ['btn-curandeiro-julgamento', () => window.julgamentoCooldownAtivo, 6],
-                ['btn-curandeiro-aura', () => window.auraSagradaCooldown, 10],
-                ['btn-barbaro-furia', () => furiaCooldownAtivo, 8],
+                ['btn-curandeiro-aura', () => window.auraSagradaCooldown, 5],
+                ['btn-barbaro-furia', () => furiaCooldownAtivo, 15],
                 ['btn-barbaro-esmagamento', () => window.esmagamentoCooldownAtivo, 6],
-                ['btn-barbaro-giro', () => window.giroDescontroladoCooldownAtivo, 12],
+                ['btn-barbaro-giro', () => window.giroDescontroladoCooldownAtivo, 15],
                 ['btn-roqueiro-bateria', () => window.roqueiroBateriaCooldown, 8],
                 ['btn-roqueiro-teleporte', () => roqueiroTeleporteCooldown, 8],
                 ['btn-roqueiro-banda', () => window.roqueiroBandaCooldown, 10],
@@ -1832,17 +1984,29 @@
                 }
                 let restante = null;
                 const until = Number(btn.dataset.cdUntil || 0);
+                const durMs = Number(btn.dataset.cdDur || 0);
+                let restanteMs = 0;
                 if (until > Date.now()) {
-                    restante = Math.max(1, Math.ceil((until - Date.now()) / 1000));
+                    restanteMs = until - Date.now();
+                    restante = Math.max(1, Math.ceil(restanteMs / 1000));
                 } else if (ativo && ativo()) {
                     restante = Math.max(1, Math.ceil(padrao));
+                    restanteMs = durMs > 0 ? durMs : padrao * 1000; // v1.34: sem cdUntil exato, usa duração conhecida
                 }
                 if (restante) {
-                    btn.classList.add('show-cd');
+                    btn.classList.add('show-cd', 'cd-active');
+                    btn.classList.remove('cd-ready');
                     badge.textContent = restante + 's';
+                    // v1.34: anel drena no sentido horário (100% cheio no início → 0% quando pronto)
+                    const totalMs = durMs > 0 ? durMs : padrao * 1000;
+                    let pct = Math.max(0, Math.min(100, (restanteMs / totalMs) * 100));
+                    btn.style.setProperty('--cd-pct', pct);
                 } else {
-                    btn.classList.remove('show-cd');
+                    btn.classList.remove('show-cd', 'cd-active');
                     badge.textContent = '';
+                    // v1.34: brilho quando a skill está PRONTA
+                    btn.classList.add('cd-ready');
+                    btn.style.setProperty('--cd-pct', 0);
                 }
             });
         }
@@ -1850,10 +2014,14 @@
         function registrarCooldownBotao(btn, milissegundos) {
             if (!btn) return;
             btn.dataset.cdUntil = String(Date.now() + milissegundos);
+            btn.dataset.cdDur = String(milissegundos); // v1.34: usado pelo anel de cooldown
         }
 
         setInterval(atualizarCooldownSkillHUD, 250);
         window.atualizarHudMp = atualizarHudMp;
+        window.atualizarHudHp = atualizarHudHp;
+        window.atualizarHudPocoes = atualizarHudPocoes;
+        window.atualizarHudXp = atualizarHudXp;
         function mostrarEfeitoLevelUp() { levelUpPopup.classList.add("show-levelup"); setTimeout(() => { levelUpPopup.classList.remove("show-levelup"); }, 1500); }
         function alternarAutofarm() { autofarmLigado = !autofarmLigado; if (autofarmLigado) { btnAutofarm.classList.add("active"); statusText.innerText = "Status: Autofarm ATIVADO 🤖"; } else { btnAutofarm.classList.remove("active"); statusText.innerText = "Status: Autofarm DESLIGADO"; } }
 
@@ -1981,6 +2149,8 @@
                         }
                         atualizarHudXp();
                         atualizarHudMp();
+                        if (window.atualizarHudHp) window.atualizarHudHp();
+                        if (window.atualizarHudPocoes) window.atualizarHudPocoes();
                         if (pingIntervalo) clearInterval(pingIntervalo);
                         pingIntervalo = setInterval(() => { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'ping', t: Date.now() })); }, 2000);
                         window.ehAdmin = !!dados.admin || (window.meuId && window.meuId.toLowerCase() === 'admin');
@@ -2029,6 +2199,9 @@
                         window.meuHp = window.meuMaxHp;
                         window.meuMp = window.meuMaxMp;
                         window.minhaEstamina = 100;
+                        if (window.atualizarHudHp) window.atualizarHudHp();
+                        window.atualizarHudMp && window.atualizarHudMp();
+                        window.atualizarHudEstamina && window.atualizarHudEstamina();
                         window.meusEfeitos = [];
                         if (window.todosJogadores && window.meuId && window.todosJogadores[window.meuId]) {
                             window.todosJogadores[window.meuId].efeitos = [];
@@ -2436,10 +2609,16 @@
                                 window.meuHp = hpServidor;
                                 window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 15, text: "+" + curado, color: "#2ecc71", alpha: 1.0 });
                             } else { window.meuHp = hpServidor; }
+                            if (window.atualizarHudHp) window.atualizarHudHp();
 
                             if (window.todosJogadores[window.meuId].estamina !== undefined) {
                                 minhaEstamina = window.todosJogadores[window.meuId].estamina;
                                 atualizarHudEstamina();
+                            }
+
+                            if (window.todosJogadores[window.meuId].ouro !== undefined && window.todosJogadores[window.meuId].ouro !== window.meuOuro) {
+                                window.meuOuro = window.todosJogadores[window.meuId].ouro;
+                                if (window.atualizarHudOuro) window.atualizarHudOuro();
                             }
 
                             if (window.todosJogadores[window.meuId].stunTimer !== undefined) {
@@ -2467,11 +2646,53 @@
                     if (dados.type === 'item_coletado' && dados.item) {
                         if (typeof adicionarItemNaMochila === "function") adicionarItemNaMochila(dados.item);
                         if (statusText) statusText.innerText = "🎒 " + (dados.item.nome || 'Item') + " coletado!";
+                        if (window.atualizarHudPocoes) window.atualizarHudPocoes();
                     }
                     if (dados.type === 'item_removido_chao') {
                         if (window.listaDrops) window.listaDrops = window.listaDrops.filter(d => d.id !== dados.dropId);
                     }
+                    // v1.34: coleta automática de ouro (drop autocoleta)
+                    if (dados.type === 'ouro_ganho') {
+                        window.meuOuro = dados.ouro;
+                        if (statusText) statusText.innerText = "🪙 +" + dados.quantidade + " Ouro!";
+                        if (window.atualizarHudOuro) window.atualizarHudOuro();
+                    }
+                    // v1.34: poção usada (atualiza slots HP/MP) / indisponível / stamina
+                    if (dados.type === 'pocao_usada') {
+                        if (statusText) statusText.innerText = "✨ " + (dados.nome || 'Poção') + " usada!";
+                        if (window.atualizarHudPocoes) window.atualizarHudPocoes();
+                    }
+                    if (dados.type === 'pocao_indisponivel') {
+                        if (statusText) statusText.innerText = "❌ Sem poção disponível!";
+                    }
+                    if (dados.type === 'stamina_sync' && dados.estamina !== undefined) {
+                        minhaEstamina = dados.estamina;
+                        atualizarHudEstamina();
+                    }
+                    if (dados.type === 'stamina_insuficiente') {
+                        avisoSkillLocal('stamina');
+                    }
+                    if (dados.type === 'hp_sync' && dados.hp !== undefined) {
+                        window.meuHp = dados.hp;
+                        if (dados.maxHp) window.meuMaxHp = dados.maxHp;
+                        if (window.atualizarHudHp) window.atualizarHudHp();
+                    }
                     if (dados.type === 'drop_raro') {
+                        if (dados.especial === 'pedra') {
+                            // v1.34: PEDRA DE UPGRADE — brilho + som únicos ao dropar
+                            if (window.floatingTexts) window.floatingTexts.push({ x: (dados.x || 0), y: (dados.y || 0) - 46, text: "💎 " + (dados.nome || "PEDRA DE UPGRADE!"), color: dados.cor || "#a855f7", alpha: 1.0 });
+                            if (window.pedraBrilhoFx) window.pedraBrilhoFx.push({ x: dados.x || 0, y: dados.y || 0, cor: dados.cor || "#a855f7", alpha: 1.0 });
+                            if (statusText) statusText.innerText = "💎 " + (dados.nome || "Pedra de Upgrade") + "!";
+                            if (typeof tocarSomPedraUpgrade === 'function') tocarSomPedraUpgrade();
+                            let elDropPopup = document.getElementById("drop-popup");
+                            if (elDropPopup) {
+                                elDropPopup.textContent = "💎 " + (dados.nome || "PEDRA DE UPGRADE") + "!";
+                                elDropPopup.classList.add("show-drop");
+                                clearTimeout(window._dropPopupTimer);
+                                window._dropPopupTimer = setTimeout(function () { elDropPopup.classList.remove("show-drop"); }, 2000);
+                            }
+                            return;
+                        }
                         if (dados.raridade === 'lendario') {
                             let elDropPopup = document.getElementById("drop-popup");
                             if (elDropPopup) {
@@ -2507,6 +2728,9 @@
                         if (dados.maxMp) window.meuMaxMp = dados.maxMp;
                         if (dados.mana !== undefined) window.meuMp = dados.mana;
                         atualizarHudMp();
+                        if (window.atualizarHudHp) window.atualizarHudHp();
+                        if (window.atualizarHudPocoes) window.atualizarHudPocoes();
+                        if (dados.ouro !== undefined) { window.meuOuro = dados.ouro; if (window.atualizarHudOuro) window.atualizarHudOuro(); }
                         if (dados.atributosTotais) window.atributosTotais = dados.atributosTotais;
                         if (typeof renderizarInventario === "function") renderizarInventario();
                         if (typeof renderizarMochila === "function") renderizarMochila();
@@ -2517,7 +2741,16 @@
                         if (statusText) statusText.innerText = "⚠️ " + dados.motivo;
                         if (window.floatingTexts) window.floatingTexts.push({ x: (window.meuX || 0) + 12, y: (window.meuY || 0) - 30, text: "⚠️ " + dados.motivo, color: "#f39c12", alpha: 1.0 });
                     }
-                    if (dados.type === 'action_magia_basica' && window.todosJogadores[dados.id] && dados.id !== window.meuId) { tocarSomMagiaBasica(); let __pjR = window.todosJogadores[dados.id]; if (__pjR && __pjR.classe === 'roqueiro') { if (!window._roqueiroGolpePorId) window._roqueiroGolpePorId = {}; window._roqueiroGolpePorId[dados.id] = Date.now(); } }
+                    if (dados.type === 'action_magia_basica' && window.todosJogadores[dados.id] && dados.id !== window.meuId) {
+                        let __pjR = window.todosJogadores[dados.id];
+                        if (__pjR && __pjR.classe === 'roqueiro') {
+                            if (window.tocarSonoro) window.tocarSonoro('roqueiro_atk'); else tocarSomMagiaBasica();
+                            if (!window._roqueiroGolpePorId) window._roqueiroGolpePorId = {};
+                            window._roqueiroGolpePorId[dados.id] = Date.now();
+                        } else {
+                            tocarSomMagiaBasica();
+                        }
+                    }
                     if (dados.type === 'action_orbe' && window.todosJogadores[dados.id] && dados.id !== window.meuId) { tocarSomOrbe(); }
                     if (dados.type === 'action_flecha') {
                         if (dados.id !== window.meuId) tocarSomFlecha();
@@ -2655,7 +2888,19 @@
                         window.redesSniper.push({ x: dados.targetX || dados.x, y: dados.targetY || dados.y, tempo: 30, dono: dados.id });
                     }
                     if (dados.type === 'action_sniper_posicao') {
-                        if (dados.id === window.meuId) { window.snPosicaoAtivo = !!dados.ativo; if (dados.ativo) { btnSniperPosicao.classList.add("active"); } else { btnSniperPosicao.classList.remove("active"); } }
+                        if (dados.id === window.meuId) {
+                            window.snPosicaoAtivo = !!dados.ativo;
+                            window.sniperPosicaoAtiva = !!dados.ativo;
+                            if (dados.ativo) {
+                                btnSniperPosicao.classList.add("active");
+                                if (dados.resetCdDisparo) {
+                                    window.sniperAimCooldown = false;
+                                    limparCdBotao(btnSniperApontar);
+                                }
+                            } else {
+                                btnSniperPosicao.classList.remove("active");
+                            }
+                        }
                     }
                     if (dados.type === 'action_sniper_camuflagem') {
                         if (dados.id === window.meuId) { window.snCamufladoAtivo = true; window.sniperAimCooldown = false; limparCdBotao(btnSniperApontar); }
@@ -2683,7 +2928,10 @@
                     }
                     if (dados.type === 'action_dash' && window.todosJogadores[dados.id]) {
                         dashTrails.push({ x: dados.x + 12, y: dados.y + 16, alpha: 1.0 });
-                        if (dados.id === window.meuId && window.minhaClasse !== 'mago' && window.minhaClasse !== 'summoner') tocarSomDash();
+                        if (dados.id === window.meuId) {
+                            if (window.minhaClasse === 'roqueiro' && window.tocarSonoro) window.tocarSonoro('roqueiro_dash');
+                            else if (window.minhaClasse !== 'mago' && window.minhaClasse !== 'summoner') tocarSomDash();
+                        }
                     }
                     if (dados.type === 'action_golem_ataque') {
                         tocarSomAtaqueGolem();
@@ -2751,6 +2999,10 @@
                         if (typeof window.iniciarCarregamentoRajada === 'function') {
                             window.iniciarCarregamentoRajada(dados.id, dados.x, dados.y, dados.angulo);
                         }
+                        if (window.tocarSonoro) window.tocarSonoro('arqueira_rajada_carregar');
+                    }
+                    if (dados.type === 'action_arqueiro_rajada_fire') {
+                        if (window.tocarSonoro) window.tocarSonoro('arqueira_rajada_soltar');
                     }
                     if (dados.type === 'action_arqueiro_rajada_hit') {
                         if (typeof window.criarAnimacaoImpactoFlecha === 'function') {
@@ -2794,13 +3046,18 @@
                         if (dados.id === window.meuId) {
                             window.auraSagradaAtiva = false;
                             btnCurandeiroAura.classList.remove("active");
-                            window.auraSagradaCooldown = dados.motivo === 'mana_baixa';
-                            if (window.auraSagradaCooldown) {
+                            let cdMs = (dados.cooldownMs !== undefined) ? dados.cooldownMs : (dados.motivo === 'mana_baixa' ? 10000 : 5000);
+                            if (cdMs > 0) {
+                                window.auraSagradaCooldown = true;
                                 btnCurandeiroAura.classList.add("cooldown");
+                                registrarCooldownBotao(btnCurandeiroAura, cdMs);
                                 setTimeout(() => {
                                     window.auraSagradaCooldown = false;
                                     btnCurandeiroAura.classList.remove("cooldown");
-                                }, 10000);
+                                    if (btnCurandeiroAura) btnCurandeiroAura.dataset.cdUntil = '';
+                                }, cdMs);
+                            } else {
+                                window.auraSagradaCooldown = false;
                             }
                         }
                         if (typeof window.finalizarAuraSagrada === 'function') window.finalizarAuraSagrada(dados.id);
@@ -2857,7 +3114,9 @@
                             window.criarAnimacaoEsmagamentoBarbaro(dados.x, dados.y);
                         }
                     }
-                    if (dados.type === 'action_riff' && window.todosJogadores[dados.id] && dados.id !== window.meuId) { tocarSomOrbe(); }
+                    if (dados.type === 'action_riff' && window.todosJogadores[dados.id] && dados.id !== window.meuId) {
+                        if (window.tocarSonoro) window.tocarSonoro('roqueiro_atk'); else tocarSomOrbe();
+                    }
                     if (dados.type === 'action_roqueiro_bateria') {
                         tocarSomImpactoPesado();
                         if (typeof window.criarAnimacaoBateriaSolo === 'function') {
@@ -2866,15 +3125,18 @@
                     }
                     if (dados.type === 'action_roqueiro_bateria_end' && dados.id === window.meuId) {
                         window.roqueiroBateriaLigada = false;
+                        window.roqueiroBateriaIniciadaEm = 0;
+                        if (btnRoqueiroBateria) btnRoqueiroBateria.classList.remove("active");
+                        if (window.pararSomBateria) window.pararSomBateria();
                     }
                     if (dados.type === 'action_roqueiro_teleporte' && window.todosJogadores[dados.id]) {
-                                                if (dados.id === window.meuId) tocarSomSalto();
+                        if (window.tocarSonoro) window.tocarSonoro('roqueiro_dash'); else if (dados.id === window.meuId) tocarSomSalto();
                         if (typeof window.criarAnimacaoTeleporteRoqueiro === 'function') {
                             window.criarAnimacaoTeleporteRoqueiro(dados.x + 12, dados.y + 16);
                         }
                     }
                     if (dados.type === 'action_roqueiro_banda' && dados.id === window.meuId) {
-                        tocarSomFuria();
+                        if (window.tocarSonoro) window.tocarSonoro('roqueiro_banda'); else tocarSomFuria();
                         window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 35, text: "🎸 A BANDA CHEGOU!", color: "#e67e22", alpha: 1.0 });
                     }
                     // ===== LADINO =====
@@ -3001,22 +3263,28 @@
             window.bgmLiberado = true;   // BGM da cidade só a partir daqui (clicou em JOGAR)
             localStorage.setItem("mmorpg_user_id", nomeValido);
             loginScreen.style.display = "none";
+            // v1.34.1: sem foco preso no input do login, os atalhos do teclado funcionam de imediato
+            if (typeof window.soltarFoco === 'function') window.soltarFoco();
             iniciarAudio();
             conectarWebSocket(nomeValido);
         }
 
         function selecionarClasse(classeEscolhida) {
             iniciarAudio(); window.minhaClasse = classeEscolhida;
-            // Pré-carrega o som do ataque básico do Guerreiro (já iniciado no gesture)
+            // Pré-carrega o som do ataque básico do Guerreiro e Arqueira (já iniciado no gesture)
             if (classeEscolhida === 'guerreiro') { tocarSomArquivo('Sonoro/Guerreiro/atk_basico.wav', 0); }
+            if (classeEscolhida === 'arqueiro') { tocarSomArquivo('Sonoro/arqueira/atk_basico.ogg', 0); }
             if (!ws || ws.readyState !== WebSocket.OPEN) {
                 // Socket fechado (troca de personagem): re-loga e aplica a classe assim que o init voltar
                 classePendente = classeEscolhida;
                 charSelectScreen.style.display = "none";
+                if (typeof window.soltarFoco === 'function') window.soltarFoco();
                 conectarWebSocket(localStorage.getItem("mmorpg_user_id") || "");
                 return;
             }
             charSelectScreen.style.display = "none";
+            // v1.34.1: devolve o foco ao jogo na seleção de classe
+            if (typeof window.soltarFoco === 'function') window.soltarFoco();
             cancelarTodasMiras();
             
             btnTornado.style.display = "none";
@@ -3077,7 +3345,11 @@
         }
 
         let audioCtx = null;
-        window.volumeGeral = parseFloat(localStorage.getItem("mmorpg_volume")) || 0.8;
+        let _savedUid = localStorage.getItem("mmorpg_user_id") || "default";
+        window.volumeGeral = parseFloat(localStorage.getItem("mmorpg_volume_" + _savedUid)) || parseFloat(localStorage.getItem("mmorpg_volume")) || 0.8;
+        window.volumeBgm = parseFloat(localStorage.getItem("mmorpg_volume_bgm_" + _savedUid)) || 0.8;
+        window.volumeSfx = parseFloat(localStorage.getItem("mmorpg_volume_sfx_" + _savedUid)) || 0.8;
+
         function iniciarAudio() {
             if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -3085,6 +3357,11 @@
                 window.audioGanhoMaster = audioCtx.createGain();
                 window.audioGanhoMaster.gain.value = window.volumeGeral;
                 window.audioGanhoMaster.connect(audioCtx.destination);
+            }
+            if (!window.audioGanhoSfx) {
+                window.audioGanhoSfx = audioCtx.createGain();
+                window.audioGanhoSfx.gain.value = window.volumeSfx;
+                window.audioGanhoSfx.connect(window.audioGanhoMaster);
             }
         }
 
@@ -3098,10 +3375,10 @@
                 let fonte = audioCtx.createBufferSource();
                 fonte.buffer = buffer;
                 let ganho = audioCtx.createGain();
-                let vol = Math.max(0, Math.min(1, (volume === undefined ? 0.8 : volume) * (Number(window.volumeGeral) || 1)));
+                let vol = Math.max(0, Math.min(1, (volume === undefined ? 0.8 : volume)));
                 ganho.gain.value = vol;
                 fonte.connect(ganho);
-                ganho.connect(window.audioGanhoMaster || audioCtx.destination);
+                ganho.connect(window.audioGanhoSfx || window.audioGanhoMaster || audioCtx.destination);
                 fonte.start(agora);
             } catch (e) { }
         }
@@ -3204,6 +3481,7 @@
         }
 
         function tocarSomChuvaFlechas() {
+            if (window.tocarSonoro) { window.tocarSonoro('arqueira_chuva'); return; }
             iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime;
             let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
             osc.type = 'sawtooth'; osc.frequency.setValueAtTime(600, now); osc.frequency.linearRampToValueAtTime(1100, now + 0.3);
@@ -3212,6 +3490,7 @@
         }
 
         function tocarSomDisparoPerfurante() {
+            if (window.tocarSonoro) { window.tocarSonoro('arqueira_perfurante'); return; }
             iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime;
             let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
             osc.type = 'square'; osc.frequency.setValueAtTime(300, now); osc.frequency.exponentialRampToValueAtTime(950, now + 0.25);
@@ -3284,7 +3563,13 @@
         function tocarSomCorte() { iniciarAudio(); if (!audioCtx) return; let bufferSize = audioCtx.sampleRate * 0.15; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.setValueAtTime(1000, audioCtx.currentTime); filter.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.15); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(); noise.stop(audioCtx.currentTime + 0.15); }
         function tocarSomMagiaBasica() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(550, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.18); gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.18); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.18); }
         function tocarSomOrbe() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(350, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.15); gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15); }
-        function tocarSomFlecha() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(900, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.12); gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.12); }
+        function tocarSomFlecha() {
+            if (window.tocarSonoro) { window.tocarSonoro('arqueira_atk'); return; }
+            iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+            osc.type = 'sawtooth'; osc.frequency.setValueAtTime(900, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.12);
+            gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+            osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.12);
+        }
         function tocarSomEscudoBoss() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(450, audioCtx.currentTime + 0.25); gain.gain.setValueAtTime(0.35, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.25); }
         function tocarSomPinoLocal() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'square'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.08); gain.gain.setValueAtTime(0.15, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.08); }
         function tocarSomQuedaMeteoro() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.55); gain.gain.setValueAtTime(0.35, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.55); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.55); }
@@ -3307,7 +3592,12 @@
             if (window.estaMorto || furiaCooldownAtivo || window.minhaClasse !== 'barbaro') return;
             if (!checarSkill('furia', 20)) return;
             furiaCooldownAtivo = true; btnBarbaroFuria.classList.add("cooldown");
-            setTimeout(() => { furiaCooldownAtivo = false; btnBarbaroFuria.classList.remove("cooldown"); }, 8000);
+            registrarCooldownBotao(btnBarbaroFuria, 15000);
+            setTimeout(() => {
+                furiaCooldownAtivo = false;
+                btnBarbaroFuria.classList.remove("cooldown");
+                if (btnBarbaroFuria) btnBarbaroFuria.dataset.cdUntil = '';
+            }, 15000);
 
             if (window.tocarSonoro) window.tocarSonoro('barbaro_furia'); else tocarSomFuria();
             if (typeof window.criarAnimacaoFuriaBerserker === 'function') {
@@ -3324,16 +3614,16 @@
             if (!checarSkill('giro_descontrolado', 30)) return;
             window.giroDescontroladoCooldownAtivo = true;
             btnBarbaroGiro.classList.add("cooldown");
-            registrarCooldownBotao(btnBarbaroGiro, 12000);
+            registrarCooldownBotao(btnBarbaroGiro, 15000);
             setTimeout(() => {
                 window.giroDescontroladoCooldownAtivo = false;
                 btnBarbaroGiro.classList.remove("cooldown");
                 if (btnBarbaroGiro) btnBarbaroGiro.dataset.cdUntil = '';
-            }, 12000);
+            }, 15000);
 
             if (window.tocarSonoro) window.tocarSonoro('barbaro_giro'); else tocarSomEsmagamento();
             if (typeof window.criarAnimacaoGiroBarbaro === 'function') {
-                window.criarAnimacaoGiroBarbaro(window.meuId, window.meuX + 12, window.meuY + 16, 10000);
+                window.criarAnimacaoGiroBarbaro(window.meuId, window.meuX + 12, window.meuY + 16, 4000);
             }
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ action: 'barbaro_giro_descontrolado' }));
@@ -3496,6 +3786,20 @@
 
         function usarAuraSagrada() {
             if (window.estaMorto || window.auraSagradaCooldown || window.minhaClasse !== 'curandeiro') return;
+            // Se já está ativa, o clique desativa e ativa o cooldown de 5s
+            if (window.auraSagradaAtiva) {
+                window.auraSagradaCooldown = true;
+                btnCurandeiroAura.classList.add("cooldown");
+                registrarCooldownBotao(btnCurandeiroAura, 5000);
+                setTimeout(() => {
+                    window.auraSagradaCooldown = false;
+                    btnCurandeiroAura.classList.remove("cooldown");
+                }, 5000);
+                if (ws && ws.readyState === WebSocket.OPEN) {
+                    ws.send(JSON.stringify({ action: 'curandeiro_aura' }));
+                }
+                return;
+            }
             // Aura Sagrada exige pelo menos 10% do MP máximo (regra do servidor)
             if ((window.meuMp || 0) <= (window.meuMaxMp || 0) * 0.10) { avisoSkillLocal('mana'); return; }
             if (window.tocarSonoro) window.tocarSonoro('curandeiro_aura');
@@ -3506,6 +3810,7 @@
 
         function usarDisparoPerfurante() {
             if (window.estaMorto || perfuranteCooldownAtivo || window.minhaClasse !== 'arqueiro') return;
+            if (typeof window.atualizarMiraMouse === 'function') window.atualizarMiraMouse();
             if (!checarSkill('perfurante', 18)) return;
             perfuranteCooldownAtivo = true; btnArqueiroPerfurante.classList.add("cooldown");
             setTimeout(() => { perfuranteCooldownAtivo = false; btnArqueiroPerfurante.classList.remove("cooldown"); }, 4500);
@@ -3577,22 +3882,48 @@
 
         function enviarAtaqueRoqueiro(anguloForcado, alvoTipo, alvoId) {
             if (window.estaMorto) return;
-            tocarSomMagiaBasica();
+            if (window.tocarSonoro) window.tocarSonoro('roqueiro_atk'); else tocarSomMagiaBasica();
             window.roqueiroGuitarraGolpeEm = Date.now();
             let alvoDetectado = obterAlvoNaMira();
             let anguloDisparo = (anguloForcado !== undefined) ? anguloForcado : (alvoDetectado ? alvoDetectado.angulo : window.meuAngulo);
             if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_roqueiro', angulo: anguloDisparo }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
         }
 
+        function cancelarBateriaRoqueiro() {
+            if (!window.roqueiroBateriaLigada) return;
+            window.roqueiroBateriaLigada = false;
+            window.roqueiroBateriaIniciadaEm = 0;
+            btnRoqueiroBateria.classList.remove("active");
+            if (window.pararSomBateria) window.pararSomBateria();
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'roqueiro_bateria_cancelar' }));
+            }
+        }
+        window.cancelarBateriaRoqueiro = cancelarBateriaRoqueiro;
+
         function usarBateriaRoqueiro() {
-            if (window.estaMorto || roqueiroBateriaCooldown || window.roqueiroBateriaLigada || window.minhaClasse !== 'roqueiro') return;
+            if (window.estaMorto || window.minhaClasse !== 'roqueiro') return;
+            if (window.roqueiroBateriaLigada) {
+                cancelarBateriaRoqueiro();
+                return;
+            }
+            if (roqueiroBateriaCooldown) return;
             if (!checarSkill('bateria', 25)) return;
             roqueiroBateriaCooldown = true; btnRoqueiroBateria.classList.add("cooldown");
+            btnRoqueiroBateria.classList.add("active");
             setTimeout(() => { roqueiroBateriaCooldown = false; btnRoqueiroBateria.classList.remove("cooldown"); }, 6000);
 
             window.roqueiroBateriaLigada = true;
-            if (statusText) statusText.innerText = "🥁 SOLO DE BATERIA! Segure firme por 5s!";
-            setTimeout(() => { window.roqueiroBateriaLigada = false; }, 5000);
+            window.roqueiroBateriaIniciadaEm = Date.now(); // trava de segurança anti-stuck
+            if (window.tocarSonoro) window.tocarSonoro('roqueiro_bateria');
+            if (statusText) statusText.innerText = "🥁 SOLO DE BATERIA! Clique nela ou ande para cancelar!";
+            setTimeout(() => {
+                if (window.roqueiroBateriaLigada) {
+                    window.roqueiroBateriaLigada = false;
+                    btnRoqueiroBateria.classList.remove("active");
+                    if (window.pararSomBateria) window.pararSomBateria();
+                }
+            }, 5000);
 
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'roqueiro_bateria' })); }
         }
@@ -3618,6 +3949,7 @@
             roqueiroBandaCooldown = true; btnRoqueiroBanda.classList.add("cooldown");
             setTimeout(() => { roqueiroBandaCooldown = false; btnRoqueiroBanda.classList.remove("cooldown"); }, 15000);
 
+            if (window.tocarSonoro) window.tocarSonoro('roqueiro_banda');
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'roqueiro_banda' })); }
         }
 
@@ -3652,7 +3984,7 @@
             if (c === 'ladino') return 110;
             if (c === 'dronemaster') return (window.dmTitaAtivo ? 242 : 124); // v1.32: alcance +15% (108→124; Tita 210→242)
             if (c === 'arqueiro_arcano') return 260;
-            if (c === 'sniper') return 480;
+            if (c === 'sniper') return 384;
             return 300;
         }
 
@@ -3777,7 +4109,9 @@
         function dispararAutoAtaque() {
             if (!autoAlvo) return;
             let ang = Math.atan2(autoAlvo.y - (window.meuY + 16), autoAlvo.x - (window.meuX + 12));
-            window.meuAngulo = ang; // orienta o personagem (não bloqueia o movimento)
+            if (joystickTouchId !== null || !window.mouseJaMoveu) {
+                window.meuAngulo = ang; // orienta o personagem apenas no mobile touch ou sem mouse
+            }
             let alvoTipo = autoAlvo.tipo, alvoId = autoAlvo.id;
             if (window.minhaClasse === 'mago') { enviarAtaqueMago(ang, alvoTipo, alvoId); }
             else if (window.minhaClasse === 'summoner') { enviarAtaqueSummoner(ang, alvoTipo, alvoId); }
@@ -3886,7 +4220,7 @@
             if (window.estaMorto || window.meuStunTimer > 0 || dashCooldownAtivo) return;
             if (window.minhaClasse === 'dronemaster') {
                 // DRONEMASTER: o Dash NÃO desloca mais — vira Escudo de Energia (50% vida máx, CD 10s)
-                if (!checarSkill('dash', 15)) return;
+                if (!checarEstamina(40)) return;
                 dashCooldownAtivo = true; btnDash.classList.add("cooldown");
                 if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnDash, 10000);
                 setTimeout(() => { dashCooldownAtivo = false; btnDash.classList.remove("cooldown"); btnDash.dataset.cdUntil = ''; }, 10000);
@@ -3895,10 +4229,15 @@
                 if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'dash' })); }
                 return;
             }
-            if (!checarSkill('dash', 15)) return;
+            if (!checarEstamina(25)) return;
+            if (typeof window.atualizarMiraMouse === 'function') window.atualizarMiraMouse();
             dashCooldownAtivo = true; btnDash.classList.add("cooldown"); 
+            if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnDash, 2000);
             setTimeout(() => { dashCooldownAtivo = false; btnDash.classList.remove("cooldown"); }, 2000); 
-            if (window.minhaClasse === 'mago') { if (window.tocarSonoro) window.tocarSonoro('mago_teleport'); } else if (window.minhaClasse === 'summoner') { if (window.tocarSonoro) window.tocarSonoro('summoner_teleport'); } else { tocarSomDash(); }
+            if (window.minhaClasse === 'mago') { if (window.tocarSonoro) window.tocarSonoro('mago_teleport'); }
+            else if (window.minhaClasse === 'summoner') { if (window.tocarSonoro) window.tocarSonoro('summoner_teleport'); }
+            else if (window.minhaClasse === 'roqueiro') { if (window.tocarSonoro) window.tocarSonoro('roqueiro_dash'); }
+            else { tocarSomDash(); }
 
             dashTrails.push({ x: window.meuX + 12, y: window.meuY + 16, alpha: 1.0 });
 
@@ -4222,12 +4561,31 @@
                 statusThem.innerText = "Aguardando...";
             }
         };
+        // v1.34.1: devolve o foco ao jogo (se um input ficar com foco, TODAS as
+        // teclas de atalho morrem — o keydown global ignora INPUT/TEXTAREA).
+        window.soltarFoco = function() {
+            var a = document.activeElement;
+            if (a && a.blur && a.tagName && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.tagName === 'SELECT')) {
+                try { a.blur(); } catch (e) { }
+            }
+        };
         window.abrirSocialModal = function() {
-            document.getElementById("social-modal").style.display = "block";
-            document.getElementById("social-player-name").value = "";
+            var modal = document.getElementById("social-modal");
+            if (!modal) return;
+            // v1.34.1: SEMPRE abre CENTRALIZADO. O dragdrop salvava left/top + transform:none
+            // (posição arrastada/salva) e anulava o translate(-50%,-50%) → modal abria fora da tela.
+            modal.style.left = "";
+            modal.style.top = "";
+            modal.style.transform = "translate(-50%, -50%)";
+            modal.style.display = "block";
+            try { localStorage.removeItem("mmorpg_jv_win_social-modal"); } catch (e) { }
+            var inp = document.getElementById("social-player-name");
+            if (inp) inp.value = "";
         };
         window.fecharSocialModal = function() {
-            document.getElementById("social-modal").style.display = "none";
+            var modal = document.getElementById("social-modal");
+            if (modal) modal.style.display = "none";
+            window.soltarFoco();
         };
         window.socialConvidarGrupo = function() {
             let nome = document.getElementById("social-player-name").value.trim();
@@ -4485,7 +4843,12 @@
             if (dx !== 0 || dy !== 0) {
                 moveX = dx * 2;
                 moveY = dy * 2;
-                window.meuAngulo = Math.atan2(dy, dx);
+                if (window.roqueiroBateriaLigada) {
+                    cancelarBateriaRoqueiro();
+                }
+                // v1.32.2: WASD controla exclusivamente o deslocamento do corpo.
+                // A orientação do item/arma na mão e a direção das skills segue o cursor do mouse no PC.
+                if (typeof window.atualizarMiraMouse === 'function') window.atualizarMiraMouse();
             } else if (joystickTouchId === null) {
                 moveX = 0;
                 moveY = 0;
@@ -4666,7 +5029,17 @@
                 acionarSkillSlot3();
                 return;
             }
-            if (code === 'Digit4' || code === 'Numpad4' || key === 'q') {
+            if (key === 'q') {
+                e.preventDefault();
+                usarPocao('hp');
+                return;
+            }
+            if (key === 'e') {
+                e.preventDefault();
+                usarPocao('mp');
+                return;
+            }
+            if (code === 'Digit4' || code === 'Numpad4') {
                 e.preventDefault();
                 if (window.minhaClasse === 'roqueiro') {
                     usarGritoDeGuerraRoqueiro();
@@ -4807,14 +5180,20 @@
                     }
                 }
             }
-            if (joystickTouchId === null || window.estaMorto || window.roqueiroBateriaLigada || window.spawnAdminAberto || window.teleporteAberto || window.mapaEditorAtivo || (window.colisaoEditorAtivo && !window.editorMinimizado)) return;
+            if (joystickTouchId === null || window.estaMorto || window.spawnAdminAberto || window.teleporteAberto || window.mapaEditorAtivo || (window.colisaoEditorAtivo && !window.editorMinimizado)) return;
             for (let i = 0; i < e.touches.length; i++) {
                 let touch = e.touches[i];
                 if (touch.identifier === joystickTouchId) {
                     let dx = touch.clientX - startX; let dy = touch.clientY - startY; let dist = Math.hypot(dx, dy); let maxDist = 45;
                     if (dist > maxDist) { dx = (dx / dist) * maxDist; dy = (dy / dist) * maxDist; }
                     joystickStick.style.transform = "translate(" + dx + "px, " + dy + "px)"; 
-                    if (dist > 5) { moveX = (dx / Math.hypot(dx, dy)) * 2; moveY = (dy / Math.hypot(dx, dy)) * 2; } else { moveX = 0; moveY = 0; }
+                    if (dist > 5) {
+                        moveX = (dx / Math.hypot(dx, dy)) * 2;
+                        moveY = (dy / Math.hypot(dx, dy)) * 2;
+                        if (window.roqueiroBateriaLigada) {
+                            cancelarBateriaRoqueiro();
+                        }
+                    } else { moveX = 0; moveY = 0; }
                     if (dx !== 0 || dy !== 0) window.meuAngulo = Math.atan2(dy, dx); break;
                 }
 
@@ -4864,14 +5243,43 @@
                 ws.send(JSON.stringify({ action: 'coletar_item', dropId: dropId }));
             }
         }
+        window.mouseClientX = window.innerWidth / 2;
+        window.mouseClientY = window.innerHeight / 2;
         window.mouseWorldX = window.meuX + 12;
         window.mouseWorldY = window.meuY + 16;
         window.mouseJaMoveu = false;
-        window.addEventListener("mousemove", function (e) {
+
+        function atualizarMiraMouse() {
             let camX = window.camX || 0, camY = window.camY || 0;
-            window.mouseWorldX = Math.max(0, Math.min(WORLD_WIDTH, (e.clientX / window.innerWidth * window.canvas.width) / (window.cameraZoomAtual || ZOOM_CAMERA) + camX));
-            window.mouseWorldY = Math.max(0, Math.min(WORLD_HEIGHT, (e.clientY / window.innerHeight * window.canvas.height) / (window.cameraZoomAtual || ZOOM_CAMERA) + camY));
+            let zoom = window.cameraZoomAtual || ZOOM_CAMERA;
+            let clientX = (typeof window.mouseClientX === 'number') ? window.mouseClientX : (window.innerWidth / 2);
+            let clientY = (typeof window.mouseClientY === 'number') ? window.mouseClientY : (window.innerHeight / 2);
+            let cw = (window.canvas && window.canvas.width) ? window.canvas.width : window.innerWidth;
+            let ch = (window.canvas && window.canvas.height) ? window.canvas.height : window.innerHeight;
+
+            let mx = (clientX / window.innerWidth * cw) / zoom + camX;
+            let my = (clientY / window.innerHeight * ch) / zoom + camY;
+            window.mouseWorldX = Math.max(0, Math.min(WORLD_WIDTH, mx));
+            window.mouseWorldY = Math.max(0, Math.min(WORLD_HEIGHT, my));
+
+            // No PC (quando não estiver com joystick touch de celular ativo), o item/arma segue o ponteiro do mouse
+            if (joystickTouchId === null) {
+                let pX = window.meuX + 12;
+                let pY = window.meuY + 16;
+                let dx = window.mouseWorldX - pX;
+                let dy = window.mouseWorldY - pY;
+                if (Math.hypot(dx, dy) > 0.001) {
+                    window.meuAngulo = Math.atan2(dy, dx);
+                }
+            }
+        }
+        window.atualizarMiraMouse = atualizarMiraMouse;
+
+        window.addEventListener("mousemove", function (e) {
+            window.mouseClientX = e.clientX;
+            window.mouseClientY = e.clientY;
             window.mouseJaMoveu = true;
+            atualizarMiraMouse();
         });
 
         window.canvas.addEventListener("contextmenu", function (e) {
@@ -4943,6 +5351,12 @@
                 else if (s === 'esmagamento') dispararEsmagamento(tx, ty);
                 else if (s === 'teleporte') dispararTeleporte(tx, ty);
                 else if (s === 'salto') dispararSaltoOgro(tx, ty);
+                else if (s === 'bomba') dispararLadinoBomba(tx, ty);
+                else if (s === 'estrela') dispararLadinoEstrela(tx, ty);
+                else if (s === 'caixa') dispararCaixaDronemaster(tx, ty);
+                else if (s === 'cometas') dispararChuvaCometas(tx, ty);
+                else if (s === 'orbe') dispararOrbeConstelacao(tx, ty);
+                else if (s === 'rede') dispararSniperRede(tx, ty);
                 return;
             }
 
@@ -4963,6 +5377,18 @@
             if (dt > 3.0) dt = 3.0; // clamp max delta
             window.lastFrameTime = currentFrameTime;
             window.dt = dt;
+
+            // FIX tela verde Bateria: trava de segurança baseada em tempo real.
+            // O setTimeout pode ser atrasado/engolido em celular ou página pesada,
+            // deixando roqueiroBateriaLigada preso em true (spawn de notas 60%/frame
+            // + tremor + som) e travando o canvas. Aqui o estado SEMPRE expira em 5s.
+            if (window.roqueiroBateriaLigada && window.roqueiroBateriaIniciadaEm && Date.now() - window.roqueiroBateriaIniciadaEm > 5000) {
+                window.roqueiroBateriaLigada = false;
+                window.roqueiroBateriaIniciadaEm = 0;
+                let btnRoqueiroBateria = document.getElementById("btn-roqueiro-bateria");
+                if (btnRoqueiroBateria) btnRoqueiroBateria.classList.remove("active");
+                if (window.pararSomBateria) window.pararSomBateria();
+            }
 
             _enviarErrosPendentes();
             _tickBateria++;
@@ -5011,7 +5437,12 @@
             let efeitoTravaMovimento = temEf('paralisia') || temEf('sono');
             let velocidadeAtual = ((typeof window.estaNaAgua === "function" && window.estaNaAgua(window.meuX, window.meuY)) ? 2.52 : 3.6) * bonusVelocidadeFuria * bonusVelocidadeAgilidade * multEfeitosVel;
 
-            if (autofarmLigado && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.roqueiroBateriaLigada && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo) {
+            // Andar com o Roqueiro cancela imediatamente a Bateria (Solo)
+            if (window.roqueiroBateriaLigada && (moveX !== 0 || moveY !== 0)) {
+                cancelarBateriaRoqueiro();
+            }
+
+            if (autofarmLigado && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo) {
                 // Autofarm só cuida do DESLOCAMENTO até o inimigo; o ataque em si é o auto-attack (atualizarAutoAtaque abaixo).
                 let alvoMaisProximo = null; let menorDistancia = Infinity;
                 window.listaSlimes.forEach(slime => { if (slime.hp > 0) { let dist = Math.hypot(slime.x - window.meuX, slime.y - window.meuY); if (dist < menorDistancia) { menorDistancia = dist; alvoMaisProximo = slime; } } });
@@ -5027,7 +5458,7 @@
                         }
                     }
                 }
-            } else if (!window.transicaoMapaAtiva && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.roqueiroBateriaLigada && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo && !window.snAimAtivo && !window.snPosicaoAtivo && (moveX !== 0 || moveY !== 0)) {
+            } else if (!window.transicaoMapaAtiva && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo && !window.snAimAtivo && !window.snPosicaoAtivo && (moveX !== 0 || moveY !== 0)) {
                 let proximoX = window.meuX + (moveX / 2) * (velocidadeAtual / 1.8) * window.dt; let proximoY = window.meuY + (moveY / 2) * (velocidadeAtual / 1.8) * window.dt;
                 let colidiu = false;
                 if (window.currentMap === 'green' && typeof window.arvores !== "undefined") {
@@ -5057,6 +5488,12 @@
             if (typeof window.chainMapas === "object" && typeof window.chainMapas.onUpdatePosicao === "function") window.chainMapas.onUpdatePosicao(window.meuX, window.meuY);
             if (coordHud) coordHud.innerText = "X: " + Math.round(window.meuX + 12) + "  Y: " + Math.round(window.meuY + 16);
 
+            let larguraVisivel = canvas.width / (window.cameraZoomAtual || ZOOM_CAMERA); let alturaVisivel = canvas.height / (window.cameraZoomAtual || ZOOM_CAMERA);
+            let cameraX = Math.max(0, Math.min(window.meuX - larguraVisivel / 2, Math.max(0, WORLD_WIDTH - larguraVisivel))); 
+            let cameraY = Math.max(0, Math.min(window.meuY - alturaVisivel / 2, Math.max(0, WORLD_HEIGHT - alturaVisivel)));
+            window.camX = cameraX; window.camY = cameraY;
+            if (typeof window.atualizarMiraMouse === 'function') window.atualizarMiraMouse();
+
             // ATAQUE BÁSICO AUTOMÁTICO (independente do movimento: isMoving && autoAttacking podem coexistir)
             atualizarAutoAtaque();
 
@@ -5064,11 +5501,6 @@
             // Durante Dança/Estrela o personagem NÃO reporta deslocamento próprio (a coreografia é do servidor)
             let movingReportado = isMoving && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo;
             if (ws && ws.readyState === WebSocket.OPEN && (agora - ultimoEnvioRede > 30)) { ws.send(JSON.stringify({ x: window.meuX, y: window.meuY, angulo: window.meuAngulo, moving: movingReportado })); ultimoEnvioRede = agora; }
-
-            let larguraVisivel = canvas.width / (window.cameraZoomAtual || ZOOM_CAMERA); let alturaVisivel = canvas.height / (window.cameraZoomAtual || ZOOM_CAMERA);
-            let cameraX = Math.max(0, Math.min(window.meuX - larguraVisivel / 2, Math.max(0, WORLD_WIDTH - larguraVisivel))); 
-            let cameraY = Math.max(0, Math.min(window.meuY - alturaVisivel / 2, Math.max(0, WORLD_HEIGHT - alturaVisivel)));
-            window.camX = cameraX; window.camY = cameraY;
             const visibilidadeMargem = 150;
             const cameraBounds = {
                 minX: cameraX - visibilidadeMargem,
@@ -5201,6 +5633,8 @@
 
             if (typeof window.verificarMortesMonstros === "function") window.verificarMortesMonstros();
 
+            // Contador de monstros desenhados NESTE frame (usado pela aura adaptativa)
+            window._monstrosDesenhados = 0;
             window.listaSlimes.forEach(slime => {
                 if (!slime || slime.hp <= 0) return;
                 if (slime.x < cameraBounds.minX || slime.x > cameraBounds.maxX || slime.y < cameraBounds.minY || slime.y > cameraBounds.maxY) return;
@@ -5520,8 +5954,11 @@
 
             for (let i = dashTrails.length - 1; i >= 0; i--) { let dt = dashTrails[i]; dt.alpha -= 0.05; if (dt.alpha <= 0) { dashTrails.splice(i, 1); } else { ctx.save(); ctx.fillStyle = "rgba(52, 152, 219, " + dt.alpha + ")"; ctx.beginPath(); ctx.arc(dt.x, dt.y, 18, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } }
             for (let i = slashes.length - 1; i >= 0; i--) { let s = slashes[i]; s.alpha -= 0.08; s.escala += 0.1; if (s.alpha <= 0) { slashes.splice(i, 1); } else { ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.angulo); ctx.globalAlpha = s.alpha; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 4; ctx.shadowColor = "#3498db"; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(20, 0, 25 * s.escala, -Math.PI / 3, Math.PI / 3); ctx.stroke(); ctx.restore(); } }
-            for (let i = window.floatingTexts.length - 1; i >= 0; i--) { let ft = window.floatingTexts[i]; ft.y -= 1.0; ft.alpha -= 0.045; if (ft.alpha <= 0) { window.floatingTexts.splice(i, 1); } else { ctx.save(); ctx.translate(ft.x, ft.y); ctx.globalAlpha = ft.alpha; window.ctx.font = "bold 22px 'Rajdhani', Arial, sans-serif"; window.ctx.lineJoin = "round"; window.ctx.lineWidth = 3; window.ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; window.ctx.strokeText(ft.text, -14, 0); window.ctx.fillStyle = ft.color; window.ctx.shadowColor = "#000"; window.ctx.shadowBlur = 4; window.ctx.fillText(ft.text, -14, 0); window.ctx.restore(); } }
+            for (let i = window.floatingTexts.length - 1; i >= 0; i--) { let ft = window.floatingTexts[i]; ft.y -= 1.0; ft.alpha -= 0.045; if (ft.alpha <= 0) { window.floatingTexts.splice(i, 1); } else { ctx.save(); ctx.translate(ft.x, ft.y); ctx.globalAlpha = ft.alpha; window.ctx.font = "bold 22px 'Rajdhani', Arial, sans-serif"; window.ctx.lineJoin = "round"; window.ctx.lineWidth = 3; window.ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; window.ctx.strokeText(ft.text, -14, 0); window.ctx.fillStyle = ft.color; window.ctx.fillText(ft.text, -14, 0); window.ctx.restore(); } }
             for (let i = blockEffects.length - 1; i >= 0; i--) { let b = blockEffects[i]; b.y -= 0.8; b.alpha -= 0.03; if (b.alpha <= 0) { blockEffects.splice(i, 1); } else { ctx.save(); ctx.translate(b.x, b.y); ctx.globalAlpha = b.alpha; ctx.font = "bold 18px 'Rajdhani', Arial, sans-serif"; ctx.lineJoin = "round"; ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; ctx.strokeText("🛡️ BLOCK!", -30, 0); ctx.fillStyle = "#f1c40f"; ctx.fillText("🛡️ BLOCK!", -30, 0); ctx.restore(); } }
+
+            // v1.34: BRILHO ÚNICO das PEDRAS DE UPGRADE (anéis pulsantes caindo no chão)
+            for (let i = (window.pedraBrilhoFx || []).length - 1; i >= 0; i--) { let pb = window.pedraBrilhoFx[i]; pb.alpha -= 0.012; pb.raio = (pb.raio || 10) + 0.9; if (pb.alpha <= 0) { window.pedraBrilhoFx.splice(i, 1); } else { ctx.save(); ctx.globalAlpha = Math.max(0, pb.alpha); ctx.strokeStyle = pb.cor || "#a855f7"; ctx.shadowColor = pb.cor || "#a855f7"; ctx.shadowBlur = 16; ctx.lineWidth = 3; ctx.beginPath(); ctx.arc(pb.x, pb.y, pb.raio, 0, Math.PI * 2); ctx.stroke(); ctx.beginPath(); ctx.arc(pb.x, pb.y, Math.max(2, pb.raio - 7), 0, Math.PI * 2); ctx.stroke(); ctx.restore(); } }
 
             if (window.editorColisaoVisivel && typeof window.desenharOverlayColisoes === "function") window.desenharOverlayColisoes(ctx);
             if (window.mapaEditorAtivo && typeof window.desenharOverlayMapaEditor === "function") window.desenharOverlayMapaEditor(ctx);

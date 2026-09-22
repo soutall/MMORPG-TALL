@@ -165,7 +165,9 @@ window.mapearItemServidor = function (i) {
         classe: i.classe || null, armaChave: i.armaChave || null,
         uid: i.uid || null, upgrade: i.upgrade || 0,
         upgradeExtras: i.upgradeExtras || null, locked: !!i.locked,
-        pedra: i.pedra || null, stackavel: i.stackavel !== false
+        pedra: i.pedra || null, stackavel: i.stackavel !== false,
+        // v1.34: poções (consumível) — subtipo + nível para o HUD HP/MP
+        subtipo: i.subtipo || null, nivel: i.nivel || null, pctCura: i.pctCura || null
     };
 };
 
@@ -206,7 +208,8 @@ function renderizarMochila() {
     itens.forEach(item => {
         let div = document.createElement("div");
         div.className = "mochila-slot" + (item.tipo === 'equipamento' ? " mochila-slot-equip" : "")
-            + (item.raridade === 'raro' ? " equip-raro" : (item.raridade === 'epico' ? " equip-epico" : (item.raridade === 'lendario' ? " equip-lendario" : "")));
+            + (item.raridade === 'raro' ? " equip-raro" : (item.raridade === 'epico' ? " equip-epico" : (item.raridade === 'lendario' ? " equip-lendario" : "")))
+            + (item.tipo === 'pedra' ? " pedra-rarita" : "");
         div.title = item.nome || "";
         div.setAttribute("data-id", item.id); // usado pelo sistema Drag & Drop
         div.innerHTML = '<span class="slot-ico">' + item.icon + '</span>'
@@ -336,7 +339,8 @@ function selecionarItemMochila(item) {
     if (btnBloq) {
         if (item.tipo === 'equipamento') {
             btnBloq.style.display = '';
-            btnBloq.textContent = item.locked ? "🔓 DESBLOQUEAR" : "🔒 BLOQUEAR";
+            btnBloq.textContent = item.locked ? "🔓" : "🔒";
+            btnBloq.title = item.locked ? "Desbloquear" : "Bloquear";
         } else {
             btnBloq.style.display = 'none';
         }

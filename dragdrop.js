@@ -295,10 +295,10 @@
 
         if (t.closest("button")) return; // não interceptar botões (⚔️/🗑️/↩️/✕)
 
-        // 1) Janela arrastrable
-        var handle = t.closest("#inv-title, #skills-header, #settings-header, #atributos-title, #detalhes-title, #big-map-top, #teleport-title, #ferreiro-title");
+        // 1) Janela arrastrable (Universal para todos os modais)
+        var handle = t.closest("#inv-title, #skills-header, #settings-header, #atributos-title, #detalhes-title, #big-map-top, #teleport-title, #ferreiro-title, #social-modal h2, #trade-modal h2, #party-invite-modal h2, #trade-invite-modal h2, #confirm-title, .modal-drag-handle, .dnd-handle");
         if (handle) {
-            var win = handle.closest("#inv-window, #skills-window, #atributos-dupla, #settings-window, #big-map-window, #teleport-window, #ferreiro-window");
+            var win = handle.closest("#inv-window, #skills-window, #atributos-dupla, #settings-window, #big-map-window, #teleport-window, #ferreiro-window, #social-modal, #trade-modal, #party-invite-modal, #trade-invite-modal, #confirm-window, .dnd-window");
             if (win && win.getBoundingClientRect) {
                 var r = win.getBoundingClientRect();
                 arrastro = {
@@ -406,22 +406,58 @@
         { sel: "#settings-window",   handles: ["#settings-header"] },
         { sel: "#big-map-window",    handles: ["#big-map-top"] },
         { sel: "#teleport-window",   handles: ["#teleport-title"] },
-        { sel: "#ferreiro-window",   handles: ["#ferreiro-title"] }
+        { sel: "#ferreiro-window",   handles: ["#ferreiro-title"] },
+        { sel: "#social-modal",      handles: ["#social-modal h2"] },
+        { sel: "#trade-modal",       handles: ["#trade-modal h2", "#trade-modal-header"] },
+        { sel: "#party-invite-modal",handles: ["#party-invite-modal h2"] },
+        { sel: "#trade-invite-modal",handles: ["#trade-invite-modal h2"] },
+        { sel: "#confirm-window",    handles: ["#confirm-title", "#confirm-window"] }
     ];
 
-    for (var j = 0; j < JANELAS.length; j++) {
-        var winEl = document.querySelector(JANELAS[j].sel);
-        if (winEl) {
-            winEl.classList.add("dnd-window");
-            restaurarPosicion(winEl);
-        }
-        for (var h = 0; h < JANELAS[j].handles.length; h++) {
-            var hEl = document.querySelector(JANELAS[j].handles[h]);
-            if (hEl) hEl.classList.add("dnd-handle");
+    function registrarTodasJanelas() {
+        for (var j = 0; j < JANELAS.length; j++) {
+            var winEl = document.querySelector(JANELAS[j].sel);
+            if (winEl) {
+                winEl.classList.add("dnd-window");
+                restaurarPosicion(winEl);
+            }
+            for (var h = 0; h < JANELAS[j].handles.length; h++) {
+                var hEl = document.querySelector(JANELAS[j].handles[h]);
+                if (hEl) hEl.classList.add("dnd-handle");
+            }
         }
     }
+    registrarTodasJanelas();
 
-    // Reset positions (debug / por si algún día hay botón de restaurar)
+    // Universal API para tornar qualquer modal dinâmico arrastável
+    window.tornarModalArrastavel = function (winEl, handleEl) {
+        if (!winEl) return;
+        winEl.classList.add("dnd-window");
+        if (handleEl) handleEl.classList.add("dnd-handle");
+        restaurarPosicion(winEl);
+    };
+
+    // Auto-scaling inteligente: ao redimensionar a tela, recalcula posições para nunca cortar ou sobrepor
+    window.addEventListener("resize", function () {
+        for (var k = 0; k < JANELAS.length; k++) {
+            var wEl = document.querySelector(JANELAS[k].sel);
+            if (wEl && wEl.style.left && wEl.style.top) {
+                var r = wEl.getBoundingClientRect();
+                var pos = clampPosElemento({
+                    x: r.left,
+                    y: r.top,
+                    width: r.width,
+                    height: r.height,
+                    viewportWidth: window.innerWidth,
+                    viewportHeight: window.innerHeight
+                });
+                wEl.style.left = Math.round(pos.x) + "px";
+                wEl.style.top = Math.round(pos.y) + "px";
+            }
+        }
+    });
+
+    // Reset positions (debug / restaurar posições padrão)
     window.dndResetarJanelas = function () {
         for (var k = 0; k < JANELAS.length; k++) {
             var wEl = document.querySelector(JANELAS[k].sel);

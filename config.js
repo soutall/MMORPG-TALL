@@ -1,20 +1,56 @@
-/* ===== CONFIGURAÇÕES (volume central, trocar de char, sair) ===== */
+/* ===== CONFIGURAÇÕES (volume central, volume BGM, volume SFX, trocar de char, sair) ===== */
 
 window.configAberto = false;
 
 function configScreenEl() { return document.getElementById("settings-screen"); }
-function volumeSliderEl() { return document.getElementById("volume-slider"); }
-function volumeValorEl() { return document.getElementById("volume-valor"); }
+
+function carregarConfiguracoesAudio() {
+    let uid = window.meuId || localStorage.getItem("mmorpg_user_id") || "default";
+    let vGeral = localStorage.getItem("mmorpg_volume_" + uid) || localStorage.getItem("mmorpg_volume");
+    let vBgm = localStorage.getItem("mmorpg_volume_bgm_" + uid);
+    let vSfx = localStorage.getItem("mmorpg_volume_sfx_" + uid);
+
+    window.volumeGeral = vGeral !== null ? parseFloat(vGeral) : 0.8;
+    window.volumeBgm = vBgm !== null ? parseFloat(vBgm) : 0.8;
+    window.volumeSfx = vSfx !== null ? parseFloat(vSfx) : 0.8;
+}
+
+function salvarConfiguracoesAudio() {
+    let uid = window.meuId || localStorage.getItem("mmorpg_user_id") || "default";
+    try {
+        localStorage.setItem("mmorpg_volume_" + uid, window.volumeGeral);
+        localStorage.setItem("mmorpg_volume", window.volumeGeral);
+        localStorage.setItem("mmorpg_volume_bgm_" + uid, window.volumeBgm);
+        localStorage.setItem("mmorpg_volume_sfx_" + uid, window.volumeSfx);
+    } catch (e) {}
+}
 
 function abrirConfig() {
     if (window.estaMorto) return;
-    if (window.inventarioAberto) fecharInventario();
-    if (window.skillsAberto) fecharSkills();
+    if (window.inventarioAberto && typeof fecharInventario === 'function') fecharInventario();
+    if (window.skillsAberto && typeof fecharSkills === 'function') fecharSkills();
     if (typeof cancelarTodasMiras === 'function') cancelarTodasMiras();
 
-    let v = Math.round((window.volumeGeral || 0.8) * 100);
-    if (volumeSliderEl()) volumeSliderEl().value = v;
-    if (volumeValorEl()) volumeValorEl().innerText = v + "%";
+    carregarConfiguracoesAudio();
+
+    let vG = Math.round((window.volumeGeral !== undefined ? window.volumeGeral : 0.8) * 100);
+    let vB = Math.round((window.volumeBgm !== undefined ? window.volumeBgm : 0.8) * 100);
+    let vS = Math.round((window.volumeSfx !== undefined ? window.volumeSfx : 0.8) * 100);
+
+    let sG = document.getElementById("volume-slider");
+    if (sG) sG.value = vG;
+    let lG = document.getElementById("volume-valor");
+    if (lG) lG.innerText = vG + "%";
+
+    let sB = document.getElementById("volume-bgm-slider");
+    if (sB) sB.value = vB;
+    let lB = document.getElementById("volume-bgm-valor");
+    if (lB) lB.innerText = vB + "%";
+
+    let sS = document.getElementById("volume-sfx-slider");
+    if (sS) sS.value = vS;
+    let lS = document.getElementById("volume-sfx-valor");
+    if (lS) lS.innerText = vS + "%";
 
     window.configAberto = true;
     let screen = configScreenEl();
@@ -22,6 +58,7 @@ function abrirConfig() {
 }
 
 function fecharConfig() {
+    salvarConfiguracoesAudio();
     window.configAberto = false;
     let screen = configScreenEl();
     if (screen) screen.style.display = "none";
@@ -31,14 +68,50 @@ function toggleConfig() {
     if (window.configAberto) fecharConfig(); else abrirConfig();
 }
 
-function mudarVolume(valor) {
+function mudarVolumeGeral(valor) {
     let v = Math.max(0, Math.min(100, parseInt(valor, 10) || 0));
     window.volumeGeral = v / 100;
     if (typeof iniciarAudio === 'function') iniciarAudio();
     if (window.audioGanhoMaster) window.audioGanhoMaster.gain.value = window.volumeGeral;
-    try { localStorage.setItem("mmorpg_volume", window.volumeGeral); } catch (e) {}
-    if (volumeValorEl()) volumeValorEl().innerText = v + "%";
+    if (window.AudioManager && typeof window.AudioManager.setMasterVolume === 'function') {
+        window.AudioManager.setMasterVolume(window.volumeGeral);
+    }
+    if (typeof window.atualizarBgmVolume === 'function') window.atualizarBgmVolume();
+    let el = document.getElementById("volume-valor");
+    if (el) el.innerText = v + "%";
+    salvarConfiguracoesAudio();
 }
+
+function mudarVolumeBgm(valor) {
+    let v = Math.max(0, Math.min(100, parseInt(valor, 10) || 0));
+    window.volumeBgm = v / 100;
+    if (typeof window.atualizarBgmVolume === 'function') window.atualizarBgmVolume();
+    if (window.AudioManager && typeof window.AudioManager.setAmbientVolume === 'function') {
+        window.AudioManager.setAmbientVolume(window.volumeBgm);
+    }
+    let el = document.getElementById("volume-bgm-valor");
+    if (el) el.innerText = v + "%";
+    salvarConfiguracoesAudio();
+}
+
+function mudarVolumeSfx(valor) {
+    let v = Math.max(0, Math.min(100, parseInt(valor, 10) || 0));
+    window.volumeSfx = v / 100;
+    if (typeof iniciarAudio === 'function') iniciarAudio();
+    if (window.audioGanhoSfx) window.audioGanhoSfx.gain.value = window.volumeSfx;
+    if (window.AudioManager && typeof window.AudioManager.setSfxVolume === 'function') {
+        window.AudioManager.setSfxVolume(window.volumeSfx);
+    }
+    let el = document.getElementById("volume-sfx-valor");
+    if (el) el.innerText = v + "%";
+    salvarConfiguracoesAudio();
+}
+
+// Retrocompatibilidade
+window.mudarVolume = mudarVolumeGeral;
+window.mudarVolumeGeral = mudarVolumeGeral;
+window.mudarVolumeBgm = mudarVolumeBgm;
+window.mudarVolumeSfx = mudarVolumeSfx;
 
 function trocarDePersonagem() {
     fecharConfig();
@@ -51,8 +124,6 @@ function trocarDePersonagem() {
     if (window.estaMorto) { window.estaMorto = false; if (deathScreen) deathScreen.style.display = "none"; }
     window.meuStunTimer = 0;
 
-    // Desloga o personagem atual: fecha o socket para o servidor removê-lo do mundo.
-    // Ele só volta a aparecer quando a nova classe for escolhida (novo login).
     try { if (typeof ws !== 'undefined' && ws) { ws.onclose = null; ws.close(); ws = null; } } catch (e) {}
     window.meuId = null;
 

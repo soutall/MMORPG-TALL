@@ -34,6 +34,47 @@ const BALANCE = {
     raioToqueCliente: 48,         // raio de toque/clique usado no cliente
     tempoVidaDropMs: 150000,      // 150s no chão antes de sumir
 
+    // ===== DROPS AUXILIARES (v1.34) =====
+    // Poções de Vida/Mana com 3 níveis (nível 1 = pouca cura, 2 = média, 3 = cheia)
+    pocoesHp: [
+        { nivel: 1, pct: 0.20, nome: '🧪 Poção de Vida I',   icon: '🧪', cor: '#e74c3c' },
+        { nivel: 2, pct: 0.40, nome: '🧪 Poção de Vida II',  icon: '🧪', cor: '#e74c3c' },
+        { nivel: 3, pct: 1.00, nome: '🧪 Poção de Vida III', icon: '❣️', cor: '#ff4d4d' }
+    ],
+    pocoesMp: [
+        { nivel: 1, pct: 0.20, nome: '🔮 Poção de Mana I',   icon: '🔮', cor: '#3498db' },
+        { nivel: 2, pct: 0.30, nome: '🔮 Poção de Mana II',  icon: '🔮', cor: '#3498db' },
+        { nivel: 3, pct: 1.00, nome: '🔮 Poção de Mana III', icon: '💎', cor: '#7ec8ff' }
+    ],
+
+    // chance de cair poção numa morte comum (bosses: sempre 2 poções)
+    chancePocaoMonstro: 0.30,
+
+    // Ouro: chance de quase todos os monstros + faixa de quantidade
+    chanceOuroMonstro: 0.90,
+    ouroMin: 1,
+    ouroMax: 6,
+    ouroBaseBoss: 25,
+
+    // --- Tabela de Raridade das Pedras de Upgrade ---
+    // Quanto mais difícil (HP base alto) o monstro, maior a chance de cair
+    // pedra E melhor a raridade sorteada.
+    pedras: {
+        raridades: {
+            comum:   { chance: 52, cor: '#ffffff', corChao: '255,255,255', nome: 'Pedra de Upgrade Comum' },
+            raro:    { chance: 27, cor: '#4da6ff', corChao: '77,166,255',  nome: 'Pedra de Upgrade Rara' },
+            epico:   { chance: 15, cor: '#a855f7', corChao: '168,85,247',  nome: 'Pedra de Upgrade Épica' },
+            lendario:{ chance: 6,  cor: '#ff7a00', corChao: '255,122,0',   nome: 'Pedra de Upgrade Lendária' }
+        },
+        chancePedraMonstroMin: 0.04,   // chance de cair pedra (monstro muito fraco)
+        chancePedraMonstroMax: 0.45,   // chance de cair pedra (monstro muito forte)
+        // bônus de % que desloca a raridade p/ cima conforme a dificuldade
+        bonusRaridadePorDificuldade: 35
+    },
+
+    // Ícone/cor do drop de OURO no chão
+    ouroDrop: { icon: '🪙', cor: '#f1c40f', corChao: '241,196,15' },
+
     // --- Pesos de status POR SLOT (somente os 8 status oficiais do jogo) ---
     slots: {
         capacete: { icone: '🪖', nome: '🪖 CAPACETE', pesos: { forca: 3, divindade: 4, vida: 3, inteligencia: 2, agilidade: 1, destreza: 1 } },
@@ -263,6 +304,98 @@ function rolarDropMonstro(baseHp) {
     return Math.random() < chance;
 }
 
+
+// ============================================================
+// (v1.34) DROPS AUXILIARES: POÇÕES, OURO E PEDRAS DE UPGRADE
+// ============================================================
+
+// Poção de Vida ou Mana (nivel 1..3 conforme BALANCE.pocoesHp/pocoesMp)
+function gerarPocao(tipo, nivel) {
+    let lista = (tipo === 'mp') ? BALANCE.pocoesMp : BALANCE.pocoesHp;
+    let def = lista[nivel - 1] || lista[lista.length - 1];
+    return {
+        id: novoId(), uid: Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 9),
+        tipo: 'consumivel',
+        subtipo: tipo === 'mp' ? 'pocao_mp' : 'pocao_hp',
+        nivel: def.nivel,
+        nome: def.nome,
+        icon: def.icon,
+        cor: def.cor,
+        pctCura: def.pct,
+        quantidade: 1,
+        autocoleta: true,
+        stackavel: false // poções não empilham no mochilão (cada uso consome 1 unidade)
+    };
+}
+
+// Sorteia o nível da poção conforme a dificuldade (HP base) do monstro
+function sortearPocao(baseHp) {
+    let hp = baseHp || 0;
+    let r = Math.random();
+    if (hp >= 150) { return r < 0.45 ? 3 : (r < 0.85 ? 2 : 1); }
+    if (hp >= 70) { return r < 0.25 ? 3 : (r < 0.70 ? 2 : 1); }
+    return r < 0.10 ? 2 : 1;
+}
+
+// Drop de OURO: quantidade pequena proporcional à dificuldade
+function gerarOuro(baseHp, ehBoss) {
+    let qtd = ehBoss ? BALANCE.ouroBaseBoss : valorAleatorio(BALANCE.ouroMin, BALANCE.ouroMax);
+    if (!ehBoss) qtd += Math.floor((baseHp || 0) / 40);
+    return {
+        id: novoId(), uid: Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 9),
+        tipo: 'ouro',
+        nome: 'Ouro',
+        icon: BALANCE.ouroDrop.icon,
+        cor: BALANCE.ouroDrop.cor,
+        quantidade: Math.max(1, qtd),
+        autocoleta: true,
+        stackavel: false
+    };
+}
+
+// Tabela de raridade das PEDRAS DE UPGRADE: dificuldade alta => melhor raridade.
+// Retorna null quando a morte não der pedra.
+function gerarPedraUpgrade(baseHp) {
+    let hp = baseHp || 0;
+    let prog = Math.min(1, Math.max(0, hp / (BALANCE.hpReferenciaEscala || 1)));
+    let chance = BALANCE.pedras.chancePedraMonstroMin + (BALANCE.pedras.chancePedraMonstroMax - BALANCE.pedras.chancePedraMonstroMin) * prog;
+    if (Math.random() > chance) return null;
+
+    // Sorteia raridade com bônus que sobe conforme a dificuldade
+    let raridades = BALANCE.pedras.raridades;
+    let chaves = Object.keys(raridades);
+    let bonus = Math.round(BALANCE.pedras.bonusRaridadePorDificuldade * prog);
+    let total = 0;
+    for (let k of chaves) total += raridades[k].chance;
+    let alvo = Math.random() * (total + bonus * 2);
+    let acumulado = 0;
+    let raridade = chaves[0];
+    for (let i = 0; i < chaves.length; i++) {
+        let k = chaves[i];
+        let peso = raridades[k].chance;
+        // bônus desloca probabilidade para raro/épico/lendário (dificuldades altas)
+        if (k === 'raro') peso += bonus * 0.5;
+        if (k === 'epico') peso += bonus * 0.9;
+        if (k === 'lendario') peso += bonus * 0.6;
+        acumulado += peso;
+        if (alvo < acumulado) { raridade = k; break; }
+    }
+    let def = raridades[raridade];
+    return {
+        id: novoId(), uid: Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 9),
+        tipo: 'pedra',
+        raridade: raridade,
+        raridadeNome: (def.nome || raridade).toUpperCase(),
+        nome: '💎 ' + def.nome,
+        icon: '💎',
+        cor: def.cor,
+        quantidade: 1,
+        autocoleta: true,
+        stackavel: false,
+        pedra: true
+    };
+}
+
 // Verifica se a classe pode equipar o item (arma é exclusiva da classe)
 function classePodeEquipar(classe, item) {
     if (!item || item.tipo !== 'equipamento') return false;
@@ -288,6 +421,10 @@ module.exports = {
     classePodeEquipar: classePodeEquipar,
     escolherCriadorDrop: escolherCriadorDrop,
     rolarDropMonstro: rolarDropMonstro,
+    gerarPocao: gerarPocao,
+    sortearPocao: sortearPocao,
+    gerarOuro: gerarOuro,
+    gerarPedraUpgrade: gerarPedraUpgrade,
     slotsDisponiveis: slotsDisponiveis,
     armasDaClasse: armasDaClasse,
     nomeRaridade: nomeRaridade

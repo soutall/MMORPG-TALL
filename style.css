@@ -22,6 +22,38 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 #btn-entrar { padding: 12px; background: #27ae60; border: none; border-radius: 8px; color: #fff; font-size: 18px; font-weight: bold; font-family: 'Rajdhani', sans-serif; letter-spacing: 1.5px; cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.5); transition: background 0.2s; }
 #btn-entrar:active { background: #2ecc71; transform: scale(0.98); }
 
+/* Indicador de Versão do Game (canto inferior da tela) */
+.game-version-display {
+    position: fixed;
+    bottom: 8px;
+    right: 12px;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    color: rgba(241, 196, 15, 0.9);
+    background: rgba(0, 0, 0, 0.65);
+    border: 1px solid rgba(241, 196, 15, 0.4);
+    border-radius: 4px;
+    padding: 2px 8px;
+    letter-spacing: 1px;
+    z-index: 1000;
+    pointer-events: none;
+    user-select: none;
+    text-shadow: 1px 1px 2px #000;
+}
+#login-screen .game-version-display {
+    position: absolute;
+    bottom: 16px;
+    right: 18px;
+    font-size: 14px;
+    color: #f1c40f;
+    background: rgba(0, 0, 0, 0.75);
+    border: 1px solid rgba(241, 196, 15, 0.5);
+    padding: 4px 12px;
+    border-radius: 6px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
+}
+
 /* Aviso de rotação: pede para girar o celular quando estiver em modo retrato */
 #rotate-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; background: #0a0a0a; color: #f1c40f; font-family: 'Cinzel', serif; font-size: 20px; font-weight: bold; letter-spacing: 2px; text-align: center; padding: 20px; box-sizing: border-box; z-index: 900; }
 @media (orientation: portrait) { #rotate-overlay { display: flex; } }
@@ -54,13 +86,35 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 .btn-util.btn-local { background: #2980b9; border-color: #3498db; }
 .btn-util.btn-local.modo-ativo { background: #e67e22; border-color: #f39c12; box-shadow: 0 0 12px #e67e22; }
 
-#hud-level { position: absolute; top: 8px; left: 10px; background: rgba(0, 0, 0, 0.75); border: 2px solid #f1c40f; padding: 6px 12px; border-radius: 6px; z-index: 20; font-size: 14px; font-weight: bold; color: #f1c40f; box-shadow: 0 4px 6px rgba(0,0,0,0.4); pointer-events: none; }
-#xp-bar-container { width: 100px; height: 6px; background: #333; border-radius: 3px; margin-top: 4px; overflow: hidden; border: 1px solid #555; }
-#xp-bar-fill { width: 0%; height: 100%; background: #3498db; transition: width 0.2s; }
-#stamina-bar-container { width: 100px; height: 5px; background: #333; border-radius: 3px; margin-top: 3px; overflow: hidden; border: 1px solid #555; }
-#stamina-bar-fill { width: 100%; height: 100%; background: #f39c12; transition: width 0.1s; }
-#mp-bar-container { width: 100px; height: 5px; background: #333; border-radius: 3px; margin-top: 3px; overflow: hidden; border: 1px solid #555; }
-#mp-bar-fill { width: 100%; height: 100%; background: #1abc9c; transition: width 0.15s; }
+#hud-status-window { top: 8px; left: 10px; }
+#hud-status-main { display: flex; align-items: flex-start; gap: 8px; }
+#hud-retrato { width: 46px; height: 46px; image-rendering: pixelated; background: radial-gradient(circle at 50% 35%, #3c5a46, #17241b 70%); border: 3px solid #f1c40f; box-shadow: 0 0 0 2px #000, 0 0 0 4px #8a6d1a, 0 4px 8px rgba(0,0,0,0.5); flex: 0 0 auto; }
+#hud-barras { display: flex; flex-direction: column; gap: 3px; padding: 2px 0; }
+#level-text-wrap { margin-bottom: 1px; }
+#level-text { font-size: 13px; font-weight: bold; color: #f1c40f; text-shadow: 1px 1px 0 #000, 2px 2px 0 rgba(0,0,0,0.6); }
+
+/* v1.34: molduras pixel art com sombras em degrau */
+#hp-bar-container { width: 130px; height: 11px; background: #7a0e0e; border: 2px solid #000; box-shadow: inset 0 0 0 1px #c0392b, 2px 2px 0 #000; overflow: hidden; position: relative; }
+#hp-bar-fill { width: 100%; height: 100%; background: linear-gradient(180deg, #ff4040, #e74c3c 60%, #c0392b); transition: width 0.15s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 0 6px rgba(255,60,60,0.6); }
+#mp-bar-container { width: 130px; height: 9px; background: #123a5c; border: 2px solid #000; box-shadow: inset 0 0 0 1px #2980b9, 2px 2px 0 #000; overflow: hidden; position: relative; }
+#mp-bar-fill { width: 100%; height: 100%; background: linear-gradient(180deg, #4da6ff, #2e86de 60%, #2471a3); transition: width 0.15s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 0 6px rgba(77,166,255,0.6); }
+#stamina-bar-container { width: 130px; height: 8px; background: #5d3a0a; border: 2px solid #000; box-shadow: inset 0 0 0 1px #e67e22, 2px 2px 0 #000; overflow: hidden; position: relative; }
+#stamina-bar-fill { width: 100%; height: 100%; background: linear-gradient(180deg, #ffb347, #f39c12 60%, #e67e22); transition: width 0.1s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 0 6px rgba(243,156,18,0.6); }
+
+/* v1.34: Slots de poção [HP] [MP] ao lado da HUD */
+#hud-pocoes { display: flex; flex-direction: column; gap: 4px; margin-left: 2px; }
+#hud-ouro { position: fixed; top: 60px; left: 10px; background: rgba(0,0,0,0.8); border: 2px solid #f1c40f; box-shadow: 0 0 0 1px #000, 2px 2px 0 #000; color: #f1c40f; font-weight: bold; font-size: 12px; padding: 2px 8px; z-index: 20; pointer-events: none; }
+.pocao-slot { width: 34px; height: 30px; font-size: 16px; border: 2px solid #000; background: #241f16; color: #fff; cursor: pointer; position: relative; box-shadow: inset 0 0 0 1px #5a5344, 2px 2px 0 #000; display: flex; align-items: center; justify-content: center; padding: 0; }
+.pocao-slot:hover { background: #3a3226; }
+.pocao-slot:active { transform: translate(1px,1px); box-shadow: inset 0 0 0 1px #5a5344, 1px 1px 0 #000; }
+.pocao-slot .pocao-qtd { position: absolute; right: -4px; bottom: -4px; background: #151515; color: #f1c40f; border: 1px solid #f39c12; font-size: 8px; font-weight: bold; padding: 0 3px; border-radius: 2px; line-height: 1.3; box-shadow: 1px 1px 0 #000; }
+.pocao-slot.sem-pocao { filter: grayscale(0.9) brightness(0.7); }
+.pocao-slot .key-badge { top: -4px; bottom: auto; right: -3px; left: auto; font-size: 8px; padding: 1px 3px; }
+
+/* v1.34: Barra de XP central inferior (amarela; restante azul claro) */
+#hud-xp-central { position: fixed; bottom: 118px; left: 50%; transform: translateX(-50%); width: 220px; height: 12px; z-index: 11; pointer-events: none; }
+#hud-xp-central #xp-bar-container { width: 100%; height: 12px; background: #7ec8ff; border: 2px solid #000; box-shadow: inset 0 0 0 1px #a8dcff, 2px 2px 0 rgba(0,0,0,0.6); overflow: hidden; margin-top: 0; }
+#hud-xp-central #xp-bar-fill { width: 0%; height: 100%; background: linear-gradient(180deg, #ffe066, #f1c40f 60%, #d4ac0d); transition: width 0.2s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4); }
 
 #hud-buffs { position: absolute; top: 112px; left: 10px; background: rgba(0, 0, 0, 0.75); border: 1px solid #2ecc71; padding: 6px 8px; border-radius: 6px; z-index: 20; font-size: 12px; color: #fff; pointer-events: auto; box-shadow: 0 4px 6px rgba(0,0,0,0.5); width: 150px; max-width: 150px; min-width: 150px; min-height: 64px; overflow: visible; }
 #hud-dps { display: none; }
@@ -90,6 +144,25 @@ canvas { background: #133015; display: block; width: 100vw; height: 100vh; touch
 .actions { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; gap: 8px; z-index: 10; align-items: center; justify-content: center; }
 .btn-action { width: 54px; height: 54px; border-radius: 50%; border: none; background: #333; color: #fff; font-weight: bold; font-size: 18px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); touch-action: manipulation; position: relative; transition: opacity 0.1s, transform 0.1s; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .btn-action:active { background: #555; transform: scale(0.95); }
+
+/* v1.34: ANEL DE COOLDOWN ao redor dos slots circulares — drena no sentido HORÁRIO.
+   --cd-pct vai de 100 (início do CD) até 0 (pronto). O anel escuro "some" no sentido horário. */
+.btn-action { --cd-pct: 0; }
+.btn-action.cd-active::after {
+    content: ""; position: absolute; inset: 0; border-radius: 50%; pointer-events: none; z-index: 3;
+    background: conic-gradient(from 0deg,
+        rgba(0, 0, 0, 0.85) calc((100 - var(--cd-pct)) * 1%),
+        rgba(0, 0, 0, 0) calc((100 - var(--cd-pct)) * 1%),
+        rgba(0, 0, 0, 0) 100%);
+    -webkit-mask: radial-gradient(circle, transparent 52%, #000 60%, #000 100%);
+    mask: radial-gradient(circle, transparent 52%, #000 60%, #000 100%);
+}
+/* v1.34: BRILHO quando a skill está PRONTA (todas as classes) */
+@keyframes cdProntoPulso {
+    0%, 100% { box-shadow: 0 0 6px 2px rgba(241, 196, 15, 0.45), 0 4px 8px rgba(0, 0, 0, 0.5); }
+    50% { box-shadow: 0 0 14px 4px rgba(241, 196, 15, 0.95), 0 4px 8px rgba(0, 0, 0, 0.5); }
+}
+.btn-action.cd-ready { animation: cdProntoPulso 1.8s ease-in-out infinite; }
 
 /* Badges visuais de teclas de atalho */
 .key-badge { position: absolute; bottom: -3px; right: -3px; background: #151515; color: #f1c40f; border: 1px solid #f39c12; font-size: 9px; font-weight: bold; border-radius: 4px; padding: 1px 4px; line-height: 1; pointer-events: none; text-shadow: 0 1px 2px #000; box-shadow: 0 2px 4px rgba(0,0,0,0.8); z-index: 5; font-family: monospace; }

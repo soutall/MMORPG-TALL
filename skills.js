@@ -66,7 +66,13 @@ const SKILLS_INFO = {
           danoBase: 6, danoUnidade: 'mágico', danoNota: '/s por 24s',
           mp: 35, cd: 12, escala: 'dano',
           area: 'Raio 115', alcance: 'Mira 160px',
-          duracao: '24s', duracaoBase: null, extras: ['Lentidão 50% (0.75s)'] }
+          duracao: '24s', duracaoBase: null, extras: ['Lentidão 50% (0.75s)'] },
+        { id: 'vulcao', nome: 'Vulcão Flamejante', icon: '🌋', categoria: 'zona',
+          desc: 'Invoca uma cratera vulcânica que cospe magma e causa dano contínuo.',
+          danoBase: 18, danoUnidade: 'mágico', danoNota: '+4 DoT/s',
+          mp: 20, cd: 20, escala: 'dano',
+          area: 'Raio 140', alcance: 'Mira 380px',
+          duracao: '6s', duracaoBase: null, extras: ['Erupção vulcânica', 'Queimadura em área'] }
     ],
     summoner: [
         { id: 'orbe', nome: 'Orbe das Sombras', icon: '👁️', categoria: 'ataque',
@@ -140,18 +146,18 @@ const SKILLS_INFO = {
           area: 'Raio 140', alcance: 'Ao redor',
           duracao: null, duracaoBase: null, extras: ['Cura aliados', 'Limite: HP máximo'] },
         { id: 'julgamento', nome: 'Julgamento Sagrado', icon: '⚡', categoria: 'aoe',
-          desc: 'Coluna de luz cai do céu no ponto marcado.',
+          desc: 'Coluna de luz cai do céu no ponto marcado (+20% área).',
           danoBase: 28, danoUnidade: 'sagrado', danoNota: '+ Slow 1.75s',
           mp: 24, cd: 6.5, escala: 'dano',
-          area: 'Raio 65', alcance: 'Mira 140px',
+          area: 'Raio 78', alcance: 'Mira 140px',
           duracao: null, duracaoBase: null, extras: [] },
         { id: 'aura-sagrada', nome: 'Aura Sagrada', icon: '✝️', categoria: 'buff',
           desc: 'Mantém uma zona divina que protege, fortalece e cura aliados próximos enquanto houver mana. A cura escala com o atributo DIVINDADE (+5% por ponto).',
           danoBase: null, danoUnidade: null, danoNota: 'Cura 2% HP/s x Divindade',
-          mp: 1, cd: 10, escala: 'nenhum',
+          mp: 1, cd: 5, escala: 'nenhum',
           area: 'Raio 190', alcance: 'Ao redor do Curandeiro',
           duracao: 'Contínua', duracaoBase: null,
-          extras: ['-10% dano recebido', '+5% dano causado', '+10% cura recebida', 'Cura escalada pela Divindade'] },
+          extras: ['Cooldown de 5s acionado apenas ao desativar', '-10% dano recebido', '+5% dano causado', '+10% cura recebida', 'Cura escalada pela Divindade'] },
         { id: 'ressurreicao-automatica', nome: 'Ressurreição Automática', icon: '🕊️', categoria: 'passiva',
           desc: 'Ressuscita automaticamente um aliado próximo quando ele morrer.',
           danoBase: null, danoUnidade: null, danoNota: null,
@@ -170,15 +176,15 @@ const SKILLS_INFO = {
         { id: 'furia', nome: 'Fúria Berserker', icon: '🩸', categoria: 'buff',
           desc: 'Fica possesso: corre 30% mais rápido e cada machadada rouba vida.',
           danoBase: null, danoUnidade: null, danoNota: null,
-          mp: 20, cd: 8, escala: 'duracao',
+          mp: 20, cd: 15, escala: 'duracao',
           area: 'Auto', alcance: '—',
-          duracao: '6s', duracaoBase: 6, extras: ['+30% velocidade', 'Lifesteal +8'] },
+          duracao: '6s', duracaoBase: 6, extras: ['+30% velocidade', 'Lifesteal +8', 'Cooldown: 15s'] },
         { id: 'giro_descontrolado', nome: 'Giro Descontrolado', icon: '🌀', categoria: 'aoe',
-          desc: 'Gira violentamente por 10 segundos, causando dano e sangramento ao redor e reduzindo o dano recebido em 10%.',
+          desc: 'Gira violentamente por 4 segundos, causando dano e sangramento ao redor e reduzindo o dano recebido em 10%.',
           danoBase: 18, danoUnidade: 'físico', danoNota: '+ Sangramento 3/s',
-          mp: 30, cd: 12, escala: 'dano',
+          mp: 30, cd: 15, escala: 'dano',
           area: 'Raio 90', alcance: 'Ao redor do Bárbaro',
-          duracao: '10s', duracaoBase: null, extras: ['Cooldown começa somente ao final do giro', 'Redução de dano recebida: 10%'] },
+          duracao: '4s', duracaoBase: null, extras: ['Duração reduzida para 4s', 'Cooldown aumentado para 15s', 'Redução de dano recebida: 10%'] },
         { id: 'furia_crescente', nome: 'Fúria Crescente', icon: '📈', categoria: 'passiva',
           desc: 'Conforme a vida cai, o Bárbaro cresce, causa mais dano e ganha mais presença visual de combate.',
           danoBase: null, danoUnidade: null, danoNota: 'Visual + dano por HP',
@@ -201,25 +207,25 @@ const SKILLS_INFO = {
           area: 'Projétil', alcance: 'Vel. 12',
           duracao: null, duracaoBase: null, extras: [] },
         { id: 'bateria', nome: 'Bateria Solo', icon: '🥁', categoria: 'canal',
-          desc: 'Canal de 5s: toca a bateria e o som estoura inimigos ao redor.',
-          danoBase: 30, danoUnidade: 'físico', danoNota: '+ Stun 1.25s (por batida)',
+          desc: 'Canal de 5s: toca a bateria e o som estoura inimigos ao redor (-30% de dano). Teleporte não cancela o solo.',
+          danoBase: 21, danoUnidade: 'físico', danoNota: '+ Stun 1.25s (por batida)',
           mp: 25, cd: 6, escala: 'dano',
           area: 'Raio 110', alcance: 'Ao redor',
-          duracao: 'Canal 5s', duracaoBase: null, extras: ['Batida a cada 0.5s', 'Cancela ao se mover'] },
+          duracao: 'Canal 5s', duracaoBase: null, extras: ['Batida a cada 0.5s', 'Cancela ao andar ou clicar novamente', 'Teleporte não interrompe a bateria'] },
         { id: 'teleporte', nome: 'Stage Dive', icon: '🌠', categoria: 'mobilidade',
-          desc: 'Dive estiloso que teleporta o roqueiro até o ponto marcado.',
+          desc: 'Dive estiloso que teleporta o roqueiro até o ponto marcado (não cancela a Bateria ativa).',
           danoBase: null, danoUnidade: null, danoNota: null,
           mp: 15, cd: 8, escala: 'nenhum',
           area: 'Auto', alcance: 'Teleporte 160px',
-          duracao: null, duracaoBase: null, extras: [] },
+          duracao: null, duracaoBase: null, extras: ['Não cancela Bateria Solo'] },
         { id: 'banda', nome: 'Chamar a Banda', icon: '🎤', categoria: 'invocacao',
-          desc: 'Convoca 1 membro da banda (guitarrista) que ataca junto com você.',
-          danoBase: 10, danoUnidade: 'físico', danoNota: ' por membro / 2s',
+          desc: 'Convoca 1 membro da banda (guitarrista) que ataca junto com você (+50% vel mov, +80% vel atk, +20% dano).',
+          danoBase: 12, danoUnidade: 'físico', danoNota: ' por membro / 1.1s',
           mp: 30, cd: 15, escala: 'dano',
           area: 'Persegue o alvo', alcance: 'Via membro',
-          duracao: null, duracaoBase: null, extras: ['Conjura 1 membro'] },
+          duracao: null, duracaoBase: null, extras: ['Conjura 1 membro', '+50% vel mov', '+80% vel ataque', '+20% dano'] },
         { id: 'grito_guerra', nome: 'Grito de Guerra', icon: '📣', categoria: 'buff',
-          desc: 'Grito inspirador que fortalece aliados próximos: +30% chance de crítico, +50% dano crítico, +10% velocidade de ataque e +5% vida máxima por 30s.',
+          desc: 'Grito inspirador que fortalece aliados próximos: +30% chance de crítico, +50% dano crítico, +10% velocidade de ataque e +5% vida máxima por 30s. Atualiza atributos em tempo real!',
           danoBase: null, danoUnidade: null, danoNota: null,
           mp: 30, cd: 60, escala: 'buff',
           area: 'Raio 220', alcance: 'Ao redor do Roqueiro',
@@ -278,11 +284,11 @@ const SKILLS_INFO = {
           area: 'Raio 300 em volta do Drone', alcance: 'Drone (segue o dono)',
           duracao: '5s', duracaoBase: 5, extras: ['Até 3 alvos simultâneos', 'Dano a cada ~0,4s'] },
         { id: 'assalto_dm', nome: 'Modo Assalto', icon: '🤖', categoria: 'invocacao',
-          desc: 'O Drone se transforma em um mini robô de combate corpo a corpo por 3s: persegue o inimigo mais próximo e ataca com o DOBRO do dano básico. Nunca ultrapassa a distância máxima do dono.',
+          desc: 'O Drone se transforma em um mini robô de combate corpo a corpo por 8s (+50% vel atk): persegue o inimigo mais próximo e ataca com o DOBRO do dano básico. Nunca ultrapassa a distância máxima do dono.',
           danoBase: 13, danoUnidade: 'físico', danoNota: '×2 no corpo a corpo',
           mp: 25, cd: 10, escala: 'dano',
           area: 'Persegue o alvo', alcance: 'Até 340px do dono',
-          duracao: '3s', duracaoBase: 3, extras: ['Dano ×2', 'Limite de distância do dono'] },
+          duracao: '8s', duracaoBase: 8, extras: ['Dano ×2', '+50% velocidade de ataque', 'Limite de distância do dono'] },
         { id: 'caixa_dm', nome: 'Caixa de Ferramentas', icon: '🧰', categoria: 'zona',
           desc: 'Coloca uma caixa de ferramentas no chão por 10s: VOCÊ recebe o escudo na hora e aliados próximos também — ESCUDO de 50% da vida máxima (não acumula).',
           danoBase: null, danoUnidade: null, danoNota: 'Escudo 50% vida máx',
@@ -305,23 +311,23 @@ const SKILLS_INFO = {
     // ===== ARQUEIRO ASTRAL (v2): cometas, constelações e estrelas =====
     arqueiro_arcano: [
         { id: 'flecha_astral', nome: 'Disparo Estelar', icon: '🌠', categoria: 'ataque',
-          desc: 'Flecha-cometa de luz que gira com cauda de estrelas (500ms). Deixa um rastro cósmico por onde passa.',
+          desc: 'Flecha-cometa de luz estelar (Dano Mágico escalado com Inteligência). Deixa um rastro cósmico por onde passa.',
           danoBase: 16, danoUnidade: 'mágico', danoNota: null,
           mp: 0, cd: 0.5, escala: 'dano',
           area: 'Linha (260px)', alcance: 'À distância',
-          duracao: null, duracaoBase: null, extras: ['Rastro de estrelas'] },
+          duracao: null, duracaoBase: null, extras: ['Rastro de estrelas', 'Dano 100% Mágico'] },
         { id: 'cometas_astral', nome: 'Chuva de Cometas', icon: '☄️', categoria: 'zona',
           desc: 'Cometa que explode no alvo: dano de impacto + CHUVA DE COMETAS caindo no chão por 4s.',
           danoBase: 22, danoUnidade: 'mágico', danoNota: '+ chuva 4s',
           mp: 25, cd: 7, escala: 'dano',
           area: 'Explosão raio 85 + chuva 4s', alcance: 'Até 300px',
-          duracao: '4s', duracaoBase: 4, extras: ['Chuva de cometas por 4s'] },
+          duracao: '4s', duracaoBase: 4, extras: ['Chuva de cometas por 4s', 'Dano 100% Mágico'] },
         { id: 'orbe_constelacao', nome: 'Orbe de Constelação', icon: '✨', categoria: 'zona',
           desc: 'Arremessa um orbe estelar que cria uma constelação no chão: CATIVRA os inimigos por 2s e implode com dano de estrelas.',
           danoBase: 26, danoUnidade: 'mágico', danoNota: 'cativeiro 2s',
           mp: 25, cd: 8, escala: 'dano',
           area: 'Constelação raio 100', alcance: 'Até 260px',
-          duracao: '2s', duracaoBase: 2, extras: ['Cativeiro 2s', 'Implosão estelar'] },
+          duracao: '2s', duracaoBase: 2, extras: ['Cativeiro 2s', 'Implosão estelar', 'Dano 100% Mágico'] },
         { id: 'cascata_estelar', nome: 'Cascata Estelar', icon: '🌌', categoria: 'aoe',
           desc: 'Solta uma onda de estrelas em cone que IMPEDE o movimento dos inimigos atingidos por 2s (root).',
           danoBase: null, danoUnidade: null, danoNota: 'Root 2s',
@@ -332,17 +338,17 @@ const SKILLS_INFO = {
     // ===== SNIPER (v1.31): precisão, camuflagem e posição =====
     sniper: [
         { id: 'tiro_barrett', nome: 'Tiro de Barrett', icon: '🔫', categoria: 'ataque',
-          desc: 'Disparo de longo alcance que PERFURA todos os inimigos na linha (480px).',
+          desc: 'Disparo de longo alcance que PERFURA todos os inimigos na linha (384px).',
           danoBase: 30, danoUnidade: 'físico', danoNota: 'perfurante',
           mp: 0, cd: 0.94, escala: 'dano',
-          area: 'Linha perfurante (480px)', alcance: 'Longo alcance',
+          area: 'Linha perfurante (384px)', alcance: 'Longo alcance',
           duracao: null, duracaoBase: null, extras: ['Atravessa inimigos'] },
         { id: 'disparo_supremo', nome: 'Disparo Supremo', icon: '💥', categoria: 'ataque',
-          desc: 'Prepara a mira por até 3s (não pode se mover). No disparo: dano ×3 em UM inimigo (alcance máximo). Se não disparar em 3s, a preparação encerra e o cooldown inicia.',
-          danoBase: 45, danoUnidade: 'físico', danoNota: '×3 em 1 alvo',
+          desc: 'Prepara a mira por até 3s (não pode se mover). No disparo: dano ×3 em UM inimigo (+20% de dano base). Se não disparar em 3s, a preparação encerra e o cooldown inicia.',
+          danoBase: 54, danoUnidade: 'físico', danoNota: '×3 em 1 alvo',
           mp: 30, cd: 20, escala: 'dano',
           area: '1 inimigo (mira)', alcance: 'Até 700px',
-          duracao: '3s (janela de mira)', duracaoBase: 3, extras: ['Mira bloqueia movimento', '×3 dano num único alvo'] },
+          duracao: '3s (janela de mira)', duracaoBase: 3, extras: ['Mira bloqueia movimento', '×3 dano num único alvo (+20% base)'] },
         { id: 'arame_rede', nome: 'Arame Prendedor', icon: '🕸️', categoria: 'zona',
           desc: 'Arremessa um arame que cria uma rede no chão por 3s: PRENDE o primeiro inimigo atingido e qualquer inimigo que entre nela (não podem se mover).',
           danoBase: null, danoUnidade: null, danoNota: 'Root 3s',
@@ -356,18 +362,20 @@ const SKILLS_INFO = {
           area: 'Auto', alcance: 'Dentro do mato',
           duracao: 'Ilimitado (até sair/atacar)', duracaoBase: null, extras: ['Reset CD Skill 1', 'CDs das outras skills congelam'] },
         { id: 'posicao_sniper', nome: 'Posição de Franco-Atirador', icon: '🎯', categoria: 'buff',
-          desc: 'Deita no chão: não pode se mover, mas TODOS os danos causados são +100% (×2) e detecta inimigos INVISÍVEIS dentro do raio.',
-          danoBase: null, danoUnidade: null, danoNota: '+100% dano',
+          desc: 'Deita no chão: não pode se mover, reseta o cooldown do Disparo Supremo imediatamente, garante 100% de chance de crítico, +100% de dano (×2) e detecta inimigos INVISÍVEIS dentro do raio.',
+          danoBase: null, danoUnidade: null, danoNota: '+100% dano & crit garantido',
           mp: 30, cd: 15, escala: 'buff',
           area: 'Auto (deitado)', alcance: 'Detecção 420px',
-          duracao: 'Até cancelar', duracaoBase: null, extras: ['Bloqueia movimento', 'Detecta invisíveis', '+100% dano em tudo'] }
+          duracao: 'Até cancelar', duracaoBase: null, extras: ['Bloqueia movimento', 'Reseta CD Disparo Supremo', '+100% crítico garantido', 'Detecta invisíveis', '+100% dano em tudo'] }
     ]
 };
+
+SKILLS_INFO.arqueiro_astral = SKILLS_INFO.arqueiro_arcano;
 
 const NOMES_CLASSES = {
     guerreiro: 'GUERREIRO', mago: 'MAGO', summoner: 'SUMMONER', arqueiro: 'ARQUEIRO',
     curandeiro: 'CURANDEIRO', barbaro: 'BÁRBARO', roqueiro: 'ROQUEIRO', ladino: 'LADINO',
-    dronemaster: 'DRONEMASTER', arqueiro_arcano: 'ARQUEIRO ASTRAL', sniper: 'SNIPER'
+    dronemaster: 'DRONEMASTER', arqueiro_arcano: 'ARQUEIRO ASTRAL', arqueiro_astral: 'ARQUEIRO ASTRAL', sniper: 'SNIPER'
 };
 
 const LABELS_CATEGORIA = {
@@ -396,12 +404,12 @@ function valorEscalado(skill, nivel) {
 
 // Espelha as regras de escala por ATRIBUTO do server.js (calcularDanoJogador/calcularCuraJogador):
 // cura -> Divindade; golpes de pet -> Afinidade; dano contínuo ('/s' ou '/ n s') -> Profanidade;
-// classes mágicas (mago/summoner/curandeiro/roqueiro) -> Inteligência; demais -> Força.
+// classes mágicas (mago/summoner/curandeiro/roqueiro/arqueiro_arcano/arqueiro_astral) -> Inteligência; demais -> Força.
 function atributoEscalaSkill(skill) {
     if (skill.escala === 'cura') return { chave: 'divindade', rotulo: 'Divindade' };
     if (skill.id === 'ogro' || skill.id === 'esmagamento' || skill.id === 'salto' || skill.id === 'colossal') return { chave: 'afinidade', rotulo: 'Afinidade' };
     if (skill.danoNota && /\/\s*\d*s/.test(skill.danoNota)) return { chave: 'profanidade', rotulo: 'Profanidade' };
-    if (['mago', 'summoner', 'curandeiro', 'roqueiro'].indexOf(window.minhaClasse) !== -1) return { chave: 'inteligencia', rotulo: 'Inteligência' };
+    if (['mago', 'summoner', 'curandeiro', 'roqueiro', 'arqueiro_arcano', 'arqueiro_astral'].indexOf(window.minhaClasse) !== -1) return { chave: 'inteligencia', rotulo: 'Inteligência' };
     return { chave: 'forca', rotulo: 'Força' };
 }
 

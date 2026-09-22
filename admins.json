@@ -1,4 +1,3 @@
 {
-  "admins": ["admin", "Admin"]
-    "admins": ["admin1", "Admin1"]
+  "admins": ["admin", "Admin", "admin1", "Admin1", "admin2", "Admin2"]
 }
