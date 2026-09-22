@@ -154,11 +154,70 @@ body.ui-editando .ui-elemento {
     user-select: none !important;
     -webkit-user-select: none !important;
     transition: outline-color 0.15s ease !important;
+    pointer-events: auto !important;
 }
 body.ui-editando .ui-elemento:hover {
     outline-color: #f1c40f !important;
     outline-width: 3px !important;
     background-color: rgba(255, 122, 0, 0.15) !important;
+}
+
+/* --- Alça de redimensionamento individual (canto ⤡) --- */
+.ui-resize-handle {
+    position: absolute;
+    right: -3px;
+    bottom: -3px;
+    width: 18px;
+    height: 18px;
+    z-index: 60;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    background: #ff7a00;
+    border: 2px solid #000;
+    border-radius: 4px;
+    color: #111;
+    font-size: 12px;
+    font-weight: bold;
+    line-height: 1;
+    cursor: nwse-resize;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: none;
+    box-shadow: -1px -1px 0 #000, 2px 2px 0 rgba(0, 0, 0, 0.5);
+    pointer-events: all;
+}
+body.ui-editando .ui-elemento > .ui-resize-handle { display: flex; }
+
+/* --- Controles de escala global do editor --- */
+#ui-editor-bar .ui-editor-sep {
+    width: 2px;
+    height: 26px;
+    background: #3a3528;
+    margin: 0 2px;
+    align-self: center;
+}
+#ui-editor-bar .ui-editor-escala-titulo {
+    font-family: 'Rajdhani', sans-serif;
+    color: #f1c40f;
+    font-weight: bold;
+    font-size: 13px;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+#ui-editor-bar input.ui-escala-slider {
+    width: 96px;
+    height: 18px;
+    accent-color: #ff7a00;
+    cursor: pointer;
+}
+#ui-editor-bar .ui-editor-escala-label {
+    font-family: 'Rajdhani', sans-serif;
+    color: #f1c40f;
+    font-weight: bold;
+    font-size: 13px;
+    min-width: 38px;
+    text-align: center;
 }
 
 /* --- Toast do editor (feedback) -------------------------------------- */

@@ -691,6 +691,10 @@
         if (estaMorto() || window.transicaoMapaAtiva) return false;
         var dist = Math.hypot(mx - PORTAL.x, my - PORTAL.y);
         if (dist <= PORTAL.r + 12) {
+            if (typeof window.requerProximidade === 'function' && !window.requerProximidade(PORTAL.x, PORTAL.y, 160)) {
+                if (typeof window.avisoProximidade === 'function') window.avisoProximidade();
+                return false;
+            }
             abrirPainel();
             return true;
         }

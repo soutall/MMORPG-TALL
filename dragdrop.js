@@ -11,7 +11,22 @@
     "use strict";
 
     var UMBRAL = 10;               // px de movimento para distinguir click de arrastre
-    var PREF = "mmorpg_jv_win_";   // prefijo localStorage das janelas
+    var PREF = "mmorpg_jv_win_";   // prefijo localStorage das janelas (fallback legado)
+
+    // ID do herói SEMPRE por personagem (nunca "anonimo" quando existe identidade).
+    function idDoJogador() {
+        var uid = window.meuId;
+        if (!uid) {
+            try { uid = localStorage.getItem("mmorpg_user_id"); } catch (e) {}
+        }
+        if (!uid) return "";
+        return String(uid).replace(/[^a-zA-Z0-9_.-]/g, "").substring(0, 64);
+    }
+
+    function chaveJanela(id) {
+        var u = idDoJogador();
+        return (u ? "mmorpg_jv_win_" + u + "_" : PREF) + id;
+    }
 
     var arrastro = null;           // estado atual do arrastre
     var clickSuprimidoHasta = 0;
@@ -238,7 +253,7 @@
         if (!id || !win.getBoundingClientRect) return;
         var r = win.getBoundingClientRect();
         try {
-            localStorage.setItem(PREF + id, JSON.stringify({ x: Math.round(r.left), y: Math.round(r.top) }));
+            localStorage.setItem(chaveJanela(id), JSON.stringify({ x: Math.round(r.left), y: Math.round(r.top) }));
         } catch (e) { }
     }
 
@@ -246,7 +261,8 @@
         var id = win.id;
         if (!id) return;
         try {
-            var s = localStorage.getItem(PREF + id);
+            var s = localStorage.getItem(chaveJanela(id));
+            if (!s) s = localStorage.getItem(PREF + id); // migração de chave legada (sem sufixo por jogador)
             if (!s) return;
             var d = JSON.parse(s);
             if (typeof d.x === "number" && typeof d.y === "number" && win.getBoundingClientRect) {
@@ -282,6 +298,22 @@
         // Sem preventDefault: os clicks normais (incl. botões filhos) seguem
         // funcionando; o arrastre só "rouba" o gesto quando há movimento real.
         if (modoeditarUI) {
+            var manivela = t.closest(".ui-resize-handle");
+            if (manivela) {
+                var uiRes = manivela.closest(".ui-elemento");
+                if (uiRes) {
+                    var rr = uiRes.getBoundingClientRect();
+                    arrastro = {
+                        tipo: "ui-resize", el: uiRes,
+                        nome: uiRes.getAttribute("data-ui") || uiRes.id,
+                        origX: e.clientX, origY: e.clientY, activo: false,
+                        baseW: rr.width, baseH: rr.height,
+                        posX: rr.left, posY: rr.top
+                    };
+                    e.preventDefault();
+                }
+                return;
+            }
             var uiAlvo = t.closest(".ui-elemento");
             if (uiAlvo) {
                 arrastro = {
@@ -353,6 +385,8 @@
             } else if (arrastro.tipo === "ui") {
                 activarArrastreUI();
                 moverUI(e.clientX, e.clientY);
+            } else if (arrastro.tipo === "ui-resize") {
+                redimensionarUI(e.clientX, e.clientY);
             } else {
                 crearFantasma(arrastro.icon, arrastro.cor, arrastro.nombre);
                 moverFantasma(e.clientX, e.clientY);
@@ -363,6 +397,7 @@
         }
         if (arrastro.tipo === "janela") moverJanela(e.clientX, e.clientY);
         else if (arrastro.tipo === "ui") moverUI(e.clientX, e.clientY);
+        else if (arrastro.tipo === "ui-resize") redimensionarUI(e.clientX, e.clientY);
         else {
             moverFantasma(e.clientX, e.clientY);
             marcarAlvo(e.clientX, e.clientY);
@@ -383,8 +418,9 @@
             guardarPosicion(a.win);
             return;
         }
-        if (a.tipo === "ui") {
+        if (a.tipo === "ui" || a.tipo === "ui-resize") {
             clickSuprimidoHasta = Date.now() + 250;
+            atualizarOriginalUI(a.nome);
             marcarSucioUI();
             return;
         }
@@ -465,6 +501,7 @@
                 wEl.style.left = "";
                 wEl.style.top = "";
                 wEl.style.transform = "";
+                try { localStorage.removeItem(chaveJanela(wEl.id)); } catch (e) { }
                 try { localStorage.removeItem(PREF + wEl.id); } catch (e) { }
             }
         }
@@ -479,19 +516,28 @@
     var uiSucio = false;
     var elementosUI = {};
     var layoutUI = {};
+    var escalaUI = 1;
+    var originaisUI = {};
     var LAYOUT_PREF = "mmorpg_ui_layout_";
 
     function claveLayoutUI() {
-        var uid = window.meuId;
-        if (!uid) {
-            try { uid = localStorage.getItem("mmorpg_user_id"); } catch (e) {}
-        }
+        var uid = idDoJogador();
         return LAYOUT_PREF + (uid || "anonimo");
     }
 
     function cargarLayoutLocal() {
         try {
-            var s = localStorage.getItem(claveLayoutUI());
+            var chave = claveLayoutUI();
+            var uid = idDoJogador();
+            if (uid && !localStorage.getItem(chave)) {
+                // migração de chaves legadas (sem sufixo por jogador / anonimo)
+                var legado = localStorage.getItem(LAYOUT_PREF + "anonimo");
+                if (!legado) legado = localStorage.getItem(LAYOUT_PREF);
+                if (legado) {
+                    try { localStorage.setItem(chave, legado); } catch (e) {}
+                }
+            }
+            var s = localStorage.getItem(chave);
             if (s) {
                 var d = JSON.parse(s);
                 if (d && typeof d === "object") {
@@ -499,6 +545,188 @@
                 }
             }
         } catch (e) {}
+    }
+
+    /* =====================================================================
+       AUTO-DETECTOR DE RESOLUÇÃO/TELA + LAYOUT PADRÃO MOBILE + COLISÃO UI
+       - telaPequeña(): true em celulares (parecença paisagem forçada) ou
+         janelas estreitas. Usa isto para escolher posições padrão móveis.
+       - Layout mobile NUNCA sobreescreve um layout salvo: só aplica quando
+         o jogador ainda não personalizou nada (nem local nem servidor).
+       - resolverColisaoUI(): evita sobreposição de elementos visíveis ao
+         arrastrar/redimensionar/carregar layout (empurra o elemento para a
+         posição livre mais próxima, respeitando a viewport).
+       ==================================================================== */
+    function telaPequena() {
+        var w = Math.max(0, window.innerWidth || 0);
+        var h = Math.max(0, window.innerHeight || 0);
+        if (w <= 0 || h <= 0) return false;
+        var razao = w / Math.max(1, h);
+        return w < 830 || (razao < 1.5 && h > 400);
+    }
+
+    // Posições padrão (0..1 = fração da tela) para telas pequenas.
+    var LAYOUT_PADRAO_MOBILE = {
+        "hud-status-window": { x: 0.5, y: 0.07, alinharX: "center" },
+        "hud-xp-central":    { x: 0.5, y: 0.93, alinharX: "center", porBaixo: true },
+        "minimap":           { x: 0.94, y: 0.9, alinharX: "right" },
+        "joystick":          { x: 0.08, y: 0.82 },
+        "actions":           { x: 0.5, y: 0.95, alinharX: "center", porBaixo: true },
+        "util-buttons":      { x: 0.94, y: 0.02, alinharX: "right" },
+        "hud-party":         { x: 0.06, y: 0.5 },
+        "hud-buffs":         { x: 0.5, y: 0.01, alinharX: "center" },
+        "hud-boss":          { x: 0.5, y: 0.03, alinharX: "center" }
+    };
+
+    function retanguloUI(reg) {
+        if (!reg || !reg.el) return null;
+        var r = reg.el.getBoundingClientRect();
+        var w = r.width || reg.el.offsetWidth || 0;
+        var h = r.height || reg.el.offsetHeight || 0;
+        if (w <= 0 && h <= 0) return null;
+        return { left: r.left, top: r.top, width: w, height: h };
+    }
+
+    function dentroDeOutraUI(reg) {
+        if (!reg || !reg.el) return false;
+        var p = reg.el.parentElement;
+        while (p) {
+            if (p.classList && p.classList.contains("ui-elemento")) return true;
+            p = p.parentElement;
+        }
+        return false;
+    }
+
+    function uiVisivel(reg) {
+        if (!reg || !reg.el) return false;
+        try {
+            var cs = getComputedStyle(reg.el);
+            if (cs && (cs.display === "none" || cs.visibility === "hidden")) return false;
+        } catch (e) { }
+        var r = retanguloUI(reg);
+        return !!(r && (r.width > 0 || r.height > 0)) && (reg.el.offsetWidth > 0 || reg.el.offsetHeight > 0);
+    }
+
+    function retsColidem(a, b, folga) {
+        var f = folga || 5;
+        return !(a.left + a.width + f <= b.left || b.left + b.width + f <= a.left || a.top + a.height + f <= b.top || b.top + b.height + f <= a.top);
+    }
+
+    // Empurra o elemento `nome` para uma posição livre visível mais próxima.
+    function resolverColisaoUI(nome, x, y, w, h) {
+        var folga = 5;
+        var bloqueadores = [];
+        for (var outro in elementosUI) {
+            if (outro === nome) continue;
+            var reg = elementosUI[outro];
+            if (!reg || !uiVisivel(reg) || dentroDeOutraUI(reg)) continue;
+            var r = retanguloUI(reg);
+            if (r) bloqueadores.push(r);
+        }
+        var atual = { left: x, top: y, width: w, height: h };
+        var colideAlgum = false;
+        for (var i = 0; i < bloqueadores.length; i++) {
+            if (retsColidem(atual, bloqueadores[i], folga)) { colideAlgum = true; break; }
+        }
+        if (!colideAlgum) return { x: x, y: y };
+
+        var candidatos = [{ x: x, y: y }];
+        for (var i2 = 0; i2 < bloqueadores.length; i2++) {
+            var b = bloqueadores[i2];
+            if (!retsColidem(atual, b, folga)) continue;
+            candidatos.push({ x: b.left + b.width + folga, y: y });
+            candidatos.push({ x: b.left - w - folga, y: y });
+            candidatos.push({ x: x, y: b.top + b.height + folga });
+            candidatos.push({ x: x, y: b.top - h - folga });
+        }
+        var melhor = null;
+        var melhorDist = Infinity;
+        for (var c = 0; c < candidatos.length; c++) {
+            var cand = candidatos[c];
+            var cr = { left: cand.x, top: cand.y, width: w, height: h };
+            var ok = true;
+            for (var j = 0; j < bloqueadores.length; j++) {
+                if (retsColidem(cr, bloqueadores[j], folga)) { ok = false; break; }
+            }
+            if (!ok) continue;
+            var candClamp = clampPosElemento({
+                x: cand.x, y: cand.y, width: w, height: h,
+                viewportWidth: window.innerWidth, viewportHeight: window.innerHeight
+            });
+            var dist = Math.abs(candClamp.x - x) + Math.abs(candClamp.y - y);
+            if (dist < melhorDist) { melhorDist = dist; melhor = candClamp; }
+        }
+        return melhor || clampPosElemento({ x: x, y: y, width: w, height: h, viewportWidth: window.innerWidth, viewportHeight: window.innerHeight });
+    }
+
+    // Aplica o layout padrão mobile (só quando não há layout salvo). Persistido
+    // apenas em memória; grava com "💾 SALVAR" guardado por jogador.
+    function aplicarLayoutPadraoMobile() {
+        if (!telaPequena()) return;
+        if (Object.keys(layoutUI).length > 0) return trigo;
+        if (Object.keys(elementosUI).length === 0) return;
+        var copiou = false;
+        var fez = false;
+        for (var nome in LAYOUT_PADRAO_MOBILE) {
+            var reg = elementosUI[nome];
+            if (!reg || !reg.el) continue;
+            if (layoutUI[nome]) continue;
+            if (!uiVisivel(reg) || dentroDeOutraUI(reg)) continue;
+            var r = retanguloUI(reg);
+            if (!r) continue;
+            var conf = LAYOUT_PADRAO_MOBILE[nome];
+            var vw = window.innerWidth, vh = window.innerHeight;
+            var w = r.width, h = r.height;
+            var x = conf.alinharX === "center" ? (vw / 2 - w / 2) : (conf.alinharX === "right" ? (vw - w - 10) : (conf.x * vw));
+            var y = conf.porBaixo ? (vh - h - 12) : (conf.y * vh);
+            var res = resolverColisaoUI(nome, Math.round(x), Math.round(y), w, h);
+            var el2 = reg.el;
+            el2.style.position = "fixed";
+            el2.style.left = Math.round(res.x) + "px";
+            el2.style.top = Math.round(res.y) + "px";
+            el2.style.right = "auto";
+            el2.style.bottom = "auto";
+            el2.style.float = "none";
+            el2.style.transform = "none";
+            el2.classList.add("ui-movido", "ui-auto-mobile");
+            layoutUI[nome] = { x: Math.round(res.x), y: Math.round(res.y), w: w, h: h };
+            fez = true;
+        }
+        if (fez) uiSucio = true;
+    }
+
+    // Resolve colisões em TODOS os elementos já aplicados (passes limitados
+    // para garantir convergência sem travões).
+    function resolverColisoesAplicadas() {
+        var nomes = [];
+        for (var n in elementosUI) if (elementosUI[n] && elementosUI[n].el) nomes.push(n);
+        var passos = 0;
+        var maxPassos = 12;
+        var trocou = true;
+        while (trocou && passos < maxPassos) {
+            trocou = false;
+            passos++;
+            for (var i = 0; i < nomes.length; i++) {
+                var nm = nomes[i];
+                var reg = elementosUI[nm];
+                if (!reg || !reg.el || !uiVisivel(reg) || dentroDeOutraUI(reg)) continue;
+                var r = retanguloUI(reg);
+                if (!r) continue;
+                var res = resolverColisaoUI(nm, r.left, r.top, r.width, r.height);
+                if (Math.round(res.x) !== Math.round(r.left) || Math.round(res.y) !== Math.round(r.top)) {
+                    reg.el.style.position = "fixed";
+                    reg.el.style.left = Math.round(res.x) + "px";
+                    reg.el.style.top = Math.round(res.y) + "px";
+                    reg.el.style.right = "auto";
+                    reg.el.style.bottom = "auto";
+                    reg.el.style.transform = "none";
+                    reg.el.classList.add("ui-movido", "ui-collide");
+                    var ant = layoutUI[nm] || {};
+                    layoutUI[nm] = { x: Math.round(res.x), y: Math.round(res.y), w: ant.w, h: ant.h };
+                    trocou = true;
+                }
+            }
+        }
     }
 
     function toastUI(texto) {
@@ -509,7 +737,6 @@
             t.className = "ui-toast";
             document.body.appendChild(t);
         }
-        t.innerText = texto;
         t.classList.remove("ui-toast-hide");
         var actual = t.getAttribute('data-timer') ? parseInt(t.getAttribute('data-timer'), 10) : null;
         if (actual) clearTimeout(actual);
@@ -539,8 +766,11 @@
         el.style.right = "auto";
         el.style.bottom = "auto";
         el.style.transform = "none";
+        if (typeof pos.w === "number" && pos.w > 0) {
+            aplicarTamanhoEl(el, Math.round(pos.w), typeof pos.h === "number" && pos.h > 0 ? Math.round(pos.h) : Math.round(rect.height));
+        }
         el.classList.add("ui-movido");
-        layoutUI[reg.nome] = { x: Math.round(clamp.x), y: Math.round(clamp.y) };
+        layoutUI[reg.nome] = { x: Math.round(clamp.x), y: Math.round(clamp.y), w: pos.w, h: pos.h };
     }
 
     function registrarElementoUI(el, nome) {
@@ -548,7 +778,26 @@
         if (elementosUI[nome]) return;
         elementosUI[nome] = { el: el, nome: nome };
         el.classList.add("ui-elemento");
+        asegurarManivelaResize(el);
         aplicarPosicionUI(elementosUI[nome]);
+    }
+
+    function asegurarManivelaResize(el) {
+        if (!el || el.querySelector(".ui-resize-handle")) return;
+        var h = document.createElement("span");
+        h.className = "ui-resize-handle";
+        h.textContent = "⤡";
+        h.title = "Arraste para redimensionar";
+        el.appendChild(h);
+    }
+
+    function aplicarTamanhoEl(el, w, h) {
+        if (!el) return;
+        el.style.maxWidth = "none";
+        el.style.minWidth = "none";
+        el.style.minHeight = "none";
+        el.style.width = Math.max(10, Math.round(w)) + "px";
+        el.style.height = Math.max(10, Math.round(h)) + "px";
     }
 
     function aplicarLayoutUI(dict) {
@@ -557,7 +806,10 @@
         for (var nome in dict) {
             var p = dict[nome];
             if (p && typeof p.x === "number" && typeof p.y === "number") {
-                layoutUI[nome] = { x: Math.round(p.x), y: Math.round(p.y) };
+                var novo = { x: Math.round(p.x), y: Math.round(p.y) };
+                if (typeof p.w === "number" && Number.isFinite(p.w) && p.w > 0) novo.w = Math.round(p.w);
+                if (typeof p.h === "number" && Number.isFinite(p.h) && p.h > 0) novo.h = Math.round(p.h);
+                layoutUI[nome] = novo;
                 algum = true;
             }
         }
@@ -570,7 +822,8 @@
         for (var nome in elementosUI) {
             var el = elementosUI[nome].el;
             if (el.classList.contains("ui-movido") && el.style.left && el.style.top) {
-                layoutUI[nome] = { x: parseInt(el.style.left, 10), y: parseInt(el.style.top, 10) };
+                var ant = layoutUI[nome] || {};
+                layoutUI[nome] = { x: parseInt(el.style.left, 10), y: parseInt(el.style.top, 10), w: ant.w, h: ant.h };
             }
         }
     }
@@ -596,6 +849,7 @@
             viewportWidth: window.innerWidth,
             viewportHeight: window.innerHeight
         });
+        pos = resolverColisaoUI(a.nome, Math.round(pos.x), Math.round(pos.y), r.width || a.el.offsetWidth || 0, r.height || a.el.offsetHeight || 0);
         a.el.style.position = "fixed";
         a.el.style.left = Math.round(pos.x) + "px";
         a.el.style.top = Math.round(pos.y) + "px";
@@ -603,7 +857,9 @@
         a.el.style.bottom = "";
         a.el.style.transform = "none";
         a.el.classList.add("ui-movido");
-        layoutUI[a.nome] = { x: Math.round(pos.x), y: Math.round(pos.y) };
+        var anterior = layoutUI[a.nome] || {};
+        layoutUI[a.nome] = { x: Math.round(pos.x), y: Math.round(pos.y), w: anterior.w, h: anterior.h };
+        atualizarOriginalUI(a.nome);
     }
 
     function marcarSucioUI() {
@@ -616,6 +872,88 @@
         if (d) d.style.display = uiSucio ? "inline-block" : "none";
     }
 
+    function redimensionarUI(x, y) {
+        var a = arrastro;
+        if (!a) return;
+        var w = Math.max(30, Math.round(a.baseW + (x - a.origX)));
+        var h = Math.max(20, Math.round(a.baseH + (y - a.origY)));
+        var pos = clampPosElemento({
+            x: a.posX,
+            y: a.posY,
+            width: w,
+            height: h,
+            viewportWidth: window.innerWidth,
+            viewportHeight: window.innerHeight
+        });
+        pos = resolverColisaoUI(a.nome, Math.round(pos.x), Math.round(pos.y), w, h);
+        var el = a.el;
+        el.style.position = "fixed";
+        el.style.left = Math.round(pos.x) + "px";
+        el.style.top = Math.round(pos.y) + "px";
+        el.style.right = "auto";
+        el.style.bottom = "auto";
+        el.style.transform = "none";
+        aplicarTamanhoEl(el, w, h);
+        el.classList.add("ui-movido");
+        layoutUI[a.nome] = { x: Math.round(pos.x), y: Math.round(pos.y), w: w, h: h };
+    }
+
+    function atualizarOriginalUI(nome) {
+        var reg = elementosUI[nome];
+        if (!reg || !reg.el || !reg.el.getBoundingClientRect) return;
+        var r = reg.el.getBoundingClientRect();
+        originaisUI[nome] = { x: r.left, y: r.top, w: r.width, h: r.height };
+    }
+
+    function capturarOriginaisUI() {
+        originaisUI = {};
+        for (var nome in elementosUI) atualizarOriginalUI(nome);
+    }
+
+    function EscalaInterface(f) {
+        var algum = false;
+        for (var nome in originaisUI) {
+            var o = originaisUI[nome];
+            var reg = elementosUI[nome];
+            if (!o || !reg || !reg.el) continue;
+            var el = reg.el;
+            var w = Math.max(24, Math.round(o.w * f));
+            var h = Math.max(16, Math.round(o.h * f));
+            var pos = clampPosElemento({
+                x: Math.round(o.x * f),
+                y: Math.round(o.y * f),
+                width: w,
+                height: h,
+                viewportWidth: window.innerWidth,
+                viewportHeight: window.innerHeight
+            });
+            el.style.position = "fixed";
+            el.style.left = pos.x + "px";
+            el.style.top = pos.y + "px";
+            el.style.right = "auto";
+            el.style.bottom = "auto";
+            el.style.transform = "none";
+            aplicarTamanhoEl(el, w, h);
+            el.classList.add("ui-movido");
+            layoutUI[nome] = { x: pos.x, y: pos.y, w: w, h: h };
+            algum = true;
+        }
+        if (algum) {
+            uiSucio = true;
+            actualizarBarraEditor();
+        }
+        escalaUI = f;
+    }
+
+    window.mudarEscalaInterface = function (val) {
+        var v = parseInt(val, 10);
+        if (isNaN(v)) return;
+        var f = Math.max(0.5, Math.min(2.5, v / 100));
+        EscalaInterface(f);
+        var lbl = document.getElementById("ui-escala-label");
+        if (lbl) lbl.innerText = Math.round(f * 100) + "%";
+    };
+
     function asegurarBarraEditor() {
         var bar = document.getElementById("ui-editor-bar");
         if (bar) return bar;
@@ -624,6 +962,11 @@
         bar.className = "ui-editor-bar";
         bar.innerHTML =
             '<span class="ui-editor-titulo">🔧 EDITAR INTERFACE</span>' +
+            '<span class="ui-editor-sep"></span>' +
+            '<span class="ui-editor-escala-titulo" title="Redimensiona TODAS as partes da interface proporcionalmente">📐 ESCALA</span>' +
+            '<input type="range" id="ui-escala-slider" class="ui-escala-slider" min="50" max="250" step="5" value="100" oninput="mudarEscalaInterface(this.value)" title="Escala global da interface (50%~250%)">' +
+            '<span id="ui-escala-label" class="ui-editor-escala-label">100%</span>' +
+            '<span class="ui-editor-sep"></span>' +
             '<button class="ui-editor-btn ui-editor-save" onclick="salvarInterfaceUI()" title="Guardar no servidor (persistente por jogador)">💾 SALVAR</button>' +
             '<button class="ui-editor-btn ui-editor-reset" onclick="restaurarInterfaceUI()" title="Voltar ao layout original">↺ RESTAURAR</button>' +
             '<button class="ui-editor-btn ui-editor-exit" onclick="sairInterfaceUI()" title="Sair do modo edição">✕ SAIR</button>' +
@@ -639,12 +982,18 @@
         if (typeof fecharAtributos === "function") fecharAtributos();
         if (typeof cancelarTodasMiras === "function") cancelarTodasMiras();
         recogerLayoutUI();
+        capturarOriginaisUI();
         modoeditarUI = true;
         uiSucio = false;
+        escalaUI = 1;
+        var sl = document.getElementById("ui-escala-slider");
+        if (sl) sl.value = "100";
+        var lb = document.getElementById("ui-escala-label");
+        if (lb) lb.innerText = "100%";
         document.body.classList.add("ui-editando");
         asegurarBarraEditor().style.display = "flex";
         actualizarBarraEditor();
-        toastUI("Arraste os elementos da interface para movêlos. Toque 💾 SALVAR para guardar.");
+        toastUI("Arraste para mover. Puxe o canto ⤡ para redimensionar. Use 📐 ESCALA para redimensionar tudo.");
     };
 
     window.salvarInterfaceUI = function () {
@@ -672,9 +1021,19 @@
                 el.style.bottom = "";
                 el.style.transform = "";
                 el.style.transition = "";
+                el.style.width = "";
+                el.style.height = "";
+                el.style.maxWidth = "";
+                el.style.minWidth = "";
+                el.style.minHeight = "";
                 el.classList.remove("ui-movido");
             }
             layoutUI = {};
+            escalaUI = 1;
+            var escSl = document.getElementById("ui-escala-slider");
+            if (escSl) escSl.value = "100";
+            var escLb = document.getElementById("ui-escala-label");
+            if (escLb) escLb.innerText = "100%";
             try { localStorage.removeItem(claveLayoutUI()); } catch (e) { }
             if (typeof ws !== "undefined" && ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ action: "restaurar_ui_layout" }));
@@ -735,7 +1094,12 @@
         }
     }
 
-    window.addEventListener("resize", revalidarLimitesViewport);
+    window.addEventListener("resize", reaccionarRedimensionamiento);
+
+    function reaccionarRedimensionamiento() {
+        revalidarLimitesViewport();
+        if (telaPequena()) resolverColisoesAplicadas();
+    }
 
     if (window.MutationObserver) {
         var observerUI = new MutationObserver(function (muts) {
@@ -748,6 +1112,8 @@
 
     cargarLayoutLocal();
     escanearNodos(document.body.childNodes);
+    if (telaPequena() && Object.keys(layoutUI).length === 0) aplicarLayoutPadraoMobile();
+    if (telaPequena()) resolverColisoesAplicadas();
 
     /* ===== API PÚBLICA para UIs criadas por JS ===== */
     window.InterfaceEditor = {

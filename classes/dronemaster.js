@@ -3,6 +3,18 @@
 // O Drone Companheiro orbita o dono e executa os modos Supressão/Assalto.
 // Protocolo Titã: o piloto se funde ao drone virando um robô de guerra (forma maior).
 
+// Retângulo arredondado compatível com browsers/WebViews sem ctx.roundRect.
+function camadaRoundRect(c, x, y, w, h, r) {
+    if (c.roundRect) { c.roundRect(x, y, w, h, r); return; }
+    r = Math.min(r, w / 2, h / 2);
+    c.moveTo(x + r, y);
+    c.arcTo(x + w, y, x + w, y + h, r);
+    c.arcTo(x + w, y + h, x, y + h, r);
+    c.arcTo(x, y + h, x, y, r);
+    c.arcTo(x, y, x + w, y, r);
+    c.closePath();
+}
+
 // Órbita do Drone Companheiro em volta do dono (self) — espelha a lógica do servidor.
 window.dmOrbitarDrone = function() {
     let t = Date.now() / 700;
@@ -104,14 +116,14 @@ window.desenharDrone = function(x, y, angulo, estado) {
     ctx.shadowBlur = (estadoAtual === 'supressao') ? 18 : 12;
     ctx.fillStyle = "#34495e";
     ctx.beginPath();
-    ctx.roundRect(-6, -5, 12, 10, 3);
+    camadaRoundRect(ctx,-6, -5, 12, 10, 3);
     ctx.fill();
     ctx.fillStyle = "#95a5a6";
     ctx.beginPath();
-    ctx.roundRect(-8, -3, 3, 6, 2);
+    camadaRoundRect(ctx,-8, -3, 3, 6, 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.roundRect(5, -3, 3, 6, 2);
+    camadaRoundRect(ctx,5, -3, 3, 6, 2);
     ctx.fill();
     // Núcleo de energia (canhão frontal)
     ctx.fillStyle = corCore;
@@ -171,10 +183,10 @@ window.desenharTitaForm = function(x, y, isMoving, angulo, hp, maxHp) {
     ctx.fillRect(1, 16, 7, 15 - legOffset);
     ctx.fillStyle = "#1a252f";
     ctx.beginPath();
-    ctx.roundRect(-9, 31 + legOffset, 9, 4, 2);
+    camadaRoundRect(ctx,-9, 31 + legOffset, 9, 4, 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.roundRect(0, 31 - legOffset, 9, 4, 2);
+    camadaRoundRect(ctx,0, 31 - legOffset, 9, 4, 2);
     ctx.fill();
 
     // Tronco blindado
@@ -207,7 +219,7 @@ window.desenharTitaForm = function(x, y, isMoving, angulo, hp, maxHp) {
     // Cabo-breve + viseira Titã (máquina de guerra)
     ctx.fillStyle = "#22303c";
     ctx.beginPath();
-    ctx.roundRect(-8, -18, 16, 12, 3);
+    camadaRoundRect(ctx,-8, -18, 16, 12, 3);
     ctx.fill();
     ctx.fillStyle = "#ff4d4d";
     ctx.shadowColor = "#ff1744";
@@ -222,7 +234,7 @@ window.desenharTitaForm = function(x, y, isMoving, angulo, hp, maxHp) {
     ctx.translate(10, 4);
     ctx.fillStyle = "#34495e";
     ctx.beginPath();
-    ctx.roundRect(0, -4, 20, 8, 3);
+    camadaRoundRect(ctx,0, -4, 20, 8, 3);
     ctx.fill();
     ctx.fillStyle = "#00e5ff";
     ctx.shadowColor = "#00ffff";
@@ -450,7 +462,7 @@ window.desenharCaixaFerramentas = function(c, t) {
     ctx.translate(c.x, c.y);
     ctx.fillStyle = "#8f5f1f";
     ctx.beginPath();
-    ctx.roundRect(-11, -8, 22, 13, 3);
+    camadaRoundRect(ctx,-11, -8, 22, 13, 3);
     ctx.fill();
     ctx.strokeStyle = "#5d4037";
     ctx.lineWidth = 2;

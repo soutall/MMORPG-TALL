@@ -40,6 +40,8 @@ const EFEITOS = {
 // `intensidade` entre 0 e 1 (proporção) ou valor bruto p/ dano por tick.
 function aplicarEfeito(entidade, id, tempo, intensidade) {
     if (!entidade || !EFEITOS[id]) return false;
+    // MONSTROS/BOSSES editados: imunidade a certos debuffs (editor "EDIT MOOB")
+    if (Array.isArray(entidade.imuneDebuffs) && entidade.imuneDebuffs.indexOf(id) !== -1) return false;
     if (!Array.isArray(entidade.efeitos)) entidade.efeitos = [];
     let ef = entidade.efeitos.find(e => e.id === id);
     if (ef) {

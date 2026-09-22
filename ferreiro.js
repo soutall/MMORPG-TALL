@@ -128,6 +128,10 @@
     window.abrirFerreiro = function () {
         if (window.estaMorto) return;
         if (window.ferreiroAberto) return;
+        if (typeof window.requerProximidade === 'function' && !window.requerProximidade(NPC.x, NPC.y, 160)) {
+            if (typeof window.avisoProximidade === 'function') window.avisoProximidade();
+            return;
+        }
         window.ferreiroAberto = true;
         var screen = el('ferreiro-screen');
         if (screen) screen.style.display = 'flex';
@@ -155,7 +159,9 @@
     function iniciarChecagemCidade() {
         pararChecagemCidade();
         _checarCidadeTimer = setInterval(function () {
-            if (window.ferreiroAberto && window.currentMap !== 'cidade') window.fecharFerreiro();
+            if (!window.ferreiroAberto) return;
+            if (window.currentMap !== 'cidade') { window.fecharFerreiro(); return; }
+            if (typeof window.requerProximidade === 'function' && !window.requerProximidade(NPC.x, NPC.y, 180)) window.fecharFerreiro();
         }, 600);
     }
     function pararChecagemCidade() {

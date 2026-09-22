@@ -3,8 +3,34 @@
 .btn-util.btn-admin-spawn { background: #e67e22; border-color: #f39c12; display: none; }
 
 #spawn-admin-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(8, 8, 8, 0.82); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 320; }
-#spawn-admin-window { background: #2c2415; border: 3px solid #e67e22; box-shadow: 6px 6px 0 #000, inset 3px 3px 0 #4a3d28; padding: 12px 14px 14px 14px; width: 290px; max-height: 92vh; overflow-y: auto; text-align: center; font-family: 'Rajdhani', sans-serif; }
+#spawn-admin-window { background: #2c2415; border: 3px solid #e67e22; box-shadow: 6px 6px 0 #000, inset 3px 3px 0 #4a3d28; padding: 12px 14px 14px 14px; width: 330px; max-height: 92vh; overflow-y: auto; text-align: center; font-family: 'Rajdhani', sans-serif; }
 #spawn-admin-title { font-family: 'Cinzel', serif; font-weight: bold; font-size: 16px; color: #f39c12; letter-spacing: 2px; text-shadow: 2px 2px 0 #000; margin: 0 0 8px 0; }
+
+/* ===== ABAS ===== */
+#spawn-admin-tabs { display: flex; gap: 6px; margin-bottom: 10px; }
+.sab-tab { flex: 1; font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 13px; letter-spacing: 1px; color: #cfc9bb; background: #1e1a12; border: 2px solid #4a3f2e; padding: 7px 4px; cursor: pointer; box-shadow: 2px 2px 0 #000; }
+.sab-tab.active { background: #e67e22; color: #fff; border-color: #f39c12; }
+
+/* ===== EDITOR "EDIT MOOB" ===== */
+#sab-panel-mob { text-align: left; }
+#me-topo { display: flex; gap: 6px; margin-bottom: 8px; }
+#me-select { flex: 1; font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 14px; color: #f1c40f; background: #16131f; border: 2px solid #4a3f5e; padding: 6px 8px; box-shadow: 2px 2px 0 #000; }
+#me-resetar { background: #7f1d1d; color: #fff; border: 2px solid #e74c3c; font-family: 'Rajdhani', sans-serif; font-weight: bold; padding: 0 8px; cursor: pointer; }
+#me-status { font-family: 'Courier New', monospace; font-size: 11px; font-weight: bold; color: #2ecc71; margin-bottom: 8px; min-height: 14px; }
+.me-secao { font-family: 'Cinzel', serif; font-size: 13px; font-weight: bold; color: #f39c12; letter-spacing: 1px; border-bottom: 1px solid #4a3d28; margin: 12px 0 8px 0; padding-bottom: 3px; }
+.me-dupla { display: flex; gap: 8px; }
+.me-dupla .spawn-campo { flex: 1; }
+.me-grid-chk { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; margin-bottom: 6px; }
+.me-grid-chk label { font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: bold; color: #e8e4da; display: flex; align-items: center; gap: 4px; background: #201c14; border: 1px solid #3a3327; padding: 3px 5px; cursor: pointer; }
+.me-linha { display: flex; gap: 4px; align-items: center; margin-bottom: 5px; }
+.me-linha select { flex: 1; min-width: 0; font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 12px; color: #f1c40f; background: #16131f; border: 2px solid #4a3f5e; padding: 4px 4px; }
+.me-linha input { width: 52px; font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 12px; color: #f1c40f; background: #16131f; border: 2px solid #4a3f5e; padding: 4px 4px; }
+.me-pct { color: #e8e4da; font-weight: bold; font-size: 12px; }
+.me-x { background: #c0392b; color: #fff; border: none; width: 22px; height: 24px; cursor: pointer; font-weight: bold; }
+.me-btn-add { background: #2c3e50; color: #fff; border: 2px solid #5d6d7e; font-family: 'Rajdhani', sans-serif; font-weight: bold; padding: 5px 8px; cursor: pointer; margin: 2px 0 8px 0; }
+#me-aplicar-wrap { margin-top: 12px; }
+#me-aplicar { width: 100%; background: #27ae60; border: 3px solid #2ecc71; color: #fff; font-family: 'Cinzel', serif; font-weight: bold; font-size: 15px; letter-spacing: 1px; padding: 12px; cursor: pointer; box-shadow: 3px 3px 0 #000; }
+#me-aplicar:active { transform: translate(3px, 3px); box-shadow: 0 0 0 #000; }
 
 .spawn-campo { display: flex; flex-direction: column; gap: 3px; margin-bottom: 9px; text-align: left; }
 .spawn-campo label { font-family: 'Rajdhani', sans-serif; font-size: 12px; font-weight: bold; color: #e8e4da; letter-spacing: 0.5px; }

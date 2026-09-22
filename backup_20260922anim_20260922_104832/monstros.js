@@ -325,13 +325,10 @@ function _slime(ctx, slime, est, info) {
 // ============ BESOURO NEGRO (deserto) ============
 function _besouro(ctx, slime, est, info) {
     var t = Date.now() / 1000 + est.fase;
-    var cor = _corEstado(slime, info.cor);
-    var carregando = !!slime.skillCharging;
-    var gf = _golpeFases(est);
-    var ln = _lunge(est);
     var voando = !!slime.dashing;
+    var carregando = !!slime.skillCharging;
+    var cor = _corEstado(slime, info.cor);
 
-    // voo de carga (dash): corpo esticado + asas batendo
     if (voando) {
         ctx.save();
         ctx.rotate(est.face);
@@ -345,58 +342,15 @@ function _besouro(ctx, slime, est, info) {
         ctx.beginPath(); ctx.ellipse(-15, 10 - bat * 3, 8, 4, 0.35, 0, Math.PI * 2); ctx.fill();
         ctx.restore();
         _golpeArco(ctx, est, cor);
-        _stunStar(ctx, slime, -32);
         return;
     }
 
-    var andando = !!est.movendo;
-    var passo = t * (andando ? 12 : 2.4);
-    var resp = Math.sin(t * (andando ? 13 : 2.8)) * (andando ? 0.05 : 0.03);
-
     ctx.save();
-    ctx.scale(1, 1 + resp + gf.w * 0.08 - gf.t * 0.05);
-    ctx.translate(ln.x * 0.6, -Math.abs(ln.y) * 0.3);
-    ctx.rotate(gf.t * 0.06);
-
-    // 6 pernas (3 pares) com passada articulada
-    ctx.strokeStyle = '#0d0d12';
-    ctx.lineWidth = 2.4;
-    ctx.lineCap = 'round';
-    for (var l = 0; l < 3; l++) {
-        var lx = -9 + l * 7;
-        var ph = passo + l * 1.2;
-        var sw = Math.sin(ph) * (andando ? 3 : 1.2);
-        ctx.beginPath();
-        ctx.moveTo(lx, 6);
-        ctx.quadraticCurveTo(lx - 2, 10, lx - 5 + sw, 15);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(lx + 2, 6);
-        ctx.quadraticCurveTo(lx + 4, 10, lx + 8 - sw, 15);
-        ctx.stroke();
-    }
-    ctx.lineCap = 'butt';
-
-    // élitros (carapaça) com relevo
-    ctx.fillStyle = '#191922';
-    ctx.strokeStyle = 'rgba(255,255,255,0.16)';
-    ctx.lineWidth = 1;
+    ctx.scale(1, 1 + Math.sin(t * 2.2) * 0.03);
+    ctx.fillStyle = _corEstado(slime, '#191922');
     ctx.beginPath();
     ctx.ellipse(0, 0, 19, 13, 0, 0, Math.PI * 2);
     ctx.fill();
-    for (var i = -2; i <= 2; i++) {
-        ctx.beginPath();
-        ctx.moveTo(i * 5, -9);
-        ctx.lineTo(i * 4 + (i > 0 ? 4 : 0), 10);
-        ctx.stroke();
-    }
-    // linha central do élitro
-    ctx.beginPath();
-    ctx.moveTo(0, -13);
-    ctx.lineTo(1, 12);
-    ctx.stroke();
-
-    // brilho ao carregar
     if (carregando) {
         ctx.fillStyle = _ton(cor, 0.14);
         ctx.globalAlpha = 0.35 + _pulso(t, 9) * 0.3;
@@ -408,35 +362,38 @@ function _besouro(ctx, slime, est, info) {
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
     }
-
-    // mandíbulas (abrem no ataque)
-    var man = gf.t > 0 ? 0.9 : (gf.w > 0 ? 0.25 : 0);
+    ctx.strokeStyle = 'rgba(255,255,255,0.14)';
+    ctx.lineWidth = 1;
+    for (var i = -2; i <= 2; i++) {
+        ctx.beginPath();
+        ctx.moveTo(i * 5, -9);
+        ctx.lineTo(i * 4 + (i > 0 ? 4 : 0), 10);
+        ctx.stroke();
+    }
     ctx.strokeStyle = '#0d0d12';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(12, -3);
-    ctx.quadraticCurveTo(17, -5 + man * 3, 16 + man * 2, -8 + man * 4);
-    ctx.moveTo(9, 0);
-    ctx.quadraticCurveTo(15, 0 + man * 3, 14 + man * 2, 4 + man * 4);
-    ctx.stroke();
-
-    // olhos vermelhos brilhantes (acendem no ataque)
-    var brilhoOlho = 0.7 + _pulso(t, 5) * 0.4 + (gf.atk ? 0.5 : 0);
+    ctx.lineWidth = 2.5;
+    for (var l = 0; l < 3; l++) {
+        var lx = -10 + l * 7;
+        var pass = Math.sin(t * (est.movendo ? 16 : 3) + l) * 2;
+        ctx.beginPath();
+        ctx.moveTo(lx, 8);
+        ctx.lineTo(lx - 5 - l + pass, 15);
+        ctx.moveTo(lx + 4, 8);
+        ctx.lineTo(lx + 8 + l - pass, 15);
+        ctx.stroke();
+    }
+    var brilhoOlho = 0.7 + _pulso(t, 5) * 0.4;
     ctx.fillStyle = '#ff3b3b';
     ctx.shadowColor = '#ff0000';
     ctx.shadowBlur = 7 * brilhoOlho;
-    ctx.beginPath(); ctx.arc(-6, -3, 2.2, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(6, -3, 2.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-8, -3, 2.4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(8, -3, 2.4, 0, Math.PI * 2); ctx.fill();
     ctx.shadowBlur = 0;
-
-    // asas translúcidas vibram ao atacar
-    if (gf.atk) {
+    if (carregando) {
         var bat2 = Math.sin(t * 38) * 0.5;
-        ctx.globalAlpha = 0.5;
         ctx.fillStyle = 'rgba(200,190,240,0.4)';
         ctx.beginPath(); ctx.ellipse(-17, -5 + bat2 * 3, 7, 4, -0.4, 0, Math.PI * 2); ctx.fill();
         ctx.beginPath(); ctx.ellipse(17, -5 - bat2 * 3, 7, 4, 0.4, 0, Math.PI * 2); ctx.fill();
-        ctx.globalAlpha = 1;
     }
     ctx.restore();
     _golpeArco(ctx, est, cor);
@@ -447,84 +404,59 @@ function _besouro(ctx, slime, est, info) {
 function _morcego(ctx, slime, est, info) {
     var t = Date.now() / 1000 + est.fase;
     var cor = _corEstado(slime, info.cor);
-    var gf = _golpeFases(est);
-    var ln = _lunge(est);
-    var voando = !!est.movendo || gf.t > 0 || gf.w > 0;
-    var flap = Math.sin(t * (voando ? 24 : 2.1));
-    var vel = voando ? 1 : 0.25;
-    var abrir = Math.abs(flap) * vel + (gf.t > 0 ? 0.25 : 0);
-    var altura = -13 + Math.sin(t * 2.3 + (slime.x || 0) * 0.01) * 3 - Math.abs(ln.y) * 0.5;
-    var bat2 = Math.sin(t * (voando ? 24 : 2.1) + 0.9);
+    var altura = -13 + Math.sin(t * 2.3 + (slime.x || 0) * 0.01) * 3;
+    var flap = Math.sin(t * ((est.movendo || est.atkT > 0) ? 13 : 2.1));
+    var abrir = Math.abs(flap);
 
-    // asas membranosas com ossos, puxam no ataque (virada) e dão flap forte quando dashing
-    var atkTurn = gf.t > 0 ? (gf.p * 2 - 1) : 0;
     ctx.save();
     ctx.translate(0, altura);
-    ctx.rotate(gf.w > 0 ? gf.w * 0.15 : 0);
-    var wingPath = function (dir) {
-        ctx.fillStyle = 'rgba(90,60,105,0.9)';
-        ctx.strokeStyle = 'rgba(40,25,50,0.9)';
-        ctx.lineWidth = 1.2;
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.quadraticCurveTo(dir * 11 * abrir, -10 * abrir, dir * 15 * abrir, 0);
-        ctx.quadraticCurveTo(dir * 10 * abrir, 6 * abrir, dir * 3, 4);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-    };
-    ctx.save();
-    ctx.rotate(-atkTurn * 0.6);
-    wingPath(-1);
-    ctx.restore();
-    ctx.save();
-    ctx.rotate(atkTurn * 0.6);
-    wingPath(1);
-    ctx.restore();
+    ctx.fillStyle = 'rgba(90,60,105,0.9)';
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(-10 * abrir, -8 * abrir, -15 * abrir, 0);
+    ctx.quadraticCurveTo(-10 * abrir, 6 * abrir, -2, 3);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.quadraticCurveTo(10 * abrir, -8 * abrir, 15 * abrir, 0);
+    ctx.quadraticCurveTo(10 * abrir, 6 * abrir, 2, 3);
+    ctx.closePath();
+    ctx.fill();
 
+    var ln = _lunge(est);
     ctx.scale(1 + ln.s * 0.1, 1);
+    ctx.beginPath();
+    ctx.moveTo(-4, -4);
+    ctx.lineTo(-6, -10);
+    ctx.lineTo(-1, -6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.beginPath();
+    ctx.moveTo(4, -4);
+    ctx.lineTo(6, -10);
+    ctx.lineTo(1, -6);
+    ctx.closePath();
+    ctx.fill();
 
-    // corpo
-    ctx.fillStyle = _ton(cor, 0.12);
+    ctx.fillStyle = _ton(cor, 0.16);
     ctx.beginPath();
     ctx.ellipse(0, 1, 5.5, 6.5, 0, 0, Math.PI * 2);
     ctx.fill();
-
-    // orelhas de morcego (mexem com o flap)
-    ctx.fillStyle = _ton(cor, 0.16);
-    ctx.beginPath();
-    ctx.moveTo(-5, -4 + bat2 * 0.6); ctx.lineTo(-2.4, -10); ctx.lineTo(-0.5, -5);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(5, -4 - bat2 * 0.6); ctx.lineTo(2.4, -10); ctx.lineTo(0.5, -5);
-    ctx.fill();
-
-    // olhos (arregalam no ataque)
+    var brilhoOlho = 0.7 + _pulso(t, 5) * 0.4;
     ctx.fillStyle = '#ff4d6d';
     ctx.shadowColor = '#ff0000';
-    ctx.shadowBlur = 7 * (0.7 + _pulso(t, 5) * 0.4 + (gf.atk ? 0.6 : 0));
-    ctx.beginPath(); ctx.arc(-2.4, -1, 1.6 + gf.atk * 0.5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(2.4, -1, 1.6 + gf.atk * 0.5, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 7 * brilhoOlho;
+    ctx.beginPath(); ctx.arc(-2, -1, 1.7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(2, -1, 1.7, 0, Math.PI * 2); ctx.fill();
     ctx.shadowBlur = 0;
 
-    if (gf.atk) {
-        // mergulho de ataque com blur: corpo avança à frente da mira
-        ctx.globalAlpha = 0.3;
-        ctx.fillStyle = _ton(cor, 0.2);
-        ctx.beginPath(); ctx.ellipse(8, 2, 5.5, 6.5, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.globalAlpha = 1;
-    }
-
-    // cabeça com focinho e dentes (abrem no ataque)
     ctx.fillStyle = '#efe9dc';
-    ctx.beginPath(); ctx.moveTo(-2.5, 5); ctx.lineTo(-1.6, 7 + gf.atk * 2); ctx.lineTo(0, 5); ctx.closePath();
-    ctx.beginPath(); ctx.moveTo(2.5, 5); ctx.lineTo(1.6, 7 + gf.atk * 2); ctx.lineTo(0, 5); ctx.closePath();
+    ctx.beginPath();
+    ctx.moveTo(-2.5, 5); ctx.lineTo(-1.5, 8); ctx.lineTo(0, 5); ctx.closePath();
+    ctx.beginPath();
+    ctx.moveTo(0, 5); ctx.lineTo(1.5, 8); ctx.lineTo(2.5, 5); ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = '#ff3b3b';
-    ctx.beginPath(); ctx.arc(-1.3, 7 + gf.atk * 2, 0.6, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(1.3, 7 + gf.atk * 2, 0.6, 0, Math.PI * 2); ctx.fill();
-
-    // asas expandidas: traço no flap (efeito borrado natural)
     ctx.restore();
     _golpeArco(ctx, est, cor);
     _stunStar(ctx, slime, altura - 24);
@@ -534,133 +466,67 @@ function _morcego(ctx, slime, est, info) {
 function _aranha(ctx, slime, est, info) {
     var t = Date.now() / 1000 + est.fase;
     var cor = _corEstado(slime, info.cor);
-    var andando = !!est.movendo;
-    var passo = t * (andando ? 10 : 2.4);
+    var andando = est.movendo;
+    var pass = t * (andando ? 11 : 2.2);
     var carregando = !!slime.skillCharging;
-    var gf = _golpeFases(est);
-    var ln = _lunge(est);
-
-    // respiração (idle) e agachada no preparo do ataque
-    var resp = Math.sin(t * (andando ? 15 : 3.4)) * (andando ? 0.08 : 0.035);
-    var sy = 1 + resp + gf.w * 0.12 - gf.t * 0.06;
-    var sx = 1 - resp * 0.5 + gf.t * 0.1;
 
     ctx.save();
-    ctx.scale(sx, sy);
-    ctx.translate(ln.x * 0.8, -Math.abs(ln.y) * 0.3);
-    ctx.rotate(gf.t * 0.08 - gf.w * 0.05);
+    var ln = _lunge(est);
+    ctx.scale(1 + ln.s * 0.04, 1);
+    ctx.translate(ln.x, 0);
 
-    // fios de seda soltos atrás (teia)
-    ctx.strokeStyle = 'rgba(230,240,255,0.35)';
-    ctx.lineWidth = 0.7;
-    ctx.globalAlpha = andando ? 0.4 : 0.7;
-    for (var s = 0; s < 3; s++) {
+    ctx.strokeStyle = '#24152f';
+    ctx.lineWidth = 1.6;
+    for (var i = 0; i < 4; i++) {
+        var sw = Math.sin(pass + i * 0.9) * 2.5;
         ctx.beginPath();
-        ctx.moveTo(0, -2);
-        ctx.quadraticCurveTo(-10 - s * 3, -6 - s * 2, -13 - s * 3, -10 + Math.sin(t * 1.2 + s) * 2.5);
+        ctx.moveTo(-4, -4); ctx.lineTo(-10 - i, i * 2 - 2 + sw);
+        ctx.moveTo(4, -4); ctx.lineTo(10 + i, i * 2 - 2 + sw);
+        ctx.moveTo(-4, 4); ctx.lineTo(-11 - i, i * 1.5 + 7 + sw);
+        ctx.moveTo(4, 4); ctx.lineTo(11 + i, i * 1.5 + 7 + sw);
         ctx.stroke();
     }
-    ctx.globalAlpha = 1;
 
-    // abdômen traseiro grande (lateja)
-    ctx.fillStyle = _ton(cor, 0.55);
-    ctx.strokeStyle = _ton(cor, 0.32);
-    ctx.lineWidth = 1.2;
+    ctx.fillStyle = _ton(cor, 0.14);
     ctx.beginPath();
-    ctx.ellipse(-7, 2.5, 8.5 + Math.sin(t * 2.2) * 0.5, 7.5 + Math.sin(t * 2.7) * 0.4, 0, 0, Math.PI * 2);
+    ctx.ellipse(-6, 0, 7, 9, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.stroke();
-    // desenho de teia nas costas
-    ctx.globalAlpha = 0.5;
-    ctx.strokeStyle = 'rgba(255,255,255,0.45)';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath(); ctx.arc(-7, 2.5, 2.6 + Math.sin(t * 3) * 0.4, -1.9, 1.9); ctx.stroke();
-    ctx.beginPath(); ctx.arc(-7, 2.5, 4.6 + Math.sin(t * 3) * 0.4, -1.9, 1.9); ctx.stroke();
-    ctx.beginPath(); ctx.moveTo(-7, 0); ctx.lineTo(-7, 5); ctx.stroke();
-    ctx.globalAlpha = 1;
-
-    // cefalotórax frontal
-    ctx.fillStyle = _ton(cor, 0.75);
-    ctx.strokeStyle = _ton(cor, 0.42);
-    ctx.beginPath();
-    ctx.ellipse(6.5, -1, 6.4, 5.8, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    // carrega veneno (brilho na frente)
     if (carregando) {
-        ctx.globalAlpha = 0.5 + _pulso(t, 9) * 0.4;
         ctx.fillStyle = cor;
+        ctx.globalAlpha = 0.5 + _pulso(t, 9) * 0.4;
         ctx.shadowColor = cor;
-        ctx.shadowBlur = 12;
-        ctx.beginPath(); ctx.ellipse(8.5, -3, 6.5, 5, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.shadowBlur = 14;
+        ctx.beginPath();
+        ctx.ellipse(-6, 0, 5.5, 7.5, 0, 0, Math.PI * 2);
+        ctx.fill();
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
     }
+    ctx.fillStyle = _ton(cor, 0.5);
+    ctx.beginPath();
+    ctx.arc(6, -3, 4.6, 0, Math.PI * 2);
+    ctx.fill();
 
-    // 8 pernas (4 de cada lado), passada alternada e pé erguendo
-    ctx.lineWidth = 1.6;
-    ctx.lineCap = 'round';
-    for (var i = 0; i < 4; i++) {
-        ctx.strokeStyle = _ton(cor, 0.55);
-        var ax = 8 - i * 4;
-        var ph = passo + i * 0.95;
-        var sw = Math.sin(ph) * (andando ? 4 : 1.8);
-        var lift = andando ? Math.max(0, Math.sin(ph)) * 1.6 : 0;
-        var lift2 = andando ? Math.max(0, Math.sin(ph + Math.PI)) * 1.6 : 0;
-        ctx.beginPath();
-        ctx.moveTo(ax, -2);
-        ctx.quadraticCurveTo(ax + 5 + i, -6 + sw * 0.5, ax + 8 + i, 1 - lift);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(ax, 2);
-        ctx.quadraticCurveTo(ax - 5 - i, 6 - sw * 0.5, ax - 8 - i, -1 + lift2);
-        ctx.stroke();
-        ctx.fillStyle = _ton(cor, 0.7);
-        ctx.beginPath(); ctx.arc(ax + 8 + i, 1 - lift, 1.1, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(ax - 8 - i, -1 + lift2, 1.1, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.lineWidth = 1.7;
-    ctx.strokeStyle = _ton(cor, 0.55);
-
-    // olhos (2 frontais grandes + 3 pequenos)
-    var olhoBr = gf.atk ? 1.3 + _pulso(t, 18) * 0.7 : 0.6 + _pulso(t, 5) * 0.5;
-    ctx.fillStyle = '#ffe9a8';
-    ctx.shadowColor = '#ff3d00';
-    ctx.shadowBlur = 6 * olhoBr;
-    ctx.beginPath(); ctx.arc(9.5, -3.5, 1.7, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(11.5, -2.8, 1.4, 0, Math.PI * 2); ctx.fill();
-    ctx.globalAlpha = 0.85;
-    ctx.beginPath(); ctx.arc(7, -4.5, 0.8, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(10.5, -0.8, 0.8, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(12.5, -0.8, 0.8, 0, Math.PI * 2); ctx.fill();
-    ctx.globalAlpha = 1;
+    ctx.fillStyle = cor;
+    ctx.shadowColor = cor;
+    ctx.shadowBlur = 5;
+    ctx.beginPath(); ctx.arc(7, -4, 1.1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(8.5, -3, 1.1, 0, Math.PI * 2); ctx.fill();
     ctx.shadowBlur = 0;
 
-    // presas (afastam no ataque)
-    var presa = gf.t > 0 ? 1 : (gf.w > 0 ? 0.4 : 0.1);
-    ctx.strokeStyle = '#fff2e0';
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.moveTo(10, -1.5);
-    ctx.quadraticCurveTo(13 + gf.t * 2, 1, 11.5 + gf.t * 4, 4 + presa * 1.5);
-    ctx.moveTo(12.8, -0.8);
-    ctx.quadraticCurveTo(15 + gf.t * 2, 1.5, 13.5 + gf.t * 4, 4.5 + presa * 1.5);
-    ctx.stroke();
-
-    // borrifada de teia no ataque
-    if (gf.t > 0) {
-        ctx.strokeStyle = 'rgba(230,240,255,0.75)';
-        ctx.lineWidth = 1;
-        for (var w2 = 0; w2 < 5; w2++) {
-            var a = gf.p * 2.2 + w2 * 1.26 - 2.6;
+    if (carregando) {
+        ctx.globalAlpha = 0.4 + _pulso(t, 6) * 0.3;
+        ctx.strokeStyle = cor;
+        ctx.lineWidth = 1.2;
+        for (var s = 0; s < 6; s++) {
+            var a = t * 1.5 + (s / 6) * Math.PI * 2;
             ctx.beginPath();
-            ctx.moveTo(12, -2);
-            ctx.lineTo(12 + Math.cos(a) * (6 + gf.t * 12), -2 + Math.sin(a) * (4 + gf.t * 9));
+            ctx.moveTo(0, 0);
+            ctx.lineTo(Math.cos(a) * 14, Math.sin(a) * 14);
             ctx.stroke();
         }
+        ctx.globalAlpha = 1;
     }
-
     ctx.restore();
     _golpeArco(ctx, est, cor);
     _stunStar(ctx, slime, -26);
@@ -670,205 +536,118 @@ function _aranha(ctx, slime, est, info) {
 function _escorpiao(ctx, slime, est, info) {
     var t = Date.now() / 1000 + est.fase;
     var cor = _corEstado(slime, info.cor);
-    var andando = !!est.movendo;
-    var passo = t * (andando ? 11 : 2.2);
-    var gf = _golpeFases(est);
-    var ln = _lunge(est);
-    var carregando = !!slime.skillCharging;
-
-    // respiração + agachada no vento
-    var resp = Math.sin(t * (andando ? 14 : 3)) * (andando ? 0.1 : 0.04);
-    var sy = 1 + resp + gf.w * 0.12;
-    var sx = 1 - resp + gf.t * 0.1;
+    var andando = est.movendo;
+    var pass = t * (andando ? 13 : 2.4);
 
     ctx.save();
-    ctx.scale(sx, sy);
-    ctx.translate(ln.x * 0.7, -Math.abs(ln.y) * 0.4);
-    ctx.rotate(gf.t * 0.06 - gf.w * 0.04);
+    var ln = _lunge(est);
+    ctx.translate(ln.x, 0);
 
-    // 8 pernas (4 pares) com passada alternada
-    ctx.strokeStyle = _ton(cor, 0.55);
-    ctx.lineWidth = 1.6;
-    ctx.lineCap = 'round';
-    for (var i = 0; i < 4; i++) {
-        var ax = 6 - i * 4;
-        var ph = passo + i * 0.9;
-        var sw = Math.sin(ph) * (andando ? 3.5 : 1.6);
+    ctx.strokeStyle = _ton(cor, 0.3);
+    ctx.lineWidth = 1.7;
+    for (var i = 0; i < 3; i++) {
+        var sw = Math.sin(pass + i) * 2;
         ctx.beginPath();
-        ctx.moveTo(ax, -1);
-        ctx.quadraticCurveTo(ax + 4 + i, -4 + sw * 0.4, ax + 7 + i, 0 + sw);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.moveTo(ax, 2);
-        ctx.quadraticCurveTo(ax - 4 - i, 6 - sw * 0.4, ax - 7 - i, 1 - sw);
+        ctx.moveTo(-7, 0); ctx.lineTo(-13 - i * 2, 9 + sw);
+        ctx.moveTo(7, 0); ctx.lineTo(13 + i * 2, 9 + sw);
         ctx.stroke();
     }
-    ctx.lineCap = 'butt';
 
-    // abdômen segmentado + cefalotórax
-    ctx.fillStyle = _ton(cor, 0.45);
+    ctx.fillStyle = _ton(cor, 0.22);
     ctx.beginPath();
-    ctx.ellipse(-6, 0, 6.5, 5.5, -0.2, 0, Math.PI * 2);
+    ctx.ellipse(-8, -2, 7, 8, -0.3, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = _ton(cor, 0.6);
+    ctx.fillStyle = _ton(cor, 0.5);
     ctx.beginPath();
-    ctx.ellipse(6, 0, 6, 4.6, 0, 0, Math.PI * 2);
+    ctx.ellipse(7, 0, 9, 6, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // brilho do veneno na frente (carregando)
-    if (carregando) {
-        ctx.fillStyle = cor;
-        ctx.globalAlpha = 0.35 + _pulso(t, 9) * 0.3;
-        ctx.shadowColor = cor;
-        ctx.shadowBlur = 12;
-        ctx.beginPath(); ctx.ellipse(8, -3, 6, 4.5, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.globalAlpha = 1;
-    }
-
-    // cauda segmentada: ergue no vento, açoita no golpe
-    var caudaA;
-    if (carregando) caudaA = 1.5 + _pulso(t, 7) * 0.2;
-    else if (gf.atk) caudaA = 1.5 - gf.p * 1.2;
-    else caudaA = 1.0 + Math.sin(t * 2) * 0.2;
-    var cao = 13 + Math.cos(caudaA) * 7;
-    var cay = -13 - Math.sin(caudaA) * 5;
+    var caudaA = t * 2.2 + (est.atkT > 0 ? est.atkT * 0.25 : 0);
     ctx.strokeStyle = _ton(cor, 0.35);
     ctx.lineWidth = 2.4;
     ctx.beginPath();
-    ctx.moveTo(8, -2);
-    ctx.quadraticCurveTo(17, -6, cao, cay);
+    ctx.moveTo(10, -1);
+    ctx.quadraticCurveTo(17, -9, 13 + Math.cos(caudaA) * 5, -13 - Math.sin(caudaA) * 3);
     ctx.stroke();
     ctx.fillStyle = cor;
     ctx.shadowColor = cor;
-    ctx.shadowBlur = carregando ? 12 : 5;
-    ctx.beginPath(); ctx.arc(cao, cay, 2.4, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 6;
+    ctx.beginPath();
+    ctx.arc(13 + Math.cos(caudaA) * 5, -13 - Math.sin(caudaA) * 3, 2.2, 0, Math.PI * 2);
+    ctx.fill();
     ctx.shadowBlur = 0;
 
-    // pinças (abrem no ataque)
-    var pin = gf.t > 0 ? 0.9 : (gf.w > 0 ? 0.3 : 0.1);
-    ctx.strokeStyle = _ton(cor, 0.8);
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(10, -2); ctx.quadraticCurveTo(14, -5, 15 + pin * 2, -8 + pin * 4);
-    ctx.moveTo(10, 2); ctx.quadraticCurveTo(14, 5, 15 + pin * 2, 8 - pin * 4);
-    ctx.stroke();
-
-    // olhos
     ctx.fillStyle = '#0c241a';
-    ctx.beginPath(); ctx.arc(4, -3, 1.4, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(7, -2.6, 1.4, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(3, -2, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(6, -2, 1.5, 0, Math.PI * 2); ctx.fill();
 
-    // bolhas de veneno subindo (mantidas)
     for (var b = 0; b < 3; b++) {
         var f = ((t * 0.85 + b * 0.4) % 1.15) / 1.15;
         ctx.globalAlpha = 0.5 + 0.4 * (1 - f);
         ctx.fillStyle = cor;
         ctx.beginPath();
-        ctx.arc(-6 + b * 5, -9 + f * 14, 1.5 - f, 0, Math.PI * 2);
+        ctx.arc(-8 + b * 5, -9 + f * 14, 1.5 - f, 0, Math.PI * 2);
         ctx.fill();
     }
     ctx.globalAlpha = 1;
     ctx.restore();
     _golpeArco(ctx, est, cor);
-    _stunStar(ctx, slime, -26);
+    _stunStar(ctx, slime, -24);
 }// ============ GOBLIN ============
 function _goblin(ctx, slime, est, info) {
     var t = Date.now() / 1000 + est.fase;
     var cor = _corEstado(slime, info.cor);
     var rapido = !!slime.fugindo;
-    var andando = !!est.movendo;
-    var gf = _golpeFases(est);
-    var ln = _lunge(est);
     var ritmo = rapido ? 3.2 : 1;
     var salto = Math.abs(Math.sin(t * ritmo * 5));
-    var inclina = rapido ? 0.35 : (andando ? Math.sin(t * 8) * 0.08 : Math.sin(t * 2) * 0.05);
-    var passo = t * ritmo * 13;
-    var pL = Math.sin(passo), pR = Math.sin(passo + Math.PI);
+    var inclina = rapido ? 0.35 : Math.sin(t * (est.movendo ? 8 : 2)) * 0.08;
 
     ctx.save();
-    ctx.translate(0, -salto * 2 + gf.t * 1.5);
-    ctx.rotate(inclina + gf.t * 0.08 - gf.w * 0.05);
+    ctx.translate(0, -salto * 2);
+    ctx.rotate(inclina);
+    var ln = _lunge(est);
     ctx.translate(ln.x * 0.6, 0);
 
-    // pernas (galope) com pés
-    ctx.strokeStyle = _ton(cor, 0.4);
+    ctx.strokeStyle = _ton(cor, 0.3);
     ctx.lineWidth = 1.6;
+    var pf = Math.sin(t * ritmo * 13);
     ctx.beginPath();
-    ctx.moveTo(-4, 2); ctx.lineTo(-8 + pL * 3, 12);
-    ctx.moveTo(4, 2); ctx.lineTo(8 - pR * 3, 12);
+    ctx.moveTo(-4, 2); ctx.lineTo(-8 + pf * 3, 12);
+    ctx.moveTo(4, 2); ctx.lineTo(8 - pf * 3, 12);
     ctx.stroke();
-    ctx.fillStyle = _ton(cor, 0.55);
-    ctx.beginPath(); ctx.ellipse(-8 + pL * 3, 12.5, 2.6, 1.1, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(8 - pR * 3, 12.5, 2.6, 1.1, 0, 0, Math.PI * 2); ctx.fill();
 
-    // corpo (barriga arfa no idle)
-    var arfo = 1 + Math.sin(t * (andando ? 12 : 3.4)) * 0.03;
-    ctx.save();
-    ctx.scale(1 / arfo, arfo);
     ctx.fillStyle = _ton(cor, 0.85);
     ctx.beginPath();
     ctx.arc(0, -3, 8.5, 0, Math.PI * 2);
     ctx.fill();
 
-    // orelhas de goblin (mexem)
-    var ore = Math.sin(t * 2) * 0.2;
     ctx.fillStyle = _ton(cor, 1.5);
     ctx.globalAlpha = 0.6;
-    ctx.save();
-    ctx.rotate(-0.5 + ore);
-    ctx.beginPath(); ctx.moveTo(-9, -8); ctx.lineTo(-5.5, -10); ctx.lineTo(-6, -3); ctx.closePath(); ctx.fill();
-    ctx.restore();
-    ctx.save();
-    ctx.rotate(0.5 - ore);
-    ctx.beginPath(); ctx.moveTo(9, -8); ctx.lineTo(5.5, -10); ctx.lineTo(6, -3); ctx.closePath(); ctx.fill();
-    ctx.restore();
+    ctx.beginPath();
+    ctx.moveTo(-10, -9); ctx.lineTo(-2, -4); ctx.lineTo(-3, -11); ctx.closePath();
+    ctx.moveTo(10, -9); ctx.lineTo(2, -4); ctx.lineTo(3, -11); ctx.closePath();
+    ctx.fill();
     ctx.globalAlpha = 1;
 
-    // olhos (piscam, arregalam no ataque)
     var fechado = _piscar(slime);
     ctx.fillStyle = '#10220f';
-    if (fechado && !gf.atk) { ctx.fillRect(-5, -6, 4, 1.3); ctx.fillRect(1, -6, 4, 1.3); }
+    if (fechado) { ctx.fillRect(-5, -6, 4, 1.3); ctx.fillRect(1, -6, 4, 1.3); }
     else {
-        ctx.beginPath(); ctx.arc(-3, -5, gf.atk ? 2 : 1.6, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(3, -5, gf.atk ? 2 : 1.6, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(-3, -5, 1.6, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(3, -5, 1.6, 0, Math.PI * 2); ctx.fill();
     }
-    // boca com dente
-    ctx.fillStyle = '#3a2518';
-    ctx.beginPath();
-    ctx.arc(0, 1, gf.atk ? 3 : 2, 0, Math.PI, true);
-    ctx.fill();
-    ctx.fillStyle = '#fff';
-    ctx.beginPath(); ctx.moveTo(-0.5, 0.8); ctx.lineTo(0, 2.6); ctx.lineTo(0.5, 0.8); ctx.closePath(); ctx.fill();
-    ctx.restore();
+    ctx.fillStyle = '#45e32f';
+    ctx.fillRect(-2, 0, 4, 2);
 
-    // adaga: ergue no vento -> esfaqueia à frente no golpe
-    var dagAng;
-    if (gf.atk) dagAng = -1.2 * (1 - gf.p) + 0.6 * gf.p;
-    else if (rapido) dagAng = 0.5 + Math.sin(t * 6) * 0.2;
-    else dagAng = 0.2 + Math.sin(t * 1.6) * 0.1;
-    ctx.save();
-    ctx.translate(6, -2);
-    ctx.rotate(dagAng);
-    ctx.strokeStyle = '#d9dfe8';
-    ctx.lineWidth = 1.4;
-    ctx.beginPath(); ctx.moveTo(3, 0); ctx.lineTo(11, 0); ctx.stroke();
-    ctx.fillStyle = '#8a5a28';
-    ctx.fillRect(1, -1, 3, 2);
-    ctx.restore();
-
-    // rastro de corte no golpe
-    if (gf.t > 0) {
-        ctx.globalAlpha = gf.t * 0.6;
-        ctx.strokeStyle = '#e8e8ff';
-        ctx.lineWidth = 1.6;
-        ctx.lineCap = 'round';
+    if (est.atkT > 0) {
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.2;
+        ctx.globalAlpha = 0.7;
         ctx.beginPath();
-        ctx.arc(6, -2, 10 + gf.t * 3, -1 + gf.p, 0.6 + gf.p);
+        ctx.moveTo(8, -1); ctx.lineTo(14, -3);
         ctx.stroke();
         ctx.globalAlpha = 1;
     }
-
     ctx.restore();
     _golpeArco(ctx, est, cor);
     _stunStar(ctx, slime, -22);
@@ -878,189 +657,57 @@ function _goblin(ctx, slime, est, info) {
 function _arqueiroVoador(ctx, slime, est, info) {
     var t = Date.now() / 1000 + est.fase;
     var cor = _corEstado(slime, info.cor);
-    var ln = _lunge(est);
-    var gf = _golpeFases(est);
-    var carrega = !!slime.skillCharging;
-    var soltou = gf.t > 0;
-    var voando = !!est.movendo;
-    // flutua e se inclina
-    var altura = -14 + Math.sin(t * (voando ? 6 : 2)) * (voando ? 2.2 : 3);
-    var afast = Math.sin(t * (voando ? 4 : 1.8) + 2) * (voando ? 3 : 2);
-    var inclina = (slime.fugindo ? -0.3 : (voando ? 0.12 : Math.sin(t * 1.3) * 0.04)) + gf.t * 0.07;
-    var pisca = _piscar(slime);
-    var brilhoOlho = 0.6 + _pulso(t, 5) * 0.5 + (gf.atk ? 0.6 : 0);
-
-    // brilho ao carregar skill
-    if (carrega) {
-        ctx.save();
-        ctx.globalAlpha = 0.22 + _pulso(t, 9) * 0.18;
-        ctx.fillStyle = _ton(cor, 2);
-        ctx.beginPath();
-        ctx.ellipse(afast, -4 + Math.sin(t * 2) * 2, 19 + _pulso(t, 5) * 3, 14, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.restore();
-    }
+    var altura = -14 + Math.sin(t * 2) * 3;
+    var raioFlutua = Math.sin(t * 2 + 2) * 2;
 
     ctx.save();
     ctx.translate(0, altura);
+    var ln = _lunge(est);
     ctx.translate(ln.x, ln.y * 0.3);
-    ctx.rotate(inclina);
+    ctx.rotate(slime.fugindo ? 0.3 : 0);
 
-    // manto esfarrapado atrás (ventando)
-    var flap = t * (voando ? 8 : 3.2);
-    ctx.strokeStyle = _ton(cor, 0.28);
-    ctx.lineWidth = 1.4;
-    ctx.globalAlpha = 0.85;
-    for (var f = 0; f < 3; f++) {
-        var wob = Math.sin(flap + f * 1.4) * (voando ? 6 : 3);
-        var bx = -4 + f * 4;
-        var by = -4;
-        ctx.beginPath();
-        ctx.moveTo(bx, by);
-        ctx.quadraticCurveTo(bx - 3 + f, by + 5 + wob * 0.5, bx - 4 + f * 2, by + 12 + wob);
-        ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-
-    // capuz caído (sombra atrás do crânio)
-    ctx.fillStyle = _ton(cor, 0.16);
+    ctx.fillStyle = _ton(cor, 0.12);
     ctx.beginPath();
-    ctx.moveTo(-9, -8);
-    ctx.quadraticCurveTo(0, -4, 9, -8);
-    ctx.quadraticCurveTo(0, 7, -9, -8);
-    ctx.closePath();
+    ctx.ellipse(raioFlutua, -4, 9, 8.5, 0, 0, Math.PI * 2);
     ctx.fill();
-
-    // caixa torácica (costelas)
-    ctx.strokeStyle = _ton(cor, 0.55);
-    ctx.lineWidth = 1;
-    for (var ci = 0; ci < 3; ci++) {
-        var cr = 6.2 + Math.sin(t * 1.5 + ci) * 0.3 - ci * 1.2;
+    if (slime.skillCharging) {
+        ctx.fillStyle = '#9fd3ff';
+        ctx.globalAlpha = 0.25 + _pulso(t, 9) * 0.2;
+        ctx.shadowColor = '#7ab8ff';
+        ctx.shadowBlur = 14;
         ctx.beginPath();
-        ctx.moveTo(-cr, -3 - ci * 1.8);
-        ctx.quadraticCurveTo(0, -2 - ci * 1.8, cr, -3 - ci * 1.8);
-        ctx.stroke();
-    }
-
-    // crânio
-    ctx.fillStyle = _ton(cor, 1.05);
-    ctx.strokeStyle = _ton(cor, 0.5);
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.arc(afast, -9, 5.8, Math.PI, 0);
-    ctx.quadraticCurveTo(afast + 6, -5, afast + 4.4, -5);
-    ctx.quadraticCurveTo(afast + 5, -1.5, afast, -2.5);
-    ctx.quadraticCurveTo(afast - 5, -1.5, afast - 4.4, -5);
-    ctx.quadraticCurveTo(afast - 6, -5, afast - 5.8, -9);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // mandíbula (mexe no idle e abre no ataque)
-    var jawDy = gf.t > 0 ? 1.4 : (gf.w > 0 ? 0.4 : Math.sin(t * 2.4) * 0.3);
-    ctx.save();
-    ctx.translate(0, jawDy);
-    ctx.fillStyle = _ton(cor, 0.8);
-    ctx.strokeStyle = _ton(cor, 0.5);
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.ellipse(afast, -1.8, 4.3, 1.7, 0, 0, Math.PI);
-    ctx.fill();
-    ctx.stroke();
-    ctx.restore();
-
-    // dentes
-    ctx.fillStyle = '#f7f3e8';
-    for (var di = -1; di <= 1; di++) {
-        ctx.beginPath();
-        ctx.moveTo(afast + di * 1.6 - 0.5, -4.2);
-        ctx.lineTo(afast + di * 1.6, -2.9);
-        ctx.lineTo(afast + di * 1.6 + 0.5, -4.2);
-        ctx.closePath();
+        ctx.arc(raioFlutua, -4, 7, 0, Math.PI * 2);
         ctx.fill();
-    }
-
-    // cavidades do nariz
-    ctx.fillStyle = _ton(cor, 0.4);
-    ctx.beginPath(); ctx.ellipse(afast - 0.8, -7.3, 0.7, 1.1, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(afast + 0.8, -7.3, 0.7, 1.1, 0, 0, Math.PI * 2); ctx.fill();
-
-    // olhos (glow; piscam e acendem no ataque)
-    ctx.fillStyle = '#ff5722';
-    ctx.shadowColor = '#ff3d00';
-    ctx.shadowBlur = 6 * brilhoOlho;
-    if (pisca && !gf.atk) {
-        ctx.strokeStyle = '#ff5722';
-        ctx.lineWidth = 1.1;
-        ctx.beginPath(); ctx.moveTo(afast - 2.7, -7.3); ctx.lineTo(afast - 0.9, -7.3); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(afast + 0.9, -7.3); ctx.lineTo(afast + 2.7, -7.3); ctx.stroke();
-    } else {
-        ctx.beginPath(); ctx.arc(afast - 1.8, -7.3, gf.atk ? 1.4 : 1.1, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(afast + 1.8, -7.3, gf.atk ? 1.5 : 1.1, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.shadowBlur = 0;
-
-    // braço arqueiro + mão no arco
-    ctx.strokeStyle = _ton(cor, 0.75);
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(afast - 2, -6.5);
-    ctx.quadraticCurveTo(afast + 2, -5.5, afast + 5, -8.5);
-    ctx.stroke();
-    ctx.fillStyle = _ton(cor, 0.85);
-    ctx.beginPath(); ctx.ellipse(afast + 5, -9, 1.2, 1.2, 0.4, 0, Math.PI * 2); ctx.fill();
-
-    // arco (dobra ao puxar; recua ao soltar)
-    var apertura = carrega ? 0.95 : (gf.w > 0 ? 0.9 : 0.3);
-    var recuo = soltou ? 3 : 0;
-    ctx.strokeStyle = '#6b4423';
-    ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    ctx.moveTo(afast + 7 - recuo, -9);
-    ctx.quadraticCurveTo(afast + 10 + apertura * 3 - recuo, -11 - apertura * 3, afast + 9 - recuo, -16 - apertura * 2);
-    ctx.moveTo(afast + 7 - recuo, -9);
-    ctx.quadraticCurveTo(afast + 12 - apertura * 1.2 - recuo, -4 - apertura * 2, afast + 9 - recuo, -1 + apertura);
-    ctx.stroke();
-
-    // corda
-    ctx.strokeStyle = 'rgba(245,245,255,0.75)';
-    ctx.lineWidth = 0.9;
-    ctx.beginPath();
-    ctx.moveTo(afast + 9 - recuo, -16 - apertura * 2);
-    ctx.lineTo(afast + 4 - recuo, -9.5);
-    ctx.lineTo(afast + 9 - recuo, -1 + apertura);
-    ctx.stroke();
-
-    // flecha (some ao soltar; vira rastro)
-    if (!soltou) {
-        var pux = carrega ? 7 : (gf.w > 0 ? 6 : 12.5);
-        ctx.strokeStyle = '#c9a355';
-        ctx.lineWidth = 1.4;
-        ctx.beginPath();
-        ctx.moveTo(afast + 3, -9.5);
-        ctx.lineTo(afast + pux - recuo, -9.5);
-        ctx.stroke();
-        ctx.fillStyle = '#dfe6ee';
-        ctx.beginPath();
-        ctx.moveTo(afast + pux - recuo, -9.5);
-        ctx.lineTo(afast + pux + 2.6 - recuo, -8.6);
-        ctx.lineTo(afast + pux + 2.6 - recuo, -10.4);
-        ctx.closePath();
-        ctx.fill();
-    } else {
-        // rastro luminoso do tiro
-        ctx.globalAlpha = 0.7;
-        ctx.strokeStyle = _ton(cor, 2);
-        ctx.lineWidth = 1.6;
-        ctx.lineCap = 'round';
-        var dist = 10 + gf.t * 11;
-        ctx.beginPath();
-        ctx.moveTo(afast + 9, -9.5);
-        ctx.quadraticCurveTo(afast + 9 + dist * 0.6, -9.5 + Math.sin(t * 24) * 1.5, afast + 9 + dist, -8.5 + Math.sin(t * 30) * 2);
-        ctx.stroke();
+        ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
     }
+    ctx.fillStyle = _ton(cor, 0.75);
+    ctx.strokeStyle = _ton(cor, 0.4);
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.ellipse(raioFlutua, -4, 6, 7, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    var brilhoOlho = 0.6 + _pulso(t, 5) * 0.5;
+    ctx.fillStyle = '#ff5722';
+    ctx.shadowColor = '#ff3d00';
+    ctx.shadowBlur = 7 * brilhoOlho;
+    ctx.beginPath(); ctx.arc(raioFlutua - 2, -5.5, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(raioFlutua + 2, -5.5, 1.5, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 0;
 
+    if (slime.skillCharging) {
+        ctx.strokeStyle = _ton(cor, 2);
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(raioFlutua + 7, -1);
+        ctx.lineTo(raioFlutua + 15 + Math.sin(t * 6) * 2, -3 + Math.sin(t * 7) * 2);
+        ctx.stroke();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath();
+        ctx.arc(raioFlutua + 15 + _pulso(t, 9) * 4, -3, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
     ctx.restore();
     _golpeArco(ctx, est, cor);
     _stunStar(ctx, slime, altura - 22);
@@ -1070,208 +717,73 @@ function _arqueiroVoador(ctx, slime, est, info) {
 function _caveiraMelee(ctx, slime, est, info) {
     var t = Date.now() / 1000 + est.fase;
     var cor = _corEstado(slime, info.cor);
-    var andando = !!est.movendo;
-    var passo = t * (andando ? 9 : 2);
+    var pass = t * (est.movendo ? 11 : 2.2);
     var prepara = !!slime.skillCharging;
-    var gf = _golpeFases(est);
-    var ln = _lunge(est);
-    var passL = Math.sin(passo), passR = Math.sin(passo + Math.PI);
-    var resp = Math.sin(t * (andando ? 10 : 3)) * (andando ? 0.05 : 0.035);
-    var bob = andando ? -Math.abs(Math.cos(passo)) * 1.2 : 0;
-    var sy = 1 + resp + gf.w * 0.1 - gf.t * 0.06;
-    var sx = 1 - resp + gf.t * 0.08;
-    var inclina = gf.t * 0.1 + (andando ? 0.03 : 0);
 
+    ctx.save();
     if (prepara) {
-        ctx.save();
         ctx.globalAlpha = 0.5 + _pulso(t, 9) * 0.4;
         ctx.strokeStyle = '#fff';
         ctx.lineWidth = 2;
         ctx.shadowColor = '#fff';
         ctx.shadowBlur = 10;
         ctx.beginPath();
-        ctx.arc(0, -2, 15 + Math.sin(t * 5) * 2, 0, Math.PI * 2);
+        ctx.arc(0, -2, 14 + Math.sin(t * 5) * 2, 0, Math.PI * 2);
         ctx.stroke();
         ctx.globalAlpha = 1;
         ctx.shadowBlur = 0;
-        ctx.restore();
     }
 
-    ctx.save();
-    ctx.rotate(inclina);
-    ctx.scale(sx, sy);
-    ctx.translate(ln.x * 0.4, bob);
-
-    // pernas (fêmur + tíbia com joelho) em passada alternada
-    ctx.strokeStyle = _ton(cor, 0.5);
-    ctx.lineWidth = 1.8;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(-5, 1);
-    ctx.quadraticCurveTo(-8 + passL, 6, -6 + passL * 2, 9);
-    ctx.quadraticCurveTo(-4 + passL * 4, 12, -6 + passL * 5, 15 - Math.max(0, passL) * 1.5);
-    ctx.moveTo(5, 1);
-    ctx.quadraticCurveTo(8 + passR, 6, 6 + passR * 2, 9);
-    ctx.quadraticCurveTo(4 + passR * 4, 12, 6 + passR * 5, 16 - Math.max(0, passR) * 1.5);
-    ctx.stroke();
-    ctx.fillStyle = _ton(cor, 0.6);
-    ctx.beginPath(); ctx.ellipse(-6 + passL * 5, 15, 3, 1.3, 0, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(6 + passR * 5, 16, 3, 1.3, 0, 0, Math.PI * 2); ctx.fill();
-
-    // bacia / pélvis
-    ctx.fillStyle = _ton(cor, 0.55);
     ctx.strokeStyle = _ton(cor, 0.4);
-    ctx.lineWidth = 1;
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.moveTo(-6.5, -2);
-    ctx.quadraticCurveTo(0, 3, 6.5, -2);
-    ctx.quadraticCurveTo(0, -4, -6.5, -2);
-    ctx.closePath();
-    ctx.fill();
+    ctx.moveTo(-5, 2); ctx.lineTo(-6 + Math.sin(pass + 1) * 4, 12);
+    ctx.moveTo(5, 2); ctx.lineTo(6 - Math.sin(pass + 2) * 4, 12);
     ctx.stroke();
 
-    // caixa torácica (costelas)
-    ctx.fillStyle = _ton(cor, 0.15);
+    ctx.fillStyle = _ton(cor, 0.65);
     ctx.beginPath();
-    ctx.moveTo(-8, -7);
-    ctx.quadraticCurveTo(0, -11, 8, -7);
-    ctx.quadraticCurveTo(0, 0, -8, -7);
+    ctx.moveTo(-10, -2);
+    ctx.lineTo(10, -2);
+    ctx.lineTo(8, 4);
+    ctx.lineTo(-8, 4);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = _ton(cor, 0.7);
-    ctx.lineWidth = 1.1;
-    for (var cb = 0; cb < 3; cb++) {
-        var ry = -6.5 - cb * 1.7;
-        ctx.beginPath();
-        ctx.arc(-2.5, ry, 4.4, -0.9, 0.9);
-        ctx.stroke();
-        ctx.beginPath();
-        ctx.arc(4.2, ry + 1.2, 2.3, Math.PI - 0.9, Math.PI + 0.9);
-        ctx.stroke();
-    }
 
-    // espinha até o crânio
-    ctx.strokeStyle = _ton(cor, 0.65);
+    ctx.fillStyle = _ton(cor, 1.0);
+    ctx.strokeStyle = _ton(cor, 0.45);
     ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(0, -7);
-    ctx.quadraticCurveTo(0.4, -10, 0, -13 + Math.sin(t * 2.5) * 0.4);
-    ctx.stroke();
-
-    // crânio (balança no idle, acelera ao andar)
-    var skullY = -16 + Math.sin(t * (andando ? 10 : 2.6)) * (andando ? 0.8 : 0.5);
-    var jawOpen = gf.t > 0 ? 1.6 : (gf.w > 0 ? 0.5 : Math.sin(t * 2.2) * 0.3);
-    ctx.fillStyle = _ton(cor, 1.05);
-    ctx.strokeStyle = _ton(cor, 0.5);
-    ctx.lineWidth = 1.1;
-    ctx.beginPath();
-    ctx.arc(0, skullY - 2, 5.8, Math.PI, 0);
-    ctx.quadraticCurveTo(6.1, skullY + 2.6, 4.6, skullY + 3);
-    ctx.quadraticCurveTo(5.4, skullY + 6.2, 0, skullY + 5.6);
-    ctx.quadraticCurveTo(-5.4, skullY + 6.2, -4.6, skullY + 3);
-    ctx.quadraticCurveTo(-6.1, skullY + 2.6, -5.8, skullY - 4);
-    ctx.closePath();
+    ctx.arc(0, -9, 6.5, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-
-    // mandíbula (mexe)
-    ctx.save();
-    ctx.translate(0, jawOpen);
-    ctx.fillStyle = _ton(cor, 0.8);
     ctx.beginPath();
-    ctx.ellipse(0, skullY + 5.2, 4.2, 1.9, 0, 0, Math.PI);
+    ctx.arc(-2.5, -9.5, 1.6, 0, Math.PI * 2);
+    ctx.arc(2.5, -9.5, 1.6, 0, Math.PI * 2);
     ctx.fill();
-    // dentes
-    ctx.fillStyle = '#f7f3e8';
-    for (var d = -1; d <= 1; d++) {
-        ctx.beginPath();
-        ctx.moveTo(d * 1.8 - 0.5, skullY + 3.6);
-        ctx.lineTo(d * 1.8, skullY + 5.2);
-        ctx.lineTo(d * 1.8 + 0.5, skullY + 3.6);
-        ctx.closePath();
-        ctx.fill();
-    }
-    ctx.restore();
+    ctx.fillStyle = '#0a0a12';
+    ctx.beginPath(); ctx.arc(-2.5, -9.5, 0.9, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(2.5, -9.5, 0.9, 0, Math.PI * 2); ctx.fill();
 
-    // olhos (acendem ao atacar)
-    var olhoBr = (prepara || gf.atk) ? 1.4 : 0.6 + _pulso(t, 5) * 0.5;
-    ctx.fillStyle = '#ffcc2e';
-    ctx.shadowColor = '#ff9800';
-    ctx.shadowBlur = 5 * olhoBr;
-    if (gf.atk) {
-        ctx.beginPath(); ctx.arc(-2.2, skullY - 2, 1.5, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(2.2, skullY - 2, 1.8, 0, Math.PI * 2); ctx.fill();
-    } else if (_piscar(slime)) {
-        ctx.strokeStyle = '#ffcc2e';
-        ctx.lineWidth = 1;
-        ctx.beginPath(); ctx.moveTo(-3.2, skullY - 2.4); ctx.lineTo(-1.2, skullY - 2.4); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(1.2, skullY - 2.4); ctx.lineTo(3.2, skullY - 2.4); ctx.stroke();
-    } else {
-        ctx.beginPath(); ctx.arc(-2.2, skullY - 2, 1.1, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(2.2, skullY - 2, 1.2, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.shadowBlur = 0;
-    // nariz
-    ctx.fillStyle = _ton(cor, 0.4);
-    ctx.beginPath(); ctx.ellipse(0, skullY, 0.9, 1.3, 0, 0, Math.PI * 2); ctx.fill();
-
-    // braço direito + espada (ergue atrás no vento -> corta à frente)
-    var espadaAng;
-    if (prepara) espadaAng = 1.1 + _pulso(t, 7) * 0.4;
-    else if (gf.atk) espadaAng = -2.4 * (1 - gf.p) + 0.9 * gf.p;
-    else espadaAng = -0.35 + Math.sin(t * 1.4) * 0.12;
-
-    ctx.strokeStyle = _ton(cor, 0.7);
-    ctx.lineWidth = 1.8;
-    ctx.beginPath();
-    ctx.moveTo(8, -7);
-    ctx.quadraticCurveTo(11, -4, 10.5, -2);
-    ctx.stroke();
-
+    var espadaAng = prepara ? (0.6 + _pulso(t, 7) * 0.3) : (est.atkT > 0 ? 0.5 : -0.25);
     ctx.save();
     ctx.translate(9, -6);
     ctx.rotate(espadaAng);
-    // lâmina + ponta
-    ctx.strokeStyle = '#e8e8f0';
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(3, 0);
-    ctx.lineTo(13, 0);
-    ctx.stroke();
-    ctx.fillStyle = '#f8f8ff';
-    ctx.beginPath();
-    ctx.moveTo(13, 0); ctx.lineTo(17, -1.6); ctx.lineTo(17, 1.6); ctx.closePath();
-    ctx.fill();
-    // guarda + cabo
-    ctx.fillStyle = '#8a5a28';
-    ctx.fillRect(0, -1.3, 3, 2.6);
-    ctx.fillRect(-1, -2.3, 5, 4.6);
+    ctx.fillStyle = '#e8e8f0';
+    ctx.fillRect(6, -1, 10, 2);
     ctx.restore();
 
-    // rastro do corte durante o golpe
-    if (gf.t > 0) {
-        ctx.globalAlpha = gf.t * 0.6;
-        ctx.strokeStyle = '#e8e8ff';
-        ctx.lineWidth = 2;
-        ctx.lineCap = 'round';
+    if (prepara) {
+        ctx.fillStyle = '#c77dff';
+        ctx.globalAlpha = 0.4 + _pulso(t, 6) * 0.3;
+        ctx.shadowColor = '#b56cff';
+        ctx.shadowBlur = 8;
         ctx.beginPath();
-        ctx.arc(9, -6, 11 + gf.t * 4, -1.5 + gf.p * 1.1, -0.4 + gf.p * 1.3);
-        ctx.stroke();
+        ctx.arc(0, -4, 9 + _pulso(t, 5) * 4, 0, Math.PI * 2);
+        ctx.fill();
         ctx.globalAlpha = 1;
+        ctx.shadowBlur = 0;
     }
-
-    // braço esquerdo balança ao andar
-    ctx.strokeStyle = _ton(cor, 0.65);
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.moveTo(-8, -7);
-    ctx.quadraticCurveTo(-11, -3, -10 + Math.sin(passo * 0.8) * 3, 2);
-    ctx.stroke();
-    ctx.fillStyle = _ton(cor, 0.55);
-    ctx.beginPath();
-    ctx.arc(-10 + Math.sin(passo * 0.8) * 3, 2.5, 1.4, 0, Math.PI * 2);
-    ctx.fill();
-
     ctx.restore();
     _golpeArco(ctx, est, cor);
     _stunStar(ctx, slime, -26);
@@ -1281,14 +793,12 @@ function _caveiraMelee(ctx, slime, est, info) {
 function _magoArcano(ctx, slime, est, info) {
     var t = Date.now() / 1000 + est.fase;
     var cor = _corEstado(slime, info.cor);
-    var altura = -13 + Math.sin(t * 2.2) * 3 - Math.abs(_lunge(est).y) * 0.4;
+    var altura = -13 + Math.sin(t * 2.2) * 3;
     var carregando = !!slime.skillCharging;
-    var gf = _golpeFases(est);
 
     ctx.save();
     ctx.translate(0, altura);
 
-    // campo de energia ao carregar
     if (carregando) {
         var orb = (_pulso(t, 8) * 0.5 + 0.5);
         ctx.fillStyle = _ton(cor, 1.8);
@@ -1298,124 +808,55 @@ function _magoArcano(ctx, slime, est, info) {
         ctx.beginPath();
         ctx.arc(Math.sin(t * 3) * 3, -4, 8 + orb * 6, 0, Math.PI * 2);
         ctx.fill();
-        // espirais girando
-        ctx.globalAlpha = 0.4;
-        for (var s = 0; s < 3; s++) {
-            var sa = t * 3 + s * (Math.PI * 2 / 3);
-            ctx.beginPath();
-            ctx.arc(Math.cos(sa) * (6 + orb * 4), -4 + Math.sin(sa) * 2, 1.6, 0, Math.PI * 2);
-            ctx.fill();
-        }
         ctx.shadowBlur = 0;
         ctx.globalAlpha = 1;
     }
 
-    // corpo veste — borda da capa ondula (vento)
-    var ondas = Math.sin(t * 3.2) * 1.2 + Math.sin(t * 5.1) * 0.8;
     ctx.fillStyle = _ton(cor, 0.3);
     ctx.beginPath();
     ctx.moveTo(-9, 0);
-    ctx.quadraticCurveTo(-10, 6, -7 + ondas * 0.5, 7);
-    ctx.quadraticCurveTo(-4, 8, 0, 7.5);
-    ctx.quadraticCurveTo(4, 8, 7 + ondas * 0.5, 7);
+    ctx.quadraticCurveTo(-10, 6, 0, 7);
     ctx.quadraticCurveTo(10, 6, 9, 0);
     ctx.quadraticCurveTo(8, -7, 0, -9);
     ctx.quadraticCurveTo(-8, -7, -9, 0);
     ctx.closePath();
     ctx.fill();
 
-    // pregas da capa
-    ctx.strokeStyle = _ton(cor, 0.4);
-    ctx.lineWidth = 1;
-    for (var pr = 0; pr < 3; pr++) {
-        ctx.beginPath();
-        ctx.moveTo(-4 + pr * 4, -4);
-        ctx.quadraticCurveTo(-4 + pr * 4 + ondas * 0.3, 2, -4 + pr * 4 + Math.sin(t + pr) * 1.5, 7);
-        ctx.stroke();
-    }
-
-    // braço + cajado: levanta no vento, dispara o orbe no golpe
-    var staffAng;
-    if (gf.w > 0) staffAng = 0.55;
-    else if (gf.atk) staffAng = 1.1 - 0.9 * gf.p;
-    else staffAng = -0.15 + Math.sin(t * 1.8) * 0.08;
-
-    ctx.save();
-    ctx.translate(6, 0);
-    ctx.rotate(staffAng);
     ctx.strokeStyle = _ton(cor, 0.5);
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(0, 3);
-    ctx.lineTo(2, 14);
+    ctx.moveTo(6, 2);
+    ctx.lineTo(11, 14);
     ctx.stroke();
-    // gema no topo do cajado
-    var gemaX = 2, gemaY = 15;
-    if (gf.t > 0) {
-        var prog = gf.p;
-        gemaX += prog * 30;
-        gemaY -= prog * 8;
-    }
     ctx.fillStyle = cor;
     ctx.shadowColor = cor;
-    ctx.shadowBlur = 6 + gf.atk * 8;
+    ctx.shadowBlur = 6;
     ctx.beginPath();
-    ctx.arc(gemaX, gemaY, gf.atk ? 2.6 : 1.8, 0, Math.PI * 2);
+    ctx.arc(11, 15, 1.8, 0, Math.PI * 2);
     ctx.fill();
-    // rastro de meteoro no disparo
-    if (gf.t > 0) {
-        ctx.globalAlpha = gf.t * 0.6;
-        ctx.strokeStyle = cor;
-        ctx.lineWidth = 1.5;
-        ctx.lineCap = 'round';
-        for (var tr = 1; tr <= 3; tr++) {
-            ctx.beginPath();
-            ctx.moveTo(gemaX - tr * 5, gemaY + tr * 1.2);
-            ctx.lineTo(gemaX - tr * 5 - 3, gemaY + tr * 1.2 + 1.5);
-            ctx.lineTo(gemaX - tr * 5 + 3, gemaY + tr * 1.2 + 1.5);
-            ctx.closePath();
-            ctx.fill();
-        }
-        ctx.globalAlpha = 1;
-    }
     ctx.shadowBlur = 0;
-    ctx.restore();
 
-    // capuz com rosto em sombra (só olhos)
-    var capuzL = -0.02 + Math.sin(t * 2.1) * 0.015;
-    ctx.fillStyle = _ton(cor, 0.5);
-    ctx.beginPath();
-    ctx.moveTo(-8, -4);
-    ctx.quadraticCurveTo(0, -18 + capuzL * 4, 8, -4);
-    ctx.quadraticCurveTo(6, -10, 0, -11);
-    ctx.quadraticCurveTo(-6, -10, -8, -4);
-    ctx.closePath();
-    ctx.fill();
-
-    // olhos (acendem ao atacar e ao carregar)
+    var fechado = _piscar(slime);
     ctx.fillStyle = '#b39ddb';
-    ctx.shadowColor = cor;
-    ctx.shadowBlur = (carregando || gf.atk) ? 10 : 4;
-    ctx.beginPath(); ctx.arc(-3, -6.5, 1.6 + gf.atk * 0.4, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(3, -6.5, 1.6 + gf.atk * 0.4, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowBlur = 0;
-
-    // mãos recolhidas no manto
-    ctx.fillStyle = _ton(cor, 0.55);
-    ctx.beginPath(); ctx.arc(-7, 1, 1.4, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(7, 1, 1.4, 0, Math.PI * 2); ctx.fill();
-
+    if (fechado) { ctx.fillRect(-5, -4, 4, 1.2); ctx.fillRect(1, -4, 4, 1.2); }
+    else {
+        ctx.beginPath(); ctx.arc(-2.5, -4.5, 1.5, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(2.5, -4.5, 1.5, 0, Math.PI * 2); ctx.fill();
+    }
+    ctx.globalAlpha = 0.5 + _pulso(t, 3) * 0.2;
+    ctx.fillStyle = cor;
+    ctx.beginPath();
+    ctx.arc(0, -1, 2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 1;
     ctx.restore();
     _golpeArco(ctx, est, cor);
     _stunStar(ctx, slime, altura - 24);
-}
-
-// ============ ASSASSINO ============
+}// ============ ASSASSINO ============
 function _assassino(ctx, slime, est, info) {
     var t = Date.now() / 1000 + est.fase;
     var cor = _corEstado(slime, info.cor);
     var correndo = !!slime.dashing;
-    var gf = _golpeFases(est);
 
     if (correndo) {
         ctx.save();
@@ -1427,119 +868,63 @@ function _assassino(ctx, slime, est, info) {
         ctx.globalAlpha = 1;
         ctx.restore();
     }
-
     ctx.save();
-    ctx.rotate(gf.w > 0 ? gf.w * 0.12 : Math.sin(t * (est.movendo ? 9 : 2.6)) * (est.movendo ? 0.06 : 0.03));
+    ctx.rotate(0.15 + Math.sin(t * 3) * 0.02);
     var ln = _lunge(est);
     ctx.translate(ln.x, 0);
 
-    // casaco (rido) balança com o movimento; sombra de passada
-    var rido = Math.sin(t * 2.6) * 1.4;
-    if (est.movendo) {
-        ctx.globalAlpha = 0.2;
-        ctx.fillStyle = _ton(cor, 0.4);
-        ctx.beginPath();
-        ctx.moveTo(-11, 2); ctx.lineTo(-7, 6); ctx.lineTo(-12, 9); ctx.lineTo(-15, 4); ctx.closePath();
-        ctx.moveTo(11, 2); ctx.lineTo(7, 6); ctx.lineTo(12, 9); ctx.lineTo(15, 4); ctx.closePath();
-        ctx.fill();
-        ctx.globalAlpha = 1;
-    }
-
-    // corpo inclinado para frente (postura de ataque)
     ctx.fillStyle = _ton(cor, 0.22);
     ctx.beginPath();
     ctx.moveTo(-7, -2);
-    ctx.quadraticCurveTo(-9 + (gf.atk ? -1.5 : 0), -12, 0, -15);
+    ctx.quadraticCurveTo(-9, -12, 0, -15);
     ctx.quadraticCurveTo(9, -12, 7, -2);
     ctx.closePath();
     ctx.fill();
-    // manto atrás
-    ctx.fillStyle = _ton(cor, 0.14);
-    ctx.beginPath();
-    ctx.moveTo(-6, -2);
-    ctx.quadraticCurveTo(-13 + rido, 2 + rido, -9 + rido * 1.5, 8 + rido);
-    ctx.lineTo(-3, 4);
-    ctx.closePath();
-    ctx.fill();
 
-    // capuz (puxa pro alto no ataque)
-    var capuz = Math.sin(t * 2) * 0.03 + (gf.w > 0 ? 0.06 : 0);
+    var capuz = Math.sin(t * 2) * 0.03;
     ctx.fillStyle = _ton(cor, 0.5);
     ctx.beginPath();
     ctx.moveTo(-8, -4);
     ctx.quadraticCurveTo(0, -18 + capuz * 4, 8, -4);
-    ctx.quadraticCurveTo(6, -10, 0, -11);
-    ctx.quadraticCurveTo(-6, -10, -8, -4);
     ctx.closePath();
     ctx.fill();
 
-    // olhos raivosos (brilham no ataque)
-    var brilhoOlho = 0.7 + _pulso(t, 6) * 0.4 + (gf.atk ? 0.7 : 0);
+    var brilhoOlho = 0.6 + _pulso(t, 6) * 0.5;
     ctx.fillStyle = '#ff435d';
     ctx.shadowColor = '#ff0033';
-    ctx.shadowBlur = 8 * brilhoOlho;
-    ctx.beginPath(); ctx.arc(-2.5, -7 + gf.t, 1.1 + gf.t, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(2.5, -7 + gf.t, 1.1 + gf.t, 0, Math.PI * 2); ctx.fill();
+    ctx.shadowBlur = 7 * brilhoOlho;
+    ctx.beginPath(); ctx.arc(-2.5, -7, 1.1, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(2.5, -7, 1.1, 0, Math.PI * 2); ctx.fill();
     ctx.shadowBlur = 0;
 
-    // braços/ombros
-    ctx.strokeStyle = _ton(cor, 0.6);
+    ctx.strokeStyle = '#dce3ef';
     ctx.lineWidth = 1.3;
     ctx.beginPath();
     ctx.moveTo(-6, -2); ctx.lineTo(-10, 6);
     ctx.moveTo(6, -2); ctx.lineTo(10, 6);
     ctx.stroke();
 
-    // adagas gêmeas: erguem cruzadas no vento, despencam na frente no golpe (cortes em X)
-    ctx.save();
-    var dagGir = Math.sin(t * (gf.w > 0 ? 14 : 2.8)) * (gf.w > 0 ? 0.3 : 0.06);
-    if (gf.atk) {
-        var corte1 = -1.2 - (1 - gf.p) * 1.8;
-        var corte2 = 1.2 + (1 - gf.p) * 1.8;
-        ctx.translate(0, -1);
-        ctx.strokeStyle = '#e8ecf4';
-        ctx.lineWidth = 1.8;
-        ctx.lineCap = 'round';
-        for (var r = 1; r <= 2; r++) {
-            ctx.globalAlpha = gf.t * (0.5 - (r - 1) * 0.15);
-            ctx.beginPath();
-            ctx.arc(0, -1, 7 + r * 4, -0.6 - gf.p, 0.8 - gf.p);
-            ctx.stroke();
-            ctx.beginPath();
-            ctx.arc(0, -1, 7 + r * 4, Math.PI - 0.6 - gf.p, Math.PI + 0.8 - gf.p);
-            ctx.stroke();
-        }
+    if (est.atkT > 0) {
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.globalAlpha = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(8, 0); ctx.lineTo(15, -4);
+        ctx.moveTo(-8, 0); ctx.lineTo(-15, -4);
+        ctx.stroke();
         ctx.globalAlpha = 1;
     }
-    // adaga esquerda (mão -10,6)
-    ctx.save();
-    ctx.translate(-10, 6);
-    ctx.rotate(gf.atk ? corte1 : -0.6 + dagGir + (gf.w > 0 ? -0.5 : 0));
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.3;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -7); ctx.stroke();
-    ctx.fillStyle = '#8a5a28'; ctx.fillRect(-0.8, 0, 1.6, 2.2);
-    ctx.restore();
-    // adaga direita (mão 10,6)
-    ctx.save();
-    ctx.translate(10, 6);
-    ctx.rotate(gf.atk ? corte2 : 0.6 - dagGir + (gf.w > 0 ? 0.5 : 0));
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 1.3;
-    ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -7); ctx.stroke();
-    ctx.fillStyle = '#8a5a28'; ctx.fillRect(-0.8, 0, 1.6, 2.2);
-    ctx.restore();
     ctx.restore();
     _golpeArco(ctx, est, cor);
     _stunStar(ctx, slime, -26);
 }
+
 // ============ VOID MASTER ============
 function _voidMaster(ctx, slime, est, info) {
     var t = Date.now() / 1000 + est.fase;
     var cor = _corEstado(slime, info.cor);
     var altura = -14 + Math.sin(t * 1.8) * 4;
     var carregando = !!slime.skillCharging;
-    var gf = _golpeFases(est);
 
     if (carregando && slime.skillAim) {
         ctx.save();
@@ -1561,67 +946,34 @@ function _voidMaster(ctx, slime, est, info) {
     ctx.save();
     ctx.translate(0, altura);
 
-    // corpo espectral: borda inferior ondula, sobe um pouco no vento
-    var ondas = Math.sin(t * 3.4) * 1.6 + Math.sin(t * 5.8) * 0.9;
-    var recoil = gf.w > 0 ? 0.4 : 0;
     ctx.fillStyle = 'rgba(20,16,30,0.85)';
     ctx.beginPath();
     ctx.moveTo(-11, 0);
-    ctx.quadraticCurveTo(-9, -11, 0 - recoil, -13);
+    ctx.quadraticCurveTo(-9, -11, 0, -13);
     ctx.quadraticCurveTo(9, -11, 11, 0);
-    ctx.quadraticCurveTo(10, 6, 6 + ondas * 0.4, 6.5);
-    ctx.quadraticCurveTo(0, 8 + ondas * 0.8, -6 + ondas * 0.4, 6.5);
-    ctx.quadraticCurveTo(-10, 6, -11, 0);
+    ctx.quadraticCurveTo(8, 7, 0, 7);
+    ctx.quadraticCurveTo(-8, 7, -11, 0);
     ctx.closePath();
     ctx.fill();
 
-    // tentáculos girando (giram mais rápido ao atacar)
-    var giro = t * (gf.w > 0 || gf.atk ? 3.4 : 1.1);
-    ctx.strokeStyle = 'rgba(185,150,255,0.65)';
-    ctx.lineWidth = 1.4;
-    ctx.lineCap = 'round';
-    for (var td = 0; td < 4; td++) {
-        var ta = giro + td * (Math.PI / 2);
-        var bx = Math.cos(ta) * 11;
-        var by = Math.sin(ta) * 3;
-        ctx.beginPath();
-        ctx.moveTo(bx, by);
-        ctx.quadraticCurveTo(bx + Math.cos(ta) * 5, by + Math.sin(ta) * 5, bx + Math.cos(ta * 1.3) * 8, by + Math.sin(ta * 1.3) * 9);
-        ctx.stroke();
-    }
-    ctx.lineCap = 'butt';
-
-    // núcleo: cresce no vento, explode em onda no golpe
-    var nucleo = 4 + _pulso(t, 5) * 2 + gf.w * 4 + gf.t * 3;
     ctx.fillStyle = cor;
-    ctx.globalAlpha = 0.55 + _pulso(t, 4) * 0.35 + gf.t * 0.3;
+    ctx.globalAlpha = 0.55 + _pulso(t, 4) * 0.35;
     ctx.shadowColor = cor;
-    ctx.shadowBlur = 14 + gf.t * 10 + gf.w * 6;
+    ctx.shadowBlur = 14;
     ctx.beginPath();
-    ctx.arc(Math.sin(t * 3) * 2, -3, nucleo, 0, Math.PI * 2);
+    ctx.arc(Math.sin(t * 3) * 2, -3, 4 + _pulso(t, 5) * 2, 0, Math.PI * 2);
     ctx.fill();
-    // anel de energia ao atacar
-    if (gf.t > 0) {
-        ctx.globalAlpha = gf.t * 0.8;
-        ctx.strokeStyle = cor;
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        ctx.arc(Math.sin(t * 3) * 2, -3, nucleo + gf.p * 8, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-    }
     ctx.shadowBlur = 0;
     ctx.globalAlpha = 1;
 
-    // brasas flutuando ao redor
-    ctx.fillStyle = cor;
-    for (var cb2 = 0; cb2 < 2; cb2++) {
-        var ca = t * 2 + cb2 * Math.PI;
-        var cx = Math.cos(ca) * 12, cy = 4 + Math.sin(ca * 0.8) * 4;
-        ctx.globalAlpha = 0.3 + _pulso(t + cb2, 3) * 0.4;
-        ctx.beginPath(); ctx.arc(cx, cy, 1.1, 0, Math.PI * 2); ctx.fill();
-    }
-    ctx.globalAlpha = 1;
+    ctx.strokeStyle = 'rgba(185,150,255,0.6)';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-11, -2);
+    ctx.quadraticCurveTo(-15, -8, -12, -13);
+    ctx.moveTo(11, -2);
+    ctx.quadraticCurveTo(15, -8, 12, -13);
+    ctx.stroke();
     ctx.restore();
     _golpeArco(ctx, est, cor);
     _stunStar(ctx, slime, altura - 26);
@@ -1632,137 +984,43 @@ function _gargula(ctx, slime, est, info) {
     var t = Date.now() / 1000 + est.fase;
     var cor = _corEstado(slime, info.cor);
     var voa = !!slime.dashing;
-    var gf = _golpeFases(est);
 
     if (voa) {
-        // voo de investida: corpo a frente + asas de pedra batendo forte
         ctx.save();
         ctx.rotate(est.face);
-        var bat = Math.sin(t * 22) * 0.5;
         ctx.fillStyle = _ton(cor, 0.3);
+        var bat = Math.sin(t * 20) * 0.6;
         ctx.beginPath();
-        ctx.ellipse(-2, 0, 14, 8, 0, 0, Math.PI * 2);
+        ctx.ellipse(-12, -6 - bat * 4, 9, 6, -0.4, 0, Math.PI * 2);
+        ctx.beginPath();
+        ctx.ellipse(12, -6 - bat * 4, 9, 6, 0.4, 0, Math.PI * 2);
         ctx.fill();
-        // asas espalhadas batendo
-        ctx.fillStyle = _ton(cor, 0.22);
-        for (var wd2 = 0; wd2 < 2; wd2++) {
-            ctx.save();
-            ctx.translate(2, 0);
-            ctx.rotate(wd2 ? 0.7 + bat * 1.6 : -0.7 - bat * 1.6);
-            ctx.beginPath();
-            ctx.moveTo(0, 0);
-            ctx.quadraticCurveTo(10, -4, 20, -2);
-            ctx.quadraticCurveTo(12, 4, 0, 0);
-            ctx.closePath();
-            ctx.fill();
-            ctx.restore();
-        }
-        ctx.fillStyle = '#ffe14d';
-        ctx.shadowColor = '#ffc400';
-        ctx.shadowBlur = 10;
-        ctx.beginPath(); ctx.arc(-7, -2, 2, 0, Math.PI * 2); ctx.fill();
-        ctx.beginPath(); ctx.arc(-7, 2, 2, 0, Math.PI * 2); ctx.fill();
-        ctx.shadowBlur = 0;
         ctx.restore();
         _golpeArco(ctx, est, cor);
         return;
     }
-
-    var resp = Math.sin(t * (est.movendo ? 8 : 2)) * 0.025;
-    var ln = _lunge(est);
     ctx.save();
-    ctx.translate(ln.x, 0);
-    ctx.rotate(gf.t * 0.06);
-    ctx.scale(1, 1 + resp + gf.w * 0.04);
-
-    // asas de pedra dobradas (abrem ao atacar e ao andar)
-    var asaAbrir = gf.w > 0 ? 0.35 : (est.movendo ? 0.18 : Math.abs(Math.sin(t * 2)) * 0.08);
-    ctx.fillStyle = _ton(cor, 0.2);
-    ctx.strokeStyle = _ton(cor, 0.35);
-    ctx.lineWidth = 1;
-    for (var wd = 0; wd < 2; wd++) {
-        ctx.save();
-        ctx.translate(wd ? 7 : -7, -3);
-        ctx.rotate(wd ? -0.5 - asaAbrir : 0.5 + asaAbrir);
-        ctx.beginPath();
-        ctx.moveTo(0, 0);
-        ctx.quadraticCurveTo(7, -3, 12, 0);
-        ctx.quadraticCurveTo(8, 5, 1, 2);
-        ctx.closePath();
-        ctx.fill();
-        ctx.stroke();
-        // veios de pedra
-        ctx.beginPath();
-        ctx.moveTo(1, 0);
-        ctx.quadraticCurveTo(5, -1, 10, 0);
-        ctx.stroke();
-        ctx.restore();
-    }
-
-    // corpo de pedra esculpido: peito + barriga (oucos, tipo anatomia rugosa)
+    ctx.scale(1, 1 + Math.sin(t * 2) * 0.02);
     ctx.fillStyle = _ton(cor, 0.3);
-    ctx.strokeStyle = _ton(cor, 0.2);
-    ctx.lineWidth = 1;
     ctx.beginPath();
     ctx.ellipse(0, 2, 12, 9, 0, 0, Math.PI * 2);
     ctx.fill();
-    ctx.stroke();
-    // textura de pedra (rachaduras)
-    ctx.strokeStyle = _ton(cor, 0.18);
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(-3, 6); ctx.lineTo(-1, 2); ctx.lineTo(-4, -1);
-    ctx.moveTo(3, 7); ctx.lineTo(4, 3);
-    ctx.moveTo(0, 9); ctx.lineTo(-2, 6);
-    ctx.stroke();
 
-    // braços esculpidos (mexem devagar) ficam agachados
     ctx.fillStyle = _ton(cor, 0.55);
     ctx.strokeStyle = _ton(cor, 0.3);
     ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.arc(-7 + Math.sin(t * 3) * 0.4, -3, 5, 0, Math.PI * 2);
-    ctx.arc(7 - Math.sin(t * 3) * 0.4, -3, 5, 0, Math.PI * 2);
+    ctx.arc(-7, -3, 5, 0, Math.PI * 2);
+    ctx.arc(7, -3, 5, 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
-    // cabeça com focinho raivoso (sobe no ataque)
-    var cabeca = -7 - gf.w * 1.2;
     ctx.beginPath();
-    ctx.arc(0, cabeca, 7.5, Math.PI, 0);
+    ctx.arc(0, -7, 7.5, Math.PI, 0);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
 
-    // orelhinhas cornudas de gárgula
-    ctx.fillStyle = _ton(cor, 0.5);
-    ctx.beginPath();
-    ctx.moveTo(-6, cabeca - 3); ctx.lineTo(-5, cabeca - 7); ctx.lineTo(-3, cabeca - 4); ctx.closePath();
-    ctx.moveTo(6, cabeca - 3); ctx.lineTo(5, cabeca - 7); ctx.lineTo(3, cabeca - 4); ctx.closePath();
-    ctx.fill();
-
-    // olhos flamejantes (acendem ao atacar)
-    var olhoBr = 0.6 + _pulso(t, 5) * 0.4 + (gf.w > 0 || gf.atk ? 0.8 : 0);
-    ctx.fillStyle = '#ffe14d';
-    ctx.shadowColor = '#ffc400';
-    ctx.shadowBlur = 9 * olhoBr;
-    ctx.beginPath(); ctx.arc(-3, cabeca - 1, gf.w > 0 ? 2.2 : 1.5, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(3, cabeca - 1, gf.w > 0 ? 2.2 : 1.5, 0, Math.PI * 2); ctx.fill();
-    ctx.shadowBlur = 0;
-
-    // boca de pedra abre, presas de cima caem
-    ctx.fillStyle = _ton(cor, 0.4);
-    ctx.beginPath();
-    ctx.arc(0, cabeca + 3 + gf.w * 2, 3, 0, Math.PI, true);
-    ctx.fill();
-    if (gf.w > 0 || gf.atk) {
-        ctx.fillStyle = '#efe9dc';
-        ctx.beginPath(); ctx.moveTo(-2, cabeca + 3); ctx.lineTo(-1.4, cabeca + 6); ctx.lineTo(-0.6, cabeca + 3); ctx.closePath();
-        ctx.beginPath(); ctx.moveTo(0.6, cabeca + 3); ctx.lineTo(1.4, cabeca + 6); ctx.lineTo(2, cabeca + 3); ctx.closePath();
-        ctx.fill();
-    }
-
-    // cauda de diante (balaça, ergue no ataque)
-    var caudaAng = gf.w > 0 ? 0.7 : Math.sin(t * 3) * 0.4;
+    var caudaAng = Math.sin(t * 3) * 0.4;
     ctx.save();
     ctx.translate(-11, 2);
     ctx.rotate(caudaAng);
@@ -1775,6 +1033,22 @@ function _gargula(ctx, slime, est, info) {
     ctx.fillStyle = _ton(cor, 0.6);
     ctx.beginPath();
     ctx.moveTo(8, 10); ctx.lineTo(12, 5); ctx.lineTo(16, 11); ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    ctx.fillStyle = _ton(cor, 0.75);
+    ctx.save();
+    ctx.translate(-7, -6);
+    ctx.rotate(slime.skillCharging ? _pulso(t, 7) * 0.5 : Math.sin(t * 2) * 0.15);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 6.5, 3.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+    ctx.save();
+    ctx.translate(7, -6);
+    ctx.rotate(slime.skillCharging ? -_pulso(t, 7) * 0.5 : -Math.sin(t * 2) * 0.15);
+    ctx.beginPath();
+    ctx.ellipse(0, 0, 6.5, 3.5, 0, 0, Math.PI * 2);
     ctx.fill();
     ctx.restore();
     ctx.restore();
@@ -2344,104 +1618,35 @@ function _mamute(ctx, slime, est, info) {
 function _tanque(ctx, slime, est, info) {
     var t = Date.now() / 1000 + est.fase;
     var cor = _corEstado(slime, info.cor);
-    var gf = _golpeFases(est);
     var ln = _lunge(est);
-    var andando = !!est.movendo;
-    var passo = t * (andando ? 8 : 1.8);
 
     ctx.save();
     ctx.translate(ln.x, 0);
-    ctx.rotate(ln.rot + gf.w * 0.05);
-    var b = 1 + Math.sin(t * 3) * 0.03 + gf.w * 0.06 - gf.t * 0.04;
+    ctx.rotate(ln.rot);
+    var b = 1 + Math.sin(t * 3) * 0.03;
     ctx.scale(b, b);
 
-    // esteira: corrente de lagartas entrando e saindo
-    ctx.save();
-    ctx.clip();
-    var esteira = (t * 14) % 10;
-    ctx.strokeStyle = _ton(cor, 0.55);
-    ctx.lineWidth = 1.4;
-    for (var e = -2; e <= 2; e++) {
-        var ex = esteira + e * 7;
-        ctx.beginPath();
-        ctx.moveTo(ex, 14); ctx.lineTo(ex + 3, 14);
-        ctx.stroke();
-    }
-    ctx.strokeStyle = _ton(cor, 0.3);
-    ctx.beginPath();
-    ctx.rect(-14, 26, 28, 5);
-    ctx.stroke();
-    ctx.restore();
-
-    // chassi / corpo blindado com placas
     ctx.fillStyle = _ton(cor, 0.4);
-    ctx.strokeStyle = _ton(cor, 0.55);
-    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(-15, 0);
-    ctx.quadraticCurveTo(-15, -15, -8, -17 + gf.t * 2);
-    ctx.lineTo(8, -17 + gf.t * 2);
-    ctx.quadraticCurveTo(15, -15, 15, 0);
-    ctx.lineTo(14, 10);
-    ctx.lineTo(-14, 10);
+    ctx.moveTo(-14, 0);
+    ctx.quadraticCurveTo(-14, -15, 0, -15);
+    ctx.quadraticCurveTo(14, -15, 14, 0);
+    ctx.quadraticCurveTo(14, 10, 0, 10);
+    ctx.quadraticCurveTo(-14, 10, -14, 0);
     ctx.closePath();
     ctx.fill();
-    ctx.stroke();
 
-    // cúpula da torre com canhão
-    ctx.fillStyle = _ton(cor, 0.5);
-    ctx.strokeStyle = _ton(cor, 0.7);
+    ctx.strokeStyle = _ton(cor, 1.4);
+    ctx.lineWidth = 1.8;
     ctx.beginPath();
-    ctx.arc(0, -12, 6.5, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.rect(-9, -11, 18, 9);
     ctx.stroke();
-
-    // canhão: recua e sobe o cano no vento, dispara na frente no golpe
-    var canoAng;
-    if (gf.w > 0) canoAng = 0.5;
-    else if (gf.atk) canoAng = 0.05 + 0.45 * (1 - gf.p);
-    else canoAng = 0.12 + Math.sin(t * 1.4) * 0.04;
-    var recuo = gf.t > 0 ? -3 : 0;
-    ctx.save();
-    ctx.translate(0, -13);
-    ctx.rotate(canoAng);
-    ctx.fillStyle = _ton(cor, 0.7);
-    ctx.fillRect(-4, -4, 7, 9);
-    ctx.strokeStyle = _ton(cor, 0.8);
-    ctx.lineWidth = 2.4;
-    ctx.beginPath(); ctx.moveTo(3 + recuo, 0); ctx.lineTo(13 + recuo, 0);
-    ctx.stroke();
-
-    // flash de tiro + calor após o golpe
-    if (gf.t > 0) {
-        ctx.fillStyle = 'rgba(255,240,160,0.9)';
-        ctx.shadowColor = '#ffcc00';
-        ctx.shadowBlur = 10;
-        ctx.beginPath();
-        ctx.arc(11 + recuo, 0, 3.4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        // rastro de projétil para frente
-        ctx.globalAlpha = gf.t * 0.7;
-        ctx.strokeStyle = '#ffe07a';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(13 + recuo, 0);
-        ctx.lineTo(13 + recuo + 22 * gf.p, 0);
-        ctx.stroke();
-        ctx.globalAlpha = 1;
-    }
-    ctx.restore();
-
-    // luzes na frente (alvos de tiro)
     ctx.fillStyle = _ton(cor, 1.4);
     ctx.globalAlpha = 0.75;
     ctx.beginPath();
-    ctx.arc(-8, 3 - gf.w * 2, 2 + _pulso(t, 4) * 1 + gf.t * 0.6, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath();
-    ctx.arc(8, 3 - gf.w * 2, 2 + _pulso(t, 4) * 1 + gf.t * 0.6, 0, Math.PI * 2); ctx.fill();
+    ctx.arc(0, -6.5, 3.2 + _pulso(t, 4) * 1.2, 0, Math.PI * 2);
+    ctx.fill();
     ctx.globalAlpha = 1;
-
     ctx.restore();
     _golpeArco(ctx, est, cor);
     _stunStar(ctx, slime, -26);

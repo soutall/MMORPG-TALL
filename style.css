@@ -101,6 +101,28 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 #stamina-bar-container { width: 130px; height: 8px; background: #5d3a0a; border: 2px solid #000; box-shadow: inset 0 0 0 1px #e67e22, 2px 2px 0 #000; overflow: hidden; position: relative; }
 #stamina-bar-fill { width: 100%; height: 100%; background: linear-gradient(180deg, #ffb347, #f39c12 60%, #e67e22); transition: width 0.1s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), 0 0 6px rgba(243,156,18,0.6); }
 
+/* v1.35: texto numérico sobre as barras da HUD (Vida / Mana / XP) */
+#hp-bar-container, #mp-bar-container, #stamina-bar-container, #hud-xp-central #xp-bar-container { position: relative; }
+.bar-value {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 8px;
+    font-weight: bold;
+    line-height: 1;
+    color: #fff;
+    font-family: 'Rajdhani', sans-serif;
+    text-shadow: 1px 1px 0 #000, 0 0 2px #000;
+    pointer-events: none;
+    z-index: 3;
+    white-space: nowrap;
+    letter-spacing: 0.5px;
+}
+.hp-value { color: #fff; }
+.mp-value { color: #d6eaff; }
+.xp-value { font-size: 10px; color: #3c2f00; text-shadow: 0 1px 0 rgba(255,255,255,0.35); }
+
 /* v1.34: Slots de poção [HP] [MP] ao lado da HUD */
 #hud-pocoes { display: flex; flex-direction: column; gap: 4px; margin-left: 2px; }
 #hud-ouro { position: fixed; top: 60px; left: 10px; background: rgba(0,0,0,0.8); border: 2px solid #f1c40f; box-shadow: 0 0 0 1px #000, 2px 2px 0 #000; color: #f1c40f; font-weight: bold; font-size: 12px; padding: 2px 8px; z-index: 20; pointer-events: none; }
@@ -277,14 +299,14 @@ canvas { background: #133015; display: block; width: 100vw; height: 100vh; touch
 #btn-teleportare-fechar:active { background: #34495e; }
 #btn-teleportare-cidade { margin-top: 4px; padding: 10px 20px; background: #1a3a5c; border: none; border-radius: 6px; color: #ffffff; font-size: 14px; font-family: 'Rajdhani', sans-serif; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.15s; letter-spacing: 1px; }
 /* NOVO MINIMAPA FUNCIONAL COM CONTROLES DE ZOOM */
-#minimap-wrapper { position: absolute; top: 8px; right: 10px; width: 176px; z-index: 25; pointer-events: auto; display: flex; flex-direction: column; align-items: flex-end; }
+#minimap-wrapper { position: absolute; top: 8px; right: 10px; width: 141px; z-index: 25; pointer-events: auto; display: flex; flex-direction: column; align-items: flex-end; }
 #minimap-header { width: 100%; display: flex; justify-content: space-between; align-items: center; background: rgba(10, 16, 22, 0.9); border: 1.5px solid rgba(79, 195, 247, 0.7); border-bottom: none; border-radius: 6px 6px 0 0; padding: 3px 5px; font-size: 11px; font-family: 'Rajdhani', sans-serif; font-weight: bold; color: #9ee8ff; text-shadow: 0 1px 2px #000; box-sizing: border-box; }
 #minimap-zoom-bar { display: flex; align-items: center; gap: 3px; background: rgba(0, 0, 0, 0.45); border-radius: 4px; padding: 1px 3px; }
 .btn-mm-zoom { background: #1a3a5c; border: 1px solid #3498db; border-radius: 3px; color: #fff; width: 16px; height: 16px; line-height: 14px; font-size: 12px; font-weight: bold; cursor: pointer; padding: 0; text-align: center; display: flex; align-items: center; justify-content: center; user-select: none; }
 .btn-mm-zoom:hover { background: #2980b9; }
 .btn-mm-zoom:active { transform: scale(0.92); }
 #minimap-zoom-label { font-size: 10px; font-family: 'Rajdhani', sans-serif; color: #00ffff; min-width: 14px; text-align: center; }
-#minimap-canvas { width: 176px; height: 100px; border: 1.5px solid rgba(79, 195, 247, 0.7); border-radius: 0 0 6px 6px; background: #0b1118; box-shadow: 0 4px 12px rgba(0,0,0,0.6), 0 0 10px rgba(79,195,247,0.25); cursor: pointer; display: block; }
+#minimap-canvas { width: 141px; height: 80px; border: 1.5px solid rgba(79, 195, 247, 0.7); border-radius: 0 0 6px 6px; background: #0b1118; box-shadow: 0 4px 12px rgba(0,0,0,0.6), 0 0 10px rgba(79,195,247,0.25); cursor: pointer; display: block; }
 #minimap-hint { font-size: 10px; font-family: 'Rajdhani', sans-serif; color: #88aacc; margin-top: 2px; text-shadow: 0 1px 2px #000; cursor: pointer; font-weight: bold; }
 
 /* MAPA GRANDE (TECLA M) */

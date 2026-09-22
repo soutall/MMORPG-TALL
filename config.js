@@ -53,6 +53,8 @@ function abrirConfig() {
     if (lS) lS.innerText = vS + "%";
 
     window.configAberto = true;
+    preencherAbaVisual();
+    mudarAbaConfig('audio');
     let screen = configScreenEl();
     if (screen) screen.style.display = "flex";
 }
@@ -112,6 +114,93 @@ window.mudarVolume = mudarVolumeGeral;
 window.mudarVolumeGeral = mudarVolumeGeral;
 window.mudarVolumeBgm = mudarVolumeBgm;
 window.mudarVolumeSfx = mudarVolumeSfx;
+
+/* ===== ABA VISUAL (configurações de interface) ===== */
+var VISUAL_PREF = "mmorpg_visual_";
+
+function chaveVisual() {
+    var uid = window.meuId || localStorage.getItem("mmorpg_user_id") || "default";
+    return VISUAL_PREF + uid;
+}
+
+function carregarConfigVisual() {
+    var padrao = { hpBar: 'max', mpBar: 'max', xpBar: 'pct' };
+    window.configVisual = padrao;
+    try {
+        var s = localStorage.getItem(chaveVisual());
+        if (s) {
+            var d = JSON.parse(s);
+            if (d && typeof d === 'object') {
+                for (var k in padrao) if (d[k] !== undefined) padrao[k] = d[k];
+            }
+        }
+    } catch (e) {}
+}
+
+function salvarConfigVisual() {
+    try { localStorage.setItem(chaveVisual(), JSON.stringify(window.configVisual || {})); } catch (e) {}
+}
+
+carregarConfigVisual();
+
+window.mudarAbaConfig = function (aba) {
+    var bA = document.getElementById("btn-aba-audio");
+    var bV = document.getElementById("btn-aba-visual");
+    if (bA) bA.classList.toggle("ativo", aba === 'audio');
+    if (bV) bV.classList.toggle("ativo", aba === 'visual');
+    var tA = document.getElementById("settings-tab-audio");
+    var tV = document.getElementById("settings-tab-visual");
+    if (tA) tA.style.display = aba === 'audio' ? 'block' : 'none';
+    if (tV) tV.style.display = aba === 'visual' ? 'block' : 'none';
+};
+
+function refrescarBarrasHud() {
+    if (typeof atualizarHudHp === 'function') atualizarHudHp();
+    if (typeof atualizarHudMp === 'function') atualizarHudMp();
+    if (typeof atualizarHudXp === 'function') atualizarHudXp();
+}
+
+window.mudarVisualHpBar = function (val) {
+    window.configVisual = window.configVisual || {};
+    window.configVisual.hpBar = val;
+    salvarConfigVisual();
+    refrescarBarrasHud();
+};
+
+window.mudarVisualMpBar = function (val) {
+    window.configVisual = window.configVisual || {};
+    window.configVisual.mpBar = val;
+    salvarConfigVisual();
+    refrescarBarrasHud();
+};
+
+window.mudarVisualXpBar = function (val) {
+    window.configVisual = window.configVisual || {};
+    window.configVisual.xpBar = val;
+    salvarConfigVisual();
+    refrescarBarrasHud();
+};
+
+function preencherAbaVisual() {
+    var cfg = window.configVisual || {};
+    var sh = document.getElementById("vis-hp-modo");
+    if (sh) sh.value = cfg.hpBar || 'max';
+    var sm = document.getElementById("vis-mp-modo");
+    if (sm) sm.value = cfg.mpBar || 'max';
+    var sx = document.getElementById("vis-xp-modo");
+    if (sx) sx.value = cfg.xpBar || 'pct';
+}
+
+window.requerProximidade = function (px, py, raio) {
+    if (typeof window.meuX !== 'number' || typeof window.meuY !== 'number') return false;
+    return Math.hypot(window.meuX - px, window.meuY - py) <= (raio || 130);
+};
+
+window.avisoProximidade = function () {
+    if (window.floatingTexts) {
+        window.floatingTexts.push({ x: (window.meuX || 0) + 14, y: (window.meuY || 0) - 34, text: '⚠️ Chegue mais perto!', color: '#e74c3c', alpha: 1.0 });
+    }
+};
 
 function trocarDePersonagem() {
     fecharConfig();

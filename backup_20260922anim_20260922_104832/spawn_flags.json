@@ -247,6 +247,19 @@
     "timerRespawn": 100
   },
   {
+    "id": "flag_mu95qguy_ap3ia",
+    "criadoEm": 1789868908762,
+    "tipo": "mamute",
+    "maxQtd": 1,
+    "comportamento": "passivo",
+    "hpBase": 3200,
+    "respawnSeg": 2,
+    "x": 4552,
+    "y": 1222,
+    "temPosicao": true,
+    "timerRespawn": 40
+  },
+  {
     "id": "flag_mu9wwo8s_yqqwy",
     "criadoEm": 1789914547900,
     "tipo": "melee",
@@ -273,29 +286,16 @@
     "timerRespawn": 180
   },
   {
-    "id": "flag_mucrbbpk_513c1",
-    "criadoEm": 1790086552328,
-    "tipo": "caveira_arqueira",
-    "maxQtd": 3,
-    "comportamento": "agressivo",
-    "hpBase": 420,
-    "respawnSeg": 5,
-    "x": 4527,
-    "y": 1226,
-    "temPosicao": true,
-    "timerRespawn": 100
-  },
-  {
-    "id": "flag_mucshhsc_nj14e",
-    "criadoEm": 1790088519756,
-    "tipo": "mago_arcano",
+    "id": "flag_mucpgno9_oqws2",
+    "criadoEm": 1790083441881,
+    "tipo": "ogro",
     "maxQtd": 1,
     "comportamento": "agressivo",
-    "hpBase": 300,
-    "respawnSeg": 1,
-    "x": 5310,
-    "y": 1488,
+    "hpBase": 2600,
+    "respawnSeg": 5,
+    "x": 64304,
+    "y": 537,
     "temPosicao": true,
-    "timerRespawn": 20
+    "timerRespawn": 100
   }
 ]
