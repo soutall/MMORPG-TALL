@@ -3,7 +3,7 @@
    ===================================================================== */
 
 /* --- Janelas móviles: absolutas + centradas por defecto ------------- */
-#inv-window, #skills-png-wrap, #atributos-dupla, #settings-window,
+#inv-window, #skills-window, #atributos-dupla, #settings-window,
 #big-map-window, #teleport-window {
     position: absolute !important;
     top: 50%; left: 50%;
@@ -38,14 +38,14 @@
 #hud-status-window > #hud-status-main { display: flex !important; }
 
 /* --- Manillas de arrastre ------------------------------------------- */
-#inv-title, #skills-drag-handle, #settings-header, #atributos-title,
+#inv-title, #skills-header, #settings-header, #atributos-title,
 #detalhes-title, #big-map-top, #teleport-title {
     cursor: grab;
     user-select: none;
     -webkit-user-select: none;
     touch-action: manipulation;
 }
-#inv-title:active, #skills-drag-handle:active, #settings-header:active,
+#inv-title:active, #skills-header:active, #settings-header:active,
 #atributos-title:active, #detalhes-title:active,
 #big-map-top:active, #teleport-title:active { cursor: grabbing; }
 

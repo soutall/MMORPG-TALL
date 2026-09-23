@@ -1,252 +1,55 @@
-/* ===== INTERFACE DE SKILLS — SkillList.png overlay ===== */
-/* v1.38: moldura oficial imagem/HUD/SkillList.png (1046×1504).
-   A PNG é pintada POR ÚLTIMO (CAMADA 3) por cima do conteúdo dinâmico;
-   os interiores transparentes deixam o conteúdo aparecer. */
-
+/* ===== INTERFACE DE SKILLS (detalhes + upgrade no servidor) ===== */
+/* v1.34: janela MAIOR + skills lado a lado + fonte legível */
 .btn-util.btn-skills { background: #16a085; border-color: #1abc9c; font-size: 14px; }
 
-#skills-screen {
-    position: absolute; top: 0; left: 0; width: 100vw; height: 100vh;
-    background: rgba(8, 8, 8, 0.25);
-    display: none; flex-direction: column; justify-content: center; align-items: center;
-    z-index: 310; pointer-events: none;
-}
-
-/* Contêiner da PNG — mantém proporção 1046:1504, escala responsiva */
-#skills-png-wrap {
-    position: relative;
-    width: min(90vw, calc(94vh * 1046 / 1504));
-    aspect-ratio: 1046 / 1504;
-    pointer-events: auto;
-}
-
-/* CAMADA 3: SkillList.png por cima (não bloqueia cliques) */
-#skills-png-overlay {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    pointer-events: none; z-index: 10;
-    user-select: none; -webkit-user-drag: none;
-}
-
-/* CAMADAS 1+2: conteúdo dinâmico por baixo da moldura */
-#skills-content {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    z-index: 5;
-    font-family: 'Rajdhani', sans-serif;
-}
-
-/* === 1 — ÍCONE DE CLASSE (topo central, atrás do círculo da PNG) === */
-#skills-class-icon {
-    position: absolute;
-    left: 46%; top: 0.6%;
-    width: 9%; aspect-ratio: 1;
-    border-radius: 50%;
-    background-size: cover;
-    background-position: center;
-    background-color: transparent;
-}
-
-/* === Botão X fechar (topo direito) === */
-#btn-skills-fechar {
-    position: absolute;
-    right: 2.4%; top: 3.4%;
-    width: 5.5%; aspect-ratio: 1;
-    min-width: 22px; min-height: 22px;
-    font-family: 'Rajdhani', sans-serif; font-weight: bold;
-    font-size: clamp(10px, 2.5vw, 18px);
-    background: #c0392b; color: #fff;
-    border: 2px solid #e74c3c;
-    box-shadow: 2px 2px 0 #000;
-    cursor: pointer; z-index: 12;
-    line-height: 1; padding: 0;
-    display: flex; align-items: center; justify-content: center;
-}
+#skills-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(8, 8, 8, 0.25); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 310; pointer-events: none; }
+#skills-window { background: #201d1a; border: 3px solid #1abc9c; box-shadow: 6px 6px 0 #000, inset 3px 3px 0 #2d3a35; padding: 12px 14px 14px 14px; width: 600px; max-width: 96vw; max-height: 94vh; overflow-y: auto; text-align: center; font-family: 'Rajdhani', sans-serif; pointer-events: auto; }
+#skills-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+#skills-titulo { font-family: 'Cinzel', serif; font-weight: bold; font-size: 18px; color: #1abc9c; letter-spacing: 3px; text-shadow: 2px 2px 0 #000; margin: 0; }
+#btn-skills-fechar { font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 16px; width: 32px; height: 32px; background: #c0392b; color: #fff; border: 2px solid #e74c3c; box-shadow: 2px 2px 0 #000; cursor: pointer; line-height: 1; }
 #btn-skills-fechar:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #000; }
+#skills-classe-tag { font-size: 12px; color: #7fb8ab; letter-spacing: 2px; margin-bottom: 8px; border-bottom: 2px dashed #2d3a35; padding-bottom: 6px; }
+/* v1.34: SKILLS LADO A LADO (2 colunas) */
+#skills-lista { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start; }
 
-/* Alça de arraste da janela (faixa do título, abaixo do botão X) */
-#skills-drag-handle {
-    position: absolute;
-    left: 20%; right: 20%; top: 8%; height: 5%;
-    z-index: 9;
-}
+.skill-pontos { font-size: 12px; color: #f1c40f; text-align: center; background: #262218; border: 1px solid #f1c40f; padding: 5px 8px; margin-bottom: 2px; letter-spacing: 0.5px; }
+.skill-pontos.esgotado { color: #a8a49a; border-color: #555; background: #1d1c19; }
+.skill-pontos b { font-size: 15px; }
 
-/* === Pontos de habilidade + reset (topo esquerdo) === */
-#skills-points {
-    position: absolute;
-    left: 7%; top: 17.5%;
-    width: 38.5%;
-    z-index: 6;
-    text-align: center;
-}
-.pts-label { font-size: clamp(7px, 1.6vw, 12px); color: #f1c40f; letter-spacing: 0.5px; }
-.pts-label b { font-size: 1.4em; }
-.pts-zero { color: #7f8c8d; }
-.pts-actions { margin-top: 2px; }
-.pts-reset-btn {
-    display: inline-block;
-    font-size: clamp(6px, 1.3vw, 10px);
-    color: #bbb; cursor: pointer;
-    border: 1px solid #555; padding: 1px 5px;
-    background: rgba(0, 0, 0, 0.3);
-}
-.pts-reset-btn:hover { color: #e74c3c; border-color: #e74c3c; }
-.pts-aviso { font-size: clamp(5px, 1.1vw, 8px); color: #7f8c8d; margin-top: 2px; }
+.skill-card { background: #161412; border: 2px solid #2d3a35; box-shadow: 3px 3px 0 #000; padding: 9px 10px; text-align: left; }
+.skill-card-top { display: flex; gap: 8px; align-items: flex-start; }
+.skill-ico { font-size: 28px; line-height: 1; filter: drop-shadow(2px 2px 0 #000); }
+.skill-nome { font-weight: bold; font-size: 14px; color: #e8e4da; letter-spacing: 1px; }
+.skill-cat { display: inline-block; font-size: 9px; font-weight: bold; color: #111; background: #1abc9c; padding: 2px 5px; margin-left: 6px; letter-spacing: 1px; vertical-align: middle; }
+.skill-cat.cat-ataque { background: #d9534f; }
+.skill-cat.cat-aoe { background: #e67e22; }
+.skill-cat.cat-zona { background: #3498db; }
+.skill-cat.cat-canal { background: #9b59b6; }
+.skill-cat.cat-cura { background: #27ae60; }
+.skill-cat.cat-buff { background: #f1c40f; color: #111; }
+.skill-cat.cat-mobilidade { background: #16a085; }
+.skill-cat.cat-invocacao { background: #795548; }
+.skill-cat.cat-passiva { background: #7f8c8d; }
+.skill-nv { float: right; font-size: 11px; font-weight: bold; color: #1abc9c; border: 1px solid #1abc9c; padding: 1px 5px; }
+.skill-desc { font-size: 12px; color: #a8a49a; margin-top: 4px; line-height: 1.45; }
 
-/* === ÁREA ESQUERDA: lista de skills (uma linha por habilidade) === */
-#skills-lista {
-    position: absolute;
-    left: 6.2%; top: 20.5%;
-    width: 39.7%; height: 58%;
-    overflow-y: auto;
-    z-index: 6;
-    scrollbar-width: thin;
-    scrollbar-color: #1abc9c #161412;
-}
-#skills-lista::-webkit-scrollbar { width: 4px; }
-#skills-lista::-webkit-scrollbar-track { background: rgba(22, 20, 18, 0.6); }
-#skills-lista::-webkit-scrollbar-thumb { background: #1abc9c; border-radius: 2px; }
+.skill-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 4px 8px; margin-top: 7px; border-top: 1px dashed #2d3a35; padding-top: 6px; }
+.skill-stat { font-size: 11px; color: #c9c4b8; }
+.skill-stat b { color: #1abc9c; font-weight: bold; }
+.skill-extras { margin-top: 6px; }
+.skill-extra { display: inline-block; font-size: 9px; font-weight: bold; color: #e8dcc0; background: #2d3a35; border: 1px solid #3c4c45; padding: 2px 5px; margin: 1px; letter-spacing: 0.5px; }
 
-.skill-row {
-    display: flex; align-items: center; gap: 3px;
-    padding: 3px 4px; margin-bottom: 2px;
-    background: rgba(22, 20, 18, 0.65);
-    border: 1px solid rgba(45, 58, 53, 0.5);
-    cursor: pointer;
-    font-size: clamp(7px, 1.5vw, 11px);
-    color: #c9c4b8;
-    transition: border-color 0.12s, background 0.12s;
-}
-.skill-row:hover { border-color: #1abc9c; background: rgba(26, 188, 156, 0.1); }
-.skill-row.selected { border-color: #f1c40f; background: rgba(241, 196, 15, 0.12); }
-
-.sr-icon { font-size: 1.3em; flex-shrink: 0; width: 18px; text-align: center; }
-.sr-name { flex: 1; font-weight: bold; color: #e8e4da; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.sr-nv { font-size: 0.8em; color: #1abc9c; flex-shrink: 0; margin: 0 2px; }
-.sr-cat {
-    font-size: 0.62em; font-weight: bold; color: #111; padding: 1px 3px;
-    flex-shrink: 0; letter-spacing: 0.5px;
-}
-
-/* Cores de categoria */
-.cat-ataque { background: #d9534f; }
-.cat-aoe { background: #e67e22; }
-.cat-zona { background: #3498db; }
-.cat-canal { background: #9b59b6; }
-.cat-cura { background: #27ae60; }
-.cat-buff { background: #f1c40f; color: #111; }
-.cat-mobilidade { background: #16a085; }
-.cat-invocacao { background: #795548; }
-.cat-passiva { background: #7f8c8d; }
-
-/* === ÁREA DIREITA: informações da skill selecionada === */
-#skills-info-panel {
-    position: absolute;
-    left: 49.8%; top: 18%;
-    width: 47%; height: 34%;
-    overflow-y: auto;
-    z-index: 6;
-    font-size: clamp(7px, 1.4vw, 11px);
-    color: #c9c4b8;
-    scrollbar-width: thin;
-    scrollbar-color: #1abc9c #161412;
-}
-#skills-info-panel::-webkit-scrollbar { width: 3px; }
-#skills-info-panel::-webkit-scrollbar-thumb { background: #1abc9c; }
-
-.si-header { display: flex; align-items: center; gap: 4px; margin-bottom: 3px; flex-wrap: wrap; }
-.si-icon { font-size: 1.8em; line-height: 1; }
-.si-name { font-size: 1.2em; font-weight: bold; color: #e8e4da; }
-.si-cat { font-size: 0.58em; font-weight: bold; color: #111; padding: 1px 4px; letter-spacing: 0.5px; }
-.si-nv { font-size: 0.78em; color: #1abc9c; border: 1px solid #1abc9c; padding: 1px 3px; margin-left: auto; }
-.si-desc { margin: 3px 0; color: #a8a49a; line-height: 1.35; }
-.si-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 6px; margin-top: 3px; border-top: 1px dashed #2d3a35; padding-top: 3px; }
-.si-stat { font-size: 0.9em; }
-.si-stat b { color: #1abc9c; }
-.si-extras { margin-top: 3px; }
-.si-extra {
-    display: inline-block; font-size: 0.72em; font-weight: bold; color: #e8dcc0;
-    background: rgba(45, 58, 53, 0.6); border: 1px solid #3c4c45;
-    padding: 1px 3px; margin: 1px;
-}
-.si-upgrade { margin-top: 4px; display: flex; align-items: center; gap: 4px; border-top: 1px dashed #2d3a35; padding-top: 3px; }
-.si-upgrade-nv { flex: 1; color: #a8a49a; font-size: 0.9em; }
-.si-upgrade-nv b { color: #1abc9c; font-size: 1.2em; }
-
-/* Botões Melhorar / Resetar skill */
-.btn-melhorar {
-    font-family: 'Rajdhani', sans-serif; font-weight: bold;
-    font-size: clamp(7px, 1.4vw, 12px); padding: 3px 6px;
-    background: #1abc9c; color: #111;
-    border: 2px solid #16a085; box-shadow: 2px 2px 0 #000;
-    cursor: pointer; letter-spacing: 0.5px;
-}
+.skill-upgrade { display: flex; align-items: center; gap: 6px; margin-top: 8px; border-top: 1px dashed #2d3a35; padding-top: 7px; }
+.skill-upgrade-nivel { font-size: 11px; color: #a8a49a; flex: 1; }
+.skill-upgrade-nivel b { color: #1abc9c; font-size: 14px; }
+.btn-melhorar { font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 13px; padding: 6px 8px; background: #1abc9c; color: #111; border: 2px solid #16a085; box-shadow: 2px 2px 0 #000; cursor: pointer; letter-spacing: 0.5px; }
 .btn-melhorar:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #000; }
 .btn-melhorar.max { background: #7f8c8d; border-color: #95a5a6; color: #222; }
 .btn-melhorar:disabled { background: #555; border-color: #666; color: #999; cursor: not-allowed; box-shadow: none; }
-
-.btn-skill-reset {
-    font-family: 'Rajdhani', sans-serif; font-weight: bold;
-    font-size: clamp(7px, 1.3vw, 11px);
-    width: 22px; height: 20px;
-    background: #c0392b; color: #fff;
-    border: 2px solid #e74c3c; box-shadow: 2px 2px 0 #000;
-    cursor: pointer; line-height: 1; padding: 0;
-    display: flex; align-items: center; justify-content: center;
-}
+.btn-skill-reset { font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 13px; width: 26px; height: 22px; background: #c0392b; color: #fff; border: 2px solid #e74c3c; box-shadow: 2px 2px 0 #000; cursor: pointer; line-height: 1; }
 .btn-skill-reset:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #000; }
 
-/* === PRÓXIMO NÍVEL === */
-#skills-proximo-nivel {
-    position: absolute;
-    left: 49.8%; top: 54.5%;
-    width: 47%; height: 9.4%;
-    overflow-y: auto;
-    z-index: 6;
-    font-size: clamp(6px, 1.3vw, 10px);
-    color: #c9c4b8;
-    scrollbar-width: thin;
-    scrollbar-color: #f1c40f #161412;
-}
-.pn-line { margin: 1px 0; }
-.pn-line b { color: #f1c40f; }
-.pn-seta { color: #e67e22; margin: 0 2px; }
-.pn-proximo { color: #f1c40f; font-weight: bold; }
-.pn-max { color: #7f8c8d; font-style: italic; font-size: 0.9em; }
-.pn-info { color: #7f8c8d; font-size: 0.8em; margin-top: 2px; }
-
-/* === REQUISITOS === */
-#skills-requisitos {
-    position: absolute;
-    left: 49.8%; top: 68%;
-    width: 47%; height: 10.6%;
-    overflow-y: auto;
-    z-index: 6;
-    font-size: clamp(6px, 1.2vw, 10px);
-    color: #a8a49a;
-}
-.req-line { margin: 1px 0; }
-.req-line b { color: #1abc9c; }
-.req-empty { color: #7f8c8d; font-style: italic; }
-
-/* === BARRA DE HABILIDADES (8 slots inferiores) === */
-#skills-bar {
-    position: absolute;
-    left: 6%; top: 87.2%;
-    width: 88%; height: 10.4%;
-    display: flex; align-items: center; justify-content: space-between;
-    z-index: 6;
-}
-.skill-slot {
-    position: relative;
-    width: 10.5%; aspect-ratio: 1;
-    max-width: 55px; max-height: 55px;
-    background: rgba(22, 20, 18, 0.5);
-    border: 2px solid #2d3a35;
-    display: flex; align-items: center; justify-content: center;
-    font-size: clamp(10px, 2.5vw, 22px);
-    cursor: default;
-}
-.skill-slot.destaque { border-color: #1abc9c; }
-.slot-key {
-    position: absolute; bottom: -1px; left: 50%; transform: translateX(-50%);
-    font-size: 0.45em; color: #f1c40f; font-weight: bold;
-}
+#skills-footer { margin-top: 12px; border-top: 2px dashed #2d3a35; padding-top: 8px; display: flex; align-items: center; gap: 6px; }
+#skills-aviso { font-size: 11px; color: #f1c40f; flex: 1; text-align: left; letter-spacing: 0.5px; }
+#btn-skills-reset-tudo { font-family: 'Rajdhani', sans-serif; font-weight: bold; font-size: 13px; padding: 6px 8px; background: #7f8c8d; color: #111; border: 2px solid #95a5a6; box-shadow: 2px 2px 0 #000; cursor: pointer; letter-spacing: 0.5px; }
+#btn-skills-reset-tudo:active { transform: translate(2px, 2px); box-shadow: 0 0 0 #000; }
