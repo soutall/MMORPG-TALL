@@ -132,6 +132,20 @@
 #ui-editor-bar .ui-editor-save { background: #1e8449; border-color: #27ae60; color: #fff; }
 #ui-editor-bar .ui-editor-reset { background: #1b4f72; border-color: #3498db; color: #fff; }
 #ui-editor-bar .ui-editor-exit { background: #922b21; border-color: #e74c3c; color: #fff; }
+/* v1.35+: no CELULAR os botões SALVAR / RESTAURAR / SAIR ficam ~50% menores */
+body[data-dispositivo="mobile"] #ui-editor-bar .ui-editor-btn {
+    font-size: 7px;
+    padding: 3px 7px;
+    border-width: 2px;
+    box-shadow: 2px 2px 0 #000;
+    letter-spacing: 0;
+    min-width: 32px;
+    min-height: 16px;
+}
+body[data-dispositivo="mobile"] #ui-editor-bar .ui-editor-btn:active {
+    transform: translate(1px, 1px);
+    box-shadow: 0 0 0 #000;
+}
 #ui-editor-bar .ui-editor-dirty {
     font-size: 11px;
     color: #f1c40f;

@@ -134,6 +134,10 @@ const BALANCE = {
         sniper: {
             barrett_antimateria: { slot: 'arma', nome: 'Barrett Antimatéria', icon: '🔫', pesos: { destreza: 7, forca: 4, agilidade: 2, velocidadeAtaque: 2 } },
             luneta_tatica: { slot: 'armaSecundaria', nome: 'Luneta Tática',     icon: '🔭', pesos: { destreza: 6, agilidade: 4, vida: 2 } }
+        },
+        pikeman: {
+            foice_da_morte: { slot: 'arma', nome: 'Foice da Morte',    icon: '⚖️', pesos: { forca: 8, destreza: 3, vida: 3, velocidadeAtaque: 3 } },
+            foice_curta: { slot: 'armaSecundaria', nome: 'Foice Curta', icon: '🔪', pesos: { forca: 7, agilidade: 3, destreza: 2, vida: 1 } }
         }
     }
 };

@@ -4,7 +4,7 @@ Registro de todas as atualizações feitas no projeto. **Sempre** que algo novo 
 
 ---
 
-## Versão atual: **v1.34.1**
+## Versão atual: **v1.36**
 
 > 🚨 **REGRA MANDATÓRIA:** O game está sendo desenvolvido para **PC e Mobile**, então a otimização tem que ser feita para **AMBOS**, e tudo o que for feito no projeto é pensando em ambos os lados (controles via teclado/mouse no PC e touch/joystick no mobile, interfaces responsivas sem corte nem sobreposição, e alto desempenho em todas as resoluções).
 
@@ -12,6 +12,9 @@ Registro de todas as atualizações feitas no projeto. **Sempre** que algo novo 
 
 | Versão | Data / Hora | O que foi feito | Arquivos Alterados |
 |---|---|---|---|
+| **v1.36** | 23/09/2026 (hora local) | **FOTO DE PERFIL das classes no círculo do retrato do HUD:** a arte oficial `HudHP.png` NÃO foi modificada — agora as fotos de perfil (`imagem/HUD/Perfil/*.png`, quadradas 1254×1254) são desenhadas DENTRO do círculo do retrato (interior transparente da PNG), recortadas em círculo via clip `ctx.arc` (centro 345,350 e raio 200 no espaço da imagem 2172×724, medidos por scan de pixel; gemas/ornamentos da moldura preservados). Enfoque **"PNG por último"**: a foto é desenhada ANTES do `drawImage(HudHP.png)` — a PNG pintada por último em source-over cobre automaticamente qualquer sobra sobre moldura/gemas/ornamentos, SEM masking e SEM `destination-out` (o antialias da PNG faz blend suave e natural). Foto com cover-crop (`Math.max(lado/sw, lado/sh)`) para preencher o círculo ponta a ponta, carregada de forma lazy com cache e cache-buster `?v=perfil1`. Mapeamento classe→foto via `window.minhaClasse`: guerreiro/mago/summoner/arqueiro/barbaro/roqueiro/ladino/dronemaster/arqueiro_arcano(+arqueiro_astral)/pikeman/curandeiro → Guerreiro/Mago/Summoner/Arqueira/Barbaro/Roqueiro/Ladino/DroneMaster/Arqueir_astral/PikeMan/curandeiro. **Sniper não tem foto no jogo** → o círculo permanece vazio (sem erro; basta adicionar `Sniper.png` para ativar). Validação visual por render GDI+ (Guerreiro, Arqueira e cenário vazio). Versão atualizada para **v1.36** nos 3 pontos visuais (login, HUD e `GAME_VERSION`) | `index.html`, `imagem/HUD/Perfil/*.png` (uso), `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
+| **v1.35** | 23/09/2026 (hora local) | **HUD Oficial em Canvas 2D com HudHP.png:** a arte oficial `imagem/HUD/HudHP.png` (2172×724, IMAGEM NÃO modificada) agora é o HUD do jogo — moldura dourada, círculo de retrato (mantido VAZIO, sem personagem nem moldura extra) e ícones ❤️/🔥/🏃 desenhados no Canvas do jogo via `drawImage`, substituindo as barras HTML antigas (barras e retrato antigos ocultos via CSS com `display:none`). Os **preenchimentos são 100% Canvas** (não dependem do PNG): HP vermelho, Mana azul e Stamina verde, cada um com gradiente vertical claro→escuro + glow + brilho interno, desenhados ANTES da imagem, apenas dentro das áreas internas das barras via clipping (`window.HUD_BARS` = coordenadas exatas escaneadas por pixel: HP {641,166,1453,104}, Mana {659,326,1438,100}, Stamina {668,486,1424,91}), esquerda→direita até a razão atual; a imagem é desenhada POR CIMA como OVERLAY PURO (a PNG foi editada com os interiores das três barras TRANSPARENTES — janelas visíveis ~x790–1980; as gemas/ornamentos das pontas permanecem opacos) para o preenchimento dinâmico aparecer por trás — a 0% resta somente a moldura, a 100% a barra fica totalmente preenchida. O preenchimento é clipado APENAS na área interna de cada barra (nunca na moldura), e a PNG é a ÚLTIMA etapa visual — SEM `destination-out`, SEM apagar/modificar a imagem em runtime. Valores reais preservados (`meuHp/meuMaxHp/meuMp/meuMaxMp/minhaEstamina` com fallbacks) e animação suave `displayHp/displayMana/displayStamina += (real − display) * 0.15` que NUNCA altera os valores reais. Escala responsiva reutilizando o sistema atual (baseada na largura do canvas 2D, clamp 0.06–0.30). Render validado visualmente por replicação em GDI+ (65%/40%/80%, 0% e escala telefone) | `index.html`, `style.css`, `CHANGELOG.md` |
+| **v1.34.2** | 23/09/2026 (hora local) | **FIX tela verde na Arena de Solari/arena:** skills que reposicionam o jogador (Salto Esmagador do Bárbaro, Stage Dive do Roqueiro e as coreografias Dança/Estrela do Ladino) barravam o destino em limites do MUNDO (x até 71880), não do mapa. Como a Cidade Perdida (x ∈ [65040,71920)) agora existe além da borda leste da Arena, mirar/clicar para leste dentro da arena teleportava o jogador para DENTRO da Cidade Perdida — a tela inteira ficava verde escura (#1c2a1d, fundo do mapa errado). Correção dupla: **servidor** `validarDestinoJogador` ganhou restrição de mapa de origem (destino tem que estar no mesmo mapa do jogador, aplicado ao esmagamento, teleporte e ladino dança/estrela) e **cliente** `clamparAlcanceSkill` agora clamp a mira aos limites do MAPA ATIVO (`limitesMapaClienteAtivo`), mais rede de segurança no `loop()` que restaura a posição autoritativa do servidor se `meuX/meuY` ficarem `NaN`. Reverteria à antiga trava "behind world edge" que existia antes da Cidade Perdida | `index.html`, `server.js`, `CHANGELOG.md`, `INFO_PROJETO.md` |
 | **v1.34.1** | 22/09/2026 (hora local) | Atalhos de teclado das poções no PC: **Q = Poção de Vida (HP)** e **E = Poção de Mana (MP)**; tecla **Q removida da Skill 4** (Roqueiro Grito / Ladino Estrela / DroneMaster Titã / Sniper Camuflagem) que passa a ser acionada **somente pela tecla 4** (Numpad4 também); badges de tecla adicionados aos slots de poção (Q/E no canto superior, sem sobrepor o contador) e badges/títulos das Skills 4 trocados de "Q" para "4"; clique/toque nos slots de poção mantidos no mobile + **Inventário (tecla I) +30% na horizontal** (295 → 384px, com max-width 92vw) e janela de comparação reposicionada (168 → 208px) para acompanhar + **Correção do Social (tecla O)**: o modal abria FORA da tela (canto superior esquerdo) porque o drag-drop salvava `left/top` + `transform:none`, anulando o `translate(-50%,-50%)` central — agora `abrirSocialModal` SEMPRE centraliza (limpa posição salva e reaplica o translate) + novo `soltarFoco()` que libera o foco ao entrar no jogo (login com Enter deixava o foco preso no input escondido e TODAS as teclas de atalho ficavam mortas) e ao fechar modais | `index.html`, `style.css`, `inventario.css`, `INFO_PROJETO.md`, `CHANGELOG.md`, `REGRAS_IA.md` |
 | **v1.34.0** | 21/09/2026 23:31 | Big batch mobile v1.34: Poções de HP/MP ×3 níveis droppáveis + 2 slots de poção no topo esquerdo do HUD; Stamina (barra laranja) substitui a mana no DASH (25 normal / 40 Dronemaster); HUD redesenhado (retrato em tempo real, barras fortes vermelho/azul/laranja, buffs, XP amarelo sobre fundo azul-claro centralizado abaixo das skills); Pedras de Upgrade com tabela de raridade + brilho/som únicos ao dropar; Ouro droppa de quase todos os monstros + autocoleta (ouro, poções, pedras e lendários automáticos); Inventário redesenhado (sem boneco, grade 3×3, comparação ao lado, botões-só-ícone + X no topo, +10% largura, abas TODOS/CONS/ITENS/EQUIP/PEDRAS); Janela de Skills maior com skills lado a lado e fonte legível; Anel de CD nos slots circulares drenando no sentido horário + brilho dourado quando pronta (todas as classes); Runas/Quest marcados como "futuro update" | `server.js`, `equipamentos.js`, `index.html`, `style.css`, `dragdrop.css`, `inventario.js`, `inventario.css`, `skills.css`, `INFO_PROJETO.md`, `CHANGELOG.md`, `REGRAS_IA.md`, `PROGRESSO.md` |
 | **v1.33.4** | 21/09/2026 23:05 | Removido o portal de retorno ("SAIR DA SOLARI" / "PORTAL DA ARENA") de dentro da Arena de Solari — durante uma partida o portal roxo não é mais desenhado nem dispara teleporte para a cidade no meio do combate; a saída da partida continua disponível pelo painel da Solari (botão Sair), pelo botão Renascer e pelo fim natural do round. O portal da Arena de Davahl normal e o portal roxo de convite na cidade permanecem. + Otimização de performance para celular no render dos monstros (trava de tela ao usar a Bateria do Roqueiro no meio da horda) | `mapa_arena.js`, `index.html`, `monstros.js`, `classes/comum.js`, `efeitos/roqueiro_efeitos.js`, `INFO_PROJETO.md`, `CHANGELOG.md`, `REGRAS_IA.md` |
@@ -33,6 +36,40 @@ Regra de versão (semver):
 ---
 
 ## Histórico de versões
+
+### v1.36 — 23/09/2026
+
+**FOTO DE PERFIL das classes no círculo do retrato do HUD — a `HudHP.png` NÃO foi tocada.**
+
+- **Fotos no círculo do retrato:**
+  - As fotos oficiais `imagem/HUD/Perfil/*.png` (quadradas 1254×1254) agora aparecem **dentro** do círculo do retrato da `HudHP.png` (2172×724), o interior transparente que a v1.35 deixou vazio;
+  - Recorte em círculo via `ctx.arc` + `clip()`, com **cover-crop** (`Math.max(lado/sw, lado/sh)`) para a foto preencher o círculo ponta a ponta em qualquer resolução;
+  - Geometria exata medida por scan de pixel: **centro (345, 350), raio 200** no espaço da imagem — as gemas laterais (y≈336–351, x até 182) e os ornamentos superior/inferior (y≈206 e y≈462) ficam **fora** do círculo e intactos;
+  - Convertida para o Canvas: `pCx = hx + 345*escala`, `pCy = hy + 350*escala`, `pRaio = 200*escala`, desenhada **antes** do `drawImage(HudHP.png)`.
+
+- **Enfoque "PNG por último" (requisito):**
+  - A foto é pintada **antes** da PNG; a `HudHP.png` é o **ÚLTIMO** `drawImage` da HUD em source-over puro — cobre automaticamente qualquer sobra da foto sobre a moldura, gemas ou ornamentos;
+  - **SEM masking, SEM `destination-out`**, sem qualquer modificação da arte oficial em runtime;
+  - Os pixels parcialmente transparentes do antialias da moldura fazem **blend suave e natural** com a borda da foto (comportamento esperado/desejado).
+
+- **Mapeamento classe → foto (`_perfilMapa`, via `window.minhaClasse`):**
+  - `guerreiro`→Guerreiro, `mago`→Mago, `summoner`→Summoner, `arqueiro`→Arqueira, `barbaro`→Barbaro, `roqueiro`→Roqueiro, `ladino`→Ladino, `dronemaster`→DroneMaster, `arqueiro_arcano`/`arqueiro_astral`→Arqueir_astral (ARQUEIRO ASTRAL), `pikeman`→PikeMan, `curandeiro`→curandeiro (arquivo `curandeiro.png`).
+
+- **Classe sem foto (sniper):**
+  - `sniper` **não tem foto** em `imagem/HUD/Perfil/` (confirmado por busca em todo o jogo) → o círculo permanece **vazio** para ela, **sem erro**;
+  - Para ativar, basta adicionar `imagem/HUD/Perfil/Sniper.png` (1254×1254).
+
+- **Carregamento e cache:**
+  - `_perfilDaClasse()` carrega a foto **lazy** com `_perfilCache` (nunca recarrega a mesma imagem) e cache-buster `?v=perfil1` (evita servidores com imagem antiga em cache).
+
+- **Validação:**
+  - Sintaxe validada (`node --check` na IIFE do HUD);
+  - Render tests por replicação GDI+ (mesmo algoritmo clip+cover-crop+PNG-por-último): **Guerreiro**, **Arqueira** e **Curandeira** preenchem o círculo ponta a ponta com moldura/gemas/ornamentos 100% intactos por cima (diffs = antialias α=160/40/237/253 → blend natural; o da Curandeira com contagens de diffs idênticas às do Guerreiro) e cenário **sem foto** (círculo vazio, frame perfeito);
+  - **Teste no navegador com Ctrl+F5 obrigatório** (bump de cache das fotos novas).
+
+- **Versão:** login, HUD e `GAME_VERSION` atualizados para **v1.36**.
+
+**Arquivos alterados:** `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` · Fotos usadas: `imagem/HUD/Perfil/Guerreiro.png`, `Mago.png`, `Summoner.png`, `Arqueira.png`, `Barbaro.png`, `Roqueiro.png`, `Ladino.png`, `DroneMaster.png`, `Arqueir_astral.png`, `PikeMan.png`, `curandeiro.png`
 
 ### v1.34.1 — 22/09/2026
 

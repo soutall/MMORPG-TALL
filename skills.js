@@ -367,6 +367,44 @@ const SKILLS_INFO = {
           mp: 30, cd: 15, escala: 'buff',
           area: 'Auto (deitado)', alcance: 'Detecção 420px',
           duracao: 'Até cancelar', duracaoBase: null, extras: ['Bloqueia movimento', 'Reseta CD Disparo Supremo', '+100% crítico garantido', 'Detecta invisíveis', '+100% dano em tudo'] }
+    ],
+    pikeman: [
+        { id: 'instinto_morte', nome: 'Instinto da Morte', icon: '☠️', categoria: 'passiva',
+          desc: 'PASSIVA: +10% de chance de crítico, +50% de dano crítico e +20% de dano (×1.20) contra inimigos sob LENTIDÃO ou CONGELAMENTO. Sinergia perfeita com a Geada da Morte.',
+          danoBase: null, danoUnidade: null, danoNota: '+10% crit · +50% dano crit · ×1.20 vs lentos',
+          mp: 0, cd: 0, escala: 'buff',
+          area: 'Passiva', alcance: 'Sempre ativa',
+          duracao: null, duracaoBase: null, extras: ['+10% chance de crítico', '+50% dano crítico', '+20% dano vs Lentidão/Congelamento'] },
+        { id: 'foicada', nome: 'Foicada', icon: '🔪', categoria: 'ataque',
+          desc: 'Golpe rápido da Foice Curta num cone à frente do herói.',
+          danoBase: 13, danoUnidade: 'físico', danoNota: null,
+          mp: 0, cd: 0.42, escala: 'dano',
+          area: 'Cone frontal (100px)', alcance: 'Corpo a corpo',
+          duracao: null, duracaoBase: null, extras: [] },
+        { id: 'giro_foice', nome: 'Giro da Foice', icon: '⭕', categoria: 'aoe',
+          desc: 'Gira a Foice da Morte em 360°: corta todos os inimigos ao redor com rastro acompanhando a lâmina.',
+          danoBase: 26, danoUnidade: 'físico', danoNota: null,
+          mp: 25, cd: 7, escala: 'dano',
+          area: 'Raio 143', alcance: 'Ao redor',
+          duracao: null, duracaoBase: null, extras: [] },
+        { id: 'pirueta_morte', nome: 'Pirueta da Morte', icon: '✴️', categoria: 'ataque',
+          desc: '3 cortes rápidos em sequência (corte→giro→corte→giro→corte final). Cada golpe é contabilizado separadamente e o 3º tem impacto muito maior.',
+          danoBase: 18, danoUnidade: 'físico', danoNota: '3 golpes × 18',
+          mp: 22, cd: 10, escala: 'dano',
+          area: '1 inimigo', alcance: 'Até 120px',
+          duracao: null, duracaoBase: null, extras: ['3 golpes separados', '3º golpe com impacto maior'] },
+        { id: 'geada_morte', nome: 'Geada da Morte', icon: '🧊', categoria: 'aoe',
+          desc: 'Onda congelante ao redor: causa dano e aplica 60% de LENTIDÃO por 3s. Inimigos afetados recebem +20% de dano do Pikeman (Instinto da Morte).',
+          danoBase: 14, danoUnidade: 'físico', danoNota: '60% lentidão 3s',
+          mp: 25, cd: 12, escala: 'dano',
+          area: 'Raio 130', alcance: 'Ao redor',
+          duracao: '3s', duracaoBase: 3, extras: ['Lentidão 60% (3s)', 'Ativa Instinto da Morte (+20%)'] },
+        { id: 'execucao_morte', nome: 'Execução da Morte', icon: '💀', categoria: 'canal',
+          desc: 'Carrega a foice por 3s (barra 0→100% acima do personagem + tremor) e desfere 3 golpes devastadores: TAAA → TAAA → TAAAAAAAA. Não pode se mover enquanto carrega.',
+          danoBase: 42, danoUnidade: 'físico', danoNota: '3 golpes × 42',
+          mp: 35, cd: 30, escala: 'dano',
+          area: '1 inimigo', alcance: 'Até 125px',
+          duracao: '3s de carga', duracaoBase: 3, extras: ['Canal de 3s', '3 golpes separados', 'Tremor de tela', 'Barra de carga acima do personagem', 'Cancela ao se mover'] }
     ]
 };
 
@@ -375,7 +413,8 @@ SKILLS_INFO.arqueiro_astral = SKILLS_INFO.arqueiro_arcano;
 const NOMES_CLASSES = {
     guerreiro: 'GUERREIRO', mago: 'MAGO', summoner: 'SUMMONER', arqueiro: 'ARQUEIRO',
     curandeiro: 'CURANDEIRO', barbaro: 'BÁRBARO', roqueiro: 'ROQUEIRO', ladino: 'LADINO',
-    dronemaster: 'DRONEMASTER', arqueiro_arcano: 'ARQUEIRO ASTRAL', arqueiro_astral: 'ARQUEIRO ASTRAL', sniper: 'SNIPER'
+    dronemaster: 'DRONEMASTER', arqueiro_arcano: 'ARQUEIRO ASTRAL', arqueiro_astral: 'ARQUEIRO ASTRAL', sniper: 'SNIPER',
+    pikeman: 'PIKEMAN'
 };
 
 const LABELS_CATEGORIA = {

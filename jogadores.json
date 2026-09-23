@@ -675,11 +675,11 @@
   },
   "admin": {
     "level": 16,
-    "xp": 1755,
-    "classe": "arqueiro_arcano",
-    "hp": 0,
-    "x": 60478,
-    "y": 634,
+    "xp": 5261,
+    "classe": "pikeman",
+    "hp": 684,
+    "x": 60350,
+    "y": 461,
     "atributos": {
       "forca": 18,
       "inteligencia": 1,
@@ -691,7 +691,7 @@
       "afinidade": 1
     },
     "pontosDisponiveis": 0,
-    "ultimoLogin": 1790080408807,
+    "ultimoLogin": 1790140618360,
     "skills": {},
     "pontosHabilidade": 1,
     "inventario": {
@@ -1197,24 +1197,10 @@
           "nome": "💎 Pedra de Upgrade Lendária",
           "icon": "💎",
           "cor": "#ff7a00",
-          "quantidade": 5,
+          "quantidade": 8,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
-        },
-        {
-          "id": "drop_1790064645452_6",
-          "uid": "muce9s98-0xrh7es2p",
-          "tipo": "consumivel",
-          "subtipo": "pocao_hp",
-          "nivel": 1,
-          "nome": "🧪 Poção de Vida I",
-          "icon": "🧪",
-          "cor": "#e74c3c",
-          "pctCura": 0.2,
-          "quantidade": 8,
-          "autocoleta": true,
-          "stackavel": false
         },
         {
           "id": "drop_1790064662077_28",
@@ -1225,7 +1211,7 @@
           "nome": "💎 Pedra de Upgrade Comum",
           "icon": "💎",
           "cor": "#ffffff",
-          "quantidade": 6,
+          "quantidade": 12,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -1240,7 +1226,7 @@
           "icon": "🔮",
           "cor": "#3498db",
           "pctCura": 0.2,
-          "quantidade": 13,
+          "quantidade": 15,
           "autocoleta": true,
           "stackavel": false
         },
@@ -1253,7 +1239,7 @@
           "nome": "💎 Pedra de Upgrade Rara",
           "icon": "💎",
           "cor": "#4da6ff",
-          "quantidade": 5,
+          "quantidade": 8,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -1383,7 +1369,7 @@
           "nome": "💎 Pedra de Upgrade Épica",
           "icon": "💎",
           "cor": "#a855f7",
-          "quantidade": 3,
+          "quantidade": 11,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -1401,35 +1387,107 @@
           "quantidade": 1,
           "autocoleta": true,
           "stackavel": false
+        },
+        {
+          "id": "drop_1790126810423_4",
+          "uid": "mudfa71z-lsbnsj9iw",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "⚖️ Foice da Morte RARO",
+          "icon": "⚖️",
+          "status": {
+            "forca": 2,
+            "velocidadeAtaque": 5
+          },
+          "cor": "#4da6ff",
+          "classe": "pikeman",
+          "armaChave": "foice_da_morte"
+        },
+        {
+          "id": "drop_1790127019085_59",
+          "uid": "mudfeo25-ewzx025pd",
+          "tipo": "consumivel",
+          "subtipo": "pocao_mp",
+          "nivel": 2,
+          "nome": "🔮 Poção de Mana II",
+          "icon": "🔮",
+          "cor": "#3498db",
+          "pctCura": 0.3,
+          "quantidade": 4,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790134614349_21",
+          "uid": "mudjxglp-5nledja8m",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "🛡️ ARMADURA LENDÁRIO",
+          "icon": "🛡️",
+          "status": {
+            "vida": 8,
+            "divindade": 9,
+            "forca": 12
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
         }
       ]
     },
     "mana": 370,
     "uiLayout": {
-      "actions": {
-        "x": 359,
-        "y": 398
+      "pc": {
+        "actions": {
+          "x": 1176,
+          "y": 835,
+          "w": 399,
+          "h": 82
+        },
+        "minimap": {
+          "x": 2383,
+          "y": 8
+        },
+        "util-buttons": {
+          "x": 1588,
+          "y": 0,
+          "w": 478,
+          "h": 35
+        },
+        "hud-status-window": {
+          "x": 15,
+          "y": 93
+        },
+        "hud-buffs": {
+          "x": 0,
+          "y": 0
+        },
+        "status": {
+          "x": 1241,
+          "y": 13
+        },
+        "fps": {
+          "x": 2411,
+          "y": 155
+        },
+        "hud-xp-central": {
+          "x": 1170,
+          "y": 972
+        },
+        "hud-party": {
+          "x": 11,
+          "y": 185
+        }
       },
-      "minimap": {
-        "x": 895,
-        "y": 0
-      },
-      "util-buttons": {
-        "x": 511,
-        "y": 496
-      },
-      "hud-status-window": {
-        "x": 0,
-        "y": 15
-      },
-      "hud-buffs": {
-        "x": 0,
-        "y": 0
-      }
+      "mobile": {}
     },
     "maxHp": 620,
     "ogroModo": "passivo",
-    "ouro": 340
+    "ouro": 1212
   },
   "vic": {
     "level": 1,
@@ -9146,5 +9204,58 @@
     },
     "ouro": 304,
     "maxHp": 204
+  },
+  "soutal1": {
+    "level": 1,
+    "xp": 42,
+    "classe": "ladino",
+    "hp": 70,
+    "x": 5080,
+    "y": 1444,
+    "ultimoLogin": 1790126785035,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": [
+        {
+          "id": "drop_1790126779627_3",
+          "uid": "mudf9jaj-3cigof1sb",
+          "tipo": "pedra",
+          "raridade": "raro",
+          "raridadeNome": "PEDRA DE UPGRADE RARA",
+          "nome": "💎 Pedra de Upgrade Rara",
+          "icon": "💎",
+          "cor": "#4da6ff",
+          "quantidade": 1,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        }
+      ]
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 44,
+    "ouro": 0
   }
 }

@@ -297,5 +297,18 @@
     "y": 1488,
     "temPosicao": true,
     "timerRespawn": 20
+  },
+  {
+    "id": "flag_mudfz7lq_g6xz7",
+    "criadoEm": 1790127977534,
+    "tipo": "mamute",
+    "maxQtd": 1,
+    "comportamento": "agressivo",
+    "hpBase": 3200,
+    "respawnSeg": 5,
+    "x": 65659,
+    "y": 610,
+    "temPosicao": true,
+    "timerRespawn": 100
   }
 ]

@@ -23,9 +23,34 @@
         return String(uid).replace(/[^a-zA-Z0-9_.-]/g, "").substring(0, 64);
     }
 
+    // Chaves das janelas agora são POR DISPOSITIVO (pc/mobile).
     function chaveJanela(id) {
         var u = idDoJogador();
-        return (u ? "mmorpg_jv_win_" + u + "_" : PREF) + id;
+        var dev = dispositivo();
+        if (u) return "mmorpg_jv_win_" + u + "_" + dev + "_" + id;
+        return PREF + dev + "_" + id;
+    }
+
+    // Chaves legadas (sem sufixo de dispositivo) usadas na migração.
+    function chaveJanelaLegadas(id) {
+        var u = idDoJogador();
+        var chaves = [PREF + id];
+        if (u) chaves.push("mmorpg_jv_win_" + u + "_" + id);
+        return chaves;
+    }
+
+    function removerTodasChavesJanela(id) {
+        var u = idDoJogador();
+        try { localStorage.removeItem(chaveJanela(id)); } catch (e) { }
+        if (u) {
+            try { localStorage.removeItem("mmorpg_jv_win_" + u + "_pc_" + id); } catch (e) { }
+            try { localStorage.removeItem("mmorpg_jv_win_" + u + "_mobile_" + id); } catch (e) { }
+            try { localStorage.removeItem("mmorpg_jv_win_" + u + "_" + id); } catch (e) { }
+        } else {
+            try { localStorage.removeItem(PREF + "pc_" + id); } catch (e) { }
+            try { localStorage.removeItem(PREF + "mobile_" + id); } catch (e) { }
+        }
+        try { localStorage.removeItem(PREF + id); } catch (e) { }
     }
 
     var arrastro = null;           // estado atual do arrastre
@@ -262,7 +287,14 @@
         if (!id) return;
         try {
             var s = localStorage.getItem(chaveJanela(id));
-            if (!s) s = localStorage.getItem(PREF + id); // migração de chave legada (sem sufixo por jogador)
+            if (!s) {
+                // migração: chaves legadas (sem sufixo de dispositivo) → chave atual
+                var legadas = chaveJanelaLegadas(id);
+                for (var li = 0; li < legadas.length && !s; li++) s = localStorage.getItem(legadas[li]);
+                if (s) {
+                    try { localStorage.setItem(chaveJanela(id), s); } catch (e) { }
+                }
+            }
             if (!s) return;
             var d = JSON.parse(s);
             if (typeof d.x === "number" && typeof d.y === "number" && win.getBoundingClientRect) {
@@ -501,8 +533,7 @@
                 wEl.style.left = "";
                 wEl.style.top = "";
                 wEl.style.transform = "";
-                try { localStorage.removeItem(chaveJanela(wEl.id)); } catch (e) { }
-                try { localStorage.removeItem(PREF + wEl.id); } catch (e) { }
+                removerTodasChavesJanela(wEl.id);
             }
         }
     };
@@ -519,22 +550,70 @@
     var escalaUI = 1;
     var originaisUI = {};
     var LAYOUT_PREF = "mmorpg_ui_layout_";
+    var autoUI = {};              // nomes posicionados pelo layout padrão (pc/mobile)
+    var autoAtivoUI = false;
+    var dispositivoAnterior = "";
 
-    function claveLayoutUI() {
+    /* =====================================================================
+       DETECÇÃO DE DISPOSITIVO (PC vs MOBILE)
+       - mobile: User-Agent de celular OU tela pequena/estreita.
+       - pc:     qualquer outro caso (desktop/notebook etc).
+       - window.__forcarDispositivo = 'pc'|'mobile' força um modo (testes).
+       ===================================================================== */
+    function telaPequena() {
+        var w = Math.max(0, window.innerWidth || 0);
+        var h = Math.max(0, window.innerHeight || 0);
+        if (w <= 0 || h <= 0) return false;
+        var razao = w / Math.max(1, h);
+        return w < 830 || (razao < 1.5 && h > 400);
+    }
+
+    function dispositivo() {
+        if (window.__forcarDispositivo === "pc" || window.__forcarDispositivo === "mobile") return window.__forcarDispositivo;
+        try {
+            var forcado = localStorage.getItem("mmorpg_dispositivo_forcado");
+            if (forcado === "pc" || forcado === "mobile") return forcado;
+        } catch (e) { }
+        try {
+            var ua = navigator.userAgent || "";
+            if (/Android|iPhone|iPad|iPod|Windows Phone|Opera Mini|Mobile/i.test(ua)) return "mobile";
+        } catch (e) { }
+        return telaPequena() ? "mobile" : "pc";
+    }
+
+    // Atalhos de TESTE: forçar o modo dispositivo sem mudar de máquina.
+    window.forcarDispositivo = function (modo) {
+        if (modo !== "pc" && modo !== "mobile") return false;
+        try { localStorage.setItem("mmorpg_dispositivo_forcado", modo); } catch (e) { }
+        window.__forcarDispositivo = modo;
+        return true;
+    };
+    window.limparForcarDispositivo = function () {
+        try { localStorage.removeItem("mmorpg_dispositivo_forcado"); } catch (e) { }
+        window.__forcarDispositivo = null;
+        return true;
+    };
+
+    // Chave do layout POR DISPOSITIVO: mmorpg_ui_layout_<id>_pc | ..._mobile
+    function claveLayoutUI(dev) {
         var uid = idDoJogador();
-        return LAYOUT_PREF + (uid || "anonimo");
+        var d = dev || dispositivo();
+        return LAYOUT_PREF + (uid || "anonimo") + "_" + d;
     }
 
     function cargarLayoutLocal() {
+        // Carrega (mescla) a chave do dispositivo ATUAL. Não limpa layoutUI:
+        // chamadas como recarregarLocal() (pós-init do servidor) dependem disso.
         try {
             var chave = claveLayoutUI();
             var uid = idDoJogador();
-            if (uid && !localStorage.getItem(chave)) {
-                // migração de chaves legadas (sem sufixo por jogador / anonimo)
-                var legado = localStorage.getItem(LAYOUT_PREF + "anonimo");
+            if (dispositivo() === "pc" && uid && !localStorage.getItem(chave)) {
+                // migração de chaves legadas (sem sufixo de dispositivo / anonimo) → PC
+                var legado = localStorage.getItem(LAYOUT_PREF + uid);
+                if (!legado) legado = localStorage.getItem(LAYOUT_PREF + "anonimo");
                 if (!legado) legado = localStorage.getItem(LAYOUT_PREF);
                 if (legado) {
-                    try { localStorage.setItem(chave, legado); } catch (e) {}
+                    try { localStorage.setItem(chave, legado); } catch (e) { }
                 }
             }
             var s = localStorage.getItem(chave);
@@ -544,28 +623,37 @@
                     for (var k in d) layoutUI[k] = d[k];
                 }
             }
-        } catch (e) {}
+        } catch (e) { }
     }
 
     /* =====================================================================
-       AUTO-DETECTOR DE RESOLUÇÃO/TELA + LAYOUT PADRÃO MOBILE + COLISÃO UI
-       - telaPequeña(): true em celulares (parecença paisagem forçada) ou
-         janelas estreitas. Usa isto para escolher posições padrão móveis.
-       - Layout mobile NUNCA sobreescreve um layout salvo: só aplica quando
+       LAYOUTS PADRÃO POR DISPOSITIVO + COLISÃO UI
+       - LAYOUT_PADRAO_PC / LAYOUT_PADRAO_MOBILE: posições padrão expressas
+         em FRAÇÃO da tela (0..1). Assim, qualquer resolução detectada
+         automaticamente (PC 1366x768 / 1920x1080 / celular...) coloca os
+         elementos nos locais corretos.
+       - O layout padrão NUNCA sobreescreve um layout salvo: só aplica quando
          o jogador ainda não personalizou nada (nem local nem servidor).
        - resolverColisaoUI(): evita sobreposição de elementos visíveis ao
          arrastrar/redimensionar/carregar layout (empurra o elemento para a
          posição livre mais próxima, respeitando a viewport).
        ==================================================================== */
-    function telaPequena() {
-        var w = Math.max(0, window.innerWidth || 0);
-        var h = Math.max(0, window.innerHeight || 0);
-        if (w <= 0 || h <= 0) return false;
-        var razao = w / Math.max(1, h);
-        return w < 830 || (razao < 1.5 && h > 400);
-    }
 
-    // Posições padrão (0..1 = fração da tela) para telas pequenas.
+    // Posições padrão (0..1 = fração da tela) para PC (desktop/notebook).
+    var LAYOUT_PADRAO_PC = {
+        "status":            { x: 0.5, y: 0.012, alinharX: "center" },
+        "fps":               { x: 0.5, y: 0.04,  alinharX: "center" },
+        "hud-status-window": { x: 0.015, y: 0.02, alinharX: "left" },
+        "hud-buffs":         { x: 0.015, y: 0.155, alinharX: "left" },
+        "hud-party":         { x: 0.02, y: 0.22, alinharX: "left" },
+        "hud-boss":          { x: 0.5, y: 0.03, alinharX: "center" },
+        "hud-xp-central":    { x: 0.5, y: 0.9, alinharX: "center" },
+        "minimap":           { x: 0.985, y: 0.02, alinharX: "right" },
+        "actions":           { x: 0.5, y: 0.975, alinharX: "center", porBaixo: true },
+        "util-buttons":      { x: 0.985, y: 0.975, alinharX: "right", porBaixo: true }
+    };
+
+    // Posições padrão (0..1 = fração da tela) para telas pequenas (mobile).
     var LAYOUT_PADRAO_MOBILE = {
         "hud-status-window": { x: 0.5, y: 0.07, alinharX: "center" },
         "hud-xp-central":    { x: 0.5, y: 0.93, alinharX: "center", porBaixo: true },
@@ -659,22 +747,20 @@
         return melhor || clampPosElemento({ x: x, y: y, width: w, height: h, viewportWidth: window.innerWidth, viewportHeight: window.innerHeight });
     }
 
-    // Aplica o layout padrão mobile (só quando não há layout salvo). Persistido
-    // apenas em memória; grava com "💾 SALVAR" guardado por jogador.
-    function aplicarLayoutPadraoMobile() {
-        if (!telaPequena()) return;
-        if (Object.keys(layoutUI).length > 0) return trigo;
+    // Aplica um layout padrão (fração da tela) nos elementos ainda sem posição.
+    // Persistido apenas em memória; grava com "💾 SALVAR" por jogador.
+    function aplicarPadroesNaTela(PADRAO, classeAuto) {
+        if (Object.keys(layoutUI).length > 0) return;
         if (Object.keys(elementosUI).length === 0) return;
-        var copiou = false;
         var fez = false;
-        for (var nome in LAYOUT_PADRAO_MOBILE) {
+        for (var nome in PADRAO) {
             var reg = elementosUI[nome];
             if (!reg || !reg.el) continue;
             if (layoutUI[nome]) continue;
             if (!uiVisivel(reg) || dentroDeOutraUI(reg)) continue;
             var r = retanguloUI(reg);
             if (!r) continue;
-            var conf = LAYOUT_PADRAO_MOBILE[nome];
+            var conf = PADRAO[nome];
             var vw = window.innerWidth, vh = window.innerHeight;
             var w = r.width, h = r.height;
             var x = conf.alinharX === "center" ? (vw / 2 - w / 2) : (conf.alinharX === "right" ? (vw - w - 10) : (conf.x * vw));
@@ -688,11 +774,92 @@
             el2.style.bottom = "auto";
             el2.style.float = "none";
             el2.style.transform = "none";
-            el2.classList.add("ui-movido", "ui-auto-mobile");
+            el2.classList.add("ui-movido", classeAuto);
             layoutUI[nome] = { x: Math.round(res.x), y: Math.round(res.y), w: w, h: h };
+            autoUI[nome] = true;
+            autoAtivoUI = true;
             fez = true;
         }
         if (fez) uiSucio = true;
+    }
+
+    // Aplica o layout padrão de CELULAR (quando não há layout salvo).
+    function aplicarLayoutPadraoMobile() {
+        if (dispositivo() !== "mobile") return;
+        aplicarPadroesNaTela(LAYOUT_PADRAO_MOBILE, "ui-auto-mobile");
+    }
+
+    // Aplica o layout padrão de PC na resolução AUTODETECTADA (fração da tela).
+    function aplicarLayoutPadraoPC() {
+        if (dispositivo() !== "pc") return;
+        aplicarPadroesNaTela(LAYOUT_PADRAO_PC, "ui-auto-pc");
+    }
+
+    // Aplica o padrão do dispositivo atual (só se ainda não há layout salvo).
+    function aplicarPadraoAtual() {
+        if (Object.keys(layoutUI).length > 0) return;
+        var dev = dispositivo();
+        if (dev === "mobile") aplicarLayoutPadraoMobile();
+        else aplicarLayoutPadraoPC();
+    }
+
+    // Quando a resolução muda, reposiciona os elementos "auto" (layout padrão
+    // que ainda não foi personalizado) proporcionalmente à NOVA resolução.
+    function reposicionarAutoPadrao() {
+        var PADRAO = dispositivo() === "mobile" ? LAYOUT_PADRAO_MOBILE : LAYOUT_PADRAO_PC;
+        var fez = false;
+        for (var nome in PADRAO) {
+            if (!autoUI[nome]) continue;
+            var reg = elementosUI[nome];
+            if (!reg || !reg.el) continue;
+            var r = retanguloUI(reg);
+            if (!r) continue;
+            var conf = PADRAO[nome];
+            var vw = window.innerWidth, vh = window.innerHeight;
+            var x = conf.alinharX === "center" ? (vw / 2 - r.width / 2) : (conf.alinharX === "right" ? (vw - r.width - 10) : (conf.x * vw));
+            var y = conf.porBaixo ? (vh - r.height - 12) : (conf.y * vh);
+            var res = resolverColisaoUI(nome, Math.round(x), Math.round(y), r.width, r.height);
+            var el2 = reg.el;
+            el2.style.position = "fixed";
+            el2.style.left = Math.round(res.x) + "px";
+            el2.style.top = Math.round(res.y) + "px";
+            el2.style.right = "auto";
+            el2.style.bottom = "auto";
+            el2.style.transform = "none";
+            layoutUI[nome] = { x: Math.round(res.x), y: Math.round(res.y), w: r.width, h: r.height };
+            fez = true;
+        }
+        if (fez) resolverColisoesAplicadas();
+    }
+
+    // Usuário personalizou (arrastou/redimensionou/salvou): o layout vira "do
+    // jogador" e o reposicionamento automático por resolução é desligado.
+    function desativarAutoLayout() {
+        if (!autoAtivoUI) return;
+        autoAtivoUI = false;
+        autoUI = {};
+        for (var nome in elementosUI) {
+            var el = elementosUI[nome].el;
+            if (el) el.classList.remove("ui-auto-pc", "ui-auto-mobile");
+        }
+    }
+
+    // Remove posições inline para voltar ao CSS padrão do elemento.
+    function limparPosicaoManualUI(el) {
+        if (!el) return;
+        el.style.position = "";
+        el.style.left = "";
+        el.style.top = "";
+        el.style.right = "";
+        el.style.bottom = "";
+        el.style.transform = "";
+        el.style.transition = "";
+        el.style.width = "";
+        el.style.height = "";
+        el.style.maxWidth = "";
+        el.style.minWidth = "";
+        el.style.minHeight = "";
+        el.classList.remove("ui-movido", "ui-collide", "ui-auto-pc", "ui-auto-mobile");
     }
 
     // Resolve colisões em TODOS os elementos já aplicados (passes limitados
@@ -800,22 +967,60 @@
         el.style.height = Math.max(10, Math.round(h)) + "px";
     }
 
-    function aplicarLayoutUI(dict) {
-        if (!dict || typeof dict !== "object") return;
-        var algum = false;
-        for (var nome in dict) {
-            var p = dict[nome];
+    function receberLayoutDispositivo(d) {
+        if (!d || typeof d !== "object") return;
+        var comConteudo = 0;
+        for (var k in d) {
+            var v = d[k];
+            if (v && typeof v.x === "number" && Number.isFinite(v.x)) comConteudo++;
+        }
+        if (comConteudo === 0) {
+            // servidor não tem layout salvo p/ este dispositivo: preserva o
+            // local (pode ser só-local) ou aplica o padrão do dispositivo.
+            if (Object.keys(layoutUI).length > 0) return;
+            layoutUI = {};
+            autoUI = {}; autoAtivoUI = false;
+            for (var n in elementosUI) limparPosicaoManualUI(elementosUI[n].el);
+            aplicarPadraoAtual();
+            return;
+        }
+        layoutUI = {};
+        autoUI = {}; autoAtivoUI = false;
+        for (var nome in d) {
+            var p = d[nome];
             if (p && typeof p.x === "number" && typeof p.y === "number") {
                 var novo = { x: Math.round(p.x), y: Math.round(p.y) };
                 if (typeof p.w === "number" && Number.isFinite(p.w) && p.w > 0) novo.w = Math.round(p.w);
                 if (typeof p.h === "number" && Number.isFinite(p.h) && p.h > 0) novo.h = Math.round(p.h);
                 layoutUI[nome] = novo;
-                algum = true;
             }
         }
-        if (!algum) return;
-        for (var n in elementosUI) aplicarPosicionUI(elementosUI[n]);
-        try { localStorage.setItem(claveLayoutUI(), JSON.stringify(layoutUI)); } catch (e) { }
+        for (var n2 in elementosUI) aplicarPosicionUI(elementosUI[n2]);
+    }
+
+    // Recebe o layout do SERVIDOR. O servidor guarda os layouts POR
+    // DISPOSITIVO: { pc: {...}, mobile: {...} }. Layout plano (legado) é
+    // tratado como layout de PC.
+    function aplicarLayoutUI(dict) {
+        if (!dict || typeof dict !== "object") return;
+        var temPc = dict && typeof dict.pc === "object" && dict.pc !== null;
+        var temMob = dict && typeof dict.mobile === "object" && dict.mobile !== null;
+        if (!temPc && !temMob) {
+            // layout plano legado (pré-separação) → assume PC
+            var plano = {};
+            var algumPlano = false;
+            for (var kp in dict) {
+                var vp = dict[kp];
+                if (vp && typeof vp.x === "number") { plano[kp] = vp; algumPlano = true; }
+            }
+            if (!algumPlano) return;
+            try { localStorage.setItem(claveLayoutUI("pc"), JSON.stringify(plano)); } catch (e) { }
+            if (dispositivo() === "pc") receberLayoutDispositivo(plano);
+            return;
+        }
+        if (temPc) { try { localStorage.setItem(claveLayoutUI("pc"), JSON.stringify(dict.pc)); } catch (e) { } }
+        if (temMob) { try { localStorage.setItem(claveLayoutUI("mobile"), JSON.stringify(dict.mobile)); } catch (e) { } }
+        receberLayoutDispositivo(dispositivo() === "pc" ? dict.pc : dict.mobile);
     }
 
     function recogerLayoutUI() {
@@ -850,6 +1055,7 @@
             viewportHeight: window.innerHeight
         });
         pos = resolverColisaoUI(a.nome, Math.round(pos.x), Math.round(pos.y), r.width || a.el.offsetWidth || 0, r.height || a.el.offsetHeight || 0);
+        desativarAutoLayout();
         a.el.style.position = "fixed";
         a.el.style.left = Math.round(pos.x) + "px";
         a.el.style.top = Math.round(pos.y) + "px";
@@ -886,6 +1092,7 @@
             viewportHeight: window.innerHeight
         });
         pos = resolverColisaoUI(a.nome, Math.round(pos.x), Math.round(pos.y), w, h);
+        desativarAutoLayout();
         var el = a.el;
         el.style.position = "fixed";
         el.style.left = Math.round(pos.x) + "px";
@@ -939,6 +1146,7 @@
             algum = true;
         }
         if (algum) {
+            desativarAutoLayout();
             uiSucio = true;
             actualizarBarraEditor();
         }
@@ -998,11 +1206,12 @@
 
     window.salvarInterfaceUI = function () {
         recogerLayoutUI();
+        desativarAutoLayout();
         try { localStorage.setItem(claveLayoutUI(), JSON.stringify(layoutUI)); } catch (e) { }
         var enviado = false;
         var srv = window.parentWs || ws;
         if (typeof srv !== "undefined" && srv && srv.readyState === WebSocket.OPEN) {
-            srv.send(JSON.stringify({ action: "salvar_ui_layout", layout: layoutUI }));
+            srv.send(JSON.stringify({ action: "salvar_ui_layout", device: dispositivo(), layout: layoutUI }));
             enviado = true;
         }
         uiSucio = false;
@@ -1014,21 +1223,10 @@
         var fn = function () {
             for (var nome in elementosUI) {
                 var el = elementosUI[nome].el;
-                el.style.position = "";
-                el.style.left = "";
-                el.style.top = "";
-                el.style.right = "";
-                el.style.bottom = "";
-                el.style.transform = "";
-                el.style.transition = "";
-                el.style.width = "";
-                el.style.height = "";
-                el.style.maxWidth = "";
-                el.style.minWidth = "";
-                el.style.minHeight = "";
-                el.classList.remove("ui-movido");
+                limparPosicaoManualUI(el);
             }
             layoutUI = {};
+            autoUI = {}; autoAtivoUI = false;
             escalaUI = 1;
             var escSl = document.getElementById("ui-escala-slider");
             if (escSl) escSl.value = "100";
@@ -1036,11 +1234,13 @@
             if (escLb) escLb.innerText = "100%";
             try { localStorage.removeItem(claveLayoutUI()); } catch (e) { }
             if (typeof ws !== "undefined" && ws && ws.readyState === WebSocket.OPEN) {
-                ws.send(JSON.stringify({ action: "restaurar_ui_layout" }));
+                ws.send(JSON.stringify({ action: "restaurar_ui_layout", device: dispositivo() }));
             }
             uiSucio = false;
             actualizarBarraEditor();
-            toastUI("↺ Interface restaurada ao original");
+            aplicarPadraoAtual();
+            var lblDev = dispositivo() === "pc" ? "PC" : "Celular";
+            toastUI("↺ Interface restaurada ao layout padrão do " + lblDev);
         };
         if (typeof mostrarConfirmacao === "function") mostrarConfirmacao("Restaurar toda a interface aos valores originais?", fn);
         else fn();
@@ -1049,6 +1249,7 @@
     window.sairInterfaceUI = function () {
         if (uiSucio) {
             recogerLayoutUI();
+            desativarAutoLayout();
             try { localStorage.setItem(claveLayoutUI(), JSON.stringify(layoutUI)); } catch (e) { }
         }
         modoeditarUI = false;
@@ -1098,7 +1299,24 @@
 
     function reaccionarRedimensionamiento() {
         revalidarLimitesViewport();
-        if (telaPequena()) resolverColisoesAplicadas();
+        if (modoeditarUI) return;
+        var dev = dispositivo();
+        if (dev !== dispositivoAnterior) {
+            // mudou de dispositivo (janela estreitou/expandiu): troca a interface
+            dispositivoAnterior = dev;
+            document.body.setAttribute("data-dispositivo", dev);
+            layoutUI = {};
+            autoUI = {}; autoAtivoUI = false;
+            cargarLayoutLocal();
+            for (var n in elementosUI) {
+                if (layoutUI[n]) aplicarPosicionUI(elementosUI[n]);
+                else limparPosicaoManualUI(elementosUI[n].el);
+            }
+            aplicarPadraoAtual();
+            return;
+        }
+        if (dev === "mobile") resolverColisoesAplicadas();
+        else if (autoAtivoUI) reposicionarAutoPadrao();
     }
 
     if (window.MutationObserver) {
@@ -1110,10 +1328,13 @@
         observerUI.observe(document.body, { childList: true, subtree: true });
     }
 
+    layoutUI = {};
     cargarLayoutLocal();
     escanearNodos(document.body.childNodes);
-    if (telaPequena() && Object.keys(layoutUI).length === 0) aplicarLayoutPadraoMobile();
-    if (telaPequena()) resolverColisoesAplicadas();
+    dispositivoAnterior = dispositivo();
+    document.body.setAttribute("data-dispositivo", dispositivoAnterior);
+    aplicarPadraoAtual();
+    if (dispositivoAnterior === "mobile") resolverColisoesAplicadas();
 
     /* ===== API PÚBLICA para UIs criadas por JS ===== */
     window.InterfaceEditor = {

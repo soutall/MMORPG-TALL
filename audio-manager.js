@@ -88,6 +88,7 @@
 
     function mapFromX(x) {
         const value = Number(x) || 0;
+        if (value >= (global.LARGURA_CIDADE_PERDIDA || 65040)) return 'cidadeperdida';
         if (value >= (global.LARGURA_ARENA || 63800)) return 'arena';
         if (value >= (global.LARGURA_CIDADE || 59800) && value < (global.FIM_CIDADE || 61174)) return 'cidade';
         if (value >= (global.LARGURA_PANTANO || 58000)) return 'caverna';

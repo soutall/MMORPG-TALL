@@ -162,55 +162,222 @@
         }
     }
 
+    // Paletas do Portal Vortex (vermelho = Solari / ciano = Arena normal)
+    const PALETA_PORTAL_CYAN = {
+        halo0: 'rgba(0,200,255,0.14)', halo1: 'rgba(30,90,240,0.08)', halo2: 'rgba(30,60,160,0)',
+        solo0: 'rgba(0,229,255,0.85)', solo1: 'rgba(64,120,255,0.55)', solo2: 'rgba(0,60,180,0.85)',
+        anel1: 'rgba(120,220,255,0.9)', anel2: 'rgba(80,140,255,0.75)',
+        vortex0: 'rgba(235,255,255,0.95)', vortex1: 'rgba(120,230,255,0.85)', vortex2: 'rgba(40,120,255,0.6)', vortex3: 'rgba(12,40,140,0.5)', vortex4: 'rgba(2,8,30,0.35)',
+        espiral: 'rgba(190,240,255,0.75)',
+        nucleo0: '#ffffff', nucleo1: 'rgba(150,235,255,0.95)', nucleo2: 'rgba(30,120,255,0)',
+        part: 'rgba(190,245,255,', partRastro: 'rgba(120,220,255,',
+        runa: 'rgba(170,235,255,0.95)', runaSombra: '#00e5ff',
+        raio: 'rgba(160,235,255,0.28)',
+        sombra: '#00ccff', lab1: '#ffffff', lab2: '#80d8ff',
+        rotulo1: 'PORTAL DA ARENA', rotulo2: 'Voltar a Davahl'
+    };
+    const PALETA_PORTAL_RED = {
+        halo0: 'rgba(255,70,60,0.16)', halo1: 'rgba(180,30,40,0.08)', halo2: 'rgba(120,10,20,0)',
+        solo0: 'rgba(255,120,110,0.85)', solo1: 'rgba(220,60,60,0.55)', solo2: 'rgba(140,10,30,0.85)',
+        anel1: 'rgba(255,120,110,0.9)', anel2: 'rgba(255,60,60,0.75)',
+        vortex0: 'rgba(255,235,230,0.95)', vortex1: 'rgba(255,120,110,0.85)', vortex2: 'rgba(220,50,50,0.6)', vortex3: 'rgba(120,10,20,0.5)', vortex4: 'rgba(40,2,8,0.35)',
+        espiral: 'rgba(255,200,190,0.75)',
+        nucleo0: '#ffffff', nucleo1: 'rgba(255,170,150,0.95)', nucleo2: 'rgba(220,60,60,0)',
+        part: 'rgba(255,190,180,', partRastro: 'rgba(255,120,110,',
+        runa: 'rgba(255,170,160,0.95)', runaSombra: '#ff5a4d',
+        raio: 'rgba(255,180,170,0.28)',
+        sombra: '#ff4d4d', lab1: '#ffffff', lab2: '#ffb3ab',
+        rotulo1: 'PORTAL DA SOLARI', rotulo2: 'Selo Arcano'
+    };
+
     function desenharPortalArenaRetorno(ctx, t, camX, camY, cw, ch) {
-        // FIX v1.33.4: portal de retorno REMOVIDO dentro da Arena de Solari —
-        // no meio da partida não existe portal; a saída é pelo painel da Solari.
-        if (global.currentMap === 'solari') return;
         const p = PORTAL_ARENA_RETORNO;
-        if (p.x + p.r + 60 < camX || p.x - p.r - 60 > camX + cw || p.y + p.r + 60 < camY || p.y - p.r - 60 > camY + ch) return;
-        const pulsar = 1 + Math.sin(t * 3.2) * 0.14;
-        const R = p.r * pulsar + 6;
-        // Arena de Solari: o portal de retorno fica ROXO (combina com a nova arena)
+        if (p.x + p.r + 120 < camX || p.x - p.r - 120 > camX + cw || p.y + p.r + 120 < camY || p.y - p.r - 120 > camY + ch) return;
+        // FIX v1.33.4 mantido: o portal da Solari é DECORATIVO (não teleporta) —
+        // a saída da partida continua pelo painel da Solari / Renascer.
         const ehSolari = global.currentMap === 'solari';
-        const corPortal = ehSolari ? '#c77dff' : '#00e5ff';
+        const pal = ehSolari ? PALETA_PORTAL_RED : PALETA_PORTAL_CYAN;
+
+        const pulsar = 1 + Math.sin(t * 2.2) * 0.06;
+        const R = p.r * pulsar;             // raio principal do vórtice
+        const ry = R * 0.52;                // achatamento vertical
+
         ctx.save();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+
+        // ---- SOMBRA NO CHÃO ----
+        const gSombra = ctx.createRadialGradient(p.x, p.y + 8, 4, p.x, p.y + 8, R * 1.15);
+        gSombra.addColorStop(0, 'rgba(0,0,0,0.55)');
+        gSombra.addColorStop(0.6, 'rgba(8,8,20,0.35)');
+        gSombra.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gSombra;
         ctx.beginPath();
-        ctx.ellipse(p.x, p.y + 12, R * 1.15, R * 0.55, 0, 0, Math.PI * 2);
+        ctx.ellipse(p.x, p.y + 8, R * 1.15, R * 0.55, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.strokeStyle = corPortal;
-        ctx.lineWidth = 3.5;
-        ctx.shadowColor = corPortal;
-        ctx.shadowBlur = 22;
+
+        // ---- AURA EXTERNA (halo pulsante) ----
+        const haloR = R * 1.9 + Math.sin(t * 3.1) * 4;
+        const gHalo = ctx.createRadialGradient(p.x, p.y, R * 0.4, p.x, p.y, haloR);
+        gHalo.addColorStop(0, pal.halo0);
+        gHalo.addColorStop(0.55, pal.halo1);
+        gHalo.addColorStop(1, pal.halo2);
+        ctx.fillStyle = gHalo;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, R, 0, Math.PI * 2);
+        ctx.ellipse(p.x, p.y, haloR, haloR * 0.62, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ---- ANEL DE LUZ NO CHÃO ----
+        ctx.save();
+        ctx.translate(p.x, p.y + 8);
+        const gsolo = ctx.createLinearGradient(0, -R * 0.32, 0, R * 0.32);
+        gsolo.addColorStop(0, pal.solo0);
+        gsolo.addColorStop(0.5, pal.solo1);
+        gsolo.addColorStop(1, pal.solo2);
+        ctx.strokeStyle = gsolo;
+        ctx.lineWidth = 2.4;
+        ctx.setLineDash([R * 0.34, R * 0.18]);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, R * 1.12, R * 0.5, t * 0.7, 0, Math.PI * 2);
         ctx.stroke();
-        const grad = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, R);
-        grad.addColorStop(0, ehSolari ? '#f3e8ff' : '#e0f7fa');
-        grad.addColorStop(0.35, ehSolari ? '#a855f7' : '#00b0ff');
-        grad.addColorStop(0.75, ehSolari ? '#5b21b6' : '#1565c0');
-        grad.addColorStop(1, '#050c18');
-        ctx.fillStyle = grad;
+        ctx.setLineDash([]);
+        ctx.restore();
+
+        // ---- ANÉIS GIROS (sentidos opostos) ----
+        ctx.shadowColor = pal.sombra;
+        ctx.shadowBlur = 12;
+        ctx.lineWidth = 3;
+        ctx.setLineDash([R * 0.6, R * 0.3]);
+        ctx.strokeStyle = pal.anel1;
         ctx.beginPath();
-        ctx.arc(p.x, p.y, R - 3, 0, Math.PI * 2);
+        ctx.ellipse(p.x, p.y, R * 1.3, R * 0.68, t * 0.9, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([R * 0.45, R * 0.42]);
+        ctx.strokeStyle = pal.anel2;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, R * 1.42, R * 0.74, -t * 0.65, Math.PI * 0.3, Math.PI * 2.3);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.shadowBlur = 0;
+
+        // ---- VÓRTICE INTERNO (nebulosa espiralada) ----
+        const gV = ctx.createRadialGradient(p.x, p.y, 2, p.x, p.y, R);
+        gV.addColorStop(0, pal.vortex0);
+        gV.addColorStop(0.25, pal.vortex1);
+        gV.addColorStop(0.55, pal.vortex2);
+        gV.addColorStop(0.85, pal.vortex3);
+        gV.addColorStop(1, pal.vortex4);
+        ctx.fillStyle = gV;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, R - 1, ry - 1, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.lineWidth = 2.5;
+
+        // espirais internas (4 braços de energia)
         for (let i = 0; i < 4; i++) {
-            const rot = t * 2.2 + (i * Math.PI) / 2;
-            ctx.strokeStyle = (i % 2 === 0) ? 'rgba(255, 255, 255, 0.85)' : (ehSolari ? 'rgba(199, 125, 255, 0.75)' : 'rgba(0, 229, 255, 0.75)');
+            const baseA = t * 2.6 + (i * Math.PI) / 2;
+            const gBr = ctx.createLinearGradient(p.x, p.y - ry, p.x, p.y + ry);
+            gBr.addColorStop(0, 'rgba(255,255,255,0)');
+            gBr.addColorStop(0.5, pal.espiral);
+            gBr.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.strokeStyle = gBr;
+            ctx.lineWidth = 2.6;
             ctx.beginPath();
-            ctx.arc(p.x, p.y, (R * 0.75) - i * 6, rot, rot + 1.2);
+            ctx.ellipse(p.x, p.y, R * 0.85, ry * 0.85, baseA, 0, Math.PI * 0.85);
             ctx.stroke();
         }
-        ctx.shadowBlur = 8;
-        ctx.shadowColor = corPortal;
-        ctx.fillStyle = '#ffffff';
+
+        // ---- FUNIL CENTRAL (núcleo que "respira") ----
+        const breathe = R * (0.32 + Math.sin(t * 4.2) * 0.06);
+        ctx.shadowColor = pal.runaSombra;
+        ctx.shadowBlur = 18;
+        const gN = ctx.createRadialGradient(p.x, p.y, 1, p.x, p.y, breathe);
+        gN.addColorStop(0, pal.nucleo0);
+        gN.addColorStop(0.55, pal.nucleo1);
+        gN.addColorStop(1, pal.nucleo2);
+        ctx.fillStyle = gN;
+        ctx.beginPath();
+        ctx.ellipse(p.x, p.y, breathe, breathe * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // ---- PARTÍCULAS SUBINDO ----
+        for (let i = 0; i < 12; i++) {
+            const prog = (t * 0.9 + i / 12) % 1;
+            const swayX = Math.sin(t * 1.6 + i * 1.7) * R * 0.42;
+            const pxp = p.x + swayX * (0.35 + prog * 0.65);
+            const pyp = p.y + ry * 0.85 - prog * (ry * 1.9);
+            const alfa = Math.sin(prog * Math.PI) * 0.9;
+            const sz = 1.2 + (1 - prog) * 2.2;
+            ctx.fillStyle = pal.part + alfa.toFixed(3) + ')';
+            ctx.beginPath();
+            ctx.arc(pxp, pyp, sz, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = pal.partRastro + (alfa * 0.35).toFixed(3) + ')';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(pxp, pyp + 3);
+            ctx.lineTo(pxp, pyp + 6 + prog * 4);
+            ctx.stroke();
+        }
+
+        // ---- PARTÍCULAS ORBITANDO o núcleo ----
+        for (let i = 0; i < 7; i++) {
+            const ang = t * 2.2 + i * (Math.PI * 2 / 7);
+            const rad = R * (0.55 + Math.sin(t * 3 + i * 2.1) * 0.1);
+            const ox = p.x + Math.cos(ang) * rad;
+            const oy = p.y + Math.sin(ang) * rad * 0.55;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath();
+            ctx.arc(ox, oy, 1.8, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // ---- RUNAS ORBITANDO A BORDA ----
+        for (let i = 0; i < 4; i++) {
+            const angR = -t * 1.1 + i * (Math.PI / 2);
+            const rrR = R * 1.32;
+            const rx = p.x + Math.cos(angR) * rrR;
+            const ryy = p.y + Math.sin(angR) * rrR * 0.62;
+            ctx.save();
+            ctx.translate(rx, ryy);
+            ctx.rotate(t * 2.4 + i * 0.6);
+            ctx.strokeStyle = pal.runa;
+            ctx.lineWidth = 1.6;
+            ctx.shadowColor = pal.runaSombra;
+            ctx.shadowBlur = 8;
+            ctx.strokeRect(-3.2, -3.2, 6.4, 6.4);
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.beginPath();
+            ctx.arc(0, 0, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+        ctx.shadowBlur = 0;
+
+        // ---- RAIOS DE LUZ girando ----
+        ctx.strokeStyle = pal.raio;
+        ctx.lineWidth = 1.4;
+        for (let i = 0; i < 3; i++) {
+            const ba = t * 1.2 + i * (Math.PI * 2 / 3);
+            const c1 = p.x + Math.cos(ba) * R * 0.5;
+            const s1 = p.y + Math.sin(ba) * R * 0.3;
+            const c2 = p.x + Math.cos(ba) * haloR * 0.9;
+            const s2 = p.y + Math.sin(ba) * haloR * 0.55;
+            ctx.beginPath();
+            ctx.moveTo(c1, s1);
+            ctx.lineTo(c2, s2);
+            ctx.stroke();
+        }
+
+        // ---- LABELS (abaixo do portal) ----
         ctx.font = 'bold 13px Arial';
         ctx.textAlign = 'center';
-        ctx.fillText(ehSolari ? 'SAIR DA SOLARI' : 'PORTAL DA ARENA', p.x, p.y + R + 22);
-        ctx.fillStyle = ehSolari ? '#e3c8ff' : '#80d8ff';
+        ctx.shadowColor = pal.sombra;
+        ctx.shadowBlur = 14;
+        ctx.fillStyle = pal.lab1;
+        ctx.fillText(pal.rotulo1, p.x, p.y + R + 26);
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = pal.lab2;
         ctx.font = '11px Arial';
-        ctx.fillText('Voltar a Davahl', p.x, p.y + R + 36);
+        ctx.fillText(pal.rotulo2, p.x, p.y + R + 39);
         ctx.restore();
     }
 

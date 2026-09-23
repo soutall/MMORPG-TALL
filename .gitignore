@@ -7,3 +7,13 @@ backups/
 *.log
 server.log
 node_modules/
+# Ferramentas de geracao do mapa Cidade Perdida (nao sobem para o repo)
+_cpd_*
+_gerar_*
+_montar_*
+_preview_*
+_layout_cidadeperdida.txt
+_tilemaker_gids.json
+
+# Screenshots de referencia (nao sobem para o repo)
+imagem/HUD/Imagem do Codex*.png

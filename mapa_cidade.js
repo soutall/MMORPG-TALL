@@ -469,83 +469,327 @@
 
     function desenharPortalViagem(ctx, t, camX, camY, cw, ch) {
         const px = PORTAL_MAPAS.x, py = PORTAL_MAPAS.y, r = PORTAL_MAPAS.r;
-        if (px + r + 80 < camX || px - r - 80 > camX + cw || py + r + 80 < camY || py - r - 80 > camY + ch) return;
+        if (px + r + 120 < camX || px - r - 120 > camX + cw || py + r + 120 < camY || py - r - 120 > camY + ch) return;
 
-        const pulsar = 1 + Math.sin(t * 3.0) * 0.08;
-        const R = r * pulsar;
+        const pulsar = 1 + Math.sin(t * 2.2) * 0.06;
+        const R = r * pulsar;            // raio principal do vórtice
+        const ry = R * 0.52;             // achatamento vertical
 
         ctx.save();
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.45)';
+
+        // ---- SOMBRA NO CHÃO (base sólida) ----
+        const gSombra = ctx.createRadialGradient(px, py + 8, 4, px, py + 8, R * 1.15);
+        gSombra.addColorStop(0, 'rgba(0,0,0,0.55)');
+        gSombra.addColorStop(0.6, 'rgba(8,12,30,0.35)');
+        gSombra.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gSombra;
         ctx.beginPath();
-        ctx.ellipse(px, py + 10, R * 1.2, R * 0.6, 0, 0, Math.PI * 2);
+        ctx.ellipse(px, py + 8, R * 1.15, R * 0.55, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.strokeStyle = '#00e5ff';
-        ctx.lineWidth = 3.5;
+        // ---- AURA EXTERNA (halo suave pulsante) ----
+        const haloR = R * 1.9 + Math.sin(t * 3.1) * 4;
+        const gHalo = ctx.createRadialGradient(px, py, R * 0.4, px, py, haloR);
+        gHalo.addColorStop(0, 'rgba(0, 200, 255, 0.14)');
+        gHalo.addColorStop(0.55, 'rgba(30, 90, 240, 0.08)');
+        gHalo.addColorStop(1, 'rgba(30, 60, 160, 0)');
+        ctx.fillStyle = gHalo;
         ctx.beginPath();
-        ctx.ellipse(px, py, R, R * 0.62, 0, 0, Math.PI * 2);
+        ctx.ellipse(px, py, haloR, haloR * 0.62, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ---- ANEL DE LUZ NO CHÃO (no plano do solo) ----
+        ctx.save();
+        ctx.translate(px, py + 8);
+        const gsolo = ctx.createLinearGradient(0, -R * 0.32, 0, R * 0.32);
+        gsolo.addColorStop(0, 'rgba(0,229,255,0.85)');
+        gsolo.addColorStop(0.5, 'rgba(64,120,255,0.55)');
+        gsolo.addColorStop(1, 'rgba(0,60,180,0.85)');
+        ctx.strokeStyle = gsolo;
+        ctx.lineWidth = 2.4;
+        ctx.setLineDash([R * 0.34, R * 0.18]);
+        ctx.beginPath();
+        ctx.ellipse(0, 0, R * 1.12, R * 0.5, t * 0.7, 0, Math.PI * 2);
         ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
 
-        const grad = ctx.createRadialGradient(px, py, 2, px, py, R);
-        grad.addColorStop(0, 'rgba(230, 255, 255, 0.85)');
-        grad.addColorStop(0.35, 'rgba(0, 180, 255, 0.60)');
-        grad.addColorStop(0.75, 'rgba(20, 80, 200, 0.45)');
-        grad.addColorStop(1, 'rgba(5, 15, 40, 0.20)');
-        ctx.fillStyle = grad;
+        // ---- ANÉIS GIROS (anel externo girando em sentidos opostos) ----
+        ctx.shadowColor = '#00ccff';
+        ctx.shadowBlur = 12;
+        ctx.lineWidth = 3;
+        ctx.setLineDash([R * 0.6, R * 0.3]);
+        ctx.strokeStyle = 'rgba(120, 220, 255, 0.9)';
         ctx.beginPath();
-        ctx.ellipse(px, py, R - 2, (R - 2) * 0.62, 0, 0, Math.PI * 2);
+        ctx.ellipse(px, py, R * 1.3, R * 0.68, t * 0.9, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([R * 0.45, R * 0.42]);
+        ctx.strokeStyle = 'rgba(80, 140, 255, 0.75)';
+        ctx.beginPath();
+        ctx.ellipse(px, py, R * 1.42, R * 0.74, -t * 0.65, Math.PI * 0.3, Math.PI * 2.3);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.shadowBlur = 0;
+
+        // ---- VÓRTICE INTERNO (nebulosa espiralada) ----
+        const gV = ctx.createRadialGradient(px, py, 2, px, py, R);
+        gV.addColorStop(0, 'rgba(235, 255, 255, 0.95)');
+        gV.addColorStop(0.22, 'rgba(120, 230, 255, 0.85)');
+        gV.addColorStop(0.5, 'rgba(40, 120, 255, 0.6)');
+        gV.addColorStop(0.8, 'rgba(12, 40, 140, 0.5)');
+        gV.addColorStop(1, 'rgba(2, 8, 30, 0.35)');
+        ctx.fillStyle = gV;
+        ctx.beginPath();
+        ctx.ellipse(px, py, R - 1, ry - 1, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.lineWidth = 2.2;
+        // espirais internas girando (4 braços de energia)
         for (let i = 0; i < 4; i++) {
-            const rot = t * 1.8 + (i * Math.PI) / 2;
-            ctx.strokeStyle = (i % 2 === 0) ? 'rgba(255, 255, 255, 0.8)' : 'rgba(0, 229, 255, 0.7)';
+            const baseA = t * 2.6 + (i * Math.PI) / 2;
+            const gBr = ctx.createLinearGradient(px, py - ry, px, py + ry);
+            gBr.addColorStop(0, 'rgba(255,255,255,0)');
+            gBr.addColorStop(0.5, 'rgba(190,240,255,0.75)');
+            gBr.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.strokeStyle = gBr;
+            ctx.lineWidth = 2.6;
             ctx.beginPath();
-            ctx.ellipse(px, py, (R * 0.7) - i * 5, ((R * 0.7) - i * 5) * 0.62, rot, 0, Math.PI * 0.7);
+            ctx.ellipse(px, py, R * 0.85, ry * 0.85, baseA, 0, Math.PI * 0.85);
             ctx.stroke();
         }
 
-        ctx.fillStyle = '#ffffff';
+        // ---- FUNIL CENTRAL (núcleo que "respira") ----
+        const breathe = R * (0.32 + Math.sin(t * 4.2) * 0.06);
+        ctx.shadowColor = '#9ff0ff';
+        ctx.shadowBlur = 18;
+        const gN = ctx.createRadialGradient(px, py, 1, px, py, breathe);
+        gN.addColorStop(0, '#ffffff');
+        gN.addColorStop(0.55, 'rgba(150, 235, 255, 0.95)');
+        gN.addColorStop(1, 'rgba(30, 120, 255, 0)');
+        ctx.fillStyle = gN;
+        ctx.beginPath();
+        ctx.ellipse(px, py, breathe, breathe * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // ---- PARTÍCULAS SUBINDO (energia do vórtice) ----
+        for (let i = 0; i < 12; i++) {
+            const prog = (t * 0.9 + i / 12) % 1;
+            const swayX = Math.sin(t * 1.6 + i * 1.7) * R * 0.42;
+            const pxp = px + swayX * (0.35 + prog * 0.65);
+            const pyp = py + ry * 0.85 - prog * (ry * 1.9);
+            const alfa = Math.sin(prog * Math.PI) * 0.9;
+            const sz = 1.2 + (1 - prog) * 2.2;
+            ctx.fillStyle = 'rgba(190, 245, 255, ' + alfa.toFixed(3) + ')';
+            ctx.beginPath();
+            ctx.arc(pxp, pyp, sz, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(120, 220, 255, ' + (alfa * 0.35).toFixed(3) + ')';
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(pxp, pyp + 3);
+            ctx.lineTo(pxp, pyp + 6 + prog * 4);
+            ctx.stroke();
+        }
+
+        // ---- PARTÍCULAS ORBITANDO o núcleo ----
+        for (let i = 0; i < 7; i++) {
+            const ang = t * 2.2 + i * (Math.PI * 2 / 7);
+            const rad = R * (0.55 + Math.sin(t * 3 + i * 2.1) * 0.1);
+            const ox = px + Math.cos(ang) * rad;
+            const oy = py + Math.sin(ang) * rad * 0.55;
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath();
+            ctx.arc(ox, oy, 1.8, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // ---- RUNAS ORBITANDO A BORDA ----
+        for (let i = 0; i < 4; i++) {
+            const angR = -t * 1.1 + i * (Math.PI / 2);
+            const rrR = R * 1.32;
+            const rx = px + Math.cos(angR) * rrR;
+            const ryy = py + Math.sin(angR) * rrR * 0.62;
+            ctx.save();
+            ctx.translate(rx, ryy);
+            ctx.rotate(t * 2.4 + i * 0.6);
+            ctx.strokeStyle = 'rgba(170, 235, 255, 0.95)';
+            ctx.lineWidth = 1.6;
+            ctx.shadowColor = '#00e5ff';
+            ctx.shadowBlur = 8;
+            ctx.strokeRect(-3.2, -3.2, 6.4, 6.4);
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.beginPath();
+            ctx.arc(0, 0, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+        ctx.shadowBlur = 0;
+
+        // ---- RAIOS DE LUZ girando + brilho externo ----
+        ctx.strokeStyle = 'rgba(160, 235, 255, 0.28)';
+        ctx.lineWidth = 1.4;
+        for (let i = 0; i < 3; i++) {
+            const ba = t * 1.2 + i * (Math.PI * 2 / 3);
+            const c1 = px + Math.cos(ba) * R * 0.5;
+            const s1 = py + Math.sin(ba) * R * 0.3;
+            const c2 = px + Math.cos(ba) * haloR * 0.9;
+            const s2 = py + Math.sin(ba) * haloR * 0.55;
+            ctx.beginPath();
+            ctx.moveTo(c1, s1);
+            ctx.lineTo(c2, s2);
+            ctx.stroke();
+        }
+
+        // ---- LABEL ----
         ctx.font = 'bold 13px Arial';
         ctx.textAlign = 'center';
         ctx.shadowColor = '#00e5ff';
-        ctx.shadowBlur = 10;
-        ctx.fillText('PORTAL DE VIAGEM', px, py - R * 0.62 - 12);
+        ctx.shadowBlur = 14;
+        ctx.fillStyle = '#ffffff';
+        ctx.fillText('PORTAL DE VIAGEM', px, py - R * 0.68 - 26);
+        ctx.shadowBlur = 8;
         ctx.fillStyle = '#80d8ff';
         ctx.font = '11px Arial';
-        ctx.fillText('Toque para Viajar', px, py - R * 0.62 - 1);
+        ctx.fillText('Toque para Viajar', px, py - R * 0.68 - 13);
         ctx.restore();
     }
 
     function desenharPortalRetorno(ctx, t, camX, camY, cw, ch) {
         const px = PORTA_CIDADE_RETORNO.x, py = PORTA_CIDADE_RETORNO.y, r = PORTA_CIDADE_RETORNO.r;
-        if (px + r + 60 < camX || px - r - 60 > camX + cw || py + r + 60 < camY || py - r - 60 > camY + ch) return;
+        if (px + r + 100 < camX || px - r - 100 > camX + cw || py + r + 100 < camY || py - r - 100 > camY + ch) return;
 
-        const pulsar = 1 + Math.sin(t * 2.5) * 0.10;
-        const R = (r - 10) * pulsar;
+        const pulsar = 1 + Math.sin(t * 2.2) * 0.07;
+        const R = r * pulsar;
+        const ry = R * 0.5;
 
         ctx.save();
-        ctx.strokeStyle = '#f1c40f';
-        ctx.lineWidth = 2.8;
-        ctx.beginPath();
-        ctx.ellipse(px, py, R, R * 0.5, 0, 0, Math.PI * 2);
-        ctx.stroke();
 
-        const grad = ctx.createRadialGradient(px, py, 2, px, py, R);
-        grad.addColorStop(0, 'rgba(255, 245, 180, 0.6)');
-        grad.addColorStop(0.5, 'rgba(241, 196, 15, 0.3)');
-        grad.addColorStop(1, 'rgba(20, 15, 5, 0.1)');
-        ctx.fillStyle = grad;
+        // ---- SOMBRA NO CHÃO ----
+        const gS = ctx.createRadialGradient(px, py + 8, 4, px, py + 8, R * 1.1);
+        gS.addColorStop(0, 'rgba(0,0,0,0.5)');
+        gS.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = gS;
         ctx.beginPath();
-        ctx.ellipse(px, py, R, R * 0.5, 0, 0, Math.PI * 2);
+        ctx.ellipse(px, py + 8, R * 1.1, R * 0.5, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        ctx.fillStyle = '#f9e79f';
+        // ---- HALO DOURADO ----
+        const gH = ctx.createRadialGradient(px, py, R * 0.3, px, py, R * 1.8);
+        gH.addColorStop(0, 'rgba(255, 220, 90, 0.18)');
+        gH.addColorStop(0.6, 'rgba(120, 180, 40, 0.08)');
+        gH.addColorStop(1, 'rgba(60, 120, 30, 0)');
+        ctx.fillStyle = gH;
+        ctx.beginPath();
+        ctx.ellipse(px, py, R * 1.8, R * 0.9, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // ---- ANEL NO CHÃO (dourado girando) ----
+        ctx.strokeStyle = 'rgba(255, 236, 130, 0.8)';
+        ctx.lineWidth = 2.2;
+        ctx.setLineDash([R * 0.3, R * 0.2]);
+        ctx.beginPath();
+        ctx.ellipse(px, py + 7, R * 1.15, R * 0.5, t * 0.8, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // ---- ANÉIS GIROS (dourado + esmeralda, sentidos opostos) ----
+        ctx.shadowColor = '#f1c40f';
+        ctx.shadowBlur = 10;
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = 'rgba(255, 220, 120, 0.9)';
+        ctx.setLineDash([R * 0.55, R * 0.28]);
+        ctx.beginPath();
+        ctx.ellipse(px, py, R * 1.28, R * 0.66, t * 0.9, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([R * 0.4, R * 0.4]);
+        ctx.strokeStyle = 'rgba(140, 230, 120, 0.7)';
+        ctx.beginPath();
+        ctx.ellipse(px, py, R * 1.4, R * 0.72, -t * 0.6, Math.PI * 0.4, Math.PI * 2.4);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.shadowBlur = 0;
+
+        // ---- VÓRTICE ESMERALDA-DOURADO ----
+        const gV = ctx.createRadialGradient(px, py, 2, px, py, R);
+        gV.addColorStop(0, 'rgba(255, 250, 210, 0.95)');
+        gV.addColorStop(0.25, 'rgba(250, 225, 120, 0.85)');
+        gV.addColorStop(0.55, 'rgba(120, 200, 90, 0.6)');
+        gV.addColorStop(0.85, 'rgba(20, 90, 40, 0.5)');
+        gV.addColorStop(1, 'rgba(3, 12, 6, 0.3)');
+        ctx.fillStyle = gV;
+        ctx.beginPath();
+        ctx.ellipse(px, py, R, ry, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // espirais internas (4 braços)
+        for (let i = 0; i < 4; i++) {
+            const baseA = t * 2.2 + (i * Math.PI) / 2;
+            const gBr = ctx.createLinearGradient(px, py - ry, px, py + ry);
+            gBr.addColorStop(0, 'rgba(255,255,255,0)');
+            gBr.addColorStop(0.5, 'rgba(255, 244, 170, 0.7)');
+            gBr.addColorStop(1, 'rgba(255,255,255,0)');
+            ctx.strokeStyle = gBr;
+            ctx.lineWidth = 2.4;
+            ctx.beginPath();
+            ctx.ellipse(px, py, R * 0.82, ry * 0.82, baseA, 0, Math.PI * 0.85);
+            ctx.stroke();
+        }
+
+        // ---- NÚCLEO BRILHANTE ----
+        const breathe = R * (0.3 + Math.sin(t * 3.6) * 0.06);
+        ctx.shadowColor = '#fff3b0';
+        ctx.shadowBlur = 14;
+        const gN = ctx.createRadialGradient(px, py, 1, px, py, breathe);
+        gN.addColorStop(0, '#ffffff');
+        gN.addColorStop(0.55, 'rgba(255, 240, 150, 0.95)');
+        gN.addColorStop(1, 'rgba(120, 220, 90, 0)');
+        ctx.fillStyle = gN;
+        ctx.beginPath();
+        ctx.ellipse(px, py, breathe, breathe * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+
+        // ---- PARTÍCULAS SUBINDO (luz dourada) ----
+        for (let i = 0; i < 10; i++) {
+            const prog = (t * 0.8 + i / 10) % 1;
+            const sway = Math.sin(t * 1.5 + i * 1.9) * R * 0.4;
+            const xp = px + sway * (0.3 + prog * 0.7);
+            const yp = py + ry * 0.85 - prog * ry * 1.8;
+            const al = Math.sin(prog * Math.PI) * 0.85;
+            ctx.fillStyle = 'rgba(255, 244, 160, ' + al.toFixed(3) + ')';
+            ctx.beginPath();
+            ctx.arc(xp, yp, 1.2 + (1 - prog) * 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        // ---- RUNAS ESEMERALDA ORBITANDO ----
+        for (let i = 0; i < 4; i++) {
+            const angR = -t * 1.0 + i * (Math.PI / 2);
+            const xr = px + Math.cos(angR) * R * 1.3;
+            const yr = py + Math.sin(angR) * R * 0.62;
+            ctx.save();
+            ctx.translate(xr, yr);
+            ctx.rotate(t * 2 + i * 0.7);
+            ctx.strokeStyle = 'rgba(190, 255, 150, 0.95)';
+            ctx.lineWidth = 1.6;
+            ctx.shadowColor = '#9ff08f';
+            ctx.shadowBlur = 7;
+            ctx.strokeRect(-3, -3, 6, 6);
+            ctx.fillStyle = 'rgba(255,255,255,0.9)';
+            ctx.beginPath();
+            ctx.arc(0, 0, 1.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+        ctx.shadowBlur = 0;
+
+        // ---- LABEL ----
         ctx.font = 'bold 12px Arial';
         ctx.textAlign = 'center';
         ctx.shadowColor = '#f1c40f';
-        ctx.shadowBlur = 8;
-        ctx.fillText('SAÍDA DA CIDADE', px, py + 25);
+        ctx.shadowBlur = 10;
+        ctx.fillStyle = '#f9e79f';
+        ctx.fillText('SAÍDA DA CIDADE', px, py + 30);
         ctx.restore();
     }
 

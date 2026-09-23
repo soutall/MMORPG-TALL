@@ -7,14 +7,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=241">
+    <link rel="stylesheet" href="style.css?v=244">
     <link rel="stylesheet" href="inventario.css?v=135">
     <link rel="stylesheet" href="skills.css?v=143">
     <link rel="stylesheet" href="config.css?v=146">
     <link rel="stylesheet" href="atributos.css?v=5">
     <link rel="stylesheet" href="spawn-admin.css?v=2">
     <link rel="stylesheet" href="colisao-editor.css?v=2">
-    <link rel="stylesheet" href="dragdrop.css?v=3">
+    <link rel="stylesheet" href="dragdrop.css?v=4">
     <link rel="stylesheet" href="ferreiro.css?v=1">
     <link rel="stylesheet" href="intro.css?v=1">
 </head>
@@ -71,7 +71,7 @@
             <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" autofocus />
             <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
         </div>
-        <div class="game-version-display">v1.34.1</div>
+        <div class="game-version-display">v1.36</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -112,13 +112,15 @@
             <div class="class-card sniper" onclick="selecionarClasse('sniper')">
                 <div class="icon">🎯</div><div class="title" style="color:#8f9b4a;">Sniper</div><div class="desc">Barrett perfurante, camuflagem e posição de tiro.</div>
             </div>
+            <div class="class-card pikeman" onclick="selecionarClasse('pikeman')">
+                <div class="icon">⛓️</div><div class="title" style="color:#c0392b;">Pikeman</div><div class="desc">Foice da Morte, Geada e Execução. Burst + Controle.</div>
+            </div>
         </div>
     </div>
 
     <div id="status" data-ui="status">Desconectado</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
-    <div id="coord-hud" data-ui="coord">X: 0  Y: 0</div>
-    <div id="hud-version" class="game-version-display">v1.34.1</div>
+    <div id="hud-version" class="game-version-display">v1.36</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -142,7 +144,6 @@
         <div id="hud-ouro" title="Ouro coletado">🪙 <span id="hud-ouro-qtd">0</span></div>
 
         <div id="hud-buffs" class="hud-buffs-panel" data-ui="hud-buffs">
-            <div class="hud-buffs-title">BUFFS</div>
             <div id="hud-buffs-bar" class="hud-buffs-bar"></div>
         </div>
     </div>
@@ -157,7 +158,7 @@
             display: flex;
             gap: 4px;
             margin-top: 4px;
-            height: 24px;
+            height: auto;
         }
         .hud-buff-icon {
             width: 24px;
@@ -372,6 +373,12 @@
         <button id="btn-sniper-posicao" class="btn-action btn-sniper-posicao" ontouchstart="usarPosicaoSniper(); event.stopPropagation();" onclick="usarPosicaoSniper();" title="Posição de Franco-Atirador (3)">🎯<span class="key-badge">3</span></button>
         <button id="btn-sniper-camuflagem" class="btn-action btn-sniper-camuflagem" ontouchstart="usarCamuflagemSniper(); event.stopPropagation();" onclick="usarCamuflagemSniper();" title="Camuflagem Natural (4)">🌿<span class="key-badge">4</span></button>
         
+        <!-- BOTOES DO PIKEMAN -->
+        <button id="btn-pikeman-giro" class="btn-action btn-pikeman-giro" ontouchstart="usarGiroPikeman(); event.stopPropagation();" onclick="usarGiroPikeman();" title="Giro da Foice (1)">⭕<span class="key-badge">1</span></button>
+        <button id="btn-pikeman-pirueta" class="btn-action btn-pikeman-pirueta" ontouchstart="usarPiruetaPikeman(); event.stopPropagation();" onclick="usarPiruetaPikeman();" title="Pirueta da Morte (2)">✴️<span class="key-badge">2</span></button>
+        <button id="btn-pikeman-geada" class="btn-action btn-pikeman-geada" ontouchstart="usarGeadaPikeman(); event.stopPropagation();" onclick="usarGeadaPikeman();" title="Geada da Morte (3)">🧊<span class="key-badge">3</span></button>
+        <button id="btn-pikeman-execucao" class="btn-action btn-pikeman-execucao" ontouchstart="usarExecucaoPikeman(); event.stopPropagation();" onclick="usarExecucaoPikeman();" title="Execução da Morte (4)">💀<span class="key-badge">4</span></button>
+        
         <!-- ATAQUE BÁSICO MANUAL REMOVIDO (v1.30.2): só o auto-attack fica ativo; botão oculto -->
         <button id="btn-attack" class="btn-action btn-attack" style="display:none;" title="Ataque Básico desativado (use o auto-attack)">⚔️</button>
     </div>
@@ -437,6 +444,7 @@
                 <button class="btn-teleportare" data-mapa="pantano" onclick="selecionarMapa('pantano')">🪷 Pântano Lodoso</button>
                 <button class="btn-teleportare" data-mapa="caverna" onclick="selecionarMapa('caverna')">🕳️ Caverna Sombria (DG)</button>
                 <button class="btn-teleportare" data-mapa="arena" onclick="selecionarMapa('arena')">⚔️ Arena de Davahl</button>
+                <button class="btn-teleportare" data-mapa="cidadeperdida" onclick="selecionarMapa('cidadeperdida')">🏛️ Cidade Perdida</button>
             </div>
             <button id="btn-teleportare-confirmar" style="display:none;" onclick="confirmarTeleporte()">✅ CONFIRMAR</button>
             <button id="btn-teleportare-fechar" onclick="fecharTeleporteMapas()">FECHAR</button>
@@ -689,9 +697,10 @@
     <!-- Three.js WebGL Engine — Cidade de Davahl 2.5D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <script src="https://unpkg.com/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
-    <script src="mapa_cidade.js?v=7"></script>
+    <script src="mapa_cidade.js?v=8"></script>
     <!-- <script src="mapa_cidade_three.js?v=1"></script> -->
-    <script src="mapa_arena.js?v=5"></script>
+    <script src="mapa_arena.js?v=6"></script>
+    <script src="mapa_cidade_perdida.js?v=3"></script>
     <script src="solari.js?v=5"></script>
     <script>
         (function () {
@@ -707,7 +716,7 @@
         })();
     </script>
     <script src="classes/comum.js?v=1001"></script>
-    <script src="classes/guerreiro.js?v=1002"></script>
+    <script src="classes/guerreiro.js?v=1007"></script>
     <script src="classes/mago.js?v=1000"></script>
     <script src="classes/summoner.js?v=1000"></script>
     <script src="classes/arqueiro.js?v=1001"></script>
@@ -718,6 +727,7 @@
     <script src="classes/dronemaster.js?v=1002"></script>
     <script src="classes/arqueiro_arcano.js?v=1000"></script>
     <script src="classes/sniper.js?v=1000"></script>
+    <script src="classes/pikeman.js?v=7"></script>
     <script src="efeitos/arqueiro_efeitos.js?v=230"></script>
     <script src="efeitos/curandeiro_efeitos.js?v=231"></script>
     <script src="efeitos/barbaro_efeitos.js?v=231"></script>
@@ -725,10 +735,11 @@
     <script src="efeitos/mago_efeitos.js?v=1"></script>
     <script src="efeitos/roqueiro_efeitos.js?v=231"></script>
     <script src="efeitos/ladino_efeitos.js?v=1300"></script>
+    <script src="efeitos/pikeman_efeitos.js?v=1"></script>
     <script src="efeitos.js?v=234"></script>
     <script src="debuffs.js?v=2"></script>
     <script src="efeitos/boss_golem.js?v=230"></script>
-    <script src="monstros.js?v=2006"></script>
+    <script src="monstros.js?v=2007"></script>
     <script src="inventario.js?v=133"></script>
     <script src="skills.js?v=145"></script>
     <script src="config.js?v=143"></script>
@@ -737,18 +748,18 @@
     <script src="map-vfx-admin.js?v=1"></script>
     <script src="mob-editor.js?v=1"></script>
     <script src="mob-vfx.js?v=1"></script>
-    <script src="dragdrop.js?v=3"></script>
+    <script src="dragdrop.js?v=5"></script>
     <script src="ferreiro.js?v=1"></script>
     <script src="colisao-editor.js?v=2"></script>
     <script src="mapa-editor.js?v=1"></script>
-    <script src="audio-manager.js?v=2"></script>
+    <script src="audio-manager.js?v=3"></script>
     <script src="sonoro.js?v=5"></script>
     <script src="intro.js?v=1"></script>
 
     <script>
-        const GAME_VERSION = 'v1.34.1';
+        const GAME_VERSION = 'v1.36';
         window.GAME_VERSION = GAME_VERSION;
-        const WORLD_WIDTH = 65040;
+        const WORLD_WIDTH = 71920;
         const WORLD_HEIGHT = 36000;
         window.WORLD_WIDTH = WORLD_WIDTH;
         window.WORLD_HEIGHT = WORLD_HEIGHT;
@@ -762,10 +773,13 @@
         window.LARGURA_ARENA = 63800;
         window.FIM_ARENA = 65040;
         window.ALTO_ARENA = 1240;
+        window.LARGURA_CIDADE_PERDIDA = 65040;
+        window.FIM_CIDADE_PERDIDA = 71920;
+        window.ALTO_CIDADE_PERDIDA = 3920;
         // Ponto de spawn da cidade de Davahl (espelho do server: CIDADE_SPAWN_X/Y = 60474,640).
         // O respawn do jogador SEMPRE devolve para cá.
         window.SPAWN_CIDADE = { x: 60474, y: 640 };
-        window.currentMap = 'cidade'; // ESTADO ÚNICO DE MAPA: 'green' | 'desert' | 'pantano' | 'caverna' | 'cidade' | 'arena' | 'solari'
+        window.currentMap = 'cidade'; // ESTADO ÚNICO DE MAPA: 'green' | 'desert' | 'pantano' | 'caverna' | 'cidade' | 'arena' | 'solari' | 'cidadeperdida'
         window.solariAtivo = false; // TRUE dentro da Arena de Solari (faixa leste da arena)
         window.transicaoMapaAtiva = false;
         window.portalMapaBloqueado = null;
@@ -857,7 +871,6 @@ const xpBarFill = document.getElementById("xp-bar-fill");
         const btnGuerreiroProvocacao = document.getElementById("btn-guerreiro-provocacao");
         const btnMeteoro = document.getElementById("btn-meteoro");
         const btnLocal = document.getElementById("btn-local");
-        const coordHud = document.getElementById("coord-hud");
         const btnNevasca = document.getElementById("btn-nevasca");
         const btnVulcao = document.getElementById("btn-vulcao");
         const btnOgroSkill = document.getElementById("btn-ogro-skill");
@@ -892,6 +905,10 @@ const xpBarFill = document.getElementById("xp-bar-fill");
         const btnSniperRede = document.getElementById("btn-sniper-rede");
         const btnSniperPosicao = document.getElementById("btn-sniper-posicao");
         const btnSniperCamuflagem = document.getElementById("btn-sniper-camuflagem");
+        const btnPikemanGiro = document.getElementById("btn-pikeman-giro");
+        const btnPikemanPirueta = document.getElementById("btn-pikeman-pirueta");
+        const btnPikemanGeada = document.getElementById("btn-pikeman-geada");
+        const btnPikemanExecucao = document.getElementById("btn-pikeman-execucao");
         const btnAttack = document.getElementById("btn-attack");
         const dpsValorEl = null;
         const dpsTotalEl = null;
@@ -1206,6 +1223,21 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             statusText.innerText = "🎯 Arraste até o local e solte para usar!";
         }
 
+        // Limites do mapa ATIVO (espelho do maxYMapa do loop principal).
+        // FIX v1.34.2 (tela verde na Arena/Solari): a mira das skills não pode
+        // ultrapassar o mapa atual — antes caia até x=71880 e o jogador saía da
+        // Arena para dentro da Cidade Perdida (fundo verde #1c2a1d).
+        function limitesMapaClienteAtivo() {
+            const m = window.currentMap;
+            if (m === 'arena' || m === 'solari') return { minX: window.LARGURA_ARENA + 20, maxX: window.FIM_ARENA - 40, minY: 20, maxY: 1200 };
+            if (m === 'cidadeperdida') return { minX: window.LARGURA_CIDADE_PERDIDA + 20, maxX: window.FIM_CIDADE_PERDIDA - 40, minY: 20, maxY: 3880 };
+            if (m === 'cidade') return { minX: window.LARGURA_CIDADE + 20, maxX: window.FIM_CIDADE - 40, minY: 20, maxY: 1105 };
+            if (m === 'caverna') return { minX: window.LARGURA_PANTANO + 20, maxX: window.FIM_CAVERNA - 40, minY: 20, maxY: 1760 };
+            if (m === 'pantano') return { minX: window.LARGURA_DESERTO + 20, maxX: window.LARGURA_PANTANO - 40, minY: 20, maxY: 8960 };
+            if (m === 'desert') return { minX: window.LARGURA_VERDE + 20, maxX: window.LARGURA_DESERTO - 40, minY: 20, maxY: 35960 };
+            return { minX: 20, maxX: window.LARGURA_VERDE - 40, minY: 20, maxY: 17960 }; // green
+        }
+
         function clamparAlcanceSkill(skill, tx, ty) {
             let cfg = SKILLS_DRAG[skill];
             let pX = window.meuX + 12, pY = window.meuY + 16;
@@ -1216,8 +1248,9 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 tx = pX + (dx / dist) * cfg.alcanceMax;
                 ty = pY + (dy / dist) * cfg.alcanceMax;
             }
-            tx = Math.max(20, Math.min(WORLD_WIDTH - 40, tx));
-            ty = Math.max(20, Math.min(WORLD_HEIGHT - 40, ty));
+            let lm = limitesMapaClienteAtivo();
+            tx = Math.max(lm.minX, Math.min(lm.maxX, tx));
+            ty = Math.max(lm.minY, Math.min(lm.maxY, ty));
             return { x: tx, y: ty };
         }
 
@@ -1268,7 +1301,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
         }
 
         // Reseta o cooldown visual de uma skill (usado quando o servidor rejeita o uso).
-        const ACOES_SKILL_CANCELAVEIS = ['meteoro', 'nevasca', 'mago_vulcao', 'arqueiro_chuva', 'arqueiro_perfurante', 'arqueiro_rajada', 'curandeiro_cura', 'curandeiro_julgamento', 'curandeiro_aura', 'barbaro_furia', 'barbaro_esmagamento', 'barbaro_giro_descontrolado', 'roqueiro_bateria', 'roqueiro_teleporte', 'roqueiro_banda', 'roqueiro_grito_guerra', 'ladino_danca', 'ladino_bomba', 'ladino_camuflagem', 'ladino_estrela', 'comando_pet_ogro', 'comando_salto_ogro', 'comando_ogro_colossal', 'dash', 'tornado', 'guerreiro_provocacao', 'dronemaster_supressao', 'dronemaster_assalto', 'dronemaster_caixa', 'dronemaster_tita', 'arqueiro_cometas', 'arqueiro_orbe', 'arqueiro_cascata', 'sniper_apontar', 'sniper_fogo', 'sniper_rede', 'sniper_posicao', 'sniper_camuflagem'];
+        const ACOES_SKILL_CANCELAVEIS = ['meteoro', 'nevasca', 'mago_vulcao', 'arqueiro_chuva', 'arqueiro_perfurante', 'arqueiro_rajada', 'curandeiro_cura', 'curandeiro_julgamento', 'curandeiro_aura', 'barbaro_furia', 'barbaro_esmagamento', 'barbaro_giro_descontrolado', 'roqueiro_bateria', 'roqueiro_teleporte', 'roqueiro_banda', 'roqueiro_grito_guerra', 'ladino_danca', 'ladino_bomba', 'ladino_camuflagem', 'ladino_estrela', 'comando_pet_ogro', 'comando_salto_ogro', 'comando_ogro_colossal', 'dash', 'tornado', 'guerreiro_provocacao', 'dronemaster_supressao', 'dronemaster_assalto', 'dronemaster_caixa', 'dronemaster_tita', 'arqueiro_cometas', 'arqueiro_orbe', 'arqueiro_cascata', 'sniper_apontar', 'sniper_fogo', 'sniper_rede', 'sniper_posicao', 'sniper_camuflagem', 'pikeman_giro', 'pikeman_pirueta', 'pikeman_geada', 'pikeman_execucao'];
         function cancelarCooldownVisual(skill) {
             const mapa = {
                 meteoro:               () => { window.meteoroCooldownAtivo = false; limparCdBotao(btnMeteoro); },
@@ -1308,7 +1341,11 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 sniper_fogo:           () => { window.sniperAimCooldown = false; limparCdBotao(btnSniperApontar); },
                 sniper_rede:           () => { window.sniperRedeCooldown = false; limparCdBotao(btnSniperRede); },
                 sniper_posicao:        () => { window.sniperPosicaoCooldown = false; limparCdBotao(btnSniperPosicao); },
-                sniper_camuflagem:     () => { limparCdBotao(btnSniperCamuflagem); }
+                sniper_camuflagem:     () => { limparCdBotao(btnSniperCamuflagem); },
+                pikeman_giro:         () => { window.giroPikemanCooldown = false; limparCdBotao(btnPikemanGiro); },
+                pikeman_pirueta:      () => { window.piruetaPikemanCooldown = false; limparCdBotao(btnPikemanPirueta); },
+                pikeman_geada:        () => { window.geadaPikemanCooldown = false; limparCdBotao(btnPikemanGeada); },
+                pikeman_execucao:     () => { window.execucaoPikemanCooldown = false; limparCdBotao(btnPikemanExecucao); }
             };
             const fn = mapa[skill];
             if (fn) fn();
@@ -1887,6 +1924,177 @@ const xpBarFill = document.getElementById("xp-bar-fill");
         // v1.34: barra de VIDA (vermelho forte) na HUD
         function atualizarHudHp() { if (!window.hpBarFill) return; let max = window.meuMaxHp || 100; let h = window.meuHp || 0; window.hpBarFill.style.width = Math.max(0, Math.min(100, (h / max) * 100)) + "%"; aplicarTextoBarra(hpBarTexto, h, max, barrasModo().hpBar); }
 
+        // === v1.35: HUD CANVAS OFICIAL — HudHP.png + preenchimentos dinâmicos ===
+        (function () {
+            var _hudImg = new Image();
+            _hudImg.src = 'imagem/HUD/HudHP.png?v=HUD36';
+            window._hudImg = _hudImg;
+
+            // Coordenadas EXATAS das áreas internas das barras (espaço original 2172×724).
+            // Medidas por scan de pixel: preenche o track interno (entre as molduras douradas),
+            // sem tocar nos ícones (esquerda) nem nas bordas de ouro entre as barras.
+            window.HUD_BARS = {
+                hp:      { x: 641,  y: 166, w: 1453, h: 104 }, // direita≈2094 · baixo≈269
+                mana:    { x: 659,  y: 326, w: 1438, h: 100 }, // direita≈2097 · baixo≈425
+                stamina: { x: 668,  y: 486, w: 1424, h: 91  }  // direita≈2092 · baixo≈576
+            };
+
+            // Valores de interpolação (suavização — nunca altera valores reais)
+            window._displayHp = -1;
+            window._displayMana = -1;
+            window._displayStamina = -1;
+
+            // === v1.36: FOTO DE PERFIL no círculo do retrato ===
+            // Círculo no espaço da imagem (2172×724): centro (345, 350), raio 200.
+            // A foto é desenhada ANTES da HudHP.png; a PNG, pintada por último,
+            // cobre automaticamente qualquer sobra sobre moldura/gemas/ornamentos
+            // (sem destination-out, sem apagar arte). Mapa classe -> arquivo:
+            var _perfilMapa = {
+                guerreiro:       'Guerreiro',
+                mago:            'Mago',
+                summoner:        'Summoner',
+                arqueiro:        'Arqueira',
+                barbaro:         'Barbaro',
+                roqueiro:        'Roqueiro',
+                ladino:          'Ladino',
+                dronemaster:     'DroneMaster',
+                arqueiro_arcano: 'Arqueir_astral',
+                arqueiro_astral: 'Arqueir_astral',
+                pikeman:         'PikeMan',
+                curandeiro:      'curandeiro'
+            };
+            var _perfilCache = {};
+            function _perfilDaClasse(classe) {
+                if (!classe || !_perfilMapa[classe]) return null;
+                if (!_perfilCache[classe]) {
+                    var im = new Image();
+                    im.src = 'imagem/HUD/Perfil/' + _perfilMapa[classe] + '.png?v=perfil1';
+                    _perfilCache[classe] = im;
+                }
+                return _perfilCache[classe];
+            }
+
+            // Desenho do HUD Canvas — chamado a cada frame no loop()
+            window.desenharHudCanvas = function () {
+                var ctx = window.ctx, canvas = window.canvas;
+                var img = window._hudImg;
+                if (!ctx || !img || !img.complete || !img.naturalWidth) return;
+                if (!window.meuId) return;
+
+                var W = canvas.width;
+                var B = window.HUD_BARS;
+
+                // --- Valores reais do jogador (fallbacks) ---
+                var maxHp = window.meuMaxHp || 100; if (maxHp <= 0) maxHp = 100;
+                var hp = Math.max(0, Math.min(maxHp, window.meuHp || 0));
+                var maxMana = window.meuMaxMp || 50; if (maxMana <= 0) maxMana = 50;
+                var mana = Math.max(0, Math.min(maxMana, window.meuMp || 0));
+                var stamina = Math.max(0, Math.min(100, minhaEstamina || 0));
+
+                // --- Inicializa na primeira chamada ---
+                if (window._displayHp < 0) {
+                    window._displayHp = hp;
+                    window._displayMana = mana;
+                    window._displayStamina = stamina;
+                }
+
+                // --- Interpolação suave (display += (real - display) * 0.15) ---
+                window._displayHp += (hp - window._displayHp) * 0.15;
+                window._displayMana += (mana - window._displayMana) * 0.15;
+                window._displayStamina += (stamina - window._displayStamina) * 0.15;
+
+                // --- Ratios de preenchimento (0→1) ---
+                var hpR = Math.max(0, Math.min(1, window._displayHp / maxHp));
+                var manaR = Math.max(0, Math.min(1, window._displayMana / maxMana));
+                var stR = Math.max(0, Math.min(1, window._displayStamina / 100));
+
+                // --- Escala responsiva (reusa o sistema atual: canvas width) ---
+                var escala = Math.max(0.06, Math.min(0.30, W / 8000));
+                var imgW = 2172, imgH = 724;
+                var hudW = imgW * escala, hudH = imgH * escala;
+                var hx = Math.round(W * 0.012);
+                var hy = 8;
+
+                // === 1) PREENCHIMENTOS PRIMEIRO (HP, MANA, STAMINA) ===
+                // Cada barra: clip() SOMENTE na área INTERNA, para o preenchimento
+                // nunca ultrapassar a barra. A moldura da HudHP.png fica por cima.
+                var barCfgs = [
+                    { bar: B.hp,      ratio: hpR,   lc: '#ff6655', mc: '#dd2211', dc: '#880000', gc: '#ff3322' },
+                    { bar: B.mana,    ratio: manaR,  lc: '#55aaff', mc: '#2266dd', dc: '#002266', gc: '#4499ff' },
+                    { bar: B.stamina, ratio: stR,    lc: '#55ff55', mc: '#22aa22', dc: '#004400', gc: '#44dd44' }
+                ];
+
+                ctx.save();
+                for (var f = 0; f < barCfgs.length; f++) {
+                    var c = barCfgs[f];
+                    var bx = hx + c.bar.x * escala;
+                    var by = hy + c.bar.y * escala;
+                    var bw = c.bar.w * escala;
+                    var bh = c.bar.h * escala;
+                    var fillW = bw * c.ratio;
+                    if (fillW < 1) continue;
+
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(bx, by, bw, bh);
+                    ctx.clip();
+
+                    // Gradiente vertical (claro no topo → escuro no fundo)
+                    var grad = ctx.createLinearGradient(0, by, 0, by + bh);
+                    grad.addColorStop(0, c.lc);
+                    grad.addColorStop(0.45, c.mc);
+                    grad.addColorStop(1, c.dc);
+                    ctx.fillStyle = grad;
+                    ctx.shadowColor = c.gc;
+                    ctx.shadowBlur = Math.round(5 * escala + 1);
+
+                    // Preenche esquerda → direita até a razão
+                    ctx.fillRect(bx, by, fillW, bh);
+
+                    // Brilho interno (sem sombra — camada de profundidade)
+                    ctx.shadowBlur = 0;
+                    ctx.shadowColor = 'transparent';
+                    var grad2 = ctx.createLinearGradient(0, by, 0, by + bh);
+                    grad2.addColorStop(0, 'rgba(255,255,255,0.22)');
+                    grad2.addColorStop(0.5, 'rgba(255,255,255,0.05)');
+                    grad2.addColorStop(1, 'rgba(0,0,0,0.18)');
+                    ctx.fillStyle = grad2;
+                    ctx.fillRect(bx, by, fillW, bh);
+
+                    ctx.restore();
+                }
+                ctx.restore();
+
+                // === 1.5) FOTO DE PERFIL no círculo central (antes da PNG) ===
+                // Clip circular no espaço do retrato. A HudHP.png vem por cima,
+                // então qualquer sobra sobre moldura/gemas/ornamentos é coberta
+                // pela própria arte — a foto nunca fica por cima de nada.
+                var perfil = _perfilDaClasse(window.minhaClasse);
+                if (perfil && perfil.complete && perfil.naturalWidth) {
+                    var pCx = hx + 345 * escala;
+                    var pCy = hy + 350 * escala;
+                    var pRaio = 200 * escala;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.arc(pCx, pCy, pRaio, 0, Math.PI * 2);
+                    ctx.clip();
+                    // Cover-crop centralizado (imagens do perfil são quadradas)
+                    var pSw = perfil.naturalWidth, pSh = perfil.naturalHeight;
+                    var pLado = pRaio * 2;
+                    var pS = Math.max(pLado / pSw, pLado / pSh);
+                    var pW = pSw * pS, pH = pSh * pS;
+                    ctx.drawImage(perfil, pCx - pW / 2, pCy - pH / 2, pW, pH);
+                    ctx.restore();
+                }
+
+                // === 2) HudHP.png POR ÚLTIMO — OVERLAY PURO por cima de tudo ===
+                // A moldura dourada, ícones, bordas, gemas e detalhes ficam intactos
+                // e SEMPRE visíveis. Sem destination-out, sem clip na moldura,
+                // sem apagar/modificar a imagem — a PNG é só desenhada por cima.
+                ctx.drawImage(img, hx, hy, hudW, hudH);
+            };
+        })();
+
         // v1.34: contador de OURO na HUD
         function atualizarHudOuro() {
             let el = document.getElementById("hud-ouro-qtd");
@@ -2029,7 +2237,11 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 ['btn-ogro-colossal', () => window.ogroColossalCooldown, 45],
                 ['btn-dash', () => window.dashCooldownAtivo, 5],
                 ['btn-tornado', () => window.tornadoCooldownAtivo, 10],
-                ['btn-guerreiro-provocacao', () => window.guerreiroProvocacaoCooldown, 10]
+                ['btn-guerreiro-provocacao', () => window.guerreiroProvocacaoCooldown, 10],
+                ['btn-pikeman-giro', () => window.giroPikemanCooldown, 7],
+                ['btn-pikeman-pirueta', () => window.piruetaPikemanCooldown, 10],
+                ['btn-pikeman-geada', () => window.geadaPikemanCooldown, 12],
+                ['btn-pikeman-execucao', () => window.execucaoPikemanCooldown, 30]
             ];
             map.forEach(function ([btnId, ativo, padrao]) {
                 const btn = document.getElementById(btnId);
@@ -2130,7 +2342,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                         // do proprio jogador em OUTRO mapa (cidade) e precisam SEMPRE passar,
                         // senao o respawn e descartado e o jogador fica preso na borda do mapa.
                         if (dados && Number.isFinite(dados.x) && Number.isFinite(dados.y) && dados.type !== 'init' && dados.type !== 'teleporte_confirmado' && dados.type !== 'respawn_confirmado') {
-                            const mapaEvento = dados.x >= window.LARGURA_ARENA ? 'arena' : (dados.x >= window.LARGURA_CIDADE && dados.x < window.FIM_CIDADE ? 'cidade' : (dados.x >= window.LARGURA_PANTANO ? 'caverna' : (dados.x >= window.LARGURA_DESERTO ? 'pantano' : (dados.x >= window.LARGURA_VERDE ? 'desert' : 'green'))));
+                            const mapaEvento = dados.x >= window.LARGURA_CIDADE_PERDIDA ? 'cidadeperdida' : (dados.x >= window.LARGURA_ARENA ? 'arena' : (dados.x >= window.LARGURA_CIDADE && dados.x < window.FIM_CIDADE ? 'cidade' : (dados.x >= window.LARGURA_PANTANO ? 'caverna' : (dados.x >= window.LARGURA_DESERTO ? 'pantano' : (dados.x >= window.LARGURA_VERDE ? 'desert' : 'green')))));
                             if (mapaEvento !== window.currentMap) return;
                         }
                         if (window.AudioManager && typeof window.AudioManager.handleGameEvent === 'function') window.AudioManager.handleGameEvent(dados);
@@ -2185,7 +2397,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                             // CORREÇÃO: seta o mapa certo na 1ª frame (ex.: personagem salvo na Arena
                             // ou em qualquer bioma que não seja a cidade). Sem isso, a 1ª frame renderiza
                             // a cidade e o clamp puxa o char para o canto (X = FIM_CIDADE - 42).
-                            window.currentMap = (window.meuX >= window.LARGURA_ARENA) ? (window.solariAtivo ? 'solari' : 'arena') : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 'cidade' : ((window.meuX >= window.LARGURA_PANTANO) ? 'caverna' : ((window.meuX >= window.LARGURA_DESERTO) ? 'pantano' : ((window.meuX >= window.LARGURA_VERDE) ? 'desert' : 'green'))));
+                            window.currentMap = (window.meuX >= window.LARGURA_CIDADE_PERDIDA) ? 'cidadeperdida' : ((window.meuX >= window.LARGURA_ARENA) ? (window.solariAtivo ? 'solari' : 'arena') : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 'cidade' : ((window.meuX >= window.LARGURA_PANTANO) ? 'caverna' : ((window.meuX >= window.LARGURA_DESERTO) ? 'pantano' : ((window.meuX >= window.LARGURA_VERDE) ? 'desert' : 'green')))));
                         }
                         if (dados.level !== undefined) meuLevel = dados.level;
                         if (dados.xp !== undefined) meuXp = dados.xp;
@@ -2235,7 +2447,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                             // Arena de Solari: entra (ou sai) do modo Solari
                             window.solariAtivo = (mapaDestino === 'solari');
                             if (typeof window.solariMudouMapa === 'function') window.solariMudouMapa(mapaDestino === 'solari');
-                            let mapaMostrar = (mapaDestino === 'solari') ? 'solari' : ((mapaDestino === 'arena') ? 'arena' : ((mapaDestino === 'cidade') ? 'cidade' : ((mapaDestino === 'caverna') ? 'caverna' : ((mapaDestino === 'pantano') ? 'pantano' : ((mapaDestino === 'desert') ? 'desert' : 'green')))));
+                            let mapaMostrar = (mapaDestino === 'solari') ? 'solari' : ((mapaDestino === 'arena') ? 'arena' : ((mapaDestino === 'cidade') ? 'cidade' : ((mapaDestino === 'cidadeperdida') ? 'cidadeperdida' : ((mapaDestino === 'caverna') ? 'caverna' : ((mapaDestino === 'pantano') ? 'pantano' : ((mapaDestino === 'desert') ? 'desert' : 'green'))))));
                             fadeTeleporte(mapaMostrar, dados.x, dados.y);
                             if (statusText) statusText.innerText = "🌀 Teleportado para " + mapaMostrar + "!";
                         }
@@ -2705,7 +2917,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                         }
                     }
 
-                    if (dados.type === 'action_corte' && window.todosJogadores[dados.id]) { criarEfeitoCorte(window.todosJogadores[dados.id].x + 12, window.todosJogadores[dados.id].y + 16, window.todosJogadores[dados.id].angulo); }
+                    if (dados.type === 'action_corte' && window.todosJogadores[dados.id]) { criarEfeitoCorte(window.todosJogadores[dados.id].x + 12, window.todosJogadores[dados.id].y + 16, window.todosJogadores[dados.id].angulo); if (typeof window.registrarCorteGuerreiro === 'function') window.registrarCorteGuerreiro(dados.id); }
                     if (dados.type === 'action_block') {
                         if (dados.id === window.meuId) { if (window.tocarSonoro) window.tocarSonoro('guerreiro_block'); else tocarSomBlock(); }
                         let alvoX = (dados.id === window.meuId) ? window.meuX : (window.todosJogadores[dados.id] ? window.todosJogadores[dados.id].x : null);
@@ -2978,6 +3190,49 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                     if (dados.type === 'action_sniper_camuflagem_fim') {
                         if (dados.id === window.meuId) { window.snCamufladoAtivo = false; }
                     }
+                    // ===== AÇÕES DO PIKEMAN =====
+                    if (dados.type === 'action_pikeman_foice') {
+                        if (dados.id && dados.id !== window.meuId) {
+                            if (window.tocarSonoro) window.tocarSonoro('pikeman_atk');
+                        }
+                        if (typeof window.registrarPikemanAnim === 'function') window.registrarPikemanAnim(dados.id, 'foice', 320);
+                    }
+                    if (dados.type === 'action_pikeman_giro') {
+                        if (dados.id === window.meuId && window.tocarSonoro) window.tocarSonoro('pikeman_giro');
+                        if (typeof window.criarAnimacaoGiroPikeman === 'function') window.criarAnimacaoGiroPikeman(dados.id, dados.x, dados.y, dados.durMs);
+                    }
+                    if (dados.type === 'action_pikeman_giro_hit') {
+                        if (typeof window.criarFlashPikeman === 'function') window.criarFlashPikeman(dados.x, dados.y, '#ff5d7a', 8);
+                    }
+                    if (dados.type === 'action_pikeman_pirueta') {
+                        if (dados.id === window.meuId && window.tocarSonoro) window.tocarSonoro('pikeman_pirueta');
+                        if (typeof window.criarAnimacaoPiruetaPikeman === 'function') window.criarAnimacaoPiruetaPikeman(dados.id, dados.x, dados.y);
+                    }
+                    if (dados.type === 'action_pikeman_pirueta_hit') {
+                        if (typeof window.criarImpactoPiruetaPikeman === 'function') window.criarImpactoPiruetaPikeman(dados.x, dados.y, dados.hit);
+                    }
+                    if (dados.type === 'action_pikeman_geada') {
+                        if (dados.id === window.meuId && window.tocarSonoro) window.tocarSonoro('pikeman_geada');
+                        if (typeof window.criarAnimacaoGeadaPikeman === 'function') window.criarAnimacaoGeadaPikeman(dados.id, dados.x, dados.y, dados.raio);
+                    }
+                    if (dados.type === 'action_pikeman_geada_hit') {
+                        if (typeof window.criarImpactoGeadaPikeman === 'function') window.criarImpactoGeadaPikeman(dados.x, dados.y);
+                    }
+                    if (dados.type === 'action_pikeman_execucao') {
+                        if (dados.id === window.meuId && window.tocarSonoro) window.tocarSonoro('pikeman_execucao');
+                        if (typeof window.criarAnimacaoExecucaoPikeman === 'function') window.criarAnimacaoExecucaoPikeman(dados.id, dados.x, dados.y, dados.alvoX, dados.alvoY, dados.durMs);
+                    }
+                    if (dados.type === 'action_pikeman_execucao_hit') {
+                        if (typeof window.criarImpactoExecucaoPikeman === 'function') window.criarImpactoExecucaoPikeman(dados.pX, dados.pY, dados.hit, dados.x, dados.y);
+                        let animEx = (window.pikemanAnims && window.pikemanAnims[dados.id]) || null;
+                        if (animEx && animEx.estado === 'execucao') animEx.hit = dados.hit || 1;
+                    }
+                    if (dados.type === 'action_pikeman_execucao_end') {
+                        if (typeof window.registrarPikemanAnim === 'function') window.registrarPikemanAnim(dados.id, 'idle', 500);
+                    }
+                    if (dados.type === 'action_pikeman_execucao_cancel') {
+                        if (typeof window.cancelarAnimacaoExecucaoPikeman === 'function') window.cancelarAnimacaoExecucaoPikeman(dados.id);
+                    }
                     if (dados.type === 'action_tornado' && window.todosJogadores[dados.id]) {
                         window.tornadoTimers[dados.id] = 30;
                         if (dados.id === window.meuId) { if (window.tocarSonoro) window.tocarSonoro('guerreiro_tornado'); else tocarSomTornado(); }
@@ -2990,6 +3245,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                         if (typeof window.criarAnimacaoCuraGuerreiro === "function") {
                             window.criarAnimacaoCuraGuerreiro(dados.id, dados.x, dados.y, dados.cura);
                         }
+                        if (typeof window.registrarDefesaGuerreiro === 'function') window.registrarDefesaGuerreiro(dados.id);
                     }
                     if (dados.type === 'action_roqueiro_grito_guerra') {
                         if (typeof window.criarAnimacaoGritoGuerra === 'function') {
@@ -3380,6 +3636,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             btnDmSupressao.style.display = "none"; btnDmAssalto.style.display = "none"; btnDmCaixa.style.display = "none"; btnDmTita.style.display = "none";
             btnArcanoCometas.style.display = "none"; btnArcanoOrbe.style.display = "none"; btnArcanoCascata.style.display = "none";
             btnSniperApontar.style.display = "none"; btnSniperRede.style.display = "none"; btnSniperPosicao.style.display = "none"; btnSniperCamuflagem.style.display = "none";
+            btnPikemanGiro.style.display = "none"; btnPikemanPirueta.style.display = "none"; btnPikemanGeada.style.display = "none"; btnPikemanExecucao.style.display = "none";
 
             btnDash.innerText = "💨"; btnDash.title = "Dash (1)";
 
@@ -3412,6 +3669,8 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 btnArcanoCometas.style.display = "block"; btnArcanoOrbe.style.display = "block"; btnArcanoCascata.style.display = "block"; btnAttack.innerText = "🌠"; btnAttack.style.background = "#5b4da0";
             } else if (window.minhaClasse === 'sniper') {
                 btnSniperApontar.style.display = "block"; btnSniperRede.style.display = "block"; btnSniperPosicao.style.display = "block"; btnSniperCamuflagem.style.display = "block"; btnAttack.innerText = "🎯"; btnAttack.style.background = "#7d8a3d";
+            } else if (window.minhaClasse === 'pikeman') {
+                btnPikemanGiro.style.display = "block"; btnPikemanPirueta.style.display = "block"; btnPikemanGeada.style.display = "block"; btnPikemanExecucao.style.display = "block"; btnAttack.innerText = "⚖️"; btnAttack.style.background = "#5c2d36";
             } else {
                 btnTornado.style.display = "block";
                 if (btnGuerreiroProvocacao) btnGuerreiroProvocacao.style.display = "block";
@@ -3752,6 +4011,87 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_barbaro' }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
         }
 
+        // ============================================================
+        // PIKEMAN — funções do cliente (disparo/úteis/skills)
+        // ============================================================
+
+        // Acha um inimigo dentro do alcance para skills de alvo (Pirueta/Execução)
+        function obterAlvoAlcancePikeman(limite) {
+            let pX = window.meuX + 12, pY = window.meuY + 16;
+            // 1º: mantém o autoAlvo estável (se ainda estiver vivo e em alcance)
+            if (autoAlvo && autoAlvo.id) {
+                let a = autoAlvo.tipo === 'slime' ? window.listaSlimes.find(s => s && s.id === autoAlvo.id) : (autoAlvo.tipo === 'boss' ? listaBosses.find(b => b && b.id === autoAlvo.id) : null);
+                if (a && a.hp > 0 && Math.hypot(a.x - pX, a.y - pY) <= limite) {
+                    autoAlvo.x = a.x; autoAlvo.y = a.y;
+                    return { tipo: autoAlvo.tipo, id: autoAlvo.id, x: a.x, y: a.y };
+                }
+            }
+            // 2º: o inimigo mais próximo dentro do limite
+            let melhor = null, menor = Infinity;
+            window.listaSlimes.forEach(s => { if (s && s.hp > 0) { let d = Math.hypot(s.x - pX, s.y - pY); if (d <= limite && d < menor) { menor = d; melhor = { tipo: 'slime', id: s.id, x: s.x, y: s.y }; } } });
+            if (!melhor) listaBosses.forEach(b => { if (b && b.hp > 0) { let d = Math.hypot(b.x - pX, b.y - pY); if (d <= limite && d < menor) { menor = d; melhor = { tipo: 'boss', id: b.id, x: b.x, y: b.y }; } } });
+            return melhor;
+        }
+
+        function enviarAtaquePikeman(anguloForcado, alvoTipo, alvoId) {
+            if (window.estaMorto || window.pikemanEstadoLocal.execucaoAtiva) return;
+            if (typeof window.registrarPikemanAnim === 'function') window.registrarPikemanAnim(window.meuId, 'foice', 320);
+            if (window.tocarSonoro) window.tocarSonoro('pikeman_atk'); else if (typeof tocarSomMachado === 'function') tocarSomMachado();
+            if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_pikeman' }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
+        }
+
+        function usarGiroPikeman() {
+            if (window.estaMorto || window.pikemanEstadoLocal.execucaoAtiva || window.giroPikemanCooldown || window.pikemanEstadoLocal.giroAtivo) return;
+            if (window.meuStunTimer > 0) return;
+            if (typeof checarSkill === 'function' && !checarSkill('giro_foice', 25)) return;
+            window.giroPikemanCooldown = true; btnPikemanGiro.classList.add("cooldown");
+            if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnPikemanGiro, 7000);
+            setTimeout(() => { window.giroPikemanCooldown = false; limparCdBotao(btnPikemanGiro); }, 7000);
+            if (typeof window.criarAnimacaoGiroPikeman === 'function') window.criarAnimacaoGiroPikeman(window.meuId, window.meuX + 12, window.meuY + 16, 1200);
+            if (window.tocarSonoro) window.tocarSonoro('pikeman_giro');
+            if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'pikeman_giro' }));
+        }
+
+        function usarPiruetaPikeman() {
+            if (window.estaMorto || window.pikemanEstadoLocal.execucaoAtiva || window.piruetaPikemanCooldown) return;
+            if (window.meuStunTimer > 0) return;
+            if (typeof checarSkill === 'function' && !checarSkill('pirueta_morte', 22)) return;
+            let alvo = obterAlvoAlcancePikeman(120);
+            if (!alvo) { if (typeof avisoSkillLocal === 'function') avisoSkillLocal('alcance'); return; }
+            window.piruetaPikemanCooldown = true; btnPikemanPirueta.classList.add("cooldown");
+            if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnPikemanPirueta, 10000);
+            setTimeout(() => { window.piruetaPikemanCooldown = false; limparCdBotao(btnPikemanPirueta); }, 10000);
+            if (typeof window.criarAnimacaoPiruetaPikeman === 'function') window.criarAnimacaoPiruetaPikeman(window.meuId, window.meuX + 12, window.meuY + 16);
+            if (window.tocarSonoro) window.tocarSonoro('pikeman_pirueta');
+            if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'pikeman_pirueta', alvoTipo: alvo.tipo, alvoId: alvo.id }));
+        }
+
+        function usarGeadaPikeman() {
+            if (window.estaMorto || window.pikemanEstadoLocal.execucaoAtiva || window.geadaPikemanCooldown) return;
+            if (window.meuStunTimer > 0) return;
+            if (typeof checarSkill === 'function' && !checarSkill('geada_morte', 25)) return;
+            window.geadaPikemanCooldown = true; btnPikemanGeada.classList.add("cooldown");
+            if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnPikemanGeada, 12000);
+            setTimeout(() => { window.geadaPikemanCooldown = false; limparCdBotao(btnPikemanGeada); }, 12000);
+            if (typeof window.criarAnimacaoGeadaPikeman === 'function') window.criarAnimacaoGeadaPikeman(window.meuId, window.meuX + 12, window.meuY + 16, 130);
+            if (window.tocarSonoro) window.tocarSonoro('pikeman_geada');
+            if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'pikeman_geada' }));
+        }
+
+        function usarExecucaoPikeman() {
+            if (window.estaMorto || window.pikemanEstadoLocal.execucaoAtiva || window.execucaoPikemanCooldown) return;
+            if (window.meuStunTimer > 0) return;
+            if (typeof checarSkill === 'function' && !checarSkill('execucao_morte', 35)) return;
+            let alvo = obterAlvoAlcancePikeman(125);
+            if (!alvo) { if (typeof avisoSkillLocal === 'function') avisoSkillLocal('alcance'); return; }
+            window.execucaoPikemanCooldown = true; btnPikemanExecucao.classList.add("cooldown");
+            if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnPikemanExecucao, 30000);
+            setTimeout(() => { window.execucaoPikemanCooldown = false; limparCdBotao(btnPikemanExecucao); }, 30000);
+            if (typeof window.criarAnimacaoExecucaoPikeman === 'function') window.criarAnimacaoExecucaoPikeman(window.meuId, window.meuX + 12, window.meuY + 16, alvo.x, alvo.y, 3000);
+            if (window.tocarSonoro) window.tocarSonoro('pikeman_execucao');
+            if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'pikeman_execucao', alvoTipo: alvo.tipo, alvoId: alvo.id }));
+        }
+
         // Métodos de Smart Cast das outras classes
         function ativarMeteoroSmartCast() {
             if (window.estaMorto || window.meteoroCooldownAtivo || window.minhaClasse !== 'mago') return;
@@ -4062,6 +4402,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             if (c === 'dronemaster') return (window.dmTitaAtivo ? 242 : 124); // v1.32: alcance +15% (108→124; Tita 210→242)
             if (c === 'arqueiro_arcano') return 260;
             if (c === 'sniper') return 384;
+            if (c === 'pikeman') return 100;
             return 300;
         }
 
@@ -4200,6 +4541,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             else if (window.minhaClasse === 'dronemaster') { if (!window.dmAssaltoVisual) enviarAtaqueDronemaster(ang, alvoTipo, alvoId); }
             else if (window.minhaClasse === 'arqueiro_arcano') { enviarAtaqueArcano(ang, alvoTipo, alvoId); }
             else if (window.minhaClasse === 'sniper') { enviarAtaqueSniper(ang, alvoTipo, alvoId); }
+            else if (window.minhaClasse === 'pikeman') { enviarAtaquePikeman(ang, alvoTipo, alvoId); }
             else { enviarAcaoCorte(ang, alvoTipo, alvoId); }
         }
 
@@ -4210,7 +4552,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             let trava = ef.some(e => e && (e.id === 'paralisia' || e.id === 'sono') && e.tempo > 0);
             if (window.meuStunTimer > 0 || trava || window.roqueiroBateriaLigada || window.arqueiroRajadaLigada || window.spawnAdminAberto || window.teleporteAberto || window.ferreiroAberto) return;
             // v1.30.2: ataque básico bloqueado durante Estrela da Morte / Dança das Adagas / Giro Descontrolado
-            if (window.ladinoEstrelaAtivo || window.ladinoDancaAtivo || window.giroDescontroladoLigado) { autoAlvo = null; return; }
+            if (window.ladinoEstrelaAtivo || window.ladinoDancaAtivo || window.giroDescontroladoLigado || (window.pikemanEstadoLocal && window.pikemanEstadoLocal.execucaoAtiva)) { autoAlvo = null; return; }
             if (window.snAimAtivo || window.snPosicaoAtivo) { autoAlvo = null; return; }
             // SNIPER camuflado na moita: NÃO ataca automaticamente; só volta a atacar ao usar uma skill
             if (window.minhaClasse === 'sniper' && window.snCamufladoAtivo) { autoAlvo = null; return; }
@@ -4391,6 +4733,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 tocarSomCorte();
             }
             let anguloCorte = (anguloForcado !== undefined) ? anguloForcado : window.meuAngulo; criarEfeitoCorte(window.meuX + 12, window.meuY + 16, anguloCorte);
+            if (typeof window.registrarCorteGuerreiro === 'function') window.registrarCorteGuerreiro(window.meuId);
             if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'corte' }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
         }
 
@@ -4747,7 +5090,8 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 { nome: "🪷 PÂNTANO LODOSO", nivel: "Nv. 25-40 (Tóxico)", x: 50000, w: 8000, cor: "#223114", borda: "#27ae60" },
                 { nome: "🕳️ CAVERNA DG", nivel: "Nv. 40+", x: 58000, w: 1800, cor: "#2a1515", borda: "#c0392b" },
                 { nome: "🏰 CIDADE DE DAVAHL", nivel: "Safe Hub", x: 59800, w: 1374, cor: "#152a3b", borda: "#3498db" },
-                { nome: "⚔️ ARENA DE DAVAHL", nivel: "PvP / Duelos", x: 63800, w: 1240, cor: "#2b1c11", borda: "#e67e22" }
+                { nome: "⚔️ ARENA DE DAVAHL", nivel: "PvP / Duelos", x: 63800, w: 1240, cor: "#2b1c11", borda: "#e67e22" },
+                { nome: "🏛️ CIDADE PERDIDA", nivel: "Ruínas distantes", x: 65040, w: 6880, cor: "#1c2a1d", borda: "#00e5ff" }
             ];
 
             zonas.forEach(z => {
@@ -4801,6 +5145,23 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             bigMapCtx.fillStyle = "#ff9800";
             bigMapCtx.font = "bold 9px Arial";
             bigMapCtx.fillText("🌀 PORTAL ARENA", pxPortalArena, pyPortalArena - 11);
+            bigMapCtx.restore();
+
+            // Portal de Retorno da Cidade Perdida (65140, 460)
+            let pxPortalCPD = 65140 * sx, pyPortalCPD = 460 * sy;
+            bigMapCtx.save();
+            bigMapCtx.strokeStyle = "#00e5ff";
+            bigMapCtx.lineWidth = 2;
+            bigMapCtx.beginPath();
+            bigMapCtx.arc(pxPortalCPD, pyPortalCPD, 7 + Math.sin(tempoP) * 1.5, 0, Math.PI * 2);
+            bigMapCtx.stroke();
+            bigMapCtx.fillStyle = "#4dd0e1";
+            bigMapCtx.beginPath();
+            bigMapCtx.arc(pxPortalCPD, pyPortalCPD, 4, 0, Math.PI * 2);
+            bigMapCtx.fill();
+            bigMapCtx.fillStyle = "#00e5ff";
+            bigMapCtx.font = "bold 9px Arial";
+            bigMapCtx.fillText("🌀 PORTAL C. PERDIDA", pxPortalCPD, pyPortalCPD - 11);
             bigMapCtx.restore();
 
             // Drops
@@ -4993,6 +5354,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             else if (window.minhaClasse === 'dronemaster') usarSupressaoDronemaster();
             else if (window.minhaClasse === 'arqueiro_arcano') ativarCometasSmartCast();
             else if (window.minhaClasse === 'sniper') ativarSniperTiroSmartCast();
+            else if (window.minhaClasse === 'pikeman') usarGiroPikeman();
             else usarDash();
         }
 
@@ -5008,6 +5370,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             else if (window.minhaClasse === 'dronemaster') usarAssaltoDronemaster();
             else if (window.minhaClasse === 'arqueiro_arcano') ativarOrbeSmartCast();
             else if (window.minhaClasse === 'sniper') ativarRedeSmartCast();
+            else if (window.minhaClasse === 'pikeman') usarPiruetaPikeman();
             else usarTornado();
         }
 
@@ -5023,6 +5386,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             else if (window.minhaClasse === 'dronemaster') ativarCaixaSmartCast();
             else if (window.minhaClasse === 'arqueiro_arcano') usarCascataEstelar();
             else if (window.minhaClasse === 'sniper') usarPosicaoSniper();
+            else if (window.minhaClasse === 'pikeman') usarGeadaPikeman();
             else if (!window.minhaClasse || window.minhaClasse === 'guerreiro') usarGritoProvocacao();
         }
 
@@ -5136,6 +5500,10 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 }
                 if (window.minhaClasse === 'sniper') {
                     usarCamuflagemSniper();
+                    return;
+                }
+                if (window.minhaClasse === 'pikeman') {
+                    usarExecucaoPikeman();
                     return;
                 }
             }
@@ -5501,6 +5869,16 @@ const xpBarFill = document.getElementById("xp-bar-fill");
 
             // SNIPER: zoom-out suave enquanto aponta o Disparo Supremo (~10% mais longe) e volta ao normal ao atirar
             window.zoomAlvo = (window.snAimAtivo) ? ZOOM_CAMERA * 0.90 : ZOOM_CAMERA;
+            // PIKEMAN — EXECUÇÃO DA MORTE: zoom progressivo (aproxima a câmera durante a carga de 3s)
+            if (window.pikemanEstadoLocal && window.pikemanEstadoLocal.execucaoAtiva && window.pikemanEstadoLocal.execucaoDur) {
+                let pExe = Math.max(0, Math.min(1, (performance.now() - (window.pikemanEstadoLocal.execucaoInicio || 0)) / window.pikemanEstadoLocal.execucaoDur));
+                window.zoomAlvo = ZOOM_CAMERA * (1 - 0.06 * pExe);
+                // FIX de segurança: se o fim do canal não chegar (mensagem perdida/atraso),
+                // libera o controle do Pikeman assim que a duração da execução passar.
+                if (pExe >= 1 && (performance.now() - (window.pikemanEstadoLocal.execucaoInicio || 0)) > window.pikemanEstadoLocal.execucaoDur + 1500) {
+                    window.pikemanEstadoLocal.execucaoAtiva = false;
+                }
+            }
             window.cameraZoomAtual += (window.zoomAlvo - window.cameraZoomAtual) * 0.09;
             if (Math.abs(window.zoomAlvo - window.cameraZoomAtual) < 0.0005) window.cameraZoomAtual = window.zoomAlvo;
 
@@ -5549,16 +5927,29 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 if (!colidiu) { window.meuX = proximoX; window.meuY = proximoY; isMoving = true; window.walkCycle += 0.15; }
             } else if (window.estaMorto) { moveX = 0; moveY = 0; joystickBase.style.display = "none"; }
 
+            // REDE DE SEGURANÇA v1.34.2: se a posição vira NaN (bug cross-mapa ou
+            // dado corrompido), restaura a posição autoritativa do servidor e evita
+            // que currentMap caia no branch 'green' (tela toda verde).
+            if (!Number.isFinite(window.meuX) || !Number.isFinite(window.meuY)) {
+                const ref = (window.meuId && window.todosJogadores && window.todosJogadores[window.meuId]) ? window.todosJogadores[window.meuId] : null;
+                if (ref && Number.isFinite(ref.x) && Number.isFinite(ref.y)) {
+                    window.meuX = ref.x;
+                    window.meuY = ref.y;
+                } else {
+                    window.meuX = 60474;
+                    window.meuY = 640;
+                }
+            }
             if (window.meuX < 10) window.meuX = 10; if (window.meuX > WORLD_WIDTH - 30) window.meuX = WORLD_WIDTH - 30;
             if (window.meuY < 10) window.meuY = 10;
             // CORREÇÃO (canto preso): derivar o mapa ATUAL da posição ANTES do clamp de limites.
             // Antes, o clamp usava o currentMap da frame ANTERIOR (padrão 'cidade'); um personagem
             // salvo em outro mapa (ex.: Arena X=63800+) era puxado para FIM_CIDADE-42 (=X 61132)
             // e ficava travado no canto, sem conseguir andar nem teleportar.
-            window.currentMap = (window.meuX >= window.LARGURA_ARENA) ? (window.solariAtivo ? 'solari' : 'arena') : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 'cidade' : ((window.meuX >= window.LARGURA_PANTANO) ? 'caverna' : ((window.meuX >= window.LARGURA_DESERTO) ? 'pantano' : ((window.meuX >= window.LARGURA_VERDE) ? 'desert' : 'green'))));
-            let maxYMapa = (window.currentMap === 'arena' || window.currentMap === 'solari') ? 1240 : ((window.currentMap === 'cidade') ? 1145 : ((window.currentMap === 'caverna') ? 1800 : ((window.currentMap === 'pantano') ? 9000 : ((window.currentMap === 'desert') ? 36000 : 18000))));
+            window.currentMap = (window.meuX >= window.LARGURA_CIDADE_PERDIDA) ? 'cidadeperdida' : ((window.meuX >= window.LARGURA_ARENA) ? (window.solariAtivo ? 'solari' : 'arena') : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 'cidade' : ((window.meuX >= window.LARGURA_PANTANO) ? 'caverna' : ((window.meuX >= window.LARGURA_DESERTO) ? 'pantano' : ((window.meuX >= window.LARGURA_VERDE) ? 'desert' : 'green')))));
+            let maxYMapa = (window.currentMap === 'arena' || window.currentMap === 'solari') ? 1240 : ((window.currentMap === 'cidade') ? 1145 : ((window.currentMap === 'cidadeperdida') ? 3920 : ((window.currentMap === 'caverna') ? 1800 : ((window.currentMap === 'pantano') ? 9000 : ((window.currentMap === 'desert') ? 36000 : 18000)))));
             if (window.meuY > maxYMapa - 40) window.meuY = maxYMapa - 40;
-            const limitesMapaAtual = { green: [0, window.LARGURA_VERDE], desert: [window.LARGURA_VERDE, window.LARGURA_DESERTO], pantano: [window.LARGURA_DESERTO, window.LARGURA_PANTANO], caverna: [window.LARGURA_PANTANO, window.FIM_CAVERNA], cidade: [window.LARGURA_CIDADE, window.FIM_CIDADE], arena: [window.LARGURA_ARENA, window.FIM_ARENA], solari: [window.LARGURA_ARENA, window.FIM_ARENA] }[window.currentMap];
+            const limitesMapaAtual = { green: [0, window.LARGURA_VERDE], desert: [window.LARGURA_VERDE, window.LARGURA_DESERTO], pantano: [window.LARGURA_DESERTO, window.LARGURA_PANTANO], caverna: [window.LARGURA_PANTANO, window.FIM_CAVERNA], cidade: [window.LARGURA_CIDADE, window.FIM_CIDADE], arena: [window.LARGURA_ARENA, window.FIM_ARENA], solari: [window.LARGURA_ARENA, window.FIM_ARENA], cidadeperdida: [window.LARGURA_CIDADE_PERDIDA, window.FIM_CIDADE_PERDIDA] }[window.currentMap];
             if (limitesMapaAtual) {
                 window.meuX = Math.max(limitesMapaAtual[0] + 10, Math.min(limitesMapaAtual[1] - 42, window.meuX));
             }
@@ -5567,7 +5958,6 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 window.AudioManager.setMapAmbient(window.currentMap);
             }
             if (typeof window.chainMapas === "object" && typeof window.chainMapas.onUpdatePosicao === "function") window.chainMapas.onUpdatePosicao(window.meuX, window.meuY);
-            if (coordHud) coordHud.innerText = "X: " + Math.round(window.meuX + 12) + "  Y: " + Math.round(window.meuY + 16);
 
             let larguraVisivel = canvas.width / (window.cameraZoomAtual || ZOOM_CAMERA); let alturaVisivel = canvas.height / (window.cameraZoomAtual || ZOOM_CAMERA);
             let cameraX = Math.max(0, Math.min(window.meuX - larguraVisivel / 2, Math.max(0, WORLD_WIDTH - larguraVisivel))); 
@@ -5592,7 +5982,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
 
             ctx.setTransform(1, 0, 0, 0, 0, 0);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.fillStyle = (window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'solari') ? "#150f24" : ((window.currentMap === 'pantano') ? "#24301a" : ((window.currentMap === 'desert') ? "#d9b45c" : ((window.currentMap === 'caverna') ? "#1a0f0f" : ((window.currentMap === 'cidade') ? "#2c2a27" : "#163f18")))));
+            ctx.fillStyle = (window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'solari') ? "#150f24" : ((window.currentMap === 'pantano') ? "#24301a" : ((window.currentMap === 'desert') ? "#d9b45c" : ((window.currentMap === 'caverna') ? "#1a0f0f" : ((window.currentMap === 'cidade') ? "#2c2a27" : ((window.currentMap === 'cidadeperdida') ? "#1c2a1d" : "#163f18"))))));
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.save(); ctx.scale((window.cameraZoomAtual || ZOOM_CAMERA), (window.cameraZoomAtual || ZOOM_CAMERA)); ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
 
@@ -5602,6 +5992,10 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 ctx.fillStyle = (window.currentMap === 'solari') ? "#150f24" : "#141210";
                 ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
                 if (typeof window.desenharCenarioArena === "function") window.desenharCenarioArena(tempoAnimacao);
+            } else if (window.currentMap === 'cidadeperdida') {
+                ctx.fillStyle = "#1c2a1d"; // cor de fundo da Cidade Perdida
+                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+                if (typeof window.desenharCenarioCidadePerdida === "function") window.desenharCenarioCidadePerdida(tempoAnimacao);
             } else if (window.currentMap === 'pantano') {
                 ctx.fillStyle = "#2c3a1d"; // cor de fundo do pântano (limpa o buffer)
                 ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -5659,13 +6053,14 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             if (typeof window.desenharPedrasEnormes === "function") window.desenharPedrasEnormes();
             if (typeof window.desenharEfeitosRoqueiro === "function") window.desenharEfeitosRoqueiro();
             if (typeof window.desenharEfeitosLadino === "function") window.desenharEfeitosLadino();
+            if (typeof window.desenharEfeitosPikeman === "function") window.desenharEfeitosPikeman();
             if (typeof window.desenharMiraArcana === "function") window.desenharMiraArcana();
             if (typeof window.desenharMarcadorDrag === "function") window.desenharMarcadorDrag();
             if (typeof window.desenharMarcasBoss === "function") window.desenharMarcasBoss();
             if (typeof window.desenharImpactosPedra === "function") window.desenharImpactosPedra();
 
             // ===== MOITAS DE MATO (Sniper — Camuflagem) decoração de chão =====
-            if (window.moitas && window.moitas.length && window.currentMap !== 'cidade' && window.currentMap !== 'arena' && window.currentMap !== 'solari') {
+            if (window.moitas && window.moitas.length && window.currentMap !== 'cidade' && window.currentMap !== 'arena' && window.currentMap !== 'solari' && window.currentMap !== 'cidadeperdida') {
                 for (let i = window.moitas.length - 1; i >= 0; i--) {
                     let m = window.moitas[i];
                     if (!m) continue;
@@ -5782,6 +6177,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                             else if (classeJogador === 'dronemaster') { if (typeof window.desenharDronemaster === "function") window.desenharDronemaster(posX, posY, mov, ang, hpVal, maxHpVal, { eu: (pid === window.meuId), pp: pp }); }
                             else if (classeJogador === 'arqueiro_arcano') { if (typeof window.desenharArqueiroArcano === "function") window.desenharArqueiroArcano(posX, posY, mov, ang, hpVal, maxHpVal, { eu: (pid === window.meuId), pp: pp }); }
                             else if (classeJogador === 'sniper') { if (typeof window.desenharSniper === "function") window.desenharSniper(posX, posY, mov, ang, hpVal, maxHpVal, { eu: (pid === window.meuId), pp: pp }); }
+                            else if (classeJogador === 'pikeman') { if (typeof window.desenharPikeman === "function") window.desenharPikeman(posX, posY, mov, ang, hpVal, maxHpVal, { eu: (pid === window.meuId), pp: pp }, pid); }
                             else { if (typeof window.desenharGuerreiro === "function") window.desenharGuerreiro(posX, posY, (pid === window.meuId ? "#c0392b" : "#2980b9"), mov, ang, hpVal, maxHpVal, isSpinningPlayer, window.tornadoTimers[pid] || 0, pid); }
 
                             let rajadaState = pp.rajadaAtiva && pp.rajadaFase === 'carregando' ? pp : null;
@@ -5812,11 +6208,13 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                                 ctx.lineJoin = "round";
                                 ctx.lineWidth = 3;
                                 ctx.strokeStyle = "rgba(0, 0, 0, 0.85)";
-                                ctx.strokeText(pp.nome, posX + 12, posY - 23);
+                                // Pikeman é mais baixo (escala 0.72) → nick/HUD sobem para não invadir o capuz
+                                let nickY = (classeJogador === 'pikeman') ? -44 : -23;
+                                ctx.strokeText(pp.nome, posX + 12, posY + nickY);
                                 ctx.fillStyle = pp.pvpAtivo ? "#ff4d4d" : "#f1c40f";
                                 ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
                                 ctx.shadowBlur = 4;
-                                ctx.fillText(pp.nome, posX + 12, posY - 23);
+                                ctx.fillText(pp.nome, posX + 12, posY + nickY);
                                 ctx.restore();
                             }
 
@@ -6079,7 +6477,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
 
                 // Header do minimapa: bioma e coordenadas
                 if (minimapBioma) {
-                    let biomaLabel = (window.currentMap === 'arena') ? "⚔️ Arena" : ((window.currentMap === 'solari') ? "🔮 Arena de Solari" : ((window.currentMap === 'cidade') ? "🏰 Davahl" : ((window.currentMap === 'caverna') ? "🕳️ Caverna" : ((window.currentMap === 'pantano') ? "🪷 Pântano" : ((window.currentMap === 'desert') ? "🏜️ Deserto" : "🌿 Verde")))));
+                    let biomaLabel = (window.currentMap === 'arena') ? "⚔️ Arena" : ((window.currentMap === 'solari') ? "🔮 Arena de Solari" : ((window.currentMap === 'cidade') ? "🏰 Davahl" : ((window.currentMap === 'cidadeperdida') ? "🏛️ Cidade Perdida" : ((window.currentMap === 'caverna') ? "🕳️ Caverna" : ((window.currentMap === 'pantano') ? "🪷 Pântano" : ((window.currentMap === 'desert') ? "🏜️ Deserto" : "🌿 Verde"))))));
                     minimapBioma.innerText = biomaLabel;
                 }
                 if (minimapCoords) {
@@ -6100,7 +6498,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                     }
 
                     // Fundo temático do bioma ativo
-                    let corFundoBioma = (window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'solari') ? "#201430" : ((window.currentMap === 'cidade') ? "#132333" : ((window.currentMap === 'caverna') ? "#241315" : ((window.currentMap === 'pantano') ? "#1a2714" : ((window.currentMap === 'desert') ? "#4a3915" : "#163a1c")))));
+                    let corFundoBioma = (window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'solari') ? "#201430" : ((window.currentMap === 'cidade') ? "#132333" : ((window.currentMap === 'cidadeperdida') ? "#1c2a1d" : ((window.currentMap === 'caverna') ? "#241315" : ((window.currentMap === 'pantano') ? "#1a2714" : ((window.currentMap === 'desert') ? "#4a3915" : "#163a1c"))))));
                     mmCtx.fillStyle = corFundoBioma;
                     mmCtx.fillRect(0, 0, mw, mh);
 
@@ -6320,6 +6718,8 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             }
 
             if (window.atualizarBgmCidade) window.atualizarBgmCidade();
+            // v1.35: HUD Canvas Oficial (HudHP.png + barras dinâmicas)
+            if (window.desenharHudCanvas) window.desenharHudCanvas();
             requestAnimationFrame(loop);
         }
 

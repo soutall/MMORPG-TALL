@@ -2611,7 +2611,7 @@ function desenharZumbi(ctx, slime) {
         ctx.shadowColor = "#33cc22";
         ctx.shadowBlur = 12;
         ctx.beginPath();
-        ctx.ellipse(ax, ay, 20 + pulsarMira * 6, 20 + pulsarMira * 6, 0, Math.PI * 2);
+        ctx.ellipse(ax, ay, 20 + pulsarMira * 6, 20 + pulsarMira * 6, 0, 0, Math.PI * 2);
         ctx.fill();
         ctx.restore();
     }

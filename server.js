@@ -50,6 +50,14 @@ try {
     console.log("Aviso: mapa_arena.js não carregado: " + e.message);
 }
 
+let mapaCidadePerdida = null;
+try {
+    mapaCidadePerdida = require('./mapa_cidade_perdida.js');
+    console.log("Fase 7 'Cidade Perdida' carregada (" + mapaCidadePerdida.COLS + "x" + mapaCidadePerdida.ROWS + " tiles).");
+} catch (e) {
+    console.log("Aviso: mapa_cidade_perdida.js não carregado: " + e.message);
+}
+
 let salvarProgresso = () => {}, carregarProgresso = () => null;
 try {
     const db = require('./database.js');
@@ -113,6 +121,8 @@ const server = http.createServer((req, res) => {
     if (extname === '.js') contentType = 'text/javascript; charset=utf-8';
     if (extname === '.css') contentType = 'text/css; charset=utf-8';
     if (extname === '.json') contentType = 'application/json; charset=utf-8';
+    if (extname === '.png') contentType = 'image/png';
+    if (extname === '.jpg' || extname === '.jpeg') contentType = 'image/jpeg';
     if (extname === '.wav') contentType = 'audio/wav';
     if (extname === '.mp3') contentType = 'audio/mpeg';
     if (extname === '.ogg') contentType = 'audio/ogg';
@@ -157,7 +167,82 @@ let petRespawnTimer = {};
 let bandas = {};
 let bateriaCanal = {};
 let rajadaCanal = {};
+// ===== PIKEMAN: canalização da Execução da Morte (3s → 3 golpes) =====
+// canal = { startX, startY, alvoTipo, alvoId, timer (ticks 50ms), total, angulo }
+let pikemanCanais = {};
 let aurasSagradas = {};
+
+// ===== PIKEMAN — helpers da Execução da Morte (3 hits separados) =====
+function pikemanLocalizarAlvo(alvoTipo, alvoId) {
+    if (alvoTipo === 'slime') {
+        for (let s of slimes) { if (s.id === alvoId && s.hp > 0) return s; }
+        return null;
+    }
+    if (alvoTipo === 'boss') {
+        for (let b of bosses) { if (b.id === alvoId && b.hp > 0) return b; }
+        return null;
+    }
+    return null;
+}
+
+// PIRUETA DA MORTE — um golpe individual da cadeia de 3 (validado e contabilizado sozinho)
+function pikemanGolpePirueta(playerId, alvoTipo, alvoId, dano, num) {
+    let pk = players[playerId];
+    if (!pk || pk.hp <= 0) return;
+    let alvo = pikemanLocalizarAlvo(alvoTipo, alvoId);
+    if (alvo) {
+        let pX = pk.x + 12, pY = pk.y + 16;
+        // ainda dentro do alcance (135 de folga sobre os 120 do disparo)
+        if (Math.hypot(alvo.x - pX, alvo.y - pY) <= 135) {
+            if (alvoTipo === 'slime') registrarDanoMonstro(alvo, playerId, dano, 'player');
+            else registrarDanoBoss(alvo, playerId, dano, 'skill', 'player');
+        }
+        wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ type: 'action_pikeman_pirueta_hit', id: playerId, x: Math.round(alvo.x), y: Math.round(alvo.y), hit: num }));
+            }
+        });
+    }
+}
+
+function pikemanGolpeExecucao(playerId, alvoTipo, alvoId, dano, num) {
+    let pk = players[playerId];
+    if (!pk || pk.hp <= 0) return;
+    let alvo = pikemanLocalizarAlvo(alvoTipo, alvoId);
+    let pX = pk.x + 12, pY = pk.y + 16;
+    // Mesmo que o alvo morra antes, o golpe desce forte na posição (área frontal)
+    let golpeouAlvo = false;
+    if (alvo && Math.hypot(alvo.x - pX, alvo.y - pY) <= 145) {
+        if (alvoTipo === 'slime') registrarDanoMonstro(alvo, playerId, dano, 'player');
+        else registrarDanoBoss(alvo, playerId, dano, 'skill', 'player');
+        golpeouAlvo = true;
+    } else {
+        // AOE de impacto no chão quando o alvo morreu/escapou
+        danoEmBosses(pX, pY, 90, playerId, dano, 'skill', 'player');
+        for (let s of slimes) {
+            if (s.hp > 0 && Math.hypot(s.x - pX, s.y - pY) < 90) registrarDanoMonstro(s, playerId, dano, 'player');
+        }
+    }
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({
+                type: 'action_pikeman_execucao_hit', id: playerId,
+                x: golpeouAlvo ? alvo.x : pX, y: golpeouAlvo ? alvo.y : pY,
+                hit: num, pX: Math.round(pX), pY: Math.round(pY)
+            }));
+        }
+    });
+}
+
+// TAAA → TAAA → TAAAAAAAA : cada golpe validado e contabilizado individualmente
+function pikemanDispararExecucao(playerId, alvoTipo, alvoId) {
+    let pk = players[playerId];
+    if (!pk || pk.hp <= 0) return;
+    let dano = dmgSkill(pk, 'execucao_morte', 42);
+    pikemanGolpeExecucao(playerId, alvoTipo, alvoId, dano, 1);
+    setTimeout(() => pikemanGolpeExecucao(playerId, alvoTipo, alvoId, dano, 2), 240);
+    setTimeout(() => pikemanGolpeExecucao(playerId, alvoTipo, alvoId, dano, 3), 520);
+}
 let cooldownAuraSagrada = {};
 let cooldownRessurreicao = {};
 let dropsChao = [];
@@ -294,7 +379,7 @@ function colisaoObjetosDoMapa(mapa, cx, cy, raio) {
     return false;
 }
 
-const WORLD_WIDTH = 65040;
+const WORLD_WIDTH = 71920;
 const WORLD_HEIGHT = 36000;
 const LARGURA_VERDE = 18000; // Fase 1 (mapa verde — 10x maior)
 const LARGURA_DESERTO = 50000; // Fase 2 (deserto — 20x maior)
@@ -305,12 +390,15 @@ const LARGURA_CIDADE = 59800; // Fase 5 (cidade separada)
 const FIM_CIDADE = 61174;
 const LARGURA_ARENA = 63800; // Fase 6 (arena, apos a cidade)
 const FIM_ARENA = 65040;
-const ALTO_VERDE = 18000, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 1145, ALTO_ARENA = 1240;
+const LARGURA_CIDADE_PERDIDA = 65040; // Fase 7 (cidade perdida, apos a arena)
+const FIM_CIDADE_PERDIDA = 71920;
+const ALTO_VERDE = 18000, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 1145, ALTO_ARENA = 1240, ALTO_CIDADE_PERDIDA = 3920;
 const CIDADE_SPAWN_X = 60474, CIDADE_SPAWN_Y = 640;
 // ATENCAO: cada ponto precisa ficar FORA do raio do portal de retorno do mapa,
 // senao o cliente detecta o portal e dispara transicao falsa (tela preta).
 // arena: 64180/460 = PONTO_CHEGADA de mapa_arena.js (portal fica em 63980/460, r=62).
-const PONTOS_TELEPORTE = { green: { x: 5000, y: 1200 }, desert: { x: 18300, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, arena: { x: 64180, y: 460 } };
+// cidadeperdida: 65360/460 = PONTO_CHEGADA de mapa_cidade_perdida.js (portal em 65140/460, r=62).
+const PONTOS_TELEPORTE = { green: { x: 5000, y: 1200 }, desert: { x: 18300, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, arena: { x: 64180, y: 460 }, cidadeperdida: { x: 65360, y: 460 } };
 
 // ============ ARENA DE SOLARI (v1.32) ============
 // Portal ROXO na Cidade de Davahl (60488,236) → partida em grupo de até 4
@@ -570,6 +658,7 @@ function alcanceAtaqueBasicoClasse(p) {
     if (p.classe === 'summoner') return 190;
     if (p.classe === 'curandeiro') return 200;
     if (p.classe === 'ladino') return 110;
+    if (p.classe === 'pikeman') return 100;
     if (p.classe === 'dronemaster') return (p.dmTitaAtivo ? 242 : 124); // +15% (108→124; Tita 210→242)
     if (p.classe === 'sniper') return 384; // range reduzido em 20% (480 -> 384)
     return 300;
@@ -589,6 +678,7 @@ function tempoBaseAtaqueBasico(p) {
     if (p.classe === 'curandeiro') return 600;
     if (p.classe === 'roqueiro') return 750;
     if (p.classe === 'ladino') return 400;
+    if (p.classe === 'pikeman') return 400;
     return 300;
 }
 
@@ -866,7 +956,7 @@ function calcularVidaPet(player) {
 
 // Calcula dano final do autor, aplicando multiplicadores de atributo + crítico
 // tipoOrigem: 'player' (força/inteligência por classe + crítico), 'pet' (afinidade), 'dot' (profanidade)
-function calcularDanoJogador(autorId, quantidade, tipoOrigem) {
+function calcularDanoJogador(autorId, quantidade, tipoOrigem, alvo) {
     let p = players[autorId];
     if (!p) return { dano: Math.round(quantidade), critico: false };
     let mult = 1;
@@ -883,6 +973,18 @@ function calcularDanoJogador(autorId, quantidade, tipoOrigem) {
         if (efeitos && efeitos.temEfeito(p, 'gritoDeGuerra')) {
             chanceCritico += 0.30;
         }
+        // PIKEMAN — PASSIVA INSTINTO DA MORTE: +10% chance de crítico, +50% dano
+        // crítico e +20% de dano contra alvos sob LENTIDÃO/CONGELAMENTO.
+        let critMultExtra = 1;
+        if (p.classe === 'pikeman') {
+            chanceCritico += 0.10;
+            critMultExtra = 1.5;
+            if (alvo) {
+                let alvoLento = (typeof alvo.slowTimer === 'number' && alvo.slowTimer > 0) ||
+                    (alvo.efeitos && alvo.efeitos.some(function (ef) { return ef && (ef.id === 'lentidao' || ef.id === 'gelo' || ef.id === 'congelado'); }));
+                if (alvoLento) mult *= 1.20; // Dano Final = Dano Normal × 1.20
+            }
+        }
         // DRONEMASTER — PROTOCOLO TITÃ: +30% dano e +20% de chance de crítico
         if (p.classe === 'dronemaster' && p.dmTitaAtivo) {
             mult *= 1.30;
@@ -894,7 +996,7 @@ function calcularDanoJogador(autorId, quantidade, tipoOrigem) {
             chanceCritico += 1.0;
         }
         if (Math.random() < chanceCritico) {
-            critMult = 1.5 + (getAtr(p, 'destreza') - 1) * 0.03;
+            critMult = (1.5 + (getAtr(p, 'destreza') - 1) * 0.03) * critMultExtra;
             if (efeitos && efeitos.temEfeito(p, 'gritoDeGuerra')) {
                 critMult *= 1.5;
             }
@@ -1074,6 +1176,11 @@ function podeAndar(x, y) {
         if (mapaArena && mapaArena.colideArena(x, y)) return false;
         return true;
     }
+    if (x < FIM_CIDADE_PERDIDA) {
+        if (y >= ALTO_CIDADE_PERDIDA) return false;
+        if (mapaCidadePerdida && mapaCidadePerdida.colideCidadePerdida(x, y)) return false;
+        return true;
+    }
     return false;
 }
 
@@ -1092,6 +1199,7 @@ function mapaPorCoordenada(x) {
     if (x < FIM_CAVERNA) return 'caverna';
     if (x < FIM_CIDADE) return 'cidade';
     if (x >= LARGURA_ARENA && x < FIM_ARENA) return 'arena';
+    if (x >= LARGURA_CIDADE_PERDIDA && x < FIM_CIDADE_PERDIDA) return 'cidadeperdida';
     return null;
 }
 
@@ -1124,7 +1232,7 @@ function jogadorPodeUsarPortalMapa(player, destino) {
         return (mapaAtual === 'cidade' && perto(60474, 640)) ||
             (mapaAtual === 'green' && perto(17080, 4500));
     }
-    if (destino === 'pantano' || destino === 'caverna' || destino === 'arena') {
+    if (destino === 'pantano' || destino === 'caverna' || destino === 'arena' || destino === 'cidadeperdida') {
         return mapaAtual === 'cidade' && perto(60474, 640);
     }
     if (destino !== 'cidade') return false;
@@ -1132,7 +1240,8 @@ function jogadorPodeUsarPortalMapa(player, destino) {
     const portaisRetorno = [
         { x: 5000, y: 1200, r: 150 },
         { x: 52000, y: 4500, r: 150 },
-        { x: 63980, y: 460, r: 150 }
+        { x: 63980, y: 460, r: 150 },
+        { x: 65140, y: 460, r: 150 }
     ];
     return portaisRetorno.some(function (portal) { return Math.hypot(cx - portal.x, cy - portal.y) <= portal.r; });
 }
@@ -1215,6 +1324,7 @@ function limitesMapaJogador(cx, cy) {
     if (cx < FIM_CAVERNA) return { minX: LARGURA_CAVERNA, maxX: FIM_CAVERNA, maxY: ALTO_CAVERNA };
     if (cx < FIM_CIDADE) return { minX: LARGURA_CIDADE, maxX: FIM_CIDADE, maxY: ALTO_CIDADE };
     if (cx >= LARGURA_ARENA && cx < FIM_ARENA) return { minX: LARGURA_ARENA, maxX: FIM_ARENA, maxY: ALTO_ARENA };
+    if (cx >= LARGURA_CIDADE_PERDIDA && cx < FIM_CIDADE_PERDIDA) return { minX: LARGURA_CIDADE_PERDIDA, maxX: FIM_CIDADE_PERDIDA, maxY: ALTO_CIDADE_PERDIDA };
     return null;
 }
 
@@ -1225,6 +1335,7 @@ function colideMapaJogador(cx, cy) {
     if (cx < FIM_CAVERNA) { if (mapaCaverna && mapaCaverna.colideCaverna(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('caverna', cx, cy); }
     if (cx < FIM_CIDADE) { if (mapaCidade && mapaCidade.colideCidade(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('cidade', cx, cy); }
     if (cx >= LARGURA_ARENA && cx < FIM_ARENA) { if (mapaArena && mapaArena.colideArena(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('arena', cx, cy); }
+    if (cx >= LARGURA_CIDADE_PERDIDA && cx < FIM_CIDADE_PERDIDA) { if (mapaCidadePerdida && mapaCidadePerdida.colideCidadePerdida(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('cidadeperdida', cx, cy); }
     return true;
 }
 
@@ -1294,9 +1405,20 @@ function validarMovimentoJogador(player, targetX, targetY, opcoes) {
     return { aceito: true, bloqueado: false, parcial: false, x: ultimoX, y: ultimoY };
 }
 
-function validarDestinoJogador(targetX, targetY) {
+function validarDestinoJogador(targetX, targetY, mapaOrigem) {
     if (!posicaoJogadorValida(targetX, targetY)) {
         return { aceito: false, bloqueado: true, x: targetX, y: targetY };
+    }
+    // FIX v1.34.2 (tela verde na Arena/Solari): skills de reposicionamento NÃO
+    // podem cruzar a fronteira do mapa atual. Antes da Cidade Perdida existir o
+    // mundo terminava em 65040 (= borda leste da Arena), então mirar a leste era
+    // destino inválido e o jogador era barrado. Agora x ∈ [65040,71920) pertence
+    // à Cidade Perdida (fundo verde) e o destino virava uma "fuga" para outro mapa.
+    if (mapaOrigem) {
+        const mapaDestino = mapaPorCoordenada(targetX + PLAYER_OFFSET_X);
+        if (mapaDestino !== mapaOrigem) {
+            return { aceito: false, bloqueado: true, x: targetX, y: targetY };
+        }
     }
     return { aceito: true, bloqueado: false, x: targetX, y: targetY };
 }
@@ -1354,7 +1476,7 @@ function sobVenenoPantano(x, y) {
 
 function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
     if (!slime || !autorId || slime.hp <= 0) return { dano: 0, critico: false };
-    let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem);
+    let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem, slime);
     let danoFinal = calc.dano;
 
     // ===== EDITOR "EDIT MOOB": defesa (% de redução) e block (chance de bloquear) =====
@@ -1589,7 +1711,7 @@ function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem) {
     if (!boss || !autorId || boss.hp <= 0) return { dano: 0, critico: false };
     let tipoDano = (tipo === 'basico') ? 'basico' : 'skill';
 
-    let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem);
+    let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem, boss);
     let danoFinal = calc.dano;
 
     // Escudos de espinhos do golem
@@ -3326,7 +3448,7 @@ setInterval(() => {
                         else for (let b of bosses) { if (b.id === seqAlvo.id && b.hp > 0) { alvo = b; break; } }
                         if (alvo) {
                             // Teleporte até o alvo (posição validada pelo servidor)
-                            const destDanca = validarDestinoJogador(alvo.x - PLAYER_OFFSET_X, alvo.y - PLAYER_OFFSET_Y);
+                            const destDanca = validarDestinoJogador(alvo.x - PLAYER_OFFSET_X, alvo.y - PLAYER_OFFSET_Y, mapaPorCoordenada(player.x + PLAYER_OFFSET_X));
                             if (destDanca.aceito) { player.x = destDanca.x; player.y = destDanca.y; }
                             // 1 hit no alvo
                             if (alvo.hp > 0) {
@@ -3341,7 +3463,7 @@ setInterval(() => {
                         });
                     } else {
                         // Fim da sequência: volta à POSIÇÃO INICIAL exata
-                        const ret = validarDestinoJogador(d.startX, d.startY);
+                        const ret = validarDestinoJogador(d.startX, d.startY, mapaPorCoordenada(player.x + PLAYER_OFFSET_X));
                         if (ret.aceito) { player.x = ret.x; player.y = ret.y; }
                         player.ladinoDancaAtivo = false;
                         player.ladinoDanca = null;
@@ -3385,7 +3507,7 @@ setInterval(() => {
                         if (e.idx < e.pontos.length) {
                             e.step = 4; // ~200ms por vértice — coreografia 50% mais lenta e legível
                             const pt = e.pontos[e.idx];
-                            const destPonto = validarDestinoJogador(pt.x, pt.y);
+                            const destPonto = validarDestinoJogador(pt.x, pt.y, mapaPorCoordenada(player.x + PLAYER_OFFSET_X));
                             if (destPonto.aceito) { player.x = destPonto.x; player.y = destPonto.y; }
                             wss.clients.forEach((client) => {
                                 if (client.readyState === WebSocket.OPEN) {
@@ -3396,7 +3518,7 @@ setInterval(() => {
                             // Terminou os vértices: vai ao CENTRO e salta (600ms)
                             e.fase = 'jump';
                             e.step = 12;
-                            const destCentro = validarDestinoJogador(e.centroX - PLAYER_OFFSET_X, e.centroY - PLAYER_OFFSET_Y);
+                            const destCentro = validarDestinoJogador(e.centroX - PLAYER_OFFSET_X, e.centroY - PLAYER_OFFSET_Y, mapaPorCoordenada(player.x + PLAYER_OFFSET_X));
                             if (destCentro.aceito) { player.x = destCentro.x; player.y = destCentro.y; }
                             wss.clients.forEach((client) => {
                                 if (client.readyState === WebSocket.OPEN) {
@@ -5231,6 +5353,50 @@ setInterval(() => {
         }
     }
 
+    // ===== PIKEMAN: EXECUÇÃO DA MORTE (3s de carga; cancela se mover/demorir) =====
+    for (let pid in pikemanCanais) {
+        let canal = pikemanCanais[pid];
+        let player = players[pid];
+
+        if (!player || player.hp <= 0) {
+            delete pikemanCanais[pid];
+            if (player) player.pikemanProgresso = 0;
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({ type: 'action_pikeman_execucao_cancel', id: pid }));
+                }
+            });
+            continue;
+        }
+
+        let moveDist = Math.hypot(player.x - canal.startX, player.y - canal.startY);
+        if (moveDist > 1.6) {
+            // moveu durante o carregamento → cancela (igual Rajada)
+            delete pikemanCanais[pid];
+            player.pikemanProgresso = 0;
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({ type: 'action_pikeman_execucao_cancel', id: pid }));
+                }
+            });
+            continue;
+        }
+
+        canal.timer--;
+        player.pikemanProgresso = Math.max(0, Math.min(1, 1 - canal.timer / canal.total));
+        if (canal.timer <= 0) {
+            // carga completa → dispara os 3 golpes da execução
+            delete pikemanCanais[pid];
+            player.pikemanProgresso = 0;
+            pikemanDispararExecucao(pid, canal.alvoTipo, canal.alvoId);
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) {
+                    client.send(JSON.stringify({ type: 'action_pikeman_execucao_end', id: pid }));
+                }
+            });
+        }
+    }
+
     for (let pid in players) {
         let p = players[pid];
         if (p.rajadaStackTimer > 0) {
@@ -5623,6 +5789,20 @@ wss.on('connection', (ws) => {
     let playerId = null;
     let userId = null;
 
+    // ===== LAYOUT DE UI POR DISPOSITIVO (pc/mobile) =====
+    // uiLayout agora é { pc: {...}, mobile: {...} }. Formatos antigos (plano)
+    // são tratados como layout de PC e migrados automaticamente.
+    function normalizarUiLayout(dados) {
+        const vazio = { pc: {}, mobile: {} };
+        if (!dados || typeof dados !== 'object') return vazio;
+        if (dados.pc && typeof dados.pc === 'object' && !Array.isArray(dados.pc)
+            && dados.mobile && typeof dados.mobile === 'object' && !Array.isArray(dados.mobile)) {
+            return { pc: dados.pc, mobile: dados.mobile };
+        }
+        // formato antigo (plano) → assume que foi feito no PC
+        return { pc: dados, mobile: {} };
+    }
+
     ws.on('message', (message) => {
         try {
             let data = JSON.parse(message);
@@ -5672,7 +5852,7 @@ wss.on('connection', (ws) => {
                     mana: (dadosSalvos && dadosSalvos.mana !== undefined) ? dadosSalvos.mana : 50,
                     maxMp: 50,
                     inventario: (dadosSalvos && dadosSalvos.inventario) ? dadosSalvos.inventario : inventarioPadrao(),
-                    uiLayout: (dadosSalvos && dadosSalvos.uiLayout) ? dadosSalvos.uiLayout : {},
+                    uiLayout: normalizarUiLayout(dadosSalvos && dadosSalvos.uiLayout),
                     isDashing: false,
                     mapaTransicaoAte: 0,
                     furiaTimer: 0,
@@ -5804,8 +5984,13 @@ aaCometasCooldown: 0,
                         camadas: typeof mapaCidade.obterCamadas === 'function' ? mapaCidade.obterCamadas() : []
                     }));
                 }
-                if (players[playerId].uiLayout && Object.keys(players[playerId].uiLayout).length) {
-                    ws.send(JSON.stringify({ type: 'ui_layout', layout: players[playerId].uiLayout }));
+                if (players[playerId].uiLayout && typeof players[playerId].uiLayout === 'object') {
+                    let ul = players[playerId].uiLayout;
+                    let temPC = ul.pc && typeof ul.pc === 'object' && Object.keys(ul.pc).length > 0;
+                    let temMob = ul.mobile && typeof ul.mobile === 'object' && Object.keys(ul.mobile).length > 0;
+                    if (temPC || temMob) {
+                        ws.send(JSON.stringify({ type: 'ui_layout', layout: { pc: ul.pc || {}, mobile: ul.mobile || {} } }));
+                    }
                 }
                 return;
             }
@@ -6383,9 +6568,10 @@ aaCometasCooldown: 0,
                 return;
             }
 
-            // ===== SALVAR / RESTAURAR layout da interface (Editor de UI) =====
+            // ===== SALVAR / RESTAURAR layout da interface (Editor de UI) — POR DISPOSITIVO =====
             if (data.action === 'salvar_ui_layout') {
                 let p = players[playerId];
+                let dev = (data.device === 'mobile') ? 'mobile' : 'pc';
                 let layoutLimpo = {};
                 let cont = 0;
                 if (data.layout && typeof data.layout === 'object') {
@@ -6402,7 +6588,8 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     }
                     }
                 }
-                p.uiLayout = layoutLimpo;
+                p.uiLayout = normalizarUiLayout(p.uiLayout);
+                p.uiLayout[dev] = layoutLimpo;
                 salvarProgresso(userId, { uiLayout: p.uiLayout });
                 ws.send(JSON.stringify({ type: 'ui_layout_saved', layout: p.uiLayout }));
                 return;
@@ -6410,7 +6597,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
 
             if (data.action === 'restaurar_ui_layout') {
                 let p = players[playerId];
-                p.uiLayout = {};
+                let dev = (data.device === 'mobile') ? 'mobile' : 'pc';
+                p.uiLayout = normalizarUiLayout(p.uiLayout);
+                p.uiLayout[dev] = {};
                 salvarProgresso(userId, { uiLayout: p.uiLayout });
                 ws.send(JSON.stringify({ type: 'ui_layout_reset' }));
                 return;
@@ -6478,6 +6667,24 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (np.snCamuflado) finalizarCamuflagemSniper(np, playerId, 'classe_alterada');
                     np.snCamuflado = false;
                     if (efeitos) efeitos.removerEfeito(np, 'camuflagem');
+                }
+                // PIKEMAN: limpa máquinas de estado ao trocar de classe
+                {
+                    let pk = players[playerId];
+                    pk.pikemanGiroCd = 0;
+                    pk.pikemanPiruetaCd = 0;
+                    pk.pikemanGeadaCd = 0;
+                    pk.pikemanExecucaoCd = 0;
+                    pk.pikemanProgresso = 0;
+                    if (pikemanCanais[playerId]) {
+                        delete pikemanCanais[playerId];
+                        pk.pikemanProgresso = 0;
+                        wss.clients.forEach((client) => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({ type: 'action_pikeman_execucao_cancel', id: playerId }));
+                            }
+                        });
+                    }
                 }
                 // zera zonas do jogador que trocou de classe (caixas não persistem)
                 for (let i = caixasFerramentas.length - 1; i >= 0; i--) {
@@ -6976,10 +7183,16 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     'dash', 'tornado', 'corte', 'guerreiro_provocacao', 'ataque_mago', 'mago_vulcao', 'ataque_summoner', 'ataque_arqueiro', 'ataque_curandeiro',
                     'ataque_dronemaster', 'dronemaster_supressao', 'dronemaster_assalto', 'dronemaster_caixa', 'dronemaster_tita',
                     'ataque_arqueiro_arcano', 'arqueiro_cometas', 'arqueiro_orbe', 'arqueiro_cascata',
-                    'ataque_sniper', 'sniper_apontar', 'sniper_fogo', 'sniper_rede', 'sniper_camuflagem', 'sniper_posicao'
+                    'ataque_sniper', 'sniper_apontar', 'sniper_fogo', 'sniper_rede', 'sniper_camuflagem', 'sniper_posicao',
+                    'ataque_pikeman', 'pikeman_giro', 'pikeman_pirueta', 'pikeman_geada', 'pikeman_execucao'
                 ];
                 if (ccAtivo && acoesBloqueadasPorCC.indexOf(data.action) !== -1) {
                     return; // Bloqueado por CC
+                }
+                // PIKEMAN — EXECUÇÃO DA MORTE: durante o carregamento, ações de ataque são bloqueadas
+                if (pikemanCanais[playerId] && data.action !== 'pikeman_execucao_cancelar' && data.action !== 'client_estado' && data.action !== 'movimento' && data.action !== 'salvar_progresso') {
+                    let acoesDuranteExecucao = ['ataque_pikeman', 'pikeman_giro', 'pikeman_pirueta', 'pikeman_geada', 'ataque_barbaro', 'ataque_roqueiro', 'ataque_mago', 'ataque_summoner', 'ataque_arqueiro', 'ataque_curandeiro', 'corte', 'dash', 'tornado', 'arqueiro_chuva', 'arqueiro_rajada', 'mago_vulcao', 'ladino_danca', 'barbaro_furia', 'barbaro_esmagamento'];
+                    if (acoesDuranteExecucao.indexOf(data.action) !== -1) return;
                 }
                 if (rajadaCanal[playerId] && rajadaCanal[playerId].fase === 'carregando' && data.action !== 'arqueiro_rajada') {
                     let acoesDuranteRajada = ['ataque_barbaro', 'ataque_roqueiro', 'ataque_mago', 'ataque_summoner', 'ataque_arqueiro', 'ataque_curandeiro', 'corte', 'dash', 'tornado'];
@@ -7055,7 +7268,8 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     const alvoEsmagamentoY = Number(data.targetY);
                     const destinoEsmagamento = validarDestinoJogador(
                         alvoEsmagamentoX - PLAYER_OFFSET_X,
-                        alvoEsmagamentoY - PLAYER_OFFSET_Y
+                        alvoEsmagamentoY - PLAYER_OFFSET_Y,
+                        mapaPorCoordenada(players[playerId].x + PLAYER_OFFSET_X)
                     );
                     if (!destinoEsmagamento.aceito) return;
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'esmagamento-barbaro', 25))) return;
@@ -7172,7 +7386,8 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     const ty = Number(data.targetY);
                     const destinoTeleporte = validarDestinoJogador(
                         tx - PLAYER_OFFSET_X,
-                        ty - PLAYER_OFFSET_Y
+                        ty - PLAYER_OFFSET_Y,
+                        mapaPorCoordenada(players[playerId].x + PLAYER_OFFSET_X)
                     );
                     if (!destinoTeleporte.aceito) return;
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'teleporte', 15))) return;
@@ -8109,6 +8324,176 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                             }));
                         }
                     });
+                }
+
+                // ============================================================
+                // PIKEMAN — ATAQUE BÁSICO: FOICADA (Foice Curta, golpe em cone)
+                // ============================================================
+                if (data.action === 'ataque_pikeman') {
+                    if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], tempoBaseAtaqueBasico(players[playerId]))) return;
+                    players[playerId].lastBasicAttack = agora;
+
+                    // Auto-ataque com alvo informado exige validação completa no servidor
+                    let alvoAuto = validarAtaqueBasicoAlvo(players[playerId], data.alvoTipo, data.alvoId);
+                    if (data.alvoTipo || data.alvoId) {
+                        if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
+                    }
+
+                    wss.clients.forEach((client) => {
+                        if (client !== ws && client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'action_pikeman_foice', id: playerId }));
+                        }
+                    });
+
+                    let pX = players[playerId].x + 12;
+                    let pY = players[playerId].y + 16;
+                    let anguloFoice = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : players[playerId].angulo;
+                    let danoFoice = dmgSkill(players[playerId], 'foicada', 13);
+
+                    slimes.forEach(slime => {
+                        if (slime.hp > 0) {
+                            let dist = Math.hypot(pX - slime.x, pY - slime.y);
+                            if (dist < 100) {
+                                let anguloAteSlime = Math.atan2(slime.y - pY, slime.x - pX);
+                                let diff = Math.atan2(Math.sin(anguloFoice - anguloAteSlime), Math.cos(anguloFoice - anguloAteSlime));
+                                if (Math.abs(diff) < Math.PI / 2.2) {
+                                    registrarDanoMonstro(slime, playerId, danoFoice, 'player');
+                                }
+                            }
+                        }
+                    });
+                    danoEmBosses(pX, pY, 100, playerId, danoFoice, 'basico', 'player');
+                }
+
+                // ============================================================
+                // PIKEMAN — SKILL 1: GIRO DA FOICE (AoE circular ao redor)
+                // ============================================================
+                if (data.action === 'pikeman_giro') {
+                    let pk = players[playerId];
+                    if (pk.pikemanGiroCd && Date.now() < pk.pikemanGiroCd) return;
+                    if (!gastarMana(ws, pk, mpSkill(pk, 'giro_foice', 25))) return;
+                    pk.pikemanGiroCd = Date.now() + 7000;
+                    let pX = pk.x + 12, pY = pk.y + 16;
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'action_pikeman_giro', id: playerId, x: Math.round(pX), y: Math.round(pY), durMs: 1200 }));
+                        }
+                    });
+                    let danoGiro = dmgSkill(pk, 'giro_foice', 26);
+                    slimes.forEach(slime => {
+                        if (slime.hp > 0) {
+                            if (Math.hypot(pX - slime.x, pY - slime.y) < 143) {
+                                registrarDanoMonstro(slime, playerId, danoGiro, 'player');
+                                wss.clients.forEach((client) => {
+                                    if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_pikeman_giro_hit', x: Math.round(slime.x), y: Math.round(slime.y) }));
+                                });
+                            }
+                        }
+                    });
+                    danoEmBosses(pX, pY, 143, playerId, danoGiro, 'skill', 'player');
+                }
+
+                // ============================================================
+                // PIKEMAN — SKILL 2: PIRUETA DA MORTE (3 cortes em sequência)
+                // ============================================================
+                if (data.action === 'pikeman_pirueta') {
+                    let pk = players[playerId];
+                    if (pk.pikemanPiruetaCd && Date.now() < pk.pikemanPiruetaCd) return;
+                    if (!data.alvoTipo || !data.alvoId) return;
+                    let alvoPirueta = obterAlvoAtaqueServidor(data.alvoTipo, data.alvoId);
+                    if (!alvoPirueta) return;
+                    let pX = pk.x + 12, pY = pk.y + 16;
+                    if (mapaPorCoordenada(pk.x + PLAYER_OFFSET_X) !== mapaPorCoordenada(alvoPirueta.x)) return;
+                    if (Math.hypot(alvoPirueta.x - pX, alvoPirueta.y - pY) > 120) return; // fora do alcance da pirueta
+                    if (!gastarMana(ws, pk, mpSkill(pk, 'pirueta_morte', 22))) return;
+                    pk.pikemanPiruetaCd = Date.now() + 10000;
+
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'action_pikeman_pirueta', id: playerId, x: Math.round(pX), y: Math.round(pY), alvoX: Math.round(alvoPirueta.x), alvoY: Math.round(alvoPirueta.y) }));
+                        }
+                    });
+                    let danoPirueta = dmgSkill(pk, 'pirueta_morte', 18);
+                    // Corte→giro→corte→giro→corte final — hits separados, contabilizados individualmente
+                    pikemanGolpePirueta(playerId, data.alvoTipo, data.alvoId, danoPirueta, 1);
+                    setTimeout(() => pikemanGolpePirueta(playerId, data.alvoTipo, data.alvoId, danoPirueta, 2), 260);
+                    setTimeout(() => pikemanGolpePirueta(playerId, data.alvoTipo, data.alvoId, danoPirueta, 3), 520);
+                }
+
+                // ============================================================
+                // PIKEMAN — SKILL 3: GEADA DA MORTE (AoE com 60% de lentidão)
+                // ============================================================
+                if (data.action === 'pikeman_geada') {
+                    let pk = players[playerId];
+                    if (pk.pikemanGeadaCd && Date.now() < pk.pikemanGeadaCd) return;
+                    if (!gastarMana(ws, pk, mpSkill(pk, 'geada_morte', 25))) return;
+                    pk.pikemanGeadaCd = Date.now() + 12000;
+                    let pX = pk.x + 12, pY = pk.y + 16;
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'action_pikeman_geada', id: playerId, x: Math.round(pX), y: Math.round(pY), raio: 130 }));
+                        }
+                    });
+                    let danoGeada = dmgSkill(pk, 'geada_morte', 14);
+                    slimes.forEach(slime => {
+                        if (slime.hp > 0 && Math.hypot(pX - slime.x, pY - slime.y) < 130) {
+                            registrarDanoMonstro(slime, playerId, danoGeada, 'player');
+                            // 60% de lentidão (3s) + visual de congelamento → ativa a passiva (+20% dano)
+                            efeitos.aplicarEfeito(slime, 'gelo', 60, 1);
+                            slime.slowTimer = Math.max(slime.slowTimer || 0, 60);
+                            wss.clients.forEach((client) => {
+                                if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_pikeman_geada_hit', x: Math.round(slime.x), y: Math.round(slime.y) }));
+                            });
+                        }
+                    });
+                    bosses.forEach(bb => {
+                        if (bb.hp > 0 && Math.hypot(pX - bb.x, pY - bb.y) < 130) {
+                            registrarDanoBoss(bb, playerId, danoGeada, 'skill', 'player');
+                            efeitos.aplicarEfeito(bb, 'gelo', 60, 1);
+                            if (typeof bb.slowTimer === 'number') bb.slowTimer = Math.max(bb.slowTimer, 45);
+                        }
+                    });
+                }
+
+                // ============================================================
+                // PIKEMAN — SKILL 4: EXECUÇÃO DA MORTE (canal 3s → 3 golpes)
+                // ============================================================
+                if (data.action === 'pikeman_execucao') {
+                    let pk = players[playerId];
+                    if (pikemanCanais[playerId]) return; // já está canalizando
+                    if (pk.pikemanExecucaoCd && Date.now() < pk.pikemanExecucaoCd) return;
+                    if (!data.alvoTipo || !data.alvoId) return;
+                    let alvoExe = obterAlvoAtaqueServidor(data.alvoTipo, data.alvoId);
+                    if (!alvoExe) return;
+                    let pX0 = pk.x + 12, pY0 = pk.y + 16;
+                    if (mapaPorCoordenada(pk.x + PLAYER_OFFSET_X) !== mapaPorCoordenada(alvoExe.x)) return;
+                    if (Math.hypot(alvoExe.x - pX0, alvoExe.y - pY0) > 125) return;
+                    if (!gastarMana(ws, pk, mpSkill(pk, 'execucao_morte', 35))) return;
+                    pk.pikemanExecucaoCd = Date.now() + 30000;
+                    pikemanCanais[playerId] = {
+                        startX: pk.x, startY: pk.y,
+                        alvoTipo: data.alvoTipo, alvoId: data.alvoId,
+                        timer: 60, total: 60, // 60 ticks × 50ms = 3s de carga
+                        angulo: pk.angulo
+                    };
+                    pk.pikemanProgresso = 0;
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({ type: 'action_pikeman_execucao', id: playerId, x: Math.round(pk.x + 12), y: Math.round(pk.y + 16), alvoX: Math.round(alvoExe.x), alvoY: Math.round(alvoExe.y), durMs: 3000 }));
+                        }
+                    });
+                }
+
+                if (data.action === 'pikeman_execucao_cancelar') {
+                    if (pikemanCanais[playerId]) {
+                        delete pikemanCanais[playerId];
+                        if (players[playerId]) players[playerId].pikemanProgresso = 0;
+                        wss.clients.forEach((client) => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({ type: 'action_pikeman_execucao_cancel', id: playerId }));
+                            }
+                        });
+                    }
                 }
 
                 if (data.action === 'corte') {
