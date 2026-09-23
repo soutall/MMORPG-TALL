@@ -85,7 +85,7 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 .btn-util.btn-local { background: #2980b9; border-color: #3498db; }
 .btn-util.btn-local.modo-ativo { background: #e67e22; border-color: #f39c12; box-shadow: 0 0 12px #e67e22; }
 
-#hud-status-window { top: 8px; left: 10px; }
+#hud-status-window { top: 8px; left: 10px; transform: scale(0.8); transform-origin: top left; }
 #hud-status-main { display: flex; align-items: flex-start; gap: 8px; }
 #hud-retrato { width: 46px; height: 46px; image-rendering: pixelated; background: radial-gradient(circle at 50% 35%, #3c5a46, #17241b 70%); border: 3px solid #f1c40f; box-shadow: 0 0 0 2px #000, 0 0 0 4px #8a6d1a, 0 4px 8px rgba(0,0,0,0.5); flex: 0 0 auto; }
 #hud-barras { display: flex; flex-direction: column; gap: 3px; padding: 2px 0; }
@@ -137,7 +137,7 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 .pocao-slot .key-badge { top: -4px; bottom: auto; right: -3px; left: auto; font-size: 8px; padding: 1px 3px; }
 
 /* v1.34: Barra de XP central inferior (amarela; restante azul claro) */
-#hud-xp-central { position: fixed; bottom: 118px; left: 50%; transform: translateX(-50%); width: 220px; height: 12px; z-index: 11; pointer-events: none; }
+#hud-xp-central { position: fixed; bottom: 0; left: 0; width: 100%; height: 12px; z-index: 11; pointer-events: none; }
 #hud-xp-central #xp-bar-container { width: 100%; height: 12px; background: #7ec8ff; border: 2px solid #000; box-shadow: inset 0 0 0 1px #a8dcff, 2px 2px 0 rgba(0,0,0,0.6); overflow: hidden; margin-top: 0; }
 #hud-xp-central #xp-bar-fill { width: 0%; height: 100%; background: linear-gradient(180deg, #ffe066, #f1c40f 60%, #d4ac0d); transition: width 0.2s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4); }
 
@@ -166,9 +166,12 @@ canvas { background: #133015; display: block; width: 100vw; height: 100vh; touch
 #joystick-stick { width: 45px; height: 45px; background: rgba(255, 255, 255, 0.6); border-radius: 50%; position: absolute; top: 30.5px; left: 30.5px; pointer-events: none; }
 
 /* HUD BOTÕES DE AÇÃO: Centro inferior horizontal para PC e Mobile */
-.actions { position: absolute; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; gap: 8px; z-index: 10; align-items: center; justify-content: center; }
+.actions { position: fixed; bottom: 12px; right: 340px; display: flex; flex-direction: row; gap: 8px; z-index: 10; align-items: center; justify-content: flex-end; }
 .btn-action { width: 54px; height: 54px; border-radius: 50%; border: none; background: #333; color: #fff; font-weight: bold; font-size: 18px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); touch-action: manipulation; position: relative; transition: opacity 0.1s, transform 0.1s; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .btn-action:active { background: #555; transform: scale(0.95); }
+.btn-action-icon-img { width: 84%; height: 84%; object-fit: contain; border-radius: 50%; pointer-events: none; display: block; user-select: none; }
+#btn-pikeman-giro { background: radial-gradient(circle, #331015 0%, #150508 100%); border: 1.5px solid #c0392b; }
+#btn-pikeman-giro:hover { border-color: #e74c3c; box-shadow: 0 0 10px rgba(231, 76, 60, 0.6); }
 
 /* v1.34: ANEL DE COOLDOWN ao redor dos slots circulares — drena no sentido HORÁRIO.
    --cd-pct vai de 100 (início do CD) até 0 (pronto). O anel escuro "some" no sentido horário. */
@@ -197,7 +200,7 @@ canvas { background: #133015; display: block; width: 100vw; height: 100vh; touch
 .btn-attack { display: none !important; } /* v1.30.2: ataque básico MANUAL desativado — só o auto-attack */
 
 /* BOTÕES DE UTILITÁRIOS: Canto inferior direito */
-#util-buttons { position: absolute; bottom: 14px; right: 14px; display: flex; flex-direction: row; gap: 6px; z-index: 10; align-items: center; }
+#util-buttons { position: fixed; bottom: 14px; right: 14px; display: flex; flex-direction: row; gap: 6px; z-index: 10; align-items: center; }
 .btn-util { width: 34px; height: 34px; border-radius: 50%; border: 2px solid rgba(255,255,255,0.35); color: #fff; font-size: 15px; line-height: 1; font-weight: bold; box-shadow: 0 3px 6px rgba(0,0,0,0.5), inset 1px 1px 0 rgba(255,255,255,0.15); touch-action: manipulation; position: relative; transition: opacity 0.1s, transform 0.1s; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .btn-util:active { transform: scale(0.9); box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
 .btn-dash { background: #3498db; font-size: 20px; border: 2px solid #2980b9; display: none; } .btn-dash.cooldown { background: #555; opacity: 0.6; pointer-events: none; }

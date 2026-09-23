@@ -228,28 +228,197 @@ window.criarAnimacaoFlechaBasica = function(x, y, vx, vy) {
 };
 
 window.criarAnimacaoChuvaFlechas = function(x, y, duracaoMs) {
-    let flechas = [];
-    for (let i = 0; i < 28; i++) {
+    // Chuva em cascata: ~30 flechas chegam em sequência durante ~1s.
+    // Depois de cravadas, permanecem visíveis por 2s.
+    const quantidade = 30;
+    const quedaMs = 1000;
+    const flechas = [];
+
+    // Cria tempos de chegada progressivos, com pequena variação aleatória.
+    const ordem = Array.from({ length: quantidade }, (_, i) => i).sort(() => Math.random() - 0.5);
+    for (let pos = 0; pos < quantidade; pos++) {
+        const i = ordem[pos];
+        const ang = Math.random() * Math.PI * 2;
+        const raio = Math.sqrt(Math.random()) * 82;
+        const tx = x + Math.cos(ang) * raio;
+        const ty = y + Math.sin(ang) * raio * 0.48;
+        const atrasoBase = (pos / (quantidade - 1)) * 820;
+        const atraso = Math.max(0, atrasoBase + (Math.random() - 0.5) * 55);
+        const quedaDuracao = 135 + Math.random() * 70;
+        const distanciaQueda = 250 + Math.random() * 125;
+
         flechas.push({
-            x: x + (Math.random() * 110 - 55),
-            y: y - 220 - (Math.random() * 120),
-            targetY: y + (Math.random() * 60 - 30),
-            velocidade: Math.random() * 4 + 11,
-            caiu: false
+            x: tx,
+            y: ty - distanciaQueda,
+            targetY: ty,
+            atraso: atraso,
+            quedaDuracao: quedaDuracao,
+            distanciaQueda: distanciaQueda,
+            caiu: false,
+            cravadaEm: 0,
+            comprimento: 24 + Math.random() * 7,
+            inclinacao: (Math.random() - 0.5) * 0.08,
+            impacto: 0,
+            semente: Math.random() * 1000
         });
     }
+
     window.chuvasFlechas.push({
         x: x,
         y: y,
-        duracao: 140,
-        startTime: Date.now(),
-        duracaoMs: Number.isFinite(duracaoMs) ? duracaoMs : Math.round(140 * (1000 / 60)),
-        flechas: flechas
+        inicio: Date.now(),
+        quedaMs: quedaMs,
+        fimMs: quedaMs + 2000,
+        flechas: flechas,
+        pulso: 0
     });
-    window.floatingTexts.push({ x: x, y: y - 35, text: "🏹 CHUVA DE FLECHAS!", color: "#1abc9c", alpha: 1.0 });
 };
 
+function desenharFlechaChuva(ctx, f, caiu, idadeCravada) {
+    const comprimento = f.comprimento;
+    const metal = '#b8bdc5';
+    const metalBrilho = '#e1e4e8';
+    const madeira = '#7a4a25';
+    const madeiraClara = '#a66a38';
+    const pena = '#6b4325';
+    const penaClara = '#8c5a31';
+
+    ctx.save();
+    ctx.translate(f.x, f.y);
+    ctx.rotate(f.inclinacao);
+
+    if (!caiu) {
+        // Flecha inteira durante a queda: ponta de aço claramente visível.
+        ctx.globalAlpha = 0.98;
+        ctx.lineCap = 'round';
+
+        // Cabo de madeira.
+        ctx.strokeStyle = madeira;
+        ctx.lineWidth = 3.1;
+        ctx.beginPath();
+        ctx.moveTo(0, -comprimento + 4);
+        ctx.lineTo(0, comprimento * 0.28);
+        ctx.stroke();
+
+        ctx.strokeStyle = madeiraClara;
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-0.65, -comprimento + 6);
+        ctx.lineTo(-0.65, comprimento * 0.22);
+        ctx.stroke();
+
+        // Penas na traseira.
+        ctx.fillStyle = pena;
+        ctx.beginPath();
+        ctx.moveTo(-1, -comprimento + 6);
+        ctx.lineTo(-5, -comprimento + 1);
+        ctx.lineTo(-2, -comprimento - 1);
+        ctx.lineTo(2, -comprimento + 5);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = penaClara;
+        ctx.beginPath();
+        ctx.moveTo(1, -comprimento + 6);
+        ctx.lineTo(5, -comprimento + 1);
+        ctx.lineTo(2, -comprimento - 1);
+        ctx.lineTo(-1, -comprimento + 5);
+        ctx.closePath();
+        ctx.fill();
+
+        // Ponta de aço.
+        ctx.fillStyle = metal;
+        ctx.strokeStyle = metalBrilho;
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(0, comprimento * 0.46);
+        ctx.lineTo(-4.2, comprimento * 0.18);
+        ctx.lineTo(0, comprimento * 0.22);
+        ctx.lineTo(4.2, comprimento * 0.18);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    } else {
+        // Flecha cravada: a ponta desaparece abaixo do chão.
+        // Desenhamos um pequeno buraco/terra para vender a profundidade.
+        const impacto = Math.max(0, 1 - idadeCravada / 260);
+        ctx.globalCompositeOperation = 'source-over';
+
+        ctx.globalAlpha = 0.22 + impacto * 0.12;
+        ctx.fillStyle = '#3e2a20';
+        ctx.beginPath();
+        ctx.ellipse(0, 2, 7, 2.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.globalAlpha = 0.98;
+        ctx.lineCap = 'round';
+
+        // Parte superior do cabo. A ponta fica abaixo do solo e NÃO é desenhada.
+        ctx.strokeStyle = madeira;
+        ctx.lineWidth = 3.1;
+        ctx.beginPath();
+        ctx.moveTo(0, -comprimento + 4);
+        ctx.lineTo(0, 1.5);
+        ctx.stroke();
+
+        // Veio da madeira para não parecer um risco branco.
+        ctx.strokeStyle = madeiraClara;
+        ctx.lineWidth = 0.9;
+        ctx.beginPath();
+        ctx.moveTo(-0.65, -comprimento + 6);
+        ctx.lineTo(-0.65, 0.8);
+        ctx.stroke();
+
+        // Penas no topo.
+        ctx.fillStyle = pena;
+        ctx.beginPath();
+        ctx.moveTo(-1, -comprimento + 7);
+        ctx.lineTo(-5, -comprimento + 2);
+        ctx.lineTo(-2, -comprimento - 1);
+        ctx.lineTo(2, -comprimento + 6);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = penaClara;
+        ctx.beginPath();
+        ctx.moveTo(1, -comprimento + 7);
+        ctx.lineTo(5, -comprimento + 2);
+        ctx.lineTo(2, -comprimento - 1);
+        ctx.lineTo(-1, -comprimento + 6);
+        ctx.closePath();
+        ctx.fill();
+
+        // Pequenos grãos de terra saltando no impacto, sem manter partícula pesada.
+        if (impacto > 0) {
+            ctx.globalAlpha = impacto * 0.7;
+            ctx.fillStyle = '#8a6040';
+            const s = f.semente;
+            for (let n = 0; n < 3; n++) {
+                const ang = s * 0.01 + n * 2.1;
+                const d = (1 - impacto) * (3 + n * 3) + 2;
+                ctx.fillRect(Math.cos(ang) * d, 2 + Math.sin(ang) * d * 0.45, 1.4, 1.4);
+            }
+        }
+    }
+    ctx.restore();
+}
+
 window.criarAnimacaoDisparoPerfurante = function(x, y, vx, vy, angulo) {
+    const folhas = [];
+    for (let i = 0; i < 8; i++) {
+        const lado = (i % 2 === 0 ? -1 : 1);
+        folhas.push({
+            indice: i,
+            lado: lado,
+            distancia: 8 + i * 5,
+            offset: lado * (5 + (i % 3) * 3),
+            fase: Math.random() * Math.PI * 2,
+            escala: 0.65 + Math.random() * 0.4,
+            rotacao: Math.random() * Math.PI * 2,
+            velocidadeRotacao: (Math.random() - 0.5) * 0.18
+        });
+    }
+
     window.flechasPerfurantes.push({
         x: x,
         y: y,
@@ -257,7 +426,11 @@ window.criarAnimacaoDisparoPerfurante = function(x, y, vx, vy, angulo) {
         vy: vy,
         angulo: angulo,
         vida: 40,
-        rastro: []
+        rastro: [],
+        folhas: folhas,
+        ventoFase: Math.random() * Math.PI * 2,
+        distanciaTotal: 0,
+        flashPerfuracao: 10
     });
 };
 
@@ -387,83 +560,206 @@ window.desenharEfeitosArqueiro = function() {
         if (f.vida <= 0) window.flechasBasicas.splice(i, 1);
     }
 
-    // Chuva de Flechas
+    // =====================================================================
+    // CHUVA DE FLECHAS — CASCATA (~1s) + 2s cravadas
+    // =====================================================================
     for (let i = window.chuvasFlechas.length - 1; i >= 0; i--) {
-        let chuva = window.chuvasFlechas[i];
-        chuva.duracao--;
+        const chuva = window.chuvasFlechas[i];
+        const agoraChuva = Date.now();
+        const decorrido = agoraChuva - chuva.inicio;
 
-        if (chuva.startTime && Date.now() - chuva.startTime >= chuva.duracaoMs) {
+        if (decorrido >= chuva.fimMs) {
             window.chuvasFlechas.splice(i, 1);
             continue;
         }
 
-        ctx.save();
-        // Círculo no solo
-        ctx.fillStyle = "rgba(26, 188, 156, 0.18)";
-        ctx.beginPath();
-        ctx.arc(chuva.x, chuva.y, 65, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = "rgba(46, 204, 113, 0.5)";
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        const visivel = rajadaEstaVisivel(chuva.x, chuva.y, 140);
+        const pulso = 0.5 + Math.sin(decorrido * 0.018) * 0.5;
+        let impactosFrame = 0;
 
-        // Flechas caindo
-        chuva.flechas.forEach(f => {
+        if (visivel) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.globalAlpha = 0.10 + pulso * 0.04;
+            ctx.fillStyle = '#8feaff';
+            ctx.beginPath();
+            ctx.ellipse(chuva.x, chuva.y + 10, 96, 40, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.globalAlpha = 0.28 + pulso * 0.10;
+            ctx.strokeStyle = '#dffcff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(chuva.x, chuva.y + 10, 80 + pulso * 6, 31 + pulso * 3, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+        }
+
+        for (let a = 0; a < chuva.flechas.length; a++) {
+            const f = chuva.flechas[a];
+            if (decorrido < f.atraso) continue;
+
             if (!f.caiu) {
-                f.y += f.velocidade;
-                ctx.strokeStyle = "#f39c12";
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(f.x, f.y);
-                ctx.lineTo(f.x, f.y - 14);
-                ctx.stroke();
+                const tempoDaQueda = decorrido - f.atraso;
+                const progresso = Math.max(0, Math.min(1, tempoDaQueda / f.quedaDuracao));
+                const ease = 1 - Math.pow(1 - progresso, 3);
+                f.y = f.targetY - (1 - ease) * f.distanciaQueda;
 
-                if (f.y >= f.targetY) {
+                if (progresso >= 1) {
+                    f.y = f.targetY;
                     f.caiu = true;
+                    f.cravadaEm = agoraChuva;
+                    f.impacto = 1;
+                    impactosFrame++;
                 }
-            } else {
-                ctx.fillStyle = "rgba(243, 156, 18, 0.4)";
-                ctx.beginPath();
-                ctx.arc(f.x, f.targetY, 2, 0, Math.PI * 2);
-                ctx.fill();
+            } else if (f.impacto > 0) {
+                f.impacto -= 0.10;
             }
-        });
-        ctx.restore();
 
-        if (chuva.duracao <= 0) {
-            window.chuvasFlechas.splice(i, 1);
+            if (!visivel) continue;
+
+            ctx.save();
+            if (!f.caiu) {
+                // Traço de velocidade sutil para vender a queda do céu.
+                ctx.globalCompositeOperation = 'lighter';
+                ctx.globalAlpha = 0.24;
+                ctx.strokeStyle = '#bfefff';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(f.x, f.y - f.comprimento * 2.6);
+                ctx.lineTo(f.x, f.y - f.comprimento * 0.35);
+                ctx.stroke();
+            }
+            desenharFlechaChuva(ctx, f, f.caiu, f.caiu ? agoraChuva - f.cravadaEm : 0);
+            ctx.restore();
+        }
+
+        if (visivel && impactosFrame > 0) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.globalAlpha = Math.min(0.24, 0.07 + impactosFrame * 0.018);
+            ctx.strokeStyle = '#dffcff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.ellipse(chuva.x, chuva.y + 8, 18 + impactosFrame * 1.8, 6 + impactosFrame * 0.6, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
         }
     }
 
-    // Disparo Perfurante
+    // =====================================================================
+    // DISPARO PERFURANTE — flecha + folhas + túnel de vento
+    // =====================================================================
     for (let i = window.flechasPerfurantes.length - 1; i >= 0; i--) {
-        let f = window.flechasPerfurantes[i];
-        f.x += f.vx;
-        f.y += f.vy;
-        f.vida--;
+        const f = window.flechasPerfurantes[i];
+        f.x += f.vx * frameScale;
+        f.y += f.vy * frameScale;
+        f.vida -= frameScale;
+        f.distanciaTotal += Math.hypot(f.vx, f.vy) * frameScale;
+        f.ventoFase += 0.17 * frameScale;
+        if (f.flashPerfuracao > 0) f.flashPerfuracao -= frameScale;
 
-        f.rastro.push({ x: f.x, y: f.y, alpha: 1.0 });
+        // Rastro compacto da flecha.
+        f.rastro.push({ x: f.x, y: f.y, alpha: 0.72 });
+        if (f.rastro.length > 10) f.rastro.shift();
 
-        ctx.save();
-        for (let r of f.rastro) {
-            r.alpha -= 0.08;
-            ctx.fillStyle = "rgba(26, 188, 156, " + r.alpha + ")";
+        const visivel = rajadaEstaVisivel(f.x, f.y, 90);
+        if (visivel) {
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+
+            // Rastro de vento.
+            for (let r = 0; r < f.rastro.length; r++) {
+                const ponto = f.rastro[r];
+                ponto.alpha -= 0.085 * frameScale;
+                if (ponto.alpha <= 0) continue;
+                ctx.globalAlpha = ponto.alpha * 0.55;
+                ctx.strokeStyle = '#b9f7ff';
+                ctx.lineWidth = 1.4;
+                ctx.beginPath();
+                ctx.arc(ponto.x, ponto.y, 2.2 + r * 0.12, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            // Folhas acompanhando a flecha, com pequenas oscilações laterais.
+            const cos = Math.cos(f.angulo);
+            const sin = Math.sin(f.angulo);
+            for (let k = 0; k < f.folhas.length; k++) {
+                const folha = f.folhas[k];
+                const distancia = folha.distancia + Math.sin(f.ventoFase * 1.6 + folha.fase) * 3;
+                const lateral = folha.offset + Math.sin(f.ventoFase * 2 + folha.fase) * 5;
+                const px = f.x - cos * distancia - sin * lateral;
+                const py = f.y - sin * distancia + cos * lateral;
+                folha.rotacao += folha.velocidadeRotacao * frameScale;
+
+                ctx.save();
+                ctx.translate(px, py);
+                ctx.rotate(folha.rotacao + f.angulo);
+                ctx.globalAlpha = 0.78 - (k / f.folhas.length) * 0.22;
+                const tam = 13 * folha.escala;
+                const spriteFolha = sprites.folha;
+                ctx.drawImage(spriteFolha, -tam / 2, -tam / 2, tam, tam);
+                ctx.restore();
+            }
+
+            // Túnel de vento/perfuração na frente da flecha.
+            ctx.save();
+            ctx.translate(f.x, f.y);
+            ctx.rotate(f.angulo);
+            ctx.globalAlpha = 0.28;
+            ctx.strokeStyle = '#d9fbff';
+            ctx.lineWidth = 2;
+            for (let arco = 0; arco < 3; arco++) {
+                const atraso = arco * 10;
+                const desloc = 26 + arco * 8;
+                ctx.beginPath();
+                ctx.arc(desloc - atraso, 0, 14 + arco * 5 + Math.sin(f.ventoFase + arco) * 2, -0.9, 0.9);
+                ctx.stroke();
+            }
+
+            // Linhas de compressão do vento atrás da ponta.
+            ctx.globalAlpha = 0.20;
+            ctx.lineWidth = 1.5;
+            for (let faixa = -1; faixa <= 1; faixa++) {
+                ctx.beginPath();
+                ctx.moveTo(-8, faixa * 4);
+                ctx.quadraticCurveTo(10, faixa * 12, 28, faixa * 7);
+                ctx.stroke();
+            }
+
+            // A flecha.
+            ctx.globalAlpha = 0.98;
+            ctx.strokeStyle = '#efffff';
+            ctx.lineWidth = 3;
             ctx.beginPath();
-            ctx.arc(r.x, r.y, 4, 0, Math.PI * 2);
+            ctx.moveTo(-18, 0);
+            ctx.lineTo(15, 0);
+            ctx.stroke();
+            ctx.fillStyle = '#b9f4ff';
+            ctx.beginPath();
+            ctx.moveTo(22, 0);
+            ctx.lineTo(12, -5);
+            ctx.lineTo(14, 0);
+            ctx.lineTo(12, 5);
+            ctx.closePath();
             ctx.fill();
+
+            // Pequena explosão de perfuração no lançamento.
+            if (f.flashPerfuracao > 0) {
+                ctx.globalAlpha = f.flashPerfuracao / 10;
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.arc(12, 0, 8 + (10 - f.flashPerfuracao) * 2, -0.85, 0.85);
+                ctx.stroke();
+            }
+            ctx.restore();
+            ctx.restore();
+        } else {
+            // Mesmo fora da câmera, preserva apenas a atualização do estado.
+            for (let r = 0; r < f.rastro.length; r++) f.rastro[r].alpha -= 0.085 * frameScale;
         }
 
-        ctx.translate(f.x, f.y);
-        ctx.rotate(f.angulo);
-        ctx.fillStyle = "#1abc9c";
-        ctx.shadowColor = "#2ecc71";
-        ctx.shadowBlur = 12;
-        ctx.fillRect(-16, -2, 32, 4);
-        ctx.restore();
-
-        if (f.vida <= 0) {
-            window.flechasPerfurantes.splice(i, 1);
-        }
+        if (f.vida <= 0) window.flechasPerfurantes.splice(i, 1);
     }
 
     for (let i = window.rajadasFlechas.length - 1; i >= 0; i--) {

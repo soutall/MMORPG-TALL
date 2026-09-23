@@ -6,10 +6,10 @@
     <title>MMORPG Mobile Modular</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Oswald:wght@500;600;700&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=244">
     <link rel="stylesheet" href="inventario.css?v=135">
-    <link rel="stylesheet" href="skills.css?v=143">
+    <link rel="stylesheet" href="skills.css?v=144">
     <link rel="stylesheet" href="config.css?v=146">
     <link rel="stylesheet" href="atributos.css?v=5">
     <link rel="stylesheet" href="spawn-admin.css?v=2">
@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="dragdrop.css?v=4">
     <link rel="stylesheet" href="ferreiro.css?v=1">
     <link rel="stylesheet" href="intro.css?v=1">
+    <link rel="stylesheet" href="mobile-hud.css?v=1">
 </head>
 <body oncontextmenu="return false;">
     <script>
@@ -71,7 +72,7 @@
             <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" autofocus />
             <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
         </div>
-        <div class="game-version-display">v1.37</div>
+        <div class="game-version-display">v1.39.5</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -120,7 +121,7 @@
 
     <div id="status" data-ui="status">Desconectado</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
-    <div id="hud-version" class="game-version-display">v1.37</div>
+    <div id="hud-version" class="game-version-display">v1.39.5</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -149,7 +150,7 @@
     </div>
 
     <!-- v1.34: BARRA DE XP NO CENTRO INFERIOR (abaixo dos slots de skill) -->
-    <div id="hud-xp-central" data-ui="hud-xp-central">
+    <div id="hud-xp-central" >
         <div id="xp-bar-container"><div id="xp-bar-fill"></div><span class="bar-value xp-value" id="xp-bar-texto"></span></div>
     </div>
 
@@ -315,7 +316,40 @@
         <div id="minimap-hint" onclick="toggleBigMap()">🗺️ Abrir Mapa [M]</div>
     </div>
 
-    <div class="actions" data-ui="actions">
+    <!-- v1.39: SIDEBAR RETRÁTIL MOBILE (abaixo do minimapa) -->
+    <div id="mobile-sidebar-container" >
+        <button id="mobile-sidebar-toggle" class="mobile-sidebar-toggle-btn" onclick="toggleMobileSidebar(event)" title="Menu">
+            <span class="menu-ico">☰</span> <span class="btn-label">MENU</span>
+        </button>
+        <div id="mobile-sidebar-dropdown">
+            <button class="mobile-sidebar-item" onclick="acionarMenuMobile(toggleConfig)" title="Configurações">
+                <span class="item-ico">⚙️</span><span class="item-lbl">Configuração</span>
+            </button>
+            <button class="mobile-sidebar-item" onclick="acionarMenuMobile(toggleInventario)" title="Inventário">
+                <span class="item-ico">🎒</span><span class="item-lbl">Inventário</span>
+            </button>
+            <button class="mobile-sidebar-item" onclick="acionarMenuMobile(toggleSkills)" title="Habilidades">
+                <span class="item-ico">🪄</span><span class="item-lbl">Skills</span>
+            </button>
+            <button class="mobile-sidebar-item" onclick="acionarMenuMobile(abrirSocialModal)" title="Menu Social">
+                <span class="item-ico">👥</span><span class="item-lbl">Social</span>
+            </button>
+            <button class="mobile-sidebar-item" onclick="acionarMenuMobile(toggleAtributos)" title="Status do Personagem">
+                <span class="item-ico">📊</span><span class="item-lbl">Status</span>
+            </button>
+            <button class="mobile-sidebar-item" onclick="acionarMenuMobile(togglePvP)" title="Ativar/Desativar PvP">
+                <span class="item-ico">⚔️</span><span class="item-lbl">Modo PvP</span>
+            </button>
+            <button class="mobile-sidebar-item" onclick="acionarMenuMobile(toggleBigMap)" title="Mapa Mundial">
+                <span class="item-ico">🗺️</span><span class="item-lbl">Mapa</span>
+            </button>
+            <button class="mobile-sidebar-item item-futuro" onclick="mostrarAvisoUpdate('🔒 Recurso em desenvolvimento para o próximo update!')" title="Futuro Update">
+                <span class="item-ico">🔒</span><span class="item-lbl">Futuro Update</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="actions" >
         <button id="btn-autofarm" class="btn-action btn-autofarm" ontouchstart="alternarAutofarm(); event.stopPropagation();" onclick="alternarAutofarm();" title="Autofarm (R)">🤖<span class="key-badge">R</span></button>
         <button id="btn-dash" class="btn-action btn-dash" ontouchstart="usarDash(); event.stopPropagation();" onclick="usarDash();" title="Dash (1)">💨<span class="key-badge">1</span></button>
         <button id="btn-tornado" class="btn-action btn-tornado" ontouchstart="usarTornado(); event.stopPropagation();" onclick="usarTornado();" title="Tornado (2)">🌪️<span class="key-badge">2</span></button>
@@ -374,7 +408,7 @@
         <button id="btn-sniper-camuflagem" class="btn-action btn-sniper-camuflagem" ontouchstart="usarCamuflagemSniper(); event.stopPropagation();" onclick="usarCamuflagemSniper();" title="Camuflagem Natural (4)">🌿<span class="key-badge">4</span></button>
         
         <!-- BOTOES DO PIKEMAN -->
-        <button id="btn-pikeman-giro" class="btn-action btn-pikeman-giro" ontouchstart="usarGiroPikeman(); event.stopPropagation();" onclick="usarGiroPikeman();" title="Giro da Foice (1)">⭕<span class="key-badge">1</span></button>
+        <button id="btn-pikeman-giro" class="btn-action btn-pikeman-giro" ontouchstart="usarGiroPikeman(); event.stopPropagation();" onclick="usarGiroPikeman();" title="Giro da Foice (1)"><img src="imagem/HUD/skills/Slotbar/Pike/skill_01.png" class="btn-action-icon-img" alt="Giro da Foice" /><span class="key-badge">1</span></button>
         <button id="btn-pikeman-pirueta" class="btn-action btn-pikeman-pirueta" ontouchstart="usarPiruetaPikeman(); event.stopPropagation();" onclick="usarPiruetaPikeman();" title="Pirueta da Morte (2)">✴️<span class="key-badge">2</span></button>
         <button id="btn-pikeman-geada" class="btn-action btn-pikeman-geada" ontouchstart="usarGeadaPikeman(); event.stopPropagation();" onclick="usarGeadaPikeman();" title="Geada da Morte (3)">🧊<span class="key-badge">3</span></button>
         <button id="btn-pikeman-execucao" class="btn-action btn-pikeman-execucao" ontouchstart="usarExecucaoPikeman(); event.stopPropagation();" onclick="usarExecucaoPikeman();" title="Execução da Morte (4)">💀<span class="key-badge">4</span></button>
@@ -383,7 +417,7 @@
         <button id="btn-attack" class="btn-action btn-attack" style="display:none;" title="Ataque Básico desativado (use o auto-attack)">⚔️</button>
     </div>
 
-    <div id="util-buttons" data-ui="util-buttons">
+    <div id="util-buttons" >
         <button id="btn-colisao-editor" class="btn-util btn-colisao-editor" onclick="window.toggleEditorColisao()" title="Editor de Colisões (Admin)" style="display:none;">🧱</button>
         <button id="btn-pvp" class="btn-util btn-pvp" onclick="togglePvP()" title="Ativar/Desativar PvP (P)">⚔️<span class="key-badge">P</span></button>
         <button id="btn-social" class="btn-util btn-social" onclick="abrirSocialModal()" title="Menu Social (O)">👥<span class="key-badge">O</span></button>
@@ -573,13 +607,20 @@
         <div id="skills-window">
             <div id="skills-header">
                 <h2 id="skills-titulo">HABILIDADES</h2>
+                <div id="skills-classe-tag"></div>
                 <button id="btn-skills-fechar" onclick="fecharSkills()">✕</button>
             </div>
-            <div id="skills-classe-tag"></div>
-            <div id="skills-lista"></div>
+            <div id="skills-corpo">
+                <div id="skills-col-icons">
+                    <div id="skills-lista"></div>
+                </div>
+                <div id="skills-col-divider"></div>
+                <div id="skills-detalhe"></div>
+            </div>
             <div id="skills-footer">
+                <div id="skills-pontos-bar">🎯 Pontos de habilidade disponíveis: <b>0</b></div>
                 <span id="skills-aviso">⚠️ Upgrade é TESTE — não altera o combate ainda.</span>
-                <button id="btn-skills-reset-tudo" onclick="resetarTodasSkills()">↺ RESETAR</button>
+                <button id="btn-skills-reset-tudo" onclick="resetarTodasSkills()">↺ RESETAR TUDO</button>
             </div>
         </div>
     </div>
@@ -741,7 +782,7 @@
     <script src="efeitos/boss_golem.js?v=230"></script>
     <script src="monstros.js?v=2007"></script>
     <script src="inventario.js?v=133"></script>
-    <script src="skills.js?v=145"></script>
+    <script src="skills.js?v=146"></script>
     <script src="config.js?v=143"></script>
     <script src="atributos.js?v=3"></script>
     <script src="spawn-admin.js?v=3"></script>
@@ -755,9 +796,10 @@
     <script src="audio-manager.js?v=3"></script>
     <script src="sonoro.js?v=5"></script>
     <script src="intro.js?v=1"></script>
+    <script src="mobile-hud.js?v=1"></script>
 
     <script>
-        const GAME_VERSION = 'v1.37';
+        const GAME_VERSION = 'v1.39.5';
         window.GAME_VERSION = GAME_VERSION;
         const WORLD_WIDTH = 71920;
         const WORLD_HEIGHT = 36000;
@@ -2011,6 +2053,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
 
                 // --- Escala responsiva (reusa o sistema atual: canvas width) ---
                 var escala = Math.max(0.06, Math.min(0.30, W / 8000));
+                escala *= 0.80; // v1.39.5: Redução de 20% no tamanho geral da HUD
                 var imgW = 2172, imgH = 724;
                 var hudW = imgW * escala, hudH = imgH * escala;
                 var hx = Math.round(W * 0.012);
@@ -4995,11 +5038,10 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             if (!modal) return;
             // v1.34.1: SEMPRE abre CENTRALIZADO. O dragdrop salvava left/top + transform:none
             // (posição arrastada/salva) e anulava o translate(-50%,-50%) → modal abria fora da tela.
-            modal.style.left = "";
-            modal.style.top = "";
+            modal.style.left = "50%";
+            modal.style.top = "50%";
             modal.style.transform = "translate(-50%, -50%)";
             modal.style.display = "block";
-            try { localStorage.removeItem("mmorpg_jv_win_social-modal"); } catch (e) { }
             var inp = document.getElementById("social-player-name");
             if (inp) inp.value = "";
         };
@@ -5041,10 +5083,6 @@ const xpBarFill = document.getElementById("xp-bar-fill");
         };
 
         function abrirConfirmacaoPortalMapa() {
-            if (window.currentMap === 'cidade' && typeof window.requerProximidade === 'function' && !window.requerProximidade(60487, 460, 210)) {
-                if (typeof window.avisoProximidade === 'function') window.avisoProximidade();
-                return;
-            }
             let m = document.getElementById("map-portal-modal");
             if (m) m.style.display = "flex";
         }

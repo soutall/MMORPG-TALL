@@ -101,15 +101,15 @@
   },
   "Tall": {
     "level": 10,
-    "xp": 1192,
-    "classe": "roqueiro",
-    "hp": 420,
-    "x": 60474,
-    "y": 640,
-    "ultimoLogin": 1790040239926,
+    "xp": 1738,
+    "classe": "pikeman",
+    "hp": 168,
+    "x": 60557,
+    "y": 632,
+    "ultimoLogin": 1790188388045,
     "atributos": {
-      "forca": 1,
-      "inteligencia": 7,
+      "forca": 7,
+      "inteligencia": 1,
       "agilidade": 1,
       "destreza": 1,
       "vida": 1,
@@ -529,7 +529,101 @@
     "maxHp": 456,
     "skills": {},
     "pontosHabilidade": 0,
-    "mana": 150
+    "mana": 90,
+    "uiLayout": {
+      "pc": {
+        "status": {
+          "x": 1230,
+          "y": 11,
+          "w": 101,
+          "h": 18
+        },
+        "fps": {
+          "x": 1229,
+          "y": 38,
+          "w": 102,
+          "h": 18
+        },
+        "hud-status-window": {
+          "x": 1495,
+          "y": 869,
+          "w": 77,
+          "h": 76
+        },
+        "hud-party": {
+          "x": 51,
+          "y": 210,
+          "w": 180
+        },
+        "minimap": {
+          "x": 2409,
+          "y": 19,
+          "w": 141,
+          "h": 147
+        },
+        "util-buttons": {
+          "x": 1963,
+          "y": 899,
+          "w": 314,
+          "h": 34
+        },
+        "actions": {
+          "x": 1097,
+          "y": 877,
+          "w": 364,
+          "h": 54
+        }
+      },
+      "mobile": {
+        "status": {
+          "x": 1029,
+          "y": 0
+        },
+        "fps": {
+          "x": 177,
+          "y": 10,
+          "w": 102,
+          "h": 18
+        },
+        "hud-status-window": {
+          "x": 865,
+          "y": 861,
+          "w": 30,
+          "h": 39
+        },
+        "hud-party": {
+          "x": 51,
+          "y": 210,
+          "w": 180
+        },
+        "hud-xp-central": {
+          "x": 8,
+          "y": 932,
+          "w": 1193,
+          "h": 20
+        },
+        "minimap": {
+          "x": 1137,
+          "y": 3
+        },
+        "actions": {
+          "x": 524,
+          "y": 870,
+          "w": 336,
+          "h": 49
+        },
+        "util-buttons": {
+          "x": 960,
+          "y": 890
+        },
+        "hud-buffs": {
+          "x": 930,
+          "y": 762,
+          "w": 66,
+          "h": 20
+        }
+      }
+    }
   },
   "TALLllll": {
     "level": 4,
@@ -674,26 +768,26 @@
     "ultimoLogin": 1789323926142
   },
   "admin": {
-    "level": 16,
-    "xp": 5261,
+    "level": 17,
+    "xp": 3218,
     "classe": "pikeman",
-    "hp": 684,
-    "x": 60350,
-    "y": 461,
+    "hp": 496,
+    "x": 60518,
+    "y": 631,
     "atributos": {
-      "forca": 18,
+      "forca": 1,
       "inteligencia": 1,
       "agilidade": 1,
-      "destreza": 1,
+      "destreza": 20,
       "vida": 1,
-      "profanidade": 2,
+      "profanidade": 1,
       "divindade": 1,
       "afinidade": 1
     },
     "pontosDisponiveis": 0,
-    "ultimoLogin": 1790140618360,
+    "ultimoLogin": 1790177159466,
     "skills": {},
-    "pontosHabilidade": 1,
+    "pontosHabilidade": 2,
     "inventario": {
       "slots": {
         "capacete": {
@@ -1197,7 +1291,7 @@
           "nome": "💎 Pedra de Upgrade Lendária",
           "icon": "💎",
           "cor": "#ff7a00",
-          "quantidade": 8,
+          "quantidade": 10,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -1211,7 +1305,7 @@
           "nome": "💎 Pedra de Upgrade Comum",
           "icon": "💎",
           "cor": "#ffffff",
-          "quantidade": 12,
+          "quantidade": 15,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -1415,7 +1509,7 @@
           "icon": "🔮",
           "cor": "#3498db",
           "pctCura": 0.3,
-          "quantidade": 4,
+          "quantidade": 5,
           "autocoleta": true,
           "stackavel": false
         },
@@ -1434,6 +1528,106 @@
             "forca": 12
           },
           "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790144439048_16",
+          "uid": "mudps1e0-yyd2prhpy",
+          "tipo": "equipamento",
+          "slot": "capa",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🧥 CAPA RARO",
+          "icon": "🧥",
+          "status": {
+            "vida": 5,
+            "inteligencia": 5
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790144439048_17",
+          "uid": "mudps1e0-szsf07637",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "📿 COLAR COMUM",
+          "icon": "📿",
+          "status": {
+            "vida": 1
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790144439048_18",
+          "uid": "mudps1e0-oek4m6dc9",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🪄 Cajado Arcano ÉPICO",
+          "icon": "🪄",
+          "status": {
+            "inteligencia": 4,
+            "divindade": 4,
+            "velocidadeAtaque": 8
+          },
+          "cor": "#a855f7",
+          "classe": "mago",
+          "armaChave": "cajado_arcano"
+        },
+        {
+          "id": "drop_1790144439048_19",
+          "uid": "mudps1e0-7ekbm9357",
+          "tipo": "equipamento",
+          "slot": "capa",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🧥 CAPA COMUM",
+          "icon": "🧥",
+          "status": {
+            "inteligencia": 1
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790144439048_20",
+          "uid": "mudps1e0-s2j3udpu6",
+          "tipo": "equipamento",
+          "slot": "armaSecundaria",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "📖 Grimório Arcano RARO",
+          "icon": "📖",
+          "status": {
+            "inteligencia": 2,
+            "agilidade": 4
+          },
+          "cor": "#4da6ff",
+          "classe": "mago",
+          "armaChave": "grimorio_arcano"
+        },
+        {
+          "id": "drop_1790174407089_1",
+          "uid": "mue7mcvl-58ivvfs1d",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "📿 COLAR COMUM",
+          "icon": "📿",
+          "status": {
+            "vida": 1
+          },
+          "cor": "#ffffff",
           "classe": null,
           "armaChave": null
         }
@@ -1483,11 +1677,47 @@
           "y": 185
         }
       },
-      "mobile": {}
+      "mobile": {
+        "hud-status-window": {
+          "x": 827,
+          "y": 842,
+          "w": 75,
+          "h": 76
+        },
+        "hud-xp-central": {
+          "x": 525,
+          "y": 909,
+          "w": 220,
+          "h": 12
+        },
+        "minimap": {
+          "x": 1119,
+          "y": 788,
+          "w": 141,
+          "h": 133
+        },
+        "actions": {
+          "x": 453,
+          "y": 867,
+          "w": 364,
+          "h": 54
+        },
+        "util-buttons": {
+          "x": 786,
+          "y": 18,
+          "w": 474,
+          "h": 34
+        },
+        "hud-party": {
+          "x": 76,
+          "y": 461,
+          "w": 180
+        }
+      }
     },
     "maxHp": 620,
     "ogroModo": "passivo",
-    "ouro": 1212
+    "ouro": 1259
   },
   "vic": {
     "level": 1,
@@ -1512,11 +1742,11 @@
   "Admin": {
     "level": 16,
     "xp": 362,
-    "classe": "barbaro",
+    "classe": "arqueiro_arcano",
     "hp": 640,
-    "x": 60474,
-    "y": 709,
-    "ultimoLogin": 1790096083136,
+    "x": 60503,
+    "y": 707,
+    "ultimoLogin": 1790188268744,
     "atributos": {
       "forca": 4,
       "inteligencia": 1,
@@ -4584,11 +4814,11 @@
   "Tall2": {
     "level": 1,
     "xp": 0,
-    "classe": "curandeiro",
-    "hp": 40,
-    "x": 3335,
-    "y": 2098,
-    "ultimoLogin": 1789501003544,
+    "classe": "mago",
+    "hp": 100,
+    "x": 60573,
+    "y": 443,
+    "ultimoLogin": 1790194127444,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -4616,7 +4846,7 @@
     },
     "skills": {},
     "pontosHabilidade": 0,
-    "mana": 27
+    "mana": 50
   },
   "Guerreiro": {
     "level": 3,
@@ -9257,5 +9487,14 @@
     "pontosHabilidade": 0,
     "mana": 44,
     "ouro": 0
+  },
+  "Admin12323": {
+    "level": 1,
+    "xp": 0,
+    "classe": "pikeman",
+    "hp": 100,
+    "x": 60474,
+    "y": 640,
+    "ultimoLogin": 1790188619910
   }
 }

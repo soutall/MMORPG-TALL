@@ -299,15 +299,28 @@
     "timerRespawn": 20
   },
   {
-    "id": "flag_mudfz7lq_g6xz7",
-    "criadoEm": 1790127977534,
-    "tipo": "mamute",
+    "id": "flag_mue87hj3_8k1dq",
+    "criadoEm": 1790175392895,
+    "tipo": "melee",
     "maxQtd": 1,
     "comportamento": "agressivo",
-    "hpBase": 3200,
+    "hpBase": 5000,
     "respawnSeg": 5,
-    "x": 65659,
-    "y": 610,
+    "x": 65714,
+    "y": 1194,
+    "temPosicao": true,
+    "timerRespawn": 100
+  },
+  {
+    "id": "flag_mue8s9kr_jfa34",
+    "criadoEm": 1790176362363,
+    "tipo": "melee",
+    "maxQtd": 1,
+    "comportamento": "agressivo",
+    "hpBase": 50000,
+    "respawnSeg": 5,
+    "x": 65662,
+    "y": 625,
     "temPosicao": true,
     "timerRespawn": 100
   }

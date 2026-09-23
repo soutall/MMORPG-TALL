@@ -647,23 +647,21 @@
         "hud-buffs":         { x: 0.015, y: 0.155, alinharX: "left" },
         "hud-party":         { x: 0.02, y: 0.22, alinharX: "left" },
         "hud-boss":          { x: 0.5, y: 0.03, alinharX: "center" },
-        "hud-xp-central":    { x: 0.5, y: 0.9, alinharX: "center" },
         "minimap":           { x: 0.985, y: 0.02, alinharX: "right" },
-        "actions":           { x: 0.5, y: 0.975, alinharX: "center", porBaixo: true },
-        "util-buttons":      { x: 0.985, y: 0.975, alinharX: "right", porBaixo: true }
+        "util-buttons":      { x: 0.985, y: 0.975, alinharX: "right", porBaixo: true },
+        "actions":           { x: 0.985, y: 0.975, alinharX: "right", porBaixo: true }
     };
 
-    // Posições padrão (0..1 = fração da tela) para telas pequenas (mobile).
+    // Posições padrão (0..1 = fração da tela) para telas pequenas (mobile v1.39).
     var LAYOUT_PADRAO_MOBILE = {
-        "hud-status-window": { x: 0.5, y: 0.07, alinharX: "center" },
-        "hud-xp-central":    { x: 0.5, y: 0.93, alinharX: "center", porBaixo: true },
-        "minimap":           { x: 0.94, y: 0.9, alinharX: "right" },
-        "joystick":          { x: 0.08, y: 0.82 },
-        "actions":           { x: 0.5, y: 0.95, alinharX: "center", porBaixo: true },
-        "util-buttons":      { x: 0.94, y: 0.02, alinharX: "right" },
-        "hud-party":         { x: 0.06, y: 0.5 },
-        "hud-buffs":         { x: 0.5, y: 0.01, alinharX: "center" },
-        "hud-boss":          { x: 0.5, y: 0.03, alinharX: "center" }
+        "hud-status-window": { x: 0.015, y: 0.02, alinharX: "left" },
+        "minimap":           { x: 0.985, y: 0.02, alinharX: "right" },
+        "joystick":          { x: 0.08,  y: 0.82 },
+        "actions":           { x: 0.985, y: 0.975, alinharX: "right", porBaixo: true },
+        "util-buttons":      { x: 0.985, y: 0.975, alinharX: "right", porBaixo: true },
+        "hud-party":         { x: 0.06,  y: 0.5 },
+        "hud-buffs":         { x: 0.5,   y: 0.01, alinharX: "center" },
+        "hud-boss":          { x: 0.5,   y: 0.03, alinharX: "center" }
     };
 
     function retanguloUI(reg) {

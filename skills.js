@@ -381,7 +381,7 @@ const SKILLS_INFO = {
           mp: 0, cd: 0.42, escala: 'dano',
           area: 'Cone frontal (100px)', alcance: 'Corpo a corpo',
           duracao: null, duracaoBase: null, extras: [] },
-        { id: 'giro_foice', nome: 'Giro da Foice', icon: '⭕', categoria: 'aoe',
+        { id: 'giro_foice', nome: 'Giro da Foice', icon: '<img src="imagem/HUD/skills/Slotbar/Pike/skill_01.png" class="skill-icon-img" alt="Giro da Foice" />', categoria: 'aoe',
           desc: 'Gira a Foice da Morte em 360°: corta todos os inimigos ao redor com rastro acompanhando a lâmina.',
           danoBase: 26, danoUnidade: 'físico', danoNota: null,
           mp: 25, cd: 7, escala: 'dano',
@@ -424,6 +424,7 @@ const LABELS_CATEGORIA = {
 
 function skillScreenEl() { return document.getElementById("skills-screen"); }
 function skillsListaEl() { return document.getElementById("skills-lista"); }
+function skillsDetalheEl() { return document.getElementById("skills-detalhe"); }
 function skillsClasseTagEl() { return document.getElementById("skills-classe-tag"); }
 
 function obterNivelSkill(classe, id) {
@@ -452,13 +453,35 @@ function atributoEscalaSkill(skill) {
     return { chave: 'forca', rotulo: 'Força' };
 }
 
-function valorComAtributo(skill) {
+function valorComAtributo(skill, nivel) {
     let atr = atributoEscalaSkill(skill);
-    if (!skill.danoBase || skill.escala !== 'dano' && skill.escala !== 'cura') return null;
+    if (!skill.danoBase || (skill.escala !== 'dano' && skill.escala !== 'cura')) return null;
     let tot = window.atributosTotais && window.atributosTotais[atr.chave];
     if (!tot) return null;
-    return Math.round(skill.danoBase * (1 + (tot - 1) * 0.05));
+    let baseDano = skill.danoBase;
+    if (nivel !== undefined) {
+        baseDano = Math.round(skill.danoBase * (1 + (nivel - 1) * 0.25));
+    }
+    return Math.round(baseDano * (1 + (tot - 1) * 0.05));
 }
+
+function classificarGrupoSkill(skill) {
+    if (skill.categoria === 'passiva' || (skill.id && skill.id.includes('passiva')) || (skill.nome && skill.nome.toLowerCase().includes('(passiva)'))) {
+        return 'passivas';
+    }
+    if (['cura', 'buff', 'mobilidade', 'invocacao'].indexOf(skill.categoria) !== -1) {
+        return 'suporte';
+    }
+    return 'ativas';
+}
+
+window.skillSelecionadaId = null;
+
+function selecionarSkill(id) {
+    window.skillSelecionadaId = id;
+    renderizarSkills();
+}
+window.selecionarSkill = selecionarSkill;
 
 function abrirSkills() {
     if (window.estaMorto) return;
@@ -481,94 +504,195 @@ function toggleSkills() {
 }
 
 function renderizarSkills() {
-    let lista = skillsListaEl();
-    if (!lista) return;
-    let tag = skillsClasseTagEl();
-    if (tag) tag.innerText = "🔶 " + (NOMES_CLASSES[window.minhaClasse] || window.minhaClasse) + " — SKILLS";
+    let listaEl = skillsListaEl();
+    let detalheEl = skillsDetalheEl();
+    if (!listaEl || !detalheEl) return;
+
     let classe = window.minhaClasse || 'guerreiro';
     let skills = SKILLS_INFO[classe] || [];
 
-    lista.innerHTML = "";
+    // Tag da classe no cabeçalho
+    let tag = skillsClasseTagEl();
+    if (tag) {
+        let nomeClasse = (NOMES_CLASSES[classe] || classe).toUpperCase();
+        tag.innerHTML = '<span class="star-ico">✦</span> ' + nomeClasse + ' <span class="star-ico">✦</span>';
+    }
 
+    // Saldo de pontos no rodapé
     let pontos = window.pontosHabilidade || 0;
-    let cabecalho = document.createElement("div");
-    cabecalho.className = "skill-pontos" + (pontos <= 0 ? " esgotado" : "");
-    cabecalho.innerHTML = '🎯 Pontos de habilidade: <b>' + pontos + '</b> <span style="font-size:10px;color:#bbb">(surge ao subir de nível)</span>';
-    lista.appendChild(cabecalho);
+    let pontosBar = document.getElementById("skills-pontos-bar");
+    if (pontosBar) {
+        pontosBar.innerHTML = '🎯 Pontos de habilidade disponíveis: <b>' + pontos + '</b>';
+    }
 
-    skills.forEach(skill => {
-        let nivel = obterNivelSkill(classe, skill.id);
-        let escalado = valorEscalado(skill, nivel);
-        let card = document.createElement("div");
-        card.className = "skill-card";
+    // Se nenhuma skill selecionada ou ID não pertence à classe atual, seleciona a primeira
+    if (!window.skillSelecionadaId || !skills.some(s => s.id === window.skillSelecionadaId)) {
+        window.skillSelecionadaId = skills.length > 0 ? skills[0].id : null;
+    }
 
-        let linhaDano = "";
-        if (skill.danoBase && (skill.escala === 'dano' || skill.escala === 'cura')) {
-            let comAtr = valorComAtributo(skill);
-            let principal = comAtr !== null ? comAtr : escalado;
-            let notaAtr = comAtr !== null && comAtr !== escalado
-                ? ' <span style="color:#9b59b6">(' + skill.danoBase + ' base · +5% por ' + atributoEscalaSkill(skill).rotulo + ')</span>'
-                : '';
-            let icone = skill.escala === 'cura' ? '💖 Cura' : '🗡️ Dano';
-            let corNota = skill.escala === 'cura' ? '#27ae60' : '#e67e22';
-            linhaDano = '<div class="skill-stat"><b>' + icone + '</b> ' + principal + notaAtr + (skill.danoUnidade && skill.escala !== 'cura' ? ' ' + skill.danoUnidade : '') + (skill.danoNota ? ' <span style="color:' + corNota + '">' + skill.danoNota + '</span>' : '') + '</div>';
-        } else {
-            linhaDano = '<div class="skill-stat"><b>Dano</b> —</div>';
-        }
+    // 1. RENDERIZAR COLUNA ESQUERDA (Grade com Categorias)
+    listaEl.innerHTML = "";
 
-        let duracaoLinha = skill.duracao
-            ? '<div class="skill-stat"><b>⏳ Duração</b> ' + (skill.escala === 'duracao' ? escalado + 's' : skill.duracao) + '</div>'
-            : '<div class="skill-stat"><b>⏳ Duração</b> —</div>';
+    const GRUPOS = [
+        { key: 'ativas', label: 'ATIVAS' },
+        { key: 'passivas', label: 'PASSIVAS' },
+        { key: 'suporte', label: 'SUPORTE' }
+    ];
 
-        let extrasHtml = skill.extras.length
-            ? '<div class="skill-extras">' + skill.extras.map(e => '<span class="skill-extra">' + e + '</span>').join('') + '</div>'
-            : '';
+    GRUPOS.forEach(g => {
+        let skillsDoGrupo = skills.filter(s => classificarGrupoSkill(s) === g.key);
+        if (skillsDoGrupo.length === 0) return;
 
-        let custoMp = skill.mp ? Math.round(skill.mp * (1 + (nivel - 1) * 0.06)) : 0;
-        let cooldownExibido = skill.cd === null || skill.cd === undefined ? '—' : (skill.cd >= 60 ? Math.floor(skill.cd / 60) + ':' + String(skill.cd % 60).padStart(2, '0') : skill.cd + 's');
+        let bloco = document.createElement("div");
+        bloco.className = "skill-grupo-bloco";
 
-        let btnUpgrade;
-        if (nivel >= NIVEL_SKILL_MAX) {
-            btnUpgrade = '<button class="btn-melhorar max" disabled>MÁXIMO</button>';
-        } else if (pontos <= 0) {
-            btnUpgrade = '<button class="btn-melhorar" disabled>⬆️ MELHORAR</button>';
-        } else {
-            btnUpgrade = '<button class="btn-melhorar" onclick="melhorarSkill(\'' + skill.id + '\')">⬆️ MELHORAR</button>';
-        }
+        let header = document.createElement("div");
+        header.className = "skill-grupo-header";
+        header.innerHTML = '<span class="skill-grupo-losango">◇</span> ' + g.label;
+        bloco.appendChild(header);
 
-        card.innerHTML =
-            '<div class="skill-card-top">' +
-                '<span class="skill-ico">' + skill.icon + '</span>' +
-                '<div style="flex:1">' +
-                    '<div class="skill-nome">' + skill.nome +
-                        '<span class="skill-cat cat-' + skill.categoria + '">' + LABELS_CATEGORIA[skill.categoria] + '</span>' +
-                        '<span class="skill-nv">NV ' + nivel + '</span>' +
-                    '</div>' +
-                    '<div class="skill-desc">' + skill.desc + '</div>' +
-                '</div>' +
-            '</div>' +
-            '<div class="skill-stats">' +
-                linhaDano +
-                '<div class="skill-stat"><b>💧 MP</b> ' + (custoMp > 0 ? custoMp : 0) + '</div>' +
-                '<div class="skill-stat"><b>⏱️ CD</b> ' + cooldownExibido + '</div>' +
-                '<div class="skill-stat"><b>🔵 Área</b> ' + (skill.area || '—') + '</div>' +
-                '<div class="skill-stat"><b>🎯 Alcance</b> ' + (skill.alcance || '—') + '</div>' +
-                duracaoLinha +
-            '</div>' +
-            (skill.escala === 'duracao'
-                ? '<div class="skill-extras"><span class="skill-extra" style="border-color:#f1c40f;background:#3a3528;color:#f1c40f">Duração escala +10%/nível</span></div>'
-                : (skill.escala === 'dano' || skill.escala === 'cura'
-                    ? '<div class="skill-extras"><span class="skill-extra" style="border-color:#1abc9c;background:#13332b;color:#1abc9c">Dano/Cura escala +25%/nível · MP +6%/nível</span></div>'
-                    : '')) +
-            extrasHtml +
-            '<div class="skill-upgrade">' +
-                '<span class="skill-upgrade-nivel">Nível <b>' + nivel + '</b>/' + NIVEL_SKILL_MAX + '</span>' +
-                btnUpgrade +
-                '<button class="btn-skill-reset" onclick="resetarSkill(\'' + skill.id + '\')" title="Resetar">↺</button>' +
-            '</div>';
+        let grid = document.createElement("div");
+        grid.className = "skill-grupo-grid";
 
-        lista.appendChild(card);
+        skillsDoGrupo.forEach(skill => {
+            let nivel = obterNivelSkill(classe, skill.id);
+            let selecionada = (skill.id === window.skillSelecionadaId);
+
+            let card = document.createElement("div");
+            card.className = "skill-slot-card" + (selecionada ? " selected" : "");
+            card.title = skill.nome + " (Nv " + nivel + ")";
+            card.onclick = function() { selecionarSkill(skill.id); };
+
+            card.innerHTML = 
+                '<div class="skill-slot-moldura">' + skill.icon + '</div>' +
+                '<span class="skill-slot-nv">Nv ' + nivel + '</span>' +
+                '<div class="skill-slot-nome">' + skill.nome + '</div>';
+
+            grid.appendChild(card);
+        });
+
+        bloco.appendChild(grid);
+        listaEl.appendChild(bloco);
     });
+
+    // 2. RENDERIZAR COLUNA DIREITA (Detalhes da Habilidade Selecionada)
+    detalheEl.innerHTML = "";
+
+    let skillSel = skills.find(s => s.id === window.skillSelecionadaId) || skills[0];
+    if (!skillSel) {
+        detalheEl.innerHTML = '<div style="text-align:center;color:#8fa5b0;margin-top:40px;">Selecione uma habilidade para ver os detalhes.</div>';
+        return;
+    }
+
+    let nivel = obterNivelSkill(classe, skillSel.id);
+    let escalado = valorEscalado(skillSel, nivel);
+    let comAtr = valorComAtributo(skillSel, nivel);
+    let principal = comAtr !== null ? comAtr : (escalado !== null ? escalado : (skillSel.danoBase || 0));
+
+    let grupo = classificarGrupoSkill(skillSel);
+    let badgeClasse = grupo === 'passivas' ? 'badge-passiva' : (grupo === 'suporte' ? 'badge-suporte' : 'badge-ativa');
+    let badgeTexto = grupo === 'passivas' ? 'PASSIVA' : (grupo === 'suporte' ? 'SUPORTE' : 'ATIVA');
+
+    // Dano / Cura
+    let linhaDano = "";
+    if (skillSel.danoBase && (skillSel.escala === 'dano' || skillSel.escala === 'cura')) {
+        let icone = skillSel.escala === 'cura' ? '💖 Cura' : '⚔️ Dano';
+        let corNota = skillSel.escala === 'cura' ? '#27ae60' : '#e67e22';
+        let notaAtr = comAtr !== null
+            ? ' <span style="color:#9b59b6">(' + skillSel.danoBase + ' base · +5% por ' + atributoEscalaSkill(skillSel).rotulo + ')</span>'
+            : '';
+        linhaDano = '<div class="skill-det-stat"><b>' + icone + ':</b> ' + principal + notaAtr + (skillSel.danoUnidade && skillSel.escala !== 'cura' ? ' ' + skillSel.danoUnidade : '') + (skillSel.danoNota ? ' <span style="color:' + corNota + '">' + skillSel.danoNota + '</span>' : '') + '</div>';
+    } else {
+        linhaDano = '<div class="skill-det-stat"><b>⚔️ Dano:</b> —</div>';
+    }
+
+    let duracaoLinha = skillSel.duracao
+        ? '<div class="skill-det-stat"><b>⏳ Duração:</b> ' + (skillSel.escala === 'duracao' ? escalado + 's' : skillSel.duracao) + '</div>'
+        : '<div class="skill-det-stat"><b>⏳ Duração:</b> —</div>';
+
+    let custoMp = skillSel.mp ? Math.round(skillSel.mp * (1 + (nivel - 1) * 0.06)) : 0;
+    let cooldownExibido = (skillSel.cd === null || skillSel.cd === undefined) ? '—' : (skillSel.cd >= 60 ? Math.floor(skillSel.cd / 60) + ':' + String(skillSel.cd % 60).padStart(2, '0') : skillSel.cd + 's');
+
+    // Botão de Upgrade
+    let btnUpgrade;
+    if (nivel >= NIVEL_SKILL_MAX) {
+        btnUpgrade = '<button class="btn-det-melhorar max" disabled>MÁXIMO</button>';
+    } else if (pontos <= 0) {
+        btnUpgrade = '<button class="btn-det-melhorar" disabled>⬆ MELHORAR</button>';
+    } else {
+        btnUpgrade = '<button class="btn-det-melhorar" onclick="melhorarSkill(\'' + skillSel.id + '\')">⬆ MELHORAR</button>';
+    }
+
+    // Texto de Bônus por Nível
+    let bonusTexto = "Dano/Cura +25% · MP +6%";
+    if (skillSel.escala === 'duracao') bonusTexto = "Duração +10% / nível · MP +6% / nível";
+    else if (skillSel.escala === 'nenhum' && !skillSel.danoBase) bonusTexto = "Efeito base constante · MP +6% / nível";
+
+    // Prévia do Próximo Nível
+    let proximoNivelHtml = "";
+    if (nivel < NIVEL_SKILL_MAX) {
+        let proxNivel = nivel + 1;
+        let escaladoProx = valorEscalado(skillSel, proxNivel);
+        let comAtrProx = valorComAtributo(skillSel, proxNivel);
+        let principalProx = comAtrProx !== null ? comAtrProx : (escaladoProx !== null ? escaladoProx : (skillSel.danoBase || 0));
+        let custoMpProx = skillSel.mp ? Math.round(skillSel.mp * (1 + (proxNivel - 1) * 0.06)) : 0;
+
+        let danoProxStr = (skillSel.danoBase && (skillSel.escala === 'dano' || skillSel.escala === 'cura'))
+            ? principal + ' → <b>' + principalProx + '</b>'
+            : 'Igual';
+
+        let mpProxStr = skillSel.mp ? custoMp + ' → <b>' + custoMpProx + '</b>' : '0 → 0';
+
+        proximoNivelHtml = 
+            '<div class="skill-det-next-box">' +
+                '<div class="skill-det-next-titulo">Próximo nível:</div>' +
+                '<div class="skill-det-next-grid">' +
+                    '<div class="skill-det-next-stat">⚔️ Dano/Cura: ' + danoProxStr + '</div>' +
+                    '<div class="skill-det-next-stat">🎯 Área: Igual</div>' +
+                    '<div class="skill-det-next-stat">💧 MP: ' + mpProxStr + '</div>' +
+                    '<div class="skill-det-next-stat">⏱️ Cooldown: ' + cooldownExibido + ' → ' + cooldownExibido + '</div>' +
+                '</div>' +
+            '</div>';
+    } else {
+        proximoNivelHtml = 
+            '<div class="skill-det-next-box">' +
+                '<div class="skill-det-next-max">✨ Habilidade no Nível Máximo (10/10)</div>' +
+            '</div>';
+    }
+
+    detalheEl.innerHTML = 
+        '<div class="skill-det-titulo">DETALHES DA HABILIDADE</div>' +
+        '<div class="skill-det-header">' +
+            '<div class="skill-det-ico-wrap">' + skillSel.icon + '</div>' +
+            '<div class="skill-det-info">' +
+                '<div class="skill-det-nome-row">' +
+                    '<span class="skill-det-nome">' + skillSel.nome + '</span>' +
+                    '<span class="skill-det-badge ' + badgeClasse + '">' + badgeTexto + '</span>' +
+                '</div>' +
+                '<div class="skill-det-nv-txt">Nível <b>' + nivel + '</b>/' + NIVEL_SKILL_MAX + '</div>' +
+            '</div>' +
+        '</div>' +
+        '<div class="skill-det-desc">' + skillSel.desc + '</div>' +
+        '<div class="skill-det-stats-box">' +
+            '<div class="skill-det-stats-grid">' +
+                linhaDano +
+                '<div class="skill-det-stat"><b>💧 MP:</b> ' + (custoMp > 0 ? custoMp : 0) + '</div>' +
+                '<div class="skill-det-stat"><b>🔵 Área:</b> ' + (skillSel.area || '—') + '</div>' +
+                '<div class="skill-det-stat"><b>🎯 Alcance:</b> ' + (skillSel.alcance || '—') + '</div>' +
+                duracaoLinha +
+                '<div class="skill-det-stat"><b>⏱️ Cooldown:</b> ' + cooldownExibido + '</div>' +
+            '</div>' +
+        '</div>' +
+        '<div class="skill-det-bonus-box">' +
+            '<div class="skill-det-bonus-titulo">Bônus por nível:</div>' +
+            '<div class="skill-det-bonus-desc">' + bonusTexto + '</div>' +
+        '</div>' +
+        '<div class="skill-det-actions">' +
+            '<span class="skill-det-actions-nv">Nível <b>' + nivel + '</b>/' + NIVEL_SKILL_MAX + '</span>' +
+            btnUpgrade +
+            '<button class="btn-det-reset" onclick="resetarSkill(\'' + skillSel.id + '\')" title="Resetar esta habilidade">↺</button>' +
+        '</div>' +
+        proximoNivelHtml;
 }
 
 function melhorarSkill(id) {

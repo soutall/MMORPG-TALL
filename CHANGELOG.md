@@ -4,7 +4,7 @@ Registro de todas as atualizações feitas no projeto. **Sempre** que algo novo 
 
 ---
 
-## Versão atual: **v1.37**
+## Versão atual: **v1.39.5**
 
 > 🚨 **REGRA MANDATÓRIA:** O game está sendo desenvolvido para **PC e Mobile**, então a otimização tem que ser feita para **AMBOS**, e tudo o que for feito no projeto é pensando em ambos os lados (controles via teclado/mouse no PC e touch/joystick no mobile, interfaces responsivas sem corte nem sobreposição, e alto desempenho em todas as resoluções).
 
@@ -12,6 +12,9 @@ Registro de todas as atualizações feitas no projeto. **Sempre** que algo novo 
 
 | Versão | Data / Hora | O que foi feito | Arquivos Alterados |
 |---|---|---|---|
+| **v1.39.5** | 23/09/2026 (hora local) | **FIX ANCORAGEM SIDEBAR MOBILE ABAIXO DO MINIMAPA + ÍCONE OFICIAL SKILL 1 DO PIKEMAN:** (1) Corrigido bug de posicionamento da Sidebar mobile no canto superior esquerdo (causado pelo auto-scanner de `data-ui` do `dragdrop.js`): removido `data-ui` e adicionado `data-ui-ignored="true"` + regras forçadas `top: 122px !important; right: 10px !important; left: auto !important;`; (2) Redução compacta dos itens do menu dropdown (altura 21px, fonte 10.5px, largura 116px) permitindo que todas as 8 opções caibam perfeitamente na vertical abaixo do minimapa sem rolagem; (3) Substituição do emoji `⭕` pela arte oficial `imagem/HUD/skills/Slotbar/Pike/skill_01.png` na Skill 1 do Pikeman (Giro da Foice) no slotbar (`#btn-pikeman-giro`) e no modal K (`skills.js`), com estilização circular, borda vermelha e fundo escuro condizente; versão **v1.39.5** nos 3 pontos visuais | `index.html`, `mobile-hud.css`, `skills.js`, `skills.css`, `style.css`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
+| **v1.39** | 23/09/2026 (hora local) | **INTERFACE FIXA MOBILE COM SIDEBAR RETRÁTIL E CLUSTER DE AÇÃO 2×3:** Menu Sidebar retrátil (`#mobile-sidebar-container`) abaixo do minimapa com opções Configuração, Inventário, Skills, Social, Status, PvP, Mapa e Futuro Update (com toast); Cluster de Ação fixo no canto inferior direito em 2 colunas × 3 linhas: L1 [6] Autofarm / [5] Dash, L2 [3] Skill 3 / [4] Skill 4, L3 [1] Skill 1 / [2] Skill 2; Poções [HP] e [MP] fixadas imediatamente à esquerda da Skill 1; Barra de XP fixada no canto inferior esquerdo; minimapa e status ancorados no topo; ocultação de badges de teclado no mobile; arquitetura separada em `mobile-hud.css` e `mobile-hud.js`; compatibilidade dual PC & Mobile; versão **v1.39** nos 3 pontos visuais | `mobile-hud.css`, `mobile-hud.js`, `index.html`, `dragdrop.js`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
+| **v1.38** | 23/09/2026 (hora local) | **REDESENHO DA JANELA DE HABILIDADES (MODAL K) ESTILO MMORPG CLÁSSICO/MODERNO:** Layout split-view dividido em 2 colunas principais: Coluna esquerda com grade de skills categorizadas (`◇ ATIVAS`, `◇ PASSIVAS`, `◇ SUPORTE`), molduras metálicas douradas (`.skill-slot-moldura`), seleção com brilho dourado (`.selected`), badge de nível (`Nv X`) e nome legível; Coluna direita **"DETALHES DA HABILIDADE"** interativa ao clicar em qualquer skill exibindo ícone grande, nome, badge de categoria (Ativa/Passiva/Suporte), nível atual (1 a 10), descrição narrativa, caixa de atributos com escalonamento por atributo e fórmula do server, caixa de bônus por nível, controles de upgrade (`⬆ MELHORAR`) e reset individual (`↺`), e caixa de prévia do próximo nível (`Próximo nível:`) com comparação dinâmica; responsividade dual PC & Mobile (landscape) preservando Drag & Drop (`dragdrop.js`); versão **v1.38** nos 3 pontos visuais | `index.html`, `skills.css`, `skills.js`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.37** | 23/09/2026 (hora local) | **FOTOS DE SNIPER E CURANDEIRO ATIVADAS no círculo do retrato do HUD:** a foto do **Sniper** (`imagem/HUD/Perfil/sniper.png`, 1254×1254) foi adicionada e mapeada no `_perfilMapa` (`sniper`→`sniper.png`) — a classe Sniper agora exibe o retrato no círculo (antes permanecia vazio); a foto da **Curandeira** (`curandeiro.png`, 1254×1254) já existia e segue ativa. Desenho idêntico à v1.36: clip `ctx.arc` (centro 345,350 / raio 200) + cover-crop (`Math.max(lado/sw, lado/sh)`) e **"PNG por último"** — foto ANTES do `drawImage(HudHP.png)`, overlay puro, SEM masking/destination-out. Cache-buster das fotos de perfil atualizado `?v=perfil1` → `?v=perfil2`. As 5 classes futuras (Paladino/Necromante/Frorin/Druida/Bruxo) continuam fora do mapeamento. Versão **v1.37** nos 3 pontos visuais (login, HUD e `GAME_VERSION`) | `index.html`, `imagem/HUD/Perfil/sniper.png`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.36** | 23/09/2026 (hora local) | **FOTO DE PERFIL das classes no círculo do retrato do HUD:** a arte oficial `HudHP.png` NÃO foi modificada — agora as fotos de perfil (`imagem/HUD/Perfil/*.png`, quadradas 1254×1254) são desenhadas DENTRO do círculo do retrato (interior transparente da PNG), recortadas em círculo via clip `ctx.arc` (centro 345,350 e raio 200 no espaço da imagem 2172×724, medidos por scan de pixel; gemas/ornamentos da moldura preservados). Enfoque **"PNG por último"**: a foto é desenhada ANTES do `drawImage(HudHP.png)` — a PNG pintada por último em source-over cobre automaticamente qualquer sobra sobre moldura/gemas/ornamentos, SEM masking e SEM `destination-out` (o antialias da PNG faz blend suave e natural). Foto com cover-crop (`Math.max(lado/sw, lado/sh)`) para preencher o círculo ponta a ponta, carregada de forma lazy com cache e cache-buster `?v=perfil1`. Mapeamento classe→foto via `window.minhaClasse`: guerreiro/mago/summoner/arqueiro/barbaro/roqueiro/ladino/dronemaster/arqueiro_arcano(+arqueiro_astral)/pikeman/curandeiro → Guerreiro/Mago/Summoner/Arqueira/Barbaro/Roqueiro/Ladino/DroneMaster/Arqueir_astral/PikeMan/curandeiro. **Sniper não tem foto no jogo** → o círculo permanece vazio (sem erro; basta adicionar `Sniper.png` para ativar). Validação visual por render GDI+ (Guerreiro, Arqueira e cenário vazio). Versão atualizada para **v1.36** nos 3 pontos visuais (login, HUD e `GAME_VERSION`) | `index.html`, `imagem/HUD/Perfil/*.png` (uso), `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.35** | 23/09/2026 (hora local) | **HUD Oficial em Canvas 2D com HudHP.png:** a arte oficial `imagem/HUD/HudHP.png` (2172×724, IMAGEM NÃO modificada) agora é o HUD do jogo — moldura dourada, círculo de retrato (mantido VAZIO, sem personagem nem moldura extra) e ícones ❤️/🔥/🏃 desenhados no Canvas do jogo via `drawImage`, substituindo as barras HTML antigas (barras e retrato antigos ocultos via CSS com `display:none`). Os **preenchimentos são 100% Canvas** (não dependem do PNG): HP vermelho, Mana azul e Stamina verde, cada um com gradiente vertical claro→escuro + glow + brilho interno, desenhados ANTES da imagem, apenas dentro das áreas internas das barras via clipping (`window.HUD_BARS` = coordenadas exatas escaneadas por pixel: HP {641,166,1453,104}, Mana {659,326,1438,100}, Stamina {668,486,1424,91}), esquerda→direita até a razão atual; a imagem é desenhada POR CIMA como OVERLAY PURO (a PNG foi editada com os interiores das três barras TRANSPARENTES — janelas visíveis ~x790–1980; as gemas/ornamentos das pontas permanecem opacos) para o preenchimento dinâmico aparecer por trás — a 0% resta somente a moldura, a 100% a barra fica totalmente preenchida. O preenchimento é clipado APENAS na área interna de cada barra (nunca na moldura), e a PNG é a ÚLTIMA etapa visual — SEM `destination-out`, SEM apagar/modificar a imagem em runtime. Valores reais preservados (`meuHp/meuMaxHp/meuMp/meuMaxMp/minhaEstamina` com fallbacks) e animação suave `displayHp/displayMana/displayStamina += (real − display) * 0.15` que NUNCA altera os valores reais. Escala responsiva reutilizando o sistema atual (baseada na largura do canvas 2D, clamp 0.06–0.30). Render validado visualmente por replicação em GDI+ (65%/40%/80%, 0% e escala telefone) | `index.html`, `style.css`, `CHANGELOG.md` |
@@ -37,6 +40,91 @@ Regra de versão (semver):
 ---
 
 ## Histórico de versões
+
+### v1.39.5 — 23/09/2026
+
+**Fix de Ancoragem da Sidebar Mobile abaixo do Minimapa + Ícone Oficial da Skill 1 do Pikeman:**
+
+- **Correção da Ancoragem da Sidebar Mobile (`#mobile-sidebar-container`):**
+  - Identificada a causa que empurrava a Sidebar para o canto superior esquerdo: a presença do atributo `data-ui="mobile-sidebar"` ativava o auto-scanner de janelas editáveis do `dragdrop.js`, que forçava `style.left: 0px` por falta de posição pré-gravada.
+  - O contêiner foi desacoplado do editor com `data-ui-ignored="true"` e suas regras em `mobile-hud.css` ganharam precedência mandatória com `!important` (`top: 122px !important; right: 10px !important; left: auto !important; bottom: auto !important;`), fixando-o no canto superior direito logo abaixo do minimapa.
+- **Compactação Ergonômica do Dropdown e Botão:**
+  - Altura e espaçamento dos 8 itens reduzidos para caber perfeitamente no espaço vertical do celular: altura de 21px por item, fonte Rajdhani de 10.5px, ícones de 12px e largura otimizada de 116px;
+  - Botão principal reduzido para 22px de altura com fonte de 9px;
+  - Todas as 8 opções (Configuração, Inventário, Skills, Social, Status, Modo PvP, Mapa e Futuro Update) ficam visíveis sem rolagem.
+- **Ícone Real da Skill 1 do Pikeman (Giro da Foice):**
+  - Substituição do caractere provisório `⭕` pela imagem oficial em alta resolução `imagem/HUD/skills/Slotbar/Pike/skill_01.png` (foice giratória vermelha);
+  - Integrado no botão da barra de ação (`#btn-pikeman-giro`) com máscara circular, centralização nítida (`.btn-action-icon-img`) e moldura com gradiente escuro e borda avermelhada (`#c0392b`);
+  - Integrado na Janela de Habilidades (Modal K) em `skills.js` (`giro_foice`) e `skills.css` (`.skill-icon-img`), exibindo a arte tanto na grade esquerda quanto no cabeçalho de detalhes da habilidade.
+- **Versão Atualizada:** Atualizada para **v1.39.5** em `index.html` (`#login-screen`, `#hud-version`, `GAME_VERSION`) e documentações.
+
+### v1.39 — 23/09/2026
+
+**Interface Mobile Fixa com Menu Sidebar Retrátil, Cluster de Ações 2×3 e Otimização Ergonômica:**
+
+- **Menu Sidebar Retrátil Mobile (`#mobile-sidebar-container`):**
+  - Posicionado estrategicamente no canto superior direito logo abaixo do minimapa (`top: 112px; right: 10px;`);
+  - Botão principal com design metálico escuro, borda ciana/dourada (`#00e5d4` / `#ffd700`) e texto `☰ MENU` / `FECHAR`;
+  - Ao ser clicado/tocado, expande suavemente para baixo um menu vertical com fundo translúcido blur (`rgba(8, 14, 20, 0.94)` com `backdrop-filter: blur(6px)`);
+  - Opções integradas:
+    - ⚙️ **Configuração** (abre o modal de configurações de áudio/gráficos);
+    - 🎒 **Inventário** (abre o inventário de 9 slots com comparação e abas);
+    - 🪄 **Skills** (abre a nova janela MMORPG split-view de habilidades);
+    - 👥 **Social** (abre a janela de grupos, amigos e chat de guilda);
+    - 📊 **Status** (abre a distribuição de pontos e atributos do personagem);
+    - ⚔️ **Modo PvP** (alterna o estado de PvP do jogador);
+    - 🗺️ **Mapa** (abre o mapa mundial ampliado com biomas e coordenadas);
+    - 🔒 **Futuro Update** (opção temática dourada que exibe toast notification flutuante na tela);
+  - Fechamento automático inteligente ao selecionar qualquer ação ou ao tocar fora do menu na tela.
+
+- **Cluster de Ações Fixo no Canto Inferior Direito (2 Colunas × 3 Linhas):**
+  - Mapeamento exato de layout em grid de 54×54px por botão (`.actions`):
+    - **Linha 1 (Topo):** `[6]` Autofarm (🤖) | `[5]` Dash (💨)
+    - **Linha 2 (Meio):** `[3]` Skill 3 (classe) | `[4]` Skill 4 (para classes com 4ª skill)
+    - **Linha 3 (Base):** `[1]` Skill 1 (classe) | `[2]` Skill 2 (classe)
+  - Botões de tamanho ergonômico consistente (`54×54px`), toques rápidos e feedback visual tátil.
+
+- **Poções HP e MP Imediatamente à Esquerda da Skill 1 (`#hud-pocoes`):**
+  - Posicionadas no canto inferior direito (`right: 136px; bottom: 14px;`), imediatamente alinhadas à esquerda da base de skills;
+  - Slots ergonômicos de 38×38px para Poção de Vida 🧪 e Poção de Mana 🔮 com contadores numéricos de estoque;
+  - Ocultação de badges de teclado (Q/E) no mobile para layout limpo e 100% tátil.
+
+- **Barra de XP no Canto Inferior Esquerdo (`#hud-xp-central`):**
+  - Ancorada em `left: 12px; bottom: 10px;` com `pointer-events: none` para não interferir na área de arraste do joystick flutuante.
+
+- **Minimapa e Status Window Ancorados:**
+  - `#minimap-wrapper` fixado no topo direito (`top: 8px; right: 10px;`);
+  - `#hud-status-window` fixado no topo esquerdo (`top: 8px; left: 10px;`);
+  - Proteção contra conflitos de `transform` e `dragdrop.js` no mobile.
+
+- **Arquitetura de Código Separada e Organizada:**
+  - Folha de estilo dedicada em `mobile-hud.css`;
+  - Controlador lógico e eventos dedicados em `mobile-hud.js`;
+  - Versão atualizada para **v1.39** na tela de login, HUD in-game e `GAME_VERSION`.
+
+### v1.38 — 23/09/2026
+
+**Redesenho da Janela de Habilidades (Modal K) em estilo MMORPG clássico/moderno com layout Split-View (Grade de Ícones + Painel de Detalhes).**
+
+- **Layout Split-View de Alta Fidelidade MMORPG:**
+  - A janela de habilidades (`#skills-window`) foi completamente reestruturada com largura expandida (820px, max-width 96vw) e visual metálico escuro com bordas chanfradas e detalhes dourados e cianos (`#00e5d4` e `#d4af37`), inspirada na interface de MMORPGs de alta produção;
+  - **Coluna Esquerda (`#skills-col-icons`):** As habilidades de cada classe são automaticamente agrupadas em seções temáticas (`◇ ATIVAS`, `◇ PASSIVAS`, `◇ SUPORTE`), cada uma com seus slots em grade de 4 colunas;
+  - **Molduras de Slot (`.skill-slot-moldura`):** Moldura quadrada chanfrada clássica em bronze metálico (`58×58px`), badge de nível (`Nv 1..10`) em cápsula escura ciana e nome completo legível abaixo da moldura;
+  - **Seleção Dinâmica com Brilho Dourado (`.selected`):** Clicar em qualquer habilidade ativa uma aura dourada pulsante (`box-shadow: 0 0 14px rgba(255, 170, 0, 0.9)`) e atualiza instantaneamente o painel de detalhes;
+  - **Divisor Central com Gema:** Linha vertical com gradiente ciano-dourado e detalhe central `◆`;
+  - **Coluna Direita (`#skills-detalhe`):** Painel **"DETALHES DA HABILIDADE"** com:
+    - Cabeçalho exibindo ícone grande em moldura dourada, nome da habilidade, badge colorido de categoria (`[ATIVA]`, `[PASSIVA]`, `[SUPORTE]`) e nível atual `Nível X/10`;
+    - Caixa de descrição narrativa formatada;
+    - Caixa de estatísticas com borda ciana e grid 2 colunas: Dano ou Cura (com escalonamento de atributo primário como Força/Inteligência/Divindade/Afinidade/Profanidade), Custo de MP escalado, Área de efeito, Alcance, Duração e Tempo de Recarga (CD);
+    - Caixa de **"Bônus por nível"** informando as regras de escala (+25% dano/cura, +6% MP, etc.);
+    - Linha de controle com indicador de nível, botão azul metálico `⬆ MELHORAR` (desabilitado quando sem pontos ou no nível 10) e botão vermelho `↺` de reset individual;
+    - Caixa de **"Próximo nível:"** com comparação em tempo real entre o nível atual e o próximo (`Dano 9 → 11`, `MP 0 → 0`, `CD 0.2s → 0.2s`) ou aviso de nível máximo alcançado;
+- **Rodapé e Controle de Pontos:**
+  - Exibição de pontos disponíveis (`🎯 Pontos de habilidade disponíveis: X`) e botão `↺ RESETAR TUDO` para redistribuição completa;
+- **Compatibilidade Dual (PC e Mobile):**
+  - Adaptação responsiva via CSS mantendo excelente usabilidade no PC com mouse e em telas móveis no modo paisagem;
+  - Totalmente compatível com o sistema Drag-and-Drop (`dragdrop.js`) usando o cabeçalho `#skills-header` como alça de arraste;
+- **Versão:** Versão do jogo atualizada para **v1.38** nos 3 pontos visuais (`#login-screen`, `#hud-version` e `GAME_VERSION`), com cache-busters atualizados (`skills.css?v=144`, `skills.js?v=146`).
 
 ### v1.37 — 23/09/2026
 

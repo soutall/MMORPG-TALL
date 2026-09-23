@@ -1235,15 +1235,8 @@ function jogadorPodeUsarPortalMapa(player, destino) {
     if (destino === 'pantano' || destino === 'caverna' || destino === 'arena' || destino === 'cidadeperdida') {
         return mapaAtual === 'cidade' && perto(60474, 640);
     }
-    if (destino !== 'cidade') return false;
-    if (mapaAtual === 'cidade') return true;
-    const portaisRetorno = [
-        { x: 5000, y: 1200, r: 150 },
-        { x: 52000, y: 4500, r: 150 },
-        { x: 63980, y: 460, r: 150 },
-        { x: 65140, y: 460, r: 150 }
-    ];
-    return portaisRetorno.some(function (portal) { return Math.hypot(cx - portal.x, cy - portal.y) <= portal.r; });
+    if (destino === 'cidade') return true; // Permitir retorno livre para a cidade pelo mapa mundial
+    return false;
 }
 
 function distanciaEntidadesQuadrada(a, b) {
@@ -4208,6 +4201,8 @@ setInterval(() => {
         for (let pidC in players) {
             const pC = players[pidC];
             if (!pC || pC.hp <= 0) continue;
+            let ehAliado = (pidC === z.ownerId) || (donoC.partyId && pC.partyId === donoC.partyId);
+            if (!ehAliado) continue; // v1.39.4: Caixa de suprimento apenas no grupo
             if (z.aplicados[pidC]) continue; // controle anti reapply
             if (mapaPorCoordenada(pC.x) !== z.mapa) continue;
             if (Math.hypot((pC.x + PLAYER_OFFSET_X) - z.x, (pC.y + PLAYER_OFFSET_Y) - z.y) > z.raio) continue;

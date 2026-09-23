@@ -263,289 +263,573 @@ function desenharRunaSagrada(ctx, x, y, ang, escala, alpha) {
     ctx.restore();
 }
 
-// Efeito da Cura Divina
+// Efeito da Cura Divina — Círculo DIVINO otimizado para 60 FPS
+window.__curandeiroVFXCache = window.__curandeiroVFXCache || {};
+
+function gerarSpriteCruzDivina() {
+    if (window.__curandeiroVFXCache.cruz) return window.__curandeiroVFXCache.cruz;
+    let c = criarCanvasOffscreen(24, 24);
+    let g = c.getContext('2d');
+    g.clearRect(0, 0, 24, 24);
+    // Halo pré-renderizado: custo alto ocorre uma única vez.
+    let halo = g.createRadialGradient(12, 12, 1, 12, 12, 12);
+    halo.addColorStop(0, 'rgba(255,255,245,0.9)');
+    halo.addColorStop(0.38, 'rgba(255,224,110,0.35)');
+    halo.addColorStop(1, 'rgba(255,210,70,0)');
+    g.fillStyle = halo;
+    g.fillRect(0, 0, 24, 24);
+    g.strokeStyle = '#fffdf0';
+    g.lineWidth = 2.2;
+    g.lineCap = 'round';
+    g.beginPath();
+    g.moveTo(12, 4); g.lineTo(12, 20);
+    g.moveTo(6.5, 9); g.lineTo(17.5, 9);
+    g.stroke();
+    g.strokeStyle = '#ffd75c';
+    g.lineWidth = 1;
+    g.beginPath();
+    g.moveTo(12, 5.5); g.lineTo(12, 18.5);
+    g.moveTo(7.5, 9); g.lineTo(16.5, 9);
+    g.stroke();
+    window.__curandeiroVFXCache.cruz = c;
+    return c;
+}
+
 window.criarAnimacaoCuraDivina = function(x, y, valor) {
-    let particulasLuz = [];
-    for (let i = 0; i < 20; i++) {
-        particulasLuz.push({
-            x: x + (Math.random() * 40 - 20),
-            y: y + (Math.random() * 20 - 5),
-            vy: Math.random() * 1.5 + 1.2,
-            vida: 1.0,
-            tamanho: Math.random() * 3 + 2
+    let cruzes = [];
+    // Reduzido de 58 para 28: mantém a sensação de "muitas" sem sobrecarregar o Canvas.
+    for (let i = 0; i < 28; i++) {
+        let ang = Math.random() * Math.PI * 2;
+        cruzes.push({
+            ang: ang,
+            raio: 8 + Math.random() * 18,
+            velocidade: 3.0 + Math.random() * 3.8,
+            vida: 1,
+            tamanho: 0.55 + Math.random() * 0.55,
+            brilho: 0.65 + Math.random() * 0.35,
+            yOff: (Math.random() - 0.5) * 5
         });
     }
 
     window.curasAtivas.push({
         x: x,
         y: y,
-        raio: 15,
-        raioMax: 70,
+        raio: 12,
+        raioMax: 125,
         alpha: 1.0,
-        particulas: particulasLuz
+        tempo: 0,
+        cruzes: cruzes,
+        ondas: [
+            { raio: 10, alpha: 1.0, velocidade: 5.6, largura: 3 },
+            { raio: 22, alpha: 0.85, velocidade: 3.8, largura: 1.6 }
+        ],
+        raios: Array.from({ length: 10 }, function(_, i) {
+            return {
+                ang: (i / 10) * Math.PI * 2,
+                comprimento: 25 + Math.random() * 42,
+                atraso: Math.random() * 16,
+                brilho: 0.35 + Math.random() * 0.4
+            };
+        })
     });
 
-    if (valor !== undefined && valor !== null) {
-        window.floatingTexts.push({ x: x, y: y - 25, text: "+" + valor + " HP ✨", color: "#2ecc71", alpha: 1.0 });
+    if (valor !== undefined && valor !== null && Array.isArray(window.floatingTexts)) {
+        window.floatingTexts.push({
+            x: x,
+            y: y - 25,
+            text: '+' + valor + ' HP ✨',
+            color: '#2ecc71',
+            alpha: 1.0
+        });
     }
 };
 
-// Efeito do Julgamento Sagrado (Coluna de Luz)
+// Efeito do Julgamento Sagrado — Queda do Arcanjo e Voo Divino (otimizado)
+function garantirCacheJulgamento() {
+    let cache = window.__curandeiroVFXCache;
+    if (!cache.beam) {
+        let c = criarCanvasOffscreen(190, 450);
+        let g = c.getContext('2d');
+        let grad = g.createLinearGradient(0, 0, 0, 450);
+        grad.addColorStop(0, 'rgba(255,255,255,0)');
+        grad.addColorStop(0.18, 'rgba(255,255,255,0.16)');
+        grad.addColorStop(0.48, 'rgba(255,231,122,0.34)');
+        grad.addColorStop(0.82, 'rgba(255,248,190,0.56)');
+        grad.addColorStop(1, 'rgba(255,255,255,0.92)');
+        g.fillStyle = grad;
+        g.fillRect(0, 0, 190, 450);
+        cache.beam = c;
+    }
+    if (!cache.burst) {
+        let c = criarCanvasOffscreen(280, 170);
+        let g = c.getContext('2d');
+        let grad = g.createRadialGradient(140, 85, 4, 140, 85, 140);
+        grad.addColorStop(0, 'rgba(255,255,255,0.96)');
+        grad.addColorStop(0.22, 'rgba(255,244,168,0.72)');
+        grad.addColorStop(0.58, 'rgba(255,210,65,0.22)');
+        grad.addColorStop(1, 'rgba(255,210,65,0)');
+        g.fillStyle = grad;
+        g.fillRect(0, 0, 280, 170);
+        cache.burst = c;
+    }
+    if (!cache.ring) {
+        let c = criarCanvasOffscreen(260, 120);
+        let g = c.getContext('2d');
+        g.strokeStyle = 'rgba(255,249,205,0.95)';
+        g.lineWidth = 3;
+        g.beginPath();
+        g.ellipse(130, 60, 116, 42, 0, 0, Math.PI * 2);
+        g.stroke();
+        g.strokeStyle = 'rgba(255,211,81,0.7)';
+        g.lineWidth = 1.2;
+        g.beginPath();
+        g.ellipse(130, 60, 84, 30, 0, 0, Math.PI * 2);
+        g.stroke();
+        cache.ring = c;
+    }
+    if (!cache.arcanjo) {
+        let c = criarCanvasOffscreen(128, 112);
+        let g = c.getContext('2d');
+        g.clearRect(0, 0, 128, 112);
+        let halo = g.createRadialGradient(64, 31, 3, 64, 31, 34);
+        halo.addColorStop(0, 'rgba(255,255,255,0.9)');
+        halo.addColorStop(0.38, 'rgba(255,232,126,0.48)');
+        halo.addColorStop(1, 'rgba(255,210,70,0)');
+        g.fillStyle = halo;
+        g.fillRect(24, 0, 80, 72);
+
+        g.strokeStyle = '#fffdf0';
+        g.lineCap = 'round';
+        g.lineJoin = 'round';
+        g.lineWidth = 3.2;
+        for (let lado of [-1, 1]) {
+            g.beginPath();
+            g.moveTo(64 + lado * 8, 36);
+            g.quadraticCurveTo(64 + lado * 32, 14, 64 + lado * 54, 34);
+            g.quadraticCurveTo(64 + lado * 32, 42, 64 + lado * 12, 48);
+            g.stroke();
+        }
+        g.fillStyle = 'rgba(255,255,255,0.96)';
+        g.beginPath(); g.ellipse(64, 52, 9, 19, 0, 0, Math.PI * 2); g.fill();
+        g.fillStyle = 'rgba(255,219,101,0.78)';
+        g.beginPath(); g.moveTo(55, 57); g.lineTo(64, 98); g.lineTo(73, 57); g.closePath(); g.fill();
+        g.fillStyle = '#fffef5';
+        g.beginPath(); g.arc(64, 28, 7, 0, Math.PI * 2); g.fill();
+        g.strokeStyle = '#fffde9';
+        g.lineWidth = 3;
+        g.beginPath();
+        g.moveTo(59, 50); g.lineTo(48, 60);
+        g.moveTo(69, 50); g.lineTo(80, 60);
+        g.stroke();
+        g.lineWidth = 2;
+        g.beginPath();
+        g.moveTo(64, 10); g.lineTo(64, 35);
+        g.moveTo(57, 18); g.lineTo(71, 18);
+        g.stroke();
+        cache.arcanjo = c;
+    }
+}
+
 window.criarAnimacaoJulgamentoSagrado = function(x, y) {
+    garantirCacheJulgamento();
     window.julgamentosAtivos.push({
         x: x,
         y: y,
         alturaRaio: 450,
         largura: 60,
-        duracao: 35,
-        alpha: 1.0
+        duracao: 92,
+        alpha: 1.0,
+        tempo: 0,
+        fase: 'queda',
+        impacto: 0,
+        vooX: x,
+        vooY: y,
+        vooVX: -2.4,
+        vooVY: -2.8,
+        arcanjoEscala: 0.62,
+        asas: 0,
+        particulas: Array.from({ length: 16 }, function() {
+            return {
+                ang: Math.random() * Math.PI * 2,
+                raio: 20 + Math.random() * 80,
+                velocidade: 1.0 + Math.random() * 1.6,
+                vida: 0.5 + Math.random() * 0.5,
+                tamanho: 1.2 + Math.random() * 2.2
+            };
+        })
     });
 };
+
+function desenharArcanjoDivino(ctx, x, y, escala, alpha, batida, invertido) {
+    let sprite = window.__curandeiroVFXCache.arcanjo;
+    if (!sprite || alpha <= 0) return;
+    // Um único transform por frame, em vez de dezenas de strokes + shadowBlur.
+    ctx.save();
+    if (invertido) {
+        ctx.translate(x + sprite.width * escala, y - sprite.height * escala * 0.55);
+        ctx.scale(-escala, escala);
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height);
+    } else {
+        ctx.translate(x - sprite.width * escala * 0.5, y - sprite.height * escala * 0.55);
+        ctx.scale(escala, escala);
+        ctx.globalAlpha = alpha;
+        ctx.drawImage(sprite, 0, 0, sprite.width, sprite.height);
+    }
+    ctx.restore();
+}
 
 window.desenharEfeitosCurandeiro = function() {
     if (!window.ctx) return;
     let ctx = window.ctx;
     let agora = performance.now ? performance.now() : Date.now();
 
+    // ==============================
+    // AURAS EXISTENTES — versão leve
+    // ==============================
     for (let i = window.aurasSagradas.length - 1; i >= 0; i--) {
         let aura = window.aurasSagradas[i];
         let delta = Math.max(1, (agora - (aura._lastTs || agora)) / 16.67);
         aura._lastTs = agora;
-
-        if (!shouldRenderAura(aura)) {
-            continue;
-        }
+        if (!shouldRenderAura(aura)) continue;
 
         aura.tempo += delta;
         if (!aura.ativa || aura.tempo > 360) aura.alpha -= 0.025 * delta;
         else aura.alpha = Math.min(1, aura.alpha + 0.035 * delta);
         aura.raio += (aura.raioMax - aura.raio) * 0.06 * delta;
 
-        if (aura.tempo % 32 < delta && aura.ondas.length < 4) {
-            aura.ondas.push({ raio: 18, alpha: 0.72 });
+        if (aura.tempo % 42 < delta && aura.ondas.length < 3) {
+            aura.ondas.push({ raio: 18, alpha: 0.68 });
         }
 
         let base = prepararBaseAura(aura);
         if (base) {
-            ctx.save();
-            ctx.globalCompositeOperation = 'screen';
-            let drawX = aura.x - base.width / 2;
-            let drawY = aura.y - base.height / 2;
-            ctx.drawImage(base.canvas, drawX, drawY, base.width, base.height);
-            ctx.restore();
+            ctx.globalAlpha = aura.alpha;
+            ctx.globalCompositeOperation = 'lighter';
+            ctx.drawImage(base.canvas, aura.x - base.width / 2, aura.y - base.height / 2, base.width, base.height);
         }
 
-        let pulso = 1 + Math.sin(aura.tempo * 0.055) * 0.045;
-        let haloRadius = aura.raio * 1.08;
-        ctx.save();
-        ctx.globalCompositeOperation = 'screen';
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = aura.alpha * 0.08;
+        ctx.fillStyle = '#ffe66f';
         ctx.beginPath();
-        ctx.ellipse(aura.x, aura.y, haloRadius * pulso, haloRadius * 0.52 * pulso, 0, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255, 230, 110, ' + (0.08 * aura.alpha) + ')';
+        ctx.ellipse(aura.x, aura.y, aura.raio, aura.raio * 0.5, 0, 0, Math.PI * 2);
         ctx.fill();
-        ctx.restore();
 
         let runeSprite = gerarSpriteRunaAura();
-        let particleSprite = gerarSpriteParticulaAura();
-        const particleSize = 18;
-
-        for (let r = 0; r < aura.runas.length; r++) {
+        for (let r = 0; r < aura.runas.length; r += 2) {
             let runa = aura.runas[r];
-            let ang = runa.ang + aura.tempo * 0.002 * (runa.fase > 3 ? -1 : 1);
+            let ang = runa.ang + aura.tempo * 0.002;
             let rx = aura.x + Math.cos(ang) * aura.raio * 0.72;
             let ry = aura.y + Math.sin(ang) * aura.raio * 0.38;
-            let brilho = 0.35 + Math.sin(aura.tempo * 0.08 + runa.fase) * 0.18;
-            ctx.save();
-            ctx.globalAlpha = aura.alpha * brilho;
-            ctx.translate(rx, ry);
-            ctx.rotate(ang + Math.PI / 2);
-            ctx.drawImage(runeSprite, -18 * runa.escala, -18 * runa.escala, 36 * runa.escala, 36 * runa.escala);
-            ctx.restore();
+            ctx.globalAlpha = aura.alpha * 0.26;
+            ctx.drawImage(runeSprite, rx - 14, ry - 14, 28, 28);
         }
 
         for (let w = aura.ondas.length - 1; w >= 0; w--) {
             let onda = aura.ondas[w];
             onda.raio += 3.2 * delta;
             onda.alpha -= 0.025 * delta;
-            ctx.save();
             ctx.globalAlpha = Math.max(0, onda.alpha) * aura.alpha;
-            ctx.strokeStyle = (w % 2 ? '#fff8c7' : '#f4cf5e');
-            ctx.lineWidth = 1.5;
+            ctx.strokeStyle = w % 2 ? '#fff8c7' : '#f4cf5e';
+            ctx.lineWidth = 1.3;
             ctx.beginPath();
             ctx.ellipse(aura.x, aura.y, onda.raio, onda.raio * 0.42, 0, 0, Math.PI * 2);
             ctx.stroke();
-            ctx.restore();
             if (onda.alpha <= 0) aura.ondas.splice(w, 1);
         }
 
-        for (let c = aura.curas.length - 1; c >= 0; c--) {
-            let cura = aura.curas[c];
-            cura.vida -= 0.08 * delta;
-            let t = 1 - cura.vida;
-            let px = cura.x + (cura.tx - cura.x) * t;
-            let py = cura.y + (cura.ty - cura.y) * t;
-            ctx.save();
-            ctx.globalCompositeOperation = 'screen';
-            ctx.globalAlpha = Math.max(0, cura.vida);
+        if (aura.curas && aura.curas.length) {
             ctx.strokeStyle = '#fff1a1';
-            ctx.lineWidth = 1.5;
-            ctx.beginPath();
-            ctx.moveTo(cura.x, cura.y);
-            ctx.quadraticCurveTo((cura.x + cura.tx) / 2, cura.y - 28, px, py);
-            ctx.stroke();
-            ctx.fillStyle = '#ffffff';
-            ctx.beginPath();
-            ctx.arc(px, py, 2.5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-            if (cura.vida <= 0) aura.curas.splice(c, 1);
+            ctx.lineWidth = 1.3;
+            for (let c = aura.curas.length - 1; c >= 0; c--) {
+                let cura = aura.curas[c];
+                cura.vida -= 0.08 * delta;
+                let t = 1 - cura.vida;
+                let px = cura.x + (cura.tx - cura.x) * t;
+                let py = cura.y + (cura.ty - cura.y) * t;
+                ctx.globalAlpha = Math.max(0, cura.vida);
+                ctx.beginPath();
+                ctx.moveTo(cura.x, cura.y);
+                ctx.lineTo(px, py);
+                ctx.stroke();
+                if (cura.vida <= 0) aura.curas.splice(c, 1);
+            }
         }
 
-        ctx.save();
-        ctx.globalCompositeOperation = 'screen';
-        for (let p = 0; p < aura.particulas.length; p++) {
+        let particleSprite = gerarSpriteParticulaAura();
+        ctx.globalCompositeOperation = 'lighter';
+        for (let p = 0; p < aura.particulas.length; p += 2) {
             let particula = aura.particulas[p];
-            particula.ang += particula.velocidade * delta * 32;
-            particula.raio += Math.sin(aura.tempo * 0.02 + particula.fase) * 0.12 * delta;
+            particula.ang += particula.velocidade * delta * 24;
             particula.vida -= 0.006 * delta;
-            if (particula.vida <= 0) {
-                resetarParticulaAura(particula, aura.x, aura.y);
-            }
+            if (particula.vida <= 0) resetarParticulaAura(particula, aura.x, aura.y);
             let px = aura.x + Math.cos(particula.ang) * particula.raio;
-            let py = aura.y + Math.sin(particula.ang) * particula.raio * 0.52 - (1 - particula.vida) * 12;
-            let alpha = Math.max(0, particula.vida * aura.alpha * 0.8);
-            let size = particula.tamanho * 2.6;
-            ctx.globalAlpha = alpha;
+            let py = aura.y + Math.sin(particula.ang) * particula.raio * 0.52 - (1 - particula.vida) * 10;
+            ctx.globalAlpha = Math.max(0, particula.vida * aura.alpha * 0.65);
+            let size = particula.tamanho * 2.2;
             ctx.drawImage(particleSprite, px - size * 0.5, py - size * 0.5, size, size);
         }
-        ctx.restore();
 
         if (aura.alpha <= 0) window.aurasSagradas.splice(i, 1);
     }
 
+    // ==============================
+    // RESSURREIÇÕES — mantém aspecto sagrado, reduzindo custo
+    // ==============================
     for (let i = window.ressurreicoesSagradas.length - 1; i >= 0; i--) {
         let res = window.ressurreicoesSagradas[i];
         res.tempo++;
         res.vida--;
-        if (res.tempo % 28 === 0 && res.ondas.length < 4) res.ondas.push({ raio: 18, alpha: 0.85 });
+        if (res.tempo % 34 === 0 && res.ondas.length < 3) res.ondas.push({ raio: 18, alpha: 0.78 });
 
-        ctx.save();
-        ctx.globalCompositeOperation = 'lighter';
         let brilho = Math.min(1, res.tempo / 55) * Math.min(1, res.vida / 35);
-        let halo = ctx.createRadialGradient(res.x, res.y, 2, res.x, res.y, 75);
-        halo.addColorStop(0, 'rgba(255,255,220,' + (0.55 * brilho) + ')');
-        halo.addColorStop(0.5, 'rgba(255,210,75,' + (0.22 * brilho) + ')');
-        halo.addColorStop(1, 'rgba(255,210,75,0)');
-        ctx.fillStyle = halo;
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = 0.32 * brilho;
+        ctx.fillStyle = '#ffe66f';
         ctx.beginPath();
-        ctx.arc(res.x, res.y, 75, 0, Math.PI * 2);
+        ctx.arc(res.x, res.y, 62, 0, Math.PI * 2);
         ctx.fill();
-        [38, 58, 82].forEach(function(raio, indice) {
-            ctx.save();
-            ctx.globalAlpha = brilho * (0.65 - indice * 0.12);
-            ctx.strokeStyle = indice === 1 ? '#fff6bf' : '#e5b83f';
-            ctx.lineWidth = 1.5;
-            ctx.setLineDash(indice === 2 ? [4, 8] : []);
-            ctx.beginPath();
-            ctx.ellipse(res.x, res.y, raio, raio * 0.42, 0, 0, Math.PI * 2);
-            ctx.stroke();
-            ctx.restore();
-        });
-        res.runas.forEach(function(runa) {
-            let ang = runa.ang + res.tempo * 0.006;
-            desenharRunaSagrada(ctx, res.x + Math.cos(ang) * 54, res.y + Math.sin(ang) * 25, ang, 0.8, brilho * 0.6);
-        });
-        res.ondas.forEach(function(onda) {
-            onda.raio += 3;
-            onda.alpha -= 0.025;
-            ctx.globalAlpha = Math.max(0, onda.alpha) * brilho;
-            ctx.strokeStyle = '#fff8c9';
-            ctx.beginPath();
-            ctx.ellipse(res.x, res.y, onda.raio, onda.raio * 0.42, 0, 0, Math.PI * 2);
-            ctx.stroke();
-        });
-        res.ondas = res.ondas.filter(function(onda) { return onda.alpha > 0; });
-        ctx.restore();
+        ctx.globalAlpha = brilho * 0.55;
+        ctx.strokeStyle = '#fff6bf';
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.ellipse(res.x, res.y, 60, 24, 0, 0, Math.PI * 2);
+        ctx.stroke();
 
-        res.particulas.forEach(function(p) {
-            p.ang += p.velocidade * 2;
-            p.vida -= 0.009;
-            let px = res.x + Math.cos(p.ang) * p.raio;
-            let py = res.y + Math.sin(p.ang) * p.raio * 0.48 - (1 - p.vida) * 28;
-            ctx.save();
-            ctx.globalCompositeOperation = 'lighter';
-            ctx.globalAlpha = Math.max(0, p.vida) * brilho;
-            ctx.fillStyle = p.tipo === 'estrela' ? '#ffffff' : '#ffd75e';
-            ctx.beginPath();
-            ctx.arc(px, py, p.tamanho, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-        });
+        for (let p = 0; p < res.particulas.length; p += 3) {
+            let part = res.particulas[p];
+            part.ang += part.velocidade * 2;
+            part.vida -= 0.009;
+            let px = res.x + Math.cos(part.ang) * part.raio;
+            let py = res.y + Math.sin(part.ang) * part.raio * 0.48 - (1 - part.vida) * 28;
+            ctx.globalAlpha = Math.max(0, part.vida) * brilho;
+            ctx.fillStyle = p % 2 ? '#ffffff' : '#ffd75e';
+            ctx.fillRect(px, py, Math.max(1, part.tamanho), Math.max(1, part.tamanho));
+        }
         if (res.vida <= 0) window.ressurreicoesSagradas.splice(i, 1);
     }
 
-    // Desenha Efeito de Cura
+    // ==============================
+    // SKILL 1 — CÍRCULO DIVINO
+    // ==============================
+    let cruzSprite = gerarSpriteCruzDivina();
     for (let i = window.curasAtivas.length - 1; i >= 0; i--) {
         let c = window.curasAtivas[i];
-        c.raio += 2.0;
-        c.alpha -= 0.035;
-
+        c.tempo += 1;
+        c.raio += (c.raioMax - c.raio) * 0.08;
+        c.alpha -= 0.022;
         if (c.alpha <= 0) {
             window.curasAtivas.splice(i, 1);
-        } else {
-            ctx.save();
-            ctx.strokeStyle = "rgba(46, 204, 113, " + c.alpha + ")";
-            ctx.lineWidth = 4;
-            ctx.shadowColor = "#2ecc71";
-            ctx.shadowBlur = 12;
-            ctx.beginPath();
-            ctx.arc(c.x, c.y, c.raio, 0, Math.PI * 2);
-            ctx.stroke();
+            continue;
+        }
 
-            // Partículas flutuando para o céu
-            for (let p of c.particulas) {
-                p.y -= p.vy;
-                p.vida -= 0.04;
-                ctx.fillStyle = "rgba(241, 196, 15, " + Math.max(0, p.vida) + ")";
-                ctx.beginPath();
-                ctx.arc(p.x, p.y, p.tamanho, 0, Math.PI * 2);
-                ctx.fill();
+        ctx.globalCompositeOperation = 'lighter';
+
+        // Piso divino sem gradiente por frame.
+        ctx.globalAlpha = 0.10 * c.alpha;
+        ctx.fillStyle = '#ffe36f';
+        ctx.beginPath();
+        ctx.ellipse(c.x, c.y, c.raio, c.raio * 0.43, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // 3 anéis simples.
+        for (let r = 0; r < 3; r++) {
+            let rr = c.raio * (0.48 + r * 0.19);
+            ctx.globalAlpha = c.alpha * (0.24 - r * 0.045);
+            ctx.strokeStyle = r === 1 ? '#fffde7' : '#f6cf57';
+            ctx.lineWidth = r === 1 ? 1.8 : 1;
+            ctx.beginPath();
+            ctx.ellipse(c.x, c.y, rr, rr * 0.42, 0, 0, Math.PI * 2);
+            ctx.stroke();
+        }
+
+        // Ondas de expansão.
+        for (let w = c.ondas.length - 1; w >= 0; w--) {
+            let onda = c.ondas[w];
+            onda.raio += onda.velocidade;
+            onda.alpha -= 0.030;
+            ctx.globalAlpha = Math.max(0, onda.alpha) * c.alpha;
+            ctx.strokeStyle = w === 0 ? '#ffffff' : '#ffd95e';
+            ctx.lineWidth = onda.largura;
+            ctx.beginPath();
+            ctx.ellipse(c.x, c.y, onda.raio, onda.raio * 0.42, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            if (onda.alpha <= 0) c.ondas.splice(w, 1);
+        }
+
+        // Feixes radiais mais leves.
+        for (let r = 0; r < c.raios.length; r++) {
+            let raio = c.raios[r];
+            let energia = Math.max(0, Math.min(1, (c.tempo - raio.atraso) / 20));
+            ctx.globalAlpha = c.alpha * energia * raio.brilho * 0.65;
+            ctx.strokeStyle = r % 3 === 0 ? '#ffffff' : '#ffe58a';
+            ctx.lineWidth = 1;
+            let sx = c.x + Math.cos(raio.ang) * 12;
+            let sy = c.y + Math.sin(raio.ang) * 4;
+            let ex = c.x + Math.cos(raio.ang) * (12 + raio.comprimento);
+            let ey = c.y + Math.sin(raio.ang) * (4 + raio.comprimento * 0.34);
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(ex, ey);
+            ctx.stroke();
+        }
+
+        // Mini-cruzes: drawImage sem shadow/transform individual.
+        for (let k = c.cruzes.length - 1; k >= 0; k--) {
+            let cruz = c.cruzes[k];
+            cruz.raio += cruz.velocidade;
+            cruz.yOff -= 0.20;
+            cruz.vida -= 0.020;
+            let px = c.x + Math.cos(cruz.ang) * cruz.raio;
+            let py = c.y + Math.sin(cruz.ang) * cruz.raio * 0.42 + cruz.yOff;
+            ctx.globalAlpha = Math.max(0, cruz.vida) * cruz.brilho * c.alpha;
+            let size = 18 * cruz.tamanho;
+            ctx.drawImage(cruzSprite, px - size * 0.5, py - size * 0.5, size, size);
+
+            if (cruz.vida <= 0 || cruz.raio > c.raioMax * 1.08) {
+                cruz.ang = Math.random() * Math.PI * 2;
+                cruz.raio = 8 + Math.random() * 14;
+                cruz.velocidade = 3.0 + Math.random() * 3.8;
+                cruz.tamanho = 0.55 + Math.random() * 0.55;
+                cruz.vida = 0.92 + Math.random() * 0.08;
+                cruz.brilho = 0.65 + Math.random() * 0.35;
+                cruz.yOff = 0;
             }
-            ctx.restore();
+        }
+
+        // Pequenas faíscas sem arcs caros.
+        for (let p = 0; p < 8; p++) {
+            let ang = c.tempo * 0.035 + p * 0.785;
+            let rr = 12 + ((c.tempo * 2 + p * 19) % Math.max(20, c.raio));
+            ctx.globalAlpha = c.alpha * 0.38;
+            ctx.fillStyle = p % 2 ? '#fff7bc' : '#ffffff';
+            ctx.fillRect(c.x + Math.cos(ang) * rr, c.y + Math.sin(ang) * rr * 0.42, 1.5, 1.5);
         }
     }
 
-    // Desenha Coluna de Julgamento Celeste
+    // ==============================
+    // SKILL 2 — ARCANJO DIVINO
+    // ==============================
+    garantirCacheJulgamento();
+    let cache = window.__curandeiroVFXCache;
     for (let i = window.julgamentosAtivos.length - 1; i >= 0; i--) {
         let j = window.julgamentosAtivos[i];
-        j.duracao--;
-        j.alpha = j.duracao / 35;
+        j.tempo++;
 
-        if (j.duracao <= 0) {
-            window.julgamentosAtivos.splice(i, 1);
+        if (j.tempo < 34) {
+            j.fase = 'queda';
+            j.alpha = Math.min(1, j.tempo / 7);
+            j.impacto = 0;
+        } else if (j.tempo < 48) {
+            j.fase = 'impacto';
+            j.alpha = 1 - (j.tempo - 34) / 90;
+            j.impacto = Math.min(1, (j.tempo - 34) / 14);
         } else {
-            ctx.save();
-            // Coluna de luz caindo do topo da tela
-            let grad = ctx.createLinearGradient(j.x, j.y - j.alturaRaio, j.x, j.y);
-            grad.addColorStop(0, "rgba(255, 255, 255, 0)");
-            grad.addColorStop(0.3, "rgba(241, 196, 15, " + (j.alpha * 0.7) + ")");
-            grad.addColorStop(1, "rgba(255, 255, 255, " + j.alpha + ")");
+            j.fase = 'voo';
+            let t = (j.tempo - 48) / 44;
+            j.alpha = Math.max(0, 1 - t);
+            j.vooX += j.vooVX * (1 + t * 1.8);
+            j.vooY += j.vooVY * (1 + t * 1.25);
+            j.arcanjoEscala = 0.62 - t * 0.18;
+        }
 
-            ctx.fillStyle = grad;
-            ctx.shadowColor = "#f1c40f";
-            ctx.shadowBlur = 20;
-            ctx.fillRect(j.x - j.largura / 2, j.y - j.alturaRaio, j.largura, j.alturaRaio);
+        if (j.tempo >= j.duracao || j.alpha <= 0) {
+            window.julgamentosAtivos.splice(i, 1);
+            continue;
+        }
 
-            // Círculo sagrado no ponto de impacto no chão
-            ctx.fillStyle = "rgba(241, 196, 15, " + (j.alpha * 0.4) + ")";
+        ctx.globalCompositeOperation = 'lighter';
+
+        if (j.fase === 'queda') {
+            ctx.globalAlpha = j.alpha * 0.72;
+            ctx.drawImage(cache.beam, j.x - 95, j.y - j.alturaRaio);
+
+            // Linhas rápidas de luz, poucas e curtas.
+            ctx.globalAlpha = j.alpha * 0.30;
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            for (let p = 0; p < 8; p++) {
+                let yy = j.y - j.alturaRaio + ((j.tempo * 10 + p * 57) % 400);
+                let xx = j.x + ((p & 1) ? 16 : -16);
+                ctx.beginPath();
+                ctx.moveTo(xx, yy);
+                ctx.lineTo(xx, yy + 12 + (p % 3) * 5);
+                ctx.stroke();
+            }
+
+            let tQueda = Math.min(1, j.tempo / 34);
+            let ay = j.y - j.alturaRaio * (1 - tQueda) + 18;
+            desenharArcanjoDivino(ctx, j.x, ay, j.arcanjoEscala + tQueda * 0.08, j.alpha, j.tempo * 0.45, false);
+
+            ctx.globalAlpha = j.alpha * 0.24;
+            ctx.strokeStyle = '#ffe581';
+            ctx.lineWidth = 1.5;
             ctx.beginPath();
-            ctx.ellipse(j.x, j.y, 45, 18, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.strokeStyle = "rgba(255, 255, 255, " + j.alpha + ")";
-            ctx.lineWidth = 3;
+            ctx.ellipse(j.x, j.y, 30 + j.tempo * 0.9, 12 + j.tempo * 0.28, 0, 0, Math.PI * 2);
+            ctx.stroke();
+        } else if (j.fase === 'impacto') {
+            let p = j.impacto;
+            ctx.globalAlpha = j.alpha * 0.95;
+            ctx.drawImage(cache.burst, j.x - 140 * p - 20, j.y - 85 * p - 10, 280 * p + 40, 170 * p + 20);
+
+            for (let r = 0; r < 3; r++) {
+                let rr = 20 + p * (40 + r * 34);
+                ctx.globalAlpha = j.alpha * (0.66 - r * 0.14);
+                ctx.strokeStyle = r % 2 ? '#fffde5' : '#ffd85b';
+                ctx.lineWidth = r === 0 ? 2.4 : 1.1;
+                ctx.beginPath();
+                ctx.ellipse(j.x, j.y, rr, rr * 0.42, 0, 0, Math.PI * 2);
+                ctx.stroke();
+            }
+
+            ctx.globalAlpha = j.alpha * 0.55;
+            ctx.drawImage(cache.ring, j.x - 130, j.y - 60, 260, 120);
+            desenharArcanjoDivino(ctx, j.x, j.y - 8 - p * 7, 0.72 + p * 0.05, j.alpha * 0.88, j.tempo * 0.65, false);
+        } else {
+            // Voo: rastro enxuto + poucas cruzes.
+            let t = (j.tempo - 48) / 44;
+            ctx.globalAlpha = j.alpha * 0.30;
+            ctx.strokeStyle = '#fff6bd';
+            ctx.lineWidth = 2.2;
+            ctx.beginPath();
+            ctx.moveTo(j.x, j.y);
+            ctx.quadraticCurveTo((j.x + j.vooX) * 0.5, (j.y + j.vooY) * 0.5 - 28, j.vooX, j.vooY);
             ctx.stroke();
 
-            ctx.restore();
+            for (let p = 0; p < 10; p++) {
+                let tx = j.vooX - j.vooVX * p * 4.0;
+                let ty = j.vooY - j.vooVY * p * 3.0 + Math.sin(p * 1.7 + j.tempo * 0.1) * 5;
+                ctx.globalAlpha = j.alpha * (1 - p / 10) * 0.65;
+                ctx.fillStyle = p % 2 ? '#ffe48a' : '#ffffff';
+                ctx.fillRect(tx, ty, 2 + (p % 2), 2 + (p % 2));
+                if (p % 3 === 0) ctx.drawImage(cruzSprite, tx - 6, ty - 6, 12, 12);
+            }
+
+            desenharArcanjoDivino(ctx, j.vooX, j.vooY, Math.max(0.32, j.arcanjoEscala), j.alpha, j.tempo * 0.58, true);
+        }
+
+        // Partículas do Julgamento, muito reduzidas.
+        for (let p = 0; p < j.particulas.length; p += 2) {
+            let part = j.particulas[p];
+            part.ang += 0.018 * (1 + p % 3);
+            part.raio += 0.8;
+            part.vida -= 0.010;
+            if (part.vida <= 0 || part.raio > 130) {
+                part.ang = Math.random() * Math.PI * 2;
+                part.raio = 18 + Math.random() * 35;
+                part.vida = 0.8 + Math.random() * 0.2;
+            }
+            let px = j.x + Math.cos(part.ang) * part.raio;
+            let py = j.y + Math.sin(part.ang) * part.raio * 0.42;
+            ctx.globalAlpha = j.alpha * Math.max(0, part.vida) * 0.55;
+            ctx.fillStyle = p % 3 === 0 ? '#ffffff' : '#ffd95e';
+            ctx.fillRect(px, py, 1.5, 1.5);
         }
     }
+
+    // Restaurar estado principal do Canvas para não afetar outros renderizadores.
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.shadowBlur = 0;
 };

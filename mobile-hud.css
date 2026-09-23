@@ -1,0 +1,420 @@
+/* ====================================================================
+   MOBILE HUD FIXA (v1.39)
+   - Menu Sidebar retrátil abaixo do minimapa
+   - Cluster de Ações 2 Colunas x 3 Linhas no canto inferior direito
+   - Poções [HP] e [MP] imediatamente à esquerda do slot [1]
+   - Barra de XP no canto inferior esquerdo
+   - Totalmente responsivo e otimizado para toque no celular
+   ==================================================================== */
+
+/* --------------------------------------------------------------------
+   SIDEBAR RETRÁTIL (ABAIXO DO MINIMAPA)
+   -------------------------------------------------------------------- */
+#mobile-sidebar-container {
+    position: fixed !important;
+    top: 122px !important;
+    right: 10px !important;
+    left: auto !important;
+    bottom: auto !important;
+    z-index: 40 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: flex-end !important;
+    user-select: none !important;
+}
+
+/* Botão principal do menu (compacto) */
+.mobile-sidebar-toggle-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    background: linear-gradient(135deg, #101c24 0%, #081016 100%);
+    border: 1.5px solid #00e5d4;
+    border-radius: 4px;
+    color: #e6f7f6;
+    font-family: 'Cinzel', serif;
+    font-size: 9px;
+    font-weight: bold;
+    letter-spacing: 1px;
+    padding: 2px 7px;
+    cursor: pointer;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.65), 0 0 6px rgba(0, 229, 212, 0.25);
+    touch-action: manipulation;
+    transition: transform 0.1s, box-shadow 0.15s, border-color 0.15s;
+    height: 22px;
+    box-sizing: border-box;
+}
+
+.mobile-sidebar-toggle-btn:active {
+    transform: scale(0.96);
+}
+
+.mobile-sidebar-toggle-btn.open {
+    border-color: #ffd700;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    color: #ffd700;
+}
+
+.mobile-sidebar-toggle-btn .menu-ico {
+    font-size: 11px;
+}
+
+/* Dropdown da Sidebar (compacto para caber perfeitamente na vertical) */
+#mobile-sidebar-dropdown {
+    display: none;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: 3px;
+    background: rgba(8, 14, 20, 0.96);
+    border: 1.5px solid #005a5b;
+    border-radius: 6px;
+    padding: 3px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.85), 0 0 10px rgba(0, 229, 212, 0.15);
+    backdrop-filter: blur(6px);
+    width: 116px;
+    max-height: calc(100vh - 150px);
+    overflow-y: auto;
+    animation: fadeInDropdown 0.16s ease-out;
+    box-sizing: border-box;
+}
+
+#mobile-sidebar-dropdown.open {
+    display: flex;
+}
+
+@keyframes fadeInDropdown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Itens individuais do menu (altura reduzida para 21px) */
+.mobile-sidebar-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(0, 229, 212, 0.18);
+    border-radius: 3px;
+    color: #d8e5ec;
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10.5px;
+    font-weight: bold;
+    letter-spacing: 0.3px;
+    padding: 2px 5px;
+    cursor: pointer;
+    text-align: left;
+    touch-action: manipulation;
+    transition: background 0.12s, border-color 0.12s, transform 0.1s;
+    height: 21px;
+    box-sizing: border-box;
+}
+
+.mobile-sidebar-item:active {
+    background: rgba(0, 229, 212, 0.2);
+    border-color: #00e5d4;
+    transform: scale(0.97);
+}
+
+.mobile-sidebar-item .item-ico {
+    font-size: 12px;
+    line-height: 1;
+    width: 14px;
+    text-align: center;
+    flex-shrink: 0;
+}
+
+.mobile-sidebar-item .item-lbl {
+    flex: 1;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 10.5px;
+}
+
+/* Item especial: Futuro Update */
+.mobile-sidebar-item.item-futuro {
+    border-color: rgba(241, 196, 15, 0.35);
+    color: #ffd700;
+    background: rgba(241, 196, 15, 0.05);
+}
+
+.mobile-sidebar-item.item-futuro:active {
+    background: rgba(241, 196, 15, 0.2);
+    border-color: #ffd700;
+}
+
+/* Ícones de skills com imagem no slotbar */
+.btn-action-icon-img {
+    width: 84%;
+    height: 84%;
+    object-fit: contain;
+    border-radius: 50%;
+    pointer-events: none;
+    display: block;
+    user-select: none;
+    -webkit-user-drag: none;
+}
+
+#btn-pikeman-giro {
+    background: radial-gradient(circle, #331015 0%, #150508 100%) !important;
+    border: 1.5px solid #c0392b !important;
+}
+
+#btn-pikeman-giro:hover {
+    border-color: #e74c3c !important;
+    box-shadow: 0 0 10px rgba(231, 76, 60, 0.6) !important;
+}
+
+/* --------------------------------------------------------------------
+   REGRAS DE LAYOUT MOBILE FIXO (TELAS TOQUE / CELULAR / PAISAGEM)
+   -------------------------------------------------------------------- */
+@media (max-width: 1024px) and (orientation: landscape), (max-width: 900px), (pointer: coarse) {
+    /* Ocultar barra horizontal antiga de utilitários no mobile (substituída pela Sidebar) */
+    #util-buttons {
+        display: none !important;
+    }
+
+    /* Mostrar a nova Sidebar mobile */
+    #mobile-sidebar-container {
+        display: flex !important;
+    }
+
+    /* Minimapa fixado com precisão no canto superior direito */
+    #minimap-wrapper {
+        position: fixed !important;
+        top: 8px !important;
+        right: 10px !important;
+        left: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+    }
+
+    /* Status do personagem fixado no topo esquerdo sem transforms que afetem position: fixed dos filhos */
+    #hud-status-window {
+        position: fixed !important;
+        top: 8px !important;
+        left: 10px !important;
+        right: auto !important;
+        bottom: auto !important;
+        transform: none !important;
+        filter: none !important;
+        perspective: none !important;
+    }
+
+    #hud-status-main {
+        transform: none !important;
+        filter: none !important;
+    }
+
+    /* Ocultar badges de teclas de teclado (1, 2, 3, Q, E) nos botões no mobile para visual de toque limpo */
+    .actions .key-badge,
+    #hud-pocoes .key-badge {
+        display: none !important;
+    }
+
+    /* ----------------------------------------------------------------
+       CLUSTER DE BOTÕES DE AÇÃO: 2 COLUNAS x 3 LINHAS (CANTO INFERIOR DIREITO)
+       Linha 1: [6] Autofarm  |  [5] Dash
+       Linha 2: [3] Skill 3   |  [4] Skill 4
+       Linha 3: [1] Skill 1   |  [2] Skill 2
+       ---------------------------------------------------------------- */
+    .actions {
+        position: fixed !important;
+        right: 12px !important;
+        bottom: 12px !important;
+        left: auto !important;
+        transform: none !important;
+        display: grid !important;
+        grid-template-columns: 54px 54px !important;
+        grid-template-rows: 54px 54px 54px !important;
+        gap: 8px !important;
+        z-index: 20 !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 116px !important;
+        height: 178px !important;
+    }
+
+    /* Dimensões consistentes dos botões de ação */
+    .btn-action {
+        width: 54px !important;
+        height: 54px !important;
+        margin: 0 !important;
+    }
+
+    /* --- SLOT 6: TOPO ESQUERDA (Autofarm) --- */
+    #btn-autofarm {
+        grid-column: 1 !important;
+        grid-row: 1 !important;
+        display: flex !important;
+    }
+
+    /* --- SLOT 5: TOPO DIREITA (Dash) --- */
+    #btn-dash {
+        grid-column: 2 !important;
+        grid-row: 1 !important;
+        display: flex !important;
+    }
+
+    /* --- SLOT 3: MEIO ESQUERDA (Skill 3 das classes) --- */
+    #btn-guerreiro-provocacao,
+    #btn-vulcao,
+    #btn-ogro-colossal,
+    #ogro-colossal-wrap,
+    #btn-arqueiro-rajada,
+    #btn-curandeiro-aura,
+    #btn-barbaro-giro,
+    #btn-roqueiro-banda,
+    #btn-ladino-camuflagem,
+    #btn-dm-caixa,
+    #btn-arcano-cascata,
+    #btn-sniper-posicao,
+    #btn-pikeman-geada {
+        grid-column: 1 !important;
+        grid-row: 2 !important;
+    }
+
+    /* Ajuste para o container do Golem do Summoner */
+    #ogro-colossal-wrap {
+        width: 54px !important;
+        height: 54px !important;
+    }
+
+    /* --- SLOT 4: MEIO DIREITA (Skill 4 das classes que possuem) --- */
+    #btn-roqueiro-grito,
+    #btn-ladino-estrela,
+    #btn-dm-tita,
+    #btn-sniper-camuflagem,
+    #btn-pikeman-execucao {
+        grid-column: 2 !important;
+        grid-row: 2 !important;
+    }
+
+    /* --- SLOT 1: FUNDO ESQUERDA (Skill 1 das classes) --- */
+    #btn-meteoro,
+    #btn-ogro-skill,
+    #btn-arqueiro-chuva,
+    #btn-curandeiro-cura,
+    #btn-barbaro-furia,
+    #btn-roqueiro-bateria,
+    #btn-ladino-danca,
+    #btn-dm-supressao,
+    #btn-arcano-cometas,
+    #btn-sniper-apontar,
+    #btn-pikeman-giro {
+        grid-column: 1 !important;
+        grid-row: 3 !important;
+    }
+
+    /* --- SLOT 2: FUNDO DIREITA (Skill 2 das classes) --- */
+    #btn-tornado,
+    #btn-nevasca,
+    #btn-ogro-salto,
+    #btn-arqueiro-perfurante,
+    #btn-curandeiro-julgamento,
+    #btn-barbaro-esmagamento,
+    #btn-roqueiro-teleporte,
+    #btn-ladino-bomba,
+    #btn-dm-assalto,
+    #btn-arcano-orbe,
+    #btn-sniper-rede,
+    #btn-pikeman-pirueta {
+        grid-column: 2 !important;
+        grid-row: 3 !important;
+    }
+
+    /* ----------------------------------------------------------------
+       POÇÕES [HP] E [MP] IMEDIATAMENTE À ESQUERDA DA SKILL [1]
+       ---------------------------------------------------------------- */
+    #hud-pocoes {
+        position: fixed !important;
+        right: 136px !important;
+        bottom: 14px !important;
+        left: auto !important;
+        top: auto !important;
+        display: flex !important;
+        flex-direction: row !important;
+        gap: 6px !important;
+        align-items: flex-end !important;
+        z-index: 25 !important;
+        margin: 0 !important;
+        pointer-events: auto !important;
+    }
+
+    .pocao-slot {
+        width: 38px !important;
+        height: 38px !important;
+        font-size: 18px !important;
+        border-radius: 6px !important;
+        border: 2px solid #5a5344 !important;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7), inset 0 0 4px rgba(0, 0, 0, 0.6) !important;
+    }
+
+    #btn-pocao-hp {
+        border-color: #c0392b !important;
+        box-shadow: 0 0 8px rgba(231, 76, 60, 0.4), inset 0 0 4px rgba(0,0,0,0.8) !important;
+    }
+
+    #btn-pocao-mp {
+        border-color: #2980b9 !important;
+        box-shadow: 0 0 8px rgba(52, 152, 219, 0.4), inset 0 0 4px rgba(0,0,0,0.8) !important;
+    }
+
+    /* ----------------------------------------------------------------
+       BARRA DE XP NO CANTO INFERIOR ESQUERDO
+       ---------------------------------------------------------------- */
+    #hud-xp-central {
+        position: fixed !important;
+        left: 12px !important;
+        bottom: 10px !important;
+        right: auto !important;
+        transform: none !important;
+        width: min(280px, 38vw) !important;
+        height: 12px !important;
+        z-index: 15 !important;
+        pointer-events: none !important;
+    }
+
+    #hud-xp-central #xp-bar-container {
+        width: 100% !important;
+        height: 12px !important;
+        border-radius: 3px !important;
+    }
+}
+
+/* Ocultar botão sidebar em telas de desktop clássicas sem toque */
+@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
+    #mobile-sidebar-container {
+        display: none !important;
+    }
+}
+
+/* Toast de notificação para futuro update */
+#mobile-hud-toast {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.9);
+    background: rgba(10, 16, 22, 0.95);
+    border: 1.5px solid #ffd700;
+    border-radius: 8px;
+    padding: 12px 20px;
+    color: #fff;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: bold;
+    font-size: 15px;
+    letter-spacing: 0.5px;
+    box-shadow: 0 0 20px rgba(255, 215, 0, 0.4), 0 8px 24px rgba(0,0,0,0.8);
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+#mobile-hud-toast.show {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+}
