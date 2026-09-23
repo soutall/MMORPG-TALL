@@ -4,6 +4,7 @@
 
 window.skillsAberto = false;
 window.skillsNiveis = {}; // chave: skillId -> nivel (1..10), sincronizado com o servidor
+window._skillSelecionada = null; // skill atualmente selecionada na janela (SkillList.png)
 
 const NIVEL_SKILL_MAX = 10;
 
@@ -481,94 +482,171 @@ function toggleSkills() {
 }
 
 function renderizarSkills() {
-    let lista = skillsListaEl();
-    if (!lista) return;
-    let tag = skillsClasseTagEl();
-    if (tag) tag.innerText = "🔶 " + (NOMES_CLASSES[window.minhaClasse] || window.minhaClasse) + " — SKILLS";
     let classe = window.minhaClasse || 'guerreiro';
     let skills = SKILLS_INFO[classe] || [];
-
-    lista.innerHTML = "";
-
     let pontos = window.pontosHabilidade || 0;
-    let cabecalho = document.createElement("div");
-    cabecalho.className = "skill-pontos" + (pontos <= 0 ? " esgotado" : "");
-    cabecalho.innerHTML = '🎯 Pontos de habilidade: <b>' + pontos + '</b> <span style="font-size:10px;color:#bbb">(surge ao subir de nível)</span>';
-    lista.appendChild(cabecalho);
 
-    skills.forEach(skill => {
-        let nivel = obterNivelSkill(classe, skill.id);
-        let escalado = valorEscalado(skill, nivel);
-        let card = document.createElement("div");
-        card.className = "skill-card";
+    // === 1 — ÍCONE DE CLASSE (topo central, atrás do círculo da PNG) ===
+    let iconEl = document.getElementById('skills-class-icon');
+    if (iconEl) {
+        let mapa = window._perfilMapa;
+        let foto = (mapa && mapa[classe])
+            ? 'url("imagem/HUD/Perfil/' + mapa[classe] + '.png?v=perfil2")'
+            : 'none';
+        iconEl.style.backgroundImage = foto;
+    }
 
-        let linhaDano = "";
-        if (skill.danoBase && (skill.escala === 'dano' || skill.escala === 'cura')) {
-            let comAtr = valorComAtributo(skill);
-            let principal = comAtr !== null ? comAtr : escalado;
-            let notaAtr = comAtr !== null && comAtr !== escalado
-                ? ' <span style="color:#9b59b6">(' + skill.danoBase + ' base · +5% por ' + atributoEscalaSkill(skill).rotulo + ')</span>'
-                : '';
-            let icone = skill.escala === 'cura' ? '💖 Cura' : '🗡️ Dano';
-            let corNota = skill.escala === 'cura' ? '#27ae60' : '#e67e22';
-            linhaDano = '<div class="skill-stat"><b>' + icone + '</b> ' + principal + notaAtr + (skill.danoUnidade && skill.escala !== 'cura' ? ' ' + skill.danoUnidade : '') + (skill.danoNota ? ' <span style="color:' + corNota + '">' + skill.danoNota + '</span>' : '') + '</div>';
-        } else {
-            linhaDano = '<div class="skill-stat"><b>Dano</b> —</div>';
-        }
-
-        let duracaoLinha = skill.duracao
-            ? '<div class="skill-stat"><b>⏳ Duração</b> ' + (skill.escala === 'duracao' ? escalado + 's' : skill.duracao) + '</div>'
-            : '<div class="skill-stat"><b>⏳ Duração</b> —</div>';
-
-        let extrasHtml = skill.extras.length
-            ? '<div class="skill-extras">' + skill.extras.map(e => '<span class="skill-extra">' + e + '</span>').join('') + '</div>'
-            : '';
-
-        let custoMp = skill.mp ? Math.round(skill.mp * (1 + (nivel - 1) * 0.06)) : 0;
-        let cooldownExibido = skill.cd === null || skill.cd === undefined ? '—' : (skill.cd >= 60 ? Math.floor(skill.cd / 60) + ':' + String(skill.cd % 60).padStart(2, '0') : skill.cd + 's');
-
-        let btnUpgrade;
-        if (nivel >= NIVEL_SKILL_MAX) {
-            btnUpgrade = '<button class="btn-melhorar max" disabled>MÁXIMO</button>';
-        } else if (pontos <= 0) {
-            btnUpgrade = '<button class="btn-melhorar" disabled>⬆️ MELHORAR</button>';
-        } else {
-            btnUpgrade = '<button class="btn-melhorar" onclick="melhorarSkill(\'' + skill.id + '\')">⬆️ MELHORAR</button>';
-        }
-
-        card.innerHTML =
-            '<div class="skill-card-top">' +
-                '<span class="skill-ico">' + skill.icon + '</span>' +
-                '<div style="flex:1">' +
-                    '<div class="skill-nome">' + skill.nome +
-                        '<span class="skill-cat cat-' + skill.categoria + '">' + LABELS_CATEGORIA[skill.categoria] + '</span>' +
-                        '<span class="skill-nv">NV ' + nivel + '</span>' +
-                    '</div>' +
-                    '<div class="skill-desc">' + skill.desc + '</div>' +
-                '</div>' +
-            '</div>' +
-            '<div class="skill-stats">' +
-                linhaDano +
-                '<div class="skill-stat"><b>💧 MP</b> ' + (custoMp > 0 ? custoMp : 0) + '</div>' +
-                '<div class="skill-stat"><b>⏱️ CD</b> ' + cooldownExibido + '</div>' +
-                '<div class="skill-stat"><b>🔵 Área</b> ' + (skill.area || '—') + '</div>' +
-                '<div class="skill-stat"><b>🎯 Alcance</b> ' + (skill.alcance || '—') + '</div>' +
-                duracaoLinha +
-            '</div>' +
-            (skill.escala === 'duracao'
-                ? '<div class="skill-extras"><span class="skill-extra" style="border-color:#f1c40f;background:#3a3528;color:#f1c40f">Duração escala +10%/nível</span></div>'
-                : (skill.escala === 'dano' || skill.escala === 'cura'
-                    ? '<div class="skill-extras"><span class="skill-extra" style="border-color:#1abc9c;background:#13332b;color:#1abc9c">Dano/Cura escala +25%/nível · MP +6%/nível</span></div>'
-                    : '')) +
-            extrasHtml +
-            '<div class="skill-upgrade">' +
-                '<span class="skill-upgrade-nivel">Nível <b>' + nivel + '</b>/' + NIVEL_SKILL_MAX + '</span>' +
-                btnUpgrade +
-                '<button class="btn-skill-reset" onclick="resetarSkill(\'' + skill.id + '\')" title="Resetar">↺</button>' +
+    // === Pontos de habilidade + reset (topo esquerdo) ===
+    let ptsEl = document.getElementById('skills-points');
+    if (ptsEl) {
+        ptsEl.innerHTML =
+            '<div class="pts-label">PONTOS: <span class="' + (pontos <= 0 ? 'pts-zero' : '') + '"><b>' + pontos + '</b></span></div>' +
+            '<div class="pts-actions">' +
+                '<span class="pts-reset-btn" onclick="resetarTodasSkills()" title="Resetar todas as skills">↺ RESET</span>' +
+                '<div class="pts-aviso">⚠️ Upgrade é TESTE</div>' +
             '</div>';
+    }
 
-        lista.appendChild(card);
-    });
+    // Seleção padrão: primeira skill da classe
+    if (!window._skillSelecionada || !skills.some(s => s.id === window._skillSelecionada)) {
+        window._skillSelecionada = skills.length ? skills[0].id : null;
+    }
+
+    // === ÁREA ESQUERDA: lista compacta (uma linha por habilidade) ===
+    let lista = skillsListaEl();
+    if (lista) {
+        lista.innerHTML = '';
+        skills.forEach(skill => {
+            let nivel = obterNivelSkill(classe, skill.id);
+            let row = document.createElement('div');
+            row.className = 'skill-row' + (skill.id === window._skillSelecionada ? ' selected' : '');
+            row.innerHTML =
+                '<span class="sr-icon">' + skill.icon + '</span>' +
+                '<span class="sr-name">' + skill.nome + '</span>' +
+                '<span class="sr-nv">NV' + nivel + '</span>' +
+                '<span class="sr-cat cat-' + skill.categoria + '">' + (LABELS_CATEGORIA[skill.categoria] || skill.categoria) + '</span>';
+            row.onclick = () => { window._skillSelecionada = skill.id; renderizarSkills(); };
+            lista.appendChild(row);
+        });
+    }
+
+    // === ÁREA DIREITA: informações da skill selecionada ===
+    let sel = skills.find(s => s.id === window._skillSelecionada) || null;
+    let infoEl = document.getElementById('skills-info-content');
+    if (infoEl) {
+        if (!sel) {
+            infoEl.innerHTML = '<div style="color:#7f8c8d;text-align:center;padding:16px 0">Selecione uma habilidade</div>';
+        } else {
+            let nivel = obterNivelSkill(classe, sel.id);
+            let escalado = valorEscalado(sel, nivel);
+            let comAtr = valorComAtributo(sel);
+            let principal = comAtr !== null ? comAtr : escalado;
+            let custoMp = sel.mp ? Math.round(sel.mp * (1 + (nivel - 1) * 0.06)) : 0;
+            let cooldownExibido = sel.cd === null || sel.cd === undefined ? '—' : (sel.cd >= 60 ? Math.floor(sel.cd / 60) + ':' + String(sel.cd % 60).padStart(2, '0') : sel.cd + 's');
+
+            let linhaDano = '';
+            if (sel.danoBase && (sel.escala === 'dano' || sel.escala === 'cura')) {
+                let icone = sel.escala === 'cura' ? '💖 Cura' : '🗡️ Dano';
+                let corNota = sel.escala === 'cura' ? '#27ae60' : '#e67e22';
+                let notaAtr = comAtr !== null && comAtr !== escalado
+                    ? ' <span style="color:#9b59b6">(' + sel.danoBase + ' base · +5% por ' + atributoEscalaSkill(sel).rotulo + ')</span>'
+                    : '';
+                linhaDano = '<div class="si-stat"><b>' + icone + '</b> ' + principal + notaAtr + (sel.danoUnidade && sel.escala !== 'cura' ? ' ' + sel.danoUnidade : '') + (sel.danoNota ? ' <span style="color:' + corNota + '">' + sel.danoNota + '</span>' : '') + '</div>';
+            } else {
+                linhaDano = '<div class="si-stat"><b>Dano</b> —</div>';
+            }
+
+            let duracaoLinha = sel.duracao
+                ? '<div class="si-stat"><b>⏳ Duração</b> ' + (sel.escala === 'duracao' ? escalado + 's' : sel.duracao) + '</div>'
+                : '<div class="si-stat"><b>⏳ Duração</b> —</div>';
+
+            let extrasHtml = sel.extras.length
+                ? '<div class="si-extras">' + sel.extras.map(e => '<span class="si-extra">' + e + '</span>').join('') + '</div>'
+                : '';
+
+            let btnUpgrade;
+            if (nivel >= NIVEL_SKILL_MAX) {
+                btnUpgrade = '<button class="btn-melhorar max" disabled>MÁXIMO</button>';
+            } else if (pontos <= 0) {
+                btnUpgrade = '<button class="btn-melhorar" disabled>⬆️ MELHORAR</button>';
+            } else {
+                btnUpgrade = '<button class="btn-melhorar" onclick="melhorarSkill(\'' + sel.id + '\')">⬆️ MELHORAR</button>';
+            }
+
+            infoEl.innerHTML =
+                '<div class="si-header">' +
+                    '<span class="si-icon">' + sel.icon + '</span>' +
+                    '<span class="si-name">' + sel.nome + '</span>' +
+                    '<span class="si-cat cat-' + sel.categoria + '">' + (LABELS_CATEGORIA[sel.categoria] || '') + '</span>' +
+                    '<span class="si-nv">NV ' + nivel + '</span>' +
+                '</div>' +
+                '<div class="si-desc">' + sel.desc + '</div>' +
+                '<div class="si-stats">' +
+                    linhaDano +
+                    '<div class="si-stat"><b>💧 MP</b> ' + (custoMp > 0 ? custoMp : 0) + '</div>' +
+                    '<div class="si-stat"><b>⏱️ CD</b> ' + cooldownExibido + '</div>' +
+                    '<div class="si-stat"><b>🔵 Área</b> ' + (sel.area || '—') + '</div>' +
+                    '<div class="si-stat"><b>🎯 Alcance</b> ' + (sel.alcance || '—') + '</div>' +
+                    duracaoLinha +
+                '</div>' +
+                extrasHtml +
+                '<div class="si-upgrade">' +
+                    '<span class="si-upgrade-nv">Nível <b>' + nivel + '</b>/' + NIVEL_SKILL_MAX + '</span>' +
+                    btnUpgrade +
+                    '<button class="btn-skill-reset" onclick="resetarSkill(\'' + sel.id + '\')" title="Resetar">↺</button>' +
+                '</div>';
+        }
+    }
+
+    // === PRÓXIMO NÍVEL ===
+    let pnEl = document.getElementById('skills-proximo-nivel');
+    if (pnEl) {
+        if (!sel || obterNivelSkill(classe, sel.id) >= NIVEL_SKILL_MAX) {
+            pnEl.innerHTML = '<div class="pn-max">Nível máximo atingido</div>';
+        } else {
+            let nivel = obterNivelSkill(classe, sel.id);
+            let html = '';
+            if (sel.escala === 'dano' || sel.escala === 'cura') {
+                let atual = valorEscalado(sel, nivel);
+                let proximo = valorEscalado(sel, nivel + 1);
+                let tipo = sel.escala === 'cura' ? '💖 Cura' : '🗡️ Dano';
+                html += '<div class="pn-line"><b>' + tipo + '</b> ' + atual + ' <span class="pn-seta">→</span> <span class="pn-proximo">' + proximo + '</span></div>';
+            }
+            if (sel.mp > 0) {
+                let mpA = Math.round(sel.mp * (1 + (nivel - 1) * 0.06));
+                let mpP = Math.round(sel.mp * (1 + nivel * 0.06));
+                html += '<div class="pn-line"><b>💧 MP</b> ' + mpA + ' <span class="pn-seta">→</span> <span class="pn-proximo">' + mpP + '</span></div>';
+            }
+            if (sel.escala === 'duracao' && sel.duracaoBase) {
+                let durA = Math.round(sel.duracaoBase * (1 + (nivel - 1) * 0.1));
+                let durP = Math.round(sel.duracaoBase * (1 + nivel * 0.1));
+                html += '<div class="pn-line"><b>⏳</b> ' + durA + 's <span class="pn-seta">→</span> <span class="pn-proximo">' + durP + 's</span></div>';
+            }
+            html += '<div class="pn-info">+25% dano/cura · +6% MP · +10% duração</div>';
+            pnEl.innerHTML = html;
+        }
+    }
+
+    // === REQUISITOS (vazio quando não existem) ===
+    let reqEl = document.getElementById('skills-requisitos');
+    if (reqEl) reqEl.innerHTML = '';
+
+    // === BARRA DE HABILIDADES (8 slots inferiores) ===
+    let barEl = document.getElementById('skills-bar');
+    if (barEl) {
+        barEl.innerHTML = '';
+        for (let i = 0; i < 8; i++) {
+            let slot = document.createElement('div');
+            slot.className = 'skill-slot' + (i === 0 && skills.length ? ' destaque' : '');
+            if (i < skills.length) {
+                slot.innerHTML = '<span>' + skills[i].icon + '</span>' +
+                    '<span class="slot-key">' + (i + 1) + '</span>';
+            } else {
+                slot.innerHTML = '<span class="slot-key">' + (i + 1) + '</span>';
+            }
+            barEl.appendChild(slot);
+        }
+    }
 }
 
 function melhorarSkill(id) {

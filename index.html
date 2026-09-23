@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=244">
     <link rel="stylesheet" href="inventario.css?v=135">
-    <link rel="stylesheet" href="skills.css?v=143">
+    <link rel="stylesheet" href="skills.css?v=144">
     <link rel="stylesheet" href="config.css?v=146">
     <link rel="stylesheet" href="atributos.css?v=5">
     <link rel="stylesheet" href="spawn-admin.css?v=2">
@@ -71,7 +71,7 @@
             <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" autofocus />
             <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
         </div>
-        <div class="game-version-display">v1.37</div>
+        <div class="game-version-display">v1.38</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -120,7 +120,7 @@
 
     <div id="status" data-ui="status">Desconectado</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
-    <div id="hud-version" class="game-version-display">v1.37</div>
+    <div id="hud-version" class="game-version-display">v1.38</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -570,17 +570,19 @@
     </div>
 
     <div id="skills-screen">
-        <div id="skills-window">
-            <div id="skills-header">
-                <h2 id="skills-titulo">HABILIDADES</h2>
+        <div id="skills-png-wrap">
+            <div id="skills-content">
+                <div id="skills-class-icon"></div>
+                <div id="skills-drag-handle"></div>
                 <button id="btn-skills-fechar" onclick="fecharSkills()">✕</button>
+                <div id="skills-points"></div>
+                <div id="skills-lista"></div>
+                <div id="skills-info-panel"><div id="skills-info-content"></div></div>
+                <div id="skills-proximo-nivel"></div>
+                <div id="skills-requisitos"></div>
+                <div id="skills-bar"></div>
             </div>
-            <div id="skills-classe-tag"></div>
-            <div id="skills-lista"></div>
-            <div id="skills-footer">
-                <span id="skills-aviso">⚠️ Upgrade é TESTE — não altera o combate ainda.</span>
-                <button id="btn-skills-reset-tudo" onclick="resetarTodasSkills()">↺ RESETAR</button>
-            </div>
+            <img id="skills-png-overlay" src="imagem/HUD/SkillList.png?v=HUDSKILLS01" draggable="false" />
         </div>
     </div>
 
@@ -741,7 +743,7 @@
     <script src="efeitos/boss_golem.js?v=230"></script>
     <script src="monstros.js?v=2007"></script>
     <script src="inventario.js?v=133"></script>
-    <script src="skills.js?v=145"></script>
+    <script src="skills.js?v=146"></script>
     <script src="config.js?v=143"></script>
     <script src="atributos.js?v=3"></script>
     <script src="spawn-admin.js?v=3"></script>
@@ -757,7 +759,7 @@
     <script src="intro.js?v=1"></script>
 
     <script>
-        const GAME_VERSION = 'v1.37';
+        const GAME_VERSION = 'v1.38';
         window.GAME_VERSION = GAME_VERSION;
         const WORLD_WIDTH = 71920;
         const WORLD_HEIGHT = 36000;
@@ -5537,7 +5539,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             iniciarAudio();
             if (window.estaMorto || window.spawnAdminAberto || window.teleporteAberto || window.ferreiroAberto || (window.colisaoEditorAtivo && !window.editorMinimizado) || (window.mapaEditorAtivo && !window.mapaEditorMinimizado)) return;
             // Se o toque foi dentro de uma janela de interface (inventário, skills, status, config), não ativa joystick nem ações do mundo
-            if (e.target && e.target.closest && e.target.closest('#inv-window, #skills-window, #atributos-window, #detalhes-window, #settings-window, #colisao-editor-screen, #spawn-admin-window, #mapa-editor-screen, #ferreiro-window')) return;
+            if (e.target && e.target.closest && e.target.closest('#inv-window, #skills-png-wrap, #atributos-window, #detalhes-window, #settings-window, #colisao-editor-screen, #spawn-admin-window, #mapa-editor-screen, #ferreiro-window')) return;
             // ADMIN: toque em cima de uma bandeira de spawn → abre o painel de edição
             if (window.ehAdmin && window.listaBandeiras && window.listaBandeiras.length && window.dragSkill && !window.dragSkill.ativo) {
                 for (let i = 0; i < e.changedTouches.length; i++) {

@@ -360,9 +360,9 @@
         if (t.closest("button")) return; // não interceptar botões (⚔️/🗑️/↩️/✕)
 
         // 1) Janela arrastrable (Universal para todos os modais)
-        var handle = t.closest("#inv-title, #skills-header, #settings-header, #atributos-title, #detalhes-title, #big-map-top, #teleport-title, #ferreiro-title, #social-modal h2, #trade-modal h2, #party-invite-modal h2, #trade-invite-modal h2, #confirm-title, .modal-drag-handle, .dnd-handle");
+        var handle = t.closest("#inv-title, #skills-drag-handle, #settings-header, #atributos-title, #detalhes-title, #big-map-top, #teleport-title, #ferreiro-title, #social-modal h2, #trade-modal h2, #party-invite-modal h2, #trade-invite-modal h2, #confirm-title, .modal-drag-handle, .dnd-handle");
         if (handle) {
-            var win = handle.closest("#inv-window, #skills-window, #atributos-dupla, #settings-window, #big-map-window, #teleport-window, #ferreiro-window, #social-modal, #trade-modal, #party-invite-modal, #trade-invite-modal, #confirm-window, .dnd-window");
+            var win = handle.closest("#inv-window, #skills-png-wrap, #atributos-dupla, #settings-window, #big-map-window, #teleport-window, #ferreiro-window, #social-modal, #trade-modal, #party-invite-modal, #trade-invite-modal, #confirm-window, .dnd-window");
             if (win && win.getBoundingClientRect) {
                 var r = win.getBoundingClientRect();
                 arrastro = {
@@ -469,7 +469,7 @@
     /* ============ REGISTRO DE JANELAS + RESTAURAR POSICIONES ============ */
     var JANELAS = [
         { sel: "#inv-window",        handles: ["#inv-title"] },
-        { sel: "#skills-window",     handles: ["#skills-header"] },
+        { sel: "#skills-png-wrap",   handles: ["#skills-drag-handle"] },
         { sel: "#atributos-dupla",   handles: ["#atributos-title", "#detalhes-title"] },
         { sel: "#settings-window",   handles: ["#settings-header"] },
         { sel: "#big-map-window",    handles: ["#big-map-top"] },
