@@ -71,7 +71,7 @@
             <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" autofocus />
             <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
         </div>
-        <div class="game-version-display">v1.36</div>
+        <div class="game-version-display">v1.37</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -120,7 +120,7 @@
 
     <div id="status" data-ui="status">Desconectado</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
-    <div id="hud-version" class="game-version-display">v1.36</div>
+    <div id="hud-version" class="game-version-display">v1.37</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -757,7 +757,7 @@
     <script src="intro.js?v=1"></script>
 
     <script>
-        const GAME_VERSION = 'v1.36';
+        const GAME_VERSION = 'v1.37';
         window.GAME_VERSION = GAME_VERSION;
         const WORLD_WIDTH = 71920;
         const WORLD_HEIGHT = 36000;
@@ -1944,7 +1944,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             window._displayMana = -1;
             window._displayStamina = -1;
 
-            // === v1.36: FOTO DE PERFIL no círculo do retrato ===
+            // === v1.36/v1.37: FOTO DE PERFIL no círculo do retrato ===
             // Círculo no espaço da imagem (2172×724): centro (345, 350), raio 200.
             // A foto é desenhada ANTES da HudHP.png; a PNG, pintada por último,
             // cobre automaticamente qualquer sobra sobre moldura/gemas/ornamentos
@@ -1960,6 +1960,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 dronemaster:     'DroneMaster',
                 arqueiro_arcano: 'Arqueir_astral',
                 arqueiro_astral: 'Arqueir_astral',
+                sniper:          'sniper',
                 pikeman:         'PikeMan',
                 curandeiro:      'curandeiro'
             };
@@ -1968,7 +1969,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 if (!classe || !_perfilMapa[classe]) return null;
                 if (!_perfilCache[classe]) {
                     var im = new Image();
-                    im.src = 'imagem/HUD/Perfil/' + _perfilMapa[classe] + '.png?v=perfil1';
+                    im.src = 'imagem/HUD/Perfil/' + _perfilMapa[classe] + '.png?v=perfil2';
                     _perfilCache[classe] = im;
                 }
                 return _perfilCache[classe];
