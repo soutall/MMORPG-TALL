@@ -1,0 +1,288 @@
+[
+  {
+    "id": "muekmuema4j0-4v7spn7nj",
+    "uid": "muekmuema4j0-4v7spn7nj",
+    "tipo": "equipamento",
+    "slot": "arma",
+    "subTipo": "muekmuema4j0-4v7spn7nj",
+    "classeRestrita": "mago",
+    "icon": "⚔️",
+    "nome": "Staff",
+    "raridade": "lendario",
+    "raridadeNome": "LENDARIO",
+    "status": {
+      "forca": 50,
+      "vida": 20
+    },
+    "customVisual": {
+      "tamanho": 23,
+      "largura": 3.5,
+      "cBase": "#ff0000",
+      "cMeio": "#ffff00",
+      "cPonta": "#0000ff",
+      "cFio": "#00ff00"
+    },
+    "armaChave": "muekmuema4j0-4v7spn7nj",
+    "classe": "mago"
+  },
+  {
+    "id": "muekmuemm3qo-txovxnwqn",
+    "uid": "muekmuemm3qo-txovxnwqn",
+    "tipo": "equipamento",
+    "slot": "arma",
+    "subTipo": "muekmuemm3qo-txovxnwqn",
+    "classeRestrita": "guerreiro",
+    "icon": "⚔️",
+    "nome": "A Lâmina Viva",
+    "raridade": "lendario",
+    "raridadeNome": "LENDARIO",
+    "status": {
+      "forca": 50,
+      "vida": 20
+    },
+    "customVisual": {
+      "tamanho": 25,
+      "largura": 3.5,
+      "cBase": "#39434f",
+      "cMeio": "#6b7e92",
+      "cPonta": "#b8c9db",
+      "cFio": "#eef6ff"
+    },
+    "armaChave": "muekmuemm3qo-txovxnwqn",
+    "classe": "guerreiro"
+  },
+  {
+    "id": "muekmuemrgq5-9vmf9bemc",
+    "uid": "muekmuemrgq5-9vmf9bemc",
+    "tipo": "equipamento",
+    "slot": "arma",
+    "subTipo": "muekmuemrgq5-9vmf9bemc",
+    "armaChave": "muekmuemrgq5-9vmf9bemc",
+    "classe": "mago",
+    "classeRestrita": "mago",
+    "icon": "⚔️",
+    "nome": "A Lâmina Viva",
+    "raridade": "lendario",
+    "raridadeNome": "LENDARIO",
+    "status": {
+      "forca": 50,
+      "vida": 20
+    },
+    "customVisual": {
+      "tamanho": 40,
+      "largura": 3.5,
+      "cBase": "#39434f",
+      "cMeio": "#000000",
+      "cPonta": "#b8c9db",
+      "cFio": "#00ff00"
+    }
+  },
+  {
+    "id": "muekmuemu4r4-1gfj1ie1g",
+    "uid": "muekmuemu4r4-1gfj1ie1g",
+    "tipo": "equipamento",
+    "slot": "arma",
+    "subTipo": "muekmuemu4r4-1gfj1ie1g",
+    "armaChave": "muekmuemu4r4-1gfj1ie1g",
+    "classe": "guerreiro",
+    "classeRestrita": "guerreiro",
+    "icon": "⚔️",
+    "nome": "A Lâmina Viva",
+    "raridade": "lendario",
+    "raridadeNome": "LENDARIO",
+    "status": {
+      "forca": 50,
+      "vida": 20
+    },
+    "customVisual": {
+      "tamanho": 25,
+      "largura": 3.5,
+      "cBase": "#ff0000",
+      "cMeio": "#6b7e92",
+      "cPonta": "#ff0000",
+      "cFio": "#ffff00"
+    }
+  },
+  {
+    "id": "muekmuemv0pt-ixocrljei",
+    "uid": "muekmuemv0pt-ixocrljei",
+    "tipo": "equipamento",
+    "slot": "arma",
+    "subTipo": "muekmuemv0pt-ixocrljei",
+    "armaChave": "muekmuemv0pt-ixocrljei",
+    "classe": "guerreiro",
+    "classeRestrita": "guerreiro",
+    "icon": "⚔️",
+    "nome": "A Lâmina Viva",
+    "raridade": "lendario",
+    "raridadeNome": "LENDARIO",
+    "status": {
+      "forca": 50,
+      "vida": 20
+    },
+    "customVisual": {
+      "tamanho": 40,
+      "largura": 6,
+      "cBase": "#ffff00",
+      "cMeio": "#ffff00",
+      "cPonta": "#ff0000",
+      "cFio": "#ffff00"
+    }
+  },
+  {
+    "id": "muekmuen732c-en1tiumj2",
+    "uid": "muekmuen732c-en1tiumj2",
+    "tipo": "equipamento",
+    "slot": "arma",
+    "subTipo": "muekmuen732c-en1tiumj2",
+    "armaChave": "muekmuen732c-en1tiumj2",
+    "classe": "mago",
+    "classeRestrita": "mago",
+    "icon": "⚔️",
+    "nome": "A Lâmina Viva",
+    "raridade": "lendario",
+    "raridadeNome": "LENDARIO",
+    "status": {
+      "forca": 50,
+      "vida": 20
+    },
+    "customVisual": {
+      "tamanho": 40,
+      "largura": 3.5,
+      "cBase": "#39434f",
+      "cMeio": "#6b7e92",
+      "cPonta": "#b8c9db",
+      "cFio": "#00ff00"
+    }
+  },
+  {
+    "id": "muekmuena9m5-5ycz9e264",
+    "uid": "muekmuena9m5-5ycz9e264",
+    "tipo": "equipamento",
+    "slot": "arma",
+    "subTipo": "muekmuena9m5-5ycz9e264",
+    "armaChave": "muekmuena9m5-5ycz9e264",
+    "classe": "mago",
+    "classeRestrita": "mago",
+    "icon": "⚔️",
+    "nome": "A Lâmina Viva",
+    "raridade": "lendario",
+    "raridadeNome": "LENDARIO",
+    "status": {
+      "forca": 50,
+      "vida": 20
+    },
+    "customVisual": {
+      "tamanho": 25,
+      "largura": 3.5,
+      "cBase": "#39434f",
+      "cMeio": "#6b7e92",
+      "cPonta": "#b8c9db",
+      "cFio": "#00ff00"
+    }
+  },
+  {
+    "id": "muekmuenb32d-qdyffd3pw",
+    "uid": "muekmuenb32d-qdyffd3pw",
+    "tipo": "equipamento",
+    "slot": "arma",
+    "subTipo": "muekmuenb32d-qdyffd3pw",
+    "armaChave": "muekmuenb32d-qdyffd3pw",
+    "classe": "mago",
+    "classeRestrita": "mago",
+    "icon": "⚔️",
+    "nome": "A Lâmina Viva",
+    "raridade": "lendario",
+    "raridadeNome": "LENDARIO",
+    "status": {
+      "forca": 50,
+      "vida": 20
+    },
+    "customVisual": {
+      "tamanho": 40,
+      "largura": 4.5,
+      "cBase": "#ffff00",
+      "cMeio": "#ff0000",
+      "cPonta": "#0000ff",
+      "cFio": "#ffff00"
+    }
+  },
+  {
+    "id": "muekmuenc4su-smrtr86zl",
+    "uid": "muekmuenc4su-smrtr86zl",
+    "tipo": "equipamento",
+    "slot": "arma",
+    "subTipo": "muekmuenc4su-smrtr86zl",
+    "armaChave": "muekmuenc4su-smrtr86zl",
+    "classe": "dronemaster",
+    "classeRestrita": "dronemaster",
+    "icon": "⚔️",
+    "nome": "A Lâmina Viva",
+    "raridade": "lendario",
+    "raridadeNome": "LENDARIO",
+    "status": {
+      "forca": 50,
+      "vida": 20
+    },
+    "customVisual": {
+      "tamanho": 14,
+      "largura": 4.5,
+      "cBase": "#000000",
+      "cMeio": "#ff0000",
+      "cPonta": "#ff0000",
+      "cFio": "#ff0000"
+    }
+  },
+  {
+    "id": "muekmuep6iec-689y7xwo8",
+    "uid": "muekmuep6iec-689y7xwo8",
+    "tipo": "equipamento",
+    "slot": "arma",
+    "subTipo": "muekmuep6iec-689y7xwo8",
+    "armaChave": "muekmuep6iec-689y7xwo8",
+    "classe": "roqueiro",
+    "classeRestrita": "roqueiro",
+    "icon": "⚔️",
+    "nome": "A Lâmina Viva",
+    "raridade": "lendario",
+    "raridadeNome": "LENDARIO",
+    "status": {
+      "forca": 50,
+      "vida": 20
+    },
+    "customVisual": {
+      "tamanho": 40,
+      "largura": 3.5,
+      "cBase": "#0a0000",
+      "cMeio": "#cc0000",
+      "cPonta": "#b8c9db",
+      "cFio": "#eeff00"
+    }
+  },
+  {
+    "id": "muekmuer56b8-q3h3v3agv",
+    "uid": "muekmuer56b8-q3h3v3agv",
+    "tipo": "equipamento",
+    "slot": "arma",
+    "subTipo": "muekmuer56b8-q3h3v3agv",
+    "armaChave": "muekmuer56b8-q3h3v3agv",
+    "classe": "guerreiro",
+    "classeRestrita": "guerreiro",
+    "icon": "⚔️",
+    "nome": "A Lâmina Viva",
+    "raridade": "lendario",
+    "raridadeNome": "LENDARIO",
+    "status": {
+      "forca": 50,
+      "vida": 20
+    },
+    "customVisual": {
+      "tamanho": 40,
+      "largura": 5.5,
+      "cBase": "#ff0000",
+      "cMeio": "#ff0000",
+      "cPonta": "#b8c9db",
+      "cFio": "#ffd500"
+    }
+  }
+]

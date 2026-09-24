@@ -171,7 +171,18 @@
    -------------------------------------------------------------------- */
 @media (max-width: 1024px) and (orientation: landscape), (max-width: 900px), (pointer: coarse) {
     /* Ocultar barra horizontal antiga de utilitários no mobile (substituída pela Sidebar) */
+    /* Em vez de esconder todo o #util-buttons, reposicionamos para o topo, 
+       abaixo do HP (Top: 80px, Left: 10px) e escondemos apenas os botões de jogador comum, 
+       deixando os botões de Admin visíveis na sua própria "barra" */
     #util-buttons {
+        top: 80px !important;
+        left: 10px !important;
+        right: auto !important;
+        bottom: auto !important;
+        flex-direction: column !important; /* Barra vertical */
+    }
+
+    #btn-pvp, #btn-social, #btn-mapa, #btn-local, #btn-status, #btn-skills, #btn-inventario, #btn-config {
         display: none !important;
     }
 
@@ -288,7 +299,10 @@
     #btn-ladino-estrela,
     #btn-dm-tita,
     #btn-sniper-camuflagem,
-    #btn-pikeman-execucao {
+    #btn-pikeman-execucao,
+    #btn-summoner-golem,
+    #btn-arqueiro-salto,
+    #btn-curandeiro-cantico {
         grid-column: 2 !important;
         grid-row: 2 !important;
     }

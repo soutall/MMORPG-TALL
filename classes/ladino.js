@@ -113,6 +113,13 @@ window.desenharLadino = function(x, y, isMoving, angulo, hp, maxHp) {
     let anguloBraco = angulo || 0;
     // A arma acompanha a mira; quando ataca rápido, dá uma estocada (rotação extra)
     let estocada = atacandoAgora ? 0.55 : 0;
+
+    let wp = window.inventario ? window.inventario.arma : null;
+    let armaV = null;
+    if (x === window.meuX && y === window.meuY) { 
+        if (wp && wp.customVisual) armaV = wp;
+    }
+
     ctx.rotate(anguloBraco + estocada);
     ctx.translate(6, 0);
     // Braço
@@ -121,40 +128,26 @@ window.desenharLadino = function(x, y, isMoving, angulo, hp, maxHp) {
     // Mão / luva
     ctx.fillStyle = "#17202a";
     ctx.fillRect(4, -2.5, 3, 5);
-    // Adaga (empunhadura virada para a ponta do golpe)
+    
+    // Adaga direita
     ctx.save();
     ctx.translate(7, 0);
-    ctx.rotate(-0.35);
-    // Cabo envolto em couro
-    ctx.fillStyle = "#6e2c00";
-    ctx.fillRect(-3, -1.5, 6, 3);
-    // Guarda
-    ctx.fillStyle = "#566573";
-    ctx.fillRect(-4.5, -3, 2.6, 6);
-    // Lâmina curta e afiada (metal escuro)
-    ctx.fillStyle = "#85929e";
-    ctx.beginPath();
-    ctx.moveTo(3, -2.6);
-    ctx.lineTo(11, 0);
-    ctx.lineTo(3, 2.6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = "#f0f3f4";
-    ctx.beginPath();
-    ctx.moveTo(3, -1.2);
-    ctx.lineTo(9.5, 0);
-    ctx.lineTo(3, 1.2);
-    ctx.closePath();
-    ctx.fill();
-    // Gema vermelha no cabo
-    ctx.fillStyle = "#c0392b";
-    ctx.beginPath(); ctx.arc(-1.5, 0, 1.4, 0, Math.PI * 2); ctx.fill();
+    window.desenharAdagaExposta(ctx, armaV, false);
     ctx.restore();
+
     // Mão esquerda (postura: mão livre em guarda)
     ctx.save();
     ctx.rotate(-anguloBraco * 0.5);
     ctx.fillStyle = "#5d4037";
     ctx.fillRect(-8, -1, 4, 3.4);
+    
+    // Adaga esquerda
+    ctx.save();
+    ctx.translate(-6, 0.7);
+    ctx.rotate(Math.PI * 0.8);
+    window.desenharAdagaExposta(ctx, armaV, true);
+    ctx.restore();
+    
     ctx.restore();
     ctx.restore();
 
@@ -184,3 +177,53 @@ window.enviarAtaqueLadino = function(ang, alvoTipo, alvoId) {
         window.ws.send(JSON.stringify(msg));
     }
 };
+window.desenharAdagaExposta = function(ctx, armaVisualCustom, isLeft) {
+    let t = 1.0, w = 1.0;
+    let cBase = "#6e2c00", cMeio = "#566573", cPonta = "#85929e", cFio = "#f0f3f4";
+
+    if (armaVisualCustom && armaVisualCustom.customVisual) {
+        let cv = armaVisualCustom.customVisual;
+        if (cv.tamanho) t = cv.tamanho;
+        if (cv.largura) w = cv.largura;
+        if (cv.cBase) cBase = cv.cBase;
+        if (cv.cMeio) cMeio = cv.cMeio;
+        if (cv.cPonta) cPonta = cv.cPonta;
+        if (cv.cFio) cFio = cv.cFio;
+    }
+
+    ctx.save();
+    ctx.rotate(isLeft ? 0.35 : -0.35);
+
+    // Cabo envolto em couro
+    ctx.fillStyle = cBase;
+    ctx.fillRect(-3, -1.5 * w, 6, 3 * w);
+    // Guarda
+    ctx.fillStyle = cMeio;
+    ctx.fillRect(-4.5, -3 * w, 2.6, 6 * w);
+    
+    // L�mina curta e afiada
+    ctx.fillStyle = cPonta;
+    ctx.beginPath();
+    ctx.moveTo(3, -2.6 * w);
+    ctx.lineTo(3 + 8 * t, 0); // (11 - 3) = 8
+    ctx.lineTo(3, 2.6 * w);
+    ctx.closePath();
+    ctx.fill();
+    
+    ctx.fillStyle = cFio;
+    ctx.beginPath();
+    ctx.moveTo(3, -1.2 * w);
+    ctx.lineTo(3 + 6.5 * t, 0); // (9.5 - 3) = 6.5
+    ctx.lineTo(3, 1.2 * w);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Gema vermelha no cabo
+    ctx.fillStyle = "#c0392b";
+    ctx.beginPath(); 
+    ctx.arc(-1.5, 0, 1.4 * w, 0, Math.PI * 2); 
+    ctx.fill();
+    
+    ctx.restore();
+};
+

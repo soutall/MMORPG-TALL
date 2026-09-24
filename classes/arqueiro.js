@@ -129,86 +129,12 @@ window.desenharArqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
     ctx.restore();
 
     // ===== ARCO DE ESPINHOS =====
-    ctx.save();
-    ctx.translate(12, 16);
-    ctx.rotate(angulo + recoil);
-    ctx.translate(18, 0);
-
-    // Estrutura de madeira retorcida (mais grossa e retorcida que arco comum)
-    const dobra = pull * 1.5; // flexão extra das pontas ao puxar
-    ctx.strokeStyle = "#4e3322";
-    ctx.lineWidth = 3.6;
-    ctx.beginPath();
-    ctx.arc(0, 0, 20, -Math.PI / 2.3, Math.PI / 2.3, false);
-    ctx.stroke();
-    ctx.strokeStyle = "#33200f";
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.arc(0, 0, 17.5, -Math.PI / 2.4, Math.PI / 2.3, false);
-    ctx.stroke();
-
-    // EMPUNHADURA reforçada com corda de couro
-    ctx.strokeStyle = "#5a4126";
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.arc(0, 0, 20, -0.24, 0.24, false);
-    ctx.stroke();
-    for (let v = -0.16; v <= 0.16; v += 0.08) {
-        ctx.strokeStyle = "#7a5a38";
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        ctx.moveTo(Math.cos(v) * 19, Math.sin(v) * 19 + 2);
-        ctx.lineTo(Math.cos(v) * 21, Math.sin(v) * 21 - 2);
-        ctx.stroke();
+    let wp = window.inventario ? window.inventario.arma : null;
+    let armaV = null;
+    if (x === window.meuX && y === window.meuY) { 
+        if (wp && wp.customVisual) armaV = wp;
     }
-
-    // ESPINHOS ao longo da borda externa do arco
-    for (let e = 0; e < 8; e++) {
-        const ea = -Math.PI / 2.3 + (Math.PI / 2.3 * 2) * (e / 7);
-        const ex = Math.cos(ea) * 20.5;
-        const ey = Math.sin(ea) * 20.5;
-        const dxo = Math.cos(ea);
-        const dyo = Math.sin(ea);
-        ctx.fillStyle = e % 2 === 0 ? "#c98f55" : "#8a6a3a";
-        ctx.beginPath();
-        ctx.moveTo(ex + dxo * 2 - dyo * 1.8, ey + dyo * 2 + dxo * 1.8);
-        ctx.lineTo(ex + dxo * 6, ey + dyo * 6);
-        ctx.lineTo(ex + dxo * 2 + dyo * 1.8, ey + dyo * 2 - dxo * 1.8);
-        ctx.closePath();
-        ctx.fill();
-    }
-
-    // Corda engatilhada: liga as pontas até a flecha (puxada conforme `pull`)
-    const cTopoX = Math.cos(-Math.PI / 2.3 - dobra * 0.04) * 20;
-    const cTopoY = Math.sin(-Math.PI / 2.3 - dobra * 0.04) * 20;
-    const cBaseX = Math.cos(Math.PI / 2.3 + dobra * 0.04) * 20;
-    const cBaseY = Math.sin(Math.PI / 2.3 + dobra * 0.04) * 20;
-    const nockX = -12 - pull * 10 - Math.abs(recoil) * 4;
-    ctx.strokeStyle = pull > 0 ? "#f5f0e4" : "#ecf0f1";
-    ctx.lineWidth = 1.3;
-    ctx.beginPath();
-    ctx.moveTo(cTopoX, cTopoY);
-    ctx.lineTo(nockX, 0);
-    ctx.lineTo(cBaseX, cBaseY);
-    ctx.stroke();
-
-    // Flecha nockada (some ao soltar — disparou)
-    if (pull > 0.15) {
-        ctx.fillStyle = "#8a5a2a";
-        ctx.fillRect(nockX, -1, 26, 2); // haste
-        ctx.fillStyle = "#bdc3c7";
-        ctx.beginPath();
-        ctx.moveTo(nockX + 26, -3.2);
-        ctx.lineTo(nockX + 33, 0);
-        ctx.lineTo(nockX + 26, 3.2);
-        ctx.closePath();
-        ctx.fill(); // ponta
-        ctx.fillStyle = "#7a9c3a";
-        ctx.fillRect(nockX, -3, 4, 2);
-        ctx.fillRect(nockX, 1, 4, 2); // penas
-    }
-
-    ctx.restore();
+    if (typeof window.desenharArcoExposta === 'function') window.desenharArcoExposta(ctx, armaV, angulo, pull, recoil);
 
     ctx.restore();
 
@@ -224,4 +150,105 @@ window.enviarAtaqueArqueiro = function(ws) {
     let alvoDetectado = typeof window.obterAlvoNaMira === 'function' ? window.obterAlvoNaMira() : null;
     let anguloDisparo = alvoDetectado ? alvoDetectado.angulo : window.meuAngulo;
     if (ws && ws.readyState === 1) { ws.send(JSON.stringify({ action: 'ataque_arqueiro', angulo: anguloDisparo })); }
+};
+
+window.desenharArcoExposta = function(ctx, armaVisualCustom, angulo, pull, recoil) {
+    let tamanho = 20;
+    let largura = 3.6;
+    let cBase = "#4e3322";
+    let cMeio = "#33200f";
+    let cPonta = "#c98f55";
+    let cFio = pull > 0 ? "#f5f0e4" : "#ecf0f1";
+
+    if (armaVisualCustom && armaVisualCustom.customVisual) {
+        let cv = armaVisualCustom.customVisual;
+        if (cv.tamanho) tamanho *= cv.tamanho;
+        if (cv.largura) largura *= cv.largura;
+        if (cv.cBase) cBase = cv.cBase;
+        if (cv.cMeio) cMeio = cv.cMeio;
+        if (cv.cPonta) cPonta = cv.cPonta;
+        if (cv.cFio) cFio = cv.cFio;
+    }
+
+    ctx.save();
+    ctx.translate(12, 16);
+    ctx.rotate(angulo + recoil);
+    ctx.translate(18, 0);
+
+    // Estrutura de madeira retorcida
+    const dobra = pull * 1.5;
+    ctx.strokeStyle = cBase;
+    ctx.lineWidth = largura;
+    ctx.beginPath();
+    ctx.arc(0, 0, tamanho, -Math.PI / 2.3, Math.PI / 2.3, false);
+    ctx.stroke();
+
+    ctx.strokeStyle = cMeio;
+    ctx.lineWidth = largura * (1.4 / 3.6);
+    ctx.beginPath();
+    ctx.arc(0, 0, tamanho * (17.5 / 20), -Math.PI / 2.4, Math.PI / 2.3, false);
+    ctx.stroke();
+
+    // EMPUNHADURA
+    ctx.strokeStyle = cMeio; // default "#5a4126" in original
+    ctx.lineWidth = largura * (5 / 3.6);
+    ctx.beginPath();
+    ctx.arc(0, 0, tamanho, -0.24, 0.24, false);
+    ctx.stroke();
+    for (let v = -0.16; v <= 0.16; v += 0.08) {
+        ctx.strokeStyle = cPonta; // default "#7a5a38" in original
+        ctx.lineWidth = largura * (1.6 / 3.6);
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(v) * (tamanho - 1), Math.sin(v) * (tamanho - 1) + 2);
+        ctx.lineTo(Math.cos(v) * (tamanho + 1), Math.sin(v) * (tamanho + 1) - 2);
+        ctx.stroke();
+    }
+
+    // ESPINHOS
+    for (let e = 0; e < 8; e++) {
+        const ea = -Math.PI / 2.3 + (Math.PI / 2.3 * 2) * (e / 7);
+        const ex = Math.cos(ea) * (tamanho + 0.5);
+        const ey = Math.sin(ea) * (tamanho + 0.5);
+        const dxo = Math.cos(ea);
+        const dyo = Math.sin(ea);
+        ctx.fillStyle = e % 2 === 0 ? cPonta : cMeio;
+        ctx.beginPath();
+        ctx.moveTo(ex + dxo * 2 - dyo * 1.8, ey + dyo * 2 + dxo * 1.8);
+        ctx.lineTo(ex + dxo * 6, ey + dyo * 6);
+        ctx.lineTo(ex + dxo * 2 + dyo * 1.8, ey + dyo * 2 - dxo * 1.8);
+        ctx.closePath();
+        ctx.fill();
+    }
+
+    // Corda engatilhada
+    const cTopoX = Math.cos(-Math.PI / 2.3 - dobra * 0.04) * tamanho;
+    const cTopoY = Math.sin(-Math.PI / 2.3 - dobra * 0.04) * tamanho;
+    const cBaseX = Math.cos(Math.PI / 2.3 + dobra * 0.04) * tamanho;
+    const cBaseY = Math.sin(Math.PI / 2.3 + dobra * 0.04) * tamanho;
+    const nockX = -12 - pull * 10 - Math.abs(recoil) * 4;
+    ctx.strokeStyle = cFio;
+    ctx.lineWidth = 1.3;
+    ctx.beginPath();
+    ctx.moveTo(cTopoX, cTopoY);
+    ctx.lineTo(nockX, 0);
+    ctx.lineTo(cBaseX, cBaseY);
+    ctx.stroke();
+
+    // Flecha nockada
+    if (pull > 0.15) {
+        ctx.fillStyle = "#8a5a2a";
+        ctx.fillRect(nockX, -1, 26, 2);
+        ctx.fillStyle = "#bdc3c7";
+        ctx.beginPath();
+        ctx.moveTo(nockX + 26, -3.2);
+        ctx.lineTo(nockX + 33, 0);
+        ctx.lineTo(nockX + 26, 3.2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.fillStyle = "#7a9c3a";
+        ctx.fillRect(nockX, -3, 4, 2);
+        ctx.fillRect(nockX, 1, 4, 2);
+    }
+
+    ctx.restore();
 };

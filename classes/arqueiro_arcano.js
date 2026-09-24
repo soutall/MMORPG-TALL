@@ -169,43 +169,12 @@ window.desenharArqueiroArcano = function(x, y, isMoving, angulo, hp, maxHp) {
     ctx.save();
     ctx.rotate(angulo || 0);
     ctx.translate(7, 0);
-    ctx.fillStyle = "#4a3f7c";
-    ctx.fillRect(-3, -2, 7, 4);
-    // Arco de energia: arco dourado com nós estelares nas pontas
-    ctx.shadowColor = "#c9ac4c";
-    ctx.shadowBlur = 10;
-    ctx.strokeStyle = "#e8c96a";
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    ctx.arc(9, 0, 9, -1.1, 1.1);
-    ctx.stroke();
-    // corda
-    ctx.lineWidth = 1;
-    ctx.strokeStyle = "#fff6c2";
-    ctx.beginPath();
-    ctx.moveTo(9 + 9 * Math.cos(-1.1), 9 * Math.sin(-1.1));
-    ctx.lineTo(9 + 9 * Math.cos(1.1), 9 * Math.sin(1.1));
-    ctx.stroke();
-    // nó de estrela na ponta do arco
-    ctx.fillStyle = "#fff6c2";
-    ctx.shadowColor = "#fff6c2";
-    ctx.shadowBlur = 8;
-    ctx.beginPath();
-    ctx.arc(18, -8.2, 1.3, 0, Math.PI * 2);
-    ctx.arc(18, 8.2, 1.3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    // Flecha-cometa nockada com brilho estelar
-    let pu = 1 + Math.sin(t * 1.5) * 0.15;
-    ctx.fillStyle = "#e8dcc9";
-    ctx.fillRect(7, -1, 4, 1.6);
-    ctx.fillStyle = "#fff6c2";
-    ctx.shadowColor = "#ffe66f";
-    ctx.shadowBlur = 14;
-    ctx.beginPath();
-    ctx.arc(19, 0, 2.6 * pu, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
+    let wp = window.inventario ? window.inventario.arma : null;
+    let armaV = null;
+    if (x === window.meuX && y === window.meuY) { 
+        if (wp && wp.customVisual) armaV = wp;
+    }
+    if (typeof window.desenharArcoArcanoExposta === 'function') window.desenharArcoArcanoExposta(ctx, armaV);
     ctx.restore();
 
     // Aura de poeira estelar orbitando
@@ -840,6 +809,65 @@ window.desenharImpactoCometa = function(z, t) {
     }
 
     ctx.shadowBlur = 0;
+    ctx.restore();
+};
+
+window.desenharArcoArcanoExposta = function(ctx, armaVisualCustom) {
+    let t = Date.now() / 450;
+    let custom = (armaVisualCustom && armaVisualCustom.customVisual) ? armaVisualCustom.customVisual : {};
+    
+    let tam = custom.tamanho || 1;
+    let larg = custom.largura || 1;
+    let cBase = custom.cBase || "#c9ac4c"; 
+    let cMeio = custom.cMeio || "#e8c96a"; 
+    let cPonta = custom.cPonta || "#fff6c2"; 
+    let cFio = custom.cFio || "#fff6c2"; 
+
+    ctx.fillStyle = "#4a3f7c";
+    ctx.fillRect(-3, -2, 7, 4);
+
+    ctx.save();
+    ctx.scale(tam, larg);
+
+    // Arco de energia: arco dourado com nós estelares nas pontas
+    ctx.shadowColor = cBase;
+    ctx.shadowBlur = 10;
+    ctx.strokeStyle = cMeio;
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.arc(9, 0, 9, -1.1, 1.1);
+    ctx.stroke();
+
+    // corda
+    ctx.lineWidth = 1;
+    ctx.strokeStyle = cFio;
+    ctx.beginPath();
+    ctx.moveTo(9 + 9 * Math.cos(-1.1), 9 * Math.sin(-1.1));
+    ctx.lineTo(9 + 9 * Math.cos(1.1), 9 * Math.sin(1.1));
+    ctx.stroke();
+
+    // nó de estrela na ponta do arco
+    ctx.fillStyle = cPonta;
+    ctx.shadowColor = cPonta;
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.arc(18, -8.2, 1.3, 0, Math.PI * 2);
+    ctx.arc(18, 8.2, 1.3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
+    // Flecha-cometa nockada com brilho estelar
+    let pu = 1 + Math.sin(t * 1.5) * 0.15;
+    ctx.fillStyle = "#e8dcc9";
+    ctx.fillRect(7, -1, 4, 1.6);
+    ctx.fillStyle = cPonta;
+    ctx.shadowColor = "#ffe66f"; // maintaining original arrow shadow glow
+    ctx.shadowBlur = 14;
+    ctx.beginPath();
+    ctx.arc(19, 0, 2.6 * pu, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.shadowBlur = 0;
+
     ctx.restore();
 };
 

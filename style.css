@@ -166,7 +166,7 @@ canvas { background: #133015; display: block; width: 100vw; height: 100vh; touch
 #joystick-stick { width: 45px; height: 45px; background: rgba(255, 255, 255, 0.6); border-radius: 50%; position: absolute; top: 30.5px; left: 30.5px; pointer-events: none; }
 
 /* HUD BOTÕES DE AÇÃO: Centro inferior horizontal para PC e Mobile */
-.actions { position: fixed; bottom: 12px; right: 340px; display: flex; flex-direction: row; gap: 8px; z-index: 10; align-items: center; justify-content: flex-end; }
+.actions { position: fixed; bottom: 12px; left: 50%; transform: translateX(-50%); display: flex; flex-direction: row; gap: 8px; z-index: 10; align-items: center; justify-content: center; }
 .btn-action { width: 54px; height: 54px; border-radius: 50%; border: none; background: #333; color: #fff; font-weight: bold; font-size: 18px; box-shadow: 0 4px 8px rgba(0,0,0,0.5); touch-action: manipulation; position: relative; transition: opacity 0.1s, transform 0.1s; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .btn-action:active { background: #555; transform: scale(0.95); }
 .btn-action-icon-img { width: 84%; height: 84%; object-fit: contain; border-radius: 50%; pointer-events: none; display: block; user-select: none; }
@@ -240,6 +240,11 @@ canvas { background: #133015; display: block; width: 100vw; height: 100vh; touch
 .btn-ogro-skill { background: #d35400; font-size: 22px; border: 2px solid #f39c12; display: none; } .btn-ogro-skill.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
 .btn-ogro-salto { background: #8e44ad; font-size: 22px; border: 2px solid #9b59b6; display: none; } .btn-ogro-salto.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
 .btn-ogro-colossal { background: #6c3483; font-size: 22px; border: 2px solid #a569bd; display: none; } .btn-ogro-colossal.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
+.btn-summoner-golem { background: #4e342e; font-size: 22px; border: 2px solid #8d6e63; display: none; box-shadow: 0 0 10px rgba(141, 110, 99, 0.4); } 
+.btn-summoner-golem.cooldown { background: #333; opacity: 0.6; pointer-events: none; }
+.btn-curandeiro-cantico { background: linear-gradient(135deg, #d4ac0d, #f1c40f); font-size: 22px; border: 2px solid #ffd700; display: none; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
+.btn-curandeiro-cantico.cooldown { background: #333; opacity: 0.6; pointer-events: none; }
+.btn-action.blocked { opacity: 0.35 !important; filter: grayscale(0.9) brightness(0.7) !important; pointer-events: none !important; cursor: not-allowed !important; }
 
 /* BOTÕES DO ROQUEIRO */
 .btn-roqueiro-bateria { background: #d35400; font-size: 22px; border: 2px solid #e67e22; display: none; } 

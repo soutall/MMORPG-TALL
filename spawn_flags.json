@@ -312,15 +312,28 @@
     "timerRespawn": 100
   },
   {
-    "id": "flag_mue8s9kr_jfa34",
-    "criadoEm": 1790176362363,
+    "id": "flag_muev0nkt_qy1nt",
+    "criadoEm": 1790213705309,
     "tipo": "melee",
-    "maxQtd": 1,
+    "maxQtd": 3,
     "comportamento": "agressivo",
     "hpBase": 50000,
     "respawnSeg": 5,
-    "x": 65662,
-    "y": 625,
+    "x": 65568,
+    "y": 509,
+    "temPosicao": true,
+    "timerRespawn": 100
+  },
+  {
+    "id": "flag_muey0eqa_rlvdu",
+    "criadoEm": 1790218732690,
+    "tipo": "zumbi",
+    "maxQtd": 1,
+    "comportamento": "agressivo",
+    "hpBase": 120,
+    "respawnSeg": 5,
+    "x": 64308,
+    "y": 536,
     "temPosicao": true,
     "timerRespawn": 100
   }

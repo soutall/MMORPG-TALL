@@ -415,6 +415,20 @@ function calcularBonus(item) {
     return (item && item.status) ? item.status : {};
 }
 
+function adicionarEquipamentoCustomizado(item) {
+    if (item.slot === 'arma' || item.slot === 'armaSecundaria') {
+        let cls = item.classeRestrita || 'guerreiro';
+        if (!BALANCE.armas[cls]) BALANCE.armas[cls] = {};
+        BALANCE.armas[cls][item.subTipo] = {
+            slot: item.slot,
+            nome: item.nome,
+            icon: item.icon || '⚔️',
+            pesos: item.pesos || { forca: 5, vida: 5 },
+            customVisual: item.customVisual || null
+        };
+    }
+}
+
 module.exports = {
     BALANCE: BALANCE,
     ATRIBUTOS: ATRIBUTOS,
@@ -431,5 +445,6 @@ module.exports = {
     gerarPedraUpgrade: gerarPedraUpgrade,
     slotsDisponiveis: slotsDisponiveis,
     armasDaClasse: armasDaClasse,
-    nomeRaridade: nomeRaridade
+    nomeRaridade: nomeRaridade,
+    adicionarEquipamentoCustomizado: adicionarEquipamentoCustomizado
 };

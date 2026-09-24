@@ -2,8 +2,8 @@
   "melee": {
     "nome": "Slime Melee",
     "emoji": "🟢",
-    "baseHp": 50,
-    "dano": 12,
+    "baseHp": 50000,
+    "dano": 1,
     "defesa": 0,
     "block": 0,
     "aggroRange": 280,

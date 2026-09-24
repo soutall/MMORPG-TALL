@@ -17,9 +17,9 @@
     "y": 591,
     "tipo": "cinzas",
     "escala": 1,
-    "intensidade": 1,
+    "intensidade": 1.5,
     "raio": 80,
-    "cor": "#c800ff"
+    "cor": "#db00eb"
   },
   {
     "id": "vfx_mu90rplk",
@@ -42,5 +42,16 @@
     "intensidade": 0.7,
     "raio": 75,
     "cor": "#72b75b"
+  },
+  {
+    "id": "vfx_muerjl3b",
+    "mapa": "cidade",
+    "x": 60491,
+    "y": 419,
+    "tipo": "cinzas",
+    "escala": 1,
+    "intensidade": 1,
+    "raio": 80,
+    "cor": "#9da3a8"
   }
 ]

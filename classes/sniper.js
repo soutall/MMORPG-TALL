@@ -187,29 +187,12 @@ window.desenharSniper = function(x, y, isMoving, angulo, hp, maxHp, extra) {
         ctx.fillStyle = "#5c6840";
         ctx.fillRect(-3, -1.6, 6, 3.2); // braço
         // Rifle
-        ctx.fillStyle = "#353b21";
-        ctx.fillRect(2, -2.4, 20, 3.4);
-        ctx.fillStyle = "#232917";
-        ctx.fillRect(6, -1.2, 2, 3.4); // ferrolho
-        ctx.fillStyle = "#10150a";
-        ctx.fillRect(-2, -2.4, 4, 3); // luneta
-        ctx.fillStyle = "#69ff7c";
-        ctx.shadowColor = "#39ff5c";
-        ctx.shadowBlur = 5;
-        ctx.fillRect(-1, -2.1, 1.8, 1.8);
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = "#3c4526";
-        ctx.fillRect(22, -2.8, 3, 4.2); // boca do cano
-        ctx.fillStyle = "#1a1f10";
-        ctx.beginPath();
-        ctx.moveTo(25, -2.8); ctx.lineTo(31, -1.6); ctx.lineTo(31, 1.6); ctx.lineTo(25, 2.8);
-        ctx.closePath();
-        ctx.fill();
-        // Recuo/mira
-        ctx.fillStyle = "rgba(255,255,255,0.5)";
-        ctx.beginPath();
-        ctx.arc(25, 0, 1.4, 0, Math.PI * 2);
-        ctx.fill();
+        let wp = window.inventario ? window.inventario.arma : null;
+        let armaV = null;
+        if (x === window.meuX && y === window.meuY) { 
+            if (wp && wp.customVisual) armaV = wp;
+        }
+        if (typeof window.desenharFuzilExposta === 'function') window.desenharFuzilExposta(ctx, armaV);
         ctx.restore();
 
         ctx.restore();
@@ -253,20 +236,12 @@ window.desenharSniper = function(x, y, isMoving, angulo, hp, maxHp, extra) {
         ctx.save();
         ctx.rotate(angulo || 0);
         ctx.translate(2, 0);
-        ctx.fillStyle = "#353b21";
-        ctx.fillRect(0, -2, 26, 3);
-        ctx.fillStyle = "#10150a";
-        ctx.fillRect(3, -2, 4, 2.6); // luneta
-        ctx.fillStyle = "#69ff7c";
-        ctx.shadowColor = "#39ff5c";
-        ctx.shadowBlur = 5;
-        ctx.fillRect(4, -1.7, 1.8, 1.6);
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = "#1a1f10";
-        ctx.beginPath();
-        ctx.moveTo(26, -2); ctx.lineTo(32, -1.4); ctx.lineTo(32, 1.4); ctx.lineTo(26, 2);
-        ctx.closePath();
-        ctx.fill();
+        let wp = window.inventario ? window.inventario.arma : null;
+        let armaV = null;
+        if (x === window.meuX && y === window.meuY) { 
+            if (wp && wp.customVisual) armaV = wp;
+        }
+        if (typeof window.desenharFuzilExposta === 'function') window.desenharFuzilExposta(ctx, armaV);
         ctx.restore();
 
         ctx.restore();
@@ -294,4 +269,47 @@ window.enviarAtaqueSniper = function(ang, alvoTipo, alvoId) {
     if (window.ws && window.ws.readyState === 1) {
         window.ws.send(JSON.stringify(msg));
     }
+};
+
+window.desenharFuzilExposta = function(ctx, armaVisualCustom) {
+    let tamanho = 20;
+    let largura = 3.4;
+    let cBase = "#353b21";
+    let cMeio = "#232917";
+    let cPonta = "#3c4526";
+    let cFio = "#1a1f10";
+
+    if (armaVisualCustom && armaVisualCustom.customVisual) {
+        let cv = armaVisualCustom.customVisual;
+        if (cv.tamanho) tamanho = cv.tamanho;
+        if (cv.largura) largura = cv.largura;
+        if (cv.cBase) cBase = cv.cBase;
+        if (cv.cMeio) cMeio = cv.cMeio;
+        if (cv.cPonta) cPonta = cv.cPonta;
+        if (cv.cFio) cFio = cv.cFio;
+    }
+
+    ctx.fillStyle = cBase;
+    ctx.fillRect(2, -largura/2 - 0.7, tamanho, largura);
+    ctx.fillStyle = cMeio;
+    ctx.fillRect(6, -1.2, 2, largura); // ferrolho
+    ctx.fillStyle = "#10150a";
+    ctx.fillRect(-2, -2.4, 4, 3); // luneta
+    ctx.fillStyle = "#69ff7c";
+    ctx.shadowColor = "#39ff5c";
+    ctx.shadowBlur = 5;
+    ctx.fillRect(-1, -2.1, 1.8, 1.8);
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = cPonta;
+    ctx.fillRect(2 + tamanho, -2.8, 3, 4.2); // boca do cano
+    ctx.fillStyle = cFio;
+    ctx.beginPath();
+    ctx.moveTo(2 + tamanho + 3, -2.8); ctx.lineTo(2 + tamanho + 9, -1.6); ctx.lineTo(2 + tamanho + 9, 1.6); ctx.lineTo(2 + tamanho + 3, 2.8);
+    ctx.closePath();
+    ctx.fill();
+    // Recuo/mira
+    ctx.fillStyle = "rgba(255,255,255,0.5)";
+    ctx.beginPath();
+    ctx.arc(2 + tamanho + 3, 0, 1.4, 0, Math.PI * 2);
+    ctx.fill();
 };

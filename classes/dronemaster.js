@@ -243,16 +243,31 @@ window.desenharDrone = function(x, y, angulo, estado) {
     } else if (estadoAtual === 'assalto') {
         corCore = "#f39c12"; // modo robô
     }
+    
+    // --- LÓGICA DE CUSTOM VISUAL ---
+    let droneW = 12, droneH = 10, corChassi = "#34495e", corDetalhe = "#95a5a6";
+    // Tenta achar customVisual no window.inventario.arma (se for self) ou nos players
+    // Para simplificar, vamos assumir que o drone é o nosso (local player) por enquanto
+    let wp = window.inventario ? window.inventario.arma : null;
+    if (wp && wp.customVisual) {
+        let cv = wp.customVisual;
+        droneH = cv.tamanho || 10;
+        droneW = (cv.largura * 3) || 12;
+        corChassi = cv.cBase || "#34495e";
+        corDetalhe = cv.cMeio || "#95a5a6";
+        corCore = cv.cFio || corCore;
+    }
+    
     let pulso = 1 + Math.sin(t * 1.2) * 0.15;
 
     // Corpo do drone
     ctx.shadowColor = corCore;
     ctx.shadowBlur = (estadoAtual === 'supressao') ? 18 : 12;
-    ctx.fillStyle = "#34495e";
+    ctx.fillStyle = corChassi;
     ctx.beginPath();
-    camadaRoundRect(ctx,-6, -5, 12, 10, 3);
+    camadaRoundRect(ctx,-6, -5, droneW, droneH, 3);
     ctx.fill();
-    ctx.fillStyle = "#95a5a6";
+    ctx.fillStyle = corDetalhe;
     ctx.beginPath();
     camadaRoundRect(ctx,-8, -3, 3, 6, 2);
     ctx.fill();
@@ -293,6 +308,57 @@ window.desenharDrone = function(x, y, angulo, estado) {
     if (estadoAtual === 'normal' && !window.listaPlayerProjeteis) {
         window.dmDrone = window.dmDrone || { rastro: [] };
     }
+};
+
+window.desenharDroneExposta = function(ctx, armaVisualCustom) {
+    let t = Date.now() / 90;
+    
+    let droneW = 12, droneH = 10, corChassi = "#34495e", corDetalhe = "#95a5a6", corCore = "#00ffff";
+    if (armaVisualCustom && armaVisualCustom.customVisual) {
+        let cv = armaVisualCustom.customVisual;
+        droneH = cv.tamanho || 10;
+        droneW = (cv.largura * 3) || 12;
+        corChassi = cv.cBase || "#34495e";
+        corDetalhe = cv.cMeio || "#95a5a6";
+        corCore = cv.cFio || "#00ffff";
+    }
+
+    // Hélices girando (4)
+    for (let k = 0; k < 4; k++) {
+        let a = k * 1.5708 + t;
+        let bx = Math.cos(a) * 7, by = Math.sin(a) * 7;
+        ctx.save();
+        ctx.globalAlpha = 0.7;
+        ctx.strokeStyle = "#bdc3c7";
+        ctx.lineWidth = 1.6;
+        ctx.beginPath();
+        ctx.moveTo(bx - 4, by);
+        ctx.lineTo(bx + 4, by);
+        ctx.stroke();
+        ctx.restore();
+    }
+    
+    // Corpo do drone
+    ctx.shadowColor = corCore;
+    ctx.shadowBlur = 12;
+    ctx.fillStyle = corChassi;
+    ctx.beginPath();
+    camadaRoundRect(ctx,-6, -5, droneW, droneH, 3);
+    ctx.fill();
+    ctx.fillStyle = corDetalhe;
+    ctx.beginPath();
+    camadaRoundRect(ctx,-8, -3, 3, 6, 2);
+    ctx.fill();
+    ctx.beginPath();
+    camadaRoundRect(ctx,5, -3, 3, 6, 2);
+    ctx.fill();
+    
+    // Núcleo de energia
+    ctx.fillStyle = corCore;
+    ctx.shadowBlur = 16;
+    ctx.beginPath();
+    ctx.arc(2, 0, 3.4, 0, Math.PI * 2);
+    ctx.fill();
 };
 
 // Forma Titã: robô de guerra (maior, olhos vermelhos, núcleo pulsante)

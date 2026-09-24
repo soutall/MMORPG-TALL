@@ -374,14 +374,41 @@
 
     /* ============ BRAÇO + ESPADA LARGA (mão livre) ============ */
     // desenhado no frame do braço (origem = punho, +x para a frente)
-    function desenharLaminaLarga(ctx, off) {
+    window.desenharLaminaLargaExposta = desenharLaminaLarga;
+    function desenharLaminaLarga(ctx, off, armaVisual) {
         let bx = 5.2, by = -1.15;
         let dirx = 0.93, diry = -0.37;         // direção da lâmina
         let px = 0.37, py = 0.93;              // perpendicular (arestas)
-        let L = 15.5 + off;                    // lâmina LONGA
-        let tipx = bx + dirx * L, tipy = by + diry * L;
+        let L = 15.5 + (off || 0);             // lâmina LONGA
         let wBase = 2.7;                       // meia-largura na base (LARGA)
-        let g = _grad(ctx, bx, by, tipx, tipy, [0, '#b8c9db', 0.45, '#6b7e92', 1, '#39434f']);
+
+        // Cores base da lâmina (Aço padrão)
+        let cBase = '#b8c9db', cMeio = '#6b7e92', cPonta = '#39434f';
+        let fioLuz = 'rgba(238,246,255,0.85)';
+
+        if (armaVisual && armaVisual.customVisual) {
+            let cv = armaVisual.customVisual;
+            L = (Number(cv.tamanho) || 15.5) + (off || 0);
+            wBase = Number(cv.largura) || 2.7;
+            cBase = cv.cBase || '#b8c9db';
+            cMeio = cv.cMeio || '#6b7e92';
+            cPonta = cv.cPonta || '#39434f';
+            fioLuz = cv.cFio || 'rgba(238,246,255,0.85)';
+        } else if (armaVisual) {
+            if (armaVisual.raridade === 'raro') {
+                cBase = '#a8c8ff'; cMeio = '#4d88ff'; cPonta = '#003399';
+                L += 2; wBase = 2.9; // Ligeiramente maior
+            } else if (armaVisual.raridade === 'epico') {
+                cBase = '#dcb8ff'; cMeio = '#a64dff'; cPonta = '#4a0099';
+                L += 4; wBase = 3.2; // Maior e mais grossa
+            } else if (armaVisual.raridade === 'lendario') {
+                cBase = '#ffe0b8'; cMeio = '#ff9900'; cPonta = '#cc3300';
+                L += 6; wBase = 3.6; // Espadão gigante
+            }
+        }
+
+        let tipx = bx + dirx * L, tipy = by + diry * L;
+        let g = _grad(ctx, bx, by, tipx, tipy, [0, cBase, 0.45, cMeio, 1, cPonta]);
         ctx.fillStyle = g;
         ctx.beginPath();
         ctx.moveTo(bx - px * wBase, by - py * wBase);
@@ -397,7 +424,7 @@
         ctx.lineTo(bx + dirx * L * 0.74, by + diry * L * 0.74);
         ctx.stroke();
         // fios de luz nas duas arestas (aço polido)
-        ctx.strokeStyle = 'rgba(238,246,255,0.85)';
+        ctx.strokeStyle = fioLuz;
         ctx.lineWidth = 0.8;
         ctx.beginPath();
         ctx.moveTo(bx - px * (wBase - 0.5), by - py * (wBase - 0.5));
@@ -418,7 +445,7 @@
         ctx.stroke();
     }
 
-    function desenharBracoEspada(ctx, atk) {
+    function desenharBracoEspada(ctx, atk, armaVisual) {
         ctx.lineCap = 'round';
         // braço grosso (manga de malha + braçadeira)
         ctx.strokeStyle = '#39454f';
@@ -453,7 +480,7 @@
                 ctx.rotate(-back);
                 ctx.translate(-2.0, 0.5);
                 ctx.globalAlpha = 0.16 - i * 0.045;
-                desenharLaminaLarga(ctx, i * 2);
+                desenharLaminaLarga(ctx, i * 2, armaVisual);
                 ctx.restore();
             }
             ctx.globalAlpha = 1;
@@ -475,7 +502,7 @@
         ctx.fillStyle = 'rgba(216,178,60,0.8)';
         ctx.beginPath(); ctx.arc(5.9, -1.6, 0.6, 0, Math.PI * 2); ctx.fill();
         // LÂMINA LARGA
-        desenharLaminaLarga(ctx, 0);
+        desenharLaminaLarga(ctx, 0, armaVisual);
 
         // flash de impacto no fim do golpe
         if (atk >= 0.78) {
@@ -495,7 +522,7 @@
     }
 
     // espada larga preparada na postura defensiva (atrás do escudo)
-    function desenharEspadaDefesa(ctx) {
+    function desenharEspadaDefesa(ctx, armaVisual) {
         ctx.lineCap = 'round';
         // braço
         ctx.strokeStyle = '#3a4652';
@@ -521,7 +548,21 @@
         ctx.beginPath(); ctx.arc(31.5, 12.0, 0.8, 0, Math.PI * 2); ctx.fill();
         ctx.beginPath(); ctx.arc(32.2, 15.6, 0.8, 0, Math.PI * 2); ctx.fill();
         // LÂMINA LARGA apontando levemente pra frente/baixo (pronta ao lado do escudo)
-        ctx.fillStyle = _grad(ctx, 31.6, 12.6, 44.5, 9.8, [0, '#b8c9db', 0.45, '#6b7e92', 1, '#39434f']);
+        let cBase = '#b8c9db', cMeio = '#6b7e92', cPonta = '#39434f';
+        let fioLuz = 'rgba(238,246,255,0.85)';
+        
+        if (armaVisual && armaVisual.customVisual) {
+            cBase = armaVisual.customVisual.cBase || cBase;
+            cMeio = armaVisual.customVisual.cMeio || cMeio;
+            cPonta = armaVisual.customVisual.cPonta || cPonta;
+            fioLuz = armaVisual.customVisual.cFio || fioLuz;
+            // Opcionalmente podemos aplicar tamanho aqui tbm, mas a pose def não estica tanto
+        } else if (armaVisual) {
+            if (armaVisual.raridade === 'raro') { cBase = '#a8c8ff'; cMeio = '#4d88ff'; cPonta = '#003399'; }
+            else if (armaVisual.raridade === 'epico') { cBase = '#dcb8ff'; cMeio = '#a64dff'; cPonta = '#4a0099'; }
+            else if (armaVisual.raridade === 'lendario') { cBase = '#ffe0b8'; cMeio = '#ff9900'; cPonta = '#cc3300'; }
+        }
+        ctx.fillStyle = _grad(ctx, 31.6, 12.6, 44.5, 9.8, [0, cBase, 0.45, cMeio, 1, cPonta]);
         ctx.beginPath();
         ctx.moveTo(31.6, 12.4);
         ctx.lineTo(44.8, 9.4);
@@ -703,6 +744,20 @@
         ctx.save();
         ctx.translate(x, y);
 
+        // v1.39.6: Extrair informação visual da arma equipada
+        let armaVisual = null;
+        if (pid === window.meuId) {
+            if (window.inventario && window.inventario.arma) {
+                armaVisual = {
+                    nome: window.inventario.arma.nome,
+                    raridade: window.inventario.arma.raridade,
+                    customVisual: window.inventario.arma.customVisual || null
+                };
+            }
+        } else if (pid && window.players && window.players[pid] && window.players[pid].armaVisual) {
+            armaVisual = window.players[pid].armaVisual;
+        }
+
         let agora = _agora();
         let pctHp = (maxHp && maxHp > 0) ? (hp / maxHp) : 1;
         let resp = Math.sin(agora / 720);
@@ -768,10 +823,10 @@
             desenharBracoEscudante(ctx, 0, isMoving);
             desenharEscudo(ctx, false, resp);
             ctx.restore();
-            desenharEspadaDefesa(ctx);
+            desenharEspadaDefesa(ctx, armaVisual);
         } else if (defesa) {
             // DEFESA: escudo torre erguido cobrindo a frente; espada preparada atrás
-            desenharEspadaDefesa(ctx);
+            desenharEspadaDefesa(ctx, armaVisual);
             desenharEscudo(ctx, true, resp);
         } else {
             // IDLE / CAMINHADA: escudo (braço esquerdo, atrás) gira com a direção
@@ -787,7 +842,7 @@
             ctx.translate(12, 16);
             ctx.rotate(angulo);
             ctx.translate(14.0, 0);
-            desenharBracoEspada(ctx, atk);
+            desenharBracoEspada(ctx, atk, armaVisual);
             ctx.restore();
         }
 

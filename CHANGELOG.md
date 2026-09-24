@@ -4,7 +4,7 @@ Registro de todas as atualizações feitas no projeto. **Sempre** que algo novo 
 
 ---
 
-## Versão atual: **v1.39.5**
+## Versão atual: **v1.39.6**
 
 > 🚨 **REGRA MANDATÓRIA:** O game está sendo desenvolvido para **PC e Mobile**, então a otimização tem que ser feita para **AMBOS**, e tudo o que for feito no projeto é pensando em ambos os lados (controles via teclado/mouse no PC e touch/joystick no mobile, interfaces responsivas sem corte nem sobreposição, e alto desempenho em todas as resoluções).
 
@@ -12,7 +12,7 @@ Registro de todas as atualizações feitas no projeto. **Sempre** que algo novo 
 
 | Versão | Data / Hora | O que foi feito | Arquivos Alterados |
 |---|---|---|---|
-| **v1.39.5** | 23/09/2026 (hora local) | **FIX ANCORAGEM SIDEBAR MOBILE ABAIXO DO MINIMAPA + ÍCONE OFICIAL SKILL 1 DO PIKEMAN:** (1) Corrigido bug de posicionamento da Sidebar mobile no canto superior esquerdo (causado pelo auto-scanner de `data-ui` do `dragdrop.js`): removido `data-ui` e adicionado `data-ui-ignored="true"` + regras forçadas `top: 122px !important; right: 10px !important; left: auto !important;`; (2) Redução compacta dos itens do menu dropdown (altura 21px, fonte 10.5px, largura 116px) permitindo que todas as 8 opções caibam perfeitamente na vertical abaixo do minimapa sem rolagem; (3) Substituição do emoji `⭕` pela arte oficial `imagem/HUD/skills/Slotbar/Pike/skill_01.png` na Skill 1 do Pikeman (Giro da Foice) no slotbar (`#btn-pikeman-giro`) e no modal K (`skills.js`), com estilização circular, borda vermelha e fundo escuro condizente; versão **v1.39.5** nos 3 pontos visuais | `index.html`, `mobile-hud.css`, `skills.js`, `skills.css`, `style.css`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
+| **v1.39.6** | 23/09/2026 (hora local) | **FIX ANCORAGEM SIDEBAR MOBILE ABAIXO DO MINIMAPA + ÍCONE OFICIAL SKILL 1 DO PIKEMAN:** (1) Corrigido bug de posicionamento da Sidebar mobile no canto superior esquerdo (causado pelo auto-scanner de `data-ui` do `dragdrop.js`): removido `data-ui` e adicionado `data-ui-ignored="true"` + regras forçadas `top: 122px !important; right: 10px !important; left: auto !important;`; (2) Redução compacta dos itens do menu dropdown (altura 21px, fonte 10.5px, largura 116px) permitindo que todas as 8 opções caibam perfeitamente na vertical abaixo do minimapa sem rolagem; (3) Substituição do emoji `⭕` pela arte oficial `imagem/HUD/skills/Slotbar/Pike/skill_01.png` na Skill 1 do Pikeman (Giro da Foice) no slotbar (`#btn-pikeman-giro`) e no modal K (`skills.js`), com estilização circular, borda vermelha e fundo escuro condizente; versão **v1.39.6** nos 3 pontos visuais | `index.html`, `mobile-hud.css`, `skills.js`, `skills.css`, `style.css`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.39** | 23/09/2026 (hora local) | **INTERFACE FIXA MOBILE COM SIDEBAR RETRÁTIL E CLUSTER DE AÇÃO 2×3:** Menu Sidebar retrátil (`#mobile-sidebar-container`) abaixo do minimapa com opções Configuração, Inventário, Skills, Social, Status, PvP, Mapa e Futuro Update (com toast); Cluster de Ação fixo no canto inferior direito em 2 colunas × 3 linhas: L1 [6] Autofarm / [5] Dash, L2 [3] Skill 3 / [4] Skill 4, L3 [1] Skill 1 / [2] Skill 2; Poções [HP] e [MP] fixadas imediatamente à esquerda da Skill 1; Barra de XP fixada no canto inferior esquerdo; minimapa e status ancorados no topo; ocultação de badges de teclado no mobile; arquitetura separada em `mobile-hud.css` e `mobile-hud.js`; compatibilidade dual PC & Mobile; versão **v1.39** nos 3 pontos visuais | `mobile-hud.css`, `mobile-hud.js`, `index.html`, `dragdrop.js`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.38** | 23/09/2026 (hora local) | **REDESENHO DA JANELA DE HABILIDADES (MODAL K) ESTILO MMORPG CLÁSSICO/MODERNO:** Layout split-view dividido em 2 colunas principais: Coluna esquerda com grade de skills categorizadas (`◇ ATIVAS`, `◇ PASSIVAS`, `◇ SUPORTE`), molduras metálicas douradas (`.skill-slot-moldura`), seleção com brilho dourado (`.selected`), badge de nível (`Nv X`) e nome legível; Coluna direita **"DETALHES DA HABILIDADE"** interativa ao clicar em qualquer skill exibindo ícone grande, nome, badge de categoria (Ativa/Passiva/Suporte), nível atual (1 a 10), descrição narrativa, caixa de atributos com escalonamento por atributo e fórmula do server, caixa de bônus por nível, controles de upgrade (`⬆ MELHORAR`) e reset individual (`↺`), e caixa de prévia do próximo nível (`Próximo nível:`) com comparação dinâmica; responsividade dual PC & Mobile (landscape) preservando Drag & Drop (`dragdrop.js`); versão **v1.38** nos 3 pontos visuais | `index.html`, `skills.css`, `skills.js`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.37** | 23/09/2026 (hora local) | **FOTOS DE SNIPER E CURANDEIRO ATIVADAS no círculo do retrato do HUD:** a foto do **Sniper** (`imagem/HUD/Perfil/sniper.png`, 1254×1254) foi adicionada e mapeada no `_perfilMapa` (`sniper`→`sniper.png`) — a classe Sniper agora exibe o retrato no círculo (antes permanecia vazio); a foto da **Curandeira** (`curandeiro.png`, 1254×1254) já existia e segue ativa. Desenho idêntico à v1.36: clip `ctx.arc` (centro 345,350 / raio 200) + cover-crop (`Math.max(lado/sw, lado/sh)`) e **"PNG por último"** — foto ANTES do `drawImage(HudHP.png)`, overlay puro, SEM masking/destination-out. Cache-buster das fotos de perfil atualizado `?v=perfil1` → `?v=perfil2`. As 5 classes futuras (Paladino/Necromante/Frorin/Druida/Bruxo) continuam fora do mapeamento. Versão **v1.37** nos 3 pontos visuais (login, HUD e `GAME_VERSION`) | `index.html`, `imagem/HUD/Perfil/sniper.png`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
@@ -41,7 +41,7 @@ Regra de versão (semver):
 
 ## Histórico de versões
 
-### v1.39.5 — 23/09/2026
+### v1.39.6 — 23/09/2026
 
 **Fix de Ancoragem da Sidebar Mobile abaixo do Minimapa + Ícone Oficial da Skill 1 do Pikeman:**
 
@@ -56,7 +56,7 @@ Regra de versão (semver):
   - Substituição do caractere provisório `⭕` pela imagem oficial em alta resolução `imagem/HUD/skills/Slotbar/Pike/skill_01.png` (foice giratória vermelha);
   - Integrado no botão da barra de ação (`#btn-pikeman-giro`) com máscara circular, centralização nítida (`.btn-action-icon-img`) e moldura com gradiente escuro e borda avermelhada (`#c0392b`);
   - Integrado na Janela de Habilidades (Modal K) em `skills.js` (`giro_foice`) e `skills.css` (`.skill-icon-img`), exibindo a arte tanto na grade esquerda quanto no cabeçalho de detalhes da habilidade.
-- **Versão Atualizada:** Atualizada para **v1.39.5** em `index.html` (`#login-screen`, `#hud-version`, `GAME_VERSION`) e documentações.
+- **Versão Atualizada:** Atualizada para **v1.39.6** em `index.html` (`#login-screen`, `#hud-version`, `GAME_VERSION`) e documentações.
 
 ### v1.39 — 23/09/2026
 

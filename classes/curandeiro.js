@@ -455,11 +455,80 @@ window.desenharCurandeiro = function (x, y, isMoving, angulo, hp, maxHp) {
     ctx.rotate(ang);
     ctx.translate(DESLOC_STAFF, 0);
 
+    let wp = window.inventario ? window.inventario.arma : null;
+    let armaV = null;
+    if (x === window.meuX && y === window.meuY) { 
+        if (wp && wp.customVisual) armaV = wp;
+    }
+    if (typeof window.desenharCajadoLuzExposta === 'function') window.desenharCajadoLuzExposta(ctx, armaV);
+
+    // MÃ£o sacerdotisa envolvendo a empunhadura do cajado
+    ctx.fillStyle = PELE;
+    ctx.strokeStyle = 'rgba(80, 50, 30, 0.6)';
+    ctx.lineWidth = 0.6;
+    ctx.beginPath();
+    ctx.ellipse(0, PEGADA, 2.1, 1.8, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.restore(); // fim do staff
+    ctx.restore(); // fim do translate do personagem
+
+    // Barra de Vida
+    if (typeof window.desenharBarraHp === "function") {
+        window.desenharBarraHp(x - 3, y - 8, hp, maxHp);
+    }
+};
+
+window.enviarAtaqueCurandeiro = function(ws) {
+    if (window.estaMorto) return;
+    if (typeof window.tocarSomLuzSagrada === 'function') window.tocarSomLuzSagrada();
+    let alvoDetectado = typeof window.obterAlvoNaMira === 'function' ? window.obterAlvoNaMira() : null;
+    let anguloDisparo = alvoDetectado ? alvoDetectado.angulo : window.meuAngulo;
+    if (ws && ws.readyState === 1) { ws.send(JSON.stringify({ action: 'ataque_curandeiro', angulo: anguloDisparo })); }
+};
+
+
+window.desenharCajadoLuzExposta = function(ctx, armaVisualCustom) {
+    const t = Date.now() / 1000;
+    
+    // Default values if no custom visual
+    let tamanho = 1;
+    let largura = 1;
+    let cBase = '#ffffff';
+    let cMeio = '#f1f2f6';
+    let cPonta = '#ced6e0';
+    let cFio = 'rgba(60, 45, 20, 0.85)';
+    
+    if (armaVisualCustom && armaVisualCustom.customVisual) {
+        const cv = armaVisualCustom.customVisual;
+        if (cv.tamanho) tamanho = cv.tamanho;
+        if (cv.largura) largura = cv.largura;
+        if (cv.cBase) cBase = cv.cBase;
+        if (cv.cMeio) cMeio = cv.cMeio;
+        if (cv.cPonta) cPonta = cv.cPonta;
+        if (cv.cFio) cFio = cv.cFio;
+    }
+
+    // Orbe do cajado reage ao modo de cura / prece
+    let corLuzPrincipal = '#fff275';
+    let corLuzHalo      = '#f39c12';
+    if (window.modoMiraPrece) {
+        corLuzPrincipal = '#a8ff78';
+        corLuzHalo      = '#2ecc71';
+    } else if (window.modoMiraJulgamento) {
+        corLuzPrincipal = '#ffeaa7';
+        corLuzHalo      = '#e67e22';
+    }
+
+    ctx.save();
+    ctx.scale(largura, tamanho);
+
     // Haste de marfim nobre e acabamentos em ouro
     const gHaste = ctx.createLinearGradient(-1.5, 0, 1.5, 0);
-    gHaste.addColorStop(0, cor('#ffffff', '#ffeaa7'));
-    gHaste.addColorStop(0.45, cor('#f1f2f6', '#fdcb6e'));
-    gHaste.addColorStop(1, cor('#ced6e0', '#d63031'));
+    gHaste.addColorStop(0, cBase);
+    gHaste.addColorStop(0.45, cMeio);
+    gHaste.addColorStop(1, cPonta);
     ctx.fillStyle = gHaste;
     ctx.beginPath();
     ctx.moveTo(-1.3, -12.5);
@@ -468,12 +537,12 @@ window.desenharCurandeiro = function (x, y, isMoving, angulo, hp, maxHp) {
     ctx.lineTo(-1.1, 13.6);
     ctx.closePath();
     ctx.fill();
-    ctx.strokeStyle = 'rgba(60, 45, 20, 0.85)';
+    ctx.strokeStyle = cFio;
     ctx.lineWidth = 0.7;
     ctx.stroke();
 
-    // AnÃ©is cerimoniais dourados na haste
-    ctx.fillStyle = OURO;
+    // Anéis cerimoniais dourados na haste
+    ctx.fillStyle = '#f1c40f'; // OURO
     ctx.fillRect(-1.7, -12.4, 3.4, 1.4);
     ctx.fillRect(-1.6, -2.4, 3.2, 1.2);
     ctx.fillRect(-1.6, 2.4, 3.2, 1.2);
@@ -485,8 +554,8 @@ window.desenharCurandeiro = function (x, y, isMoving, angulo, hp, maxHp) {
     ctx.closePath();
     ctx.fill();
 
-    // CabeÃ§a do Staff: Coroa solar alada sustentando o orbe de luz
-    ctx.strokeStyle = OURO;
+    // Cabeça do Staff: Coroa solar alada sustentando o orbe de luz
+    ctx.strokeStyle = '#f1c40f'; // OURO
     ctx.lineWidth = 1.3;
     ctx.beginPath();
     // Asa/Arco esquerdo
@@ -497,15 +566,15 @@ window.desenharCurandeiro = function (x, y, isMoving, angulo, hp, maxHp) {
     ctx.quadraticCurveTo(5.4, -15.5, 3.2, -19.4);
     ctx.stroke();
 
-    // Mini aurÃ©ola dourada na coroa do cajado
-    ctx.strokeStyle = OURO_CLARO;
+    // Mini auréola dourada na coroa do cajado
+    ctx.strokeStyle = '#f9e79f'; // OURO_CLARO
     ctx.lineWidth = 0.9;
     ctx.beginPath();
     ctx.ellipse(0, -16.8, 4.4, 4.4, 0, 0, Math.PI * 2);
     ctx.stroke();
 
     // ------------------------------------------------------------------------
-    // ORBE DE PURA LUZ SAGRADA (NÃšCLEO RADIANTE + RAIOS EM CRUZ + CENTELHAS)
+    // ORBE DE PURA LUZ SAGRADA (NÚCLEO RADIANTE + RAIOS EM CRUZ + CENTELHAS)
     // ------------------------------------------------------------------------
     const pulsoOrbe = Math.sin(t * 5.0) * 0.8;
     const pulsoRaio = Math.sin(t * 3.5) * 1.5;
@@ -519,7 +588,7 @@ window.desenharCurandeiro = function (x, y, isMoving, angulo, hp, maxHp) {
     ctx.arc(0, -17.0, 5.0 + pulsoOrbe, 0, Math.PI * 2);
     ctx.fill();
 
-    // NÃºcleo branco incandescente de luz pura
+    // Núcleo branco incandescente de luz pura
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(0, -17.0, 2.6, 0, Math.PI * 2);
@@ -558,29 +627,5 @@ window.desenharCurandeiro = function (x, y, isMoving, angulo, hp, maxHp) {
     }
     ctx.restore();
 
-    // MÃ£o sacerdotisa envolvendo a empunhadura do cajado
-    ctx.fillStyle = PELE;
-    ctx.strokeStyle = 'rgba(80, 50, 30, 0.6)';
-    ctx.lineWidth = 0.6;
-    ctx.beginPath();
-    ctx.ellipse(0, PEGADA, 2.1, 1.8, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.restore(); // fim do staff
-    ctx.restore(); // fim do translate do personagem
-
-    // Barra de Vida
-    if (typeof window.desenharBarraHp === "function") {
-        window.desenharBarraHp(x - 3, y - 8, hp, maxHp);
-    }
+    ctx.restore();
 };
-
-window.enviarAtaqueCurandeiro = function(ws) {
-    if (window.estaMorto) return;
-    if (typeof window.tocarSomLuzSagrada === 'function') window.tocarSomLuzSagrada();
-    let alvoDetectado = typeof window.obterAlvoNaMira === 'function' ? window.obterAlvoNaMira() : null;
-    let anguloDisparo = alvoDetectado ? alvoDetectado.angulo : window.meuAngulo;
-    if (ws && ws.readyState === 1) { ws.send(JSON.stringify({ action: 'ataque_curandeiro', angulo: anguloDisparo })); }
-};
-

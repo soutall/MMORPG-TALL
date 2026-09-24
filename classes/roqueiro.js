@@ -274,118 +274,12 @@ window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
     let strum = window.roqueiroBateriaLigada ? Math.sin(Date.now() / 55) * 0.18 : Math.sin(t * 2.2) * 0.06;
     ctx.translate(14, 0);
 
-    // ===== CORPO DA GUITARRA =====
-    ctx.save();
-    ctx.translate(-5, 0);
-
-    // Asa superior (horn) da guitarra
-    ctx.fillStyle = "#c0392b";
-    ctx.beginPath();
-    ctx.moveTo(2, -1);
-    ctx.lineTo(-6, -5);
-    ctx.lineTo(-8, -12);
-    ctx.lineTo(-2, -10);
-    ctx.lineTo(1, -5);
-    ctx.closePath();
-    ctx.fill();
-
-    // Asa inferior (horn) da guitarra
-    ctx.beginPath();
-    ctx.moveTo(2, 1);
-    ctx.lineTo(-6, 5);
-    ctx.lineTo(-8, 12);
-    ctx.lineTo(-2, 10);
-    ctx.lineTo(1, 5);
-    ctx.closePath();
-    ctx.fill();
-
-    // Corpo central (round body elétrico)
-    ctx.fillStyle = "#b30000";
-    ctx.beginPath();
-    ctx.moveTo(-1, -7);
-    ctx.quadraticCurveTo(-15, -9, -16, 0);
-    ctx.quadraticCurveTo(-15, 9, -1, 7);
-    ctx.closePath();
-    ctx.fill();
-
-    // Contorno preto na guitarra
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = 1.2;
-    ctx.stroke();
-
-    // Binding dourado (borda)
-    ctx.strokeStyle = "#daa520";
-    ctx.lineWidth = 0.6;
-    ctx.beginPath();
-    ctx.moveTo(-1, -6);
-    ctx.quadraticCurveTo(-14, -7.5, -15, 0);
-    ctx.quadraticCurveTo(-14, 7.5, -1, 6);
-    ctx.stroke();
-
-    // Pickups (captadores) - pretos
-    ctx.fillStyle = "#000";
-    ctx.fillRect(-6, -2, 4, 1.2);
-    ctx.fillRect(-6, 1, 4, 1.2);
-
-    // Buraco do som
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.arc(-8, 0, 1.5, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // Ponte (bridge)
-    ctx.fillStyle = "#999";
-    ctx.fillRect(-7, -0.5, 3, 1);
-
-    ctx.restore();
-
-    // ===== BRAÇO DA GUITARRA (neck) =====
-    ctx.save();
-    ctx.rotate(-0.04 + strum * 0.5);
-    
-    // Neck de madeira
-    ctx.fillStyle = "#8b6914";
-    ctx.fillRect(0, -1.4, 20, 2.8);
-    
-    // Escala (fretboard)
-    ctx.fillStyle = "#2d2d2d";
-    ctx.fillRect(1.5, -1.2, 18, 2.4);
-    
-    // Trastes (frets)
-    ctx.strokeStyle = "#999";
-    ctx.lineWidth = 0.4;
-    for (let fret = 3; fret <= 19; fret += 2.2) {
-        ctx.beginPath();
-        ctx.moveTo(fret, -1.2);
-        ctx.lineTo(fret, 1.2);
-        ctx.stroke();
+    let wp = window.inventario ? window.inventario.arma : null;
+    let armaV = null;
+    if (x === window.meuX && y === window.meuY) { 
+        if (wp && wp.customVisual) armaV = wp;
     }
-    
-    // Headstock (cabeçalho)
-    ctx.fillStyle = "#000";
-    ctx.beginPath();
-    ctx.moveTo(20, -1.4);
-    ctx.lineTo(25, -2.8);
-    ctx.lineTo(26, 0);
-    ctx.lineTo(25, 2.8);
-    ctx.lineTo(20, 1.4);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Tuners (tarraxas)
-    ctx.fillStyle = "#666";
-    ctx.beginPath();
-    ctx.arc(23, -2.2, 0.8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(24, 0, 0.8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(23, 2.2, 0.8, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.restore();
+    if (typeof window.desenharGuitarraExposta === 'function') window.desenharGuitarraExposta(ctx, armaV);
 
     ctx.restore(); // fim guitarra/mira
 
@@ -518,4 +412,137 @@ window.enviarAtaqueRoqueiro = function(ws) {
     if (typeof window.tocarSomMagiaBasica === 'function') window.tocarSomMagiaBasica();
     window.roqueiroGuitarraGolpeEm = Date.now();
     if (ws && ws.readyState === 1) { ws.send(JSON.stringify({ action: 'ataque_roqueiro' })); }
+};
+
+window.desenharGuitarraExposta = function(ctx, armaVisualCustom) {
+    let t = Date.now() / 1000;
+    let strum = window.roqueiroBateriaLigada ? Math.sin(Date.now() / 55) * 0.18 : Math.sin(t * 2.2) * 0.06;
+
+    let cv = armaVisualCustom && armaVisualCustom.customVisual ? armaVisualCustom.customVisual : {};
+    let tamanho = cv.tamanho || 1.0;
+    let largura = cv.largura || 1.0;
+    let cBase = cv.cBase || "#b30000";
+    let cMeio = cv.cMeio || "#c0392b";
+    let cPonta = cv.cPonta || "#000";
+    let cFio = cv.cFio || "#daa520";
+
+    ctx.save();
+    // Diminui 10% geral (0.9) e move um pouco para baixo (+1.5 no eixo Y)
+    ctx.translate(0, 1.5);
+    ctx.scale(tamanho * 0.9, largura * 0.9);
+
+    // ===== CORPO DA GUITARRA =====
+    ctx.save();
+    ctx.translate(-5, 0);
+
+    // Asa superior (horn) da guitarra
+    ctx.fillStyle = cMeio;
+    ctx.beginPath();
+    ctx.moveTo(2, -1);
+    ctx.lineTo(-6, -5);
+    ctx.lineTo(-8, -12);
+    ctx.lineTo(-2, -10);
+    ctx.lineTo(1, -5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Asa inferior (horn) da guitarra
+    ctx.beginPath();
+    ctx.moveTo(2, 1);
+    ctx.lineTo(-6, 5);
+    ctx.lineTo(-8, 12);
+    ctx.lineTo(-2, 10);
+    ctx.lineTo(1, 5);
+    ctx.closePath();
+    ctx.fill();
+
+    // Corpo central (round body elétrico)
+    ctx.fillStyle = cBase;
+    ctx.beginPath();
+    ctx.moveTo(-1, -7);
+    ctx.quadraticCurveTo(-15, -9, -16, 0);
+    ctx.quadraticCurveTo(-15, 9, -1, 7);
+    ctx.closePath();
+    ctx.fill();
+
+    // Contorno preto na guitarra
+    ctx.strokeStyle = cPonta;
+    ctx.lineWidth = 1.2;
+    ctx.stroke();
+
+    // Binding dourado (borda)
+    ctx.strokeStyle = cFio;
+    ctx.lineWidth = 0.6;
+    ctx.beginPath();
+    ctx.moveTo(-1, -6);
+    ctx.quadraticCurveTo(-14, -7.5, -15, 0);
+    ctx.quadraticCurveTo(-14, 7.5, -1, 6);
+    ctx.stroke();
+
+    // Pickups (captadores) - pretos
+    ctx.fillStyle = "#000";
+    ctx.fillRect(-6, -2, 4, 1.2);
+    ctx.fillRect(-6, 1, 4, 1.2);
+
+    // Buraco do som
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.arc(-8, 0, 1.5, 0, Math.PI * 2);
+    ctx.stroke();
+
+    // Ponte (bridge)
+    ctx.fillStyle = "#999";
+    ctx.fillRect(-7, -0.5, 3, 1);
+
+    ctx.restore();
+
+    // ===== BRAÇO DA GUITARRA (neck) =====
+    ctx.save();
+    ctx.rotate(-0.04 + strum * 0.5);
+    
+    // Neck de madeira
+    ctx.fillStyle = "#8b6914";
+    ctx.fillRect(0, -1.4, 20, 2.8);
+    
+    // Escala (fretboard)
+    ctx.fillStyle = "#2d2d2d";
+    ctx.fillRect(1.5, -1.2, 18, 2.4);
+    
+    // Trastes (frets)
+    ctx.strokeStyle = "#999";
+    ctx.lineWidth = 0.4;
+    for (let fret = 3; fret <= 19; fret += 2.2) {
+        ctx.beginPath();
+        ctx.moveTo(fret, -1.2);
+        ctx.lineTo(fret, 1.2);
+        ctx.stroke();
+    }
+    
+    // Headstock (cabeçalho)
+    ctx.fillStyle = cPonta;
+    ctx.beginPath();
+    ctx.moveTo(20, -1.4);
+    ctx.lineTo(25, -2.8);
+    ctx.lineTo(26, 0);
+    ctx.lineTo(25, 2.8);
+    ctx.lineTo(20, 1.4);
+    ctx.closePath();
+    ctx.fill();
+    
+    // Tuners (tarraxas)
+    ctx.fillStyle = "#666";
+    ctx.beginPath();
+    ctx.arc(23, -2.2, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(24, 0, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(23, 2.2, 0.8, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.restore();
+
+    ctx.restore();
 };

@@ -17,7 +17,8 @@
     <link rel="stylesheet" href="dragdrop.css?v=4">
     <link rel="stylesheet" href="ferreiro.css?v=1">
     <link rel="stylesheet" href="intro.css?v=1">
-    <link rel="stylesheet" href="mobile-hud.css?v=1">
+    <link rel="stylesheet" href="mobile-hud.css?v=2">
+    <link rel="stylesheet" href="item-admin.css?v=2">
 </head>
 <body oncontextmenu="return false;">
     <script>
@@ -72,7 +73,7 @@
             <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" autofocus />
             <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
         </div>
-        <div class="game-version-display">v1.39.5</div>
+        <div class="game-version-display">v1.39.6</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -121,7 +122,7 @@
 
     <div id="status" data-ui="status">Desconectado</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
-    <div id="hud-version" class="game-version-display">v1.39.5</div>
+    <div id="hud-version" class="game-version-display">v1.39.6</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -413,12 +414,23 @@
         <button id="btn-pikeman-geada" class="btn-action btn-pikeman-geada" ontouchstart="usarGeadaPikeman(); event.stopPropagation();" onclick="usarGeadaPikeman();" title="Geada da Morte (3)">🧊<span class="key-badge">3</span></button>
         <button id="btn-pikeman-execucao" class="btn-action btn-pikeman-execucao" ontouchstart="usarExecucaoPikeman(); event.stopPropagation();" onclick="usarExecucaoPikeman();" title="Execução da Morte (4)">💀<span class="key-badge">4</span></button>
         
+        
+        <!-- NOVAS SKILLS -->
+        <button id="btn-guerreiro-escudo" class="btn-action btn-guerreiro-escudo" ontouchstart="iniciarDragSkill(event,'guerreiro_escudo'); event.preventDefault(); event.stopPropagation();" onclick="ativarEscudoSmartCast();" title="Lançamento do Escudo (4)">🛡️<span class="key-badge">4</span></button>
+        <button id="btn-mago-bola" class="btn-action btn-mago-bola" ontouchstart="iniciarDragSkill(event,'mago_bola'); event.preventDefault(); event.stopPropagation();" onclick="ativarBolaElementalSmartCast();" title="Bola Elemental (4)">🔮<span class="key-badge">4</span></button>
+        <button id="btn-summoner-golem" class="btn-action btn-summoner-golem" ontouchstart="usarGolemSismico(); event.stopPropagation();" onclick="usarGolemSismico();" title="Golem Sísmico (4)">⛰️<span class="key-badge">4</span></button>
+        <button id="btn-arqueiro-salto" class="btn-action btn-arqueiro-salto" ontouchstart="usarSaltoArqueiro(); event.stopPropagation();" onclick="usarSaltoArqueiro();" title="Salto + Chuva (4)">🦅<span class="key-badge">4</span></button>
+        <button id="btn-curandeiro-cantico" class="btn-action btn-curandeiro-cantico" ontouchstart="usarCanticoCelestial(); event.stopPropagation();" onclick="usarCanticoCelestial();" title="Cântico Celestial (4)">👼<span class="key-badge">4</span></button>
+        <button id="btn-barbaro-vinculo" class="btn-action btn-barbaro-vinculo" ontouchstart="iniciarDragSkill(event,'barbaro_vinculo'); event.preventDefault(); event.stopPropagation();" onclick="ativarVinculoSmartCast();" title="Vínculo Berserker (4)">⛓️<span class="key-badge">4</span></button>
+        <button id="btn-arcano-buraco" class="btn-action btn-arcano-buraco" ontouchstart="iniciarDragSkill(event,'astral_buraco'); event.preventDefault(); event.stopPropagation();" onclick="ativarBuracoNegroSmartCast();" title="Buraco Negro Astral (4)">🌌<span class="key-badge">4</span></button>
+
         <!-- ATAQUE BÁSICO MANUAL REMOVIDO (v1.30.2): só o auto-attack fica ativo; botão oculto -->
         <button id="btn-attack" class="btn-action btn-attack" style="display:none;" title="Ataque Básico desativado (use o auto-attack)">⚔️</button>
     </div>
 
     <div id="util-buttons" >
         <button id="btn-colisao-editor" class="btn-util btn-colisao-editor" onclick="window.toggleEditorColisao()" title="Editor de Colisões (Admin)" style="display:none;">🧱</button>
+        <button id="btn-item-admin" class="btn-util btn-item-admin" onclick="window.toggleItemAdmin()" title="Forjador de Armas (Admin)" style="display:none;">⚒️</button>
         <button id="btn-pvp" class="btn-util btn-pvp" onclick="togglePvP()" title="Ativar/Desativar PvP (P)">⚔️<span class="key-badge">P</span></button>
         <button id="btn-social" class="btn-util btn-social" onclick="abrirSocialModal()" title="Menu Social (O)">👥<span class="key-badge">O</span></button>
         <button id="btn-mapa" class="btn-util btn-mapa" onclick="toggleBigMap()" title="Mapa Mundial (M)">🗺️<span class="key-badge">M</span></button>
@@ -757,18 +769,18 @@
         })();
     </script>
     <script src="classes/comum.js?v=1001"></script>
-    <script src="classes/guerreiro.js?v=1007"></script>
-    <script src="classes/mago.js?v=1000"></script>
-    <script src="classes/summoner.js?v=1000"></script>
-    <script src="classes/arqueiro.js?v=1001"></script>
-    <script src="classes/curandeiro.js?v=1001"></script>
-    <script src="classes/barbaro.js?v=1001"></script>
-    <script src="classes/roqueiro.js?v=1000"></script>
-    <script src="classes/ladino.js?v=1300"></script>
-    <script src="classes/dronemaster.js?v=1002"></script>
-    <script src="classes/arqueiro_arcano.js?v=1000"></script>
-    <script src="classes/sniper.js?v=1000"></script>
-    <script src="classes/pikeman.js?v=7"></script>
+    <script src="classes/guerreiro.js?v=1010"></script>
+    <script src="classes/mago.js?v=1002"></script>
+    <script src="classes/summoner.js?v=1001"></script>
+    <script src="classes/arqueiro.js?v=1002"></script>
+    <script src="classes/curandeiro.js?v=1002"></script>
+    <script src="classes/barbaro.js?v=1002"></script>
+    <script src="classes/roqueiro.js?v=1002"></script>
+    <script src="classes/ladino.js?v=1301"></script>
+    <script src="classes/dronemaster.js?v=1004"></script>
+    <script src="classes/arqueiro_arcano.js?v=1001"></script>
+    <script src="classes/sniper.js?v=1001"></script>
+    <script src="classes/pikeman.js?v=9"></script>
     <script src="efeitos/arqueiro_efeitos.js?v=230"></script>
     <script src="efeitos/curandeiro_efeitos.js?v=231"></script>
     <script src="efeitos/barbaro_efeitos.js?v=231"></script>
@@ -778,6 +790,14 @@
     <script src="efeitos/ladino_efeitos.js?v=1300"></script>
     <script src="efeitos/pikeman_efeitos.js?v=1"></script>
     <script src="efeitos.js?v=234"></script>
+    <script src="efeitos/vfx_master.js?v=1"></script>
+    <script src="efeitos/vfx_guerreiro_escudo.js?v=1"></script>
+    <script src="efeitos/vfx_mago_bola.js?v=1"></script>
+    <script src="efeitos/vfx_summoner_golem.js?v=1"></script>
+    <script src="efeitos/vfx_arqueiro_salto.js?v=1"></script>
+    <script src="efeitos/vfx_curandeiro_cantico.js?v=1"></script>
+    <script src="efeitos/vfx_barbaro_vinculo.js?v=1"></script>
+    <script src="efeitos/vfx_astral_buraco.js?v=1"></script>
     <script src="debuffs.js?v=2"></script>
     <script src="efeitos/boss_golem.js?v=230"></script>
     <script src="monstros.js?v=2007"></script>
@@ -797,9 +817,9 @@
     <script src="sonoro.js?v=5"></script>
     <script src="intro.js?v=1"></script>
     <script src="mobile-hud.js?v=1"></script>
-
+    <script src="item-admin.js?v=5"></script>
     <script>
-        const GAME_VERSION = 'v1.39.5';
+        const GAME_VERSION = 'v1.39.6';
         window.GAME_VERSION = GAME_VERSION;
         const WORLD_WIDTH = 71920;
         const WORLD_HEIGHT = 36000;
@@ -912,6 +932,141 @@ const xpBarFill = document.getElementById("xp-bar-fill");
         const btnTornado = document.getElementById("btn-tornado");
         const btnGuerreiroProvocacao = document.getElementById("btn-guerreiro-provocacao");
         const btnMeteoro = document.getElementById("btn-meteoro");
+
+// ====== NOVAS SKILLS JS ======
+const btnGuerreiroEscudo = document.getElementById("btn-guerreiro-escudo");
+const btnMagoBola = document.getElementById("btn-mago-bola");
+const btnSummonerGolem = document.getElementById("btn-summoner-golem");
+const btnArqueiroSalto = document.getElementById("btn-arqueiro-salto");
+const btnCurandeiroCantico = document.getElementById("btn-curandeiro-cantico");
+const btnBarbaroVinculo = document.getElementById("btn-barbaro-vinculo");
+const btnArcanoBuraco = document.getElementById("btn-arcano-buraco");
+
+window.cdGuerreiroEscudo = false;
+window.cdMagoBola = false;
+window.cdSummonerGolem = false;
+window.cdArqueiroSalto = false;
+window.cdCurandeiroCantico = false;
+window.cdBarbaroVinculo = false;
+window.cdArcanoBuraco = false;
+
+window.modoMiraEscudo = false;
+window.modoMiraBola = false;
+window.modoMiraBuraco = false;
+window.modoMiraVinculo = false;
+
+function ativarEscudoSmartCast() {
+    if(window.estaMorto || window.cdGuerreiroEscudo || window.minhaClasse !== 'guerreiro') return;
+    if (!window.modoMiraEscudo) { cancelarTodasMiras(); window.modoMiraEscudo = true; btnGuerreiroEscudo.classList.add("aiming"); return; }
+    let tx = window.meuX + Math.cos(window.meuAngulo) * 160;
+    let ty = window.meuY + Math.sin(window.meuAngulo) * 160;
+    dispararEscudo(tx, ty);
+}
+function dispararEscudo(tx, ty) {
+    window.cdGuerreiroEscudo = true; btnGuerreiroEscudo.classList.add("cooldown"); registrarCooldownBotao(btnGuerreiroEscudo, 10000);
+    setTimeout(() => { window.cdGuerreiroEscudo = false; btnGuerreiroEscudo.classList.remove("cooldown"); btnGuerreiroEscudo.dataset.cdUntil = ''; }, 10000);
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'guerreiro_escudo_lancamento', targetX: tx, targetY: ty }));
+}
+function ativarBolaElementalSmartCast() {
+    if(window.estaMorto || window.cdMagoBola || window.minhaClasse !== 'mago') return;
+    if (!window.modoMiraBola) { cancelarTodasMiras(); window.modoMiraBola = true; btnMagoBola.classList.add("aiming"); return; }
+    let tx = window.meuX + Math.cos(window.meuAngulo) * 160;
+    let ty = window.meuY + Math.sin(window.meuAngulo) * 160;
+    dispararBolaElemental(tx, ty);
+}
+function dispararBolaElemental(tx, ty) {
+    window.cdMagoBola = true; btnMagoBola.classList.add("cooldown"); registrarCooldownBotao(btnMagoBola, 20000);
+    setTimeout(() => { window.cdMagoBola = false; btnMagoBola.classList.remove("cooldown"); btnMagoBola.dataset.cdUntil = ''; }, 20000);
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'mago_bola_elemental', targetX: tx, targetY: ty }));
+}
+function ativarBuracoNegroSmartCast() {
+    if(window.estaMorto || window.cdArcanoBuraco || window.minhaClasse !== 'arqueiro_arcano') return;
+    if (!window.modoMiraBuraco) { cancelarTodasMiras(); window.modoMiraBuraco = true; btnArcanoBuraco.classList.add("aiming"); return; }
+    let tx = window.meuX + Math.cos(window.meuAngulo) * 160;
+    let ty = window.meuY + Math.sin(window.meuAngulo) * 160;
+    dispararBuracoNegro(tx, ty);
+}
+function dispararBuracoNegro(tx, ty) {
+    window.cdArcanoBuraco = true; btnArcanoBuraco.classList.add("cooldown"); registrarCooldownBotao(btnArcanoBuraco, 25000);
+    setTimeout(() => { window.cdArcanoBuraco = false; btnArcanoBuraco.classList.remove("cooldown"); btnArcanoBuraco.dataset.cdUntil = ''; }, 25000);
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'astral_buraco_negro', targetX: tx, targetY: ty }));
+}
+function ativarVinculoSmartCast() {
+    if(window.estaMorto || window.cdBarbaroVinculo || window.minhaClasse !== 'barbaro') return;
+    if (!window.modoMiraVinculo) { cancelarTodasMiras(); window.modoMiraVinculo = true; btnBarbaroVinculo.classList.add("aiming"); return; }
+    // Vinculo needs a target, firing without target fails.
+}
+function dispararVinculo(targetId) {
+    window.cdBarbaroVinculo = true; btnBarbaroVinculo.classList.add("cooldown"); registrarCooldownBotao(btnBarbaroVinculo, 30000);
+    setTimeout(() => { window.cdBarbaroVinculo = false; btnBarbaroVinculo.classList.remove("cooldown"); btnBarbaroVinculo.dataset.cdUntil = ''; }, 30000);
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'barbaro_vinculo', targetId: targetId }));
+}
+
+function usarGolemSismico() {
+    if(window.estaMorto || window.minhaClasse !== 'summoner') return;
+    if(window.cdSummonerGolem) return;
+    if(window.golemSismicoAtivo) return;
+    if (!checarSkill('golem', 40)) return;
+    
+    window.cdSummonerGolem = true; 
+    let btn = document.getElementById("btn-summoner-golem");
+    if (btn) {
+        btn.classList.add("cooldown"); 
+        registrarCooldownBotao(btn, 30000);
+    }
+    setTimeout(() => { 
+        window.cdSummonerGolem = false; 
+        let b = document.getElementById("btn-summoner-golem");
+        if (b) { b.classList.remove("cooldown"); b.dataset.cdUntil = ''; }
+    }, 30000);
+    
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'summoner_golem_sismico' }));
+}
+function usarSaltoArqueiro() {
+    if(window.estaMorto || window.minhaClasse !== 'arqueiro') return;
+    
+    // Se já está no alto, dispara a chuva de flechas imediatamente na posição do mouse
+    if (window.arqueiroSaltoNoAlto) {
+        let pX = window.meuX + 12, pY = window.meuY + 16;
+        let tx = (Number.isFinite(window.mouseWorldX)) ? window.mouseWorldX : (pX + Math.cos(window.meuAngulo || 0) * 160);
+        let ty = (Number.isFinite(window.mouseWorldY)) ? window.mouseWorldY : (pY + Math.sin(window.meuAngulo || 0) * 160);
+        // Clampar alcance máximo
+        let dx = tx - pX, dy = ty - pY, dist = Math.hypot(dx, dy);
+        if (dist > 350) { tx = pX + (dx/dist)*350; ty = pY + (dy/dist)*350; }
+        if (!Number.isFinite(tx)) tx = pX + 100;
+        if (!Number.isFinite(ty)) ty = pY;
+        window.modoMiraSaltoChuva = false;
+        let btn = document.getElementById("btn-arqueiro-salto");
+        if (btn) btn.classList.remove("aiming");
+        if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'arqueiro_salto_chuva_shoot', targetX: tx, targetY: ty }));
+        return;
+    }
+
+    if(window.cdArqueiroSalto) return;
+    if (!checarSkill('salto_chuva', 25)) return;
+    
+    window.cdArqueiroSalto = true; 
+    btnArqueiroSalto.classList.add("cooldown"); 
+    registrarCooldownBotao(btnArqueiroSalto, 25000);
+    setTimeout(() => { window.cdArqueiroSalto = false; btnArqueiroSalto.classList.remove("cooldown"); btnArqueiroSalto.dataset.cdUntil = ''; }, 25000);
+    
+    // Salvar posição onde usou a skill
+    window.arqueiroSaltoPosX = window.meuX;
+    window.arqueiroSaltoPosY = window.meuY;
+    window.arqueiroSaltoStart = Date.now();
+    
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'arqueiro_salto_chuva' }));
+}
+function usarCanticoCelestial() {
+    if(window.estaMorto || window.minhaClasse !== 'curandeiro') return;
+    if(window.cdCurandeiroCantico) return;
+    if (!checarSkill('cantico', 30)) return;
+    window.cdCurandeiroCantico = true; btnCurandeiroCantico.classList.add("cooldown"); registrarCooldownBotao(btnCurandeiroCantico, 15000);
+    setTimeout(() => { window.cdCurandeiroCantico = false; btnCurandeiroCantico.classList.remove("cooldown"); btnCurandeiroCantico.dataset.cdUntil = ''; }, 15000);
+    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'curandeiro_cantico' }));
+}
+// ====== FIM NOVAS SKILLS ======
+
         const btnLocal = document.getElementById("btn-local");
         const btnNevasca = document.getElementById("btn-nevasca");
         const btnVulcao = document.getElementById("btn-vulcao");
@@ -1152,6 +1307,12 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             window.modoMiraCometas = false; btnArcanoCometas.classList.remove("aiming");
             window.modoMiraOrbe = false; btnArcanoOrbe.classList.remove("aiming");
             window.modoMiraRede = false; btnSniperRede.classList.remove("aiming");
+            window.modoMiraEscudo = false; if(typeof btnGuerreiroEscudo !== 'undefined' && btnGuerreiroEscudo) btnGuerreiroEscudo.classList.remove("aiming");
+            window.modoMiraBola = false; if(typeof btnMagoBola !== 'undefined' && btnMagoBola) btnMagoBola.classList.remove("aiming");
+            window.modoMiraBuraco = false; if(typeof btnArcanoBuraco !== 'undefined' && btnArcanoBuraco) btnArcanoBuraco.classList.remove("aiming");
+            window.modoMiraVinculo = false; if(typeof btnBarbaroVinculo !== 'undefined' && btnBarbaroVinculo) btnBarbaroVinculo.classList.remove("aiming");
+            window.modoMiraSaltoChuva = false; if(typeof btnArqueiroSalto !== 'undefined' && btnArqueiroSalto) btnArqueiroSalto.classList.remove("aiming");
+
         }
 
         // ===================================
@@ -1160,6 +1321,18 @@ const xpBarFill = document.getElementById("xp-bar-fill");
         // ===================================
         const SKILLS_DRAG = {
             meteoro:     { raio: 85,  alcanceMax: 380, classe: 'mago',       cor: '#e67e22', nome: '☄️ METEORO' },
+            guerreiro_escudo: { raio: 25, alcanceMax: 250, classe: 'guerreiro', cor: '#95a5a6', nome: '🛡️ Lançamento do Escudo' },
+            mago_bola: { raio: 40, alcanceMax: 400, classe: 'mago', cor: '#3498db', nome: '🔮 Bola Elemental' },
+            barbaro_vinculo: { raio: 25, alcanceMax: 200, classe: 'barbaro', cor: '#e74c3c', nome: '⛓️ Vínculo Berserker', requiresTarget: true },
+            astral_buraco: { raio: 120, alcanceMax: 300, classe: 'arqueiro_arcano', cor: '#8e44ad', nome: '🌌 Buraco Negro Astral' },
+            salto_chuva: { raio: 120, alcanceMax: 500, classe: 'arqueiro', cor: '#2ecc71', nome: '🌧️ Chuva de Flechas do Alto' },
+
+            guerreiro_escudo: { raio: 25, alcanceMax: 250, classe: 'guerreiro', cor: '#95a5a6', nome: '🛡️ Lançamento do Escudo' },
+            mago_bola: { raio: 40, alcanceMax: 400, classe: 'mago', cor: '#3498db', nome: '🔮 Bola Elemental' },
+            barbaro_vinculo: { raio: 25, alcanceMax: 200, classe: 'barbaro', cor: '#e74c3c', nome: '⛓️ Vínculo Berserker', requiresTarget: true },
+            astral_buraco: { raio: 120, alcanceMax: 300, classe: 'arqueiro_arcano', cor: '#8e44ad', nome: '🌌 Buraco Negro Astral' },
+            salto_chuva: { raio: 120, alcanceMax: 500, classe: 'arqueiro', cor: '#2ecc71', nome: '🌧️ Chuva de Flechas do Alto' },
+
             nevasca:     { raio: 115, alcanceMax: 350, classe: 'mago',       cor: '#00ffff', nome: '❄️ NEVASCA' },
             vulcao:      { raio: 140, alcanceMax: 380, classe: 'mago',       cor: '#e74c3c', nome: '🌋 VULCÃO' },
             chuva:       { raio: 75,  alcanceMax: 420, classe: 'arqueiro',   cor: '#1abc9c', nome: '🌧️ CHUVA DE FLECHAS' },
@@ -1199,6 +1372,12 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             else if (window.modoMiraCometas && window.minhaClasse === 'arqueiro_arcano') skill = 'cometas';
             else if (window.modoMiraOrbe && window.minhaClasse === 'arqueiro_arcano') skill = 'orbe';
             else if (window.modoMiraRede && window.minhaClasse === 'sniper') skill = 'rede';
+            else if (window.modoMiraEscudo && window.minhaClasse === 'guerreiro') skill = 'guerreiro_escudo';
+            else if (window.modoMiraBola && window.minhaClasse === 'mago') skill = 'mago_bola';
+            else if (window.modoMiraBuraco && window.minhaClasse === 'arqueiro_arcano') skill = 'astral_buraco';
+            else if (window.modoMiraSaltoChuva && window.minhaClasse === 'arqueiro') skill = 'salto_chuva';
+            else if (window.modoMiraVinculo && window.minhaClasse === 'barbaro') skill = 'barbaro_vinculo';
+            else if (window.arqueiroSaltoNoAlto) skill = 'salto_chuva';
 
             if (!skill) return null;
             let cfg = SKILLS_DRAG[skill] || { alcanceMax: 350, raio: 75, cor: '#00ffff', nome: '🎯 SKILL' };
@@ -1537,6 +1716,16 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             cancelarTodasMiras();
             if (statusText) statusText.innerText = "";
             if (skill === 'meteoro') dispararMeteoro(tx, ty);
+
+            if (skill === 'guerreiro_escudo') dispararEscudo(tx, ty);
+            if (skill === 'mago_bola') dispararBolaElemental(tx, ty);
+            if (skill === 'astral_buraco') dispararBuracoNegro(tx, ty);
+              if (skill === 'salto_chuva') {
+                  window.modoMiraSaltoChuva = false;
+                  btnArqueiroSalto.classList.remove("aiming");
+                  if(ws && ws.readyState===1) ws.send(JSON.stringify({ action: 'arqueiro_salto_chuva_shoot', targetX: tx, targetY: ty }));
+              }
+
             else if (skill === 'nevasca') dispararNevasca(tx, ty);
             else if (skill === 'vulcao') dispararVulcao(tx, ty);
             else if (skill === 'chuva') dispararChuva(tx, ty);
@@ -2053,7 +2242,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
 
                 // --- Escala responsiva (reusa o sistema atual: canvas width) ---
                 var escala = Math.max(0.06, Math.min(0.30, W / 8000));
-                escala *= 0.80; // v1.39.5: Redução de 20% no tamanho geral da HUD
+                escala *= 0.80; // v1.39.6: Redução de 20% no tamanho geral da HUD
                 var imgW = 2172, imgH = 724;
                 var hudW = imgW * escala, hudH = imgH * escala;
                 var hx = Math.round(W * 0.012);
@@ -2390,6 +2579,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                             if (mapaEvento !== window.currentMap) return;
                         }
                         if (window.AudioManager && typeof window.AudioManager.handleGameEvent === 'function') window.AudioManager.handleGameEvent(dados);
+                        if (typeof window.dispatchVFXEvent === 'function') window.dispatchVFXEvent(dados);
                     if (dados.type === 'pong') {
                         pingAtual = Math.max(0, Date.now() - (dados.t || Date.now()));
                     }
@@ -2473,6 +2663,8 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                             if (typeof window.mostrarBotaoVfxAdmin === "function") window.mostrarBotaoVfxAdmin();
                             if (typeof mostrarBotaoColisaoEditor === "function") mostrarBotaoColisaoEditor();
                             if (typeof window.mostrarBotaoMapaEditor === "function") window.mostrarBotaoMapaEditor();
+                            let bAdmin = document.getElementById('btn-item-admin');
+                            if (bAdmin) bAdmin.style.display = 'flex';
                         }
                         if (classePendente) {
                             // trocou de personagem com o socket fechado: re-loga direto com a nova classe
@@ -2662,16 +2854,40 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                     }
 
                     if (dados.type === 'texto_critico') {
-                        window.floatingTexts.push({ x: dados.x, y: dados.y - 18, text: "CRÍTICO!", color: "#f1c40f", alpha: 1.0 });
+                        // CRÍTICO aparece mais acima, maior e com cor forte
+                        window.floatingTexts.push({ 
+                            x: dados.x + (Math.random() * 20 - 10), 
+                            y: dados.y - 35 - (Math.random() * 10), 
+                            text: "CRÍTICO!", 
+                            color: "#ff3300", 
+                            alpha: 1.2, 
+                            isCrit: true 
+                        });
                     }
 
                     if (dados.type === 'texto_dano' && dados.dano > 0) {
-                        window.floatingTexts.push({ x: dados.x, y: dados.y - 15, text: "-" + dados.dano, color: "#f5b041", alpha: 1.0 });
+                        // Checa sobreposição de dano no mesmo alvo e evita cobrir badges de debuffs do Cântico
+                        let hasDebuff = window.curandeiroCanticoDebuffs && window.curandeiroCanticoDebuffs.some(d => Math.hypot(d.x - dados.x, d.y - dados.y) < 45);
+                        let offsetY = hasDebuff ? 12 : 15;
+                        let offsetX = hasDebuff ? ((Math.random() < 0.5 ? -1 : 1) * (34 + Math.random() * 8)) : (Math.random() * 16 - 8);
+                        window.floatingTexts.forEach(ft => {
+                            if (!ft.isCrit && Math.abs(ft.x - (dados.x + offsetX)) < 15 && Math.abs(ft.y - (dados.y - offsetY)) < 20) {
+                                offsetY += 15; // Joga pra cima se tiver sobreposto
+                            }
+                        });
+
+                        window.floatingTexts.push({ 
+                            x: dados.x + offsetX, 
+                            y: dados.y - offsetY, 
+                            text: "-" + dados.dano, 
+                            color: "#f5b041", 
+                            alpha: 1.0 
+                        });
                         if (dados.autorId === window.meuId && typeof registrarDanoCausado === 'function') registrarDanoCausado(dados.dano);
                     }
 
                     if (dados.type === 'mob_block') {
-                        window.floatingTexts.push({ x: dados.x, y: dados.y - 15, text: "BLOQUEADO", color: "#3498db", alpha: 1.0 });
+                        window.floatingTexts.push({ x: dados.x, y: dados.y - 20, text: "BLOQUEADO", color: "#3498db", alpha: 1.0 });
                     }
 
                     if (dados.type === 'monstros_config') {
@@ -2881,7 +3097,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                         
                         listaLacaios = dados.lacaios || {};
                         window.listaBandaRoqueiro = dados.bandas || {};
-                        listaBosses = dados.bosses || [];
+                        listaBosses = dados.bosses || []; window.listaBosses = listaBosses;
                         window.listaDrops = dados.drops || [];
                         window.vfxMapa = dados.mapVfx || window.vfxMapa || [];
                         // LADINO: zonas de gás venenoso (posições/autoridade do servidor)
@@ -3496,7 +3712,15 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                     if (dados.type === 'action_roqueiro_bateria_end' && dados.id === window.meuId) {
                         window.roqueiroBateriaLigada = false;
                         window.roqueiroBateriaIniciadaEm = 0;
-                        if (btnRoqueiroBateria) btnRoqueiroBateria.classList.remove("active");
+                        let btnRoq = document.getElementById("btn-roqueiro-bateria");
+                        if (btnRoq) {
+                            btnRoq.classList.remove("active");
+                            if (dados.cooldown) {
+                                window.roqueiroBateriaCooldown = true;
+                                btnRoq.classList.add("cooldown");
+                                setTimeout(() => { window.roqueiroBateriaCooldown = false; btnRoq.classList.remove("cooldown"); }, 10000);
+                            }
+                        }
                         if (window.pararSomBateria) window.pararSomBateria();
                     }
                     if (dados.type === 'action_roqueiro_teleporte' && window.todosJogadores[dados.id]) {
@@ -3682,20 +3906,34 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             btnSniperApontar.style.display = "none"; btnSniperRede.style.display = "none"; btnSniperPosicao.style.display = "none"; btnSniperCamuflagem.style.display = "none";
             btnPikemanGiro.style.display = "none"; btnPikemanPirueta.style.display = "none"; btnPikemanGeada.style.display = "none"; btnPikemanExecucao.style.display = "none";
 
+            if(btnGuerreiroEscudo) btnGuerreiroEscudo.style.display = "none";
+            if(btnMagoBola) btnMagoBola.style.display = "none";
+            if(btnSummonerGolem) btnSummonerGolem.style.display = "none";
+            if(btnArqueiroSalto) btnArqueiroSalto.style.display = "none";
+            if(btnCurandeiroCantico) btnCurandeiroCantico.style.display = "none";
+            if(btnBarbaroVinculo) btnBarbaroVinculo.style.display = "none";
+            if(btnArcanoBuraco) btnArcanoBuraco.style.display = "none";
+
+
             btnDash.innerText = "💨"; btnDash.title = "Dash (1)";
 
             if (window.minhaClasse === 'mago') {
+                if(btnMagoBola) btnMagoBola.style.display = "block";
                 btnMeteoro.style.display = "block"; btnNevasca.style.display = "block"; btnVulcao.style.display = "block"; btnAttack.innerText = "🔮"; btnAttack.style.background = "#9b59b6";
             } else if (window.minhaClasse === 'summoner') {
+                if(btnSummonerGolem) btnSummonerGolem.style.display = "block";
                 btnOgroSkill.style.display = "block"; btnOgroSalto.style.display = "block"; btnOgroColossal.style.display = "block";
                 if (ogroColossalWrap) ogroColossalWrap.style.display = "block";
                 atualizarUiModoOgro();
                 btnAttack.innerText = "👁️"; btnAttack.style.background = "#27ae60";
             } else if (window.minhaClasse === 'arqueiro') {
+                if(btnArqueiroSalto) btnArqueiroSalto.style.display = "block";
                 btnArqueiroChuva.style.display = "block"; btnArqueiroPerfurante.style.display = "block"; btnArqueiroRajada.style.display = "block"; btnAttack.innerText = "🏹"; btnAttack.style.background = "#1abc9c";
             } else if (window.minhaClasse === 'curandeiro') {
+                if(btnCurandeiroCantico) btnCurandeiroCantico.style.display = "block";
                 btnCurandeiroCura.style.display = "block"; btnCurandeiroJulgamento.style.display = "block"; btnCurandeiroAura.style.display = "block"; btnAttack.innerText = "✨"; btnAttack.style.background = "#f1c40f";
             } else if (window.minhaClasse === 'barbaro') {
+                if(btnBarbaroVinculo) btnBarbaroVinculo.style.display = "block";
                 if (btnBarbaroFuria) btnBarbaroFuria.style.display = "block";
                 if (btnBarbaroEsmagamento) btnBarbaroEsmagamento.style.display = "block";
                 if (btnBarbaroGiro) btnBarbaroGiro.style.display = "block";
@@ -3710,6 +3948,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 btnDmSupressao.style.display = "block"; btnDmAssalto.style.display = "block"; btnDmCaixa.style.display = "block"; btnDmTita.style.display = "block"; btnAttack.innerText = "🤖"; btnAttack.style.background = "#00b5cc";
                 btnDash.innerText = "🛡️"; btnDash.title = "Escudo de Energia — 50% da vida máx (3s, CD 10s)";
             } else if (window.minhaClasse === 'arqueiro_arcano') {
+                if(btnArcanoBuraco) btnArcanoBuraco.style.display = "block";
                 btnArcanoCometas.style.display = "block"; btnArcanoOrbe.style.display = "block"; btnArcanoCascata.style.display = "block"; btnAttack.innerText = "🌠"; btnAttack.style.background = "#5b4da0";
             } else if (window.minhaClasse === 'sniper') {
                 btnSniperApontar.style.display = "block"; btnSniperRede.style.display = "block"; btnSniperPosicao.style.display = "block"; btnSniperCamuflagem.style.display = "block"; btnAttack.innerText = "🎯"; btnAttack.style.background = "#7d8a3d";
@@ -4370,21 +4609,16 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             }
             if (roqueiroBateriaCooldown) return;
             if (!checarSkill('bateria', 25)) return;
-            roqueiroBateriaCooldown = true; btnRoqueiroBateria.classList.add("cooldown");
+            // Removed local cooldown application here, because the cooldown is applied
+            // dynamically via action_roqueiro_bateria_end IF mana hits < 10%.
             btnRoqueiroBateria.classList.add("active");
-            setTimeout(() => { roqueiroBateriaCooldown = false; btnRoqueiroBateria.classList.remove("cooldown"); }, 6000);
 
             window.roqueiroBateriaLigada = true;
-            window.roqueiroBateriaIniciadaEm = Date.now(); // trava de segurança anti-stuck
+            window.roqueiroBateriaIniciadaEm = Date.now();
             if (window.tocarSonoro) window.tocarSonoro('roqueiro_bateria');
             if (statusText) statusText.innerText = "🥁 SOLO DE BATERIA! Clique nela ou ande para cancelar!";
-            setTimeout(() => {
-                if (window.roqueiroBateriaLigada) {
-                    window.roqueiroBateriaLigada = false;
-                    btnRoqueiroBateria.classList.remove("active");
-                    if (window.pararSomBateria) window.pararSomBateria();
-                }
-            }, 5000);
+            
+            // Removed the 5000ms automatic cancel limit so it can run infinitely.
 
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'roqueiro_bateria' })); }
         }
@@ -4569,7 +4803,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
         }
 
         function dispararAutoAtaque() {
-            if (!autoAlvo) return;
+            if (!autoAlvo || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) return;
             let ang = Math.atan2(autoAlvo.y - (window.meuY + 16), autoAlvo.x - (window.meuX + 12));
             if (joystickTouchId !== null || !window.mouseJaMoveu) {
                 window.meuAngulo = ang; // orienta o personagem apenas no mobile touch ou sem mouse
@@ -4594,9 +4828,9 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             if (window.estaMorto || window.transicaoMapaAtiva) { autoAlvo = null; return; }
             let ef = window.meusEfeitos || [];
             let trava = ef.some(e => e && (e.id === 'paralisia' || e.id === 'sono') && e.tempo > 0);
-            if (window.meuStunTimer > 0 || trava || window.roqueiroBateriaLigada || window.arqueiroRajadaLigada || window.spawnAdminAberto || window.teleporteAberto || window.ferreiroAberto) return;
+            if (window.meuStunTimer > 0 || trava || window.roqueiroBateriaLigada || window.arqueiroRajadaLigada || window.spawnAdminAberto || window.teleporteAberto || window.ferreiroAberto || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) { autoAlvo = null; return; }
             // v1.30.2: ataque básico bloqueado durante Estrela da Morte / Dança das Adagas / Giro Descontrolado
-            if (window.ladinoEstrelaAtivo || window.ladinoDancaAtivo || window.giroDescontroladoLigado || (window.pikemanEstadoLocal && window.pikemanEstadoLocal.execucaoAtiva)) { autoAlvo = null; return; }
+            if (window.ladinoEstrelaAtivo || window.ladinoDancaAtivo || window.giroDescontroladoLigado || (window.pikemanEstadoLocal && window.pikemanEstadoLocal.execucaoAtiva) || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) { autoAlvo = null; return; }
             if (window.snAimAtivo || window.snPosicaoAtivo) { autoAlvo = null; return; }
             // SNIPER camuflado na moita: NÃO ataca automaticamente; só volta a atacar ao usar uma skill
             if (window.minhaClasse === 'sniper' && window.snCamufladoAtivo) { autoAlvo = null; return; }
@@ -4615,7 +4849,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
         // Estado 1: círculo de alcance; Estado 2: linha tracejada até o alvo;
         // Estado 3: retículo "pronto" no alvo; Estado 4: pulso após executar.
         function desenharIndicadorAutoAtaque() {
-            if (window.estaMorto || window.transicaoMapaAtiva) return;
+            if (window.estaMorto || window.transicaoMapaAtiva || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) return;
             let px = window.meuX + 12, py = window.meuY + 16;
             let raio = alcanceBuscaClasse();
             let agora = performance.now();
@@ -4675,7 +4909,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
         }
 
         function enviarAtaqueArqueiro(anguloForcado, alvoTipo, alvoId) {
-            if (window.estaMorto) return; tocarSomFlecha(); window.arqueiroTiroEm = Date.now(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = (anguloForcado !== undefined) ? anguloForcado : (alvoDetectado ? alvoDetectado.angulo : window.meuAngulo);
+            if (window.estaMorto || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) return; tocarSomFlecha(); window.arqueiroTiroEm = Date.now(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = (anguloForcado !== undefined) ? anguloForcado : (alvoDetectado ? alvoDetectado.angulo : window.meuAngulo);
             if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_arqueiro', angulo: anguloDisparo }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
         }
 
@@ -5309,6 +5543,11 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 moveY = 0;
                 return;
             }
+            if (window.arqueiroSaltoNoAlto) {
+                moveX = 0;
+                moveY = 0;
+                return;
+            }
             let dx = 0, dy = 0;
             if (teclasMovimento.KeyW || teclasMovimento.ArrowUp) dy -= 1;
             if (teclasMovimento.KeyS || teclasMovimento.ArrowDown) dy += 1;
@@ -5523,8 +5762,15 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 usarPocao('mp');
                 return;
             }
-            if (code === 'Digit4' || code === 'Numpad4') {
+                        if (code === 'Digit4' || code === 'Numpad4') {
                 e.preventDefault();
+                if (window.minhaClasse === 'guerreiro') { if (typeof ativarEscudoSmartCast === 'function') ativarEscudoSmartCast(); return; }
+                if (window.minhaClasse === 'mago') { if (typeof ativarBolaElementalSmartCast === 'function') ativarBolaElementalSmartCast(); return; }
+                if (window.minhaClasse === 'summoner') { if (typeof usarGolemSismico === 'function') usarGolemSismico(); return; }
+                if (window.minhaClasse === 'arqueiro') { if (typeof usarSaltoArqueiro === 'function') usarSaltoArqueiro(); return; }
+                if (window.minhaClasse === 'curandeiro') { if (typeof usarCanticoCelestial === 'function') usarCanticoCelestial(); return; }
+                if (window.minhaClasse === 'barbaro') { if (typeof ativarVinculoSmartCast === 'function') ativarVinculoSmartCast(); return; }
+                if (window.minhaClasse === 'arqueiro_arcano') { if (typeof ativarBuracoNegroSmartCast === 'function') ativarBuracoNegroSmartCast(); return; }
                 if (window.minhaClasse === 'roqueiro') {
                     usarGritoDeGuerraRoqueiro();
                     return;
@@ -5845,6 +6091,24 @@ const xpBarFill = document.getElementById("xp-bar-fill");
                 else if (s === 'cometas') dispararChuvaCometas(tx, ty);
                 else if (s === 'orbe') dispararOrbeConstelacao(tx, ty);
                 else if (s === 'rede') dispararSniperRede(tx, ty);
+                else if (s === 'salto_chuva') {
+                    if (window.arqueiroSaltoNoAlto) {
+                        window.modoMiraSaltoChuva = false;
+                        let btn = document.getElementById("btn-arqueiro-salto");
+                        if (btn) btn.classList.remove("aiming");
+                        if (ws && ws.readyState === 1) ws.send(JSON.stringify({ action: 'arqueiro_salto_chuva_shoot', targetX: tx, targetY: ty }));
+                    }
+                }
+                else if (s === 'guerreiro_escudo') { if (typeof dispararEscudo === 'function') dispararEscudo(tx, ty); }
+                else if (s === 'mago_bola') { if (typeof dispararBolaElemental === 'function') dispararBolaElemental(tx, ty); }
+                else if (s === 'astral_buraco') { if (typeof dispararBuracoNegro === 'function') dispararBuracoNegro(tx, ty); }
+                else if (s === 'barbaro_vinculo') {
+                    let target = window.slimes && window.slimes.find(m => m.hp > 0 && Math.hypot(m.x - tx, m.y - ty) < 60);
+                    let targetBoss = window.bosses && window.bosses.find(m => m.hp > 0 && Math.hypot(m.x - tx, m.y - ty) < 80);
+                    let tid = target ? target.id : (targetBoss ? targetBoss.id : null);
+                    if (tid && typeof dispararVinculo === 'function') dispararVinculo(tid);
+                    else { if (typeof statusText !== 'undefined' && statusText) statusText.innerText = "⚠️ Nenhum alvo na mira!"; }
+                }
                 return;
             }
 
@@ -6073,6 +6337,20 @@ const xpBarFill = document.getElementById("xp-bar-fill");
             if (typeof window.desenharEfeitosSismicos === "function") window.desenharEfeitosSismicos();
             if (typeof window.desenharImpactosGolem === "function") window.desenharImpactosGolem();
             if (typeof window.desenharBesouroExplosoes === "function") window.desenharBesouroExplosoes();
+            
+            // NOVOS VFX (protegidos contra falhas visuais)
+            try {
+                if (typeof window.desenharVfxGuerreiroEscudo === "function") window.desenharVfxGuerreiroEscudo(ctx);
+                if (typeof window.desenharVfxMagoBola === "function") window.desenharVfxMagoBola(ctx);
+                if (typeof window.desenharVfxSummonerGolem === "function") window.desenharVfxSummonerGolem(ctx);
+                if (typeof window.desenharVfxArqueiroSalto === "function") window.desenharVfxArqueiroSalto(ctx);
+                if (typeof window.desenharVfxCurandeiroCantico === "function") window.desenharVfxCurandeiroCantico(ctx);
+                if (typeof window.desenharVfxBarbaroVinculo === "function") window.desenharVfxBarbaroVinculo(ctx);
+                if (typeof window.desenharVfxAstralBuraco === "function") window.desenharVfxAstralBuraco(ctx);
+            } catch (errVfx) {
+                console.warn("Aviso VFX:", errVfx);
+            }
+
             if (typeof window.desenharEfeitosArqueiro === "function") {
                 try {
                     window.desenharEfeitosArqueiro();
@@ -6208,7 +6486,31 @@ const xpBarFill = document.getElementById("xp-bar-fill");
 
                             if (classeJogador === 'mago') { if (typeof window.desenharMago === "function") window.desenharMago(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'summoner') { if (typeof window.desenharSummoner === "function") window.desenharSummoner(posX, posY, mov, ang, hpVal, maxHpVal); }
-                            else if (classeJogador === 'arqueiro') { if (typeof window.desenharArqueiro === "function") window.desenharArqueiro(posX, posY, mov, ang, hpVal, maxHpVal, pid); }
+                            else if (classeJogador === 'arqueiro') { 
+                                if (typeof window.desenharArqueiro === "function") {
+                                    let isNoAlto = window.arqueirosNoAlto && window.arqueirosNoAlto[pid];
+                                    if (isNoAlto) {
+                                         ctx.save();
+                                         ctx.translate(0, -180);
+                                         ctx.translate(posX + 12, posY + 16);
+                                         ctx.scale(1.35, 1.35);
+                                         ctx.translate(-(posX + 12), -(posY + 16));
+                                         ctx.globalAlpha = 0.95;
+                                         window.desenharArqueiro(posX, posY, false, ang, hpVal, maxHpVal, pid);
+                                         ctx.restore();
+                                         // Sombra no chão
+                                         ctx.save();
+                                         ctx.globalAlpha = 0.35;
+                                         ctx.fillStyle = '#000000';
+                                         ctx.beginPath();
+                                         ctx.ellipse(posX + 12, posY + 28, 20, 7, 0, 0, Math.PI * 2);
+                                         ctx.fill();
+                                         ctx.restore();
+                                     } else {
+                                         window.desenharArqueiro(posX, posY, mov, ang, hpVal, maxHpVal, pid);
+                                     }
+                                }
+                            }
                             else if (classeJogador === 'curandeiro') { if (typeof window.desenharCurandeiro === "function") window.desenharCurandeiro(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'barbaro') { if (typeof window.desenharBarbaro === "function") window.desenharBarbaro(posX, posY, mov, ang, hpVal, maxHpVal, pid); }
                             else if (classeJogador === 'roqueiro') { if (typeof window.desenharRoqueiro === "function") window.desenharRoqueiro(posX, posY, mov, ang, hpVal, maxHpVal, pid); }
@@ -6472,7 +6774,27 @@ const xpBarFill = document.getElementById("xp-bar-fill");
 
             for (let i = dashTrails.length - 1; i >= 0; i--) { let dt = dashTrails[i]; dt.alpha -= 0.05; if (dt.alpha <= 0) { dashTrails.splice(i, 1); } else { ctx.save(); ctx.fillStyle = "rgba(52, 152, 219, " + dt.alpha + ")"; ctx.beginPath(); ctx.arc(dt.x, dt.y, 18, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } }
             for (let i = slashes.length - 1; i >= 0; i--) { let s = slashes[i]; s.alpha -= 0.08; s.escala += 0.1; if (s.alpha <= 0) { slashes.splice(i, 1); } else { ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.angulo); ctx.globalAlpha = s.alpha; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 4; ctx.shadowColor = "#3498db"; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(20, 0, 25 * s.escala, -Math.PI / 3, Math.PI / 3); ctx.stroke(); ctx.restore(); } }
-            for (let i = window.floatingTexts.length - 1; i >= 0; i--) { let ft = window.floatingTexts[i]; ft.y -= 1.0; ft.alpha -= 0.045; if (ft.alpha <= 0) { window.floatingTexts.splice(i, 1); } else { ctx.save(); ctx.translate(ft.x, ft.y); ctx.globalAlpha = ft.alpha; window.ctx.font = "bold 22px 'Rajdhani', Arial, sans-serif"; window.ctx.lineJoin = "round"; window.ctx.lineWidth = 3; window.ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; window.ctx.strokeText(ft.text, -14, 0); window.ctx.fillStyle = ft.color; window.ctx.fillText(ft.text, -14, 0); window.ctx.restore(); } }
+            for (let i = window.floatingTexts.length - 1; i >= 0; i--) { 
+                let ft = window.floatingTexts[i]; 
+                ft.y -= 1.0; 
+                ft.alpha -= 0.045; 
+                if (ft.alpha <= 0) { 
+                    window.floatingTexts.splice(i, 1); 
+                } else { 
+                    ctx.save(); 
+                    ctx.translate(ft.x, ft.y); 
+                    ctx.globalAlpha = Math.min(1, ft.alpha); 
+                    let isCr = ft.isCrit;
+                    window.ctx.font = isCr ? "900 28px 'Rajdhani', Arial, sans-serif" : "bold 22px 'Rajdhani', Arial, sans-serif"; 
+                    window.ctx.lineJoin = "round"; 
+                    window.ctx.lineWidth = isCr ? 4 : 3; 
+                    window.ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; 
+                    window.ctx.strokeText(ft.text, -14, 0); 
+                    window.ctx.fillStyle = ft.color; 
+                    window.ctx.fillText(ft.text, -14, 0); 
+                    window.ctx.restore(); 
+                } 
+            }
             for (let i = blockEffects.length - 1; i >= 0; i--) { let b = blockEffects[i]; b.y -= 0.8; b.alpha -= 0.03; if (b.alpha <= 0) { blockEffects.splice(i, 1); } else { ctx.save(); ctx.translate(b.x, b.y); ctx.globalAlpha = b.alpha; ctx.font = "bold 18px 'Rajdhani', Arial, sans-serif"; ctx.lineJoin = "round"; ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; ctx.strokeText("🛡️ BLOCK!", -30, 0); ctx.fillStyle = "#f1c40f"; ctx.fillText("🛡️ BLOCK!", -30, 0); ctx.restore(); } }
 
             // v1.34: BRILHO ÚNICO das PEDRAS DE UPGRADE (anéis pulsantes caindo no chão)
@@ -6764,6 +7086,71 @@ const xpBarFill = document.getElementById("xp-bar-fill");
 
         loop();
     </script>
+    <!-- FORJADOR ADMIN MODAL -->
+    <div id="item-admin-window" class="modal-window" style="display:none;" data-ui="true">
+        <div class="modal-header">
+            <span class="modal-title">⚒️ FORJADOR DE ARMAS (Admin)</span>
+            <button class="btn-close" onclick="window.toggleItemAdmin()">X</button>
+        </div>
+        <div class="modal-content" style="display: flex; gap: 10px;">
+            <!-- Canvas de Preview -->
+            <div style="flex: 1; display:flex; justify-content:center; align-items:center; background:#12161a; border: 1px solid #333; border-radius: 4px;">
+                <canvas id="item-admin-preview" width="200" height="200"></canvas>
+            </div>
+            <!-- Controles -->
+            <div style="flex: 1; display:flex; flex-direction:column; gap:8px; overflow-y:auto; max-height:400px; padding-right:5px;">
+                <label>Classe: 
+                    <select id="ia-classe" style="width:100%;" onchange="atualizarPreviewItemAdmin()">
+                        <option value="guerreiro">Guerreiro</option>
+                        <option value="mago">Mago</option>
+                        <option value="arqueiro">Arqueiro</option>
+                        <option value="arqueiro_arcano">Arqueiro Arcano</option>
+                        <option value="sniper">Sniper</option>
+                        <option value="pikeman">Pikeman</option>
+                        <option value="ladino">Ladino</option>
+                        <option value="dronemaster">Dronemaster</option>
+                        <option value="curandeiro">Curandeiro</option>
+                        <option value="summoner">Summoner</option>
+                        <option value="barbaro">Bárbaro</option>
+                        <option value="roqueiro">Roqueiro</option>
+                    </select>
+                </label>
+                <label>Slot do Item: 
+                    <select id="ia-slot" style="width:100%;" onchange="atualizarPreviewItemAdmin()">
+                        <option value="arma">Arma Primária</option>
+                        <option value="armaSecundaria">Arma Secundária</option>
+                        <option value="capacete">Capacete</option>
+                        <option value="peitoral">Peitoral</option>
+                        <option value="capa">Capa</option>
+                        <option value="luva">Luva</option>
+                        <option value="bota">Bota</option>
+                        <option value="anel">Anel</option>
+                        <option value="colar">Colar</option>
+                    </select>
+                </label>
+                <label>Nome: <input type="text" id="ia-nome" value="A Lâmina Viva" style="width:100%;"></label>
+                <label>Raridade: 
+                    <select id="ia-raridade" style="width:100%;">
+                        <option value="comum">Comum</option>
+                        <option value="raro">Raro</option>
+                        <option value="epico">Épico</option>
+                        <option value="lendario" selected>Lendário</option>
+                    </select>
+                </label>
+                <label>Cor Base: <input type="color" id="ia-corBase" value="#39434f"></label>
+                <label>Cor Meio: <input type="color" id="ia-corMeio" value="#6b7e92"></label>
+                <label>Cor Ponta: <input type="color" id="ia-corPonta" value="#b8c9db"></label>
+                <label>Cor do Fio (Luz): <input type="color" id="ia-corFio" value="#eef6ff"></label>
+                <label>Comprimento: <input type="range" id="ia-len" min="5" max="40" value="25" oninput="document.getElementById('ia-len-val').innerText=this.value"><span id="ia-len-val">25</span></label>
+                <label>Largura: <input type="range" id="ia-wid" min="1.0" max="6.0" step="0.1" value="3.5" oninput="document.getElementById('ia-wid-val').innerText=this.value"><span id="ia-wid-val">3.5</span></label>
+                
+                <hr style="border-color:#333; margin:5px 0;">
+                <label>Força: <input type="number" id="ia-forca" value="50" style="width:60px;"></label>
+                <label>Vida: <input type="number" id="ia-vida" value="20" style="width:60px;"></label>
+                <button onclick="window.spawnarArmaAdmin()" style="margin-top:10px; padding:10px; background:#d35400; color:#fff; border:none; cursor:pointer; font-weight:bold;">🔥 FORJAR E EQUIPAR</button>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
 

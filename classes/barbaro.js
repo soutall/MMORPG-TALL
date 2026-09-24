@@ -37,159 +37,6 @@ window.registrarMachadadaBarbaro = function (id) {
     window.machadadasBarbaro[id] = Date.now();
 };
 
-// ---------------------------------------------------------------------------
-// GRANDE MACHADO DE GUERRA — segurado com as duas mãos (referencial local:
-// pivô na mão de cima, cabo descendo e lâmina em meia-lua gigante acima).
-// ---------------------------------------------------------------------------
-function desenharGrandeMachado(ctx, angulo, isMoving, ciclo, swingT, t, furyStage, giroSpin) {
-    ctx.save();
-    if (giroSpin > 0) {
-        // GIRO DESCONTROLADO: pivô no centro do corpo → o machado varre em volta
-        // do Berserker numa rotação contínua e rápida (casada com o efeito do GIRO)
-        ctx.translate(12, 16);
-        ctx.rotate(angulo + giroSpin);
-    } else {
-        ctx.translate(22, 13);      // ombro direito do personagem
-        ctx.rotate(angulo);
-    }
-
-    let swing = 0;
-    if (giroSpin > 0) {
-        // micro-tremedeira enquanto gira nas altas velocidades
-        swing = Math.sin(giroSpin * 3 + t * 2) * 0.05;
-    } else if (swingT > 0) {
-        // Golpe: de cima (erguido atrás) até o seguimento, com easing
-        let p = 1 - swingT;
-        let ease = 1 - Math.pow(1 - p, 2);
-        swing = -2.1 + ease * 2.9;
-    } else {
-        let sway = isMoving ? Math.sin(ciclo) * 0.16 : Math.sin(t * 2.0) * 0.05;
-        swing = -0.9 + sway;    // erguido sobre o ombro
-        if (furyStage === 3) swing += Math.sin(t * 9) * 0.06; // tremor da raiva
-    }
-    ctx.rotate(swing);
-
-    // ---------- CABO de madeira ----------
-    const gCabo = ctx.createLinearGradient(-2, -6, 2, 26);
-    gCabo.addColorStop(0, '#6d4c2f');
-    gCabo.addColorStop(1, '#3b2414');
-    ctx.fillStyle = gCabo;
-    ctx.fillRect(-2, -6, 4, 32);
-    ctx.strokeStyle = 'rgba(20,10,5,0.5)';
-    ctx.lineWidth = 0.8;
-    ctx.strokeRect(-2, -6, 4, 32);
-
-    // enrolamento de couro no cabo (punho)
-    ctx.fillStyle = BARBARO_COR.couroClaro;
-    for (let i = 0; i < 4; i++) {
-        ctx.fillRect(-2.5, 2 + i * 3, 5, 1.6);
-    }
-
-    // pomo de metal na ponta do cabo
-    ctx.fillStyle = BARBARO_COR.ferroClaro;
-    ctx.beginPath();
-    ctx.arc(0, 26, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = BARBARO_COR.ferro;
-    ctx.beginPath();
-    ctx.arc(0, 26, 1.6, 0, Math.PI * 2);
-    ctx.fill();
-
-    // colar de metal entre cabo e lâmina
-    ctx.fillStyle = BARBARO_COR.ferro;
-    ctx.fillRect(-4, -7, 8, 3.5);
-    ctx.fillStyle = BARBARO_COR.ferroClaro;
-    ctx.fillRect(-4, -7, 8, 1.2);
-
-    // ---------- LÂMINA em meia-lua gigante ----------
-    ctx.save();
-    ctx.shadowColor = furyStage > 0 ? 'rgba(230,60,40,0.8)' : 'rgba(20,25,35,0.7)';
-    ctx.shadowBlur = 10 + furyStage * 4;
-    const gLamin = ctx.createLinearGradient(0, -42, 0, -8);
-    gLamin.addColorStop(0, BARBARO_COR.acoBrilho);
-    gLamin.addColorStop(0.5, BARBARO_COR.aco);
-    gLamin.addColorStop(1, BARBARO_COR.ferro);
-    ctx.fillStyle = gLamin;
-    ctx.strokeStyle = BARBARO_COR.ferro;
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(0, -8);
-    ctx.quadraticCurveTo(-22, -14, -26, -26);
-    ctx.quadraticCurveTo(-28, -38, -14, -40);
-    ctx.quadraticCurveTo(-4, -42, 2, -40);
-    ctx.quadraticCurveTo(10, -41, 18, -37);
-    ctx.quadraticCurveTo(25, -32, 23, -22);
-    ctx.quadraticCurveTo(20, -12, 0, -8);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // brilho dos fios de corte (superior esquerdo e direito)
-    ctx.strokeStyle = BARBARO_COR.acoBrilho;
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.moveTo(2, -40);
-    ctx.quadraticCurveTo(-4, -41, -14, -39);
-    ctx.quadraticCurveTo(-27, -37, -25, -26);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(2, -40);
-    ctx.quadraticCurveTo(10, -40, 18, -36);
-    ctx.quadraticCurveTo(24, -31, 22, -22);
-    ctx.stroke();
-
-    // runas de fúria na lâmina
-    if (furyStage > 0) {
-        ctx.strokeStyle = 'rgba(255,120,80,' + (0.4 + Math.sin(t * 6) * 0.3).toFixed(3) + ')';
-        ctx.lineWidth = 1.6;
-        ctx.beginPath();
-        ctx.moveTo(-8, -30); ctx.lineTo(-4, -26); ctx.lineTo(-10, -22);
-        ctx.moveTo(6, -28); ctx.lineTo(10, -24); ctx.lineTo(5, -20);
-        ctx.stroke();
-    }
-
-    // respingos de sangue antigos na lâmina
-    ctx.fillStyle = 'rgba(150,20,20,0.55)';
-    ctx.beginPath();
-    ctx.ellipse(-12, -20, 2.4, 1.3, 0.6, 0, Math.PI * 2);
-    ctx.ellipse(14, -14, 2, 1.1, -0.4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // ---------- BRAÇOS que seguram o cabo (mãos por cima da madeira) ----------
-    ctx.lineCap = 'round';
-    // braço direito (segura o cabo perto da lâmina)
-    ctx.strokeStyle = BARBARO_COR.pele;
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(-12, -5);
-    ctx.quadraticCurveTo(-6, -4, 0, -4);
-    ctx.stroke();
-    // braço esquerdo (segura mais embaixo)
-    ctx.lineWidth = 4.6;
-    ctx.beginPath();
-    ctx.moveTo(-10, 7);
-    ctx.quadraticCurveTo(-4, 7, 0, 7);
-    ctx.stroke();
-    // punhos de couro + mãos
-    ctx.fillStyle = BARBARO_COR.couroClaro;
-    ctx.fillRect(-1.2, -5.6, 2.6, 3.2);
-    ctx.fillRect(-1.2, 5.8, 2.6, 2.8);
-    ctx.fillStyle = BARBARO_COR.pele;
-    ctx.beginPath(); ctx.arc(0, -4, 2.7, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(0, 7, 2.5, 0, Math.PI * 2); ctx.fill();
-    // dedos apertando o cabo
-    ctx.strokeStyle = 'rgba(60,30,15,0.7)';
-    ctx.lineWidth = 0.8;
-    for (let d = 0; d < 3; d++) {
-        ctx.beginPath();
-        ctx.arc(0, -4, 2.7, Math.PI * 0.2 + d * 0.5, Math.PI * 0.8 + d * 0.5);
-        ctx.stroke();
-    }
-
-    ctx.restore();
-}
 
 // ---------------------------------------------------------------------------
 // BERSERKER (personagem) — corpo massivo + grande machado de guerra
@@ -270,7 +117,68 @@ window.desenharBarbaro = function (x, y, isMoving, angulo, hp, maxHp, pid) {
     }
 
     // ---------- MACHADO DE GUERRA (atrás do corpo; mãos desenhadas na função) ----------
-    desenharGrandeMachado(ctx, angulo || 0, isMoving, ciclo, swingT, t, furyStage, giroSpin);
+    ctx.save();
+    if (giroSpin > 0) {
+        ctx.translate(12, 16);
+        ctx.rotate((angulo || 0) + giroSpin);
+    } else {
+        ctx.translate(22, 13);
+        ctx.rotate(angulo || 0);
+    }
+
+    let swing = 0;
+    if (giroSpin > 0) {
+        swing = Math.sin(giroSpin * 3 + t * 2) * 0.05;
+    } else if (swingT > 0) {
+        let p = 1 - swingT;
+        let ease = 1 - Math.pow(1 - p, 2);
+        swing = -2.1 + ease * 2.9;
+    } else {
+        let sway = isMoving ? Math.sin(ciclo) * 0.16 : Math.sin(t * 2.0) * 0.05;
+        swing = -0.9 + sway;
+        if (furyStage === 3) swing += Math.sin(t * 9) * 0.06;
+    }
+    ctx.rotate(swing);
+
+    let wp = window.inventario ? window.inventario.arma : null;
+    let armaV = null;
+    if (x === window.meuX && y === window.meuY) { 
+        if (wp && wp.customVisual) armaV = wp;
+    }
+    if (typeof window.desenharMachadoExposta === 'function') window.desenharMachadoExposta(ctx, armaV);
+
+    // ---------- BRAÇOS que seguram o cabo ----------
+    ctx.lineCap = 'round';
+    // braço direito (segura o cabo perto da lâmina)
+    ctx.strokeStyle = BARBARO_COR.pele;
+    ctx.lineWidth = 5;
+    ctx.beginPath();
+    ctx.moveTo(-12, -5);
+    ctx.quadraticCurveTo(-6, -4, 0, -4);
+    ctx.stroke();
+    // braço esquerdo (segura mais embaixo)
+    ctx.lineWidth = 4.6;
+    ctx.beginPath();
+    ctx.moveTo(-10, 7);
+    ctx.quadraticCurveTo(-4, 7, 0, 7);
+    ctx.stroke();
+    // punhos de couro + mãos
+    ctx.fillStyle = BARBARO_COR.couroClaro;
+    ctx.fillRect(-1.2, -5.6, 2.6, 3.2);
+    ctx.fillRect(-1.2, 5.8, 2.6, 2.8);
+    ctx.fillStyle = BARBARO_COR.pele;
+    ctx.beginPath(); ctx.arc(0, -4, 2.7, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(0, 7, 2.5, 0, Math.PI * 2); ctx.fill();
+    // dedos apertando o cabo
+    ctx.strokeStyle = 'rgba(60,30,15,0.7)';
+    ctx.lineWidth = 0.8;
+    for (let d = 0; d < 3; d++) {
+        ctx.beginPath();
+        ctx.arc(0, -4, 2.7, Math.PI * 0.2 + d * 0.5, Math.PI * 0.8 + d * 0.5);
+        ctx.stroke();
+    }
+
+    ctx.restore();
 
     // ---------- CORPO ----------
     ctx.save();
@@ -445,4 +353,106 @@ window.enviarAtaqueBarbaro = function (ws) {
     let tx = pX + Math.cos(window.meuAngulo) * 35; let ty = pY + Math.sin(window.meuAngulo) * 35;
     if (typeof window.criarAnimacaoSangue === 'function') window.criarAnimacaoSangue(tx, ty);
     if (ws && ws.readyState === 1) { ws.send(JSON.stringify({ action: 'ataque_barbaro', angulo: window.meuAngulo })); }
+};
+
+window.desenharMachadoExposta = function(ctx, armaVisualCustom) {
+    let tamanho = 1;
+    let largura = 1;
+    let cBase = BARBARO_COR.cabelo;
+    let cMeio = BARBARO_COR.aco;
+    let cPonta = BARBARO_COR.ferro;
+    let cFio = BARBARO_COR.acoBrilho;
+
+    if (armaVisualCustom && armaVisualCustom.customVisual) {
+        let cv = armaVisualCustom.customVisual;
+        if (cv.tamanho) tamanho = cv.tamanho;
+        if (cv.largura) largura = cv.largura;
+        if (cv.cBase) cBase = cv.cBase;
+        if (cv.cMeio) cMeio = cv.cMeio;
+        if (cv.cPonta) cPonta = cv.cPonta;
+        if (cv.cFio) cFio = cv.cFio;
+    }
+
+    ctx.save();
+    ctx.scale(tamanho, largura);
+
+    // ---------- CABO de madeira ----------
+    const gCabo = ctx.createLinearGradient(-2, -6, 2, 26);
+    gCabo.addColorStop(0, '#6d4c2f');
+    gCabo.addColorStop(1, cBase);
+    ctx.fillStyle = gCabo;
+    ctx.fillRect(-2, -6, 4, 32);
+    ctx.strokeStyle = 'rgba(20,10,5,0.5)';
+    ctx.lineWidth = 0.8;
+    ctx.strokeRect(-2, -6, 4, 32);
+
+    // enrolamento de couro no cabo (punho)
+    ctx.fillStyle = BARBARO_COR.couroClaro;
+    for (let i = 0; i < 4; i++) {
+        ctx.fillRect(-2.5, 2 + i * 3, 5, 1.6);
+    }
+
+    // pomo de metal na ponta do cabo
+    ctx.fillStyle = BARBARO_COR.ferroClaro;
+    ctx.beginPath();
+    ctx.arc(0, 26, 3, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = BARBARO_COR.ferro;
+    ctx.beginPath();
+    ctx.arc(0, 26, 1.6, 0, Math.PI * 2);
+    ctx.fill();
+
+    // colar de metal entre cabo e l�mina
+    ctx.fillStyle = BARBARO_COR.ferro;
+    ctx.fillRect(-4, -7, 8, 3.5);
+    ctx.fillStyle = BARBARO_COR.ferroClaro;
+    ctx.fillRect(-4, -7, 8, 1.2);
+
+    // ---------- L�MINA em meia-lua gigante ----------
+    ctx.save();
+    ctx.shadowColor = 'rgba(20,25,35,0.7)';
+    ctx.shadowBlur = 10;
+    const gLamin = ctx.createLinearGradient(0, -42, 0, -8);
+    gLamin.addColorStop(0, cFio);
+    gLamin.addColorStop(0.5, cMeio);
+    gLamin.addColorStop(1, cPonta);
+    ctx.fillStyle = gLamin;
+    ctx.strokeStyle = cPonta;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(0, -8);
+    ctx.quadraticCurveTo(-22, -14, -26, -26);
+    ctx.quadraticCurveTo(-28, -38, -14, -40);
+    ctx.quadraticCurveTo(-4, -42, 2, -40);
+    ctx.quadraticCurveTo(10, -41, 18, -37);
+    ctx.quadraticCurveTo(25, -32, 23, -22);
+    ctx.quadraticCurveTo(20, -12, 0, -8);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+
+    // brilho dos fios de corte (superior esquerdo e direito)
+    ctx.strokeStyle = cFio;
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.moveTo(2, -40);
+    ctx.quadraticCurveTo(-4, -41, -14, -39);
+    ctx.quadraticCurveTo(-27, -37, -25, -26);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(2, -40);
+    ctx.quadraticCurveTo(10, -40, 18, -36);
+    ctx.quadraticCurveTo(24, -31, 22, -22);
+    ctx.stroke();
+
+    // respingos de sangue antigos na l�mina
+    ctx.fillStyle = 'rgba(150,20,20,0.55)';
+    ctx.beginPath();
+    ctx.ellipse(-12, -20, 2.4, 1.3, 0.6, 0, Math.PI * 2);
+    ctx.ellipse(14, -14, 2, 1.1, -0.4, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    ctx.restore();
 };

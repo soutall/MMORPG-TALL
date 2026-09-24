@@ -77,106 +77,30 @@
        Desenhada no espaço local do personagem, rotacionada em `rot`
        (0 rad = haste diagonal subindo para a direita).
        `carga` 0..1 => brilho da energia sombria na lâmina. */
-    function _foice(ctx, rot, carga, foiceCurta) {
+    function _foice(ctx, rot, carga, foiceCurta, x, y) {
         let tam = foiceCurta ? 0.62 : 1;
         ctx.translate(0, 0);
         ctx.rotate(rot);
-        // haste longa (madeira escura com metal)
-        ctx.beginPath();
-        ctx.moveTo(-20 * tam, 10 * tam);
-        ctx.lineTo(30 * tam, -16 * tam);
-        ctx.lineTo(31 * tam, -13 * tam);
-        ctx.lineTo(-18 * tam, 13 * tam);
-        ctx.closePath();
-        ctx.fillStyle = 'rgba(35,22,12,0.95)';
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(160,120,70,0.7)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        // faixa de metal na haste
-        ctx.strokeStyle = 'rgba(200,200,210,0.85)';
-        ctx.lineWidth = 2.4;
-        ctx.beginPath();
-        ctx.moveTo(2 * tam, -4 * tam);
-        ctx.lineTo(12 * tam, -9 * tam);
-        ctx.stroke();
-        // anel inferior (punho)
-        ctx.beginPath();
-        ctx.arc(-15 * tam, 8 * tam, 3.4 * tam, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(45,45,55,0.95)';
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(180,40,50,0.9)';
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
+            let wp = window.inventario ? window.inventario.arma : null;
+    let armaV = null;
+    if (x === window.meuX && y === window.meuY) { 
+        if (wp && wp.customVisual) armaV = wp;
+    }
+    if (typeof window.desenharFoiceExposta === 'function') window.desenharFoiceExposta(ctx, armaV, tam, carga);
 
-        // ★ A LÂMINA — crescente enorme, curva, escura com fio prateado ★
-        ctx.save();
-        // junção (respiroso "miolo" da foice)
-        ctx.beginPath();
-        ctx.arc(28 * tam, -15 * tam, 4.5 * tam, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(60,60,75,1)';
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(210,210,220,0.9)';
-        ctx.lineWidth = 1.4;
-        ctx.stroke();
-        // gema vermelho-roxo na junção
-        let brilhoGema = 0.55 + (carga || 0) * 0.45 + Math.sin(_agora() / 180) * 0.12;
-        ctx.beginPath();
-        ctx.arc(28 * tam, -15 * tam, 2.1 * tam, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(200,30,60,' + Math.min(1, brilhoGema) + ')';
-        ctx.fill();
-        ctx.shadowColor = 'rgba(255,40,110,0.9)';
-        ctx.shadowBlur = 6 + 10 * (carga || 0);
-        ctx.beginPath();
-        ctx.arc(28 * tam, -15 * tam, 1.1 * tam, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,220,230,0.95)';
-        ctx.fill();
-
-        // corpo da lâmina: grande arco de foice
-        ctx.fillStyle = 'rgba(20,18,26,0.98)';
-        ctx.beginPath();
-        ctx.arc(34 * tam, -34 * tam, 26 * tam, -1.05, 0.55);
-        ctx.lineTo(50 * tam, -14 * tam);
-        ctx.quadraticCurveTo(40 * tam, -6 * tam, 30 * tam, -8 * tam);
-        ctx.closePath();
-        ctx.fill();
-        // fio cortante (borda externa)
-        ctx.strokeStyle = 'rgba(225,225,235,0.95)';
-        ctx.lineWidth = 1.8;
-        ctx.beginPath();
-        ctx.arc(34 * tam, -34 * tam, 26 * tam, -1.0, 0.5);
-        ctx.stroke();
-        // fio interno escuro
-        ctx.strokeStyle = 'rgba(120,40,60,0.8)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(34 * tam, -34 * tam, 24.6 * tam, -0.9, 0.85);
-        ctx.stroke();
-        // runas sombrias na lâmina (brilham com a carga)
-        ctx.strokeStyle = 'rgba(255,40,80,' + Math.min(0.95, 0.25 + (carga || 0) * 0.7) + ')';
-        ctx.lineWidth = 1.1;
-        ctx.shadowColor = 'rgba(255,30,90,0.9)';
-        ctx.shadowBlur = 5 + 9 * (carga || 0);
-        for (let i = 0; i < 4; i++) {
-            let a = -0.85 + i * 0.34;
-            ctx.beginPath();
-            ctx.arc(34 * tam, -34 * tam, 22.6 * tam, a, a + 0.18);
-            ctx.stroke();
-        }
-        ctx.restore();
         ctx.rotate(-rot);
         ctx.translate(0, 0);
     }
 
     /* ============ FOICE CURTA (1 mão) — reuso da _foice com escala ============ */
-    function _foiceCurta(ctx, rot, carga) {
-        _foice(ctx, rot, carga, true);
+    function _foiceCurta(ctx, rot, carga, x, y) {
+        _foice(ctx, rot, carga, true, x, y);
     }
 
     // Cabo sobressalente decorativo nas costas quando usa a foice curta
-    function _foiceNascostas(ctx) {
+    function _foiceNascostas(ctx, x, y) {
         ctx.save();
-        _foice(ctx, -0.9, 0, false);
+        _foice(ctx, -0.9, 0, false, x, y);
         ctx.restore();
     }
 
@@ -678,7 +602,7 @@
             let rot = -p * Math.PI * 2 + (anim.alvoAng || 0);
             ctx.save();
             ctx.translate(-2, -22);
-            _foice(ctx, rot, 0.45);
+            _foice(ctx, rot, 0.45, false, posX, posY);
             ctx.restore();
             _braco(ctx, rot, 3.4);
         } else if (estado === 'pirueta') {
@@ -688,14 +612,14 @@
             let rot = (anim.dir || 1) * (0.4 + faseLocal * 2.6);
             ctx.save();
             ctx.translate(4, -21);
-            _foiceCurta(ctx, rot, 0.5);
+            _foiceCurta(ctx, rot, 0.5, posX, posY);
             ctx.restore();
             _braco(ctx, 0.9 + Math.sin(p * Math.PI * 3) * 1.2, 3.0);
         } else if (estado === 'geada') {
             // finca a foice no chão (punho perto da terra, lâmina para cima)
             ctx.save();
             ctx.translate(6, 2);
-            _foice(ctx, -1.25, 0.7);
+            _foice(ctx, -1.25, 0.7, false, posX, posY);
             ctx.restore();
             _braco(ctx, -1.3, 2.2);
         } else if (estado === 'execucao') {
@@ -705,7 +629,7 @@
                 ctx.save();
                 ctx.translate(0, -20);
                 ctx.rotate(-0.5 + tremor);
-                _foice(ctx, -0.9 + Math.sin(_agora() / 120) * 0.04, chanProg);
+                _foice(ctx, -0.9 + Math.sin(_agora() / 120) * 0.04, chanProg, false, posX, posY);
                 ctx.restore();
                 _braco(ctx, -1.6, 0.8);
             } else {
@@ -715,7 +639,7 @@
                 let rot = -1.9 + faseHit * 3.4;
                 ctx.save();
                 ctx.translate(-4, -20);
-                _foice(ctx, rot, 1);
+                _foice(ctx, rot, 1, false, posX, posY);
                 ctx.restore();
                 _braco(ctx, -2.0, 2.0);
             }
@@ -725,14 +649,14 @@
                 let rot = -0.5 + p * 2.6;
                 ctx.save();
                 ctx.translate(4, -21);
-                _foiceCurta(ctx, rot, 0.35);
+                _foiceCurta(ctx, rot, 0.35, posX, posY);
                 ctx.restore();
                 _braco(ctx, -0.5 + p * 1.4, 3.2);
             } else {
                 // marchando com a foice apoiada no ombro
                 ctx.save();
                 ctx.translate(-2, -23);
-                _foice(ctx, 0.35 + Math.sin(passo * Math.PI * 2) * 0.06, 0);
+                _foice(ctx, 0.35 + Math.sin(passo * Math.PI * 2) * 0.06, 0, false, posX, posY);
                 ctx.restore();
                 _braco(ctx, 0.2, 2.6);
             }
@@ -740,7 +664,7 @@
             // idle: foice de duas mãos apoiada à frente
             ctx.save();
             ctx.translate(-2, -23);
-            _foice(ctx, 0.32 + Math.sin(_agora() / 1400) * 0.02, 0.06 + Math.sin(_agora() / 1000) * 0.08);
+            _foice(ctx, 0.32 + Math.sin(_agora() / 1400) * 0.02, 0.06 + Math.sin(_agora() / 1000) * 0.08, false, posX, posY);
             ctx.restore();
             _braco(ctx, 0.2, 2.6);
         }
@@ -803,3 +727,111 @@
         agora: _agora
     };
 })();
+window.desenharFoiceExposta = function(ctx, armaVisualCustom, tam, carga) {
+    tam = tam || 1;
+    let cv = (armaVisualCustom && armaVisualCustom.customVisual) ? armaVisualCustom.customVisual : {};
+    let t = cv.tamanho || 1;
+    let l = cv.largura || 1;
+
+    let cBase = cv.cBase || 'rgba(35,22,12,0.95)';
+    let cMeio = cv.cMeio || 'rgba(20,18,26,0.98)';
+    let cPonta = cv.cPonta || 'rgba(200,30,60,1)';
+    let cFio = cv.cFio || 'rgba(225,225,235,0.95)';
+
+    ctx.save();
+    ctx.scale(t, l);
+
+    function _agora() { return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now(); }
+
+    // haste longa (madeira escura com metal)
+        ctx.beginPath();
+        ctx.moveTo(-20 * tam, 10 * tam);
+        ctx.lineTo(30 * tam, -16 * tam);
+        ctx.lineTo(31 * tam, -13 * tam);
+        ctx.lineTo(-18 * tam, 13 * tam);
+        ctx.closePath();
+        ctx.fillStyle = cBase;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(160,120,70,0.7)';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        // faixa de metal na haste
+        ctx.strokeStyle = 'rgba(200,200,210,0.85)';
+        ctx.lineWidth = 2.4;
+        ctx.beginPath();
+        ctx.moveTo(2 * tam, -4 * tam);
+        ctx.lineTo(12 * tam, -9 * tam);
+        ctx.stroke();
+        // anel inferior (punho)
+        ctx.beginPath();
+        ctx.arc(-15 * tam, 8 * tam, 3.4 * tam, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(45,45,55,0.95)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(180,40,50,0.9)';
+        ctx.lineWidth = 1.2;
+        ctx.stroke();
+
+        // ★ A LÂMINA — crescente enorme, curva, escura com fio prateado ★
+        ctx.save();
+        // junção (respiroso "miolo" da foice)
+        ctx.beginPath();
+        ctx.arc(28 * tam, -15 * tam, 4.5 * tam, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(60,60,75,1)';
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(210,210,220,0.9)';
+        ctx.lineWidth = 1.4;
+        ctx.stroke();
+        // gema vermelho-roxo na junção
+        let brilhoGema = 0.55 + (carga || 0) * 0.45 + Math.sin(_agora() / 180) * 0.12;
+        ctx.beginPath();
+        ctx.arc(28 * tam, -15 * tam, 2.1 * tam, 0, Math.PI * 2);
+        ctx.save();
+        ctx.globalAlpha = Math.min(1, brilhoGema);
+        ctx.fillStyle = cPonta;
+        ctx.fill();
+        ctx.restore();
+        ctx.shadowColor = cPonta;
+        ctx.shadowBlur = 6 + 10 * (carga || 0);
+        ctx.beginPath();
+        ctx.arc(28 * tam, -15 * tam, 1.1 * tam, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(255,220,230,0.95)';
+        ctx.fill();
+
+        // corpo da lâmina: grande arco de foice
+        ctx.fillStyle = cMeio;
+        ctx.beginPath();
+        ctx.arc(34 * tam, -34 * tam, 26 * tam, -1.05, 0.55);
+        ctx.lineTo(50 * tam, -14 * tam);
+        ctx.quadraticCurveTo(40 * tam, -6 * tam, 30 * tam, -8 * tam);
+        ctx.closePath();
+        ctx.fill();
+        // fio cortante (borda externa)
+        ctx.strokeStyle = cFio;
+        ctx.lineWidth = 1.8;
+        ctx.beginPath();
+        ctx.arc(34 * tam, -34 * tam, 26 * tam, -1.0, 0.5);
+        ctx.stroke();
+        // fio interno escuro
+        ctx.strokeStyle = 'rgba(120,40,60,0.8)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.arc(34 * tam, -34 * tam, 24.6 * tam, -0.9, 0.85);
+        ctx.stroke();
+        // runas sombrias na lâmina (brilham com a carga)
+        ctx.save();
+        ctx.globalAlpha = Math.min(0.95, 0.25 + (carga || 0) * 0.7);
+        ctx.strokeStyle = cPonta;
+        ctx.lineWidth = 1.1;
+        ctx.shadowColor = cPonta;
+        ctx.shadowBlur = 5 + 9 * (carga || 0);
+        for (let i = 0; i < 4; i++) {
+            let a = -0.85 + i * 0.34;
+            ctx.beginPath();
+            ctx.arc(34 * tam, -34 * tam, 22.6 * tam, a, a + 0.18);
+            ctx.stroke();
+        }
+        ctx.restore();
+        ctx.restore();
+
+    ctx.restore();
+};

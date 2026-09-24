@@ -767,958 +767,6 @@
     "pontosDisponiveis": 3,
     "ultimoLogin": 1789323926142
   },
-  "admin": {
-    "level": 17,
-    "xp": 3218,
-    "classe": "pikeman",
-    "hp": 496,
-    "x": 60518,
-    "y": 631,
-    "atributos": {
-      "forca": 1,
-      "inteligencia": 1,
-      "agilidade": 1,
-      "destreza": 20,
-      "vida": 1,
-      "profanidade": 1,
-      "divindade": 1,
-      "afinidade": 1
-    },
-    "pontosDisponiveis": 0,
-    "ultimoLogin": 1790177159466,
-    "skills": {},
-    "pontosHabilidade": 2,
-    "inventario": {
-      "slots": {
-        "capacete": {
-          "id": "drop_1789868070334_27",
-          "uid": "mu958hxa-gc31nczen",
-          "tipo": "equipamento",
-          "slot": "capacete",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🪖 CAPACETE RARO",
-          "icon": "🪖",
-          "status": {
-            "forca": 4,
-            "divindade": 3
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        "peitoral": {
-          "id": "drop_1789789097028_1",
-          "uid": "mu7u7tqc-a8fk909d8",
-          "tipo": "equipamento",
-          "slot": "peitoral",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🛡️ ARMADURA ÉPICO",
-          "icon": "🛡️",
-          "status": {
-            "forca": 5,
-            "inteligencia": 7,
-            "divindade": 5
-          },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
-        },
-        "arma": {
-          "id": "drop_1790064682651_64",
-          "uid": "muceakyj-fd47rawap",
-          "tipo": "equipamento",
-          "slot": "arma",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🔧 Chave Técnica",
-          "icon": "🔧",
-          "status": {
-            "inteligencia": 3
-          },
-          "cor": "#ffffff",
-          "classe": "dronemaster",
-          "armaChave": "chave_tecnico"
-        },
-        "armaSecundaria": {
-          "id": "drop_1790064679735_56",
-          "uid": "muceaipj-i5kc3tp4u",
-          "tipo": "equipamento",
-          "slot": "armaSecundaria",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🔋 Módulo de Energia ÉPICO",
-          "icon": "🔋",
-          "status": {
-            "inteligencia": 7,
-            "velocidadeAtaque": 6
-          },
-          "cor": "#a855f7",
-          "classe": "dronemaster",
-          "armaChave": "modulo_energia"
-        },
-        "colar": {
-          "id": "drop_1789873026881_15",
-          "uid": "mu986qf5-doieesvhz",
-          "tipo": "equipamento",
-          "slot": "colar",
-          "raridade": "lendario",
-          "raridadeNome": "LENDÁRIO",
-          "nome": "📿 COLAR LENDÁRIO",
-          "icon": "📿",
-          "status": {
-            "inteligencia": 9,
-            "afinidade": 10,
-            "vida": 11
-          },
-          "cor": "#ff7a00",
-          "classe": null,
-          "armaChave": null
-        },
-        "anel": {
-          "id": "drop_1789968278113_1",
-          "uid": "muaswaqp-w55ma5qg9",
-          "tipo": "equipamento",
-          "slot": "anel",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "💍 ANEL RARO",
-          "icon": "💍",
-          "status": {
-            "forca": 5,
-            "inteligencia": 2
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        "capa": {
-          "id": "drop_1789956382897_25",
-          "uid": "mualtcc1-1t3wiz47i",
-          "tipo": "equipamento",
-          "slot": "capa",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🧥 CAPA ÉPICO",
-          "icon": "🧥",
-          "status": {
-            "agilidade": 6,
-            "inteligencia": 4,
-            "destreza": 6
-          },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
-        },
-        "bota": {
-          "id": "drop_1790022598367_1",
-          "uid": "mubp8kin-q4h3hkllb",
-          "tipo": "equipamento",
-          "slot": "bota",
-          "raridade": "lendario",
-          "raridadeNome": "LENDÁRIO",
-          "nome": "🥾 BOTA LENDÁRIO",
-          "icon": "🥾",
-          "status": {
-            "destreza": 6,
-            "agilidade": 9,
-            "vida": 11,
-            "divindade": 10
-          },
-          "cor": "#ff7a00",
-          "classe": null,
-          "armaChave": null
-        },
-        "luva": {
-          "id": "drop_1789956469504_28",
-          "uid": "mualv75s-hxfaia1qq",
-          "tipo": "equipamento",
-          "slot": "luva",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🧤 LUVA ÉPICO",
-          "icon": "🧤",
-          "status": {
-            "forca": 5,
-            "destreza": 8,
-            "velocidadeAtaque": 8
-          },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
-        }
-      },
-      "mochila": [
-        {
-          "id": "drop_1789968278113_4",
-          "uid": "muaswaqp-yqb07r7ft",
-          "tipo": "equipamento",
-          "slot": "capa",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🧥 CAPA ÉPICO",
-          "icon": "🧥",
-          "status": {
-            "agilidade": 5,
-            "vida": 7
-          },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790015842352_3",
-          "uid": "mubl7rjk-gekog4zet",
-          "tipo": "equipamento",
-          "slot": "capa",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🧥 CAPA ÉPICO",
-          "icon": "🧥",
-          "status": {
-            "inteligencia": 7,
-            "vida": 8,
-            "agilidade": 6
-          },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789868016868_21",
-          "uid": "mu957co4-y4e7yaucq",
-          "tipo": "equipamento",
-          "slot": "colar",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "📿 COLAR ÉPICO",
-          "icon": "📿",
-          "status": {
-            "divindade": 6,
-            "vida": 6
-          },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789968278113_2",
-          "uid": "muaswaqp-q5msjaczf",
-          "tipo": "equipamento",
-          "slot": "peitoral",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🛡️ ARMADURA RARO",
-          "icon": "🛡️",
-          "status": {
-            "inteligencia": 2,
-            "vida": 2
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null,
-          "locked": true
-        },
-        {
-          "id": "drop_1790028406998_1",
-          "uid": "mubsp2hi-euzexjoqe",
-          "tipo": "equipamento",
-          "slot": "luva",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🧤 LUVA RARO",
-          "icon": "🧤",
-          "status": {
-            "vida": 4,
-            "destreza": 5
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789968278113_5",
-          "uid": "muaswaqp-q7fhdv3rm",
-          "tipo": "equipamento",
-          "slot": "bota",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🥾 BOTA RARO",
-          "icon": "🥾",
-          "status": {
-            "forca": 3,
-            "vida": 5
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789956361671_22",
-          "uid": "mualsvyf-7jm385083",
-          "tipo": "equipamento",
-          "slot": "capa",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🧥 CAPA RARO",
-          "icon": "🧥",
-          "status": {
-            "divindade": 4,
-            "agilidade": 2
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789787476939_2",
-          "uid": "mu7t93nv-hrsrrpdc6",
-          "tipo": "equipamento",
-          "slot": "capa",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🧥 CAPA RARO",
-          "icon": "🧥",
-          "status": {
-            "divindade": 4,
-            "agilidade": 4
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789956385590_26",
-          "uid": "mualteeu-lcvncwree",
-          "tipo": "equipamento",
-          "slot": "colar",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "📿 COLAR RARO",
-          "icon": "📿",
-          "status": {
-            "vida": 3,
-            "inteligencia": 3
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790022598367_2",
-          "uid": "mubp8kin-e9naa37c9",
-          "tipo": "equipamento",
-          "slot": "colar",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "📿 COLAR RARO",
-          "icon": "📿",
-          "status": {
-            "divindade": 2,
-            "vida": 4
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789854925379_1",
-          "uid": "mu8xer7n-ysqjhdgnl",
-          "tipo": "equipamento",
-          "slot": "arma",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "✨ Luz Sagrada",
-          "icon": "✨",
-          "status": {
-            "divindade": 2
-          },
-          "cor": "#ffffff",
-          "classe": "curandeiro",
-          "armaChave": "luz_sagrada"
-        },
-        {
-          "id": "drop_1790015742492_2",
-          "uid": "mubl5mho-ikolp22eb",
-          "tipo": "equipamento",
-          "slot": "capacete",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🪖 CAPACETE COMUM",
-          "icon": "🪖",
-          "status": {
-            "vida": 1
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790022598367_4",
-          "uid": "mubp8kin-9eiyx8g6z",
-          "tipo": "equipamento",
-          "slot": "capacete",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🪖 CAPACETE COMUM",
-          "icon": "🪖",
-          "status": {
-            "vida": 2
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789787494799_4",
-          "uid": "mu7t9hfz-ghkz25gq3",
-          "tipo": "equipamento",
-          "slot": "luva",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🧤 LUVA COMUM",
-          "icon": "🧤",
-          "status": {
-            "vida": 2
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789968278113_3",
-          "uid": "muaswaqp-4b5xq7fjd",
-          "tipo": "equipamento",
-          "slot": "luva",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🧤 LUVA COMUM",
-          "icon": "🧤",
-          "status": {
-            "forca": 3
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790022598367_3",
-          "uid": "mubp8kin-21j7y7hao",
-          "tipo": "equipamento",
-          "slot": "luva",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🧤 LUVA COMUM",
-          "icon": "🧤",
-          "status": {
-            "velocidadeAtaque": 2
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789957672779_41",
-          "uid": "muamkzm3-zs4qlthus",
-          "tipo": "equipamento",
-          "slot": "bota",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🥾 BOTA COMUM",
-          "icon": "🥾",
-          "status": {
-            "destreza": 3
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789787493831_3",
-          "uid": "mu7t9gp3-l4v9a6xtj",
-          "tipo": "equipamento",
-          "slot": "capa",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🧥 CAPA COMUM",
-          "icon": "🧥",
-          "status": {
-            "divindade": 3
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790022598367_5",
-          "uid": "mubp8kin-9d1w85rau",
-          "tipo": "equipamento",
-          "slot": "capa",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🧥 CAPA COMUM",
-          "icon": "🧥",
-          "status": {
-            "agilidade": 3
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789787460252_1",
-          "uid": "mu7t8qsc-x495wl1a7",
-          "tipo": "equipamento",
-          "slot": "colar",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "📿 COLAR COMUM",
-          "icon": "📿",
-          "status": {
-            "divindade": 1
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790064641018_3",
-          "uid": "muce9ou2-f580ie69n",
-          "tipo": "pedra",
-          "raridade": "lendario",
-          "raridadeNome": "PEDRA DE UPGRADE LENDÁRIA",
-          "nome": "💎 Pedra de Upgrade Lendária",
-          "icon": "💎",
-          "cor": "#ff7a00",
-          "quantidade": 10,
-          "autocoleta": true,
-          "stackavel": false,
-          "pedra": true
-        },
-        {
-          "id": "drop_1790064662077_28",
-          "uid": "mucea531-4u11l8xwk",
-          "tipo": "pedra",
-          "raridade": "comum",
-          "raridadeNome": "PEDRA DE UPGRADE COMUM",
-          "nome": "💎 Pedra de Upgrade Comum",
-          "icon": "💎",
-          "cor": "#ffffff",
-          "quantidade": 15,
-          "autocoleta": true,
-          "stackavel": false,
-          "pedra": true
-        },
-        {
-          "id": "drop_1790064652818_14",
-          "uid": "muce9xxu-97308wkq1",
-          "tipo": "consumivel",
-          "subtipo": "pocao_mp",
-          "nivel": 1,
-          "nome": "🔮 Poção de Mana I",
-          "icon": "🔮",
-          "cor": "#3498db",
-          "pctCura": 0.2,
-          "quantidade": 15,
-          "autocoleta": true,
-          "stackavel": false
-        },
-        {
-          "id": "drop_1790064658253_18",
-          "uid": "mucea24t-yk0qwsb46",
-          "tipo": "pedra",
-          "raridade": "raro",
-          "raridadeNome": "PEDRA DE UPGRADE RARA",
-          "nome": "💎 Pedra de Upgrade Rara",
-          "icon": "💎",
-          "cor": "#4da6ff",
-          "quantidade": 8,
-          "autocoleta": true,
-          "stackavel": false,
-          "pedra": true
-        },
-        {
-          "id": "drop_1790064678901_53",
-          "uid": "muceai2d-400stioge",
-          "tipo": "equipamento",
-          "slot": "bota",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🥾 BOTA RARO",
-          "icon": "🥾",
-          "status": {
-            "forca": 2,
-            "destreza": 5
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790064647435_10",
-          "uid": "muce9tsb-4oc19i5cg",
-          "tipo": "equipamento",
-          "slot": "capa",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🧥 CAPA COMUM",
-          "icon": "🧥",
-          "status": {
-            "agilidade": 1
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790064664772_33",
-          "uid": "mucea75w-wfy5lyypt",
-          "tipo": "equipamento",
-          "slot": "anel",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "💍 ANEL COMUM",
-          "icon": "💍",
-          "status": {
-            "destreza": 2
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790064662679_29",
-          "uid": "mucea5jr-t47onhjqb",
-          "tipo": "equipamento",
-          "slot": "armaSecundaria",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🔋 Módulo de Energia",
-          "icon": "🔋",
-          "status": {
-            "forca": 2
-          },
-          "cor": "#ffffff",
-          "classe": "dronemaster",
-          "armaChave": "modulo_energia"
-        },
-        {
-          "id": "drop_1790064662077_25",
-          "uid": "mucea531-90ubbbxyn",
-          "tipo": "equipamento",
-          "slot": "capa",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🧥 CAPA COMUM",
-          "icon": "🧥",
-          "status": {
-            "agilidade": 1
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789867998766_19",
-          "uid": "mu956ypa-haylkgsf1",
-          "tipo": "equipamento",
-          "slot": "bota",
-          "raridade": "lendario",
-          "raridadeNome": "LENDÁRIO",
-          "nome": "🥾 BOTA LENDÁRIO",
-          "icon": "🥾",
-          "status": {
-            "agilidade": 8,
-            "destreza": 9,
-            "divindade": 10,
-            "vida": 10
-          },
-          "cor": "#ff7a00",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790064684318_69",
-          "uid": "muceam8u-8wmrglypc",
-          "tipo": "equipamento",
-          "slot": "arma",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🔧 Chave Técnica",
-          "icon": "🔧",
-          "status": {
-            "inteligencia": 1
-          },
-          "cor": "#ffffff",
-          "classe": "dronemaster",
-          "armaChave": "chave_tecnico"
-        },
-        {
-          "id": "drop_1790079314602_181",
-          "uid": "mucn071m-a1cob5ppy",
-          "tipo": "pedra",
-          "raridade": "epico",
-          "raridadeNome": "PEDRA DE UPGRADE ÉPICA",
-          "nome": "💎 Pedra de Upgrade Épica",
-          "icon": "💎",
-          "cor": "#a855f7",
-          "quantidade": 11,
-          "autocoleta": true,
-          "stackavel": false,
-          "pedra": true
-        },
-        {
-          "id": "drop_1790079314602_180",
-          "uid": "mucn071m-su31sxb80",
-          "tipo": "consumivel",
-          "subtipo": "pocao_mp",
-          "nivel": 3,
-          "nome": "🔮 Poção de Mana III",
-          "icon": "💎",
-          "cor": "#7ec8ff",
-          "pctCura": 1,
-          "quantidade": 1,
-          "autocoleta": true,
-          "stackavel": false
-        },
-        {
-          "id": "drop_1790126810423_4",
-          "uid": "mudfa71z-lsbnsj9iw",
-          "tipo": "equipamento",
-          "slot": "arma",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "⚖️ Foice da Morte RARO",
-          "icon": "⚖️",
-          "status": {
-            "forca": 2,
-            "velocidadeAtaque": 5
-          },
-          "cor": "#4da6ff",
-          "classe": "pikeman",
-          "armaChave": "foice_da_morte"
-        },
-        {
-          "id": "drop_1790127019085_59",
-          "uid": "mudfeo25-ewzx025pd",
-          "tipo": "consumivel",
-          "subtipo": "pocao_mp",
-          "nivel": 2,
-          "nome": "🔮 Poção de Mana II",
-          "icon": "🔮",
-          "cor": "#3498db",
-          "pctCura": 0.3,
-          "quantidade": 5,
-          "autocoleta": true,
-          "stackavel": false
-        },
-        {
-          "id": "drop_1790134614349_21",
-          "uid": "mudjxglp-5nledja8m",
-          "tipo": "equipamento",
-          "slot": "peitoral",
-          "raridade": "lendario",
-          "raridadeNome": "LENDÁRIO",
-          "nome": "🛡️ ARMADURA LENDÁRIO",
-          "icon": "🛡️",
-          "status": {
-            "vida": 8,
-            "divindade": 9,
-            "forca": 12
-          },
-          "cor": "#ff7a00",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790144439048_16",
-          "uid": "mudps1e0-yyd2prhpy",
-          "tipo": "equipamento",
-          "slot": "capa",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🧥 CAPA RARO",
-          "icon": "🧥",
-          "status": {
-            "vida": 5,
-            "inteligencia": 5
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790144439048_17",
-          "uid": "mudps1e0-szsf07637",
-          "tipo": "equipamento",
-          "slot": "colar",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "📿 COLAR COMUM",
-          "icon": "📿",
-          "status": {
-            "vida": 1
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790144439048_18",
-          "uid": "mudps1e0-oek4m6dc9",
-          "tipo": "equipamento",
-          "slot": "arma",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🪄 Cajado Arcano ÉPICO",
-          "icon": "🪄",
-          "status": {
-            "inteligencia": 4,
-            "divindade": 4,
-            "velocidadeAtaque": 8
-          },
-          "cor": "#a855f7",
-          "classe": "mago",
-          "armaChave": "cajado_arcano"
-        },
-        {
-          "id": "drop_1790144439048_19",
-          "uid": "mudps1e0-7ekbm9357",
-          "tipo": "equipamento",
-          "slot": "capa",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🧥 CAPA COMUM",
-          "icon": "🧥",
-          "status": {
-            "inteligencia": 1
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790144439048_20",
-          "uid": "mudps1e0-s2j3udpu6",
-          "tipo": "equipamento",
-          "slot": "armaSecundaria",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "📖 Grimório Arcano RARO",
-          "icon": "📖",
-          "status": {
-            "inteligencia": 2,
-            "agilidade": 4
-          },
-          "cor": "#4da6ff",
-          "classe": "mago",
-          "armaChave": "grimorio_arcano"
-        },
-        {
-          "id": "drop_1790174407089_1",
-          "uid": "mue7mcvl-58ivvfs1d",
-          "tipo": "equipamento",
-          "slot": "colar",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "📿 COLAR COMUM",
-          "icon": "📿",
-          "status": {
-            "vida": 1
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        }
-      ]
-    },
-    "mana": 370,
-    "uiLayout": {
-      "pc": {
-        "actions": {
-          "x": 1176,
-          "y": 835,
-          "w": 399,
-          "h": 82
-        },
-        "minimap": {
-          "x": 2383,
-          "y": 8
-        },
-        "util-buttons": {
-          "x": 1588,
-          "y": 0,
-          "w": 478,
-          "h": 35
-        },
-        "hud-status-window": {
-          "x": 15,
-          "y": 93
-        },
-        "hud-buffs": {
-          "x": 0,
-          "y": 0
-        },
-        "status": {
-          "x": 1241,
-          "y": 13
-        },
-        "fps": {
-          "x": 2411,
-          "y": 155
-        },
-        "hud-xp-central": {
-          "x": 1170,
-          "y": 972
-        },
-        "hud-party": {
-          "x": 11,
-          "y": 185
-        }
-      },
-      "mobile": {
-        "hud-status-window": {
-          "x": 827,
-          "y": 842,
-          "w": 75,
-          "h": 76
-        },
-        "hud-xp-central": {
-          "x": 525,
-          "y": 909,
-          "w": 220,
-          "h": 12
-        },
-        "minimap": {
-          "x": 1119,
-          "y": 788,
-          "w": 141,
-          "h": 133
-        },
-        "actions": {
-          "x": 453,
-          "y": 867,
-          "w": 364,
-          "h": 54
-        },
-        "util-buttons": {
-          "x": 786,
-          "y": 18,
-          "w": 474,
-          "h": 34
-        },
-        "hud-party": {
-          "x": 76,
-          "y": 461,
-          "w": 180
-        }
-      }
-    },
-    "maxHp": 620,
-    "ogroModo": "passivo",
-    "ouro": 1259
-  },
   "vic": {
     "level": 1,
     "xp": 35,
@@ -1741,12 +789,12 @@
   },
   "Admin": {
     "level": 16,
-    "xp": 362,
-    "classe": "arqueiro_arcano",
-    "hp": 640,
-    "x": 60503,
-    "y": 707,
-    "ultimoLogin": 1790188268744,
+    "xp": 1286,
+    "classe": "summoner",
+    "hp": 8,
+    "x": 5323,
+    "y": 1670,
+    "ultimoLogin": 1790220746645,
     "atributos": {
       "forca": 4,
       "inteligencia": 1,
@@ -1794,21 +842,7 @@
           "classe": null,
           "armaChave": null
         },
-        "arma": {
-          "id": "drop_1789393252791_5",
-          "tipo": "equipamento",
-          "slot": "arma",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "✨ Luz Sagrada",
-          "icon": "✨",
-          "status": {
-            "inteligencia": 1
-          },
-          "cor": "#ffffff",
-          "classe": "curandeiro",
-          "armaChave": "luz_sagrada"
-        },
+        "arma": null,
         "armaSecundaria": null,
         "colar": {
           "id": "drop_1789397381704_11",
@@ -1844,215 +878,23 @@
           "armaChave": null
         },
         "capa": {
-          "id": "drop_1789392420000_49",
+          "id": "drop_1790075819931_113",
+          "uid": "muckxajf-wfxdr6ti4",
           "tipo": "equipamento",
           "slot": "capa",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🧥 CAPA RARO",
-          "icon": "🧥",
-          "status": {
-            "inteligencia": 4,
-            "agilidade": 2
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        "bota": null,
-        "luva": {
-          "id": "drop_1789392214124_4",
-          "tipo": "equipamento",
-          "slot": "luva",
-          "raridade": "lendario",
-          "raridadeNome": "LENDÁRIO",
-          "nome": "🧤 LUVA LENDÁRIO",
-          "icon": "🧤",
-          "status": {
-            "agilidade": 11,
-            "destreza": 10,
-            "vida": 9
-          },
-          "cor": "#ff7a00",
-          "classe": null,
-          "armaChave": null
-        }
-      },
-      "mochila": [
-        {
-          "id": "drop_1789397222286_4",
-          "tipo": "equipamento",
-          "slot": "anel",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "💍 ANEL RARO",
-          "icon": "💍",
-          "status": {
-            "destreza": 2,
-            "afinidade": 2
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789397244254_5",
-          "tipo": "equipamento",
-          "slot": "capacete",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🪖 CAPACETE RARO",
-          "icon": "🪖",
-          "status": {
-            "vida": 4,
-            "forca": 5
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789392063489_8",
-          "tipo": "equipamento",
-          "slot": "arma",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🪄 Cajado Arcano",
-          "icon": "🪄",
-          "status": {
-            "vida": 3
-          },
-          "cor": "#ffffff",
-          "classe": "mago",
-          "armaChave": "cajado_arcano"
-        },
-        {
-          "id": "drop_1789397348426_8",
-          "tipo": "equipamento",
-          "slot": "peitoral",
           "raridade": "epico",
           "raridadeNome": "ÉPICO",
-          "nome": "🛡️ ARMADURA ÉPICO",
-          "icon": "🛡️",
+          "nome": "🧥 CAPA ÉPICO",
+          "icon": "🧥",
           "status": {
-            "inteligencia": 5,
-            "forca": 6,
-            "divindade": 5
+            "inteligencia": 7,
+            "agilidade": 6
           },
           "cor": "#a855f7",
           "classe": null,
           "armaChave": null
         },
-        {
-          "id": "drop_1789393249364_3",
-          "tipo": "equipamento",
-          "slot": "peitoral",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🛡️ ARMADURA RARO",
-          "icon": "🛡️",
-          "status": {
-            "vida": 3,
-            "divindade": 5
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789397421197_19",
-          "tipo": "equipamento",
-          "slot": "anel",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "💍 ANEL COMUM",
-          "icon": "💍",
-          "status": {
-            "afinidade": 3
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789397384017_14",
-          "tipo": "equipamento",
-          "slot": "peitoral",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🛡️ ARMADURA RARO",
-          "icon": "🛡️",
-          "status": {
-            "vida": 3,
-            "agilidade": 4
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789397387397_15",
-          "tipo": "equipamento",
-          "slot": "anel",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "💍 ANEL RARO",
-          "icon": "💍",
-          "status": {
-            "inteligencia": 5,
-            "destreza": 4
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789397382138_12",
-          "tipo": "equipamento",
-          "slot": "colar",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "📿 COLAR COMUM",
-          "icon": "📿",
-          "status": {
-            "inteligencia": 2
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789392201029_2",
-          "tipo": "equipamento",
-          "slot": "colar",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "📿 COLAR RARO",
-          "icon": "📿",
-          "status": {
-            "divindade": 2,
-            "forca": 2
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789392192213_1",
-          "tipo": "equipamento",
-          "slot": "anel",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "💍 ANEL COMUM",
-          "icon": "💍",
-          "status": {
-            "inteligencia": 2
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
+        "bota": {
           "id": "drop_1789912251076_38",
           "uid": "mu9vjg04-823ox46yk",
           "tipo": "equipamento",
@@ -2071,108 +913,7 @@
           "classe": null,
           "armaChave": null
         },
-        {
-          "id": "drop_1789914402377_2",
-          "uid": "mu9wtjyh-pde3nrujv",
-          "tipo": "equipamento",
-          "slot": "peitoral",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🛡️ ARMADURA ÉPICO",
-          "icon": "🛡️",
-          "status": {
-            "agilidade": 6,
-            "divindade": 5,
-            "destreza": 8
-          },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789929294144_3",
-          "uid": "mua5oqio-28o3ogkwi",
-          "tipo": "equipamento",
-          "slot": "bota",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🥾 BOTA COMUM",
-          "icon": "🥾",
-          "status": {
-            "agilidade": 3
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789929267688_2",
-          "uid": "mua5o63s-db9d7lnih",
-          "tipo": "equipamento",
-          "slot": "capacete",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🪖 CAPACETE RARO",
-          "icon": "🪖",
-          "status": {
-            "agilidade": 4,
-            "divindade": 3
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789929244027_1",
-          "uid": "mua5nnuj-9q9t5xoqk",
-          "tipo": "equipamento",
-          "slot": "colar",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "📿 COLAR RARO",
-          "icon": "📿",
-          "status": {
-            "inteligencia": 3,
-            "afinidade": 3
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789929346503_6",
-          "uid": "mua5pux3-wiljv7kze",
-          "tipo": "equipamento",
-          "slot": "capacete",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🪖 CAPACETE ÉPICO",
-          "icon": "🪖",
-          "status": {
-            "divindade": 8,
-            "inteligencia": 6
-          },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1789930328342_12",
-          "uid": "mua6awie-5bsfkwnfe",
-          "tipo": "equipamento",
-          "slot": "peitoral",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🛡️ ARMADURA COMUM",
-          "icon": "🛡️",
-          "status": {
-            "forca": 2
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
+        "luva": {
           "id": "drop_1789397426551_28",
           "tipo": "equipamento",
           "slot": "luva",
@@ -2189,7 +930,9 @@
           "cor": "#ff7a00",
           "classe": null,
           "armaChave": null
-        },
+        }
+      },
+      "mochila": [
         {
           "id": "drop_1790075373377_3",
           "uid": "mucknpz5-71d6fddum",
@@ -2199,7 +942,7 @@
           "nome": "💎 Pedra de Upgrade Comum",
           "icon": "💎",
           "cor": "#ffffff",
-          "quantidade": 17,
+          "quantidade": 18,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -2227,24 +970,10 @@
           "nome": "💎 Pedra de Upgrade Épica",
           "icon": "💎",
           "cor": "#a855f7",
-          "quantidade": 13,
+          "quantidade": 14,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
-        },
-        {
-          "id": "drop_1790075454238_12",
-          "uid": "muckpgda-j11t93kp2",
-          "tipo": "consumivel",
-          "subtipo": "pocao_hp",
-          "nivel": 1,
-          "nome": "🧪 Poção de Vida I",
-          "icon": "🧪",
-          "cor": "#e74c3c",
-          "pctCura": 0.2,
-          "quantidade": 2,
-          "autocoleta": true,
-          "stackavel": false
         },
         {
           "id": "drop_1790075554740_54",
@@ -2255,7 +984,7 @@
           "nome": "💎 Pedra de Upgrade Rara",
           "icon": "💎",
           "cor": "#4da6ff",
-          "quantidade": 7,
+          "quantidade": 9,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -2270,7 +999,7 @@
           "icon": "💎",
           "cor": "#7ec8ff",
           "pctCura": 1,
-          "quantidade": 5,
+          "quantidade": 2,
           "autocoleta": true,
           "stackavel": false
         },
@@ -2284,7 +1013,7 @@
           "icon": "🔮",
           "cor": "#3498db",
           "pctCura": 0.3,
-          "quantidade": 5,
+          "quantidade": 6,
           "autocoleta": true,
           "stackavel": false
         },
@@ -2303,327 +1032,117 @@
           "stackavel": false
         },
         {
-          "id": "drop_1790075819931_113",
-          "uid": "muckxajf-wfxdr6ti4",
-          "tipo": "equipamento",
-          "slot": "capa",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🧥 CAPA ÉPICO",
-          "icon": "🧥",
-          "status": {
-            "inteligencia": 7,
-            "agilidade": 6
-          },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790087799339_198",
-          "uid": "mucs21wr-35d7qns0v",
-          "tipo": "equipamento",
-          "slot": "anel",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "💍 ANEL COMUM",
-          "icon": "💍",
-          "status": {
-            "vida": 3
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790087811892_203",
-          "uid": "mucs2blg-8mgllfav4",
-          "tipo": "equipamento",
-          "slot": "anel",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "💍 ANEL COMUM",
-          "icon": "💍",
-          "status": {
-            "afinidade": 3
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790087947505_245",
-          "uid": "mucs588j-9navibzsw",
-          "tipo": "equipamento",
-          "slot": "luva",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🧤 LUVA ÉPICO",
-          "icon": "🧤",
-          "status": {
-            "destreza": 7,
-            "forca": 6
-          },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790087959671_247",
-          "uid": "mucs5hmf-qqem80co9",
-          "tipo": "equipamento",
-          "slot": "capacete",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🪖 CAPACETE ÉPICO",
-          "icon": "🪖",
-          "status": {
-            "vida": 7,
-            "forca": 7
-          },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790087942844_242",
-          "uid": "mucs54n2-1g4puuo4m",
-          "tipo": "equipamento",
-          "slot": "anel",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "💍 ANEL ÉPICO",
-          "icon": "💍",
-          "status": {
-            "afinidade": 7,
-            "forca": 8,
-            "destreza": 6
-          },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790087942010_240",
-          "uid": "mucs53zv-lxgma2ly3",
-          "tipo": "equipamento",
-          "slot": "luva",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🧤 LUVA COMUM",
-          "icon": "🧤",
-          "status": {
-            "agilidade": 3
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790087936015_226",
-          "uid": "mucs4zdb-3fnn4rj2f",
-          "tipo": "equipamento",
-          "slot": "bota",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🥾 BOTA RARO",
-          "icon": "🥾",
-          "status": {
-            "destreza": 4,
-            "divindade": 2
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790087940904_238",
-          "uid": "mucs5356-dhhjbnxhq",
-          "tipo": "equipamento",
-          "slot": "armaSecundaria",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🧪 Bomba de Veneno",
-          "icon": "🧪",
-          "status": {
-            "destreza": 1
-          },
-          "cor": "#ffffff",
-          "classe": "ladino",
-          "armaChave": "bomba_veneno"
-        },
-        {
-          "id": "drop_1790087935010_223",
-          "uid": "mucs4yle-8345eliwb",
-          "tipo": "equipamento",
-          "slot": "luva",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🧤 LUVA COMUM",
-          "icon": "🧤",
-          "status": {
-            "agilidade": 1
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790087939242_234",
-          "uid": "mucs51uy-xekservze",
+          "id": "muekmuen732c-en1tiumj2",
+          "uid": "muekmuen732c-en1tiumj2",
           "tipo": "equipamento",
           "slot": "arma",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🗡️ Adaga do Assassino ÉPICO",
-          "icon": "🗡️",
+          "subTipo": "muekmuen732c-en1tiumj2",
+          "armaChave": "muekmuen732c-en1tiumj2",
+          "classe": "mago",
+          "classeRestrita": "mago",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
           "status": {
-            "forca": 8,
-            "velocidadeAtaque": 8
+            "forca": 50,
+            "vida": 20
           },
-          "cor": "#a855f7",
-          "classe": "ladino",
-          "armaChave": "adaga_ladino"
+          "customVisual": {
+            "tamanho": 40,
+            "largura": 3.5,
+            "cBase": "#39434f",
+            "cMeio": "#6b7e92",
+            "cPonta": "#b8c9db",
+            "cFio": "#00ff00"
+          }
         },
         {
-          "id": "drop_1790087939045_232",
-          "uid": "mucs51ph-gv3uhhphs",
+          "id": "muekmuena9m5-5ycz9e264",
+          "uid": "muekmuena9m5-5ycz9e264",
           "tipo": "equipamento",
-          "slot": "capa",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🧥 CAPA RARO",
-          "icon": "🧥",
+          "slot": "arma",
+          "subTipo": "muekmuena9m5-5ycz9e264",
+          "armaChave": "muekmuena9m5-5ycz9e264",
+          "classe": "mago",
+          "classeRestrita": "mago",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
           "status": {
-            "destreza": 2,
-            "inteligencia": 4
+            "forca": 50,
+            "vida": 20
           },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
+          "customVisual": {
+            "tamanho": 25,
+            "largura": 3.5,
+            "cBase": "#39434f",
+            "cMeio": "#6b7e92",
+            "cPonta": "#b8c9db",
+            "cFio": "#00ff00"
+          }
         },
         {
-          "id": "drop_1790087981884_251",
-          "uid": "mucs5yrg-fnfjha0uq",
+          "id": "muekmuenb32d-qdyffd3pw",
+          "uid": "muekmuenb32d-qdyffd3pw",
           "tipo": "equipamento",
-          "slot": "peitoral",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🛡️ ARMADURA ÉPICO",
-          "icon": "🛡️",
+          "slot": "arma",
+          "subTipo": "muekmuenb32d-qdyffd3pw",
+          "armaChave": "muekmuenb32d-qdyffd3pw",
+          "classe": "mago",
+          "classeRestrita": "mago",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
           "status": {
-            "divindade": 7,
-            "inteligencia": 7
+            "forca": 50,
+            "vida": 20
           },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
+          "customVisual": {
+            "tamanho": 40,
+            "largura": 4.5,
+            "cBase": "#ffff00",
+            "cMeio": "#ff0000",
+            "cPonta": "#0000ff",
+            "cFio": "#ffff00"
+          }
         },
         {
-          "id": "drop_1790088027890_254",
-          "uid": "mucs6y9e-0ayaiovu9",
+          "id": "muekmuenc4su-smrtr86zl",
+          "uid": "muekmuenc4su-smrtr86zl",
           "tipo": "equipamento",
-          "slot": "bota",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🥾 BOTA ÉPICO",
-          "icon": "🥾",
+          "slot": "arma",
+          "subTipo": "muekmuenc4su-smrtr86zl",
+          "armaChave": "muekmuenc4su-smrtr86zl",
+          "classe": "dronemaster",
+          "classeRestrita": "dronemaster",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
           "status": {
-            "vida": 6,
-            "agilidade": 6,
-            "destreza": 6
+            "forca": 50,
+            "vida": 20
           },
-          "cor": "#a855f7",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790095230395_267",
-          "uid": "mucwhbqz-nuf9bmyev",
-          "tipo": "equipamento",
-          "slot": "peitoral",
-          "raridade": "raro",
-          "raridadeNome": "RARO",
-          "nome": "🛡️ ARMADURA RARO",
-          "icon": "🛡️",
-          "status": {
-            "forca": 4,
-            "inteligencia": 5
-          },
-          "cor": "#4da6ff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790095230395_268",
-          "uid": "mucwhbqz-t4g34vane",
-          "tipo": "equipamento",
-          "slot": "capacete",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🪖 CAPACETE COMUM",
-          "icon": "🪖",
-          "status": {
-            "forca": 1
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790095230395_269",
-          "uid": "mucwhbqz-g5oh884go",
-          "tipo": "equipamento",
-          "slot": "luva",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🧤 LUVA COMUM",
-          "icon": "🧤",
-          "status": {
-            "destreza": 2
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790095230395_270",
-          "uid": "mucwhbqz-ywsjto2n3",
-          "tipo": "equipamento",
-          "slot": "luva",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🧤 LUVA COMUM",
-          "icon": "🧤",
-          "status": {
-            "forca": 1
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
-        },
-        {
-          "id": "drop_1790095230395_271",
-          "uid": "mucwhbqz-894k9611v",
-          "tipo": "equipamento",
-          "slot": "bota",
-          "raridade": "comum",
-          "raridadeNome": "COMUM",
-          "nome": "🥾 BOTA COMUM",
-          "icon": "🥾",
-          "status": {
-            "agilidade": 3
-          },
-          "cor": "#ffffff",
-          "classe": null,
-          "armaChave": null
+          "customVisual": {
+            "tamanho": 14,
+            "largura": 4.5,
+            "cBase": "#000000",
+            "cMeio": "#ff0000",
+            "cPonta": "#ff0000",
+            "cFio": "#ff0000"
+          }
         }
       ]
     },
-    "maxHp": 640,
-    "skills": {},
-    "pontosHabilidade": 2,
-    "mana": 100,
+    "maxHp": 876,
+    "skills": {
+      "execucao_morte": 3
+    },
+    "pontosHabilidade": 0,
+    "mana": 120,
     "uiLayout": {
       "hud-status-window": {
         "x": 0,
@@ -2678,7 +1197,7 @@
         "h": 101
       }
     },
-    "ouro": 1212
+    "ouro": 1264
   },
   "Admin2": {
     "level": 3,
@@ -4812,41 +3331,922 @@
     "maxHp": 120
   },
   "Tall2": {
-    "level": 1,
-    "xp": 0,
-    "classe": "mago",
-    "hp": 100,
-    "x": 60573,
-    "y": 443,
-    "ultimoLogin": 1790194127444,
+    "level": 9,
+    "xp": 697,
+    "classe": "curandeiro",
+    "hp": 576,
+    "x": 60628,
+    "y": 640,
+    "ultimoLogin": 1790207011566,
     "atributos": {
-      "forca": 1,
+      "forca": 8,
       "inteligencia": 1,
-      "agilidade": 1,
+      "agilidade": 3,
       "destreza": 1,
-      "vida": 1,
+      "vida": 2,
       "profanidade": 1,
       "divindade": 1,
       "afinidade": 1
     },
-    "pontosDisponiveis": 3,
+    "pontosDisponiveis": 1,
     "inventario": {
       "slots": {
-        "capacete": null,
-        "peitoral": null,
-        "arma": null,
-        "armaSecundaria": null,
-        "colar": null,
-        "anel": null,
-        "capa": null,
-        "bota": null,
-        "luva": null
+        "capacete": {
+          "id": "drop_1790195508489_244",
+          "uid": "muek6mtl-0ghz9medi",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🪖 CAPACETE COMUM",
+          "icon": "🪖",
+          "status": {
+            "divindade": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        "peitoral": {
+          "id": "drop_1790195589139_286",
+          "uid": "muek8d1v-j18584x5t",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "🛡️ ARMADURA LENDÁRIO",
+          "icon": "🛡️",
+          "status": {
+            "forca": 12,
+            "divindade": 12,
+            "destreza": 8
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        },
+        "arma": {
+          "id": "drop_1790194972285_191",
+          "uid": "muejv531-r7t8wxqt8",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🗡️ Espada de Pedra ÉPICO",
+          "icon": "🗡️",
+          "status": {
+            "vida": 6,
+            "velocidadeAtaque": 8,
+            "destreza": 6
+          },
+          "cor": "#a855f7",
+          "classe": "guerreiro",
+          "armaChave": "espada_pedra"
+        },
+        "armaSecundaria": {
+          "id": "drop_1790195503734_228",
+          "uid": "muek6j5i-knkmir60l",
+          "tipo": "equipamento",
+          "slot": "armaSecundaria",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🔪 Foice Curta",
+          "icon": "🔪",
+          "status": {
+            "agilidade": 1
+          },
+          "cor": "#ffffff",
+          "classe": "pikeman",
+          "armaChave": "foice_curta"
+        },
+        "colar": {
+          "id": "drop_1790194663265_10",
+          "uid": "muejoin5-1mpau0htr",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "📿 COLAR RARO",
+          "icon": "📿",
+          "status": {
+            "inteligencia": 4,
+            "divindade": 2
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        "anel": {
+          "id": "drop_1790194722882_37",
+          "uid": "muejpsn6-u6vlfq40w",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "💍 ANEL COMUM",
+          "icon": "💍",
+          "status": {
+            "destreza": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        "capa": {
+          "id": "drop_1790194930682_174",
+          "uid": "mueju8ze-qb45riivy",
+          "tipo": "equipamento",
+          "slot": "capa",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🧥 CAPA COMUM",
+          "icon": "🧥",
+          "status": {
+            "destreza": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        "bota": {
+          "id": "drop_1790195502400_217",
+          "uid": "muek6i4g-7o4rzqc4w",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "🥾 BOTA LENDÁRIO",
+          "icon": "🥾",
+          "status": {
+            "agilidade": 12,
+            "forca": 10,
+            "vida": 11,
+            "destreza": 10
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        },
+        "luva": {
+          "id": "drop_1790194844298_148",
+          "uid": "muejsebu-54n57dckz",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🧤 LUVA COMUM",
+          "icon": "🧤",
+          "status": {
+            "destreza": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        }
       },
-      "mochila": []
+      "mochila": [
+        {
+          "id": "drop_1790194677848_24",
+          "uid": "muejotw8-dgz898gxj",
+          "tipo": "pedra",
+          "raridade": "lendario",
+          "raridadeNome": "PEDRA DE UPGRADE LENDÁRIA",
+          "nome": "💎 Pedra de Upgrade Lendária",
+          "icon": "💎",
+          "cor": "#ff7a00",
+          "quantidade": 7,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790194663036_7",
+          "uid": "muejoigs-99u939bka",
+          "tipo": "pedra",
+          "raridade": "epico",
+          "raridadeNome": "PEDRA DE UPGRADE ÉPICA",
+          "nome": "💎 Pedra de Upgrade Épica",
+          "icon": "💎",
+          "cor": "#a855f7",
+          "quantidade": 12,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790194849215_156",
+          "uid": "muejsi4f-gxhr2ae8m",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🧤 LUVA RARO",
+          "icon": "🧤",
+          "status": {
+            "vida": 2,
+            "destreza": 4
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194886998_170",
+          "uid": "muejtb9y-txiyh3q20",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🥾 BOTA RARO",
+          "icon": "🥾",
+          "status": {
+            "agilidade": 3,
+            "destreza": 4
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194964546_186",
+          "uid": "muejuz42-h7doyhnbc",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🥾 BOTA RARO",
+          "icon": "🥾",
+          "status": {
+            "destreza": 4,
+            "agilidade": 5
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194829847_108",
+          "uid": "muejs36f-7ky8nr4xz",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "📿 COLAR RARO",
+          "icon": "📿",
+          "status": {
+            "divindade": 4,
+            "afinidade": 4
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194752248_71",
+          "uid": "muejqfaw-b78g6i6aq",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "💍 ANEL RARO",
+          "icon": "💍",
+          "status": {
+            "afinidade": 2,
+            "inteligencia": 2
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194726431_41",
+          "uid": "muejpvdr-mxjyqbccy",
+          "tipo": "pedra",
+          "raridade": "raro",
+          "raridadeNome": "PEDRA DE UPGRADE RARA",
+          "nome": "💎 Pedra de Upgrade Rara",
+          "icon": "💎",
+          "cor": "#4da6ff",
+          "quantidade": 19,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790194769399_86",
+          "uid": "muejqsjb-7bl9czvut",
+          "tipo": "equipamento",
+          "slot": "armaSecundaria",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🛡️ Escudo de Pedra",
+          "icon": "🛡️",
+          "status": {
+            "divindade": 3
+          },
+          "cor": "#ffffff",
+          "classe": "guerreiro",
+          "armaChave": "escudo_pedra"
+        },
+        {
+          "id": "drop_1790194837433_143",
+          "uid": "muejs915-e6bdmxni8",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🪖 CAPACETE COMUM",
+          "icon": "🪖",
+          "status": {
+            "divindade": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194825631_106",
+          "uid": "muejrzxb-l9y2wa2eu",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🛡️ ARMADURA COMUM",
+          "icon": "🛡️",
+          "status": {
+            "divindade": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194837066_130",
+          "uid": "muejs8qy-u3opjgtv3",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🛡️ ARMADURA COMUM",
+          "icon": "🛡️",
+          "status": {
+            "inteligencia": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194837426_140",
+          "uid": "muejs90y-k7xt5aggk",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🛡️ ARMADURA COMUM",
+          "icon": "🛡️",
+          "status": {
+            "vida": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194802031_101",
+          "uid": "muejrhpr-asnftcvcu",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🧤 LUVA COMUM",
+          "icon": "🧤",
+          "status": {
+            "vida": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194858665_162",
+          "uid": "muejspex-a4jnzhvsq",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🧤 LUVA COMUM",
+          "icon": "🧤",
+          "status": {
+            "inteligencia": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194729132_44",
+          "uid": "muejpxgs-618cgv8ji",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🥾 BOTA COMUM",
+          "icon": "🥾",
+          "status": {
+            "vida": 1
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194948615_178",
+          "uid": "muejumtj-iqi076gsn",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🥾 BOTA COMUM",
+          "icon": "🥾",
+          "status": {
+            "agilidade": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194837048_123",
+          "uid": "muejs8qg-rweijhi0v",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "💍 ANEL COMUM",
+          "icon": "💍",
+          "status": {
+            "inteligencia": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194950048_181",
+          "uid": "muejunxc-gig96edra",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "💍 ANEL COMUM",
+          "icon": "💍",
+          "status": {
+            "inteligencia": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194660482_2",
+          "uid": "muejoghu-2tvjl4xng",
+          "tipo": "pedra",
+          "raridade": "comum",
+          "raridadeNome": "PEDRA DE UPGRADE COMUM",
+          "nome": "💎 Pedra de Upgrade Comum",
+          "icon": "💎",
+          "cor": "#ffffff",
+          "quantidade": 22,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790194669031_17",
+          "uid": "muejon3b-lvzblmu7a",
+          "tipo": "consumivel",
+          "subtipo": "pocao_mp",
+          "nivel": 1,
+          "nome": "🔮 Poção de Mana I",
+          "icon": "🔮",
+          "cor": "#3498db",
+          "pctCura": 0.2,
+          "quantidade": 12,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790194663043_9",
+          "uid": "muejoigz-lsn7s9c99",
+          "tipo": "consumivel",
+          "subtipo": "pocao_mp",
+          "nivel": 2,
+          "nome": "🔮 Poção de Mana II",
+          "icon": "🔮",
+          "cor": "#3498db",
+          "pctCura": 0.3,
+          "quantidade": 5,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790194836708_118",
+          "uid": "muejs8h0-9vi87nue6",
+          "tipo": "consumivel",
+          "subtipo": "pocao_mp",
+          "nivel": 3,
+          "nome": "🔮 Poção de Mana III",
+          "icon": "💎",
+          "cor": "#7ec8ff",
+          "pctCura": 1,
+          "quantidade": 3,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790194837439_146",
+          "uid": "muejs91b-9qyt8za01",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🗡️ Espada de Pedra",
+          "icon": "🗡️",
+          "status": {
+            "forca": 1
+          },
+          "cor": "#ffffff",
+          "classe": "guerreiro",
+          "armaChave": "espada_pedra"
+        },
+        {
+          "id": "drop_1790195487233_196",
+          "uid": "muek66f5-qecrerqjo",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🛡️ ARMADURA COMUM",
+          "icon": "🛡️",
+          "status": {
+            "inteligencia": 1
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195502406_219",
+          "uid": "muek6i4m-48s2avnq2",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🥾 BOTA RARO",
+          "icon": "🥾",
+          "status": {
+            "vida": 4,
+            "agilidade": 4
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195501008_215",
+          "uid": "muek6h1s-sk4t36fl8",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "💍 ANEL RARO",
+          "icon": "💍",
+          "status": {
+            "inteligencia": 3,
+            "afinidade": 5
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195507817_240",
+          "uid": "muek6max-19v68zmp5",
+          "tipo": "equipamento",
+          "slot": "armaSecundaria",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🔪 Foice Curta RARO",
+          "icon": "🔪",
+          "status": {
+            "forca": 5,
+            "agilidade": 3
+          },
+          "cor": "#4da6ff",
+          "classe": "pikeman",
+          "armaChave": "foice_curta"
+        },
+        {
+          "id": "drop_1790195506801_235",
+          "uid": "muek6lip-ioot3fvro",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "📿 COLAR COMUM",
+          "icon": "📿",
+          "status": {
+            "divindade": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195516155_254",
+          "uid": "muek6sqj-zty89v0ov",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🥾 BOTA RARO",
+          "icon": "🥾",
+          "status": {
+            "destreza": 3,
+            "divindade": 4
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195500401_212",
+          "uid": "muek6gkx-4rg0kdmrf",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🧤 LUVA RARO",
+          "icon": "🧤",
+          "status": {
+            "velocidadeAtaque": 5,
+            "inteligencia": 2
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195519134_259",
+          "uid": "muek6v1a-i3re8yivi",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "📿 COLAR RARO",
+          "icon": "📿",
+          "status": {
+            "divindade": 2,
+            "vida": 5
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194743165_57",
+          "uid": "muejq8al-7r6ew0ptw",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🥾 BOTA RARO",
+          "icon": "🥾",
+          "status": {
+            "vida": 3,
+            "forca": 5
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194836714_119",
+          "uid": "muejs8h6-y2f8pg28s",
+          "tipo": "equipamento",
+          "slot": "armaSecundaria",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🛡️ Escudo de Pedra RARO",
+          "icon": "🛡️",
+          "status": {
+            "vida": 5,
+            "divindade": 4
+          },
+          "cor": "#4da6ff",
+          "classe": "guerreiro",
+          "armaChave": "escudo_pedra"
+        },
+        {
+          "id": "drop_1790194677848_22",
+          "uid": "muejotw8-hdz08vyk6",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🪖 CAPACETE COMUM",
+          "icon": "🪖",
+          "status": {
+            "vida": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790194698807_27",
+          "uid": "muejpa2f-xc5txwzcp",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🛡️ ARMADURA RARO",
+          "icon": "🛡️",
+          "status": {
+            "vida": 5,
+            "divindade": 3
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195589151_290",
+          "uid": "muek8d27-fbvx9hhic",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "💍 ANEL COMUM",
+          "icon": "💍",
+          "status": {
+            "afinidade": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195588950_284",
+          "uid": "muek8cwm-9w9dtoo4v",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🥾 BOTA ÉPICO",
+          "icon": "🥾",
+          "status": {
+            "agilidade": 5,
+            "vida": 6
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195588285_280",
+          "uid": "muek8ce5-6vm9pi2k7",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "💍 ANEL COMUM",
+          "icon": "💍",
+          "status": {
+            "afinidade": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195640534_324",
+          "uid": "muek9gpi-hnuw1a3tu",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "🧤 LUVA LENDÁRIO",
+          "icon": "🧤",
+          "status": {
+            "destreza": 8,
+            "velocidadeAtaque": 9,
+            "inteligencia": 9,
+            "forca": 10
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195650034_331",
+          "uid": "muek9o1e-42fu789fy",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🪖 CAPACETE ÉPICO",
+          "icon": "🪖",
+          "status": {
+            "divindade": 8,
+            "forca": 6,
+            "agilidade": 4
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195665634_339",
+          "uid": "mueka02q-p6svar7o4",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🪖 CAPACETE RARO",
+          "icon": "🪖",
+          "status": {
+            "divindade": 2,
+            "vida": 2
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195675859_341",
+          "uid": "mueka7yr-wx8aevugc",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🧤 LUVA COMUM",
+          "icon": "🧤",
+          "status": {
+            "velocidadeAtaque": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195692726_346",
+          "uid": "muekakza-vpgq78vkq",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "📿 COLAR ÉPICO",
+          "icon": "📿",
+          "status": {
+            "vida": 7,
+            "forca": 5,
+            "inteligencia": 5
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790195719089_351",
+          "uid": "muekb5bl-qi80pepqd",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "💍 ANEL LENDÁRIO",
+          "icon": "💍",
+          "status": {
+            "divindade": 9,
+            "vida": 7,
+            "inteligencia": 9
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        }
+      ]
     },
-    "skills": {},
-    "pontosHabilidade": 0,
-    "mana": 50
+    "skills": {
+      "corte": 4,
+      "tornado": 3,
+      "giro_foice": 3
+    },
+    "pontosHabilidade": 1,
+    "mana": 90,
+    "ouro": 1234,
+    "maxHp": 576
   },
   "Guerreiro": {
     "level": 3,
@@ -9496,5 +8896,806 @@
     "x": 60474,
     "y": 640,
     "ultimoLogin": 1790188619910
+  },
+  "admin": {
+    "level": 5,
+    "xp": 700,
+    "classe": "curandeiro",
+    "hp": 46,
+    "x": 63913.7880794702,
+    "y": 828.8211920529801,
+    "ultimoLogin": 1790238743970,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 7
+    },
+    "pontosDisponiveis": 1,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": [
+        {
+          "id": 1790196633048,
+          "tipo": "equipamento",
+          "slot": "arma",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
+          "status": {
+            "forca": 50,
+            "vida": 20
+          },
+          "customVisual": {
+            "tamanho": 40,
+            "largura": 3.5,
+            "cBase": "#000000",
+            "cMeio": "#ff6600",
+            "cPonta": "#ff0000",
+            "cFio": "#ff0000"
+          }
+        },
+        {
+          "id": 1790197037698,
+          "tipo": "equipamento",
+          "slot": "arma",
+          "icon": "⚔️",
+          "nome": "Espada Do Rei",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
+          "status": {
+            "forca": 50,
+            "vida": 20
+          },
+          "customVisual": {
+            "tamanho": 40,
+            "largura": 6,
+            "cBase": "#fbff00",
+            "cMeio": "#000000",
+            "cPonta": "#ffffff",
+            "cFio": "#ffffff"
+          }
+        },
+        {
+          "id": "muekmuep6iec-689y7xwo8",
+          "uid": "muekmuep6iec-689y7xwo8",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "subTipo": "muekmuep6iec-689y7xwo8",
+          "armaChave": "muekmuep6iec-689y7xwo8",
+          "classe": "roqueiro",
+          "classeRestrita": "roqueiro",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
+          "status": {
+            "forca": 50,
+            "vida": 20
+          },
+          "customVisual": {
+            "tamanho": 40,
+            "largura": 3.5,
+            "cBase": "#0a0000",
+            "cMeio": "#cc0000",
+            "cPonta": "#b8c9db",
+            "cFio": "#eeff00"
+          }
+        },
+        {
+          "id": "muekmuer56b8-q3h3v3agv",
+          "uid": "muekmuer56b8-q3h3v3agv",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "subTipo": "muekmuer56b8-q3h3v3agv",
+          "armaChave": "muekmuer56b8-q3h3v3agv",
+          "classe": "guerreiro",
+          "classeRestrita": "guerreiro",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
+          "status": {
+            "forca": 50,
+            "vida": 20
+          },
+          "customVisual": {
+            "tamanho": 40,
+            "largura": 5.5,
+            "cBase": "#ff0000",
+            "cMeio": "#ff0000",
+            "cPonta": "#b8c9db",
+            "cFio": "#ffd500"
+          }
+        },
+        {
+          "id": "drop_1790207442843_7",
+          "uid": "muerafff-8v2q6umnd",
+          "tipo": "pedra",
+          "raridade": "epico",
+          "raridadeNome": "PEDRA DE UPGRADE ÉPICA",
+          "nome": "💎 Pedra de Upgrade Épica",
+          "icon": "💎",
+          "cor": "#a855f7",
+          "quantidade": 2,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790213706782_2",
+          "uid": "muev0opq-5jciwxfrz",
+          "tipo": "pedra",
+          "raridade": "raro",
+          "raridadeNome": "PEDRA DE UPGRADE RARA",
+          "nome": "💎 Pedra de Upgrade Rara",
+          "icon": "💎",
+          "cor": "#4da6ff",
+          "quantidade": 3,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790213714982_7",
+          "uid": "muev0v1i-c3fjdoo2t",
+          "tipo": "pedra",
+          "raridade": "comum",
+          "raridadeNome": "PEDRA DE UPGRADE COMUM",
+          "nome": "💎 Pedra de Upgrade Comum",
+          "icon": "💎",
+          "cor": "#ffffff",
+          "quantidade": 3,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790213762847_17",
+          "uid": "muev1vz3-acxx1l31y",
+          "tipo": "pedra",
+          "raridade": "lendario",
+          "raridadeNome": "PEDRA DE UPGRADE LENDÁRIA",
+          "nome": "💎 Pedra de Upgrade Lendária",
+          "icon": "💎",
+          "cor": "#ff7a00",
+          "quantidade": 1,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790215393521_46",
+          "uid": "muew0u7l-kol7hffqw",
+          "tipo": "consumivel",
+          "subtipo": "pocao_mp",
+          "nivel": 3,
+          "nome": "🔮 Poção de Mana III",
+          "icon": "💎",
+          "cor": "#7ec8ff",
+          "pctCura": 1,
+          "quantidade": 2,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790218735398_1",
+          "uid": "muey0gti-gbqdbk92w",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "💍 ANEL RARO",
+          "icon": "💍",
+          "status": {
+            "forca": 4,
+            "divindade": 4
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790218992002_37",
+          "uid": "muey5yte-h0wcviqa7",
+          "tipo": "consumivel",
+          "subtipo": "pocao_mp",
+          "nivel": 2,
+          "nome": "🔮 Poção de Mana II",
+          "icon": "🔮",
+          "cor": "#3498db",
+          "pctCura": 0.3,
+          "quantidade": 1,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790219013789_41",
+          "uid": "muey6fml-60rqjlbwj",
+          "tipo": "consumivel",
+          "subtipo": "pocao_mp",
+          "nivel": 1,
+          "nome": "🔮 Poção de Mana I",
+          "icon": "🔮",
+          "cor": "#3498db",
+          "pctCura": 0.2,
+          "quantidade": 1,
+          "autocoleta": true,
+          "stackavel": false
+        }
+      ]
+    },
+    "skills": {
+      "giro_descontrolado": 4
+    },
+    "pontosHabilidade": 1,
+    "mana": 50,
+    "maxHp": 100,
+    "ouro": 1358,
+    "uiLayout": {
+      "pc": {
+        "status": {
+          "x": 1192,
+          "y": 11,
+          "w": 176,
+          "h": 20
+        },
+        "fps": {
+          "x": 1229,
+          "y": 37,
+          "w": 102,
+          "h": 18
+        },
+        "hud-status-window": {
+          "x": 54,
+          "y": 234,
+          "w": 72,
+          "h": 76
+        },
+        "hud-party": {
+          "x": 51,
+          "y": 202,
+          "w": 180
+        },
+        "minimap": {
+          "x": 2419,
+          "y": 3,
+          "w": 141,
+          "h": 147
+        },
+        "actions": {
+          "x": 1176,
+          "y": 835,
+          "w": 399,
+          "h": 82
+        },
+        "util-buttons": {
+          "x": 1588,
+          "y": 0,
+          "w": 478,
+          "h": 35
+        },
+        "hud-buffs": {
+          "x": 0,
+          "y": 0
+        },
+        "hud-xp-central": {
+          "x": 1170,
+          "y": 972
+        }
+      },
+      "mobile": {}
+    },
+    "ogroModo": "agressivo"
+  },
+  "heroi_admin": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 61800,
+    "y": 2000,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": [
+        {
+          "id": 1790196633048,
+          "tipo": "equipamento",
+          "slot": "arma",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
+          "status": {
+            "forca": 50,
+            "vida": 20
+          },
+          "customVisual": {
+            "tamanho": 40,
+            "largura": 3.5,
+            "cBase": "#000000",
+            "cMeio": "#ff6600",
+            "cPonta": "#ff0000",
+            "cFio": "#ff0000"
+          }
+        },
+        {
+          "id": 1790197037698,
+          "tipo": "equipamento",
+          "slot": "arma",
+          "icon": "⚔️",
+          "nome": "Espada Do Rei",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
+          "status": {
+            "forca": 50,
+            "vida": 20
+          },
+          "customVisual": {
+            "tamanho": 40,
+            "largura": 6,
+            "cBase": "#fbff00",
+            "cMeio": "#000000",
+            "cPonta": "#ffffff",
+            "cFio": "#ffffff"
+          }
+        },
+        {
+          "id": "muekmuep6iec-689y7xwo8",
+          "uid": "muekmuep6iec-689y7xwo8",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "subTipo": "muekmuep6iec-689y7xwo8",
+          "armaChave": "muekmuep6iec-689y7xwo8",
+          "classe": "roqueiro",
+          "classeRestrita": "roqueiro",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
+          "status": {
+            "forca": 50,
+            "vida": 20
+          },
+          "customVisual": {
+            "tamanho": 40,
+            "largura": 3.5,
+            "cBase": "#0a0000",
+            "cMeio": "#cc0000",
+            "cPonta": "#b8c9db",
+            "cFio": "#eeff00"
+          }
+        },
+        {
+          "id": "muekmuer56b8-q3h3v3agv",
+          "uid": "muekmuer56b8-q3h3v3agv",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "subTipo": "muekmuer56b8-q3h3v3agv",
+          "armaChave": "muekmuer56b8-q3h3v3agv",
+          "classe": "guerreiro",
+          "classeRestrita": "guerreiro",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
+          "status": {
+            "forca": 50,
+            "vida": 20
+          },
+          "customVisual": {
+            "tamanho": 40,
+            "largura": 5.5,
+            "cBase": "#ff0000",
+            "cMeio": "#ff0000",
+            "cPonta": "#b8c9db",
+            "cFio": "#ffd500"
+          }
+        }
+      ]
+    },
+    "maxHp": 700,
+    "ultimoLogin": 1790207197752
+  },
+  "heroi_Admin": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 61800,
+    "y": 2000,
+    "inventario": {
+      "slots": {
+        "capacete": {
+          "id": "drop_1789396756083_1",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🪖 CAPACETE ÉPICO",
+          "icon": "🪖",
+          "status": {
+            "divindade": 5,
+            "vida": 4
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        "peitoral": {
+          "id": "drop_1789397387409_16",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "🛡️ ARMADURA LENDÁRIO",
+          "icon": "🛡️",
+          "status": {
+            "forca": 10,
+            "vida": 10,
+            "divindade": 12,
+            "agilidade": 6
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        },
+        "arma": {
+          "id": "muekmuenb32d-qdyffd3pw",
+          "uid": "muekmuenb32d-qdyffd3pw",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "subTipo": "muekmuenb32d-qdyffd3pw",
+          "armaChave": "muekmuenb32d-qdyffd3pw",
+          "classe": "mago",
+          "classeRestrita": "mago",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
+          "status": {
+            "forca": 50,
+            "vida": 20
+          },
+          "customVisual": {
+            "tamanho": 40,
+            "largura": 4.5,
+            "cBase": "#ffff00",
+            "cMeio": "#ff0000",
+            "cPonta": "#0000ff",
+            "cFio": "#ffff00"
+          }
+        },
+        "armaSecundaria": null,
+        "colar": {
+          "id": "drop_1789397381704_11",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "📿 COLAR ÉPICO",
+          "icon": "📿",
+          "status": {
+            "afinidade": 8,
+            "divindade": 7,
+            "forca": 7
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        "anel": {
+          "id": "drop_1789397424089_22",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "💍 ANEL ÉPICO",
+          "icon": "💍",
+          "status": {
+            "afinidade": 4,
+            "destreza": 7
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        "capa": {
+          "id": "drop_1790075819931_113",
+          "uid": "muckxajf-wfxdr6ti4",
+          "tipo": "equipamento",
+          "slot": "capa",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🧥 CAPA ÉPICO",
+          "icon": "🧥",
+          "status": {
+            "inteligencia": 7,
+            "agilidade": 6
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        "bota": {
+          "id": "drop_1789912251076_38",
+          "uid": "mu9vjg04-823ox46yk",
+          "tipo": "equipamento",
+          "slot": "bota",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "🥾 BOTA LENDÁRIO",
+          "icon": "🥾",
+          "status": {
+            "destreza": 6,
+            "agilidade": 11,
+            "vida": 9,
+            "divindade": 12
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        },
+        "luva": {
+          "id": "drop_1789397426551_28",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "🧤 LUVA LENDÁRIO",
+          "icon": "🧤",
+          "status": {
+            "destreza": 7,
+            "forca": 9,
+            "vida": 10,
+            "agilidade": 7
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        }
+      },
+      "mochila": [
+        {
+          "id": "drop_1790075373377_3",
+          "uid": "mucknpz5-71d6fddum",
+          "tipo": "pedra",
+          "raridade": "comum",
+          "raridadeNome": "PEDRA DE UPGRADE COMUM",
+          "nome": "💎 Pedra de Upgrade Comum",
+          "icon": "💎",
+          "cor": "#ffffff",
+          "quantidade": 17,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790075497285_26",
+          "uid": "muckqdl1-jhpbrcm0e",
+          "tipo": "pedra",
+          "raridade": "lendario",
+          "raridadeNome": "PEDRA DE UPGRADE LENDÁRIA",
+          "nome": "💎 Pedra de Upgrade Lendária",
+          "icon": "💎",
+          "cor": "#ff7a00",
+          "quantidade": 14,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790075457710_13",
+          "uid": "muckpj1q-9hr2qlkmk",
+          "tipo": "pedra",
+          "raridade": "epico",
+          "raridadeNome": "PEDRA DE UPGRADE ÉPICA",
+          "nome": "💎 Pedra de Upgrade Épica",
+          "icon": "💎",
+          "cor": "#a855f7",
+          "quantidade": 13,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790075554740_54",
+          "uid": "muckrlx0-bqm8dzs9o",
+          "tipo": "pedra",
+          "raridade": "raro",
+          "raridadeNome": "PEDRA DE UPGRADE RARA",
+          "nome": "💎 Pedra de Upgrade Rara",
+          "icon": "💎",
+          "cor": "#4da6ff",
+          "quantidade": 8,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790075509628_31",
+          "uid": "muckqn3w-5dc0iqmxf",
+          "tipo": "consumivel",
+          "subtipo": "pocao_mp",
+          "nivel": 3,
+          "nome": "🔮 Poção de Mana III",
+          "icon": "💎",
+          "cor": "#7ec8ff",
+          "pctCura": 1,
+          "quantidade": 2,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790075546834_48",
+          "uid": "muckrfte-fkpaluqta",
+          "tipo": "consumivel",
+          "subtipo": "pocao_mp",
+          "nivel": 2,
+          "nome": "🔮 Poção de Mana II",
+          "icon": "🔮",
+          "cor": "#3498db",
+          "pctCura": 0.3,
+          "quantidade": 5,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790075622760_68",
+          "uid": "muckt2eg-9lonyic8e",
+          "tipo": "consumivel",
+          "subtipo": "pocao_mp",
+          "nivel": 1,
+          "nome": "🔮 Poção de Mana I",
+          "icon": "🔮",
+          "cor": "#3498db",
+          "pctCura": 0.2,
+          "quantidade": 10,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "muekmuen732c-en1tiumj2",
+          "uid": "muekmuen732c-en1tiumj2",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "subTipo": "muekmuen732c-en1tiumj2",
+          "armaChave": "muekmuen732c-en1tiumj2",
+          "classe": "mago",
+          "classeRestrita": "mago",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
+          "status": {
+            "forca": 50,
+            "vida": 20
+          },
+          "customVisual": {
+            "tamanho": 40,
+            "largura": 3.5,
+            "cBase": "#39434f",
+            "cMeio": "#6b7e92",
+            "cPonta": "#b8c9db",
+            "cFio": "#00ff00"
+          }
+        },
+        {
+          "id": "muekmuena9m5-5ycz9e264",
+          "uid": "muekmuena9m5-5ycz9e264",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "subTipo": "muekmuena9m5-5ycz9e264",
+          "armaChave": "muekmuena9m5-5ycz9e264",
+          "classe": "mago",
+          "classeRestrita": "mago",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
+          "status": {
+            "forca": 50,
+            "vida": 20
+          },
+          "customVisual": {
+            "tamanho": 25,
+            "largura": 3.5,
+            "cBase": "#39434f",
+            "cMeio": "#6b7e92",
+            "cPonta": "#b8c9db",
+            "cFio": "#00ff00"
+          }
+        },
+        {
+          "id": "muekmuenc4su-smrtr86zl",
+          "uid": "muekmuenc4su-smrtr86zl",
+          "tipo": "equipamento",
+          "slot": "arma",
+          "subTipo": "muekmuenc4su-smrtr86zl",
+          "armaChave": "muekmuenc4su-smrtr86zl",
+          "classe": "dronemaster",
+          "classeRestrita": "dronemaster",
+          "icon": "⚔️",
+          "nome": "A Lâmina Viva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDARIO",
+          "status": {
+            "forca": 50,
+            "vida": 20
+          },
+          "customVisual": {
+            "tamanho": 14,
+            "largura": 4.5,
+            "cBase": "#000000",
+            "cMeio": "#ff0000",
+            "cPonta": "#ff0000",
+            "cFio": "#ff0000"
+          }
+        }
+      ]
+    },
+    "ultimoLogin": 1790200803922
+  },
+  "adadad": {
+    "level": 1,
+    "xp": 0,
+    "classe": "arqueiro",
+    "hp": 100,
+    "x": 60347,
+    "y": 500,
+    "ultimoLogin": 1790217071405,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 39
   }
 }

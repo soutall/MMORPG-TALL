@@ -299,93 +299,22 @@ window.desenharMago = function (x, y, isMoving, angulo, hp, maxHp) {
     // ========================================================================
     // 10. CAJADO — mesmo mecanismo de mira da v1 (orbita e gira com o ângulo)
     // ========================================================================
+    // 10. CAJADO — mesmo mecanismo de mira da v1 (orbita e gira com o ângulo)
+    // ========================================================================
     ctx.save();
     ctx.translate(12, 16);
     ctx.rotate(ang);
     ctx.translate(DESLOC_CAJADO, 0);
 
-    // haste de madeira curvada, com luz na lateral esquerda
-    const gHaste = ctx.createLinearGradient(-1.7, 0, 1.5, 0);
-    gHaste.addColorStop(0, cor('#8d6e63', '#c98d7d'));
-    gHaste.addColorStop(0.45, cor('#6d4c41', '#a9614f'));
-    gHaste.addColorStop(1, cor('#3e2723', '#6b2f24'));
-    ctx.fillStyle = gHaste;
-    ctx.beginPath();
-    ctx.moveTo(-1.4, -11.6);
-    ctx.quadraticCurveTo(-1.9, 0.5, -1.3, 12.6);
-    ctx.quadraticCurveTo(0, 13.9, 1.3, 12.6);
-    ctx.quadraticCurveTo(1.9, 0.5, 1.4, -11.6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(24,14,8,0.75)';
-    ctx.lineWidth = 0.8;
-    ctx.stroke();
-
-    // aros de metal
-    ctx.fillStyle = cor('#b0bec5', '#e0c9a6');
-    ctx.fillRect(-1.9, -2.6, 3.8, 1.4);
-    ctx.fillStyle = cor('#78909c', '#b09a76');
-    ctx.fillRect(-1.9, 1.8, 3.8, 1.2);
-
-    // gavinhas segurando o cristal
-    ctx.strokeStyle = cor('#90a4ae', '#d8c4a4');
-    ctx.lineWidth = 1.0;
-    ctx.beginPath();
-    ctx.moveTo(-1.3, -11.4); ctx.quadraticCurveTo(-4.4, -14.4, -2.6, -17.0);
-    ctx.moveTo(1.3, -11.4);  ctx.quadraticCurveTo(4.4, -14.4, 2.6, -17.0);
-    ctx.stroke();
-
-    // cristal facetado em losango, com halo e núcleo
-    ctx.save();
-    ctx.shadowColor = corCristal;
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = corCristal;
-    ctx.beginPath();
-    ctx.moveTo(0, -20.2);
-    ctx.lineTo(3.2, -15.6);
-    ctx.lineTo(0, -11.0);
-    ctx.lineTo(-3.2, -15.6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    // faceta clara (dá o corte no cristal)
-    ctx.fillStyle = 'rgba(255,255,255,0.50)';
-    ctx.beginPath();
-    ctx.moveTo(0, -19.3);
-    ctx.lineTo(1.5, -15.6);
-    ctx.lineTo(0, -11.9);
-    ctx.closePath();
-    ctx.fill();
-    // faceta escura
-    ctx.fillStyle = 'rgba(40,0,60,0.30)';
-    ctx.beginPath();
-    ctx.moveTo(0, -19.3);
-    ctx.lineTo(-1.5, -15.6);
-    ctx.lineTo(0, -11.9);
-    ctx.closePath();
-    ctx.fill();
-    // núcleo brilhante
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.beginPath();
-    ctx.ellipse(0, -15.6, 0.95, 1.4, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // faíscas orbitando o cristal
-    ctx.save();
-    ctx.shadowColor = corCristal;
-    ctx.shadowBlur = 6;
-    for (let i = 0; i < 3; i++) {
-        const a = t * 1.7 + i * (Math.PI * 2 / 3);
-        const sx = Math.cos(a) * 5.0;
-        const sy = -15.6 + Math.sin(a) * 2.3;
-        const brilhoS = 0.30 + 0.70 * Math.abs(Math.sin(a * 0.5 + t * 1.3));
-        ctx.fillStyle = 'rgba(255,255,255,' + brilhoS.toFixed(3) + ')';
-        ctx.beginPath();
-        ctx.ellipse(sx, sy, 0.85, 0.85, 0, 0, Math.PI * 2);
-        ctx.fill();
+    let wp = window.inventario ? window.inventario.arma : null;
+    let armaV = null;
+    if (x === window.meuX && y === window.meuY) { // roughly identifying local player
+        if (wp && wp.customVisual) armaV = wp;
     }
-    ctx.restore();
+    
+    if (typeof window.desenharCajadoExposta === 'function') {
+        window.desenharCajadoExposta(ctx, armaV);
+    }
 
     // mão agarrando a haste — desenhada DEPOIS da haste, senão fica atrás dela
     ctx.fillStyle = PELE;
@@ -411,4 +340,109 @@ window.enviarAtaqueMago = function(ws) {
     let alvoDetectado = typeof window.obterAlvoNaMira === 'function' ? window.obterAlvoNaMira() : null;
     let anguloDisparo = alvoDetectado ? alvoDetectado.angulo : window.meuAngulo;
     if (ws && ws.readyState === 1) { ws.send(JSON.stringify({ action: 'ataque_mago', angulo: anguloDisparo })); }
+};
+
+window.desenharCajadoExposta = function(ctx, armaVisualCustom) {
+    let t = Date.now() / 90;
+    
+    // Fallbacks base
+    let len = 11.6;
+    let wid = 1.9;
+    let cBase = '#8d6e63';
+    let cMeio = '#6d4c41';
+    let cPonta = '#3e2723';
+    let corCristal = '#a34dff';
+    
+    if (armaVisualCustom && armaVisualCustom.customVisual) {
+        let cv = armaVisualCustom.customVisual;
+        len = (cv.tamanho || 25) / 2.15; // normaliza pro cajado
+        wid = (cv.largura || 3.5) / 1.8;
+        cBase = cv.cBase || '#8d6e63';
+        cMeio = cv.cMeio || '#6d4c41';
+        cPonta = cv.cPonta || '#3e2723';
+        corCristal = cv.cFio || '#a34dff'; // O brilho serve pro cristal
+    }
+
+    // haste de madeira
+    const gHaste = ctx.createLinearGradient(-wid, 0, wid, 0);
+    gHaste.addColorStop(0, cBase);
+    gHaste.addColorStop(0.45, cMeio);
+    gHaste.addColorStop(1, cPonta);
+    ctx.fillStyle = gHaste;
+    ctx.beginPath();
+    ctx.moveTo(-wid * 0.7, -len);
+    ctx.quadraticCurveTo(-wid, 0.5, -wid * 0.6, len + 1);
+    ctx.quadraticCurveTo(0, len + 2.3, wid * 0.6, len + 1);
+    ctx.quadraticCurveTo(wid, 0.5, wid * 0.7, -len);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(24,14,8,0.75)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    // aros de metal
+    ctx.fillStyle = '#b0bec5';
+    ctx.fillRect(-wid, -2.6, wid * 2, 1.4);
+    ctx.fillStyle = '#78909c';
+    ctx.fillRect(-wid, 1.8, wid * 2, 1.2);
+
+    // gavinhas
+    ctx.strokeStyle = '#90a4ae';
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-wid * 0.6, -len); ctx.quadraticCurveTo(-wid * 2.3, -len - 3, -wid * 1.3, -len - 5);
+    ctx.moveTo(wid * 0.6, -len);  ctx.quadraticCurveTo(wid * 2.3, -len - 3, wid * 1.3, -len - 5);
+    ctx.stroke();
+
+    // cristal facetado
+    let cy = -len - 4;
+    ctx.save();
+    ctx.shadowColor = corCristal;
+    ctx.shadowBlur = 10;
+    ctx.fillStyle = corCristal;
+    ctx.beginPath();
+    ctx.moveTo(0, cy - 4.6);
+    ctx.lineTo(wid * 1.7, cy);
+    ctx.lineTo(0, cy + 4.6);
+    ctx.lineTo(-wid * 1.7, cy);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.50)';
+    ctx.beginPath();
+    ctx.moveTo(0, cy - 3.7);
+    ctx.lineTo(wid * 0.8, cy);
+    ctx.lineTo(0, cy + 3.7);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(40,0,60,0.30)';
+    ctx.beginPath();
+    ctx.moveTo(0, cy - 3.7);
+    ctx.lineTo(-wid * 0.8, cy);
+    ctx.lineTo(0, cy + 3.7);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.beginPath();
+    ctx.ellipse(0, cy, 0.95, 1.4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // faíscas
+    ctx.save();
+    ctx.shadowColor = corCristal;
+    ctx.shadowBlur = 6;
+    for (let i = 0; i < 3; i++) {
+        const a = t * 1.7 + i * (Math.PI * 2 / 3);
+        const sx = Math.cos(a) * 5.0;
+        const sy = cy + Math.sin(a) * 2.3;
+        const brilhoS = 0.30 + 0.70 * Math.abs(Math.sin(a * 0.5 + t * 1.3));
+        ctx.fillStyle = 'rgba(255,255,255,' + brilhoS.toFixed(3) + ')';
+        ctx.beginPath();
+        ctx.ellipse(sx, sy, 0.85, 0.85, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
 };

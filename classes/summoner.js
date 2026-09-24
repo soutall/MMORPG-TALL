@@ -443,6 +443,23 @@ function _atualizarEfeitosSkillGolem(lacaio) {
 window.desenharLacaio = function (lacaio) {
     if (!lacaio || !window.ctx) return;
     const ctx = window.ctx;
+    
+    // Se estiver transformado no Golem Sísmico, a representação colossal é desenhada pelo módulo VFX
+    const petKey = lacaio.pid || lacaio.id;
+    if (window.golemsSismicosAtivos && petKey && window.golemsSismicosAtivos[petKey]) {
+        if (typeof window.desenharBarraHp === "function") {
+            window.desenharBarraHp(lacaio.x - 18, lacaio.y - 75, lacaio.hp, lacaio.maxHp);
+        }
+        ctx.save();
+        ctx.font = "bold 11px sans-serif";
+        ctx.fillStyle = "#ffd700";
+        ctx.textAlign = "center";
+        ctx.shadowColor = "rgba(0,0,0,0.85)";
+        ctx.shadowBlur = 4;
+        ctx.fillText("🛡️ IMUNE", lacaio.x, lacaio.y - 82);
+        ctx.restore();
+        return;
+    }
     const t = Date.now() / 1000;
     const pulso = 0.78 + Math.sin(t * 2.2) * 0.22;
 
@@ -796,83 +813,12 @@ window.desenharSummoner = function (x, y, isMoving, angulo, hp, maxHp) {
     ctx.rotate(ang);
     ctx.translate(DESLOC_CAJADO, 0);
 
-    const gHaste = ctx.createLinearGradient(-1.6, 0, 1.4, 0);
-    gHaste.addColorStop(0, cor('#8a7f8e', '#c98d7d'));
-    gHaste.addColorStop(0.45, cor('#5f5468', '#a9614f'));
-    gHaste.addColorStop(1, cor('#332b3a', '#6b2f24'));
-    ctx.fillStyle = gHaste;
-    ctx.beginPath();
-    ctx.moveTo(-1.3, -12.0);
-    ctx.quadraticCurveTo(-1.8, 0.5, -1.2, 12.8);
-    ctx.quadraticCurveTo(0, 14.1, 1.2, 12.8);
-    ctx.quadraticCurveTo(1.8, 0.5, 1.3, -12.0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(20,12,26,0.75)';
-    ctx.lineWidth = 0.8;
-    ctx.stroke();
-
-    ctx.fillStyle = OURO;
-    ctx.fillRect(-1.8, -2.4, 3.6, 1.3);
-    ctx.fillStyle = OURO_ESCURO;
-    ctx.fillRect(-1.8, 2.0, 3.6, 1.1);
-
-    // gavinhas douradas
-    ctx.strokeStyle = OURO;
-    ctx.lineWidth = 1.0;
-    ctx.beginPath();
-    ctx.moveTo(-1.2, -11.8); ctx.quadraticCurveTo(-4.6, -14.6, -2.8, -17.4);
-    ctx.moveTo(1.2, -11.8);  ctx.quadraticCurveTo(4.6, -14.6, 2.8, -17.4);
-    ctx.stroke();
-
-    // CRISTAL
-    const pulsoCristal = 0.74 + Math.sin(t * 2.8) * 0.26;
-    ctx.save();
-    ctx.shadowColor = '#a86fe0';
-    ctx.shadowBlur = 13 * pulsoCristal;
-    const gCristal = ctx.createLinearGradient(0, -21.5, 0, -11.0);
-    gCristal.addColorStop(0, '#d7b8ff');
-    gCristal.addColorStop(0.45, '#a86fe0');
-    gCristal.addColorStop(1, '#5f2fa8');
-    ctx.fillStyle = gCristal;
-    ctx.beginPath();
-    ctx.moveTo(0, -21.8);
-    ctx.lineTo(3.6, -16.0);
-    ctx.lineTo(0, -10.6);
-    ctx.lineTo(-3.6, -16.0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-    ctx.fillStyle = 'rgba(255,255,255,0.45)';
-    ctx.beginPath();
-    ctx.moveTo(0, -20.8); ctx.lineTo(1.7, -16.0); ctx.lineTo(0, -11.6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = 'rgba(40,0,70,0.30)';
-    ctx.beginPath();
-    ctx.moveTo(0, -20.8); ctx.lineTo(-1.7, -16.0); ctx.lineTo(0, -11.6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = 'rgba(255,255,255,' + pulsoCristal.toFixed(3) + ')';
-    ctx.beginPath();
-    ctx.ellipse(0, -16.0, 1.0, 1.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // lascas de cristal orbitando a ponta
-    ctx.save();
-    ctx.shadowColor = '#a86fe0';
-    ctx.shadowBlur = 6;
-    for (let i = 0; i < 3; i++) {
-        const a = t * 1.5 + i * (Math.PI * 2 / 3);
-        const sx = Math.cos(a) * 5.4;
-        const sy = -16.0 + Math.sin(a) * 2.4;
-        const br = 0.30 + 0.70 * Math.abs(Math.sin(a * 0.5 + t * 1.2));
-        ctx.fillStyle = 'rgba(215,184,255,' + br.toFixed(3) + ')';
-        ctx.beginPath();
-        ctx.ellipse(sx, sy, 0.9, 1.3, 0, 0, Math.PI * 2);
-        ctx.fill();
+    let wp = window.inventario ? window.inventario.arma : null;
+    let armaV = null;
+    if (x === window.meuX && y === window.meuY) { 
+        if (wp && wp.customVisual) armaV = wp;
     }
-    ctx.restore();
+    if (typeof window.desenharOrbeExposta === 'function') window.desenharOrbeExposta(ctx, armaV);
 
     // mão (depois da haste, para parecer que agarra)
     ctx.fillStyle = PELE;
@@ -903,4 +849,113 @@ window.enviarAtaqueSummoner = function(ws) {
         else if (alvoDetectado.boss) { focoAlvoTipo = 'boss'; focoAlvoId = alvoDetectado.boss.id; }
     }
     if (ws && ws.readyState === 1) { ws.send(JSON.stringify({ action: 'ataque_summoner', angulo: anguloDisparo, alvoTipo: focoAlvoTipo, alvoId: focoAlvoId })); }
+};
+
+window.desenharOrbeExposta = function(ctx, armaVisualCustom) {
+    const t = Date.now() / 1000;
+    const OURO = '#e5c15c';
+    const OURO_ESCURO = '#a8862c';
+    
+    let cBase = '#5f2fa8';
+    let cMeio = '#a86fe0';
+    let cPonta = '#d7b8ff';
+    let cFio = '#8a7f8e';
+    let hasteC2 = '#5f5468';
+    let hasteC3 = '#332b3a';
+    let tam = 1.0;
+    let larg = 1.0;
+
+    if (armaVisualCustom && armaVisualCustom.customVisual) {
+        let v = armaVisualCustom.customVisual;
+        if (v.cBase) cBase = v.cBase;
+        if (v.cMeio) cMeio = v.cMeio;
+        if (v.cPonta) cPonta = v.cPonta;
+        if (v.cFio) cFio = v.cFio;
+        if (v.tamanho) tam = v.tamanho;
+        if (v.largura) larg = v.largura;
+    }
+
+    ctx.save();
+    ctx.scale(larg, tam);
+
+    const gHaste = ctx.createLinearGradient(-1.6, 0, 1.4, 0);
+    gHaste.addColorStop(0, cFio);
+    gHaste.addColorStop(0.45, hasteC2);
+    gHaste.addColorStop(1, hasteC3);
+    ctx.fillStyle = gHaste;
+    ctx.beginPath();
+    ctx.moveTo(-1.3, -12.0);
+    ctx.quadraticCurveTo(-1.8, 0.5, -1.2, 12.8);
+    ctx.quadraticCurveTo(0, 14.1, 1.2, 12.8);
+    ctx.quadraticCurveTo(1.8, 0.5, 1.3, -12.0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(20,12,26,0.75)';
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
+
+    ctx.fillStyle = OURO;
+    ctx.fillRect(-1.8, -2.4, 3.6, 1.3);
+    ctx.fillStyle = OURO_ESCURO;
+    ctx.fillRect(-1.8, 2.0, 3.6, 1.1);
+
+    // gavinhas douradas
+    ctx.strokeStyle = OURO;
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-1.2, -11.8); ctx.quadraticCurveTo(-4.6, -14.6, -2.8, -17.4);
+    ctx.moveTo(1.2, -11.8);  ctx.quadraticCurveTo(4.6, -14.6, 2.8, -17.4);
+    ctx.stroke();
+
+    // CRISTAL
+    const pulsoCristal = 0.74 + Math.sin(t * 2.8) * 0.26;
+    ctx.save();
+    ctx.shadowColor = cMeio;
+    ctx.shadowBlur = 13 * pulsoCristal;
+    const gCristal = ctx.createLinearGradient(0, -21.5, 0, -11.0);
+    gCristal.addColorStop(0, cPonta);
+    gCristal.addColorStop(0.45, cMeio);
+    gCristal.addColorStop(1, cBase);
+    ctx.fillStyle = gCristal;
+    ctx.beginPath();
+    ctx.moveTo(0, -21.8);
+    ctx.lineTo(3.6, -16.0);
+    ctx.lineTo(0, -10.6);
+    ctx.lineTo(-3.6, -16.0);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+    ctx.fillStyle = 'rgba(255,255,255,0.45)';
+    ctx.beginPath();
+    ctx.moveTo(0, -20.8); ctx.lineTo(1.7, -16.0); ctx.lineTo(0, -11.6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(40,0,70,0.30)';
+    ctx.beginPath();
+    ctx.moveTo(0, -20.8); ctx.lineTo(-1.7, -16.0); ctx.lineTo(0, -11.6);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,' + pulsoCristal.toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.ellipse(0, -16.0, 1.0, 1.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // lascas de cristal orbitando a ponta
+    ctx.save();
+    ctx.shadowColor = cMeio;
+    ctx.shadowBlur = 6;
+    for (let i = 0; i < 3; i++) {
+        const a = t * 1.5 + i * (Math.PI * 2 / 3);
+        const sx = Math.cos(a) * 5.4;
+        const sy = -16.0 + Math.sin(a) * 2.4;
+        const br = 0.30 + 0.70 * Math.abs(Math.sin(a * 0.5 + t * 1.2));
+        ctx.globalAlpha = br;
+        ctx.fillStyle = cPonta;
+        ctx.beginPath();
+        ctx.ellipse(sx, sy, 0.9, 1.3, 0, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+
+    ctx.restore();
 };
