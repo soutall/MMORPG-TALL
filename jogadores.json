@@ -102,11 +102,11 @@
   "Tall": {
     "level": 10,
     "xp": 1738,
-    "classe": "pikeman",
+    "classe": "curandeiro",
     "hp": 168,
-    "x": 60557,
-    "y": 632,
-    "ultimoLogin": 1790188388045,
+    "x": 60620.49968290041,
+    "y": 494.2845508887751,
+    "ultimoLogin": 1790246316609,
     "atributos": {
       "forca": 7,
       "inteligencia": 1,
@@ -789,12 +789,12 @@
   },
   "Admin": {
     "level": 16,
-    "xp": 1286,
-    "classe": "summoner",
-    "hp": 8,
-    "x": 5323,
-    "y": 1670,
-    "ultimoLogin": 1790220746645,
+    "xp": 2588,
+    "classe": "barbaro",
+    "hp": 876,
+    "x": 60474,
+    "y": 640,
+    "ultimoLogin": 1790251611510,
     "atributos": {
       "forca": 4,
       "inteligencia": 1,
@@ -970,7 +970,7 @@
           "nome": "💎 Pedra de Upgrade Épica",
           "icon": "💎",
           "cor": "#a855f7",
-          "quantidade": 14,
+          "quantidade": 16,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -984,7 +984,7 @@
           "nome": "💎 Pedra de Upgrade Rara",
           "icon": "💎",
           "cor": "#4da6ff",
-          "quantidade": 9,
+          "quantidade": 12,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -1027,7 +1027,7 @@
           "icon": "🔮",
           "cor": "#3498db",
           "pctCura": 0.2,
-          "quantidade": 10,
+          "quantidade": 12,
           "autocoleta": true,
           "stackavel": false
         },
@@ -1134,6 +1134,20 @@
             "cPonta": "#ff0000",
             "cFio": "#ff0000"
           }
+        },
+        {
+          "id": "drop_1790251592819_39",
+          "uid": "mufhkprn-9j0nwnj0y",
+          "tipo": "consumivel",
+          "subtipo": "pocao_hp",
+          "nivel": 2,
+          "nome": "🧪 Poção de Vida II",
+          "icon": "🧪",
+          "cor": "#e74c3c",
+          "pctCura": 0.4,
+          "quantidade": 1,
+          "autocoleta": true,
+          "stackavel": false
         }
       ]
     },
@@ -1197,7 +1211,7 @@
         "h": 101
       }
     },
-    "ouro": 1264
+    "ouro": 1368
   },
   "Admin2": {
     "level": 3,

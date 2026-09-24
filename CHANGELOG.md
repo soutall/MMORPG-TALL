@@ -4,7 +4,7 @@ Registro de todas as atualizações feitas no projeto. **Sempre** que algo novo 
 
 ---
 
-## Versão atual: **v1.39.6**
+## Versão atual: **v1.41.2**
 
 > 🚨 **REGRA MANDATÓRIA:** O game está sendo desenvolvido para **PC e Mobile**, então a otimização tem que ser feita para **AMBOS**, e tudo o que for feito no projeto é pensando em ambos os lados (controles via teclado/mouse no PC e touch/joystick no mobile, interfaces responsivas sem corte nem sobreposição, e alto desempenho em todas as resoluções).
 
@@ -12,6 +12,10 @@ Registro de todas as atualizações feitas no projeto. **Sempre** que algo novo 
 
 | Versão | Data / Hora | O que foi feito | Arquivos Alterados |
 |---|---|---|---|
+| **v1.41.2** | 24/09/2026 (hora local) | **AUDITORIA DE COOLDOWN — TODAS AS SKILLS DE TODAS AS CLASSES COM ANEL DE CD + BRILHO "PRONTO" NO SLOT:** (1) **7 skills novas do Slot 4 FORA do HUD de cooldown** (nenhum anel nem brilho): escudo do Guerreiro (10s), Bola do Mago (20s), Golem Sísmico (30s), Salto da Arqueira (25s), Cântico da Curandeira (15s), Vínculo do Bárbaro (30s), Buraco Negro (25s) — adicionadas ao `atualizarCooldownSkillHUD` (40→46 entradas) com anel drenando + badge Xs + brilho `cd-ready` quando prontas; (2) **3 flags de CD quebrados** (estavam no map mas o anel NUNCA aparecia): `btn-tornado` (typo `tornadoCooldoownAtivo` corrigido + entrada lia `window.tornadoCooldownAtivo` inexistente), `btn-roqueiro-banda` (cast bare vs `window.` no map) e `btn-guerreiro-provocacao` (map lia `window.guerreiroProvocacaoCooldown` que ninguém setava → passou a usar `provocacaoCooldownAtivo`); (3) **CD exato nos casts com contagem aproximada**: Cura (5s), Perfurante (4,5s), Comando do Pet Ogro (6s), Bateria (10s evento servidor) e Grito de Guerra ganharam `registrarCooldownBotao` (badge/tempo real, não mais o fallback fixo); (4) **Camuflagem Natural (Sniper)**: skill TOGGLE sem cooldown — o slot agora **brilha quando disponível** (não camuflado) e apaga o brilho enquanto camuflado; (5) **Cancelamento por rejeição do servidor**: as 7 novas skills entraram no `ACOES_SKILL_CANCELAVEIS` + `cancelarCooldownVisual` (49/49 actions mapeadas — consistência total) — se o servidor rejeitar o cast (sem mana/fora de alcance), o CD fantasma de 10–30s é cancelado na hora; validação headless (46 entradas do HUD + ciclo anel→brilho + cancelamento + wrapper `ws.send`); versão **v1.41.2** nos 3 pontos visuais | `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md`, `CORRECOES.md` |
+| **v1.41.1** | 24/09/2026 (hora local) | **FIX CRÍTICO — METEORO DO MAGO TRAVAVA O JOGO (conflito no `window.chaoEmChamas`):** (1) **Causa:** o novo `efeitos/vfx_mago_bola.js` (v1.41.0) empurrava o fogo do Meteoro em `window.chaoEmChamas` com shape próprio `{startTime, ativaEm, expiresAt, flames, embers...}`, mas `efeitos.js` (dono legítimo do array) espera `{duracao, particulasFogo}` — ao iterar, `for (let p of fogo.particulasFogo)` lançava `TypeError: fogo.particulasFogo is not iterable` todo frame e, como `desenharEfeitosMeteoro` (index.html:6335) era a única chamada de VFX FORA do try/catch, o erro matava o loop de render → jogo congelava ao usar Meteoro; (2) **Fix no vfx:** a bola abandona o `window.chaoEmChamas` (comentário de aviso no arquivo) — a transformação da Bola em FOGO continua 100% via servidor (`action_mago_bola_transform`); (3) **Fix no `efeitos.js`:** fogo do Meteoro agora dura **5 segundos** (300 frames, alinhado ao `meteorFires` do servidor +5000ms) com iluminação quente no chão e fumaça subindo + **proteções defensivas** (entradas sem `particulasFogo`/`duracao` válidos são REMOVIDAS em vez de travar); (4) **Blindagem no `index.html`:** `desenharEfeitosMeteoro/Nevasca/Sismicos/ImpactosGolem/BesouroExplosoes` agora rodam dentro de try/catch — nenhum erro visual pode mais congelar o jogo; versão **v1.41.1** nos 3 pontos visuais | `efeitos/vfx_mago_bola.js`, `efeitos.js`, `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
+| **v1.41.0** | 24/09/2026 (hora local) | **MAGO «BOLA ELEMENTAL» REFEITA DO ZERO (VFX quebrado + mecânica completa):** (1) **Fix crítico:** o `vfx_mago_bola.js` antigo NUNCA carregava — `function window.obterPosicaoEntidade` (linha 6) era sintaxe inválida (`SyntaxError: Unexpected token '.'`) e derrubava o parse do arquivo inteiro, então o VFX da bola era código morto; arquivo reescrito 100% com estilo `window.fn = function(){}`; (2) **Mecânica nova no servidor:** bola gigante que **rola pelo chão** (a bola gira no eixo do movimento), CD corrigido para **20s**, contato **NORMAL** empurra TODOS os inimigos próximos (raio 60, 60px de recuo) e danifica o primeiro + Boss toma dano sem ser empurrado; **GELO** (ao cruzar a Nevasca) **congela em área** (raio 85, 2s — `congelado` + stun via sistema de efeitos, substituindo o antigo `geloTimer/lentidao` inconsistente) com `reacao_congelante` por alvo; **FOGO** (ao cruzar o fogo do Meteoro) **grande explosão em área** (raio 130, dano ×2) em slimes + Bosses via `danoEmBosses`; (3) **VFX novo completo:** bola grande (22px) com iluminação no chão no trajeto, sombra de contato, rastro luminoso, partículas orbitais, núcleo brilhante e **meridianos girando** (leitura de rolagem); transformação **GELO** com rajada de cristais + neve caindo + rastro congelante; transformação **FOGO** com chamas circulantes + brasas + fumaça + rastro incandescente; hit **GELO** = nova de gelo + estilhaços + **círculo congelante no chão** (1,4s); hit **FOGO** = explosão com flash + **expansão circular de fogo** + brasas com gravidade + fumaça + **SCREEN SHAKE** (`tremorTela`); (4) **Fogo do Meteoro no chão por 5s:** cliente agora mantém chamas/brasas/fumaça/iluminação na área do impacto (`window.chaoEmChamas`, alinhado ao `meteorFires` do servidor que já durava 5s — dano 100% server-side); (5) `SKILLS_INFO` (`skills.js`) atualizada com a nova descrição/extras (empurrão, congelamento 2s área, explosão ×2 área, fogo do Meteoro 5s) — slot PC (tecla 4 🔮) e Mobile (touch) já existiam; versão **v1.41.0** nos 3 pontos visuais | `efeitos/vfx_mago_bola.js`, `server.js`, `skills.js`, `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
+| **v1.40.0** | 24/09/2026 (hora local) | **NOVAS SKILLS 4 (tecla 4) PARA 7 CLASSES + UPGRADE NO MODAL K + DOCUMENTAÇÃO:** (1) Novas skills do Slot 4 implementadas no servidor/cliente: Guerreiro **Lançamento do Escudo** (`escudo_lancamento`, 45 dano + pull + taunt 5s, CD 10s), Mago **Bola Elemental** (`bola_elemental`, 60 dano, vira Gelo na Nevasca e Fogo ×2 no Meteoro, CD 20s), Arqueira **Salto + Chuva do Alto** (`salto_chuva`, imune 3s no alto + chuva em área 2s, CD 25s), Curandeira **Cântico Celestial** (`cantico`, até 5 alvos, 25 dano + -20% def/-5% atk por 10s, CD 15s), Bárbaro **Vínculo Berserker** (`vinculo`, +20% vampirismo/+30% dano/+20% vel atk por 10s, CD 30s), Arqueiro Arcano/Astral **Buraco Negro Astral** (`buraco_negro`, sucção + lentidão + dano por 3s, CD 25s) e Summoner **Golem Sísmico** (`sismico`, ondas sísmicas 8s raio 260, CD 30s); (2) Todas adicionadas ao `SKILLS_INFO` (`skills.js`) com nome/ícone/categoria/descrição — agora aparecem na Janela de Habilidades (Modal K) com upgrade até nível 10; (3) Dano e mana das novas skills escalam no servidor com `dmgSkill` (+25%/nível) e `mpSkill` (+6%/nível); (4) Docs atualizados (tabelas) e versão **v1.40.0** nos 3 pontos visuais | `server.js`, `skills.js`, `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.39.6** | 23/09/2026 (hora local) | **FIX ANCORAGEM SIDEBAR MOBILE ABAIXO DO MINIMAPA + ÍCONE OFICIAL SKILL 1 DO PIKEMAN:** (1) Corrigido bug de posicionamento da Sidebar mobile no canto superior esquerdo (causado pelo auto-scanner de `data-ui` do `dragdrop.js`): removido `data-ui` e adicionado `data-ui-ignored="true"` + regras forçadas `top: 122px !important; right: 10px !important; left: auto !important;`; (2) Redução compacta dos itens do menu dropdown (altura 21px, fonte 10.5px, largura 116px) permitindo que todas as 8 opções caibam perfeitamente na vertical abaixo do minimapa sem rolagem; (3) Substituição do emoji `⭕` pela arte oficial `imagem/HUD/skills/Slotbar/Pike/skill_01.png` na Skill 1 do Pikeman (Giro da Foice) no slotbar (`#btn-pikeman-giro`) e no modal K (`skills.js`), com estilização circular, borda vermelha e fundo escuro condizente; versão **v1.39.6** nos 3 pontos visuais | `index.html`, `mobile-hud.css`, `skills.js`, `skills.css`, `style.css`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.39** | 23/09/2026 (hora local) | **INTERFACE FIXA MOBILE COM SIDEBAR RETRÁTIL E CLUSTER DE AÇÃO 2×3:** Menu Sidebar retrátil (`#mobile-sidebar-container`) abaixo do minimapa com opções Configuração, Inventário, Skills, Social, Status, PvP, Mapa e Futuro Update (com toast); Cluster de Ação fixo no canto inferior direito em 2 colunas × 3 linhas: L1 [6] Autofarm / [5] Dash, L2 [3] Skill 3 / [4] Skill 4, L3 [1] Skill 1 / [2] Skill 2; Poções [HP] e [MP] fixadas imediatamente à esquerda da Skill 1; Barra de XP fixada no canto inferior esquerdo; minimapa e status ancorados no topo; ocultação de badges de teclado no mobile; arquitetura separada em `mobile-hud.css` e `mobile-hud.js`; compatibilidade dual PC & Mobile; versão **v1.39** nos 3 pontos visuais | `mobile-hud.css`, `mobile-hud.js`, `index.html`, `dragdrop.js`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.38** | 23/09/2026 (hora local) | **REDESENHO DA JANELA DE HABILIDADES (MODAL K) ESTILO MMORPG CLÁSSICO/MODERNO:** Layout split-view dividido em 2 colunas principais: Coluna esquerda com grade de skills categorizadas (`◇ ATIVAS`, `◇ PASSIVAS`, `◇ SUPORTE`), molduras metálicas douradas (`.skill-slot-moldura`), seleção com brilho dourado (`.selected`), badge de nível (`Nv X`) e nome legível; Coluna direita **"DETALHES DA HABILIDADE"** interativa ao clicar em qualquer skill exibindo ícone grande, nome, badge de categoria (Ativa/Passiva/Suporte), nível atual (1 a 10), descrição narrativa, caixa de atributos com escalonamento por atributo e fórmula do server, caixa de bônus por nível, controles de upgrade (`⬆ MELHORAR`) e reset individual (`↺`), e caixa de prévia do próximo nível (`Próximo nível:`) com comparação dinâmica; responsividade dual PC & Mobile (landscape) preservando Drag & Drop (`dragdrop.js`); versão **v1.38** nos 3 pontos visuais | `index.html`, `skills.css`, `skills.js`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
@@ -40,6 +44,82 @@ Regra de versão (semver):
 ---
 
 ## Histórico de versões
+
+### v1.41.2 — 24/09/2026
+
+Auditoria completa do sistema de cooldown dos slots de skill (todas as classes, PC + Mobile):
+
+- **Descoberta 1 — 7 skills novas sem HUD de CD**: as skills do Slot 4 (v1.40.0/v1.41.0) chamavam `registrarCooldownBotao`, mas NÃO estavam no map do `atualizarCooldownSkillHUD` (o tick de 250ms que desenha o anel `--cd-pct`, o badge de segundos e o brilho `cd-ready` quando a skill fica pronta). Escudo do Guerreiro, Bola do Mago, Golem Sísmico, Salto da Arqueira, Cântico da Curandeira, Vínculo do Bárbaro e Buraco Negro não exibiam NENHUM feedback de CD. Adicionadas ao map (46 entradas).
+- **Descoberta 2 — flags de CD inconsistentes** (skills no map, mas o anel nunca aparecia porque o flag consultado nunca era setado):
+  - `btn-tornado`: typo `tornadoCooldoownAtivo` (declaração + cast + cancel) e o map lia `window.tornadoCooldownAtivo` (nunca existiu). Typo corrigido e entrada alinhada à variável real.
+  - `btn-roqueiro-banda`: cast setava `roqueiroBandaCooldown` (bare), map lia `window.roqueiroBandaCooldown`. Unificado para a variável real.
+  - `btn-guerreiro-provocacao`: map lia `window.guerreiroProvocacaoCooldown` (NINGUÉM setava) — o cast usa `provocacaoCooldownAtivo` (CD 15s). Corrigido.
+- **Descoberta 3 — CD aproximado (fallback)**: Cura, Perfurante, Comando do Pet Ogro, Bateria e Grito rodavam pelo fallback `ativo() && padrao` sem `registrarCooldownBotao` — o badge mostrava um valor fixo (ex.: 8s com CD real de 4,5s). Adicionado `registrarCooldownBotao` com o CD real.
+- **Descoberta 4 — Camuflagem do Sniper**: skill TOGGLE sem cooldown. O slot agora brilha `cd-ready` quando disponível (não camuflada) e remove o brilho enquanto camuflada.
+- **Descoberta 5 — CD fantasma na rejeição**: as 7 novas skills não estavam em `ACOES_SKILL_CANCELAVEIS`/`cancelarCooldownVisual` — se o servidor rejeitasse o cast (sem mana / fora de alcance), o slot mantinha CD de 10–30s à toa. As 7 actions (`guerreiro_escudo_lancamento`, `mago_bola_elemental`, `arqueiro_salto_chuva`, `curandeiro_cantico`, `barbaro_vinculo`, `summoner_golem_sismico`, `astral_buraco_negro`) entraram na lista e no map de cancelamento — agora **49/49 ações mapeadas** (consistência total: nenhuma action sem entry, nenhuma entry órfã).
+
+Validação: sintaxe dos 3 scripts inline + teste headless do HUD com as 46 entradas do map (anel → badge → brilho; tornado/banda/provocação/camuflagem) + teste do cancelamento (flag + cdUntil limpos) + wrapper do `ws.send` registrando `ultimoSkillEnviado` para as novas actions.
+
+### v1.41.1 — 24/09/2026
+
+**Fix crítico: Meteoro do Mago travava o jogo inteiro.**
+
+**Causa raiz:** o VFX novo da Bola Elemental (`efeitos/vfx_mago_bola.js`, v1.41.0) passou a usar `window.chaoEmChamas` para o fogo do Meteoro — mas esse array JÁ pertence ao `efeitos.js` (`desenharEfeitosMeteoro`), que espera entradas `{duracao, particulasFogo}`. As entradas do vfx tinham outro shape, então `for (let p of fogo.particulasFogo)` lançava `TypeError: fogo.particulasFogo is not iterable` a cada frame. Como `desenharEfeitosMeteoro` era a única chamada de VFX **fora** do try/catch (index.html:6335), o erro matava o loop de render → jogo congelava ao usar ☄️ Meteoro.
+
+**Correções:**
+- `efeitos/vfx_mago_bola.js`: removido o uso do `window.chaoEmChamas` (comentário de aviso no arquivo). A transformação da Bola em **FOGO** continua funcionando — é 100% dirigida pelo servidor (`action_mago_bola_transform`).
+- `efeitos.js`: fogo do Meteoro no chão agora dura **5 segundos** (300 frames, igual ao `meteorFires` do servidor) com **iluminação quente no chão** e **fumaça subindo**; adicionadas **proteções defensivas** — entradas sem `particulasFogo` (array) ou `duracao` (número) são removidas silenciosamente em vez de lançar erro.
+- `index.html`: `desenharEfeitosMeteoro/Nevasca/Sismicos/ImpactosGolem/BesouroExplosoes` agora ficam dentro de **try/catch** — nenhum erro visual pode mais travar o jogo.
+
+**Validação:** simulação headless reproduzindo o cenário exato (entrada malformada + fogo legítimo): antiga entrada era removida sem travar; o fogo legítimo durou exatamente ~300 frames e expirou sozinho. ✅
+
+**Arquivos alterados:** `efeitos/vfx_mago_bola.js`, `efeitos.js`, `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md`
+
+---
+
+### v1.41.0 — 24/09/2026
+
+**Mago «Bola Elemental» refeita do zero** — o VFX antigo **nunca carregou** (sintaxe inválida em `efeitos/vfx_mago_bola.js` linha 6: `function window.obterPosicaoEntidade` → `SyntaxError: Unexpected token '.'`, derrubava o parse do arquivo inteiro; o VFX era código morto).
+
+**Servidor (`server.js`):**
+- CD corrigido para **20s** e evento de lançamento agora envia posição inicial, velocidade e distância (`x/y/speed/dist`) — o cliente anima a bola sincronizada com o tick de 50ms do servidor.
+- **NORMAL**: ao contato, **empurra TODOS os inimigos próximos** (raio 60, recuo de 60px) e danifica o primeiro atingido; Boss toma dano sem ser empurrado.
+- **GELO** (ao cruzar a área da Nevasca): **congela em área** (raio 85, 2s) via sistema de efeitos (`congelado` + stun), substituindo o antigo `geloTimer/lentidao=0` inconsistente; dispara `reacao_congelante` por alvo congelado.
+- **FOGO** (ao cruzar o fogo deixado pelo Meteoro): **grande explosão em área** (raio 130, **dano ×2**) em slimes e Bosses (`danoEmBosses`).
+- Fogo do Meteoro no chão (`meteorFires`) já durava 5s com dano por segundo — mantido 100% server-side.
+
+**VFX (`efeitos/vfx_mago_bola.js` — reescrito completo):**
+- Bola **gigante (22px) que rola pelo chão**: iluminação no chão no trajeto, sombra de contato, rastro luminoso, partículas orbitais, núcleo energético brilhante e **meridianos girando no eixo do movimento** (leitura de rolagem).
+- **Transformação GELO**: rajada de cristais + neve caindo + rastro congelante; hit = nova de gelo + estilhaços + **círculo congelante no chão** (1,4s).
+- **Transformação FOGO**: chamas circulantes + brasas subindo + fumaça + rastro incandescente; hit = explosão com flash + **expansão circular de fogo** + brasas com gravidade + fumaça + **screen shake** (`tremorTela`).
+- **Fogo do Meteoro no chão por 5s**: chamas tremulando, brasas, fumaça e iluminação na área do impacto (`window.chaoEmChamas`), com ativação alinhada ao impacto do meteoro (~600ms).
+- Fix de sintaxe geral: todos no padrão `window.fn = function(){}`.
+
+**Skills/slots:**
+- `SKILLS_INFO` (`skills.js`) atualizada: descrição e extras refletem a nova mecânica (empurrão no normal, congelamento 2s em área, explosão ×2 em área, fogo do Meteoro por 5s); CD 20s e 30 de mana.
+- Slot **PC (tecla 4, 🔮)** e **Mobile (touch)** já existem e continuam funcionando.
+
+**Arquivos alterados:** `efeitos/vfx_mago_bola.js`, `server.js`, `skills.js`, `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md`
+
+---
+
+### v1.40.0 — 24/09/2026
+
+**Novas Skills 4 para 7 classes (Slot 4 / tecla 4), com upgrade no Modal K e documentação:**
+
+- 🛡️ **Guerreiro — Lançamento do Escudo** (`escudo_lancamento`): arremessa o escudo (45 de dano) puxando o primeiro inimigo atingido e provocando (taunt 5s). CD 10s, 15 mana.
+- 🔮 **Mago — Bola Elemental** (`bola_elemental`): bola de energia (60 de dano) que vira **Gelo** ao cruzar a Nevasca (congela) e **Fogo** ao cruzar as chamas do Meteoro (dano ×2); em estado normal empurra o inimigo. CD 20s, 30 mana.
+- 🦅 **Arqueira — Salto + Chuva do Alto** (`salto_chuva`): salta e fica **imune 3s** no alto; mira um ponto e despeja chuva de flechas em área por 2s. CD 25s, 25 mana.
+- 👼 **Curandeira — Cântico Celestial** (`cantico`): anjos atingem até **5 alvos** próximos (raio 320/360) com 25 de dano + **enfraquecimento** (-20% defesa, -5% ataque por 10s). CD 15s, 30 mana.
+- ⛓️ **Bárbaro — Vínculo Berserker** (`vinculo`): prende um alvo (precisa mirar) ganhando **+20% vampirismo, +30% dano e +20% velocidade de ataque** por 10s. CD 30s, 20 mana.
+- 🌌 **Arqueiro Arcano/Astral — Buraco Negro Astral** (`buraco_negro`): buraco negro por 3s que **suga** inimigos em raio 200, aplica lentidão 20% e causa dano contínuo. CD 25s, 40 mana.
+- 🗿 **Summoner — Golem Sísmico** (`sismico`): o golem trava no lugar e libera ondas sísmicas por 8s (raio 260) com dano crescente, lentidão 50% e pulsos acelerando (1s → 0,3s). CD 30s, 40 mana.
+
+**Integração com o sistema de skills:**
+- Todas as 7 skills adicionadas ao `SKILLS_INFO` (`skills.js`): nome, ícone, categoria, descrição, dano base, MP, CD, área/alcance e extras — agora aparecem na **Janela de Habilidades (Modal K)** com upgrade até nível 10.
+- Dano e custo de mana das novas skills agora escalam no servidor via `dmgSkill` (+25%/nível) e `mpSkill` (+6%/nível).
+
+**Arquivos alterados:** `server.js`, `skills.js`, `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md`
 
 ### v1.39.6 — 23/09/2026
 

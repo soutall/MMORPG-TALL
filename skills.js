@@ -46,7 +46,13 @@ const SKILLS_INFO = {
           mp: 0, cd: null, escala: 'nenhum',
           area: 'Próprio', alcance: '—',
           duracao: 'Passiva', duracaoBase: null,
-          extras: ['Vida <= 50%: -5% de dano recebido', 'Vida <= 30%: -10% de dano recebido', 'Vida <= 10%: -15% de dano recebido'] }
+          extras: ['Vida <= 50%: -5% de dano recebido', 'Vida <= 30%: -10% de dano recebido', 'Vida <= 10%: -15% de dano recebido'] },
+        { id: 'escudo_lancamento', nome: 'Lançamento do Escudo', icon: '🛡️', categoria: 'ataque',
+          desc: 'Arremessa o escudo à frente: 45 de dano no primeiro inimigo atingido, puxando-o para perto e forçando o foco (provocação) nele.',
+          danoBase: 45, danoUnidade: 'físico', danoNota: 'Puxa + Provoca',
+          mp: 15, cd: 10, escala: 'dano',
+          area: 'Projétil (até 300px)', alcance: '250px',
+          duracao: null, duracaoBase: null, extras: ['Puxa o inimigo atingido para perto', 'Provoca (taunt 5s) no acerto'] }
     ],
     mago: [
         { id: 'magia', nome: 'Bola de Magia', icon: '🔮', categoria: 'ataque',
@@ -72,7 +78,13 @@ const SKILLS_INFO = {
           danoBase: 18, danoUnidade: 'mágico', danoNota: '+4 DoT/s',
           mp: 20, cd: 20, escala: 'dano',
           area: 'Raio 140', alcance: 'Mira 380px',
-          duracao: '6s', duracaoBase: null, extras: ['Erupção vulcânica', 'Queimadura em área'] }
+          duracao: '6s', duracaoBase: null, extras: ['Erupção vulcânica', 'Queimadura em área'] },
+        { id: 'bola_elemental', nome: 'Bola Elemental', icon: '🔮', categoria: 'ataque',
+          desc: 'Lança uma BOLA GIGANTE que rola pelo chão empurrando inimigos. Ao cruzar a área da NEVASCA vira GELO e congela em área; ao cruzar o FOGO do Meteoro vira FOGO e explode em área com dano ×2.',
+          danoBase: 60, danoUnidade: 'mágico', danoNota: '×2 no Fogo / congela no Gelo',
+          mp: 30, cd: 20, escala: 'dano',
+          area: 'Projétil rolante 400px / Explosão 130 / Gelo 85', alcance: '400px',
+          duracao: null, duracaoBase: null, extras: ['Normal: empurra inimigos para trás', 'Gelo (Nevasca): congela alvos em área por 2s', 'Fogo (Meteoro): grande explosão em área com dano ×2', 'Fogo do Meteoro queima o chão por 5s'] }
     ],
     summoner: [
         { id: 'orbe', nome: 'Orbe das Sombras', icon: '👁️', categoria: 'ataque',
@@ -104,7 +116,13 @@ const SKILLS_INFO = {
           danoBase: 30, danoUnidade: 'físico', danoNota: ' por pedra / 4s',
           mp: 40, cd: 45, escala: 'dano',
           area: 'Ao redor do golem', alcance: 'Via pet',
-          duracao: '4s', duracaoBase: null, extras: ['+50% de vida do pet', 'Aumento de alcance e dano em área'] }
+          duracao: '4s', duracaoBase: null, extras: ['+50% de vida do pet', 'Aumento de alcance e dano em área'] },
+        { id: 'sismico', nome: 'Golem Sísmico', icon: '🗿', categoria: 'aoe',
+          desc: 'Golem trava no lugar e libera ondas sísmicas por 8s: dano em área crescente (raio 260), lentidão 50% e tremores cada vez mais rápidos.',
+          danoBase: 55, danoUnidade: 'físico', danoNota: 'pulso crescente',
+          mp: 40, cd: 30, escala: 'dano',
+          area: 'Raio 260 (no golem)', alcance: 'Via pet',
+          duracao: '8s', duracaoBase: 8, extras: ['Pulsos aceleram (1s → 0.3s)', 'Lentidão 50% por 2s', 'Golem imune/travado'] }
     ],
     arqueiro: [
         { id: 'flecha', nome: 'Flecha Precisa', icon: '🏹', categoria: 'ataque',
@@ -130,7 +148,13 @@ const SKILLS_INFO = {
           danoBase: 18, danoUnidade: 'físico', danoNota: 'por flecha',
           mp: 30, cd: 12, escala: 'dano',
           area: 'Cone em expansão (até 230px)', alcance: 'Frente do arqueiro',
-          duracao: '2s carregando + 4s disparo', duracaoBase: null, extras: ['Dano em ÁREA: acerta todos os inimigos no cone', 'Bloqueia movimento e ataques durante o carregamento', 'Cancela se andar'] }
+          duracao: '2s carregando + 4s disparo', duracaoBase: null, extras: ['Dano em ÁREA: acerta todos os inimigos no cone', 'Bloqueia movimento e ataques durante o carregamento', 'Cancela se andar'] },
+        { id: 'salto_chuva', nome: 'Salto + Chuva do Alto', icon: '🦅', categoria: 'aoe',
+          desc: 'Salta e fica imune no alto por 3s; mira um ponto e despeja uma chuva de flechas por 2s causando dano em área.',
+          danoBase: 15, danoUnidade: 'físico', danoNota: 'por tick (raio 120)',
+          mp: 25, cd: 25, escala: 'dano',
+          area: 'Chuva raio 120', alcance: 'Mira até 500px',
+          duracao: '3s imune + 2s de chuva', duracaoBase: null, extras: ['Imune enquanto está no alto', 'Chuva acerta todos os inimigos na área'] }
     ],
     curandeiro: [
         { id: 'sagrado', nome: 'Luz Sagrada', icon: '✨', categoria: 'ataque',
@@ -164,7 +188,13 @@ const SKILLS_INFO = {
           mp: 0, cd: 600, escala: 'nenhum',
           area: 'Raio 190', alcance: 'Aliado próximo',
           duracao: 'Passiva', duracaoBase: null,
-          extras: ['Cooldown: 10 minutos', 'Controlada pelo servidor'] }
+          extras: ['Cooldown: 10 minutos', 'Controlada pelo servidor'] },
+        { id: 'cantico', nome: 'Cântico Celestial', icon: '👼', categoria: 'aoe',
+          desc: 'Anjos descem e atingem até 5 inimigos próximos: dano sagrado + ENFRAQUECIMENTO (-20% defesa e -5% ataque por 10s).',
+          danoBase: 25, danoUnidade: 'sagrado', danoNota: '-20% Def / -5% Atk',
+          mp: 30, cd: 15, escala: 'dano',
+          area: 'Até 5 alvos (raio 320/360)', alcance: 'Ao redor da Curandeira',
+          duracao: 'Debuff 10s', duracaoBase: 10, extras: ['Enfraquece defesa (-20%)', 'Enfraquece ataque (-5%)', 'Atinge até 5 alvos próximos'] }
     ],
     barbaro: [
         { id: 'machadada', nome: 'Machadada', icon: '🪓', categoria: 'ataque',
@@ -197,7 +227,13 @@ const SKILLS_INFO = {
           danoBase: 35, danoUnidade: 'físico', danoNota: '+ Stun 1.25s',
           mp: 25, cd: 6, escala: 'dano',
           area: 'Raio 75', alcance: 'Salto 160px',
-          duracao: null, duracaoBase: null, extras: [] }
+          duracao: null, duracaoBase: null, extras: [] },
+        { id: 'vinculo', nome: 'Vínculo Berserker', icon: '⛓️', categoria: 'buff',
+          desc: 'Prende um inimigo em um vínculo de sangue por 10s: +20% de vampirismo, +30% de dano e +20% de velocidade de ataque.',
+          danoBase: null, danoUnidade: null, danoNota: 'Buff 10s',
+          mp: 20, cd: 30, escala: 'nenhum',
+          area: '1 alvo (marca)', alcance: 'Mira até 200px',
+          duracao: '10s', duracaoBase: 10, extras: ['+20% vampirismo', '+30% dano', '+20% velocidade de ataque', 'Exige um alvo para mirar'] }
     ],
     roqueiro: [
         { id: 'riff', nome: 'Riff de Guitarra', icon: '🎸', categoria: 'ataque',
@@ -333,7 +369,13 @@ const SKILLS_INFO = {
           danoBase: null, danoUnidade: null, danoNota: 'Root 2s',
           mp: 25, cd: 8, escala: 'buff',
           area: 'Cone 280px de frente', alcance: 'Direcional',
-          duracao: '2s', duracaoBase: 2, extras: ['Impede movimento 2s'] }
+          duracao: '2s', duracaoBase: 2, extras: ['Impede movimento 2s'] },
+        { id: 'buraco_negro', nome: 'Buraco Negro Astral', icon: '🌌', categoria: 'zona',
+          desc: 'Abre um buraco negro por 3s que suga inimigos em área, aplica lentidão e causa dano contínuo.',
+          danoBase: 5, danoUnidade: 'mágico', danoNota: 'sucção + lentidão',
+          mp: 40, cd: 25, escala: 'dano',
+          area: 'Sucção raio 200', alcance: 'Mira até 300px',
+          duracao: '3s', duracaoBase: 3, extras: ['Suga inimigos para dentro', 'Lentidão 20%', 'Dano contínuo'] }
     ],
     // ===== SNIPER (v1.31): precisão, camuflagem e posição =====
     sniper: [

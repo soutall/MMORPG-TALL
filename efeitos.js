@@ -128,9 +128,24 @@ window.desenharEfeitosMeteoro = function() {
     if (!window.ctx) return;
     for (let i = window.chaoEmChamas.length - 1; i >= 0; i--) {
         let fogo = window.chaoEmChamas[i];
+        // PROTEÇÃO: entradas com shape inesperado não podem travar o jogo
+        if (!fogo || typeof fogo !== 'object') { window.chaoEmChamas.splice(i, 1); continue; }
+        if (!Array.isArray(fogo.particulasFogo)) { window.chaoEmChamas.splice(i, 1); continue; }
+        if (!Number.isFinite(fogo.duracao)) fogo.duracao = 300;
         fogo.duracao--;
         if (fogo.duracao <= 0) { window.chaoEmChamas.splice(i, 1); } else {
+            const progFogo = fogo.duracaoInicial ? fogo.duracao / fogo.duracaoInicial : 1;
+            const fadeFogo = Math.min(1, progFogo / 0.25); // some só nos últimos 25%
             window.ctx.save();
+
+            // Iluminação quente no chão (5s)
+            let luzChao = window.ctx.createRadialGradient(fogo.x, fogo.y + 8, 2, fogo.x, fogo.y + 8, 80);
+            luzChao.addColorStop(0, "rgba(255, 180, 90, " + (0.30 * fadeFogo) + ")");
+            luzChao.addColorStop(0.55, "rgba(230, 90, 30, " + (0.16 * fadeFogo) + ")");
+            luzChao.addColorStop(1, "rgba(180, 40, 0, 0)");
+            window.ctx.fillStyle = luzChao;
+            window.ctx.beginPath(); window.ctx.ellipse(fogo.x, fogo.y + 8, 80, 40, 0, 0, Math.PI * 2); window.ctx.fill();
+
             window.ctx.fillStyle = "rgba(20, 10, 5, 0.75)";
             window.ctx.beginPath(); window.ctx.ellipse(fogo.x, fogo.y, 75, 45, 0, 0, Math.PI * 2); window.ctx.fill();
             window.ctx.strokeStyle = "rgba(230, 126, 34, 0.5)"; window.ctx.lineWidth = 3; window.ctx.stroke();
@@ -139,6 +154,17 @@ window.desenharEfeitosMeteoro = function() {
                 if (p.vida <= 0) { p.vida = 1.0; p.y = fogo.y + (Math.random() * 30 - 15); p.x = fogo.x + (Math.random() * 80 - 40); }
                 window.ctx.fillStyle = p.cor; window.ctx.shadowColor = "#e67e22"; window.ctx.shadowBlur = 8;
                 window.ctx.beginPath(); window.ctx.arc(p.x, p.y, p.tamanho * p.vida, 0, Math.PI * 2); window.ctx.fill();
+            }
+            // Fumaça subindo (chamas queimando o chão)
+            if (Array.isArray(fogo.fumaça)) {
+                for (let s = fogo.fumaça.length - 1; s >= 0; s--) {
+                    const sm = fogo.fumaça[s];
+                    sm.y -= sm.vy; sm.vida -= 0.012; sm.tamanho += 0.08;
+                    if (sm.vida <= 0) { sm.vida = 1.0; sm.y = fogo.y + (Math.random() * 24 - 12); sm.x = fogo.x + (Math.random() * 70 - 35); }
+                    window.ctx.fillStyle = "rgba(90, 88, 95, " + (0.20 * sm.vida * fadeFogo) + ")";
+                    window.ctx.shadowColor = "transparent"; window.ctx.shadowBlur = 0;
+                    window.ctx.beginPath(); window.ctx.arc(sm.x, sm.y, sm.tamanho * sm.vida, 0, Math.PI * 2); window.ctx.fill();
+                }
             }
             window.ctx.restore();
         }
@@ -175,7 +201,12 @@ window.desenharEfeitosMeteoro = function() {
             for (let f = 0; f < 25; f++) {
                 particulas.push({ x: m.targetX + (Math.random() * 90 - 45), y: m.targetY + (Math.random() * 40 - 20), vy: Math.random() * 1.5 + 0.8, vida: Math.random(), tamanho: Math.random() * 5 + 4, offset: Math.random() * 10, cor: Math.random() > 0.4 ? "#e67e22" : "#f1c40f" });
             }
-            window.chaoEmChamas.push({ x: m.targetX, y: m.targetY, duracao: 180, particulasFogo: particulas });
+            // Fogo no chão por 5 SEGUNDOS (300 frames @60fps) — alinhado ao `meteorFires` do servidor (+5000ms)
+            let fumaçaMeteoro = [];
+            for (let s = 0; s < 4; s++) {
+                fumaçaMeteoro.push({ x: m.targetX + (Math.random() * 70 - 35), y: m.targetY + (Math.random() * 24 - 12), vy: Math.random() * 0.6 + 0.5, vida: Math.random(), tamanho: Math.random() * 8 + 6 });
+            }
+            window.chaoEmChamas.push({ x: m.targetX, y: m.targetY, duracao: 300, duracaoInicial: 300, particulasFogo: particulas, fumaça: fumaçaMeteoro });
             window.floatingTexts.push({ x: m.targetX, y: m.targetY - 30, text: "💥 METEORO! (-25)", color: "#e67e22", alpha: 1.0 });
             window.meteorosAtivos.splice(i, 1);
         }

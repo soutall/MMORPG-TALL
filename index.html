@@ -73,7 +73,7 @@
             <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" autofocus />
             <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
         </div>
-        <div class="game-version-display">v1.39.6</div>
+        <div class="game-version-display">v1.41.2</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -122,7 +122,7 @@
 
     <div id="status" data-ui="status">Desconectado</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
-    <div id="hud-version" class="game-version-display">v1.39.6</div>
+    <div id="hud-version" class="game-version-display">v1.41.2</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -819,7 +819,7 @@
     <script src="mobile-hud.js?v=1"></script>
     <script src="item-admin.js?v=5"></script>
     <script>
-        const GAME_VERSION = 'v1.39.6';
+        const GAME_VERSION = 'v1.41.2';
         window.GAME_VERSION = GAME_VERSION;
         const WORLD_WIDTH = 71920;
         const WORLD_HEIGHT = 36000;
@@ -1154,7 +1154,7 @@ function usarCanticoCelestial() {
         });
 
         window.minhaClasse = 'guerreiro'; let meuLevel = 1; let meuXp = 0; let minhaEstamina = 100;
-        let autofarmLigado = false; window.danoFlashTimer = 0; let tornadoCooldoownAtivo = false; window.tornadoAnimTimer = 0; window.tornadoTimers = {};
+        let autofarmLigado = false; window.danoFlashTimer = 0; let tornadoCooldownAtivo = false; window.tornadoAnimTimer = 0; window.tornadoTimers = {};
         let dashCooldownAtivo = false; let dashTrails = [];
         
         window.meteoroCooldownAtivo = false; window.modoMiraMeteoro = false; window.meteorosAtivos = []; window.chaoEmChamas = []; window.tremorTela = 0; window.meuStunTimer = 0;
@@ -1522,7 +1522,7 @@ function usarCanticoCelestial() {
         }
 
         // Reseta o cooldown visual de uma skill (usado quando o servidor rejeita o uso).
-        const ACOES_SKILL_CANCELAVEIS = ['meteoro', 'nevasca', 'mago_vulcao', 'arqueiro_chuva', 'arqueiro_perfurante', 'arqueiro_rajada', 'curandeiro_cura', 'curandeiro_julgamento', 'curandeiro_aura', 'barbaro_furia', 'barbaro_esmagamento', 'barbaro_giro_descontrolado', 'roqueiro_bateria', 'roqueiro_teleporte', 'roqueiro_banda', 'roqueiro_grito_guerra', 'ladino_danca', 'ladino_bomba', 'ladino_camuflagem', 'ladino_estrela', 'comando_pet_ogro', 'comando_salto_ogro', 'comando_ogro_colossal', 'dash', 'tornado', 'guerreiro_provocacao', 'dronemaster_supressao', 'dronemaster_assalto', 'dronemaster_caixa', 'dronemaster_tita', 'arqueiro_cometas', 'arqueiro_orbe', 'arqueiro_cascata', 'sniper_apontar', 'sniper_fogo', 'sniper_rede', 'sniper_posicao', 'sniper_camuflagem', 'pikeman_giro', 'pikeman_pirueta', 'pikeman_geada', 'pikeman_execucao'];
+        const ACOES_SKILL_CANCELAVEIS = ['meteoro', 'nevasca', 'mago_vulcao', 'arqueiro_chuva', 'arqueiro_perfurante', 'arqueiro_rajada', 'curandeiro_cura', 'curandeiro_julgamento', 'curandeiro_aura', 'barbaro_furia', 'barbaro_esmagamento', 'barbaro_giro_descontrolado', 'roqueiro_bateria', 'roqueiro_teleporte', 'roqueiro_banda', 'roqueiro_grito_guerra', 'ladino_danca', 'ladino_bomba', 'ladino_camuflagem', 'ladino_estrela', 'comando_pet_ogro', 'comando_salto_ogro', 'comando_ogro_colossal', 'dash', 'tornado', 'guerreiro_provocacao', 'dronemaster_supressao', 'dronemaster_assalto', 'dronemaster_caixa', 'dronemaster_tita', 'arqueiro_cometas', 'arqueiro_orbe', 'arqueiro_cascata', 'sniper_apontar', 'sniper_fogo', 'sniper_rede', 'sniper_posicao', 'sniper_camuflagem', 'pikeman_giro', 'pikeman_pirueta', 'pikeman_geada', 'pikeman_execucao', 'guerreiro_escudo_lancamento', 'mago_bola_elemental', 'arqueiro_salto_chuva', 'curandeiro_cantico', 'barbaro_vinculo', 'summoner_golem_sismico', 'astral_buraco_negro'];
         function cancelarCooldownVisual(skill) {
             const mapa = {
                 meteoro:               () => { window.meteoroCooldownAtivo = false; limparCdBotao(btnMeteoro); },
@@ -1549,7 +1549,7 @@ function usarCanticoCelestial() {
                 comando_salto_ogro:    () => { window.ogroSaltoCooldown = false; limparCdBotao(btnOgroSalto); },
                 comando_ogro_colossal: () => { window.ogroColossalCooldown = false; limparCdBotao(btnOgroColossal); },
                 dash:                  () => { dashCooldownAtivo = false; limparCdBotao(btnDash); },
-                tornado:               () => { tornadoCooldoownAtivo = false; limparCdBotao(btnTornado); },
+                tornado:               () => { tornadoCooldownAtivo = false; limparCdBotao(btnTornado); },
                 guerreiro_provocacao:  () => { provocacaoCooldownAtivo = false; if (btnGuerreiroProvocacao) limparCdBotao(btnGuerreiroProvocacao); },
                 dronemaster_supressao: () => { window.dmSupressaoCooldown = false; limparCdBotao(btnDmSupressao); },
                 dronemaster_assalto:   () => { window.dmAssaltoCooldown = false; limparCdBotao(btnDmAssalto); },
@@ -1566,7 +1566,14 @@ function usarCanticoCelestial() {
                 pikeman_giro:         () => { window.giroPikemanCooldown = false; limparCdBotao(btnPikemanGiro); },
                 pikeman_pirueta:      () => { window.piruetaPikemanCooldown = false; limparCdBotao(btnPikemanPirueta); },
                 pikeman_geada:        () => { window.geadaPikemanCooldown = false; limparCdBotao(btnPikemanGeada); },
-                pikeman_execucao:     () => { window.execucaoPikemanCooldown = false; limparCdBotao(btnPikemanExecucao); }
+                pikeman_execucao:     () => { window.execucaoPikemanCooldown = false; limparCdBotao(btnPikemanExecucao); },
+                guerreiro_escudo_lancamento: () => { window.cdGuerreiroEscudo = false; limparCdBotao(btnGuerreiroEscudo); },
+                mago_bola_elemental:        () => { window.cdMagoBola = false; limparCdBotao(btnMagoBola); },
+                arqueiro_salto_chuva:       () => { window.cdArqueiroSalto = false; limparCdBotao(btnArqueiroSalto); },
+                curandeiro_cantico:         () => { window.cdCurandeiroCantico = false; limparCdBotao(btnCurandeiroCantico); },
+                barbaro_vinculo:            () => { window.cdBarbaroVinculo = false; limparCdBotao(btnBarbaroVinculo); },
+                summoner_golem_sismico:     () => { window.cdSummonerGolem = false; limparCdBotao(btnSummonerGolem); },
+                astral_buraco_negro:        () => { window.cdArcanoBuraco = false; limparCdBotao(btnArcanoBuraco); }
             };
             const fn = mapa[skill];
             if (fn) fn();
@@ -2438,18 +2445,22 @@ function usarCanticoCelestial() {
                 ['btn-meteoro', () => window.meteoroCooldownAtivo, 7],
                 ['btn-nevasca', () => window.nevascaCooldownAtivo, 12],
                 ['btn-vulcao', () => window.vulcaoCooldownAtivo, 20],
+                ['btn-mago-bola', () => window.cdMagoBola, 20],
                 ['btn-arqueiro-chuva', () => window.chuvaCooldownAtivo, 6],
                 ['btn-arqueiro-perfurante', () => perfuranteCooldownAtivo, 8],
                 ['btn-arqueiro-rajada', () => window.arqueiroRajadaCooldown, 12],
+                ['btn-arqueiro-salto', () => window.cdArqueiroSalto, 25],
                 ['btn-curandeiro-cura', () => curaCooldownAtivo, 6],
                 ['btn-curandeiro-julgamento', () => window.julgamentoCooldownAtivo, 6],
                 ['btn-curandeiro-aura', () => window.auraSagradaCooldown, 5],
+                ['btn-curandeiro-cantico', () => window.cdCurandeiroCantico, 15],
                 ['btn-barbaro-furia', () => furiaCooldownAtivo, 15],
                 ['btn-barbaro-esmagamento', () => window.esmagamentoCooldownAtivo, 6],
                 ['btn-barbaro-giro', () => window.giroDescontroladoCooldownAtivo, 15],
+                ['btn-barbaro-vinculo', () => window.cdBarbaroVinculo, 30],
                 ['btn-roqueiro-bateria', () => window.roqueiroBateriaCooldown, 8],
                 ['btn-roqueiro-teleporte', () => roqueiroTeleporteCooldown, 8],
-                ['btn-roqueiro-banda', () => window.roqueiroBandaCooldown, 10],
+                ['btn-roqueiro-banda', () => roqueiroBandaCooldown, 15],
                 ['btn-roqueiro-grito', () => window.roqueiroGritoGuerraCooldown, 60],
                 ['btn-ladino-danca', () => window.ladinoDancaCooldown, 12],
                 ['btn-ladino-bomba', () => window.ladinoBombaCooldown, 8],
@@ -2462,15 +2473,18 @@ function usarCanticoCelestial() {
                 ['btn-arcano-cometas', () => window.arcanoCometasCooldown, 7],
                 ['btn-arcano-orbe', () => window.arcanoOrbeCooldown, 8],
                 ['btn-arcano-cascata', () => window.arcanoCascataCooldown, 8],
+                ['btn-arcano-buraco', () => window.cdArcanoBuraco, 25],
                 ['btn-sniper-apontar', () => window.sniperAimCooldown, 20],
                 ['btn-sniper-rede', () => window.sniperRedeCooldown, 10],
                 ['btn-sniper-posicao', () => window.sniperPosicaoCooldown, 15],
                 ['btn-ogro-skill', () => window.ogroSkillCooldown, 8],
                 ['btn-ogro-salto', () => window.ogroSaltoCooldown, 8],
                 ['btn-ogro-colossal', () => window.ogroColossalCooldown, 45],
+                ['btn-summoner-golem', () => window.cdSummonerGolem, 30],
                 ['btn-dash', () => window.dashCooldownAtivo, 5],
-                ['btn-tornado', () => window.tornadoCooldownAtivo, 10],
-                ['btn-guerreiro-provocacao', () => window.guerreiroProvocacaoCooldown, 10],
+                ['btn-tornado', () => tornadoCooldownAtivo, 10],
+                ['btn-guerreiro-provocacao', () => provocacaoCooldownAtivo, 15],
+                ['btn-guerreiro-escudo', () => window.cdGuerreiroEscudo, 10],
                 ['btn-pikeman-giro', () => window.giroPikemanCooldown, 7],
                 ['btn-pikeman-pirueta', () => window.piruetaPikemanCooldown, 10],
                 ['btn-pikeman-geada', () => window.geadaPikemanCooldown, 12],
@@ -2511,6 +2525,14 @@ function usarCanticoCelestial() {
                     btn.style.setProperty('--cd-pct', 0);
                 }
             });
+            // v1.41.2: Camuflagem Natural (Sniper) é toggle SEM cooldown → brilha quando DISPONÍVEL (não camuflado)
+            if (window.minhaClasse === 'sniper' && btnSniperCamuflagem) {
+                if (window.snCamufladoAtivo) {
+                    btnSniperCamuflagem.classList.remove('cd-ready', 'cd-active', 'show-cd');
+                } else {
+                    btnSniperCamuflagem.classList.add('cd-ready');
+                }
+            }
         }
 
         function registrarCooldownBotao(btn, milissegundos) {
@@ -3718,6 +3740,7 @@ function usarCanticoCelestial() {
                             if (dados.cooldown) {
                                 window.roqueiroBateriaCooldown = true;
                                 btnRoq.classList.add("cooldown");
+                                registrarCooldownBotao(btnRoq, 10000);
                                 setTimeout(() => { window.roqueiroBateriaCooldown = false; btnRoq.classList.remove("cooldown"); }, 10000);
                             }
                         }
@@ -4471,7 +4494,7 @@ function usarCanticoCelestial() {
             if (!checarSkill('cura', 25, tx, ty, 320)) return;
             let p = clamparAlcanceSkill('prece', tx, ty); tx = p.x; ty = p.y;
             cancelarTodasMiras();
-            curaCooldownAtivo = true; btnCurandeiroCura.classList.add("cooldown");
+            curaCooldownAtivo = true; btnCurandeiroCura.classList.add("cooldown"); registrarCooldownBotao(btnCurandeiroCura, 5000);
             setTimeout(() => { curaCooldownAtivo = false; btnCurandeiroCura.classList.remove("cooldown"); }, 5000);
 
             if (window.tocarSonoro) window.tocarSonoro('curandeiro_cura'); else tocarSomCura();
@@ -4512,7 +4535,7 @@ function usarCanticoCelestial() {
             if (window.estaMorto || perfuranteCooldownAtivo || window.minhaClasse !== 'arqueiro') return;
             if (typeof window.atualizarMiraMouse === 'function') window.atualizarMiraMouse();
             if (!checarSkill('perfurante', 18)) return;
-            perfuranteCooldownAtivo = true; btnArqueiroPerfurante.classList.add("cooldown");
+            perfuranteCooldownAtivo = true; btnArqueiroPerfurante.classList.add("cooldown"); registrarCooldownBotao(btnArqueiroPerfurante, 4500);
             setTimeout(() => { perfuranteCooldownAtivo = false; btnArqueiroPerfurante.classList.remove("cooldown"); }, 4500);
 
             tocarSomDisparoPerfurante();
@@ -4563,7 +4586,7 @@ function usarCanticoCelestial() {
         function usarComandoOgro() {
             if (window.estaMorto || window.ogroSkillCooldown || window.minhaClasse !== 'summoner') return;
             if (!checarSkill('esmagamento', 25)) return;
-            window.ogroSkillCooldown = true; btnOgroSkill.classList.add("cooldown"); setTimeout(() => { window.ogroSkillCooldown = false; btnOgroSkill.classList.remove("cooldown"); }, 6000);
+            window.ogroSkillCooldown = true; btnOgroSkill.classList.add("cooldown"); registrarCooldownBotao(btnOgroSkill, 6000); setTimeout(() => { window.ogroSkillCooldown = false; btnOgroSkill.classList.remove("cooldown"); }, 6000);
             if (window.tocarSonoro) window.tocarSonoro('summoner_comandoPET');
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'comando_pet_ogro' })); }
         }
@@ -4641,7 +4664,7 @@ function usarCanticoCelestial() {
         function usarBandaRoqueiro() {
             if (window.estaMorto || roqueiroBandaCooldown || window.minhaClasse !== 'roqueiro') return;
             if (!checarSkill('banda', 30)) return;
-            roqueiroBandaCooldown = true; btnRoqueiroBanda.classList.add("cooldown");
+            roqueiroBandaCooldown = true; btnRoqueiroBanda.classList.add("cooldown"); registrarCooldownBotao(btnRoqueiroBanda, 15000);
             setTimeout(() => { roqueiroBandaCooldown = false; btnRoqueiroBanda.classList.remove("cooldown"); }, 15000);
 
             if (window.tocarSonoro) window.tocarSonoro('roqueiro_banda');
@@ -4956,10 +4979,10 @@ function usarCanticoCelestial() {
         }
 
         function usarTornado() {
-            if (window.estaMorto || tornadoCooldoownAtivo || window.minhaClasse !== 'guerreiro') return;
+            if (window.estaMorto || tornadoCooldownAtivo || window.minhaClasse !== 'guerreiro') return;
             if (!checarSkill('tornado', 20)) return;
-            tornadoCooldoownAtivo = true; btnTornado.classList.add("cooldown"); 
-            setTimeout(() => { tornadoCooldoownAtivo = false; btnTornado.classList.remove("cooldown"); }, 5000);
+            tornadoCooldownAtivo = true; btnTornado.classList.add("cooldown"); registrarCooldownBotao(btnTornado, 5000); 
+            setTimeout(() => { tornadoCooldownAtivo = false; btnTornado.classList.remove("cooldown"); }, 5000);
             
             window.tornadoAnimTimer = 30; 
             if (window.tocarSonoro) window.tocarSonoro('guerreiro_tornado');
@@ -4978,7 +5001,7 @@ function usarCanticoCelestial() {
             let custoMp = Math.round(20 * Math.pow(1.06, nivel - 1));
             if (window.meuMp !== undefined && window.meuMp < custoMp) { avisoSkillLocal('mana'); return; }
 
-            provocacaoCooldownAtivo = true;
+            provocacaoCooldownAtivo = true; registrarCooldownBotao(btnGuerreiroProvocacao, 15000);
             if (btnGuerreiroProvocacao) btnGuerreiroProvocacao.classList.add("cooldown");
             setTimeout(() => {
                 provocacaoCooldownAtivo = false;
@@ -6332,11 +6355,17 @@ function usarCanticoCelestial() {
             if (typeof window.desenharPinosLocalizacao === "function") window.desenharPinosLocalizacao();
             if (typeof window.desenharBandeirasSpawn === "function") window.desenharBandeirasSpawn();
             if (typeof window.desenharVfxMapa === "function") window.desenharVfxMapa();
-            if (typeof window.desenharEfeitosMeteoro === "function") window.desenharEfeitosMeteoro();
-            if (typeof window.desenharEfeitosNevasca === "function") window.desenharEfeitosNevasca();
-            if (typeof window.desenharEfeitosSismicos === "function") window.desenharEfeitosSismicos();
-            if (typeof window.desenharImpactosGolem === "function") window.desenharImpactosGolem();
-            if (typeof window.desenharBesouroExplosoes === "function") window.desenharBesouroExplosoes();
+            // Efeitos de área (meteoro/nevasca/sísmico) — protegidos: erro visual
+            // jamais pode travar o loop de render do jogo inteiro
+            try {
+                if (typeof window.desenharEfeitosMeteoro === "function") window.desenharEfeitosMeteoro();
+                if (typeof window.desenharEfeitosNevasca === "function") window.desenharEfeitosNevasca();
+                if (typeof window.desenharEfeitosSismicos === "function") window.desenharEfeitosSismicos();
+                if (typeof window.desenharImpactosGolem === "function") window.desenharImpactosGolem();
+                if (typeof window.desenharBesouroExplosoes === "function") window.desenharBesouroExplosoes();
+            } catch (errFxArea) {
+                console.warn("Aviso efeito de área:", errFxArea);
+            }
             
             // NOVOS VFX (protegidos contra falhas visuais)
             try {

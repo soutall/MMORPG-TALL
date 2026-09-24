@@ -1,6 +1,6 @@
 # 📱 INFO DO PROJETO — MMORPG Mobile
 
-> Documento oficial de referência do projeto. Atualizado em 23/09/2026.
+> Documento oficial de referência do projeto. Atualizado em 24/09/2026.
 
 ---
 
@@ -34,6 +34,10 @@
 
 | Versão | Data / Hora | O que foi feito | Arquivos Alterados |
 |---|---|---|---|
+| **v1.41.2** | 24/09/2026 (hora local) | **AUDITORIA DE COOLDOWN — TODAS AS SKILLS DE TODAS AS CLASSES COM ANEL DE CD + BRILHO "PRONTO":** (1) 7 skills novas do Slot 4 fora do HUD de CD (sem anel/brilho): escudo, bola, golem sísmico, salto, cântico, vínculo, buraco negro — adicionadas ao `atualizarCooldownSkillHUD` (40→46); (2) 3 flags quebrados corrigidos (tornado com typo `tornadoCooldoownAtivo`, banda bare vs `window.`, provocação lia flag inexistente `guerreiroProvocacaoCooldown`); (3) CD exato via `registrarCooldownBotao` em cura/perfurante/ogro/bateria/grito (badge real, não fallback fixo); (4) Camuflagem do Sniper (toggle sem CD) brilha quando disponível e apaga o brilho enquanto camuflado; (5) 7 novas skills no cancelamento por rejeição do servidor (`ACOES_SKILL_CANCELAVEIS` + `cancelarCooldownVisual` — 49/49 mapeadas, sem CD fantasma); versão **v1.41.2** nos 3 pontos visuais | `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md`, `CORRECOES.md` |
+| **v1.41.1** | 24/09/2026 (hora local) | **FIX CRÍTICO — METEORO DO MAGO TRAVAVA O JOGO (conflito no `window.chaoEmChamas`):** (1) Causa: `efeitos/vfx_mago_bola.js` (v1.41.0) empurrava fogo em `window.chaoEmChamas` com shape incompatível com o dono legítimo `efeitos.js` (`{duracao, particulasFogo}`) → `fogo.particulasFogo is not iterable` todo frame e, como `desenharEfeitosMeteoro` (index.html:6335) fugia do try/catch, o loop de render morria → jogo congelava ao usar Meteoro; (2) vfx abandonou o `window.chaoEmChamas` (transformação da Bola em FOGO segue 100% server-driven); (3) `efeitos.js`: fogo do Meteoro agora dura 5s (300 frames, igual ao `meteorFires` do servidor) com iluminação quente no chão e fumaça + proteções defensivas (entradas inválidas são removidas, nunca travam); (4) `index.html`: efeitos de área (Meteoro/Nevasca/Sísmico/Golem/Besouro) dentro de try/catch — erro visual jamais congela o jogo; versão **v1.41.1** nos 3 pontos visuais | `efeitos/vfx_mago_bola.js`, `efeitos.js`, `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
+| **v1.41.0** | 24/09/2026 (hora local) | **MAGO «BOLA ELEMENTAL» REFEITA DO ZERO — MECÂNICA COMPLETA + VFX NOVO (o VFX antigo nunca carregava — sintaxe inválida em `efeitos/vfx_mago_bola.js`):** (1) Servidor: CD **20s**, evento com `x/y/speed/dist` (bola sincronizada com o tick de 50ms), **NORMAL** empurra todos os inimigos próximos (raio 60), **GELO** (Nevasca) congela em área (raio 85, 2s, efeito `congelado` + stun + `reacao_congelante` por alvo), **FOGO** (Meteoro) grande explosão em área (raio 130, dano ×2) em slimes + Bosses; (2) VFX reescrito: bola gigante (22px) **rola pelo chão** (meridianos girando), iluminação no chão, rastro, aura, núcleo brilhante; transformações GELO (cristais/neve/rastro congelante + círculo congelante no chão no hit) e FOGO (chamas/brasas/fumaça + explosão circular + screen shake); (3) **Fogo do Meteoro no chão por 5s** (`window.chaoEmChamas` — chamas, brasas, fumaça, iluminação; dano segue server-side); (4) `SKILLS_INFO` atualizada; slots PC (tecla 4) e Mobile já existiam; versão **v1.41.0** nos 3 pontos visuais | `efeitos/vfx_mago_bola.js`, `server.js`, `skills.js`, `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
+| **v1.40.0** | 24/09/2026 (hora local) | **NOVAS SKILLS 4 (tecla 4) PARA 7 CLASSES + UPGRADE NO MODAL K + DOCUMENTAÇÃO:** (1) Novas skills do Slot 4 implementadas no servidor/cliente: Guerreiro **Lançamento do Escudo** (`escudo_lancamento`, 45 dano + pull + taunt 5s, CD 10s), Mago **Bola Elemental** (`bola_elemental`, 60 dano, vira Gelo na Nevasca e Fogo ×2 no Meteoro, CD 20s), Arqueira **Salto + Chuva do Alto** (`salto_chuva`, imune 3s no alto + chuva em área 2s, CD 25s), Curandeira **Cântico Celestial** (`cantico`, até 5 alvos, 25 dano + -20% def/-5% atk por 10s, CD 15s), Bárbaro **Vínculo Berserker** (`vinculo`, +20% vampirismo/+30% dano/+20% vel atk por 10s, CD 30s), Arqueiro Arcano/Astral **Buraco Negro Astral** (`buraco_negro`, sucção + lentidão + dano por 3s, CD 25s) e Summoner **Golem Sísmico** (`sismico`, ondas sísmicas 8s raio 260, CD 30s); (2) Todas adicionadas ao `SKILLS_INFO` (`skills.js`) com nome/ícone/categoria/descrição — agora aparecem na Janela de Habilidades (Modal K) com upgrade até nível 10; (3) Dano e mana das novas skills escalam no servidor com `dmgSkill` (+25%/nível) e `mpSkill` (+6%/nível); (4) Docs atualizados (tabelas) e versão **v1.40.0** nos 3 pontos visuais | `server.js`, `skills.js`, `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.39.6** | 23/09/2026 (hora local) | **FIX ANCORAGEM SIDEBAR MOBILE ABAIXO DO MINIMAPA + ÍCONE OFICIAL SKILL 1 DO PIKEMAN:** (1) Corrigido bug de posicionamento da Sidebar mobile no canto superior esquerdo (causado pelo auto-scanner de `data-ui` do `dragdrop.js`): removido `data-ui` e adicionado `data-ui-ignored="true"` + regras forçadas `top: 122px !important; right: 10px !important; left: auto !important;`; (2) Redução compacta dos itens do menu dropdown (altura 21px, fonte 10.5px, largura 116px) permitindo que todas as 8 opções caibam perfeitamente na vertical abaixo do minimapa sem rolagem; (3) Substituição do emoji `⭕` pela arte oficial `imagem/HUD/skills/Slotbar/Pike/skill_01.png` na Skill 1 do Pikeman (Giro da Foice) no slotbar (`#btn-pikeman-giro`) e no modal K (`skills.js`), com estilização circular, borda vermelha e fundo escuro condizente; versão **v1.39.6** nos 3 pontos visuais | `index.html`, `mobile-hud.css`, `skills.js`, `skills.css`, `style.css`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.39** | 23/09/2026 (hora local) | **INTERFACE FIXA MOBILE COM SIDEBAR RETRÁTIL E CLUSTER DE AÇÃO 2×3:** Menu Sidebar retrátil (`#mobile-sidebar-container`) abaixo do minimapa com opções Configuração, Inventário, Skills, Social, Status, PvP, Mapa e Futuro Update (com toast); Cluster de Ação fixo no canto inferior direito em 2 colunas × 3 linhas: L1 [6] Autofarm / [5] Dash, L2 [3] Skill 3 / [4] Skill 4, L3 [1] Skill 1 / [2] Skill 2; Poções [HP] e [MP] fixadas imediatamente à esquerda da Skill 1; Barra de XP fixada no canto inferior esquerdo; minimapa e status ancorados no topo; ocultação de badges de teclado no mobile; arquitetura separada em `mobile-hud.css` e `mobile-hud.js`; compatibilidade dual PC & Mobile; versão **v1.39** nos 3 pontos visuais | `mobile-hud.css`, `mobile-hud.js`, `index.html`, `dragdrop.js`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.38** | 23/09/2026 (hora local) | **REDESENHO DA JANELA DE HABILIDADES (MODAL K) ESTILO MMORPG CLÁSSICO/MODERNO:** Layout split-view dividido em 2 colunas principais: Coluna esquerda com grade de skills categorizadas (`◇ ATIVAS`, `◇ PASSIVAS`, `◇ SUPORTE`), molduras metálicas douradas (`.skill-slot-moldura`), seleção com brilho dourado (`.selected`), badge de nível (`Nv X`) e nome legível; Coluna direita **"DETALHES DA HABILIDADE"** interativa ao clicar em qualquer skill exibindo ícone grande, nome, badge de categoria (Ativa/Passiva/Suporte), nível atual (1 a 10), descrição narrativa, caixa de atributos com escalonamento por atributo e fórmula do server, caixa de bônus por nível, controles de upgrade (`⬆ MELHORAR`) e reset individual (`↺`), e caixa de prévia do próximo nível (`Próximo nível:`) com comparação dinâmica; responsividade dual PC & Mobile (landscape) preservando Drag & Drop (`dragdrop.js`); versão **v1.38** nos 3 pontos visuais | `index.html`, `skills.css`, `skills.js`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
@@ -60,7 +64,7 @@
 | **Tipo** | MMORPG 2D/2.5D multiplayer em tempo real (browser game) |
 | **Plataforma alvo** | Celular (Android/iOS via navegador) e PC (WASD + mouse) |
 | **Modelo de rede** | Cliente-servidor com **autoridade do servidor** (dano, skills, atributos, teleportes validados no servidor) |
-| **Versão atual** | v1.38 |
+| **Versão atual** | v1.41.2 |
 | **Persistência** | `jogadores.json` (JSON em disco) — `rpg_save.db` é arquivo legado (sem uso) |
 
 ---
@@ -105,18 +109,22 @@
 
 ---
 
-## 5. Classes (8 classes, 39 skills no total)
+## 5. Classes (12 classes, 68 skills no total)
 
 | Classe | Arquivo | Skills (id) |
 |---|---|---|
-| ⚔️ **Guerreiro** | `classes/guerreiro.js` | Corte, Dash Atingente, Tornado de Espada, Grito de Provocação, Escudo (passiva), Último Fôlego (passiva) — **6** |
-| 🔮 **Mago** | `classes/mago.js` | Bola de Magia, Meteoro, Nevasca (zona de gelo) — **3** |
-| 🦍 **Summoner** | `classes/summoner.js` | Orbe das Sombras, Ogro Guardião (pet), Esmagamento Sísmico, Salto do Ogro, Golem Colossal — **5** |
-| 🏹 **Arqueiro** | `classes/arqueiro.js` | Flecha Precisa, Chuva de Flechas (zona), Disparo Perfurante, Rajada de Flechas — **4** |
-| ✝️ **Curandeiro** | `classes/curandeiro.js` | Luz Sagrada, Cura Divina (área), Julgamento Sagrado, Aura Sagrada (buff), Ressurreição Automática — **5** |
-| 🪓 **Bárbaro** | `classes/barbaro.js` | Machadada, Fúria Berserker (buff), Giro Descontrolado, Fúria Crescente (passiva), Salto Esmagador — **5** |
+| ⚔️ **Guerreiro** | `classes/guerreiro.js` | Corte, Dash Atingente, Tornado de Espada, Grito de Provocação, **Lançamento do Escudo**, Escudo (passiva), Último Fôlego (passiva) — **7** |
+| 🔮 **Mago** | `classes/mago.js` | Bola de Magia, Meteoro, Nevasca (zona de gelo), Vulcão Flamejante, **Bola Elemental** — **5** |
+| 🦍 **Summoner** | `classes/summoner.js` | Orbe das Sombras, Ogro Guardião (pet), Esmagamento Sísmico, Salto do Ogro, Golem Colossal, **Golem Sísmico** — **6** |
+| 🏹 **Arqueiro** | `classes/arqueiro.js` | Flecha Precisa, Chuva de Flechas (zona), Disparo Perfurante, Rajada de Flechas, **Salto + Chuva do Alto** — **5** |
+| ✝️ **Curandeiro** | `classes/curandeiro.js` | Luz Sagrada, Cura Divina (área), Julgamento Sagrado, Aura Sagrada (buff), Ressurreição Automática, **Cântico Celestial** — **6** |
+| 🪓 **Bárbaro** | `classes/barbaro.js` | Machadada, Fúria Berserker (buff), Giro Descontrolado, Fúria Crescente (passiva), Salto Esmagador, **Vínculo Berserker** — **6** |
 | 🎸 **Roqueiro** | `classes/roqueiro.js` | Riff de Guitarra, Bateria Solo (canal), Stage Dive (teleporte), Chamar a Banda (1 membro), Grito de Guerra (buff) — **5** |
 | 🗡️ **Ladino** | `classes/ladino.js` | Adaga, Dança das Adagas, Nevoeiro Venenoso (gás), Camuflagem Sombria (buff/invis), Estrela da Morte (mobilidade+stun), Lâminas Sangrentas (passiva) — **6** |
+| 🤖 **DroneMaster** | `classes/dronemaster.js` | Disparo do Drone, Modo Supressão, Modo Assalto, Caixa de Ferramentas, Protocolo Titã, Drone Companheiro (passiva) — **6** |
+| 🌠 **Arqueiro Arcano/Astral** | `classes/arqueiro_arcano.js` | Disparo Estelar, Chuva de Cometas, Orbe de Constelação, Cascata Estelar, **Buraco Negro Astral** — **5** |
+| 🎯 **Sniper** | `classes/sniper.js` | Tiro de Barrett, Disparo Supremo, Arame Prendedor, Camuflagem Natural, Posição de Franco-Atirador — **5** |
+| ☠️ **Pikeman** | `classes/pikeman.js` | Instinto da Morte (passiva), Foicada, Giro da Foice, Pirueta da Morte, Geada da Morte, Execução da Morte — **6** |
 
 - `classes/comum.js` = funções/recursos compartilhados entre classes.
 - **Atributos base** (8): Força, Inteligência, Agilidade, Destreza, Vida, Profanidade, Divindade, Afinidade.
