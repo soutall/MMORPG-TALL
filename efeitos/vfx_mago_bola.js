@@ -1,589 +1,1416 @@
 // =====================================================================
-// VFX — MAGO «BOLA ELEMENTAL» (v2 — refeito do zero)
+// VFX — MAGO «BOLA ELEMENTAL» (REFEITA DO ZERO)
 // ---------------------------------------------------------------------
-// Bola gigante que ROLA PELO CHÃO até o alvo:
-//   • NORMAL (arcana): rola girando, núcleo energético, aura, partículas
-//     orbitando, rastro luminoso e iluminação no chão durante o trajeto.
-//   • GELO  (ao cruzar a área da NEVASCA): vira esfera de gelo com
-//     cristais, neve caindo, rastro congelante; ao acertar: explosão de
-//     gelo + círculo congelante no chão (+ reação congelante no inimigo,
-//     enviada pelo servidor via `reacao_congelante`).
-//   • FOGO  (ao cruzar o fogo deixado pelo METEORO): vira esfera de fogo
-//     com chamas girando, brasas e fumaça; ao acertar: grande explosão,
-//     expansão circular de fogo, brasas, fumaça e SCREEN SHAKE.
-// Area do METeoro: fogo no chão por 5s (chamas, brasas, fumaça e
-// iluminação) — o dano continua 100% server-side.
+// Mecânica e Visuais completos:
+//   • BOLA NORMAL:
+//       - Bola gigante (R=30, diâmetro 60px), altamente visível.
+//       - Rola fisicamente EM CONTATO DIRETO COM O CHÃO (sombra de contato,
+//         poeira de rolagem na base, rotação não-deslizante proporcional
+//         ao trajeto: dist / R).
+//       - Núcleo energético brilhante cor de barro (terracota / âmbar).
+//       - 8 pedrinhas facetadas orbitando em anéis 3D ao redor da esfera.
+//       - Iluminação terrosa/âmbar projetada no chão durante o trajeto.
+//       - Rastro de pequenas pedras que se soltam da bola maior, quicam
+//         e permanecem no chão por ~1s antes de sumir.
+//       - Empurra inimigos para trás ao colidir.
+//
+//   • TRANSFORMAÇÃO EM GELO (ao cruzar a NEVASCA):
+//       - Detecta visualmente no frame em que toca a Nevasca (ou via rede).
+//       - Troca imediata de aparência: esfera de puro gelo cristalino translúcido.
+//       - Cristais pontiagudos de gelo cravados e orbitando a bola.
+//       - Partículas e flocos de neve espiralando ao redor.
+//       - Rastro congelante (camada de geada no chão).
+//       - Pequenas partículas e lascas de gelo ficando para trás.
+//       - Ao acertar: explosão de gelo, dezenas de cristais voando, círculo
+//         congelante no chão persistente por ~1.5s e EFEITO VISUAL DE
+//         CONGELAMENTO NO CORPO DOS INIMIGOS por 2 segundos.
+//
+//   • TRANSFORMAÇÃO EM FOGO (ao cruzar o METEORO):
+//       - Detecta visualmente no frame em que toca o fogo do Meteoro (ou via rede).
+//       - Troca imediata de aparência: esfera colossal de magma incandescente.
+//       - 8 línguas de fogo espiralando em alta velocidade ao redor.
+//       - Chuva contínua de brasas e faíscas incandescentes.
+//       - Plumas de fumaça escura subindo da bola.
+//       - Rastro incandescente (terra calcinada com rachaduras de lava viva).
+//       - Forte iluminação dinâmica alaranjada e dourada no solo.
+//       - Ao acertar: grande explosão massiva (raio 130), expansão circular de fogo,
+//         chuva de brasas com física parabólica, fumaça volumosa e SCREEN SHAKE.
 // =====================================================================
 
 window.vfxListeners = window.vfxListeners || [];
 window.vfxMagoBolas = [];
 window.vfxMagoBolasHits = [];
-window.vfxCirculosGelo = [];
-// NOTA: o fogo deixado pelo METeoro no chão (5s) é desenhado por
-// `efeitos.js` → `desenharEfeitosMeteoro` (dono legítimo de
-// `window.chaoEmChamas`). NÃO usar esse array aqui — shape incompatível
-// `{duracao, particulasFogo}` → causava TypeError e travava o jogo.
+window.vfxMagoBolasPedrasRastro = [];
+window.vfxMagoBolasGeloRastro = [];
+window.vfxMagoBolasFogoRastro = [];
+window.vfxMagoCirculosGelo = [];
+window.vfxMagoInimigosCongelados = [];
 
 const PI2 = Math.PI * 2;
+const RAIO_BOLA = 30; // Bola gigante, ultra visível (~60px diâmetro)
 
-// Paleta por tipo de bola
-const CORES_BOLA = {
-    normal: {
-        base: '#a44dff', alt: '#ffd6ff', escuro: '#3d0f7a',
-        risco: 'rgba(232,200,255,0.9)', aura: 'rgba(168,85,247,0.22)',
-        luz: 'rgba(168,85,247,0.20)', luzForte: 'rgba(230,170,255,0.30)',
-        particula: 'rgba(220,150,255,'
-    },
-    gelo: {
-        base: '#38c8ff', alt: '#eafcff', escuro: '#0e5c8a',
-        risco: 'rgba(223,252,255,0.95)', aura: 'rgba(120,230,255,0.25)',
-        luz: 'rgba(120,230,255,0.22)', luzForte: 'rgba(190,250,255,0.32)',
-        particula: 'rgba(190,245,255,'
-    },
-    fogo: {
-        base: '#ff6b1a', alt: '#ffe9a0', escuro: '#7a1500',
-        risco: 'rgba(255,209,102,0.95)', aura: 'rgba(255,120,30,0.25)',
-        luz: 'rgba(255,140,40,0.26)', luzForte: 'rgba(255,200,90,0.36)',
-        particula: 'rgba(255,180,70,'
-    }
-};
-
-// ---------- helpers de partícula ----------
-function spawnParticulasBola(bola, n, spread) {
-    for (let i = 0; i < n; i++) {
-        const a = Math.random() * PI2;
-        const v = (0.4 + Math.random() * 1.6) * (spread || 1);
-        bola.ps.push({
-            x: bola.x, y: bola.y,
-            vx: Math.cos(a) * v, vy: Math.sin(a) * v,
-            life: 0, max: 18 + Math.random() * 22,
-            size: 2 + Math.random() * 3,
-            tipo: 'trail'
+// ---------- GERADOR DE PEDRINHAS ORBITAIS (BOLA DE BARRO) ----------
+function criarOrbitaisBarro() {
+    const list = [];
+    for (let i = 0; i < 8; i++) {
+        list.push({
+            raioX: RAIO_BOLA * (1.25 + (i % 3) * 0.18),
+            raioY: RAIO_BOLA * (0.65 + (i % 2) * 0.22),
+            tilt: (i * 0.42) - 0.6,
+            speed: (i % 2 === 0 ? 1 : -1) * (0.0028 + (i % 4) * 0.0006),
+            offset: i * (PI2 / 8),
+            size: 2.8 + (i % 3) * 1.4,
+            cor: i % 2 === 0 ? '#8d5b3d' : '#6f4528',
+            altCor: '#b8794f'
         });
     }
+    return list;
 }
 
-function desenharParticulas(ctx, lista, C) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    for (let i = lista.length - 1; i >= 0; i--) {
-        const p = lista[i];
-        p.life++;
-        if (p.life >= p.max) { lista.splice(i, 1); continue; }
-        p.x += p.vx; p.y += p.vy;
-        // brasa/fumaça têm física própria (chamadas setam vx/vy antes)
-        const k = 1 - p.life / p.max;
-        ctx.globalAlpha = k;
-        ctx.fillStyle = (C && C.particula) ? C.particula + (0.85 * k) + ')' : `rgba(220,150,255,${0.85 * k})`;
-        ctx.beginPath();
-        ctx.arc(p.x, p.y, p.size * (0.5 + k * 0.8), 0, PI2);
-        ctx.fill();
+// ---------- CRISTAIS AO REDOR DA BOLA DE GELO ----------
+function criarCristaisGelo() {
+    const list = [];
+    for (let i = 0; i < 6; i++) {
+        list.push({
+            angOffset: i * (PI2 / 6),
+            distMult: 1.18 + (i % 2) * 0.16,
+            comp: 9 + (i % 3) * 4,
+            larg: 4 + (i % 2) * 1.5,
+            rotSpeed: 0.0018 * (i % 2 === 0 ? 1 : -1)
+        });
     }
-    ctx.globalAlpha = 1;
-    ctx.restore();
+    return list;
 }
 
-// ---------- escuta os eventos do servidor ----------
+// ---------- LÍNGUAS DE FOGO DA BOLA DE FOGO ----------
+function criarChamasFogo() {
+    const list = [];
+    for (let i = 0; i < 8; i++) {
+        list.push({
+            angOffset: i * (PI2 / 8),
+            distMult: 0.95 + (i % 2) * 0.18,
+            tam: 14 + (i % 3) * 5,
+            larg: 6 + (i % 2) * 2,
+            rotSpeed: (i % 2 === 0 ? 1 : -1) * 0.003
+        });
+    }
+    return list;
+}
+
+// =====================================================================
+// DISPATCHER DE EVENTOS DE REDE
+// =====================================================================
 window.vfxListeners.push(function (dados) {
     const now = Date.now();
+
+    // 1) LANÇAMENTO DA BOLA ELEMENTAL
     if (dados.type === 'action_mago_bola_elemental') {
+        if (dados.ownerId === window.meuId) {
+            if (typeof window.tocarSonoro === 'function') window.tocarSonoro('mago_skill4');
+        } else if (typeof window.tocarSonoroProximidade === 'function') {
+            window.tocarSonoroProximidade('mago_skill4', dados.x, dados.y);
+        }
         const speed = dados.speed || 12;
-        const dist = dados.dist || 400;
+        const dist = dados.dist || 400; // Alcance total (400px alinhado à mira e ao servidor)
+        const ang = Math.atan2(dados.targetY - dados.y, dados.targetX - dados.x);
+        const destX = dados.x + Math.cos(ang) * dist;
+        const destY = dados.y + Math.sin(ang) * dist;
+        const duration = (dist / speed) * 50;
+
         window.vfxMagoBolas.push({
             id: dados.id,
-            x: dados.x, y: dados.y,
-            startX: dados.x, startY: dados.y,
-            targetX: dados.targetX, targetY: dados.targetY,
-            ang: Math.atan2(dados.targetY - dados.y, dados.targetX - dados.x),
-            speed: speed, dist: dist,
+            ownerId: dados.ownerId,
+            x: dados.x,
+            y: dados.y,
+            startX: dados.x,
+            startY: dados.y,
+            destX: destX,
+            destY: destY,
+            targetX: dados.targetX,
+            targetY: dados.targetY,
+            ang: ang,
+            speed: speed,
+            distTotal: dist,
+            distPercorrida: 0,
             ballType: 'normal',
             startTime: now,
-            duration: (dist / speed) * 50, // casa com o tick de 50ms do servidor
-            ps: []
+            duration: duration,
+            orbitaisBarro: criarOrbitaisBarro(),
+            cristaisGelo: criarCristaisGelo(),
+            chamasFogo: criarChamasFogo(),
+            ps: [],
+            dustTimer: 0,
+            rastroTimer: 0
         });
-        spawnParticulasBola(window.vfxMagoBolas[window.vfxMagoBolas.length - 1], 10, 1);
     }
+
+    // 2) TRANSFORMAÇÃO AUTORITATIVA DO SERVIDOR
     else if (dados.type === 'action_mago_bola_transform') {
         const bola = window.vfxMagoBolas.find(b => b.id === dados.id);
         if (!bola) return;
-        bola.ballType = dados.newType;
-        // ancora na posição autoritativa do servidor e re-anima o resto do caminho
-        bola.x = dados.x; bola.y = dados.y;
-        bola.startX = dados.x; bola.startY = dados.y;
-        const restante = Math.hypot(bola.targetX - dados.x, bola.targetY - dados.y);
-        bola.duration = (restante / bola.speed) * 50;
-        bola.startTime = now;
-        // rajada de transformação (cristais/neve OU brasas/cinzas)
-        const n = dados.newType === 'gelo' ? 22 : 28;
-        for (let i = 0; i < n; i++) {
-            const a = Math.random() * PI2;
-            const v = 1 + Math.random() * 3.2;
-            bola.ps.push({
-                x: dados.x, y: dados.y,
-                vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1,
-                life: 0, max: 24 + Math.random() * 26,
-                size: 2 + Math.random() * 4,
-                tipo: 'transform'
-            });
-        }
+        aplicarTransformacaoBola(bola, dados.newType);
     }
+
+    // 3) HIT / EXPLOSÃO DA BOLA
     else if (dados.type === 'action_mago_bola_hit') {
+        if (typeof window.pararSomMagoSkill4 === 'function') {
+            window.pararSomMagoSkill4();
+        }
+        if (dados.ownerId === window.meuId) {
+            if (typeof window.tocarSonoro === 'function') window.tocarSonoro('mago_skill4_impacto');
+        } else if (typeof window.tocarSonoroProximidade === 'function') {
+            window.tocarSonoroProximidade('mago_skill4_impacto', dados.x, dados.y);
+        } else if (typeof window.tocarSonoro === 'function') {
+            window.tocarSonoro('mago_skill4_impacto');
+        }
+        const bType = dados.ballType || 'normal';
+        const raio = dados.radius || (bType === 'fogo' ? 130 : (bType === 'gelo' ? 85 : 60));
+
+        // Remove a bola que colidiu para cessar o rolamento
+        if (dados.id) {
+            const idx = window.vfxMagoBolas.findIndex(b => b.id === dados.id);
+            if (idx !== -1) window.vfxMagoBolas.splice(idx, 1);
+        } else {
+            const idx = window.vfxMagoBolas.findIndex(b => Math.hypot(b.x - dados.x, b.y - dados.y) < 70);
+            if (idx !== -1) window.vfxMagoBolas.splice(idx, 1);
+        }
+
         window.vfxMagoBolasHits.push({
-            x: dados.x, y: dados.y,
-            ballType: dados.ballType || 'normal',
-            radius: dados.radius || 60,
+            x: dados.x,
+            y: dados.y,
+            ballType: bType,
+            radius: raio,
             startTime: now,
-            duration: dados.ballType === 'fogo' ? 950 : (dados.ballType === 'gelo' ? 1300 : 500),
+            duration: bType === 'fogo' ? 1000 : (bType === 'gelo' ? 1200 : 550),
             ps: [],
-            crystals: [],
-            braseiro: []
+            debris: [],
+            smoke: []
         });
-        if (dados.ballType === 'fogo') {
-            // SCREEN SHAKE na explosão
-            window.tremorTela = Math.max(window.tremorTela || 0, 34);
-            // expande o círculo congelante? não — fogo só braseira/fumaça
-        }
-        if (dados.ballType === 'gelo') {
-            // círculo congelante no chão (fica ~1.4s)
-            window.vfxCirculosGelo.push({
-                x: dados.x, y: dados.y,
-                raioMax: dados.radius || 85,
+
+        if (bType === 'fogo') {
+            // SCREEN SHAKE vigoroso no impacto de fogo
+            window.tremorTela = Math.max(window.tremorTela || 0, 38);
+        } else if (bType === 'gelo') {
+            // Círculo congelante no chão persistente por ~1.5s
+            window.vfxMagoCirculosGelo.push({
+                x: dados.x,
+                y: dados.y,
+                raioMax: raio,
                 startTime: now,
-                duration: 1400
+                duration: 1600
             });
+
+            // Aplica congelamento visual nos inimigos dentro da área
+            aplicarCongelamentoVisualEmArea(dados.x, dados.y, raio);
         }
     }
-    });
 
-// ---------- desenho da bola rolante ----------
-function desenharBolaElemental(ctx, bola, now) {
-    const C = CORES_BOLA[bola.ballType];
-    const R = 22;
-    const ep = now - bola.startTime;
+    // 4) REAÇÃO CONGELANTE DIRETA
+    else if (dados.type === 'reacao_congelante') {
+        aplicarCongelamentoVisualPonto(dados.x, dados.y);
+    }
+});
 
-    if (ep < bola.duration) {
-        const t = Math.min(ep / bola.duration, 1);
-        bola.x = bola.startX + (bola.targetX - bola.startX) * t;
-        bola.y = bola.startY + (bola.targetY - bola.startY) * t;
+// ---------- HELPER: TRANSFORMAÇÃO DA BOLA ----------
+// Mantém exatamente a mesma velocidade, tempo e trajeto constante da bola original
+function aplicarTransformacaoBola(bola, novoTipo) {
+    if (!bola || bola.ballType === novoTipo) return;
+    bola.ballType = novoTipo;
+
+    // Burst visual da transformação
+    const n = novoTipo === 'fogo' ? 32 : 28;
+    for (let i = 0; i < n; i++) {
+        const a = Math.random() * PI2;
+        const v = 2 + Math.random() * 4.5;
+        bola.ps.push({
+            x: bola.x,
+            y: bola.y,
+            vx: Math.cos(a) * v,
+            vy: Math.sin(a) * v - 1,
+            life: 0,
+            max: 26 + Math.random() * 24,
+            size: novoTipo === 'fogo' ? (3 + Math.random() * 4) : (2 + Math.random() * 3.5),
+            tipo: novoTipo === 'fogo' ? 'burst_fogo' : 'burst_gelo'
+        });
     }
 
-    // 1) iluminação no chão durante o trajeto
+    if (novoTipo === 'fogo') {
+        window.tremorTela = Math.max(window.tremorTela || 0, 16);
+    }
+}
+
+// ---------- HELPER: APLICAR CONGELAMENTO VISUAL NOS INIMIGOS ----------
+function registrarInimigoCongelado(alvoId, x, y, raioCorpo) {
+    const now = Date.now();
+    // Evita duplicar se já estiver congelado
+    const existente = window.vfxMagoInimigosCongelados.find(c => c.alvoId === alvoId);
+    if (existente) {
+        existente.startTime = now;
+        existente.duration = 2000;
+        return;
+    }
+
+    // Cristais decorativos no corpo do mob
+    const espinhos = [];
+    for (let i = 0; i < 6; i++) {
+        const ang = (i * (PI2 / 6)) + (Math.random() - 0.5) * 0.3;
+        espinhos.push({
+            ang: ang,
+            dist: (raioCorpo || 16) * (0.8 + Math.random() * 0.4),
+            altura: 16 + Math.random() * 12,
+            largura: 5 + Math.random() * 3,
+            inclinacao: (Math.random() - 0.5) * 0.4
+        });
+    }
+
+    window.vfxMagoInimigosCongelados.push({
+        alvoId: alvoId,
+        x: x,
+        y: y,
+        raioCorpo: raioCorpo || 16,
+        startTime: now,
+        duration: 2000, // 2 segundos completos
+        espinhos: espinhos
+    });
+}
+
+function aplicarCongelamentoVisualEmArea(cx, cy, raio) {
+    // 1) Slimes
+    if (Array.isArray(window.listaSlimes)) {
+        for (let s of window.listaSlimes) {
+            if (s && s.hp > 0 && Math.hypot(s.x - cx, s.y - cy) <= raio) {
+                registrarInimigoCongelado(s.id, s.x, s.y, 16);
+            }
+        }
+    }
+    // 2) Bosses
+    let bList = window.listaBosses || (typeof listaBosses !== 'undefined' ? listaBosses : null);
+    if (Array.isArray(bList)) {
+        for (let b of bList) {
+            if (b && b.hp > 0 && Math.hypot(b.x - cx, b.y - cy) <= raio) {
+                registrarInimigoCongelado(b.id, b.x, b.y, 32);
+            }
+        }
+    }
+}
+
+function aplicarCongelamentoVisualPonto(px, py) {
+    // Busca inimigo mais próximo deste ponto
+    let alvo = null;
+    let menor = 40;
+    if (Array.isArray(window.listaSlimes)) {
+        for (let s of window.listaSlimes) {
+            if (s && s.hp > 0) {
+                let d = Math.hypot(s.x - px, s.y - py);
+                if (d < menor) { menor = d; alvo = s; }
+            }
+        }
+    }
+    if (alvo) {
+        registrarInimigoCongelado(alvo.id, alvo.x, alvo.y, 16);
+    } else {
+        registrarInimigoCongelado('pt_' + Math.random(), px, py, 14);
+    }
+}
+
+// =====================================================================
+// RENDERIZAÇÃO: RASTROS NO CHÃO (PEDRAS, GELO E LAVA)
+// =====================================================================
+function atualizarEDesenharRastrosChao(ctx, now) {
+    ctx.save();
+
+    // 1) Rastro de pedras caídas da bola de barro
+    for (let i = window.vfxMagoBolasPedrasRastro.length - 1; i >= 0; i--) {
+        const p = window.vfxMagoBolasPedrasRastro[i];
+        p.life++;
+        if (p.life >= p.maxLife) {
+            window.vfxMagoBolasPedrasRastro.splice(i, 1);
+            continue;
+        }
+
+        // Físico: quica levemente até fixar no chão
+        if (p.y < p.groundY) {
+            p.vy += 0.22;
+            p.x += p.vx;
+            p.y += p.vy;
+            p.rot += p.vrot;
+            if (p.y >= p.groundY) {
+                p.y = p.groundY;
+                p.vx *= 0.3;
+                p.vy = -p.vy * 0.25;
+            }
+        }
+
+        const prog = 1 - (p.life / p.maxLife);
+        const alpha = Math.min(1, prog / 0.25);
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.globalAlpha = alpha;
+
+        // Sombrinha sob a pedrinha
+        ctx.fillStyle = 'rgba(10, 5, 2, 0.35)';
+        ctx.beginPath();
+        ctx.ellipse(0, p.size * 0.45, p.size * 1.1, p.size * 0.4, 0, 0, PI2);
+        ctx.fill();
+
+        // Pedrinha facetada
+        ctx.fillStyle = p.cor;
+        ctx.beginPath();
+        ctx.moveTo(-p.size, -p.size * 0.4);
+        ctx.lineTo(0, -p.size * 0.9);
+        ctx.lineTo(p.size * 0.9, -p.size * 0.3);
+        ctx.lineTo(p.size * 0.7, p.size * 0.7);
+        ctx.lineTo(-p.size * 0.6, p.size * 0.6);
+        ctx.closePath();
+        ctx.fill();
+
+        // Brilho na aresta da pedrinha
+        ctx.strokeStyle = p.altCor;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.restore();
+    }
+
+    // 2) Rastro congelante (camada de geada no chão)
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
-    const luz = ctx.createRadialGradient(bola.x, bola.y + 6, 2, bola.x, bola.y + 6, R * 2.7);
-    luz.addColorStop(0, C.luzForte);
-    luz.addColorStop(0.45, C.luz);
-    luz.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = luz;
+    for (let i = window.vfxMagoBolasGeloRastro.length - 1; i >= 0; i--) {
+        const g = window.vfxMagoBolasGeloRastro[i];
+        g.life++;
+        if (g.life >= g.maxLife) {
+            window.vfxMagoBolasGeloRastro.splice(i, 1);
+            continue;
+        }
+
+        const prog = 1 - (g.life / g.maxLife);
+        ctx.save();
+        ctx.translate(g.x, g.y);
+        ctx.rotate(g.rot);
+
+        // Mancha vitrificada de gelo
+        const rad = ctx.createRadialGradient(0, 0, 2, 0, 0, g.size);
+        rad.addColorStop(0, `rgba(220, 250, 255, ${0.40 * prog})`);
+        rad.addColorStop(0.55, `rgba(0, 229, 255, ${0.22 * prog})`);
+        rad.addColorStop(1, 'rgba(0, 150, 255, 0)');
+        ctx.fillStyle = rad;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, g.size, g.size * 0.48, 0, 0, PI2);
+        ctx.fill();
+
+        // Linhas de gelo trincado
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.55 * prog})`;
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        ctx.moveTo(-g.size * 0.6, 0);
+        ctx.lineTo(g.size * 0.6, 0);
+        ctx.moveTo(0, -g.size * 0.3);
+        ctx.lineTo(g.size * 0.3, g.size * 0.25);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+    ctx.restore();
+
+    // 3) Rastro incandescente (terra calcinada e veios de lava)
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let i = window.vfxMagoBolasFogoRastro.length - 1; i >= 0; i--) {
+        const f = window.vfxMagoBolasFogoRastro[i];
+        f.life++;
+        if (f.life >= f.maxLife) {
+            window.vfxMagoBolasFogoRastro.splice(i, 1);
+            continue;
+        }
+
+        const prog = 1 - (f.life / f.maxLife);
+        ctx.save();
+        ctx.translate(f.x, f.y);
+        ctx.rotate(f.rot);
+
+        // Mancha de lava quente
+        const radF = ctx.createRadialGradient(0, 0, 2, 0, 0, f.size);
+        radF.addColorStop(0, `rgba(255, 240, 150, ${0.60 * prog})`);
+        radF.addColorStop(0.45, `rgba(255, 90, 0, ${0.35 * prog})`);
+        radF.addColorStop(1, 'rgba(150, 20, 0, 0)');
+        ctx.fillStyle = radF;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, f.size, f.size * 0.48, 0, 0, PI2);
+        ctx.fill();
+
+        // Rachaduras de magma no solo
+        ctx.strokeStyle = `rgba(255, 250, 180, ${0.75 * prog})`;
+        ctx.lineWidth = 1.4;
+        ctx.beginPath();
+        ctx.moveTo(-f.size * 0.6, -2);
+        ctx.lineTo(-f.size * 0.1, 1);
+        ctx.lineTo(f.size * 0.5, -1);
+        ctx.stroke();
+
+        ctx.restore();
+    }
+    ctx.restore();
+
+    ctx.restore();
+}
+
+// =====================================================================
+// RENDERIZAÇÃO: CÍRCULOS CONGELANTES NO CHÃO (HIT GELO)
+// =====================================================================
+function atualizarEDesenharCirculosGelo(ctx, now) {
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+
+    for (let i = window.vfxMagoCirculosGelo.length - 1; i >= 0; i--) {
+        const c = window.vfxMagoCirculosGelo[i];
+        const elapsed = now - c.startTime;
+        if (elapsed >= c.duration) {
+            window.vfxMagoCirculosGelo.splice(i, 1);
+            continue;
+        }
+
+        const t = elapsed / c.duration;
+        const expande = Math.min(1, t * 2.5); // Expande rápido
+        const fade = t > 0.65 ? 1 - (t - 0.65) / 0.35 : 1;
+        const raioAtual = c.raioMax * expande;
+
+        // Grande placa de gelo no chão
+        const frost = ctx.createRadialGradient(c.x, c.y, 4, c.x, c.y, raioAtual);
+        frost.addColorStop(0, `rgba(235, 255, 255, ${0.45 * fade})`);
+        frost.addColorStop(0.65, `rgba(0, 229, 255, ${0.28 * fade})`);
+        frost.addColorStop(0.92, `rgba(0, 120, 255, ${0.15 * fade})`);
+        frost.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = frost;
+        ctx.beginPath();
+        ctx.ellipse(c.x, c.y + 4, raioAtual, raioAtual * 0.45, 0, 0, PI2);
+        ctx.fill();
+
+        // Borda cristalizada
+        ctx.strokeStyle = `rgba(200, 250, 255, ${0.60 * fade})`;
+        ctx.lineWidth = 2.5 * fade;
+        ctx.beginPath();
+        ctx.ellipse(c.x, c.y + 4, raioAtual, raioAtual * 0.45, 0, 0, PI2);
+        ctx.stroke();
+
+        // Fissuras radiantes de gelo trincado
+        for (let k = 0; k < 8; k++) {
+            const a = k * (PI2 / 8) + 0.15;
+            const rLinha = raioAtual * (0.4 + (k % 2) * 0.5);
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.5 * fade})`;
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.moveTo(c.x, c.y + 4);
+            ctx.lineTo(c.x + Math.cos(a) * rLinha, c.y + 4 + Math.sin(a) * rLinha * 0.45);
+            ctx.stroke();
+        }
+    }
+
+    ctx.restore();
+}
+
+// =====================================================================
+// RENDERIZAÇÃO: EFEITO VISUAL DE CONGELAMENTO NO INIMIGO (2s)
+// =====================================================================
+function atualizarEDesenharInimigosCongelados(ctx, now) {
+    if (!window.vfxMagoInimigosCongelados.length) return;
+
+    for (let i = window.vfxMagoInimigosCongelados.length - 1; i >= 0; i--) {
+        const item = window.vfxMagoInimigosCongelados[i];
+        const elapsed = now - item.startTime;
+        if (elapsed >= item.duration) {
+            window.vfxMagoInimigosCongelados.splice(i, 1);
+            continue;
+        }
+
+        // Atualiza posição do mob caso ainda esteja vivo na lista
+        if (Array.isArray(window.listaSlimes)) {
+            const s = window.listaSlimes.find(sl => sl && sl.id === item.alvoId);
+            if (s && s.hp > 0) { item.x = s.x; item.y = s.y; }
+        }
+        let bList = window.listaBosses || (typeof listaBosses !== 'undefined' ? listaBosses : null);
+        if (Array.isArray(bList)) {
+            const b = bList.find(bs => bs && bs.id === item.alvoId);
+            if (b && b.hp > 0) { item.x = b.x; item.y = b.y; }
+        }
+
+        const t = elapsed / item.duration;
+        const fade = t > 0.8 ? 1 - (t - 0.8) / 0.2 : 1;
+        const cx = item.x, cy = item.y;
+        const r = item.raioCorpo || 16;
+
+        ctx.save();
+
+        // 1) Base congelada sob os pés do mob
+        ctx.fillStyle = `rgba(180, 245, 255, ${0.40 * fade})`;
+        ctx.beginPath();
+        ctx.ellipse(cx, cy + r * 0.8, r * 1.35, r * 0.5, 0, 0, PI2);
+        ctx.fill();
+        ctx.strokeStyle = `rgba(255, 255, 255, ${0.65 * fade})`;
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+
+        // 2) Pilares e cristais pontiagudos cercando o mob
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (let sp of item.espinhos) {
+            const px = cx + Math.cos(sp.ang) * sp.dist;
+            const py = cy + Math.sin(sp.ang) * sp.dist * 0.5;
+
+            ctx.save();
+            ctx.translate(px, py);
+            ctx.rotate(sp.inclinacao);
+
+            // Gradiente do cristal
+            const gC = ctx.createLinearGradient(0, -sp.altura, 0, 0);
+            gC.addColorStop(0, `rgba(255, 255, 255, ${0.95 * fade})`);
+            gC.addColorStop(0.5, `rgba(0, 229, 255, ${0.75 * fade})`);
+            gC.addColorStop(1, `rgba(2, 136, 209, ${0.45 * fade})`);
+            ctx.fillStyle = gC;
+
+            // Prisma pontiagudo
+            ctx.beginPath();
+            ctx.moveTo(0, -sp.altura);
+            ctx.lineTo(sp.largura * 0.5, 0);
+            ctx.lineTo(-sp.largura * 0.5, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            // Aresta branca central
+            ctx.strokeStyle = `rgba(255, 255, 255, ${0.85 * fade})`;
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(0, -sp.altura);
+            ctx.lineTo(0, 0);
+            ctx.stroke();
+
+            ctx.restore();
+        }
+        ctx.restore();
+
+        // 3) Envoltório de gelo translúcido sobre o corpo do mob
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        const auraGelo = ctx.createRadialGradient(cx, cy - r * 0.3, 2, cx, cy - r * 0.3, r * 1.4);
+        auraGelo.addColorStop(0, `rgba(255, 255, 255, ${0.40 * fade})`);
+        auraGelo.addColorStop(0.5, `rgba(0, 229, 255, ${0.30 * fade})`);
+        auraGelo.addColorStop(1, 'rgba(0, 100, 255, 0)');
+        ctx.fillStyle = auraGelo;
+        ctx.beginPath();
+        ctx.arc(cx, cy - r * 0.3, r * 1.35, 0, PI2);
+        ctx.fill();
+
+        // Névoa fria subindo
+        const tNevoa = (now * 0.003) % PI2;
+        ctx.fillStyle = `rgba(230, 250, 255, ${0.25 * fade})`;
+        ctx.beginPath();
+        ctx.arc(cx + Math.sin(tNevoa) * 6, cy - r - 6, 4 + Math.cos(tNevoa) * 2, 0, PI2);
+        ctx.fill();
+
+        ctx.restore();
+
+        ctx.restore();
+    }
+}
+
+// =====================================================================
+// RENDERIZAÇÃO: BOLA ELEMENTAL (FÍSICA DE ROLAR NO CHÃO)
+// =====================================================================
+function atualizarEDesenharBola(ctx, bola, now) {
+    const R = RAIO_BOLA;
+    const ep = now - bola.startTime;
+
+    // Atualiza posição ao longo do alcance total (400px)
+    if (ep < bola.duration) {
+        const t = Math.min(Math.max(ep / bola.duration, 0), 1);
+        bola.x = bola.startX + (bola.destX - bola.startX) * t;
+        bola.y = bola.startY + (bola.destY - bola.startY) * t;
+        bola.distPercorrida = bola.distTotal * t;
+    } else {
+        bola.x = bola.destX;
+        bola.y = bola.destY;
+        bola.distPercorrida = bola.distTotal;
+    }
+
+    // -----------------------------------------------------------------
+    // DETECÇÃO VISUAL INSTANTÂNEA DE TRANSFORMAÇÃO (CROSS-CHECK NO CLIENT)
+    // -----------------------------------------------------------------
+    if (bola.ballType === 'normal') {
+        // A) Cruzou a área da NEVASCA?
+        if (Array.isArray(window.nevascasAtivas)) {
+            for (let n of window.nevascasAtivas) {
+                if (n && Math.hypot(n.x - bola.x, n.y - bola.y) <= (n.radius || 115)) {
+                    aplicarTransformacaoBola(bola, 'gelo');
+                    break;
+                }
+            }
+        }
+        // B) Cruzou a área de FOGO deixada pelo Meteoro?
+        if (bola.ballType === 'normal' && Array.isArray(window.chaoEmChamas)) {
+            for (let f of window.chaoEmChamas) {
+                if (f && Math.hypot(f.x - bola.x, f.y - bola.y) <= 100) {
+                    aplicarTransformacaoBola(bola, 'fogo');
+                    break;
+                }
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // 1) SOMBRA DE CONTATO NO CHÃO (FÍSICA: BOLA ROLANDO AO CHÃO)
+    // -----------------------------------------------------------------
+    ctx.save();
+    const groundY = bola.y + R * 0.72;
+
+    // Sombra de contato profunda
+    const sombraGrad = ctx.createRadialGradient(bola.x, groundY, 2, bola.x, groundY, R * 1.25);
+    sombraGrad.addColorStop(0, 'rgba(12, 6, 2, 0.58)');
+    sombraGrad.addColorStop(0.55, 'rgba(12, 6, 2, 0.28)');
+    sombraGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    ctx.fillStyle = sombraGrad;
     ctx.beginPath();
-    ctx.ellipse(bola.x, bola.y + 6, R * 2.7, R * 1.2, 0, 0, PI2);
+    ctx.ellipse(bola.x, groundY, R * 1.25, R * 0.42, 0, 0, PI2);
     ctx.fill();
     ctx.restore();
 
-    // 2) sombra de contato (a bola ROELA PELO CHÃO)
-    ctx.fillStyle = 'rgba(0,0,0,0.28)';
-    ctx.beginPath();
-    ctx.ellipse(bola.x, bola.y + R * 0.6, R * 1.15, R * 0.45, 0, 0, PI2);
-    ctx.fill();
-
-    // 3) rastro luminoso atrás
-    if (Math.random() > 0.25) {
-        bola.ps.push({
-            x: bola.x - Math.cos(bola.ang) * R * 0.6 + (Math.random() - 0.5) * 8,
-            y: bola.y - Math.sin(bola.ang) * R * 0.6 + (Math.random() - 0.5) * 8,
-            vx: -Math.cos(bola.ang) * 0.6 + (Math.random() - 0.5) * 0.4,
-            vy: -Math.sin(bola.ang) * 0.6 + (Math.random() - 0.5) * 0.4,
-            life: 0, max: 14 + Math.random() * 10,
-            size: 2.5 + Math.random() * 3,
-            tipo: 'trail'
-        });
-    }
-
-    // 4) partículas específicas por tipo
-    if (bola.ballType === 'gelo' && Math.random() > 0.5) {
-        // neve caindo
-        bola.ps.push({
-            x: bola.x + (Math.random() - 0.5) * R * 1.6,
-            y: bola.y + (Math.random() - 0.5) * R * 1.4 - 8,
-            vx: (Math.random() - 0.5) * 0.3,
-            vy: 0.5 + Math.random() * 0.5,
-            life: 0, max: 26 + Math.random() * 12,
-            size: 1.5 + Math.random() * 2,
-            tipo: 'neve'
-        });
-    }
-    if (bola.ballType === 'fogo') {
-        if (Math.random() > 0.65) {
-            // brasas subindo
-            bola.ps.push({
-                x: bola.x + (Math.random() - 0.5) * R,
-                y: bola.y - 6,
-                vx: (Math.random() - 0.5) * 0.8,
-                vy: -1 - Math.random(),
-                life: 0, max: 20 + Math.random() * 14,
-                size: 1.8 + Math.random() * 2.4,
-                tipo: 'brasa'
-            });
-        }
-        if (Math.random() > 0.88) {
-            // fumaça
-            bola.ps.push({
-                x: bola.x + (Math.random() - 0.5) * R * 0.8,
-                y: bola.y - 4,
-                vx: (Math.random() - 0.5) * 0.4,
-                vy: -0.8 - Math.random() * 0.5,
-                life: 0, max: 34 + Math.random() * 20,
-                size: 5 + Math.random() * 5,
-                tipo: 'fumaca'
-            });
-        }
-    }
-
-    // 5) partículas
-    desenharParticulas(ctx, bola.ps, C);
+    // -----------------------------------------------------------------
+    // 2) ILUMINAÇÃO NO CHÃO DURANTE O TRAJETO
+    // -----------------------------------------------------------------
     ctx.save();
     ctx.globalCompositeOperation = 'lighter';
+    const luzChao = ctx.createRadialGradient(bola.x, groundY, 4, bola.x, groundY, R * 2.8);
+
+    if (bola.ballType === 'fogo') {
+        // Forte iluminação alaranjada / dourada
+        luzChao.addColorStop(0, 'rgba(255, 200, 100, 0.45)');
+        luzChao.addColorStop(0.4, 'rgba(255, 90, 10, 0.32)');
+        luzChao.addColorStop(0.8, 'rgba(200, 30, 0, 0.12)');
+        luzChao.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    } else if (bola.ballType === 'gelo') {
+        // Iluminação ciano / ártica
+        luzChao.addColorStop(0, 'rgba(220, 255, 255, 0.40)');
+        luzChao.addColorStop(0.45, 'rgba(0, 229, 255, 0.26)');
+        luzChao.addColorStop(0.8, 'rgba(0, 120, 255, 0.10)');
+        luzChao.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    } else {
+        // Iluminação terrosa / âmbar cor de barro
+        luzChao.addColorStop(0, 'rgba(255, 180, 100, 0.32)');
+        luzChao.addColorStop(0.45, 'rgba(210, 105, 30, 0.20)');
+        luzChao.addColorStop(0.8, 'rgba(140, 60, 15, 0.08)');
+        luzChao.addColorStop(1, 'rgba(0, 0, 0, 0)');
+    }
+    ctx.fillStyle = luzChao;
+    ctx.beginPath();
+    ctx.ellipse(bola.x, groundY, R * 2.8, R * 1.35, 0, 0, PI2);
+    ctx.fill();
+    ctx.restore();
+
+    // -----------------------------------------------------------------
+    // 3) GERAÇÃO CONTÍNUA DE RASTROS E PARTÍCULAS NO CHÃO
+    // -----------------------------------------------------------------
+    bola.rastroTimer = (bola.rastroTimer || 0) + 1;
+    bola.dustTimer = (bola.dustTimer || 0) + 1;
+
+    // Puffs de poeira de rolagem na base de contato com o chão
+    if (bola.dustTimer >= 3) {
+        bola.dustTimer = 0;
+        const pX = bola.x - Math.cos(bola.ang) * (R * 0.7) + (Math.random() - 0.5) * 8;
+        const pY = groundY + (Math.random() - 0.5) * 4;
+
+        if (bola.ballType === 'normal') {
+            bola.ps.push({
+                x: pX, y: pY,
+                vx: -Math.cos(bola.ang) * 0.8 + (Math.random() - 0.5) * 0.5,
+                vy: -0.4 - Math.random() * 0.4,
+                life: 0, max: 20 + Math.random() * 12,
+                size: 3 + Math.random() * 4,
+                tipo: 'poeira_barro'
+            });
+        }
+    }
+
+    // Rastro caindo no chão
+    if (bola.rastroTimer >= 4) {
+        bola.rastroTimer = 0;
+
+        if (bola.ballType === 'normal') {
+            // RASTRO DE PEDRAS PEQUENAS CAINDO DA BOLA MAIOR
+            window.vfxMagoBolasPedrasRastro.push({
+                x: bola.x - Math.cos(bola.ang) * (R * 0.4) + (Math.random() - 0.5) * 12,
+                y: bola.y + (Math.random() - 0.5) * 10,
+                groundY: groundY + (Math.random() - 0.5) * 6,
+                vx: -Math.cos(bola.ang) * (1.2 + Math.random() * 0.8) + (Math.random() - 0.5) * 0.8,
+                vy: -0.5 - Math.random() * 0.8,
+                life: 0,
+                maxLife: 60 + Math.random() * 25, // Fica ~1s no chão
+                size: 2.5 + Math.random() * 3.5,
+                rot: Math.random() * PI2,
+                vrot: (Math.random() - 0.5) * 0.2,
+                cor: Math.random() > 0.5 ? '#8d5b3d' : '#6f4528',
+                altCor: '#d28b57'
+            });
+        } else if (bola.ballType === 'gelo') {
+            // Rastro congelante (geada vitrificada)
+            window.vfxMagoBolasGeloRastro.push({
+                x: bola.x + (Math.random() - 0.5) * 8,
+                y: groundY + (Math.random() - 0.5) * 5,
+                size: 16 + Math.random() * 10,
+                rot: Math.random() * PI2,
+                life: 0,
+                maxLife: 55 + Math.random() * 20
+            });
+            // Lascas pequenas de gelo ficando para trás
+            bola.ps.push({
+                x: bola.x - Math.cos(bola.ang) * R * 0.6 + (Math.random() - 0.5) * 10,
+                y: bola.y + (Math.random() - 0.5) * 10,
+                vx: -Math.cos(bola.ang) * 0.8 + (Math.random() - 0.5) * 0.6,
+                vy: 0.5 + Math.random() * 0.5,
+                life: 0, max: 24 + Math.random() * 14,
+                size: 2 + Math.random() * 2.8,
+                tipo: 'lasca_gelo'
+            });
+        } else if (bola.ballType === 'fogo') {
+            // Rastro incandescente (terra calcinada / lava)
+            window.vfxMagoBolasFogoRastro.push({
+                x: bola.x + (Math.random() - 0.5) * 8,
+                y: groundY + (Math.random() - 0.5) * 5,
+                size: 18 + Math.random() * 12,
+                rot: Math.random() * PI2,
+                life: 0,
+                maxLife: 60 + Math.random() * 20
+            });
+            // Brasas voando
+            for (let b = 0; b < 2; b++) {
+                bola.ps.push({
+                    x: bola.x - Math.cos(bola.ang) * R * 0.5 + (Math.random() - 0.5) * 10,
+                    y: bola.y - 4 + (Math.random() - 0.5) * 10,
+                    vx: -Math.cos(bola.ang) * (1 + Math.random() * 1.5) + (Math.random() - 0.5) * 0.8,
+                    vy: -1.2 - Math.random() * 1.4,
+                    life: 0, max: 22 + Math.random() * 16,
+                    size: 2 + Math.random() * 2.5,
+                    tipo: 'brasa'
+                });
+            }
+            // Fumaça subindo
+            if (Math.random() > 0.4) {
+                bola.ps.push({
+                    x: bola.x + (Math.random() - 0.5) * 14,
+                    y: bola.y - R * 0.6,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: -0.9 - Math.random() * 0.6,
+                    life: 0, max: 35 + Math.random() * 20,
+                    size: 6 + Math.random() * 6,
+                    tipo: 'fumaca'
+                });
+            }
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // 4) DESENHO DAS PARTÍCULAS EM SUSPENSÃO DA PRÓPRIA BOLA
+    // -----------------------------------------------------------------
+    ctx.save();
     for (let i = bola.ps.length - 1; i >= 0; i--) {
         const p = bola.ps[i];
-        if (p.tipo === 'brasa') { const k = 1 - p.life / p.max; ctx.fillStyle = `rgba(255,${Math.round(120 + 120 * k)},50,${0.8 * k})`; }
-        else if (p.tipo === 'fumaca') { const k = 1 - p.life / p.max; ctx.fillStyle = `rgba(120,120,130,${0.25 * k})`; }
-        else if (p.tipo === 'neve') { const k = 1 - p.life / p.max; ctx.fillStyle = `rgba(235,252,255,${0.85 * k})`; }
-        if (p.tipo === 'brasa' || p.tipo === 'fumaca' || p.tipo === 'neve') {
+        p.life++;
+        if (p.life >= p.max) { bola.ps.splice(i, 1); continue; }
+
+        p.x += p.vx; p.y += p.vy;
+        const k = 1 - (p.life / p.max);
+
+        if (p.tipo === 'poeira_barro') {
+            ctx.fillStyle = `rgba(160, 115, 75, ${0.35 * k})`;
             ctx.beginPath();
-            ctx.arc(p.x, p.y, p.size * (0.5 + (1 - p.life / p.max)), 0, PI2);
+            ctx.arc(p.x, p.y, p.size * (0.8 + (1 - k) * 0.5), 0, PI2);
+            ctx.fill();
+        } else if (p.tipo === 'lasca_gelo') {
+            ctx.fillStyle = `rgba(220, 250, 255, ${0.85 * k})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * k, 0, PI2);
+            ctx.fill();
+        } else if (p.tipo === 'brasa') {
+            ctx.fillStyle = `rgba(255, ${Math.round(140 + 100 * k)}, 40, ${0.9 * k})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * (0.6 + k * 0.6), 0, PI2);
+            ctx.fill();
+        } else if (p.tipo === 'fumaca') {
+            p.size += 0.12;
+            ctx.fillStyle = `rgba(50, 45, 45, ${0.28 * k})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size, 0, PI2);
+            ctx.fill();
+        } else if (p.tipo === 'burst_fogo') {
+            ctx.fillStyle = `rgba(255, ${Math.round(120 + 120 * k)}, 30, ${0.85 * k})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * k, 0, PI2);
+            ctx.fill();
+        } else if (p.tipo === 'burst_gelo') {
+            ctx.fillStyle = `rgba(200, 250, 255, ${0.9 * k})`;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.size * k, 0, PI2);
             ctx.fill();
         }
     }
     ctx.restore();
 
-    // 6) corpo da esfera (gira pelo chão)
+    // -----------------------------------------------------------------
+    // 5) CORPO DA ESFERA GIGANTE (FÍSICA DE ROTAÇÃO NO EIXO DE DESLOCAMENTO)
+    // -----------------------------------------------------------------
     ctx.save();
     ctx.translate(bola.x, bola.y);
 
-    // aura
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    const aura = ctx.createRadialGradient(0, 0, R * 0.5, 0, 0, R * 1.9);
-    aura.addColorStop(0, C.aura);
-    aura.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = aura;
-    ctx.beginPath(); ctx.arc(0, 0, R * 1.9, 0, PI2); ctx.fill();
-    ctx.restore();
+    // Rotação não-deslizante de rolamento: dist / R
+    const rotRolamento = (bola.distPercorrida / R);
 
-    // esfera base 3D
-    const g = ctx.createRadialGradient(-R * 0.32, -R * 0.34, R * 0.12, 0, 0, R);
-    g.addColorStop(0, C.alt);
-    g.addColorStop(0.5, C.base);
-    g.addColorStop(1, C.escuro);
-    ctx.fillStyle = g;
-    ctx.beginPath(); ctx.arc(0, 0, R, 0, PI2); ctx.fill();
-
-    // padrão rolante: meridianos girando no eixo do movimento (leitura de "rola")
-    ctx.save();
-    ctx.rotate(bola.ang);
-    ctx.beginPath(); ctx.arc(0, 0, R, 0, PI2); ctx.clip();
-    const passo = R * 0.55;
-    const viaja = (now * 0.012) % (passo * 3);
-    ctx.lineWidth = Math.max(2, R * 0.085);
-    for (let k = 0; k < 4; k++) {
-        const cx = k * passo - viaja - passo;
-        if (Math.abs(cx) > R) continue;
-        const half = Math.sqrt(Math.max(0, R * R - cx * cx));
-        ctx.strokeStyle = C.risco;
-        ctx.globalAlpha = 0.6 * (1 - Math.abs(cx) / R * 0.5);
-        ctx.beginPath();
-        ctx.ellipse(cx, 0, 2, half, 0, 0, PI2);
-        ctx.stroke();
-    }
-    ctx.globalAlpha = 1;
-    ctx.restore();
-
-    // detalhes por tipo
+    // ---------------------- CORPO: BOLA DE BARRO ----------------------
     if (bola.ballType === 'normal') {
-        // anéis arcanos contra-rotativos + brilho do núcleo
-        ctx.strokeStyle = 'rgba(255,190,255,0.65)';
-        ctx.lineWidth = 2;
-        const r1 = R * 1.45, rot1 = now * 0.0016;
-        ctx.beginPath(); ctx.ellipse(0, 0, r1, r1 * 0.42, rot1, 0, PI2); ctx.stroke();
-        ctx.beginPath(); ctx.ellipse(0, 0, r1 * 0.92, r1 * 0.42, -rot1 * 1.4, 0, PI2); ctx.stroke();
-        // núcleo energético brilhante
+        // Aura externa suave cor de barro
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
-        const nc = ctx.createRadialGradient(0, 0, 1, 0, 0, R * 0.55);
-        nc.addColorStop(0, 'rgba(255,240,255,0.95)');
-        nc.addColorStop(0.5, 'rgba(220,120,255,0.55)');
-        nc.addColorStop(1, 'rgba(140,40,255,0)');
-        ctx.fillStyle = nc;
-        ctx.beginPath(); ctx.arc(0, 0, R * 0.55, 0, PI2); ctx.fill();
+        const auraBarro = ctx.createRadialGradient(0, 0, R * 0.4, 0, 0, R * 1.7);
+        auraBarro.addColorStop(0, 'rgba(230, 120, 40, 0.22)');
+        auraBarro.addColorStop(0.6, 'rgba(180, 80, 20, 0.10)');
+        auraBarro.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = auraBarro;
+        ctx.beginPath(); ctx.arc(0, 0, R * 1.7, 0, PI2); ctx.fill();
         ctx.restore();
-    } else if (bola.ballType === 'gelo') {
-        // cristais de gelo ao redor
-        for (let k2 = 0; k2 < 5; k2++) {
-            const a2 = now * 0.0012 + k2 * (PI2 / 5);
-            const dx = Math.cos(a2) * R * 1.3, dy = Math.sin(a2) * R * 1.3;
+
+        // Esfera 3D base de barro/terracota
+        const gBarro = ctx.createRadialGradient(-R * 0.32, -R * 0.34, R * 0.12, 0, 0, R);
+        gBarro.addColorStop(0, '#f4a261'); // Highlight barro claro
+        gBarro.addColorStop(0.35, '#e76f51'); // Terracota vibrante
+        gBarro.addColorStop(0.7, '#a0522d'); // Barro queimado
+        gBarro.addColorStop(0.95, '#5c2c16'); // Sombra de rocha
+        gBarro.addColorStop(1, '#331508'); // Borda de terra
+        ctx.fillStyle = gBarro;
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, PI2); ctx.fill();
+
+        // Textura rolante: meridianos e fissuras geológicas girando na direção do movimento
+        ctx.save();
+        ctx.rotate(bola.ang);
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, PI2); ctx.clip();
+
+        const passoRolo = R * 0.52;
+        const desloc = (rotRolamento * R) % (passoRolo * 4);
+        ctx.lineWidth = 2.5;
+
+        for (let k = -2; k < 6; k++) {
+            const cx = k * passoRolo - desloc;
+            if (Math.abs(cx) > R) continue;
+            const halfH = Math.sqrt(Math.max(0, R * R - cx * cx));
+
+            // Fissura de rocha
+            ctx.strokeStyle = 'rgba(70, 30, 12, 0.65)';
+            ctx.beginPath();
+            ctx.ellipse(cx, 0, 3, halfH, 0, 0, PI2);
+            ctx.stroke();
+
+            // Veio luminoso cor de barro na fissura
+            ctx.strokeStyle = 'rgba(255, 190, 110, 0.55)';
+            ctx.lineWidth = 1.2;
+            ctx.beginPath();
+            ctx.ellipse(cx + 1, 0, 1.5, halfH * 0.85, 0, 0, PI2);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // NÚCLEO ENERGÉTICO BRILHANTE COR DE BARRO (TERRACOTA/ÂMBAR)
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        const pulseNucleo = Math.sin(now * 0.008) * 0.15 + 0.85;
+        const gNuc = ctx.createRadialGradient(0, 0, 1, 0, 0, R * 0.62);
+        gNuc.addColorStop(0, 'rgba(255, 240, 210, 0.95)'); // Centro brilhante
+        gNuc.addColorStop(0.35, `rgba(244, 162, 97, ${0.75 * pulseNucleo})`); // Luz de barro
+        gNuc.addColorStop(0.7, `rgba(230, 111, 81, ${0.40 * pulseNucleo})`); // Terracota
+        gNuc.addColorStop(1, 'rgba(160, 82, 45, 0)');
+        ctx.fillStyle = gNuc;
+        ctx.beginPath(); ctx.arc(0, 0, R * 0.62, 0, PI2); ctx.fill();
+        ctx.restore();
+
+        // PARTÍCULAS ORBITANDO COMO SE FOSSE PEDRINHAS (8 pedrinhas 3D)
+        for (let orb of bola.orbitaisBarro) {
+            const angOrb = (now * orb.speed) + orb.offset;
+            const rawX = Math.cos(angOrb) * orb.raioX;
+            const rawY = Math.sin(angOrb) * orb.raioY;
+
+            // Rotação de inclinação 3D
+            const pX = rawX * Math.cos(orb.tilt) - rawY * Math.sin(orb.tilt);
+            const pY = rawX * Math.sin(orb.tilt) + rawY * Math.cos(orb.tilt);
+
             ctx.save();
-            ctx.translate(dx, dy);
-            ctx.rotate(a2 + Math.PI / 3);
-            ctx.fillStyle = 'rgba(220,250,255,0.9)';
-            ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(3.8, 4); ctx.lineTo(-3.8, 4); ctx.closePath(); ctx.fill();
-            ctx.strokeStyle = 'rgba(180,240,255,0.5)';
+            ctx.translate(pX, pY);
+            ctx.rotate(angOrb + orb.tilt);
+
+            // Sombra da pedrinha
+            ctx.fillStyle = 'rgba(20, 10, 5, 0.5)';
+            ctx.beginPath();
+            ctx.ellipse(0, orb.size * 0.35, orb.size * 1.1, orb.size * 0.45, 0, 0, PI2);
+            ctx.fill();
+
+            // Pedrinha facetada em 3D
+            ctx.fillStyle = orb.cor;
+            ctx.beginPath();
+            ctx.moveTo(-orb.size, -orb.size * 0.4);
+            ctx.lineTo(0, -orb.size * 0.9);
+            ctx.lineTo(orb.size * 0.85, -orb.size * 0.3);
+            ctx.lineTo(orb.size * 0.6, orb.size * 0.7);
+            ctx.lineTo(-orb.size * 0.7, orb.size * 0.6);
+            ctx.closePath();
+            ctx.fill();
+
+            // Destaque luminoso cor de barro na aresta
+            ctx.strokeStyle = orb.altCor;
             ctx.lineWidth = 1;
-            ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(0, 4); ctx.stroke();
+            ctx.stroke();
+
             ctx.restore();
         }
-        // brilho gélido central
+    }
+
+    // ---------------------- CORPO: BOLA DE GELO ----------------------
+    else if (bola.ballType === 'gelo') {
+        // Aura ártica
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
-        const ncg = ctx.createRadialGradient(0, 0, 1, 0, 0, R * 0.5);
-        ncg.addColorStop(0, 'rgba(255,255,255,0.95)');
-        ncg.addColorStop(0.5, 'rgba(160,245,255,0.5)');
-        ncg.addColorStop(1, 'rgba(80,200,255,0)');
-        ctx.fillStyle = ncg;
-        ctx.beginPath(); ctx.arc(0, 0, R * 0.5, 0, PI2); ctx.fill();
+        const auraGelo = ctx.createRadialGradient(0, 0, R * 0.4, 0, 0, R * 1.8);
+        auraGelo.addColorStop(0, 'rgba(220, 255, 255, 0.35)');
+        auraGelo.addColorStop(0.55, 'rgba(0, 229, 255, 0.20)');
+        auraGelo.addColorStop(1, 'rgba(0, 100, 255, 0)');
+        ctx.fillStyle = auraGelo;
+        ctx.beginPath(); ctx.arc(0, 0, R * 1.8, 0, PI2); ctx.fill();
         ctx.restore();
-    } else {
-        // chamas girando ao redor da esfera de fogo
-        for (let k2 = 0; k2 < 7; k2++) {
-            const a2 = now * 0.008 + k2 * (PI2 / 7);
-            const dx = Math.cos(a2) * R * 0.9, dy = Math.sin(a2) * R * 0.9;
-            ctx.save();
-            ctx.translate(dx, dy);
-            ctx.rotate(a2 + Math.PI / 2);
-            const fl = ctx.createLinearGradient(0, -11, 0, 6);
-            fl.addColorStop(0, 'rgba(255,235,130,0.95)');
-            fl.addColorStop(0.6, 'rgba(255,95,0,0.85)');
-            fl.addColorStop(1, 'rgba(170,25,0,0.15)');
-            ctx.fillStyle = fl;
-            ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(5, 2); ctx.lineTo(0, 6.5); ctx.lineTo(-5, 2); ctx.closePath(); ctx.fill();
-            ctx.restore();
+
+        // Esfera 3D de gelo puro cristalino
+        const gGelo = ctx.createRadialGradient(-R * 0.32, -R * 0.34, R * 0.12, 0, 0, R);
+        gGelo.addColorStop(0, '#ffffff'); // Reflexo branco puro
+        gGelo.addColorStop(0.3, '#e0f7fa'); // Gelo cristalino claro
+        gGelo.addColorStop(0.65, '#00e5ff'); // Ciano vibrante
+        gGelo.addColorStop(0.9, '#0288d1'); // Azul profundo
+        gGelo.addColorStop(1, '#013a63'); // Borda glacial escura
+        ctx.fillStyle = gGelo;
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, PI2); ctx.fill();
+
+        // Fissuras internas de gelo trincado girando
+        ctx.save();
+        ctx.rotate(bola.ang);
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, PI2); ctx.clip();
+
+        const passoGelo = R * 0.55;
+        const deslocG = (rotRolamento * R) % (passoGelo * 4);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+        ctx.lineWidth = 1.8;
+
+        for (let k = -2; k < 6; k++) {
+            const cx = k * passoGelo - deslocG;
+            if (Math.abs(cx) > R) continue;
+            const halfH = Math.sqrt(Math.max(0, R * R - cx * cx));
+            ctx.beginPath();
+            ctx.ellipse(cx, 0, 2.5, halfH, 0, 0, PI2);
+            ctx.stroke();
         }
-        // brilho do magma central
+        ctx.restore();
+
+        // Núcleo gelado brilhante
         ctx.save();
         ctx.globalCompositeOperation = 'lighter';
-        const ncf = ctx.createRadialGradient(0, 0, 1, 0, 0, R * 0.6);
-        ncf.addColorStop(0, 'rgba(255,250,210,0.95)');
-        ncf.addColorStop(0.5, 'rgba(255,170,60,0.55)');
-        ncf.addColorStop(1, 'rgba(255,60,0,0)');
-        ctx.fillStyle = ncf;
+        const gNucG = ctx.createRadialGradient(0, 0, 1, 0, 0, R * 0.6);
+        gNucG.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
+        gNucG.addColorStop(0.45, 'rgba(180, 245, 255, 0.65)');
+        gNucG.addColorStop(1, 'rgba(0, 180, 255, 0)');
+        ctx.fillStyle = gNucG;
         ctx.beginPath(); ctx.arc(0, 0, R * 0.6, 0, PI2); ctx.fill();
         ctx.restore();
-    }
 
-    ctx.restore();
-}
+        // CRISTAIS DE GELO AO REDOR
+        for (let cr of bola.cristaisGelo) {
+            const aCr = cr.angOffset + (now * cr.rotSpeed);
+            const distCr = R * cr.distMult;
+            const px = Math.cos(aCr) * distCr;
+            const py = Math.sin(aCr) * distCr;
 
-// ---------- impacto: explosão de fogo ----------
-function desenharHitFogo(ctx, hit, now) {
-    const e = now - hit.startTime;
-    const t = Math.min(e / hit.duration, 1); // 0→1
-    const k = 1 - t;
+            ctx.save();
+            ctx.translate(px, py);
+            ctx.rotate(aCr + Math.PI / 2);
 
-    ctx.save();
-    ctx.translate(hit.x, hit.y);
+            // Espícula de cristal translúcida
+            ctx.fillStyle = 'rgba(220, 250, 255, 0.92)';
+            ctx.beginPath();
+            ctx.moveTo(0, -cr.comp);
+            ctx.lineTo(cr.larg * 0.5, 0);
+            ctx.lineTo(0, cr.larg * 0.3);
+            ctx.lineTo(-cr.larg * 0.5, 0);
+            ctx.closePath();
+            ctx.fill();
 
-    // flash
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    const flash = ctx.createRadialGradient(0, 0, 2, 0, 0, hit.radius * (0.6 + t * 0.4));
-    flash.addColorStop(0, `rgba(255,250,215,${0.85 * k})`);
-    flash.addColorStop(0.35, `rgba(255,160,60,${0.55 * k})`);
-    flash.addColorStop(1, 'rgba(255,50,0,0)');
-    ctx.fillStyle = flash;
-    ctx.beginPath(); ctx.arc(0, 0, hit.radius * (0.6 + t * 0.4), 0, PI2); ctx.fill();
-    ctx.restore();
+            // Aresta com brilho
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.moveTo(0, -cr.comp); ctx.lineTo(0, cr.larg * 0.3); ctx.stroke();
 
-    // expansão circular de fogo no chão (anéis)
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    for (let r = 0; r < 3; r++) {
-        const rr = hit.radius * (0.25 + t * 0.75) * (0.72 + r * 0.16);
-        ctx.strokeStyle = r === 0 ? `rgba(255,235,150,${0.7 * k})` : `rgba(255,${Math.round(120 - r * 25)},30,${0.45 * k})`;
-        ctx.lineWidth = (4 - r) * 1.4 * k + 0.5;
-        ctx.beginPath();
-        ctx.ellipse(0, 4, rr, rr * 0.4, 0, 0, PI2);
-        ctx.stroke();
-    }
-    ctx.restore();
-
-    // brasas com gravidade + fumaça subindo
-    if (hit.ps.length === 0) {
-        for (let i = 0; i < 26; i++) {
-            const a = Math.random() * PI2;
-            const v = 1.5 + Math.random() * 5;
-            hit.ps.push({ x: 0, y: 0, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 1.5, life: 0, max: 18 + Math.random() * 26, size: 2 + Math.random() * 3.5 });
+            ctx.restore();
         }
-        for (let i = 0; i < 10; i++) {
-            const a = Math.random() * PI2;
-            const v = 0.4 + Math.random() * 1.2;
-            hit.braseiro.push({ x: 0, y: 0, vx: Math.cos(a) * v * 0.6, vy: -1.2 - Math.random() * 1.6, life: 0, max: 30 + Math.random() * 24, size: 5 + Math.random() * 6 });
+
+        // Flocos de neve orbitando
+        for (let s = 0; s < 5; s++) {
+            const sAng = now * 0.0025 + s * (PI2 / 5);
+            const sDist = R * (1.35 + (s % 2) * 0.25);
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.beginPath();
+            ctx.arc(Math.cos(sAng) * sDist, Math.sin(sAng) * sDist, 1.8, 0, PI2);
+            ctx.fill();
         }
     }
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    for (let i = hit.ps.length - 1; i >= 0; i--) {
-        const p = hit.ps[i];
-        p.life++;
-        if (p.life >= p.max) { hit.ps.splice(i, 1); continue; }
-        p.vy += 0.09;
-        p.x += p.vx; p.y += p.vy;
-        const kk = 1 - p.life / p.max;
-        ctx.fillStyle = `rgba(255,${Math.round(120 + 120 * kk)},40,${0.9 * kk})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.size * kk, 0, PI2); ctx.fill();
-    }
-    ctx.restore();
-    ctx.save();
-    for (let i = hit.braseiro.length - 1; i >= 0; i--) {
-        const p = hit.braseiro[i];
-        p.life++;
-        if (p.life >= p.max) { hit.braseiro.splice(i, 1); continue; }
-        p.vy -= 0.015;
-        p.x += p.vx; p.y += p.vy;
-        p.size += 0.12;
-        const kk = 1 - p.life / p.max;
-        ctx.fillStyle = `rgba(130,130,140,${0.28 * kk})`;
-        ctx.beginPath(); ctx.arc(p.x, p.y, p.size, 0, PI2); ctx.fill();
-    }
-    ctx.restore();
-    ctx.restore();
-}
 
-// ---------- impacto: explosão de gelo ----------
-function desenharHitGelo(ctx, hit, now) {
-    const e = now - hit.startTime;
-    const t = Math.min(e / hit.duration, 1);
-    const k = 1 - t;
-
-    ctx.save();
-    ctx.translate(hit.x, hit.y);
-
-    // anel de gelo expandindo (frost nova)
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    for (let r = 0; r < 2; r++) {
-        const rr = hit.radius * (0.2 + t * 0.8) * (0.8 + r * 0.2);
-        ctx.strokeStyle = r === 0 ? `rgba(235,255,255,${0.8 * k})` : `rgba(120,230,255,${0.5 * k})`;
-        ctx.lineWidth = (3 - r) * 1.3 * k + 0.6;
-        ctx.beginPath();
-        ctx.ellipse(0, 4, rr, rr * 0.4, 0, 0, PI2);
-        ctx.stroke();
-    }
-    ctx.restore();
-
-    // estilhaços de gelo
-    if (hit.ps.length === 0) {
-        for (let i = 0; i < 18; i++) {
-            const a = Math.random() * PI2;
-            const v = 1 + Math.random() * 4.5;
-            hit.ps.push({
-                x: 0, y: 0, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
-                life: 0, max: 20 + Math.random() * 26, size: 2.5 + Math.random() * 3.5, rot: Math.random() * Math.PI
-            });
-        }
-    }
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    for (let i = hit.ps.length - 1; i >= 0; i--) {
-        const p = hit.ps[i];
-        p.life++;
-        if (p.life >= p.max) { hit.ps.splice(i, 1); continue; }
-        p.vy += 0.14;
-        p.x += p.vx; p.y += p.vy;
-        p.rot += 0.15;
-        const kk = 1 - p.life / p.max;
+    // ---------------------- CORPO: BOLA DE FOGO ----------------------
+    else if (bola.ballType === 'fogo') {
+        // Aura colossal de calor
         ctx.save();
-        ctx.translate(p.x, p.y);
-        ctx.rotate(p.rot);
-        ctx.fillStyle = `rgba(210,250,255,${0.9 * kk})`;
-        ctx.fillRect(-p.size / 2, -p.size / 2, p.size * 0.7, p.size);
+        ctx.globalCompositeOperation = 'lighter';
+        const auraFogo = ctx.createRadialGradient(0, 0, R * 0.4, 0, 0, R * 2.1);
+        auraFogo.addColorStop(0, 'rgba(255, 240, 150, 0.50)');
+        auraFogo.addColorStop(0.45, 'rgba(255, 100, 20, 0.32)');
+        auraFogo.addColorStop(0.85, 'rgba(200, 30, 0, 0.12)');
+        auraFogo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = auraFogo;
+        ctx.beginPath(); ctx.arc(0, 0, R * 2.1, 0, PI2); ctx.fill();
+        ctx.restore();
+
+        // Esfera 3D de magma incandescente
+        const gFogo = ctx.createRadialGradient(-R * 0.32, -R * 0.34, R * 0.12, 0, 0, R);
+        gFogo.addColorStop(0, '#ffffff'); // Branco solar ofuscante
+        gFogo.addColorStop(0.25, '#fff176'); // Amarelo incandescente
+        gFogo.addColorStop(0.55, '#ff9800'); // Laranja fogo
+        gFogo.addColorStop(0.85, '#ff3d00'); // Vermelho escuro
+        gFogo.addColorStop(1, '#7f0000'); // Borda de magma denso
+        ctx.fillStyle = gFogo;
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, PI2); ctx.fill();
+
+        // Plasma solar e chamas turbulentas girando no eixo
+        ctx.save();
+        ctx.rotate(bola.ang);
+        ctx.beginPath(); ctx.arc(0, 0, R, 0, PI2); ctx.clip();
+
+        const passoFogo = R * 0.55;
+        const deslocF = (rotRolamento * R) % (passoFogo * 4);
+        ctx.strokeStyle = 'rgba(255, 255, 200, 0.85)';
+        ctx.lineWidth = 2.4;
+
+        for (let k = -2; k < 6; k++) {
+            const cx = k * passoFogo - deslocF;
+            if (Math.abs(cx) > R) continue;
+            const halfH = Math.sqrt(Math.max(0, R * R - cx * cx));
+            ctx.beginPath();
+            ctx.ellipse(cx, 0, 3, halfH, 0, 0, PI2);
+            ctx.stroke();
+        }
+        ctx.restore();
+
+        // Núcleo solar hiper-brilhante
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        const gNucF = ctx.createRadialGradient(0, 0, 1, 0, 0, R * 0.65);
+        gNucF.addColorStop(0, 'rgba(255, 255, 255, 1.0)');
+        gNucF.addColorStop(0.4, 'rgba(255, 220, 100, 0.8)');
+        gNucF.addColorStop(0.8, 'rgba(255, 90, 0, 0.4)');
+        gNucF.addColorStop(1, 'rgba(200, 20, 0, 0)');
+        ctx.fillStyle = gNucF;
+        ctx.beginPath(); ctx.arc(0, 0, R * 0.65, 0, PI2); ctx.fill();
+        ctx.restore();
+
+        // CHAMAS GIRANDO AO REDOR (8 línguas de fogo espiralando)
+        ctx.save();
+        ctx.globalCompositeOperation = 'lighter';
+        for (let ch of bola.chamasFogo) {
+            const aCh = ch.angOffset + (now * ch.rotSpeed);
+            const distCh = R * ch.distMult;
+            const px = Math.cos(aCh) * distCh;
+            const py = Math.sin(aCh) * distCh;
+
+            ctx.save();
+            ctx.translate(px, py);
+            ctx.rotate(aCh + Math.PI / 2);
+
+            const fl = ctx.createLinearGradient(0, -ch.tam, 0, 4);
+            fl.addColorStop(0, 'rgba(255, 250, 180, 0.95)');
+            fl.addColorStop(0.4, 'rgba(255, 120, 0, 0.85)');
+            fl.addColorStop(0.8, 'rgba(220, 30, 0, 0.45)');
+            fl.addColorStop(1, 'rgba(100, 10, 0, 0)');
+            ctx.fillStyle = fl;
+
+            ctx.beginPath();
+            ctx.moveTo(0, -ch.tam);
+            ctx.lineTo(ch.larg * 0.6, 0);
+            ctx.lineTo(0, ch.larg * 0.4);
+            ctx.lineTo(-ch.larg * 0.6, 0);
+            ctx.closePath();
+            ctx.fill();
+
+            ctx.restore();
+        }
         ctx.restore();
     }
-    ctx.restore();
-    ctx.restore();
+
+    ctx.restore(); // Fecha translate(bola.x, bola.y)
 }
 
-// ---------- impacto: normal (arcana) ----------
-function desenharHitNormal(ctx, hit, now) {
-    const e = now - hit.startTime;
-    const t = Math.min(e / hit.duration, 1);
-    const k = 1 - t;
+// =====================================================================
+// RENDERIZAÇÃO: IMPACTOS E EXPLOSÕES (HIT)
+// =====================================================================
+function atualizarEDesenharHits(ctx, now) {
+    for (let i = window.vfxMagoBolasHits.length - 1; i >= 0; i--) {
+        const hit = window.vfxMagoBolasHits[i];
+        const elapsed = now - hit.startTime;
+        if (elapsed >= hit.duration) {
+            window.vfxMagoBolasHits.splice(i, 1);
+            continue;
+        }
 
-    ctx.save();
-    ctx.translate(hit.x, hit.y);
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    const rr = hit.radius * (0.3 + t * 0.7);
-    ctx.strokeStyle = `rgba(210,140,255,${0.75 * k})`;
-    ctx.lineWidth = 3 * k + 0.5;
-    ctx.beginPath();
-    ctx.ellipse(0, 4, rr, rr * 0.4, 0, 0, PI2);
-    ctx.stroke();
-    ctx.restore();
-    ctx.restore();
-}
+        const t = Math.min(elapsed / hit.duration, 1);
+        const k = 1 - t;
 
-// ---------- círculos congelantes no chão (hit gelo) ----------
-function desenharCirculosGelo(ctx, now) {
-    ctx.save();
-    ctx.globalCompositeOperation = 'lighter';
-    for (let i = window.vfxCirculosGelo.length - 1; i >= 0; i--) {
-        const c = window.vfxCirculosGelo[i];
-        const e = now - c.startTime;
-        if (e >= c.duration) { window.vfxCirculosGelo.splice(i, 1); continue; }
-        const t = e / c.duration;
-        const expande = Math.min(1, t * 2.2);        // cresce rápido
-        const some = t > 0.7 ? 1 - (t - 0.7) / 0.3 : 1; // some no final
-        const raioAtual = c.raioMax * expande;
+        ctx.save();
+        ctx.translate(hit.x, hit.y);
 
-        // geada no chão
-        const frost = ctx.createRadialGradient(c.x, c.y, 2, c.x, c.y, raioAtual);
-        frost.addColorStop(0, `rgba(220,250,255,${0.34 * some})`);
-        frost.addColorStop(0.7, `rgba(120,225,255,${0.20 * some})`);
-        frost.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = frost;
-        ctx.beginPath();
-        ctx.ellipse(c.x, c.y + 4, raioAtual, raioAtual * 0.42, 0, 0, PI2);
-        ctx.fill();
+        // ------------------ IMPACTO DE FOGO (GRANDE EXPLOSÃO) ------------------
+        if (hit.ballType === 'fogo') {
+            // Inicializa partículas e brasas no primeiro frame
+            if (hit.ps.length === 0) {
+                // Brasas em arco parabólico
+                for (let p = 0; p < 36; p++) {
+                    const ang = Math.random() * PI2;
+                    const vel = 2 + Math.random() * 6.5;
+                    hit.ps.push({
+                        x: 0, y: 0,
+                        vx: Math.cos(ang) * vel,
+                        vy: Math.sin(ang) * vel - 2.5,
+                        life: 0, max: 25 + Math.random() * 30,
+                        size: 2.2 + Math.random() * 3.8
+                    });
+                }
+                // Fumaça volumosa em cogumelo
+                for (let s = 0; s < 14; s++) {
+                    const ang = Math.random() * PI2;
+                    const vel = 0.5 + Math.random() * 1.8;
+                    hit.smoke.push({
+                        x: 0, y: 0,
+                        vx: Math.cos(ang) * vel * 0.8,
+                        vy: -1.2 - Math.random() * 2.2,
+                        life: 0, max: 35 + Math.random() * 25,
+                        size: 8 + Math.random() * 10
+                    });
+                }
+            }
 
-        // cristais quebrados na borda
-        if (expande >= 1) {
-            for (let ck = 0; ck < 7; ck++) {
-                const a = now * 0.0009 + ck * (PI2 / 7);
-                const dx = Math.cos(a) * raioAtual * 0.9;
-                const dy = Math.sin(a) * raioAtual * 0.4;
-                ctx.fillStyle = `rgba(225,250,255,${0.5 * some})`;
+            // Flash solar central
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            const flash = ctx.createRadialGradient(0, 0, 2, 0, 0, hit.radius * (0.6 + t * 0.4));
+            flash.addColorStop(0, `rgba(255, 255, 240, ${0.95 * k})`);
+            flash.addColorStop(0.3, `rgba(255, 200, 60, ${0.75 * k})`);
+            flash.addColorStop(0.7, `rgba(255, 60, 0, ${0.45 * k})`);
+            flash.addColorStop(1, 'rgba(100, 0, 0, 0)');
+            ctx.fillStyle = flash;
+            ctx.beginPath(); ctx.arc(0, 0, hit.radius * (0.6 + t * 0.4), 0, PI2); ctx.fill();
+
+            // Expansão circular de ondas de choque no solo
+            for (let r = 0; r < 3; r++) {
+                const rr = hit.radius * (0.2 + t * 0.8) * (0.75 + r * 0.15);
+                ctx.strokeStyle = r === 0 ? `rgba(255, 245, 180, ${0.85 * k})` : `rgba(255, ${Math.round(110 - r * 25)}, 20, ${0.55 * k})`;
+                ctx.lineWidth = (4.5 - r) * 1.6 * k + 0.8;
                 ctx.beginPath();
-                ctx.arc(c.x + dx, c.y + 4 + dy, 2.4, 0, PI2);
+                ctx.ellipse(0, 6, rr, rr * 0.42, 0, 0, PI2);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // Brasas voando com gravidade
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (let p of hit.ps) {
+                p.life++;
+                p.vy += 0.12; // Gravidade realista
+                p.x += p.vx; p.y += p.vy;
+                const pk = Math.max(0, 1 - p.life / p.max);
+                ctx.fillStyle = `rgba(255, ${Math.round(120 + 120 * pk)}, 30, ${0.95 * pk})`;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * pk, 0, PI2);
                 ctx.fill();
             }
+            ctx.restore();
+
+            // Fumaça densa subindo
+            ctx.save();
+            for (let s of hit.smoke) {
+                s.life++;
+                s.x += s.vx; s.y += s.vy;
+                s.size += 0.15;
+                const sk = Math.max(0, 1 - s.life / s.max);
+                ctx.fillStyle = `rgba(55, 50, 50, ${0.30 * sk})`;
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, s.size, 0, PI2);
+                ctx.fill();
+            }
+            ctx.restore();
         }
+
+        // ------------------ IMPACTO DE GELO (NOVA CONGELANTE) ------------------
+        else if (hit.ballType === 'gelo') {
+            if (hit.ps.length === 0) {
+                // Cristais afiados disparados em todas as direções
+                for (let c = 0; c < 30; c++) {
+                    const ang = Math.random() * PI2;
+                    const vel = 1.5 + Math.random() * 5.5;
+                    hit.ps.push({
+                        x: 0, y: 0,
+                        vx: Math.cos(ang) * vel,
+                        vy: Math.sin(ang) * vel,
+                        life: 0, max: 24 + Math.random() * 26,
+                        size: 3 + Math.random() * 4,
+                        rot: Math.random() * PI2,
+                        vrot: (Math.random() - 0.5) * 0.25
+                    });
+                }
+            }
+
+            // Flash gélido
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            const flashGelo = ctx.createRadialGradient(0, 0, 2, 0, 0, hit.radius * (0.5 + t * 0.5));
+            flashGelo.addColorStop(0, `rgba(255, 255, 255, ${0.95 * k})`);
+            flashGelo.addColorStop(0.4, `rgba(0, 229, 255, ${0.65 * k})`);
+            flashGelo.addColorStop(1, 'rgba(0, 100, 255, 0)');
+            ctx.fillStyle = flashGelo;
+            ctx.beginPath(); ctx.arc(0, 0, hit.radius * (0.5 + t * 0.5), 0, PI2); ctx.fill();
+
+            // Anéis de choque de gelo no chão
+            for (let r = 0; r < 2; r++) {
+                const rr = hit.radius * (0.2 + t * 0.8) * (0.8 + r * 0.2);
+                ctx.strokeStyle = r === 0 ? `rgba(255, 255, 255, ${0.85 * k})` : `rgba(0, 229, 255, ${0.60 * k})`;
+                ctx.lineWidth = (3.5 - r) * 1.5 * k + 0.8;
+                ctx.beginPath();
+                ctx.ellipse(0, 6, rr, rr * 0.42, 0, 0, PI2);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // Cristais de gelo voando e girando
+            ctx.save();
+            ctx.globalCompositeOperation = 'lighter';
+            for (let p of hit.ps) {
+                p.life++;
+                p.x += p.vx; p.y += p.vy;
+                p.rot += p.vrot;
+                const pk = Math.max(0, 1 - p.life / p.max);
+
+                ctx.save();
+                ctx.translate(p.x, p.y);
+                ctx.rotate(p.rot);
+                ctx.fillStyle = `rgba(220, 250, 255, ${0.95 * pk})`;
+                ctx.beginPath();
+                ctx.moveTo(0, -p.size);
+                ctx.lineTo(p.size * 0.5, 0);
+                ctx.lineTo(0, p.size * 0.4);
+                ctx.lineTo(-p.size * 0.5, 0);
+                ctx.closePath();
+                ctx.fill();
+                ctx.restore();
+            }
+            ctx.restore();
+        }
+
+        // ------------------ IMPACTO NORMAL (BARRO / TERRA) ------------------
+        else {
+            if (hit.ps.length === 0) {
+                for (let d = 0; d < 18; d++) {
+                    const ang = Math.random() * PI2;
+                    const vel = 1.2 + Math.random() * 4;
+                    hit.ps.push({
+                        x: 0, y: 0,
+                        vx: Math.cos(ang) * vel,
+                        vy: Math.sin(ang) * vel - 1,
+                        life: 0, max: 20 + Math.random() * 18,
+                        size: 2.5 + Math.random() * 3,
+                        cor: Math.random() > 0.5 ? '#8d5b3d' : '#6f4528'
+                    });
+                }
+            }
+
+            // Onda de choque de terra no solo
+            ctx.save();
+            const rr = hit.radius * (0.3 + t * 0.7);
+            ctx.strokeStyle = `rgba(210, 120, 50, ${0.75 * k})`;
+            ctx.lineWidth = 3.5 * k + 0.6;
+            ctx.beginPath();
+            ctx.ellipse(0, 6, rr, rr * 0.42, 0, 0, PI2);
+            ctx.stroke();
+            ctx.restore();
+
+            // Fragmentos de barro arremessados
+            ctx.save();
+            for (let p of hit.ps) {
+                p.life++;
+                p.vy += 0.1;
+                p.x += p.vx; p.y += p.vy;
+                const pk = Math.max(0, 1 - p.life / p.max);
+                ctx.fillStyle = p.cor;
+                ctx.globalAlpha = pk;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size * pk, 0, PI2);
+                ctx.fill();
+            }
+            ctx.restore();
+        }
+
+        ctx.restore(); // Fecha translate(hit.x, hit.y)
     }
-    ctx.restore();
 }
 
-// ---------- dispatcher principal ----------
+// ---------- HELPER: DISSIPAÇÃO NATURAL NO FIM DO ALCANCE MÁXIMO (400px) ----------
+function criarDissipacaoFimRange(bola) {
+    const bType = bola.ballType || 'normal';
+    window.vfxMagoBolasHits.push({
+        x: bola.destX,
+        y: bola.destY,
+        ballType: bType,
+        radius: bType === 'fogo' ? 45 : (bType === 'gelo' ? 35 : 30),
+        startTime: Date.now(),
+        duration: 350,
+        ps: [],
+        debris: [],
+        smoke: []
+    });
+}
+
+// =====================================================================
+// DISPATCHER PRINCIPAL EXPOSTO GLOBALMENTE (RENDER LOOP)
+// =====================================================================
 window.desenharVfxMagoBola = function (ctx) {
+    if (!ctx) return;
     const now = Date.now();
 
-    // círculos congelantes do hit de gelo
-    desenharCirculosGelo(ctx, now);
+    // 1) Rastros persistentes no chão (pedras caídas, geada, lava)
+    atualizarEDesenharRastrosChao(ctx, now);
 
-    // bolas ativas
+    // 2) Círculos congelantes no chão (hit de gelo)
+    atualizarEDesenharCirculosGelo(ctx, now);
+
+    // 3) Efeito visual de congelamento no corpo dos inimigos (2s)
+    atualizarEDesenharInimigosCongelados(ctx, now);
+
+    // 4) Bolas ativas rolando no chão
     for (let i = window.vfxMagoBolas.length - 1; i >= 0; i--) {
         const bola = window.vfxMagoBolas[i];
         if (now - bola.startTime >= bola.duration) {
-            // explodiu no fim do trajeto sem acertar nada — visual de dissipação
+            // Fim do alcance (400px) sem colidir com nenhum mob: dissipação visual suave
+            criarDissipacaoFimRange(bola);
+            if (typeof window.pararSomMagoSkill4 === 'function') window.pararSomMagoSkill4();
             window.vfxMagoBolas.splice(i, 1);
             continue;
         }
-        desenharBolaElemental(ctx, bola, now);
+        atualizarEDesenharBola(ctx, bola, now);
     }
 
-    // impactos
-    for (let i = window.vfxMagoBolasHits.length - 1; i >= 0; i--) {
-        const hit = window.vfxMagoBolasHits[i];
-        if (now - hit.startTime >= hit.duration) { window.vfxMagoBolasHits.splice(i, 1); continue; }
-        if (hit.ballType === 'fogo') desenharHitFogo(ctx, hit, now);
-        else if (hit.ballType === 'gelo') desenharHitGelo(ctx, hit, now);
-        else desenharHitNormal(ctx, hit, now);
-    }
+    // 5) Impactos e explosões
+    atualizarEDesenharHits(ctx, now);
 };

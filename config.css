@@ -61,3 +61,14 @@
     outline: none;
 }
 .settings-select:focus { border-color: #f1c40f; }
+
+/* Dica auxiliar das opções (ex.: modo de tela) */
+.settings-dica {
+    font-family: 'Rajdhani', sans-serif;
+    font-size: 10px;
+    color: #7d7a70;
+    letter-spacing: 0.5px;
+    text-align: left;
+    margin-top: 5px;
+    line-height: 1.35;
+}

@@ -519,8 +519,16 @@
                 aviso(dados.texto || 'Aviso da Arena.');
                 break;
             case 'solari_contagem':
-                if (dados.seg === 0) { mostrarStart(); }
-                else { mostrarContagem(dados.seg, dados.mensagem || ''); }
+                if (dados.seg === 0) {
+                    mostrarStart();
+                    S._contagemAudioTocada = false;
+                } else {
+                    mostrarContagem(dados.seg, dados.mensagem || '');
+                    if (!S._contagemAudioTocada && dados.seg >= 9) {
+                        S._contagemAudioTocada = true;
+                        if (window.tocarSonoro) window.tocarSonoro('solari_contagem');
+                    }
+                }
                 break;
             case 'solari_round':
                 limparOverlays();
@@ -529,8 +537,8 @@
                 S.leilao = null;
                 definirRound(dados.round, dados.total);
                 mostrarBanner('ROUND ' + dados.round, '#ffd700', false);
-                if (dados.round === 1) {
-                    if (window.tocarSonoro) window.tocarSonoro('solari_round_1');
+                if (dados.round >= 1 && dados.round <= 9) {
+                    if (window.tocarSonoro) window.tocarSonoro('solari_round_' + dados.round);
                 }
                 break;
             case 'solari_banner':
@@ -538,7 +546,7 @@
                     limparOverlays();
                     limparPainelRodape();
                     mostrarBanner(dados.texto, dados.cor, true);
-                    if (window.tocarSonoro) window.tocarSonoro('solari_round_10_fim');
+                    if (window.tocarSonoro) window.tocarSonoro('solari_vitoria');
                 } else {
                     mostrarBanner(dados.texto, dados.cor, false);
                 }

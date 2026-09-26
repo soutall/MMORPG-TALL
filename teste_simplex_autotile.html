@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Demonstração: Simplex Noise + Autotiling</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            background: #0f1217;
+            color: #e2e8f0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            padding: 16px;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 16px;
+        }
+
+        h1 {
+            font-size: 24px;
+            color: #f6ad55;
+            text-shadow: 0 2px 8px rgba(246, 173, 85, 0.3);
+            margin-bottom: 6px;
+        }
+
+        p.subtitle {
+            font-size: 13px;
+            color: #94a3b8;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            justify-content: center;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .canvas-card {
+            background: #18202c;
+            border: 2px solid #2d3748;
+            border-radius: 10px;
+            padding: 14px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .canvas-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        .canvas-title {
+            font-weight: bold;
+            font-size: 15px;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .view-tabs {
+            display: flex;
+            gap: 4px;
+            background: #0f172a;
+            padding: 3px;
+            border-radius: 6px;
+        }
+
+        .view-btn {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            font-size: 11px;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .view-btn:hover {
+            color: #f1f5f9;
+        }
+
+        .view-btn.active {
+            background: #3b82f6;
+            color: #ffffff;
+            font-weight: bold;
+        }
+
+        canvas {
+            image-rendering: pixelated;
+            image-rendering: crisp-edges;
+            background: #090d16;
+            border: 1px solid #334155;
+            border-radius: 6px;
+            cursor: crosshair;
+        }
+
+        .canvas-hint {
+            font-size: 11px;
+            color: #64748b;
+            margin-top: 8px;
+            text-align: center;
+        }
+
+        .sidebar {
+            width: 320px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .panel {
+            background: #18202c;
+            border: 1px solid #2d3748;
+            border-radius: 8px;
+            padding: 14px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+        }
+
+        .panel-title {
+            font-size: 13px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #f6ad55;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #2d3748;
+            padding-bottom: 6px;
+        }
+
+        .control-group {
+            margin-bottom: 10px;
+        }
+
+        .control-group:last-child {
+            margin-bottom: 0;
+        }
+
+        .control-label {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #cbd5e1;
+            margin-bottom: 4px;
+        }
+
+        .control-value {
+            color: #60a5fa;
+            font-weight: bold;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            height: 5px;
+            background: #334155;
+            border-radius: 3px;
+            outline: none;
+            accent-color: #3b82f6;
+            cursor: pointer;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        button.action-btn {
+            flex: 1;
+            padding: 8px 12px;
+            font-size: 12px;
+            font-weight: bold;
+            background: #2563eb;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+
+        button.action-btn:hover {
+            background: #1d4ed8;
+            transform: translateY(-1px);
+        }
+
+        button.action-btn.secondary {
+            background: #334155;
+            color: #cbd5e1;
+        }
+
+        button.action-btn.secondary:hover {
+            background: #475569;
+        }
+
+        .tool-selector {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .tool-btn {
+            flex: 1;
+            padding: 6px;
+            background: #1e293b;
+            border: 1px solid #334155;
+            color: #94a3b8;
+            font-size: 11px;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .tool-btn.active {
+            border-color: #60a5fa;
+            background: #1e3a8a;
+            color: #fff;
+            font-weight: bold;
+        }
+
+        /* Bitmask Guide Table */
+        .bitmask-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+            margin-top: 6px;
+        }
+
+        .bitmask-table th, .bitmask-table td {
+            padding: 4px 6px;
+            border: 1px solid #334155;
+            text-align: left;
+        }
+
+        .bitmask-table th {
+            background: #0f172a;
+            color: #94a3b8;
+        }
+
+        .bitmask-table td.code {
+            font-family: monospace;
+            color: #38bdf8;
+            font-weight: bold;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+        }
+        .badge-water { background: #0369a1; color: #fff; }
+        .badge-sand { background: #d97706; color: #fff; }
+        .badge-grass { background: #15803d; color: #fff; }
+        .badge-rock { background: #475569; color: #fff; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>⚡ Simplex Noise + Autotiling (Bitmasking)</h1>
+        <p class="subtitle">Geração Procedural de Terreno Infinito e Conexão Automática de Bordas</p>
+    </header>
+
+    <div class="container">
+        <!-- Canvas Central -->
+        <div class="canvas-card">
+            <div class="canvas-header">
+                <div class="canvas-title">
+                    <span id="canvas-icon">🗺️</span>
+                    <span id="canvas-mode-title">Mapa com Autotiling Ativo</span>
+                </div>
+                <div class="view-tabs">
+                    <button class="view-btn active" onclick="setMode('autotile')">🎨 Autotile</button>
+                    <button class="view-btn" onclick="setMode('noise')">🌊 Simplex Noise</button>
+                    <button class="view-btn" onclick="setMode('debug')">🔢 Bitmask IDs</button>
+                </div>
+            </div>
+
+            <canvas id="mapCanvas" width="640" height="480"></canvas>
+            <div class="canvas-hint">💡 Dica: Clique e arraste no mapa para pintar ou apagar terreno e veja as bordas se adaptarem sozinhas!</div>
+        </div>
+
+        <!-- Barra Lateral de Controles e Explicação -->
+        <div class="sidebar">
+            <!-- Controles do Simplex Noise -->
+            <div class="panel">
+                <div class="panel-title">⚙️ Parâmetros do Simplex Noise</div>
+                
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Seed (Semente):</span>
+                        <span id="valSeed" class="control-value">12345</span>
+                    </div>
+                    <div class="btn-row" style="margin-top: 0; margin-bottom: 8px;">
+                        <button class="action-btn" onclick="randomSeed()">🎲 Novo Seed</button>
+                    </div>
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Escala / Zoom do Ruído:</span>
+                        <span id="valScale" class="control-value">0.050</span>
+                    </div>
+                    <input type="range" id="sliderScale" min="0.015" max="0.12" step="0.005" value="0.05" oninput="updateParams()">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Nível da Água (Threshold):</span>
+                        <span id="valWater" class="control-value">-0.10</span>
+                    </div>
+                    <input type="range" id="sliderWater" min="-0.50" max="0.30" step="0.02" value="-0.10" oninput="updateParams()">
+                </div>
+
+                <div class="control-group">
+                    <div class="control-label">
+                        <span>Oitavas Fractais (FBM):</span>
+                        <span id="valOctaves" class="control-value">3</span>
+                    </div>
+                    <input type="range" id="sliderOctaves" min="1" max="4" step="1" value="3" oninput="updateParams()">
+                </div>
+            </div>
+
+            <!-- Pincel Manual para Testar Autotiling -->
+            <div class="panel">
+                <div class="panel-title">🖌️ Pintura Manual (Teste de Bitmask)</div>
+                <div style="font-size: 11px; color: #94a3b8; margin-bottom: 6px;">
+                    Pinte terra ou água com o mouse para ver o autotile conectar bordas em tempo real:
+                </div>
+                <div class="tool-selector">
+                    <button class="tool-btn active" id="toolGrass" onclick="setTool('grass')">🌱 Grama</button>
+                    <button class="tool-btn" id="toolWater" onclick="setTool('water')">💧 Água</button>
+                    <button class="tool-btn" id="toolSand" onclick="setTool('sand')">🏖️ Areia</button>
+                </div>
+                <div class="btn-row">
+                    <button class="action-btn secondary" onclick="generateMap()">↺ Regenerar</button>
+                </div>
+            </div>
+
+            <!-- Explicação do Bitmasking -->
+            <div class="panel">
+                <div class="panel-title">🧠 Como o Autotiling Funciona</div>
+                <div style="font-size: 11px; color: #94a3b8; line-height: 1.4;">
+                    Cada célula inspeciona seus 4 vizinhos (Norte, Leste, Sul, Oeste). Cada vizinho de terra ativa um bit:
+                </div>
+                <table class="bitmask-table">
+                    <tr><th>Vizinho</th><th>Valor Binário</th><th>Peso Decimal</th></tr>
+                    <tr><td>Norte (Cima)</td><td class="code">0001</td><td class="code">+1</td></tr>
+                    <tr><td>Leste (Direita)</td><td class="code">0010</td><td class="code">+2</td></tr>
+                    <tr><td>Sul (Baixo)</td><td class="code">0100</td><td class="code">+4</td></tr>
+                    <tr><td>Oeste (Esquerda)</td><td class="code">1000</td><td class="code">+8</td></tr>
+                </table>
+                <div style="font-size: 11px; color: #cbd5e1; margin-top: 6px;">
+                    • <b>Soma = 15 (1111):</b> Centro (terra em todos os lados)<br>
+                    • <b>Soma = 0 (0000):</b> Ilha isolada<br>
+                    • <b>Soma = 6 (0110):</b> Canto superior esquerdo
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ====================================================================
+        // 1. ALGORITMO NATIVO DE SIMPLEX NOISE 2D (KEN PERLIN STANDARD)
+        // ====================================================================
+        const F2 = 0.5 * (Math.sqrt(3.0) - 1.0);
+        const G2 = (3.0 - Math.sqrt(3.0)) / 6.0;
+
+        class SimplexNoise2D {
+            constructor(seed = 12345) {
+                this.p = new Uint8Array(256);
+                let s = seed;
+                for (let i = 0; i < 256; i++) this.p[i] = i;
+                for (let i = 255; i > 0; i--) {
+                    s = (s * 9301 + 49297) % 233280;
+                    let j = Math.floor((s / 233280) * (i + 1));
+                    let tmp = this.p[i]; this.p[i] = this.p[j]; this.p[j] = tmp;
+                }
+                this.perm = new Uint8Array(512);
+                this.permMod12 = new Uint8Array(512);
+                for (let i = 0; i < 512; i++) {
+                    this.perm[i] = this.p[i & 255];
+                    this.permMod12[i] = this.perm[i] % 12;
+                }
+                this.grad3 = [
+                    [1,1,0],[-1,1,0],[1,-1,0],[-1,-1,0],
+                    [1,0,1],[-1,0,1],[1,0,-1],[-1,0,-1],
+                    [0,1,1],[0,-1,1],[0,1,-1],[0,-1,-1]
+                ];
+            }
+
+            noise(xin, yin) {
+                let n0, n1, n2;
+                let s = (xin + yin) * F2;
+                let i = Math.floor(xin + s);
+                let j = Math.floor(yin + s);
+                let t = (i + j) * G2;
+                let X0 = i - t;
+                let Y0 = j - t;
+                let x0 = xin - X0;
+                let y0 = yin - Y0;
+                let i1, j1;
+                if (x0 > y0) { i1 = 1; j1 = 0; }
+                else { i1 = 0; j1 = 1; }
+                let x1 = x0 - i1 + G2;
+                let y1 = y0 - j1 + G2;
+                let x2 = x0 - 1.0 + 2.0 * G2;
+                let y2 = y0 - 1.0 + 2.0 * G2;
+                let ii = i & 255;
+                let jj = j & 255;
+                let gi0 = this.permMod12[ii + this.perm[jj]];
+                let gi1 = this.permMod12[ii + i1 + this.perm[jj + j1]];
+                let gi2 = this.permMod12[ii + 1 + this.perm[jj + 1]];
+                let t0 = 0.5 - x0*x0 - y0*y0;
+                if (t0 < 0) n0 = 0.0;
+                else { t0 *= t0; n0 = t0 * t0 * (this.grad3[gi0][0] * x0 + this.grad3[gi0][1] * y0); }
+                let t1 = 0.5 - x1*x1 - y1*y1;
+                if (t1 < 0) n1 = 0.0;
+                else { t1 *= t1; n1 = t1 * t1 * (this.grad3[gi1][0] * x1 + this.grad3[gi1][1] * y1); }
+                let t2 = 0.5 - x2*x2 - y2*y2;
+                if (t2 < 0) n2 = 0.0;
+                else { t2 *= t2; n2 = t2 * t2 * (this.grad3[gi2][0] * x2 + this.grad3[gi2][1] * y2); }
+                return 70.0 * (n0 + n1 + n2);
+            }
+
+            // Fractal Brownian Motion (Oitavas para relevo detalhado)
+            fbm(x, y, octaves = 3, lacunarity = 2.0, gain = 0.5) {
+                let total = 0;
+                let frequency = 1.0;
+                let amplitude = 1.0;
+                let maxValue = 0;
+                for (let o = 0; o < octaves; o++) {
+                    total += this.noise(x * frequency, y * frequency) * amplitude;
+                    maxValue += amplitude;
+                    frequency *= lacunarity;
+                    amplitude *= gain;
+                }
+                return total / maxValue;
+            }
+        }
+
+        // ====================================================================
+        // 2. CONFIGURAÇÃO DO MAPA E GRID
+        // ====================================================================
+        const COLS = 40;
+        const ROWS = 30;
+        const TILE_PX = 16; // 40x30 tiles @ 16px = 640x480 no Canvas
+
+        let currentSeed = 42817;
+        let currentScale = 0.05;
+        let currentWaterLevel = -0.10;
+        let currentOctaves = 3;
+        let currentMode = 'autotile'; // 'autotile', 'noise', 'debug'
+        let currentTool = 'grass';
+
+        let noiseMap = []; // Altura float [-1, 1]
+        let tileGrid = []; // 'water', 'sand', 'grass', 'rock'
+
+        const canvas = document.getElementById('mapCanvas');
+        const ctx = canvas.getContext('2d');
+
+        let simplex = new SimplexNoise2D(currentSeed);
+
+        // Gera o mapa do zero a partir do Simplex Noise
+        function generateMap() {
+            simplex = new SimplexNoise2D(currentSeed);
+            noiseMap = new Array(COLS * ROWS);
+            tileGrid = new Array(COLS * ROWS);
+
+            for (let y = 0; y < ROWS; y++) {
+                for (let x = 0; x < COLS; x++) {
+                    const idx = y * COLS + x;
+                    const val = simplex.fbm(x * currentScale, y * currentScale, currentOctaves);
+                    noiseMap[idx] = val;
+
+                    // Classificação de Bioma por Altitude (Simplex Thresholds)
+                    if (val < currentWaterLevel) {
+                        tileGrid[idx] = 'water';
+                    } else if (val < currentWaterLevel + 0.12) {
+                        tileGrid[idx] = 'sand';
+                    } else if (val < currentWaterLevel + 0.48) {
+                        tileGrid[idx] = 'grass';
+                    } else {
+                        tileGrid[idx] = 'rock';
+                    }
+                }
+            }
+
+            render();
+        }
+
+        // ====================================================================
+        // 3. MOTOR DE AUTOTILING (BITMASKING CARDINAL 4-BIT)
+        // ====================================================================
+        function getTileAt(x, y) {
+            if (x < 0 || x >= COLS || y < 0 || y >= ROWS) return 'water'; // borda é água
+            return tileGrid[y * COLS + x];
+        }
+
+        // Calcula a máscara binária (0 a 15) de vizinhos do mesmo tipo ou tipo superior
+        function calculateBitmask(x, y, biomeType) {
+            let mask = 0;
+
+            const isSolid = (bx, by) => {
+                const t = getTileAt(bx, by);
+                if (biomeType === 'water') return t === 'water';
+                if (biomeType === 'sand') return t === 'sand' || t === 'grass' || t === 'rock';
+                if (biomeType === 'grass') return t === 'grass' || t === 'rock';
+                if (biomeType === 'rock') return t === 'rock';
+                return false;
+            };
+
+            // Bit 0: Norte (1)
+            if (isSolid(x, y - 1)) mask |= 1;
+            // Bit 1: Leste (2)
+            if (isSolid(x + 1, y)) mask |= 2;
+            // Bit 2: Sul (4)
+            if (isSolid(x, y + 1)) mask |= 4;
+            // Bit 3: Oeste (8)
+            if (isSolid(x - 1, y)) mask |= 8;
+
+            return mask;
+        }
+
+        // ====================================================================
+        // 4. RENDERIZADOR PROCEDURAL DOS TILES
+        // ====================================================================
+        function drawTile(ctx, px, py, type, mask) {
+            const S = TILE_PX;
+
+            // 1. ÁGUA
+            if (type === 'water') {
+                ctx.fillStyle = '#0284c7';
+                ctx.fillRect(px, py, S, S);
+                // Onda decorativa suave
+                ctx.fillStyle = '#38bdf8';
+                ctx.fillRect(px + 3, py + 5, 4, 1);
+                ctx.fillRect(px + 9, py + 10, 3, 1);
+                return;
+            }
+
+            // 2. AREIA
+            if (type === 'sand') {
+                // Base de água sob a borda
+                ctx.fillStyle = '#0284c7';
+                ctx.fillRect(px, py, S, S);
+
+                // Preenchimento de areia
+                ctx.fillStyle = '#d97706';
+                ctx.fillRect(px, py, S, S);
+
+                // Bordas de praia (se faltar algum vizinho de areia/terra)
+                ctx.fillStyle = '#b45309';
+                if (!(mask & 1)) ctx.fillRect(px, py, S, 2); // borda Norte
+                if (!(mask & 2)) ctx.fillRect(px + S - 2, py, 2, S); // borda Leste
+                if (!(mask & 4)) ctx.fillRect(px, py + S - 2, S, 2); // borda Sul
+                if (!(mask & 8)) ctx.fillRect(px, py, 2, S); // borda Oeste
+
+                // Grânulos de areia
+                ctx.fillStyle = '#fde68a';
+                ctx.fillRect(px + 4, py + 4, 1, 1);
+                ctx.fillRect(px + 11, py + 9, 1, 1);
+                return;
+            }
+
+            // 3. GRAMA
+            if (type === 'grass') {
+                // Fundo de areia (para transição natural nas bordas)
+                ctx.fillStyle = '#d97706';
+                ctx.fillRect(px, py, S, S);
+
+                // Bloco principal de grama verde
+                ctx.fillStyle = '#16a34a';
+                ctx.fillRect(px, py, S, S);
+
+                // Bordas de terraçõ/grama
+                ctx.fillStyle = '#14532d'; // Sombra escura de borda
+                if (!(mask & 1)) ctx.fillRect(px, py, S, 3); // borda Norte
+                if (!(mask & 2)) ctx.fillRect(px + S - 3, py, 3, S); // borda Leste
+                if (!(mask & 4)) ctx.fillRect(px, py + S - 3, S, 3); // borda Sul
+                if (!(mask & 8)) ctx.fillRect(px, py, 3, S); // borda Oeste
+
+                // Iluminação interna da grama
+                ctx.fillStyle = '#4ade80';
+                if ((mask & 1) && (mask & 8)) ctx.fillRect(px + 3, py + 3, 2, 2);
+                if (px % 32 === 0 && py % 32 === 0) {
+                    // Florzinha decorativa ocasional
+                    ctx.fillStyle = '#fbbf24';
+                    ctx.fillRect(px + 7, py + 7, 2, 2);
+                }
+                return;
+            }
+
+            // 4. ROCHA / MONTANHA
+            if (type === 'rock') {
+                // Fundo de grama
+                ctx.fillStyle = '#16a34a';
+                ctx.fillRect(px, py, S, S);
+
+                // Bloco de rocha cinza
+                ctx.fillStyle = '#475569';
+                ctx.fillRect(px, py, S, S);
+
+                // Aresta iluminada da rocha
+                ctx.fillStyle = '#94a3b8';
+                ctx.fillRect(px + 2, py + 2, S - 4, 2);
+
+                // Sombra da rocha
+                ctx.fillStyle = '#1e293b';
+                if (!(mask & 4)) ctx.fillRect(px, py + S - 3, S, 3);
+                if (!(mask & 2)) ctx.fillRect(px + S - 3, py, 3, S);
+
+                // Fissura de rocha
+                ctx.fillStyle = '#0f172a';
+                ctx.fillRect(px + 6, py + 6, 4, 1);
+                ctx.fillRect(px + 9, py + 7, 1, 3);
+            }
+        }
+
+        // ====================================================================
+        // 5. RENDERIZAÇÃO PRINCIPAL DO CANVAS
+        // ====================================================================
+        function render() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // MODO 1: AUTOTILE VISUAL COMPLETO
+            if (currentMode === 'autotile') {
+                for (let y = 0; y < ROWS; y++) {
+                    for (let x = 0; x < COLS; x++) {
+                        const idx = y * COLS + x;
+                        const type = tileGrid[idx];
+                        const mask = calculateBitmask(x, y, type);
+                        drawTile(ctx, x * TILE_PX, y * TILE_PX, type, mask);
+                    }
+                }
+            }
+
+            // MODO 2: SIMPLEX NOISE PURO (GRAYSCALE / ELEVAÇÃO)
+            else if (currentMode === 'noise') {
+                for (let y = 0; y < ROWS; y++) {
+                    for (let x = 0; x < COLS; x++) {
+                        const idx = y * COLS + x;
+                        const val = noiseMap[idx]; // [-1, 1]
+                        const norm = Math.min(1, Math.max(0, (val + 1) * 0.5)); // [0, 1]
+                        const b = Math.floor(norm * 255);
+                        
+                        // Colorização de altitude
+                        if (val < currentWaterLevel) {
+                            ctx.fillStyle = `rgb(10, ${Math.floor(b * 0.6)}, ${b})`;
+                        } else {
+                            ctx.fillStyle = `rgb(${b}, ${b}, ${b})`;
+                        }
+                        ctx.fillRect(x * TILE_PX, y * TILE_PX, TILE_PX, TILE_PX);
+                    }
+                }
+                // Grade sutil
+                ctx.strokeStyle = 'rgba(255,255,255,0.06)';
+                for (let x = 0; x <= COLS; x++) {
+                    ctx.beginPath(); ctx.moveTo(x * TILE_PX, 0); ctx.lineTo(x * TILE_PX, ROWS * TILE_PX); ctx.stroke();
+                }
+                for (let y = 0; y <= ROWS; y++) {
+                    ctx.beginPath(); ctx.moveTo(0, y * TILE_PX); ctx.lineTo(COLS * TILE_PX, y * TILE_PX); ctx.stroke();
+                }
+            }
+
+            // MODO 3: DEBUG BITMASK (MOSTRA VALORES DE 0 A 15)
+            else if (currentMode === 'debug') {
+                for (let y = 0; y < ROWS; y++) {
+                    for (let x = 0; x < COLS; x++) {
+                        const idx = y * COLS + x;
+                        const type = tileGrid[idx];
+                        const mask = calculateBitmask(x, y, type);
+                        drawTile(ctx, x * TILE_PX, y * TILE_PX, type, mask);
+
+                        // Texto com a máscara numérica
+                        ctx.fillStyle = 'rgba(0,0,0,0.65)';
+                        ctx.fillRect(x * TILE_PX + 1, y * TILE_PX + 1, 14, 14);
+                        ctx.fillStyle = mask === 15 ? '#4ade80' : (mask === 0 ? '#f87171' : '#fef08a');
+                        ctx.font = 'bold 9px monospace';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(mask, x * TILE_PX + 8, y * TILE_PX + 11);
+                    }
+                }
+            }
+        }
+
+        // ====================================================================
+        // 6. INTERAÇÃO E EVENTOS
+        // ====================================================================
+        function setMode(mode) {
+            currentMode = mode;
+            document.querySelectorAll('.view-btn').forEach(b => b.classList.remove('active'));
+            if (mode === 'autotile') {
+                document.querySelectorAll('.view-btn')[0].classList.add('active');
+                document.getElementById('canvas-icon').innerText = '🗺️';
+                document.getElementById('canvas-mode-title').innerText = 'Mapa com Autotiling Ativo';
+            } else if (mode === 'noise') {
+                document.querySelectorAll('.view-btn')[1].classList.add('active');
+                document.getElementById('canvas-icon').innerText = '🌊';
+                document.getElementById('canvas-mode-title').innerText = 'Simplex Noise (Mapa de Altura FBM)';
+            } else {
+                document.querySelectorAll('.view-btn')[2].classList.add('active');
+                document.getElementById('canvas-icon').innerText = '🔢';
+                document.getElementById('canvas-mode-title').innerText = 'Depuração de Bitmask (0 a 15)';
+            }
+            render();
+        }
+
+        function setTool(tool) {
+            currentTool = tool;
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            if (tool === 'grass') document.getElementById('toolGrass').classList.add('active');
+            if (tool === 'water') document.getElementById('toolWater').classList.add('active');
+            if (tool === 'sand') document.getElementById('toolSand').classList.add('active');
+        }
+
+        function randomSeed() {
+            currentSeed = Math.floor(Math.random() * 900000) + 10000;
+            document.getElementById('valSeed').innerText = currentSeed;
+            generateMap();
+        }
+
+        function updateParams() {
+            currentScale = parseFloat(document.getElementById('sliderScale').value);
+            currentWaterLevel = parseFloat(document.getElementById('sliderWater').value);
+            currentOctaves = parseInt(document.getElementById('sliderOctaves').value);
+
+            document.getElementById('valScale').innerText = currentScale.toFixed(3);
+            document.getElementById('valWater').innerText = currentWaterLevel.toFixed(2);
+            document.getElementById('valOctaves').innerText = currentOctaves;
+
+            generateMap();
+        }
+
+        // Pintura com o mouse
+        let isDrawing = false;
+        function paintAtEvent(e) {
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = e.clientX - rect.left;
+            const mouseY = e.clientY - rect.top;
+            const tileX = Math.floor(mouseX / TILE_PX);
+            const tileY = Math.floor(mouseY / TILE_PX);
+
+            if (tileX >= 0 && tileX < COLS && tileY >= 0 && tileY < ROWS) {
+                tileGrid[tileY * COLS + tileX] = currentTool;
+                render();
+            }
+        }
+
+        canvas.addEventListener('mousedown', (e) => { isDrawing = true; paintAtEvent(e); });
+        window.addEventListener('mouseup', () => { isDrawing = false; });
+        canvas.addEventListener('mousemove', (e) => { if (isDrawing) paintAtEvent(e); });
+
+        // Inicialização automática
+        generateMap();
+    </script>
+</body>
+</html>

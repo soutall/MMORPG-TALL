@@ -675,6 +675,11 @@
         { cx: 44, cy: 10 }, { cx: 56, cy: 10 }, { cx: 44, cy: 64 }, { cx: 56, cy: 64 },
         { cx: 20, cy: 37 }, { cx: 30, cy: 37 }, { cx: 70, cy: 37 }, { cx: 80, cy: 37 }
     ];
+    if (typeof window !== 'undefined') {
+        window.CIDADE_LAMPADAS = LAMPADAS.map(function (L) {
+            return { x: CID_X0 + (L.cx + 0.5) * TILE, y: (L.cy + 0.5) * TILE };
+        });
+    }
 
     function construirLampadas() {
         const ferroMat   = mat('#1c1f24', { roughness: 0.7, metalness: 0.6 });
@@ -901,11 +906,17 @@
             tr.copa2.position.x += sway;
         });
 
-        // Anima postes (flicker)
+        // Anima postes (flicker e ciclo dia/noite)
+        const fatorLuz = (typeof global.obterFatorLuzDiaNoite === 'function') ? global.obterFatorLuzDiaNoite() : 1.0;
         posLights.forEach(function (pl) {
+            if (fatorLuz <= 0.001) {
+                pl.light.intensity = 0;
+                pl.latern.material.emissiveIntensity = 0;
+                return;
+            }
             const flicker = 0.85 + Math.sin(waterTime * 3.8 + pl.phase) * 0.15;
-            pl.light.intensity = 0.9 * flicker;
-            pl.latern.material.emissiveIntensity = 1.2 * flicker;
+            pl.light.intensity = 0.9 * flicker * fatorLuz;
+            pl.latern.material.emissiveIntensity = 1.2 * flicker * fatorLuz;
         });
 
         renderer.render(scene, camera);

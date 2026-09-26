@@ -1,0 +1,3574 @@
+[
+  {
+    "id": "col_zz_pinheiro_1",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #1",
+    "cx": 7364,
+    "cy": 2788,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_2",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #2",
+    "cx": 4449,
+    "cy": 598,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_3",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #3",
+    "cx": 1817,
+    "cy": 6320,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_4",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #4",
+    "cx": 4103,
+    "cy": 2730,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_5",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #5",
+    "cx": 3782,
+    "cy": 8104,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_6",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #6",
+    "cx": 5957,
+    "cy": 663,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_7",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #7",
+    "cx": 7267,
+    "cy": 3527,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_8",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #8",
+    "cx": 2596,
+    "cy": 5256,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_9",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #9",
+    "cx": 942,
+    "cy": 7953,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_10",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #10",
+    "cx": 6421,
+    "cy": 5765,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_11",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #11",
+    "cx": 5591,
+    "cy": 4251,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_12",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #12",
+    "cx": 1544,
+    "cy": 3305,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_13",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #13",
+    "cx": 7582,
+    "cy": 5647,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_14",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #14",
+    "cx": 4348,
+    "cy": 6626,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_15",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #15",
+    "cx": 823,
+    "cy": 2866,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_16",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #16",
+    "cx": 5635,
+    "cy": 4145,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_17",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #17",
+    "cx": 2661,
+    "cy": 6413,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_18",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #18",
+    "cx": 7422,
+    "cy": 2279,
+    "r": 16
+  },
+  {
+    "id": "col_zz_pinheiro_19",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #19",
+    "cx": 2472,
+    "cy": 3378,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_20",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #20",
+    "cx": 1484,
+    "cy": 248,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_21",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #21",
+    "cx": 5113,
+    "cy": 6983,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_22",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #22",
+    "cx": 2616,
+    "cy": 5606,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_23",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #23",
+    "cx": 5174,
+    "cy": 1309,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_24",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #24",
+    "cx": 1458,
+    "cy": 1329,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_25",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #25",
+    "cx": 3654,
+    "cy": 6214,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_26",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #26",
+    "cx": 6656,
+    "cy": 699,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_27",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #27",
+    "cx": 4988,
+    "cy": 4227,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_28",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #28",
+    "cx": 389,
+    "cy": 3781,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_29",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #29",
+    "cx": 3917,
+    "cy": 388,
+    "r": 16
+  },
+  {
+    "id": "col_zz_pinheiro_30",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #30",
+    "cx": 3831,
+    "cy": 1372,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_31",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #31",
+    "cx": 6778,
+    "cy": 1820,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_32",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #32",
+    "cx": 3246,
+    "cy": 1920,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_33",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #33",
+    "cx": 2067,
+    "cy": 7623,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_34",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #34",
+    "cx": 1910,
+    "cy": 8042,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_35",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #35",
+    "cx": 4950,
+    "cy": 7242,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_36",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #36",
+    "cx": 1661,
+    "cy": 1786,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_37",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #37",
+    "cx": 3275,
+    "cy": 4120,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_38",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #38",
+    "cx": 4105,
+    "cy": 2564,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_39",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #39",
+    "cx": 2585,
+    "cy": 8644,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_40",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #40",
+    "cx": 3978,
+    "cy": 1131,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_41",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #41",
+    "cx": 6731,
+    "cy": 7516,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_42",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #42",
+    "cx": 4057,
+    "cy": 751,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_43",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #43",
+    "cx": 7766,
+    "cy": 4772,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_44",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #44",
+    "cx": 1946,
+    "cy": 8689,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_45",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #45",
+    "cx": 4690,
+    "cy": 5364,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_46",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #46",
+    "cx": 6416,
+    "cy": 5032,
+    "r": 16
+  },
+  {
+    "id": "col_zz_pinheiro_47",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #47",
+    "cx": 1811,
+    "cy": 2085,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_48",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #48",
+    "cx": 1669,
+    "cy": 7912,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_49",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #49",
+    "cx": 358,
+    "cy": 8519,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_50",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #50",
+    "cx": 5967,
+    "cy": 8171,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_51",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #51",
+    "cx": 6344,
+    "cy": 3414,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_52",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #52",
+    "cx": 2013,
+    "cy": 6003,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_53",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #53",
+    "cx": 6321,
+    "cy": 659,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_54",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #54",
+    "cx": 703,
+    "cy": 7072,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_55",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #55",
+    "cx": 7777,
+    "cy": 2355,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_56",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #56",
+    "cx": 3395,
+    "cy": 4339,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_57",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #57",
+    "cx": 7078,
+    "cy": 6209,
+    "r": 16
+  },
+  {
+    "id": "col_zz_pinheiro_58",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #58",
+    "cx": 345,
+    "cy": 5566,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_59",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #59",
+    "cx": 998,
+    "cy": 5318,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_60",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #60",
+    "cx": 1793,
+    "cy": 6533,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_61",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #61",
+    "cx": 6016,
+    "cy": 4294,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_62",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #62",
+    "cx": 6429,
+    "cy": 2485,
+    "r": 16
+  },
+  {
+    "id": "col_zz_pinheiro_63",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #63",
+    "cx": 2724,
+    "cy": 5607,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_64",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #64",
+    "cx": 3515,
+    "cy": 8625,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_65",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #65",
+    "cx": 3573,
+    "cy": 6982,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_66",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #66",
+    "cx": 6769,
+    "cy": 7844,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_67",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #67",
+    "cx": 5870,
+    "cy": 1642,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_68",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #68",
+    "cx": 7180,
+    "cy": 1445,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_69",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #69",
+    "cx": 6785,
+    "cy": 2758,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_70",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #70",
+    "cx": 3054,
+    "cy": 2714,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_71",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #71",
+    "cx": 3003,
+    "cy": 7816,
+    "r": 16
+  },
+  {
+    "id": "col_zz_pinheiro_72",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #72",
+    "cx": 6123,
+    "cy": 1356,
+    "r": 16
+  },
+  {
+    "id": "col_zz_pinheiro_73",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #73",
+    "cx": 2161,
+    "cy": 7416,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_74",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #74",
+    "cx": 5465,
+    "cy": 6412,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_75",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #75",
+    "cx": 1385,
+    "cy": 3069,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_76",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #76",
+    "cx": 4413,
+    "cy": 2709,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_77",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #77",
+    "cx": 3120,
+    "cy": 6080,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_78",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #78",
+    "cx": 5936,
+    "cy": 4198,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_79",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #79",
+    "cx": 3070,
+    "cy": 4008,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_80",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #80",
+    "cx": 1714,
+    "cy": 2492,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_81",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #81",
+    "cx": 5807,
+    "cy": 1136,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_82",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #82",
+    "cx": 5614,
+    "cy": 7596,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_83",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #83",
+    "cx": 2536,
+    "cy": 5617,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_84",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #84",
+    "cx": 4115,
+    "cy": 5278,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_85",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #85",
+    "cx": 2295,
+    "cy": 4000,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_86",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #86",
+    "cx": 6376,
+    "cy": 6548,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_87",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #87",
+    "cx": 3679,
+    "cy": 8115,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_88",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #88",
+    "cx": 3834,
+    "cy": 3394,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_89",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #89",
+    "cx": 645,
+    "cy": 4755,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_90",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #90",
+    "cx": 4432,
+    "cy": 1620,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_91",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #91",
+    "cx": 1784,
+    "cy": 5997,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_92",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #92",
+    "cx": 5720,
+    "cy": 5534,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_93",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #93",
+    "cx": 2738,
+    "cy": 810,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_94",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #94",
+    "cx": 1023,
+    "cy": 1271,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_95",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #95",
+    "cx": 6197,
+    "cy": 8666,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_96",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #96",
+    "cx": 7238,
+    "cy": 3256,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_97",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #97",
+    "cx": 4875,
+    "cy": 5962,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_98",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #98",
+    "cx": 2065,
+    "cy": 4168,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_99",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #99",
+    "cx": 6246,
+    "cy": 5742,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_100",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #100",
+    "cx": 5749,
+    "cy": 480,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_101",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #101",
+    "cx": 708,
+    "cy": 1843,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_102",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #102",
+    "cx": 6254,
+    "cy": 2446,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_103",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #103",
+    "cx": 4148,
+    "cy": 3708,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_104",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #104",
+    "cx": 6494,
+    "cy": 6470,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_105",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #105",
+    "cx": 3932,
+    "cy": 8458,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_106",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #106",
+    "cx": 7657,
+    "cy": 5033,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_107",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #107",
+    "cx": 1966,
+    "cy": 3235,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_108",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #108",
+    "cx": 462,
+    "cy": 5865,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_109",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #109",
+    "cx": 7599,
+    "cy": 6471,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_110",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #110",
+    "cx": 4439,
+    "cy": 3974,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_111",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #111",
+    "cx": 3599,
+    "cy": 4242,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_112",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #112",
+    "cx": 7431,
+    "cy": 2469,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_113",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #113",
+    "cx": 6762,
+    "cy": 7905,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_114",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #114",
+    "cx": 1668,
+    "cy": 3555,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_115",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #115",
+    "cx": 5325,
+    "cy": 1583,
+    "r": 16
+  },
+  {
+    "id": "col_zz_pinheiro_116",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #116",
+    "cx": 4962,
+    "cy": 592,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_117",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #117",
+    "cx": 5452,
+    "cy": 598,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_118",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #118",
+    "cx": 7449,
+    "cy": 4078,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_119",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #119",
+    "cx": 7016,
+    "cy": 5858,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_120",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #120",
+    "cx": 2794,
+    "cy": 7809,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_121",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #121",
+    "cx": 5293,
+    "cy": 1295,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_122",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #122",
+    "cx": 4425,
+    "cy": 1541,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_123",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #123",
+    "cx": 1499,
+    "cy": 3017,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_124",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #124",
+    "cx": 7270,
+    "cy": 3829,
+    "r": 16
+  },
+  {
+    "id": "col_zz_pinheiro_125",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #125",
+    "cx": 1853,
+    "cy": 7745,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_126",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #126",
+    "cx": 1258,
+    "cy": 5176,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_127",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #127",
+    "cx": 4378,
+    "cy": 5392,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_128",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #128",
+    "cx": 900,
+    "cy": 5837,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_129",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #129",
+    "cx": 1153,
+    "cy": 5844,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_130",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #130",
+    "cx": 7586,
+    "cy": 1126,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_131",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #131",
+    "cx": 4760,
+    "cy": 1700,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_132",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #132",
+    "cx": 2997,
+    "cy": 362,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_133",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #133",
+    "cx": 453,
+    "cy": 7371,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_134",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #134",
+    "cx": 4707,
+    "cy": 447,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_135",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #135",
+    "cx": 1076,
+    "cy": 1418,
+    "r": 20
+  },
+  {
+    "id": "col_zz_pinheiro_136",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #136",
+    "cx": 7752,
+    "cy": 5666,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_137",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #137",
+    "cx": 5543,
+    "cy": 1378,
+    "r": 21
+  },
+  {
+    "id": "col_zz_pinheiro_138",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #138",
+    "cx": 2768,
+    "cy": 4113,
+    "r": 22
+  },
+  {
+    "id": "col_zz_pinheiro_139",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #139",
+    "cx": 3556,
+    "cy": 5488,
+    "r": 17
+  },
+  {
+    "id": "col_zz_pinheiro_140",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #140",
+    "cx": 3478,
+    "cy": 8700,
+    "r": 19
+  },
+  {
+    "id": "col_zz_pinheiro_141",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro Siberiano Gigante #141",
+    "cx": 6205,
+    "cy": 3632,
+    "r": 18
+  },
+  {
+    "id": "col_zz_pinheiro_142",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #142",
+    "cx": 252,
+    "cy": 7091,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_143",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #143",
+    "cx": 5579,
+    "cy": 5879,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_144",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #144",
+    "cx": 1072,
+    "cy": 1277,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_145",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #145",
+    "cx": 7489,
+    "cy": 5457,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_146",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #146",
+    "cx": 6272,
+    "cy": 3054,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_147",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #147",
+    "cx": 7688,
+    "cy": 4209,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_148",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #148",
+    "cx": 5132,
+    "cy": 7000,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_149",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #149",
+    "cx": 5706,
+    "cy": 3343,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_150",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #150",
+    "cx": 963,
+    "cy": 4238,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_151",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #151",
+    "cx": 662,
+    "cy": 1771,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_152",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #152",
+    "cx": 3653,
+    "cy": 5972,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_153",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #153",
+    "cx": 6322,
+    "cy": 7761,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_154",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #154",
+    "cx": 5545,
+    "cy": 2709,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_155",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #155",
+    "cx": 4071,
+    "cy": 5399,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_156",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #156",
+    "cx": 4101,
+    "cy": 4534,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_157",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #157",
+    "cx": 2162,
+    "cy": 1373,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_158",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #158",
+    "cx": 5889,
+    "cy": 7385,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_159",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #159",
+    "cx": 803,
+    "cy": 4279,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_160",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #160",
+    "cx": 5608,
+    "cy": 820,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_161",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #161",
+    "cx": 969,
+    "cy": 957,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_162",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #162",
+    "cx": 3286,
+    "cy": 7959,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_163",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #163",
+    "cx": 5881,
+    "cy": 8766,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_164",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #164",
+    "cx": 523,
+    "cy": 2644,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_165",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #165",
+    "cx": 1084,
+    "cy": 5365,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_166",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #166",
+    "cx": 4432,
+    "cy": 6113,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_167",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #167",
+    "cx": 7274,
+    "cy": 1574,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_168",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #168",
+    "cx": 6346,
+    "cy": 1757,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_169",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #169",
+    "cx": 4600,
+    "cy": 4311,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_170",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #170",
+    "cx": 1605,
+    "cy": 1552,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_171",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #171",
+    "cx": 6344,
+    "cy": 5698,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_172",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #172",
+    "cx": 2830,
+    "cy": 6110,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_173",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #173",
+    "cx": 6963,
+    "cy": 4260,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_174",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #174",
+    "cx": 2790,
+    "cy": 2894,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_175",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #175",
+    "cx": 3192,
+    "cy": 7848,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_176",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #176",
+    "cx": 783,
+    "cy": 3737,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_177",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #177",
+    "cx": 4619,
+    "cy": 2230,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_178",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #178",
+    "cx": 4557,
+    "cy": 604,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_179",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #179",
+    "cx": 254,
+    "cy": 7213,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_180",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #180",
+    "cx": 2266,
+    "cy": 5693,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_181",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #181",
+    "cx": 4757,
+    "cy": 2830,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_182",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #182",
+    "cx": 3265,
+    "cy": 318,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_183",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #183",
+    "cx": 6337,
+    "cy": 3918,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_184",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #184",
+    "cx": 963,
+    "cy": 6255,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_185",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #185",
+    "cx": 3552,
+    "cy": 280,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_186",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #186",
+    "cx": 962,
+    "cy": 6235,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_187",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #187",
+    "cx": 6228,
+    "cy": 2770,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_188",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #188",
+    "cx": 5544,
+    "cy": 7306,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_189",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #189",
+    "cx": 3722,
+    "cy": 1135,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_190",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #190",
+    "cx": 7744,
+    "cy": 3375,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_191",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #191",
+    "cx": 7326,
+    "cy": 5447,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_192",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #192",
+    "cx": 973,
+    "cy": 4307,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_193",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #193",
+    "cx": 2359,
+    "cy": 4052,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_194",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #194",
+    "cx": 906,
+    "cy": 8285,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_195",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #195",
+    "cx": 7354,
+    "cy": 7967,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_196",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #196",
+    "cx": 4467,
+    "cy": 4243,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_197",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #197",
+    "cx": 2263,
+    "cy": 4320,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_198",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #198",
+    "cx": 588,
+    "cy": 2223,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_199",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #199",
+    "cx": 2654,
+    "cy": 823,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_200",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #200",
+    "cx": 1088,
+    "cy": 5904,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_201",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #201",
+    "cx": 3875,
+    "cy": 4188,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_202",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #202",
+    "cx": 7507,
+    "cy": 5270,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_203",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #203",
+    "cx": 6421,
+    "cy": 6700,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_204",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #204",
+    "cx": 4970,
+    "cy": 6195,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_205",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #205",
+    "cx": 3731,
+    "cy": 5444,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_206",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #206",
+    "cx": 3655,
+    "cy": 2722,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_207",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #207",
+    "cx": 287,
+    "cy": 4730,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_208",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #208",
+    "cx": 5037,
+    "cy": 252,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_209",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #209",
+    "cx": 2638,
+    "cy": 6007,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_210",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #210",
+    "cx": 3694,
+    "cy": 5172,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_211",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #211",
+    "cx": 7342,
+    "cy": 3315,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_212",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #212",
+    "cx": 425,
+    "cy": 2190,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_213",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #213",
+    "cx": 5744,
+    "cy": 274,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_214",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #214",
+    "cx": 5945,
+    "cy": 538,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_215",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #215",
+    "cx": 6747,
+    "cy": 5424,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_216",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #216",
+    "cx": 5097,
+    "cy": 717,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_217",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #217",
+    "cx": 6552,
+    "cy": 3789,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_218",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #218",
+    "cx": 6769,
+    "cy": 8058,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_219",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #219",
+    "cx": 3764,
+    "cy": 1306,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_220",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #220",
+    "cx": 6557,
+    "cy": 2065,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_221",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #221",
+    "cx": 2239,
+    "cy": 6265,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_222",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #222",
+    "cx": 2292,
+    "cy": 3929,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_223",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #223",
+    "cx": 3265,
+    "cy": 3720,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_224",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #224",
+    "cx": 5231,
+    "cy": 583,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_225",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #225",
+    "cx": 7020,
+    "cy": 7327,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_226",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #226",
+    "cx": 3791,
+    "cy": 5082,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_227",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #227",
+    "cx": 6622,
+    "cy": 4206,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_228",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #228",
+    "cx": 7374,
+    "cy": 1531,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_229",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #229",
+    "cx": 7548,
+    "cy": 5988,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_230",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #230",
+    "cx": 7768,
+    "cy": 4193,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_231",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #231",
+    "cx": 6844,
+    "cy": 6831,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_232",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #232",
+    "cx": 4329,
+    "cy": 3914,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_233",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #233",
+    "cx": 330,
+    "cy": 1389,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_234",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #234",
+    "cx": 1818,
+    "cy": 6259,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_235",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #235",
+    "cx": 6153,
+    "cy": 1925,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_236",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #236",
+    "cx": 674,
+    "cy": 436,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_237",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #237",
+    "cx": 614,
+    "cy": 3409,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_238",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #238",
+    "cx": 7077,
+    "cy": 7493,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_239",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #239",
+    "cx": 1676,
+    "cy": 611,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_240",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #240",
+    "cx": 1560,
+    "cy": 3392,
+    "r": 9
+  },
+  {
+    "id": "col_zz_pinheiro_241",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #241",
+    "cx": 3397,
+    "cy": 6166,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_242",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #242",
+    "cx": 7209,
+    "cy": 5917,
+    "r": 7
+  },
+  {
+    "id": "col_zz_pinheiro_243",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #243",
+    "cx": 3328,
+    "cy": 2147,
+    "r": 8
+  },
+  {
+    "id": "col_zz_pinheiro_244",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #244",
+    "cx": 5473,
+    "cy": 3656,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_245",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #245",
+    "cx": 2581,
+    "cy": 5880,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_246",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #246",
+    "cx": 3047,
+    "cy": 2608,
+    "r": 10
+  },
+  {
+    "id": "col_zz_pinheiro_247",
+    "tipo": "circle",
+    "nome": "Tronco Pinheiro da Geada #247",
+    "cx": 5741,
+    "cy": 7521,
+    "r": 8
+  },
+  {
+    "id": "col_zz_rocha_248",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #1",
+    "cx": 5133,
+    "cy": 2778,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_249",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #2",
+    "cx": 329,
+    "cy": 5759,
+    "r": 28
+  },
+  {
+    "id": "col_zz_rocha_250",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #3",
+    "cx": 1892,
+    "cy": 4251,
+    "r": 18
+  },
+  {
+    "id": "col_zz_rocha_251",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #4",
+    "cx": 6779,
+    "cy": 3070,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_252",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #5",
+    "cx": 7116,
+    "cy": 2004,
+    "r": 14
+  },
+  {
+    "id": "col_zz_rocha_253",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #6",
+    "cx": 1907,
+    "cy": 6681,
+    "r": 16
+  },
+  {
+    "id": "col_zz_rocha_254",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #7",
+    "cx": 2560,
+    "cy": 805,
+    "r": 25
+  },
+  {
+    "id": "col_zz_rocha_255",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #8",
+    "cx": 7518,
+    "cy": 1347,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_256",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #9",
+    "cx": 4620,
+    "cy": 7295,
+    "r": 18
+  },
+  {
+    "id": "col_zz_rocha_257",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #10",
+    "cx": 6577,
+    "cy": 8518,
+    "r": 19
+  },
+  {
+    "id": "col_zz_rocha_258",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #11",
+    "cx": 3391,
+    "cy": 6062,
+    "r": 23
+  },
+  {
+    "id": "col_zz_rocha_259",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #12",
+    "cx": 3434,
+    "cy": 3416,
+    "r": 17
+  },
+  {
+    "id": "col_zz_rocha_260",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #13",
+    "cx": 5021,
+    "cy": 6584,
+    "r": 26
+  },
+  {
+    "id": "col_zz_rocha_261",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #14",
+    "cx": 7648,
+    "cy": 2774,
+    "r": 24
+  },
+  {
+    "id": "col_zz_rocha_262",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #15",
+    "cx": 7403,
+    "cy": 5455,
+    "r": 20
+  },
+  {
+    "id": "col_zz_rocha_263",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #16",
+    "cx": 5811,
+    "cy": 1983,
+    "r": 18
+  },
+  {
+    "id": "col_zz_rocha_264",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #17",
+    "cx": 6270,
+    "cy": 6621,
+    "r": 23
+  },
+  {
+    "id": "col_zz_rocha_265",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #18",
+    "cx": 1863,
+    "cy": 4134,
+    "r": 29
+  },
+  {
+    "id": "col_zz_rocha_266",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #19",
+    "cx": 3014,
+    "cy": 6320,
+    "r": 21
+  },
+  {
+    "id": "col_zz_rocha_267",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #20",
+    "cx": 1186,
+    "cy": 4590,
+    "r": 20
+  },
+  {
+    "id": "col_zz_rocha_268",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #21",
+    "cx": 1922,
+    "cy": 3830,
+    "r": 19
+  },
+  {
+    "id": "col_zz_rocha_269",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #22",
+    "cx": 1276,
+    "cy": 3187,
+    "r": 23
+  },
+  {
+    "id": "col_zz_rocha_270",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #23",
+    "cx": 5448,
+    "cy": 5487,
+    "r": 25
+  },
+  {
+    "id": "col_zz_rocha_271",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #24",
+    "cx": 2001,
+    "cy": 6515,
+    "r": 14
+  },
+  {
+    "id": "col_zz_rocha_272",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #25",
+    "cx": 2071,
+    "cy": 5895,
+    "r": 28
+  },
+  {
+    "id": "col_zz_rocha_273",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #26",
+    "cx": 5019,
+    "cy": 7797,
+    "r": 16
+  },
+  {
+    "id": "col_zz_rocha_274",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #27",
+    "cx": 5699,
+    "cy": 2400,
+    "r": 28
+  },
+  {
+    "id": "col_zz_rocha_275",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #28",
+    "cx": 1891,
+    "cy": 7047,
+    "r": 26
+  },
+  {
+    "id": "col_zz_rocha_276",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #29",
+    "cx": 3649,
+    "cy": 1805,
+    "r": 15
+  },
+  {
+    "id": "col_zz_rocha_277",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #30",
+    "cx": 7552,
+    "cy": 7855,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_278",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #31",
+    "cx": 6206,
+    "cy": 5954,
+    "r": 19
+  },
+  {
+    "id": "col_zz_rocha_279",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #32",
+    "cx": 5631,
+    "cy": 7228,
+    "r": 17
+  },
+  {
+    "id": "col_zz_rocha_280",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #33",
+    "cx": 3748,
+    "cy": 5193,
+    "r": 18
+  },
+  {
+    "id": "col_zz_rocha_281",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #34",
+    "cx": 765,
+    "cy": 6305,
+    "r": 23
+  },
+  {
+    "id": "col_zz_rocha_282",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #35",
+    "cx": 4472,
+    "cy": 4342,
+    "r": 20
+  },
+  {
+    "id": "col_zz_rocha_283",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #36",
+    "cx": 7294,
+    "cy": 1654,
+    "r": 19
+  },
+  {
+    "id": "col_zz_rocha_284",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #37",
+    "cx": 2081,
+    "cy": 953,
+    "r": 14
+  },
+  {
+    "id": "col_zz_rocha_285",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #38",
+    "cx": 848,
+    "cy": 4827,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_286",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #39",
+    "cx": 7098,
+    "cy": 1117,
+    "r": 26
+  },
+  {
+    "id": "col_zz_rocha_287",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #40",
+    "cx": 6057,
+    "cy": 292,
+    "r": 25
+  },
+  {
+    "id": "col_zz_rocha_288",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #41",
+    "cx": 6599,
+    "cy": 4916,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_289",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #42",
+    "cx": 5989,
+    "cy": 1857,
+    "r": 25
+  },
+  {
+    "id": "col_zz_rocha_290",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #43",
+    "cx": 3390,
+    "cy": 5915,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_291",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #44",
+    "cx": 1885,
+    "cy": 2971,
+    "r": 20
+  },
+  {
+    "id": "col_zz_rocha_292",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #45",
+    "cx": 7695,
+    "cy": 481,
+    "r": 16
+  },
+  {
+    "id": "col_zz_rocha_293",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #46",
+    "cx": 6962,
+    "cy": 8472,
+    "r": 18
+  },
+  {
+    "id": "col_zz_rocha_294",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #47",
+    "cx": 7604,
+    "cy": 3772,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_295",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #48",
+    "cx": 5701,
+    "cy": 5635,
+    "r": 15
+  },
+  {
+    "id": "col_zz_rocha_296",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #49",
+    "cx": 445,
+    "cy": 1198,
+    "r": 18
+  },
+  {
+    "id": "col_zz_rocha_297",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #50",
+    "cx": 6584,
+    "cy": 3301,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_298",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #51",
+    "cx": 6071,
+    "cy": 1604,
+    "r": 16
+  },
+  {
+    "id": "col_zz_rocha_299",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #52",
+    "cx": 1344,
+    "cy": 7119,
+    "r": 21
+  },
+  {
+    "id": "col_zz_rocha_300",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #53",
+    "cx": 6512,
+    "cy": 1305,
+    "r": 22
+  },
+  {
+    "id": "col_zz_rocha_301",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #54",
+    "cx": 4481,
+    "cy": 1811,
+    "r": 16
+  },
+  {
+    "id": "col_zz_rocha_302",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #55",
+    "cx": 5923,
+    "cy": 7230,
+    "r": 15
+  },
+  {
+    "id": "col_zz_rocha_303",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #56",
+    "cx": 3644,
+    "cy": 8746,
+    "r": 22
+  },
+  {
+    "id": "col_zz_rocha_304",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #57",
+    "cx": 5546,
+    "cy": 6541,
+    "r": 26
+  },
+  {
+    "id": "col_zz_rocha_305",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #58",
+    "cx": 6771,
+    "cy": 7462,
+    "r": 14
+  },
+  {
+    "id": "col_zz_rocha_306",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #59",
+    "cx": 3534,
+    "cy": 3276,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_307",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #60",
+    "cx": 1798,
+    "cy": 1854,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_308",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #61",
+    "cx": 6525,
+    "cy": 2061,
+    "r": 22
+  },
+  {
+    "id": "col_zz_rocha_309",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #62",
+    "cx": 6202,
+    "cy": 1971,
+    "r": 20
+  },
+  {
+    "id": "col_zz_rocha_310",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #63",
+    "cx": 2301,
+    "cy": 4229,
+    "r": 28
+  },
+  {
+    "id": "col_zz_rocha_311",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #64",
+    "cx": 4622,
+    "cy": 4968,
+    "r": 16
+  },
+  {
+    "id": "col_zz_rocha_312",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #65",
+    "cx": 6969,
+    "cy": 2866,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_313",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #66",
+    "cx": 3222,
+    "cy": 1036,
+    "r": 18
+  },
+  {
+    "id": "col_zz_rocha_314",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #67",
+    "cx": 7315,
+    "cy": 3341,
+    "r": 17
+  },
+  {
+    "id": "col_zz_rocha_315",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #68",
+    "cx": 7005,
+    "cy": 3738,
+    "r": 23
+  },
+  {
+    "id": "col_zz_rocha_316",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #69",
+    "cx": 6079,
+    "cy": 1944,
+    "r": 15
+  },
+  {
+    "id": "col_zz_rocha_317",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #70",
+    "cx": 1976,
+    "cy": 6507,
+    "r": 19
+  },
+  {
+    "id": "col_zz_rocha_318",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #71",
+    "cx": 5270,
+    "cy": 8678,
+    "r": 14
+  },
+  {
+    "id": "col_zz_rocha_319",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #72",
+    "cx": 4933,
+    "cy": 8593,
+    "r": 23
+  },
+  {
+    "id": "col_zz_rocha_320",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #73",
+    "cx": 412,
+    "cy": 7549,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_321",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #74",
+    "cx": 4977,
+    "cy": 7884,
+    "r": 25
+  },
+  {
+    "id": "col_zz_rocha_322",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #75",
+    "cx": 4860,
+    "cy": 1926,
+    "r": 29
+  },
+  {
+    "id": "col_zz_rocha_323",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #76",
+    "cx": 3272,
+    "cy": 6331,
+    "r": 23
+  },
+  {
+    "id": "col_zz_rocha_324",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #77",
+    "cx": 2830,
+    "cy": 6913,
+    "r": 24
+  },
+  {
+    "id": "col_zz_rocha_325",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #78",
+    "cx": 3120,
+    "cy": 4110,
+    "r": 24
+  },
+  {
+    "id": "col_zz_rocha_326",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #79",
+    "cx": 4951,
+    "cy": 5782,
+    "r": 17
+  },
+  {
+    "id": "col_zz_rocha_327",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #80",
+    "cx": 1849,
+    "cy": 5895,
+    "r": 28
+  },
+  {
+    "id": "col_zz_rocha_328",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #81",
+    "cx": 5455,
+    "cy": 1983,
+    "r": 25
+  },
+  {
+    "id": "col_zz_rocha_329",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #82",
+    "cx": 4326,
+    "cy": 5218,
+    "r": 29
+  },
+  {
+    "id": "col_zz_rocha_330",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #83",
+    "cx": 6797,
+    "cy": 894,
+    "r": 22
+  },
+  {
+    "id": "col_zz_rocha_331",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #84",
+    "cx": 5689,
+    "cy": 4502,
+    "r": 18
+  },
+  {
+    "id": "col_zz_rocha_332",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #85",
+    "cx": 2769,
+    "cy": 4353,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_333",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #86",
+    "cx": 1942,
+    "cy": 4577,
+    "r": 29
+  },
+  {
+    "id": "col_zz_rocha_334",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #87",
+    "cx": 1617,
+    "cy": 6311,
+    "r": 21
+  },
+  {
+    "id": "col_zz_rocha_335",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #88",
+    "cx": 5302,
+    "cy": 3673,
+    "r": 15
+  },
+  {
+    "id": "col_zz_rocha_336",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #89",
+    "cx": 1803,
+    "cy": 6529,
+    "r": 18
+  },
+  {
+    "id": "col_zz_rocha_337",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #90",
+    "cx": 5309,
+    "cy": 6874,
+    "r": 23
+  },
+  {
+    "id": "col_zz_rocha_338",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #91",
+    "cx": 6740,
+    "cy": 1130,
+    "r": 15
+  },
+  {
+    "id": "col_zz_rocha_339",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #92",
+    "cx": 7129,
+    "cy": 3721,
+    "r": 16
+  },
+  {
+    "id": "col_zz_rocha_340",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #93",
+    "cx": 2677,
+    "cy": 3882,
+    "r": 14
+  },
+  {
+    "id": "col_zz_rocha_341",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #94",
+    "cx": 2298,
+    "cy": 1374,
+    "r": 14
+  },
+  {
+    "id": "col_zz_rocha_342",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #95",
+    "cx": 2073,
+    "cy": 588,
+    "r": 23
+  },
+  {
+    "id": "col_zz_rocha_343",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #96",
+    "cx": 2075,
+    "cy": 3951,
+    "r": 29
+  },
+  {
+    "id": "col_zz_rocha_344",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #97",
+    "cx": 5811,
+    "cy": 7832,
+    "r": 14
+  },
+  {
+    "id": "col_zz_rocha_345",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #98",
+    "cx": 3996,
+    "cy": 3402,
+    "r": 27
+  },
+  {
+    "id": "col_zz_rocha_346",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #99",
+    "cx": 426,
+    "cy": 6317,
+    "r": 19
+  },
+  {
+    "id": "col_zz_rocha_347",
+    "tipo": "circle",
+    "nome": "Rocha Glacial #100",
+    "cx": 7495,
+    "cy": 4478,
+    "r": 14
+  },
+  {
+    "id": "col_zz_cristal_348",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #1",
+    "cx": 5940,
+    "cy": 1800,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_349",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #2",
+    "cx": 5974,
+    "cy": 1863,
+    "r": 20
+  },
+  {
+    "id": "col_zz_cristal_350",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #3",
+    "cx": 5976,
+    "cy": 1948,
+    "r": 24
+  },
+  {
+    "id": "col_zz_cristal_351",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #4",
+    "cx": 5870,
+    "cy": 1921,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_352",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #5",
+    "cx": 5832,
+    "cy": 1982,
+    "r": 20
+  },
+  {
+    "id": "col_zz_cristal_353",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #6",
+    "cx": 5760,
+    "cy": 2027,
+    "r": 24
+  },
+  {
+    "id": "col_zz_cristal_354",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #7",
+    "cx": 5730,
+    "cy": 1921,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_355",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #8",
+    "cx": 5658,
+    "cy": 1919,
+    "r": 20
+  },
+  {
+    "id": "col_zz_cristal_356",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #9",
+    "cx": 5584,
+    "cy": 1879,
+    "r": 24
+  },
+  {
+    "id": "col_zz_cristal_357",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #10",
+    "cx": 5660,
+    "cy": 1800,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_358",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #11",
+    "cx": 5626,
+    "cy": 1737,
+    "r": 20
+  },
+  {
+    "id": "col_zz_cristal_359",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #12",
+    "cx": 5624,
+    "cy": 1652,
+    "r": 24
+  },
+  {
+    "id": "col_zz_cristal_360",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #13",
+    "cx": 5730,
+    "cy": 1679,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_361",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #14",
+    "cx": 5768,
+    "cy": 1618,
+    "r": 20
+  },
+  {
+    "id": "col_zz_cristal_362",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #15",
+    "cx": 5840,
+    "cy": 1573,
+    "r": 24
+  },
+  {
+    "id": "col_zz_cristal_363",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #16",
+    "cx": 5870,
+    "cy": 1679,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_364",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #17",
+    "cx": 5942,
+    "cy": 1681,
+    "r": 20
+  },
+  {
+    "id": "col_zz_cristal_365",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #18",
+    "cx": 6016,
+    "cy": 1721,
+    "r": 24
+  },
+  {
+    "id": "col_zz_cristal_366",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #19",
+    "cx": 2909,
+    "cy": 903,
+    "r": 13
+  },
+  {
+    "id": "col_zz_cristal_367",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #20",
+    "cx": 2469,
+    "cy": 4976,
+    "r": 11
+  },
+  {
+    "id": "col_zz_cristal_368",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #21",
+    "cx": 2941,
+    "cy": 2454,
+    "r": 14
+  },
+  {
+    "id": "col_zz_cristal_369",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #22",
+    "cx": 7353,
+    "cy": 2276,
+    "r": 16
+  },
+  {
+    "id": "col_zz_cristal_370",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #23",
+    "cx": 7411,
+    "cy": 2442,
+    "r": 16
+  },
+  {
+    "id": "col_zz_cristal_371",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #24",
+    "cx": 1064,
+    "cy": 8529,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_372",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #25",
+    "cx": 4070,
+    "cy": 1121,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_373",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #26",
+    "cx": 2663,
+    "cy": 2950,
+    "r": 16
+  },
+  {
+    "id": "col_zz_cristal_374",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #27",
+    "cx": 2726,
+    "cy": 7459,
+    "r": 12
+  },
+  {
+    "id": "col_zz_cristal_375",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #28",
+    "cx": 5913,
+    "cy": 6267,
+    "r": 21
+  },
+  {
+    "id": "col_zz_cristal_376",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #29",
+    "cx": 1152,
+    "cy": 2601,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_377",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #30",
+    "cx": 1505,
+    "cy": 1037,
+    "r": 11
+  },
+  {
+    "id": "col_zz_cristal_378",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #31",
+    "cx": 6630,
+    "cy": 5140,
+    "r": 11
+  },
+  {
+    "id": "col_zz_cristal_379",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #32",
+    "cx": 2920,
+    "cy": 1957,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_380",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #33",
+    "cx": 4581,
+    "cy": 8702,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_381",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #34",
+    "cx": 659,
+    "cy": 3280,
+    "r": 21
+  },
+  {
+    "id": "col_zz_cristal_382",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #35",
+    "cx": 7467,
+    "cy": 786,
+    "r": 12
+  },
+  {
+    "id": "col_zz_cristal_383",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #36",
+    "cx": 7447,
+    "cy": 6216,
+    "r": 12
+  },
+  {
+    "id": "col_zz_cristal_384",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #37",
+    "cx": 1312,
+    "cy": 851,
+    "r": 13
+  },
+  {
+    "id": "col_zz_cristal_385",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #38",
+    "cx": 2704,
+    "cy": 3295,
+    "r": 16
+  },
+  {
+    "id": "col_zz_cristal_386",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #39",
+    "cx": 5946,
+    "cy": 2033,
+    "r": 16
+  },
+  {
+    "id": "col_zz_cristal_387",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #40",
+    "cx": 1592,
+    "cy": 3303,
+    "r": 12
+  },
+  {
+    "id": "col_zz_cristal_388",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #41",
+    "cx": 939,
+    "cy": 6653,
+    "r": 14
+  },
+  {
+    "id": "col_zz_cristal_389",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #42",
+    "cx": 7084,
+    "cy": 3771,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_390",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #43",
+    "cx": 6481,
+    "cy": 5976,
+    "r": 19
+  },
+  {
+    "id": "col_zz_cristal_391",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #44",
+    "cx": 4706,
+    "cy": 7553,
+    "r": 13
+  },
+  {
+    "id": "col_zz_cristal_392",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #45",
+    "cx": 7029,
+    "cy": 2629,
+    "r": 16
+  },
+  {
+    "id": "col_zz_cristal_393",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #46",
+    "cx": 1890,
+    "cy": 4449,
+    "r": 12
+  },
+  {
+    "id": "col_zz_cristal_394",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #47",
+    "cx": 4710,
+    "cy": 2004,
+    "r": 13
+  },
+  {
+    "id": "col_zz_cristal_395",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #48",
+    "cx": 1924,
+    "cy": 8209,
+    "r": 17
+  },
+  {
+    "id": "col_zz_cristal_396",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #49",
+    "cx": 861,
+    "cy": 4628,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_397",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #50",
+    "cx": 4485,
+    "cy": 6167,
+    "r": 18
+  },
+  {
+    "id": "col_zz_cristal_398",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #51",
+    "cx": 5287,
+    "cy": 6127,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_399",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #52",
+    "cx": 6196,
+    "cy": 7240,
+    "r": 21
+  },
+  {
+    "id": "col_zz_cristal_400",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #53",
+    "cx": 5267,
+    "cy": 4526,
+    "r": 17
+  },
+  {
+    "id": "col_zz_cristal_401",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #54",
+    "cx": 6242,
+    "cy": 3777,
+    "r": 16
+  },
+  {
+    "id": "col_zz_cristal_402",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #55",
+    "cx": 6522,
+    "cy": 3133,
+    "r": 14
+  },
+  {
+    "id": "col_zz_cristal_403",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #56",
+    "cx": 3015,
+    "cy": 5274,
+    "r": 21
+  },
+  {
+    "id": "col_zz_cristal_404",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #57",
+    "cx": 2169,
+    "cy": 579,
+    "r": 14
+  },
+  {
+    "id": "col_zz_cristal_405",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #58",
+    "cx": 1302,
+    "cy": 4524,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_406",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #59",
+    "cx": 6873,
+    "cy": 6273,
+    "r": 20
+  },
+  {
+    "id": "col_zz_cristal_407",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #60",
+    "cx": 4194,
+    "cy": 8569,
+    "r": 16
+  },
+  {
+    "id": "col_zz_cristal_408",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #61",
+    "cx": 1219,
+    "cy": 6469,
+    "r": 12
+  },
+  {
+    "id": "col_zz_cristal_409",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #62",
+    "cx": 1644,
+    "cy": 5886,
+    "r": 17
+  },
+  {
+    "id": "col_zz_cristal_410",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #63",
+    "cx": 1150,
+    "cy": 734,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_411",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #64",
+    "cx": 5599,
+    "cy": 7215,
+    "r": 12
+  },
+  {
+    "id": "col_zz_cristal_412",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #65",
+    "cx": 2580,
+    "cy": 2805,
+    "r": 16
+  },
+  {
+    "id": "col_zz_cristal_413",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #66",
+    "cx": 5428,
+    "cy": 1459,
+    "r": 17
+  },
+  {
+    "id": "col_zz_cristal_414",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #67",
+    "cx": 4557,
+    "cy": 582,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_415",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #68",
+    "cx": 7308,
+    "cy": 3708,
+    "r": 17
+  },
+  {
+    "id": "col_zz_cristal_416",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #69",
+    "cx": 5213,
+    "cy": 7127,
+    "r": 14
+  },
+  {
+    "id": "col_zz_cristal_417",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #70",
+    "cx": 1106,
+    "cy": 6673,
+    "r": 20
+  },
+  {
+    "id": "col_zz_cristal_418",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #71",
+    "cx": 1033,
+    "cy": 8551,
+    "r": 19
+  },
+  {
+    "id": "col_zz_cristal_419",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #72",
+    "cx": 7012,
+    "cy": 919,
+    "r": 21
+  },
+  {
+    "id": "col_zz_cristal_420",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #73",
+    "cx": 6954,
+    "cy": 4599,
+    "r": 14
+  },
+  {
+    "id": "col_zz_cristal_421",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #74",
+    "cx": 1611,
+    "cy": 350,
+    "r": 20
+  },
+  {
+    "id": "col_zz_cristal_422",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #75",
+    "cx": 1382,
+    "cy": 7680,
+    "r": 12
+  },
+  {
+    "id": "col_zz_cristal_423",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #76",
+    "cx": 3872,
+    "cy": 6588,
+    "r": 12
+  },
+  {
+    "id": "col_zz_cristal_424",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #77",
+    "cx": 5691,
+    "cy": 2179,
+    "r": 12
+  },
+  {
+    "id": "col_zz_cristal_425",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #78",
+    "cx": 377,
+    "cy": 5423,
+    "r": 19
+  },
+  {
+    "id": "col_zz_cristal_426",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #79",
+    "cx": 5573,
+    "cy": 5951,
+    "r": 21
+  },
+  {
+    "id": "col_zz_cristal_427",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #80",
+    "cx": 4815,
+    "cy": 8382,
+    "r": 19
+  },
+  {
+    "id": "col_zz_cristal_428",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #81",
+    "cx": 5967,
+    "cy": 1451,
+    "r": 18
+  },
+  {
+    "id": "col_zz_cristal_429",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #82",
+    "cx": 7601,
+    "cy": 5745,
+    "r": 12
+  },
+  {
+    "id": "col_zz_cristal_430",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #83",
+    "cx": 7436,
+    "cy": 4107,
+    "r": 11
+  },
+  {
+    "id": "col_zz_cristal_431",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #84",
+    "cx": 1200,
+    "cy": 6116,
+    "r": 16
+  },
+  {
+    "id": "col_zz_cristal_432",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #85",
+    "cx": 6228,
+    "cy": 5993,
+    "r": 15
+  },
+  {
+    "id": "col_zz_cristal_433",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #86",
+    "cx": 6964,
+    "cy": 8548,
+    "r": 12
+  },
+  {
+    "id": "col_zz_cristal_434",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #87",
+    "cx": 3483,
+    "cy": 1421,
+    "r": 17
+  },
+  {
+    "id": "col_zz_cristal_435",
+    "tipo": "circle",
+    "nome": "Cristal Eterno #88",
+    "cx": 1698,
+    "cy": 4140,
+    "r": 17
+  },
+  {
+    "id": "col_zz_tenda_436",
+    "tipo": "rect",
+    "nome": "Tenda de Comando Polar",
+    "x": 244,
+    "y": 903,
+    "w": 72,
+    "h": 35
+  },
+  {
+    "id": "col_zz_tenda_437",
+    "tipo": "rect",
+    "nome": "Tenda de Suprimentos da Geada",
+    "x": 98,
+    "y": 1124,
+    "w": 64,
+    "h": 33
+  },
+  {
+    "id": "col_zz_tenda_438",
+    "tipo": "rect",
+    "nome": "Posto Arqueológico Glacial",
+    "x": 4386,
+    "y": 7063,
+    "w": 68,
+    "h": 34
+  },
+  {
+    "id": "col_zz_tenda_439",
+    "tipo": "rect",
+    "nome": "Acampamento dos Historiadores",
+    "x": 4568,
+    "y": 7224,
+    "w": 64,
+    "h": 33
+  },
+  {
+    "id": "col_zz_iglu_440",
+    "tipo": "circle",
+    "nome": "Iglu do Ancião da Neve",
+    "cx": 2000,
+    "cy": 4320,
+    "r": 44
+  },
+  {
+    "id": "col_zz_iglu_441",
+    "tipo": "circle",
+    "nome": "Iglu dos Batedores do Vento",
+    "cx": 2180,
+    "cy": 4460,
+    "r": 39
+  },
+  {
+    "id": "col_zz_iglu_442",
+    "tipo": "circle",
+    "nome": "Iglu de Armazenamento de Peles",
+    "cx": 1860,
+    "cy": 4500,
+    "r": 41
+  },
+  {
+    "id": "col_zz_iglu_443",
+    "tipo": "circle",
+    "nome": "Choça de Gelo Coletiva",
+    "cx": 2040,
+    "cy": 4620,
+    "r": 46
+  },
+  {
+    "id": "col_zz_fossil_444",
+    "tipo": "circle",
+    "nome": "Fóssil Congelado #1",
+    "cx": 5150,
+    "cy": 4720,
+    "r": 26
+  },
+  {
+    "id": "col_zz_fossil_445",
+    "tipo": "circle",
+    "nome": "Fóssil Congelado #2",
+    "cx": 5350,
+    "cy": 4880,
+    "r": 22
+  },
+  {
+    "id": "col_zz_fossil_446",
+    "tipo": "circle",
+    "nome": "Fóssil Congelado #3",
+    "cx": 5050,
+    "cy": 4950,
+    "r": 20
+  }
+]

@@ -14,7 +14,8 @@
         execucaoInicio: 0,
         execucaoDur: 3000,
         giroAtivo: false,
-        piruetaAtiva: false
+        piruetaAtiva: false,
+        geadaAtiva: false
     };
 
     function _agora() { return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now(); }
@@ -28,6 +29,7 @@
         if (pid === window.meuId) {
             if (estado === 'giro') window.pikemanEstadoLocal.giroAtivo = true;
             if (estado === 'pirueta') window.pikemanEstadoLocal.piruetaAtiva = true;
+            if (estado === 'geada') window.pikemanEstadoLocal.geadaAtiva = true;
             if (estado === 'execucao') {
                 window.pikemanEstadoLocal.execucaoAtiva = true;
                 window.pikemanEstadoLocal.execucaoInicio = base.inicio;
@@ -37,12 +39,50 @@
             if (estado === 'idle') {
                 window.pikemanEstadoLocal.giroAtivo = false;
                 window.pikemanEstadoLocal.piruetaAtiva = false;
+                window.pikemanEstadoLocal.geadaAtiva = false;
                 // FIX: fim da Execução (action_pikeman_execucao_end) registra 'idle' —
                 // sem essa linha o cabeçalho execucaoAtiva ficava true para sempre,
                 // bloqueando TODAS as skills e o ataque básico do Pikeman.
                 window.pikemanEstadoLocal.execucaoAtiva = false;
             }
         }
+    };
+
+    // Helper global: indica se o Pikeman está executando animações de skills ativas
+    window.pikemanEmAnimacaoSkill = function (pid) {
+        let id = pid || window.meuId;
+        if (!id) return false;
+        let agora = _agora();
+        let anim = window.pikemanAnims && window.pikemanAnims[id];
+        if (anim && (anim.estado === 'giro' || anim.estado === 'pirueta' || anim.estado === 'geada' || anim.estado === 'execucao')) {
+            let decorrido = agora - (anim.inicio || 0);
+            if (decorrido >= 0 && decorrido < (anim.dur || 0)) {
+                return true;
+            } else {
+                if (id === window.meuId && window.pikemanEstadoLocal) {
+                    if (anim.estado === 'giro') window.pikemanEstadoLocal.giroAtivo = false;
+                    if (anim.estado === 'pirueta') window.pikemanEstadoLocal.piruetaAtiva = false;
+                    if (anim.estado === 'geada') window.pikemanEstadoLocal.geadaAtiva = false;
+                    if (anim.estado === 'execucao') window.pikemanEstadoLocal.execucaoAtiva = false;
+                }
+            }
+        }
+        if (Array.isArray(window.girosPikeman) && window.girosPikeman.some(g => g.id === id && (agora - g.inicio) < g.dur)) return true;
+        if (Array.isArray(window.piruetasPikeman) && window.piruetasPikeman.some(p => p.id === id && (agora - p.inicio) < p.dur)) return true;
+        if (Array.isArray(window.geadasPikeman) && window.geadasPikeman.some(gd => gd.id === id && (agora - gd.inicio) < gd.dur)) return true;
+        if (Array.isArray(window.execucoesPikeman) && window.execucoesPikeman.some(e => e.id === id && (agora - e.inicio) < e.dur)) return true;
+
+        if (id === window.meuId && window.pikemanEstadoLocal) {
+            if (window.pikemanEstadoLocal.execucaoAtiva) {
+                let decorrido = agora - (window.pikemanEstadoLocal.execucaoInicio || 0);
+                if (decorrido >= 0 && decorrido < (window.pikemanEstadoLocal.execucaoDur || 3000)) return true;
+                window.pikemanEstadoLocal.execucaoAtiva = false;
+            }
+            if (window.pikemanEstadoLocal.giroAtivo || window.pikemanEstadoLocal.piruetaAtiva || window.pikemanEstadoLocal.geadaAtiva) {
+                return true;
+            }
+        }
+        return false;
     };
 
     // Progresso da animação (0..1) e se expirou
@@ -539,7 +579,7 @@
 
         let anim = (meuId && window.pikemanAnims[meuId]) || null;
         let prog = _prog(anim);
-        if (anim && prog.p >= 1 && (anim.estado === 'foice' || anim.estado === 'pirueta' && anim.hit >= 3 || anim.estado === 'geada')) {
+        if (anim && prog.p >= 1 && (anim.estado === 'foice' || anim.estado === 'pirueta' || anim.estado === 'geada' || anim.estado === 'giro')) {
             // animação rápida terminou → volta ao estado neutro
             window.registrarPikemanAnim(meuId, 'idle', 1);
             anim = window.pikemanAnims[meuId];

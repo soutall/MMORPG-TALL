@@ -33,7 +33,10 @@ const EFEITOS = {
     gritoDeGuerra: { nome: 'Grito de Guerra', classe: 'buff', icon: '📣', cor: '#f1c40f', desc: 'Crítico maior, velocidade de ataque aumentada e vida máxima ampliada.', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') },
     sedento:    { nome: 'Sede de Sangue', classe: 'buff',  icon: '🩸', cor: '#ff4757', desc: 'Cura uma fração do dano causado.', formato: () => '' },
     invisivel:  { nome: 'Camuflagem Sombria', classe: 'buff', icon: '🌑', cor: '#9b59b6', desc: 'Invisível! Inimigos não atacam (perdem o alvo). O primeiro dano causado é dobrado. Ataques ativos quebram a invisibilidade.', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') },
-    camuflagem: { nome: 'Camuflagem',    classe: 'buff',   icon: '🌿', cor: '#27ae60', desc: 'Escondido no mato! Inimigos não atacam. Dura enquanto estiver na moita (o primeiro tiro quebra).', formato: () => '∞' }
+    // v1.50.0: deixou de durar "enquanto estiver na moita" (infinito). Agora a
+    // Camuflagem Natural tem PRAZO: vale só o que resta da ROUPA de camuflagem
+    // vestida pelo dash (5s). Por isso o contador aparece no HUD.
+    camuflagem: { nome: 'Camuflagem',    classe: 'buff',   icon: '🌿', cor: '#27ae60', desc: 'Escondido no mato! Inimigos não atacam. Dura o que resta da roupa de camuflagem (5s). O primeiro tiro ou skill quebra.', formato: (ef) => ('' + Math.ceil((ef.tempo || 0) / 20) + 's') }
 };
 
 // Aplica um efeito (id) numa entidade. `tempo` em ticks de 50ms.

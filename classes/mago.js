@@ -336,7 +336,8 @@ window.desenharMago = function (x, y, isMoving, angulo, hp, maxHp) {
 
 window.enviarAtaqueMago = function(ws) {
     if (window.estaMorto) return;
-    if (typeof window.tocarSomMagiaBasica === 'function') window.tocarSomMagiaBasica();
+    if (typeof window.tocarSonoro === 'function') window.tocarSonoro('mago_atk');
+    else if (typeof window.tocarSomMagiaBasica === 'function') window.tocarSomMagiaBasica();
     let alvoDetectado = typeof window.obterAlvoNaMira === 'function' ? window.obterAlvoNaMira() : null;
     let anguloDisparo = alvoDetectado ? alvoDetectado.angulo : window.meuAngulo;
     if (ws && ws.readyState === 1) { ws.send(JSON.stringify({ action: 'ataque_mago', angulo: anguloDisparo })); }

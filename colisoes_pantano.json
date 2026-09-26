@@ -1,0 +1,3897 @@
+[
+  {
+    "id": "col_cabana_posto_brumas",
+    "tipo": "rect",
+    "nome": "Posto das Brumas (Cabana Norte)",
+    "x": 501,
+    "y": 972,
+    "w": 118,
+    "h": 52
+  },
+  {
+    "id": "col_cabana_vila_principal",
+    "tipo": "rect",
+    "nome": "Vilarejo Palafita (Cabana Grande)",
+    "x": 2485,
+    "y": 2252,
+    "w": 151,
+    "h": 62
+  },
+  {
+    "id": "col_cabana_vila_armazem",
+    "tipo": "rect",
+    "nome": "Vilarejo Palafita (Armazém Podre)",
+    "x": 2790,
+    "y": 2452,
+    "w": 101,
+    "h": 47
+  },
+  {
+    "id": "col_cabana_vila_choca",
+    "tipo": "rect",
+    "nome": "Vilarejo Palafita (Choça Menor)",
+    "x": 2398,
+    "y": 2612,
+    "w": 84,
+    "h": 42
+  },
+  {
+    "id": "col_cabana_choca_bruxa",
+    "tipo": "rect",
+    "nome": "Refúgio da Bruxa do Pântano",
+    "x": 5746,
+    "y": 1772,
+    "w": 109,
+    "h": 52
+  },
+  {
+    "id": "col_cabana_choca_pescador_portal",
+    "tipo": "rect",
+    "nome": "Choça do Pescador (Portal Davahl)",
+    "x": 1834,
+    "y": 4612,
+    "w": 92,
+    "h": 44
+  },
+  {
+    "id": "col_cabana_feitoria_central",
+    "tipo": "rect",
+    "nome": "Feitoria Abandonada do Brejo Central",
+    "x": 4733,
+    "y": 4492,
+    "w": 134,
+    "h": 57
+  },
+  {
+    "id": "col_cabana_choca_barcos",
+    "tipo": "rect",
+    "nome": "Choça do Cemitério de Barcos",
+    "x": 6354,
+    "y": 6252,
+    "w": 92,
+    "h": 44
+  },
+  {
+    "id": "col_cabana_posto_garganta",
+    "tipo": "rect",
+    "nome": "Posto Avançado da Garganta Ocidental",
+    "x": 550,
+    "y": 8172,
+    "w": 101,
+    "h": 47
+  },
+  {
+    "id": "col_cabana_choca_turfa",
+    "tipo": "rect",
+    "nome": "Choça dos Coletores de Turfa do Sul",
+    "x": 3546,
+    "y": 7652,
+    "w": 109,
+    "h": 49
+  },
+  {
+    "id": "col_canoa_1",
+    "tipo": "rect",
+    "nome": "Canoa Submersa #1",
+    "x": 1892,
+    "y": 4682,
+    "w": 56,
+    "h": 18
+  },
+  {
+    "id": "col_canoa_2",
+    "tipo": "rect",
+    "nome": "Canoa Submersa #2",
+    "x": 2652,
+    "y": 2562,
+    "w": 56,
+    "h": 18
+  },
+  {
+    "id": "col_canoa_3",
+    "tipo": "rect",
+    "nome": "Canoa Submersa #3",
+    "x": 6292,
+    "y": 6522,
+    "w": 56,
+    "h": 18
+  },
+  {
+    "id": "col_canoa_4",
+    "tipo": "rect",
+    "nome": "Canoa Submersa #4",
+    "x": 6492,
+    "y": 6442,
+    "w": 56,
+    "h": 18
+  },
+  {
+    "id": "col_canoa_5",
+    "tipo": "rect",
+    "nome": "Canoa Submersa #5",
+    "x": 3652,
+    "y": 7922,
+    "w": 56,
+    "h": 18
+  },
+  {
+    "id": "col_cipreste_1",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #1",
+    "cx": 3805,
+    "cy": 3061,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_2",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #2",
+    "cx": 3644,
+    "cy": 8574,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_3",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #3",
+    "cx": 2049,
+    "cy": 6285,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_4",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #4",
+    "cx": 7754,
+    "cy": 7091,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_5",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #5",
+    "cx": 4994,
+    "cy": 5852,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_6",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #6",
+    "cx": 163,
+    "cy": 7494,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_7",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #7",
+    "cx": 278,
+    "cy": 6179,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_8",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #8",
+    "cx": 315,
+    "cy": 2734,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_9",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #9",
+    "cx": 5009,
+    "cy": 1938,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_10",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #10",
+    "cx": 3201,
+    "cy": 8771,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_11",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #11",
+    "cx": 6192,
+    "cy": 8088,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_12",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #12",
+    "cx": 7843,
+    "cy": 4049,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_13",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #13",
+    "cx": 4320,
+    "cy": 179,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_14",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #14",
+    "cx": 5125,
+    "cy": 1017,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_15",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #15",
+    "cx": 6432,
+    "cy": 7048,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_16",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #16",
+    "cx": 7128,
+    "cy": 4165,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_17",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #17",
+    "cx": 117,
+    "cy": 6378,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_18",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #18",
+    "cx": 2245,
+    "cy": 5091,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_19",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #19",
+    "cx": 2202,
+    "cy": 7324,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_20",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #20",
+    "cx": 1714,
+    "cy": 2964,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_21",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #21",
+    "cx": 2831,
+    "cy": 3484,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_22",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #22",
+    "cx": 3966,
+    "cy": 1980,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_23",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #23",
+    "cx": 2810,
+    "cy": 5571,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_24",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #24",
+    "cx": 1911,
+    "cy": 616,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_25",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #25",
+    "cx": 7438,
+    "cy": 6817,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_26",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #26",
+    "cx": 2791,
+    "cy": 5850,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_27",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #27",
+    "cx": 7512,
+    "cy": 7415,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_28",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #28",
+    "cx": 1965,
+    "cy": 7220,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_29",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #29",
+    "cx": 7760,
+    "cy": 3203,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_30",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #30",
+    "cx": 1832,
+    "cy": 7646,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_31",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #31",
+    "cx": 3649,
+    "cy": 6615,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_32",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #32",
+    "cx": 4713,
+    "cy": 6612,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_33",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #33",
+    "cx": 3721,
+    "cy": 4375,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_34",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #34",
+    "cx": 4085,
+    "cy": 7370,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_35",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #35",
+    "cx": 4033,
+    "cy": 4458,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_36",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #36",
+    "cx": 6112,
+    "cy": 4451,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_37",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #37",
+    "cx": 1475,
+    "cy": 4084,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_38",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #38",
+    "cx": 755,
+    "cy": 7336,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_39",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #39",
+    "cx": 7155,
+    "cy": 3969,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_40",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #40",
+    "cx": 7755,
+    "cy": 414,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_41",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #41",
+    "cx": 4567,
+    "cy": 5365,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_42",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #42",
+    "cx": 6884,
+    "cy": 1778,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_43",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #43",
+    "cx": 6036,
+    "cy": 6695,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_44",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #44",
+    "cx": 4808,
+    "cy": 2802,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_45",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #45",
+    "cx": 761,
+    "cy": 618,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_46",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #46",
+    "cx": 6039,
+    "cy": 6567,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_47",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #47",
+    "cx": 6726,
+    "cy": 7604,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_48",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #48",
+    "cx": 956,
+    "cy": 3140,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_49",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #49",
+    "cx": 2203,
+    "cy": 323,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_50",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #50",
+    "cx": 155,
+    "cy": 7210,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_51",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #51",
+    "cx": 640,
+    "cy": 6807,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_52",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #52",
+    "cx": 4403,
+    "cy": 1323,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_53",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #53",
+    "cx": 6566,
+    "cy": 5885,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_54",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #54",
+    "cx": 5760,
+    "cy": 4138,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_55",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #55",
+    "cx": 113,
+    "cy": 7288,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_56",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #56",
+    "cx": 7201,
+    "cy": 209,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_57",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #57",
+    "cx": 2927,
+    "cy": 581,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_58",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #58",
+    "cx": 4877,
+    "cy": 5212,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_59",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #59",
+    "cx": 5244,
+    "cy": 6087,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_60",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #60",
+    "cx": 487,
+    "cy": 6607,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_61",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #61",
+    "cx": 3720,
+    "cy": 5497,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_62",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #62",
+    "cx": 6729,
+    "cy": 3456,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_63",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #63",
+    "cx": 801,
+    "cy": 7574,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_64",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #64",
+    "cx": 4956,
+    "cy": 5490,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_65",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #65",
+    "cx": 671,
+    "cy": 1886,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_66",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #66",
+    "cx": 2280,
+    "cy": 3726,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_67",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #67",
+    "cx": 2766,
+    "cy": 178,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_68",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #68",
+    "cx": 3237,
+    "cy": 459,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_69",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #69",
+    "cx": 4471,
+    "cy": 1604,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_70",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #70",
+    "cx": 2084,
+    "cy": 459,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_71",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #71",
+    "cx": 1075,
+    "cy": 5456,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_72",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #72",
+    "cx": 1046,
+    "cy": 8287,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_73",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #73",
+    "cx": 1081,
+    "cy": 8206,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_74",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #74",
+    "cx": 6885,
+    "cy": 1582,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_75",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #75",
+    "cx": 2557,
+    "cy": 1736,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_76",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #76",
+    "cx": 1086,
+    "cy": 6927,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_77",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #77",
+    "cx": 951,
+    "cy": 1414,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_78",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #78",
+    "cx": 1474,
+    "cy": 4370,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_79",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #79",
+    "cx": 1201,
+    "cy": 5901,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_80",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #80",
+    "cx": 640,
+    "cy": 6210,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_81",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #81",
+    "cx": 2561,
+    "cy": 8220,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_82",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #82",
+    "cx": 7518,
+    "cy": 2378,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_83",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #83",
+    "cx": 2565,
+    "cy": 6362,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_84",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #84",
+    "cx": 5044,
+    "cy": 2965,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_85",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #85",
+    "cx": 3970,
+    "cy": 1135,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_86",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #86",
+    "cx": 6167,
+    "cy": 4171,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_87",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #87",
+    "cx": 7399,
+    "cy": 5606,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_88",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #88",
+    "cx": 4511,
+    "cy": 6483,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_89",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #89",
+    "cx": 2351,
+    "cy": 1929,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_90",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #90",
+    "cx": 5954,
+    "cy": 3131,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_91",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #91",
+    "cx": 3524,
+    "cy": 5895,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_92",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #92",
+    "cx": 2279,
+    "cy": 2654,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_93",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #93",
+    "cx": 3526,
+    "cy": 2419,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_94",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #94",
+    "cx": 999,
+    "cy": 4261,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_95",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #95",
+    "cx": 1962,
+    "cy": 3982,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_96",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #96",
+    "cx": 7688,
+    "cy": 2529,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_97",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #97",
+    "cx": 2200,
+    "cy": 7734,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_98",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #98",
+    "cx": 1446,
+    "cy": 2485,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_99",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #99",
+    "cx": 3315,
+    "cy": 5410,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_100",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #100",
+    "cx": 1554,
+    "cy": 5495,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_101",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #101",
+    "cx": 5471,
+    "cy": 490,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_102",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #102",
+    "cx": 3193,
+    "cy": 380,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_103",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #103",
+    "cx": 3362,
+    "cy": 7288,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_104",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #104",
+    "cx": 1806,
+    "cy": 729,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_105",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #105",
+    "cx": 6490,
+    "cy": 8765,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_106",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #106",
+    "cx": 7196,
+    "cy": 6619,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_107",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #107",
+    "cx": 4723,
+    "cy": 7684,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_108",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #108",
+    "cx": 5715,
+    "cy": 6006,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_109",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #109",
+    "cx": 1359,
+    "cy": 2088,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_110",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #110",
+    "cx": 1964,
+    "cy": 5699,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_111",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #111",
+    "cx": 1793,
+    "cy": 3044,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_112",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #112",
+    "cx": 592,
+    "cy": 652,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_113",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #113",
+    "cx": 4114,
+    "cy": 6096,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_114",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #114",
+    "cx": 1167,
+    "cy": 4364,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_115",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #115",
+    "cx": 6311,
+    "cy": 8568,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_116",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #116",
+    "cx": 5035,
+    "cy": 2937,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_117",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #117",
+    "cx": 7007,
+    "cy": 2923,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_118",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #118",
+    "cx": 4686,
+    "cy": 7487,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_119",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #119",
+    "cx": 6810,
+    "cy": 4858,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_120",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #120",
+    "cx": 7202,
+    "cy": 8778,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_121",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #121",
+    "cx": 4552,
+    "cy": 3649,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_122",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #122",
+    "cx": 4082,
+    "cy": 7177,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_123",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #123",
+    "cx": 1608,
+    "cy": 4206,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_124",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #124",
+    "cx": 3485,
+    "cy": 7293,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_125",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #125",
+    "cx": 408,
+    "cy": 2821,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_126",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #126",
+    "cx": 2680,
+    "cy": 3294,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_127",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #127",
+    "cx": 2761,
+    "cy": 8132,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_128",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #128",
+    "cx": 843,
+    "cy": 5697,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_129",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #129",
+    "cx": 1285,
+    "cy": 1247,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_130",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #130",
+    "cx": 2563,
+    "cy": 741,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_131",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #131",
+    "cx": 5155,
+    "cy": 3722,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_132",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #132",
+    "cx": 5955,
+    "cy": 1164,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_133",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #133",
+    "cx": 6684,
+    "cy": 8698,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_134",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #134",
+    "cx": 4471,
+    "cy": 3853,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_135",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #135",
+    "cx": 5358,
+    "cy": 5483,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_136",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #136",
+    "cx": 6991,
+    "cy": 898,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_137",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #137",
+    "cx": 4125,
+    "cy": 4450,
+    "r": 16
+  },
+  {
+    "id": "col_cipreste_138",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #138",
+    "cx": 5837,
+    "cy": 7205,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_139",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #139",
+    "cx": 6439,
+    "cy": 2450,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_140",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #140",
+    "cx": 1552,
+    "cy": 3208,
+    "r": 19
+  },
+  {
+    "id": "col_cipreste_141",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #141",
+    "cx": 6126,
+    "cy": 1490,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_142",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #142",
+    "cx": 6525,
+    "cy": 4766,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_143",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #143",
+    "cx": 1726,
+    "cy": 3091,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_144",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #144",
+    "cx": 2970,
+    "cy": 7847,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_145",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #145",
+    "cx": 5244,
+    "cy": 5256,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_146",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #146",
+    "cx": 3151,
+    "cy": 7939,
+    "r": 17
+  },
+  {
+    "id": "col_cipreste_147",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #147",
+    "cx": 4446,
+    "cy": 4612,
+    "r": 15
+  },
+  {
+    "id": "col_cipreste_148",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #148",
+    "cx": 354,
+    "cy": 333,
+    "r": 14
+  },
+  {
+    "id": "col_cipreste_149",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #149",
+    "cx": 7751,
+    "cy": 92,
+    "r": 18
+  },
+  {
+    "id": "col_cipreste_150",
+    "tipo": "circle",
+    "nome": "Tronco Cipreste Ancestral #150",
+    "cx": 6438,
+    "cy": 5854,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_1",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #1",
+    "cx": 1406,
+    "cy": 4807,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_2",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #2",
+    "cx": 874,
+    "cy": 127,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_3",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #3",
+    "cx": 1409,
+    "cy": 7809,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_4",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #4",
+    "cx": 5609,
+    "cy": 2059,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_5",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #5",
+    "cx": 1639,
+    "cy": 3765,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_6",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #6",
+    "cx": 2520,
+    "cy": 7045,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_7",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #7",
+    "cx": 6431,
+    "cy": 5445,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_8",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #8",
+    "cx": 3604,
+    "cy": 1019,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_9",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #9",
+    "cx": 4072,
+    "cy": 6727,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_10",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #10",
+    "cx": 2128,
+    "cy": 6932,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_11",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #11",
+    "cx": 7357,
+    "cy": 3283,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_12",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #12",
+    "cx": 1242,
+    "cy": 4726,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_13",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #13",
+    "cx": 719,
+    "cy": 7094,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_14",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #14",
+    "cx": 6230,
+    "cy": 5009,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_15",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #15",
+    "cx": 5079,
+    "cy": 5936,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_16",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #16",
+    "cx": 6397,
+    "cy": 7537,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_17",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #17",
+    "cx": 6930,
+    "cy": 1887,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_18",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #18",
+    "cx": 206,
+    "cy": 1575,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_19",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #19",
+    "cx": 2407,
+    "cy": 7363,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_20",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #20",
+    "cx": 6688,
+    "cy": 6417,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_21",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #21",
+    "cx": 4802,
+    "cy": 724,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_22",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #22",
+    "cx": 3079,
+    "cy": 453,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_23",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #23",
+    "cx": 999,
+    "cy": 4613,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_24",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #24",
+    "cx": 1407,
+    "cy": 8131,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_25",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #25",
+    "cx": 120,
+    "cy": 125,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_26",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #26",
+    "cx": 4751,
+    "cy": 7606,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_27",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #27",
+    "cx": 1834,
+    "cy": 8043,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_28",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #28",
+    "cx": 1804,
+    "cy": 1766,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_29",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #29",
+    "cx": 3522,
+    "cy": 7888,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_30",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #30",
+    "cx": 5273,
+    "cy": 5378,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_31",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #31",
+    "cx": 2121,
+    "cy": 888,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_32",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #32",
+    "cx": 4677,
+    "cy": 4404,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_33",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #33",
+    "cx": 6953,
+    "cy": 4491,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_34",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #34",
+    "cx": 518,
+    "cy": 2250,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_35",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #35",
+    "cx": 6673,
+    "cy": 370,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_36",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #36",
+    "cx": 6598,
+    "cy": 7328,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_37",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #37",
+    "cx": 7201,
+    "cy": 3686,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_38",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #38",
+    "cx": 1151,
+    "cy": 7047,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_39",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #39",
+    "cx": 1358,
+    "cy": 1804,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_40",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #40",
+    "cx": 3118,
+    "cy": 4018,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_41",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #41",
+    "cx": 7512,
+    "cy": 5361,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_42",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #42",
+    "cx": 5928,
+    "cy": 3847,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_43",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #43",
+    "cx": 4039,
+    "cy": 4928,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_44",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #44",
+    "cx": 5956,
+    "cy": 2614,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_45",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #45",
+    "cx": 7241,
+    "cy": 3051,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_46",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #46",
+    "cx": 6723,
+    "cy": 1210,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_47",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #47",
+    "cx": 5930,
+    "cy": 8055,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_48",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #48",
+    "cx": 365,
+    "cy": 325,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_49",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #49",
+    "cx": 4232,
+    "cy": 2939,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_50",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #50",
+    "cx": 3114,
+    "cy": 2122,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_51",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #51",
+    "cx": 551,
+    "cy": 8012,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_52",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #52",
+    "cx": 3204,
+    "cy": 5333,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_53",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #53",
+    "cx": 6750,
+    "cy": 2299,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_54",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #54",
+    "cx": 3472,
+    "cy": 1533,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_55",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #55",
+    "cx": 7756,
+    "cy": 8644,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_56",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #56",
+    "cx": 364,
+    "cy": 5443,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_57",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #57",
+    "cx": 2529,
+    "cy": 5687,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_58",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #58",
+    "cx": 6407,
+    "cy": 8695,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_59",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #59",
+    "cx": 991,
+    "cy": 6850,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_60",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #60",
+    "cx": 3356,
+    "cy": 5855,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_61",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #61",
+    "cx": 4315,
+    "cy": 6801,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_62",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #62",
+    "cx": 527,
+    "cy": 1175,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_63",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #63",
+    "cx": 205,
+    "cy": 7093,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_64",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #64",
+    "cx": 3807,
+    "cy": 2054,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_65",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #65",
+    "cx": 3433,
+    "cy": 2697,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_66",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #66",
+    "cx": 6680,
+    "cy": 3845,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_67",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #67",
+    "cx": 4167,
+    "cy": 8735,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_68",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #68",
+    "cx": 5477,
+    "cy": 8005,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_69",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #69",
+    "cx": 3517,
+    "cy": 7767,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_70",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #70",
+    "cx": 3552,
+    "cy": 87,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_71",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #71",
+    "cx": 5916,
+    "cy": 928,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_72",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #72",
+    "cx": 4833,
+    "cy": 3777,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_73",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #73",
+    "cx": 7569,
+    "cy": 773,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_74",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #74",
+    "cx": 5124,
+    "cy": 7539,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_75",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #75",
+    "cx": 1954,
+    "cy": 3010,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_76",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #76",
+    "cx": 2445,
+    "cy": 7483,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_77",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #77",
+    "cx": 4684,
+    "cy": 4403,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_78",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #78",
+    "cx": 1640,
+    "cy": 8285,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_79",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #79",
+    "cx": 600,
+    "cy": 5655,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_80",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #80",
+    "cx": 7723,
+    "cy": 4371,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_81",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #81",
+    "cx": 7320,
+    "cy": 5853,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_82",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #82",
+    "cx": 4963,
+    "cy": 2892,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_83",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #83",
+    "cx": 850,
+    "cy": 1760,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_84",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #84",
+    "cx": 4568,
+    "cy": 1085,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_85",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #85",
+    "cx": 7524,
+    "cy": 3211,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_86",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #86",
+    "cx": 3554,
+    "cy": 7579,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_87",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #87",
+    "cx": 1799,
+    "cy": 5813,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_88",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #88",
+    "cx": 3123,
+    "cy": 7688,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_89",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #89",
+    "cx": 3954,
+    "cy": 3253,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_90",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #90",
+    "cx": 841,
+    "cy": 7928,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_91",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #91",
+    "cx": 4918,
+    "cy": 7926,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_92",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #92",
+    "cx": 6602,
+    "cy": 3560,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_93",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #93",
+    "cx": 2192,
+    "cy": 327,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_94",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #94",
+    "cx": 3445,
+    "cy": 5172,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_95",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #95",
+    "cx": 715,
+    "cy": 4252,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_96",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #96",
+    "cx": 6599,
+    "cy": 1291,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_97",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #97",
+    "cx": 5757,
+    "cy": 4887,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_98",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #98",
+    "cx": 7087,
+    "cy": 7139,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_99",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #99",
+    "cx": 6156,
+    "cy": 4725,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_100",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #100",
+    "cx": 409,
+    "cy": 4814,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_101",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #101",
+    "cx": 5474,
+    "cy": 5811,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_102",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #102",
+    "cx": 3562,
+    "cy": 3130,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_103",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #103",
+    "cx": 1765,
+    "cy": 7255,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_104",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #104",
+    "cx": 5478,
+    "cy": 7643,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_105",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #105",
+    "cx": 7835,
+    "cy": 1560,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_106",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #106",
+    "cx": 726,
+    "cy": 5286,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_107",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #107",
+    "cx": 4368,
+    "cy": 2365,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_108",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #108",
+    "cx": 5435,
+    "cy": 4220,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_109",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #109",
+    "cx": 3966,
+    "cy": 6060,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_110",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #110",
+    "cx": 2601,
+    "cy": 1444,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_111",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #111",
+    "cx": 6201,
+    "cy": 3939,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_112",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #112",
+    "cx": 1237,
+    "cy": 3641,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_113",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #113",
+    "cx": 2872,
+    "cy": 8820,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_114",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #114",
+    "cx": 2922,
+    "cy": 6140,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_115",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #115",
+    "cx": 4769,
+    "cy": 1330,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_116",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #116",
+    "cx": 1030,
+    "cy": 1779,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_117",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #117",
+    "cx": 4074,
+    "cy": 6123,
+    "r": 12
+  },
+  {
+    "id": "col_salgueiro_118",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #118",
+    "cx": 4923,
+    "cy": 2689,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_119",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #119",
+    "cx": 5757,
+    "cy": 2777,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_120",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #120",
+    "cx": 3473,
+    "cy": 6208,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_121",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #121",
+    "cx": 4515,
+    "cy": 4725,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_122",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #122",
+    "cx": 4727,
+    "cy": 5244,
+    "r": 15
+  },
+  {
+    "id": "col_salgueiro_123",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #123",
+    "cx": 7564,
+    "cy": 7445,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_124",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #124",
+    "cx": 1049,
+    "cy": 2722,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_125",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #125",
+    "cx": 3810,
+    "cy": 8613,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_126",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #126",
+    "cx": 5688,
+    "cy": 3173,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_127",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #127",
+    "cx": 475,
+    "cy": 7481,
+    "r": 13
+  },
+  {
+    "id": "col_salgueiro_128",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #128",
+    "cx": 837,
+    "cy": 3859,
+    "r": 16
+  },
+  {
+    "id": "col_salgueiro_129",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #129",
+    "cx": 2923,
+    "cy": 325,
+    "r": 14
+  },
+  {
+    "id": "col_salgueiro_130",
+    "tipo": "circle",
+    "nome": "Tronco Salgueiro-Chorão #130",
+    "cx": 7034,
+    "cy": 8400,
+    "r": 14
+  },
+  {
+    "id": "col_tronco_1",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #1",
+    "x": 887,
+    "y": 440,
+    "w": 67,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_2",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #2",
+    "x": 5852,
+    "y": 4162,
+    "w": 64,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_3",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #3",
+    "x": 6766,
+    "y": 4046,
+    "w": 74,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_4",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #4",
+    "x": 5403,
+    "y": 8598,
+    "w": 62,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_5",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #5",
+    "x": 5484,
+    "y": 1079,
+    "w": 63,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_6",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #6",
+    "x": 1099,
+    "y": 5199,
+    "w": 62,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_7",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #7",
+    "x": 7006,
+    "y": 6763,
+    "w": 72,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_8",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #8",
+    "x": 3013,
+    "y": 3410,
+    "w": 63,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_9",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #9",
+    "x": 4253,
+    "y": 5561,
+    "w": 58,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_10",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #10",
+    "x": 2566,
+    "y": 5331,
+    "w": 80,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_11",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #11",
+    "x": 1700,
+    "y": 1451,
+    "w": 53,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_12",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #12",
+    "x": 1714,
+    "y": 2723,
+    "w": 76,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_13",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #13",
+    "x": 1060,
+    "y": 4394,
+    "w": 52,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_14",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #14",
+    "x": 1935,
+    "y": 7195,
+    "w": 66,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_15",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #15",
+    "x": 7679,
+    "y": 2768,
+    "w": 76,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_16",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #16",
+    "x": 3227,
+    "y": 7073,
+    "w": 47,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_17",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #17",
+    "x": 5579,
+    "y": 2964,
+    "w": 55,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_18",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #18",
+    "x": 898,
+    "y": 683,
+    "w": 46,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_19",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #19",
+    "x": 2935,
+    "y": 3913,
+    "w": 69,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_20",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #20",
+    "x": 4250,
+    "y": 8562,
+    "w": 53,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_21",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #21",
+    "x": 6617,
+    "y": 2752,
+    "w": 60,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_22",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #22",
+    "x": 3412,
+    "y": 1192,
+    "w": 64,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_23",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #23",
+    "x": 6406,
+    "y": 6313,
+    "w": 59,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_24",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #24",
+    "x": 6967,
+    "y": 4037,
+    "w": 61,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_25",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #25",
+    "x": 6856,
+    "y": 2041,
+    "w": 46,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_26",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #26",
+    "x": 7565,
+    "y": 447,
+    "w": 68,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_27",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #27",
+    "x": 3894,
+    "y": 6357,
+    "w": 69,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_28",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #28",
+    "x": 261,
+    "y": 1834,
+    "w": 57,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_29",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #29",
+    "x": 372,
+    "y": 3240,
+    "w": 67,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_30",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #30",
+    "x": 653,
+    "y": 7128,
+    "w": 57,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_31",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #31",
+    "x": 7052,
+    "y": 4970,
+    "w": 51,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_32",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #32",
+    "x": 7260,
+    "y": 4673,
+    "w": 58,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_33",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #33",
+    "x": 2769,
+    "y": 3917,
+    "w": 60,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_34",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #34",
+    "x": 5944,
+    "y": 3076,
+    "w": 51,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_35",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #35",
+    "x": 489,
+    "y": 1765,
+    "w": 62,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_36",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #36",
+    "x": 5511,
+    "y": 2279,
+    "w": 79,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_37",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #37",
+    "x": 4314,
+    "y": 3203,
+    "w": 75,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_38",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #38",
+    "x": 3880,
+    "y": 3203,
+    "w": 71,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_39",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #39",
+    "x": 4651,
+    "y": 1290,
+    "w": 46,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_40",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #40",
+    "x": 7247,
+    "y": 5170,
+    "w": 53,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_41",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #41",
+    "x": 7324,
+    "y": 4692,
+    "w": 57,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_42",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #42",
+    "x": 2835,
+    "y": 6434,
+    "w": 70,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_43",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #43",
+    "x": 3810,
+    "y": 1406,
+    "w": 63,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_44",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #44",
+    "x": 526,
+    "y": 3211,
+    "w": 63,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_45",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #45",
+    "x": 5248,
+    "y": 6675,
+    "w": 67,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_46",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #46",
+    "x": 3052,
+    "y": 2194,
+    "w": 49,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_47",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #47",
+    "x": 7042,
+    "y": 3115,
+    "w": 57,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_48",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #48",
+    "x": 7813,
+    "y": 7132,
+    "w": 57,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_49",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #49",
+    "x": 839,
+    "y": 5124,
+    "w": 71,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_50",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #50",
+    "x": 732,
+    "y": 2926,
+    "w": 46,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_51",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #51",
+    "x": 4563,
+    "y": 5330,
+    "w": 63,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_52",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #52",
+    "x": 5010,
+    "y": 2999,
+    "w": 64,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_53",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #53",
+    "x": 6441,
+    "y": 1766,
+    "w": 68,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_54",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #54",
+    "x": 4087,
+    "y": 3839,
+    "w": 48,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_55",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #55",
+    "x": 6805,
+    "y": 807,
+    "w": 72,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_56",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #56",
+    "x": 7504,
+    "y": 1281,
+    "w": 51,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_57",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #57",
+    "x": 4930,
+    "y": 1405,
+    "w": 78,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_58",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #58",
+    "x": 4805,
+    "y": 4717,
+    "w": 72,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_59",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #59",
+    "x": 4419,
+    "y": 5289,
+    "w": 52,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_60",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #60",
+    "x": 4823,
+    "y": 397,
+    "w": 48,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_61",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #61",
+    "x": 6245,
+    "y": 2474,
+    "w": 54,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_62",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #62",
+    "x": 6181,
+    "y": 2285,
+    "w": 48,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_63",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #63",
+    "x": 4622,
+    "y": 5757,
+    "w": 55,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_64",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #64",
+    "x": 2090,
+    "y": 2677,
+    "w": 59,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_65",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #65",
+    "x": 5123,
+    "y": 4802,
+    "w": 66,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_66",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #66",
+    "x": 3441,
+    "y": 4089,
+    "w": 58,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_67",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #67",
+    "x": 1325,
+    "y": 6526,
+    "w": 54,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_68",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #68",
+    "x": 6095,
+    "y": 1249,
+    "w": 47,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_69",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #69",
+    "x": 6811,
+    "y": 5834,
+    "w": 70,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_70",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #70",
+    "x": 3646,
+    "y": 4874,
+    "w": 75,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_71",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #71",
+    "x": 1776,
+    "y": 2358,
+    "w": 56,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_72",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #72",
+    "x": 4175,
+    "y": 5917,
+    "w": 50,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_73",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #73",
+    "x": 199,
+    "y": 8242,
+    "w": 64,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_74",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #74",
+    "x": 3132,
+    "y": 6048,
+    "w": 56,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_75",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #75",
+    "x": 1742,
+    "y": 4165,
+    "w": 48,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_76",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #76",
+    "x": 124,
+    "y": 4208,
+    "w": 66,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_77",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #77",
+    "x": 166,
+    "y": 3763,
+    "w": 56,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_78",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #78",
+    "x": 2138,
+    "y": 8317,
+    "w": 57,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_79",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #79",
+    "x": 5292,
+    "y": 3801,
+    "w": 51,
+    "h": 16
+  },
+  {
+    "id": "col_tronco_80",
+    "tipo": "rect",
+    "nome": "Tronco Morto Caído #80",
+    "x": 601,
+    "y": 5882,
+    "w": 59,
+    "h": 16
+  },
+  {
+    "id": "col_rocha_1",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #1",
+    "cx": 3780,
+    "cy": 470,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_2",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #2",
+    "cx": 4820,
+    "cy": 2110,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_3",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #3",
+    "cx": 2740,
+    "cy": 4230,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_4",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #4",
+    "cx": 660,
+    "cy": 3550,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_5",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #5",
+    "cx": 220,
+    "cy": 7230,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_6",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #6",
+    "cx": 6300,
+    "cy": 1350,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_7",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #7",
+    "cx": 4860,
+    "cy": 2470,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_8",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #8",
+    "cx": 6340,
+    "cy": 1550,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_9",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #9",
+    "cx": 460,
+    "cy": 8550,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_10",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #10",
+    "cx": 4940,
+    "cy": 2470,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_11",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #11",
+    "cx": 2580,
+    "cy": 1430,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_12",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #12",
+    "cx": 4620,
+    "cy": 1830,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_13",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #13",
+    "cx": 6020,
+    "cy": 3790,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_14",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #14",
+    "cx": 4780,
+    "cy": 3670,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_15",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #15",
+    "cx": 6340,
+    "cy": 8710,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_16",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #16",
+    "cx": 2780,
+    "cy": 2990,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_17",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #17",
+    "cx": 3380,
+    "cy": 3630,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_18",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #18",
+    "cx": 7100,
+    "cy": 2590,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_19",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #19",
+    "cx": 5420,
+    "cy": 6790,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_20",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #20",
+    "cx": 3900,
+    "cy": 3630,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_21",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #21",
+    "cx": 7420,
+    "cy": 3230,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_22",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #22",
+    "cx": 7460,
+    "cy": 1870,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_23",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #23",
+    "cx": 500,
+    "cy": 5910,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_24",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #24",
+    "cx": 7540,
+    "cy": 590,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_25",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #25",
+    "cx": 420,
+    "cy": 2270,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_26",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #26",
+    "cx": 1980,
+    "cy": 6830,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_27",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #27",
+    "cx": 660,
+    "cy": 2830,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_28",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #28",
+    "cx": 2100,
+    "cy": 3270,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_29",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #29",
+    "cx": 1060,
+    "cy": 8870,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_30",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #30",
+    "cx": 4140,
+    "cy": 5510,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_31",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #31",
+    "cx": 1140,
+    "cy": 6790,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_32",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #32",
+    "cx": 5940,
+    "cy": 7230,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_33",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #33",
+    "cx": 6300,
+    "cy": 5110,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_34",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #34",
+    "cx": 4140,
+    "cy": 1830,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_35",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #35",
+    "cx": 7380,
+    "cy": 2510,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_36",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #36",
+    "cx": 2860,
+    "cy": 7710,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_37",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #37",
+    "cx": 3300,
+    "cy": 4390,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_38",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #38",
+    "cx": 2940,
+    "cy": 6270,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_39",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #39",
+    "cx": 5300,
+    "cy": 1710,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_40",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #40",
+    "cx": 5020,
+    "cy": 2350,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_41",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #41",
+    "cx": 4580,
+    "cy": 3310,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_42",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #42",
+    "cx": 3140,
+    "cy": 4310,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_43",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #43",
+    "cx": 7060,
+    "cy": 6430,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_44",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #44",
+    "cx": 4060,
+    "cy": 2510,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_45",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #45",
+    "cx": 4540,
+    "cy": 7230,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_46",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #46",
+    "cx": 7860,
+    "cy": 8750,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_47",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #47",
+    "cx": 6700,
+    "cy": 5470,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_48",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #48",
+    "cx": 3220,
+    "cy": 8750,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_49",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #49",
+    "cx": 2820,
+    "cy": 8230,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_50",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #50",
+    "cx": 4580,
+    "cy": 3310,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_51",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #51",
+    "cx": 3380,
+    "cy": 3510,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_52",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #52",
+    "cx": 6540,
+    "cy": 4950,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_53",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #53",
+    "cx": 2980,
+    "cy": 7510,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_54",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #54",
+    "cx": 2860,
+    "cy": 7070,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_55",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #55",
+    "cx": 2540,
+    "cy": 310,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_56",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #56",
+    "cx": 1460,
+    "cy": 1710,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_57",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #57",
+    "cx": 2180,
+    "cy": 6030,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_58",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #58",
+    "cx": 1300,
+    "cy": 3750,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_59",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #59",
+    "cx": 2620,
+    "cy": 5030,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_60",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #60",
+    "cx": 3540,
+    "cy": 5270,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_61",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #61",
+    "cx": 7580,
+    "cy": 3590,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_62",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #62",
+    "cx": 5580,
+    "cy": 6270,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_63",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #63",
+    "cx": 4020,
+    "cy": 4750,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_64",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #64",
+    "cx": 340,
+    "cy": 710,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_65",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #65",
+    "cx": 4460,
+    "cy": 590,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_66",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #66",
+    "cx": 2180,
+    "cy": 3390,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_67",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #67",
+    "cx": 3220,
+    "cy": 7030,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_68",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #68",
+    "cx": 2580,
+    "cy": 1710,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_69",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #69",
+    "cx": 6500,
+    "cy": 4790,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_70",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #70",
+    "cx": 5260,
+    "cy": 3670,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_71",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #71",
+    "cx": 4300,
+    "cy": 6510,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_72",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #72",
+    "cx": 4220,
+    "cy": 5870,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_73",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #73",
+    "cx": 6860,
+    "cy": 270,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_74",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #74",
+    "cx": 140,
+    "cy": 2750,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_75",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #75",
+    "cx": 7380,
+    "cy": 2230,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_76",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #76",
+    "cx": 6660,
+    "cy": 1950,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_77",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #77",
+    "cx": 7660,
+    "cy": 310,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_78",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #78",
+    "cx": 4380,
+    "cy": 7710,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_79",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #79",
+    "cx": 580,
+    "cy": 230,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_80",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #80",
+    "cx": 3780,
+    "cy": 310,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_81",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #81",
+    "cx": 5420,
+    "cy": 2230,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_82",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #82",
+    "cx": 3860,
+    "cy": 4790,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_83",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #83",
+    "cx": 3220,
+    "cy": 470,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_84",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #84",
+    "cx": 5260,
+    "cy": 6910,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_85",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #85",
+    "cx": 4980,
+    "cy": 1030,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_86",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #86",
+    "cx": 3020,
+    "cy": 7190,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_87",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #87",
+    "cx": 2060,
+    "cy": 110,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_88",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #88",
+    "cx": 2060,
+    "cy": 5670,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_89",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #89",
+    "cx": 2820,
+    "cy": 830,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_90",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #90",
+    "cx": 1780,
+    "cy": 2190,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_91",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #91",
+    "cx": 7900,
+    "cy": 990,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_92",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #92",
+    "cx": 7340,
+    "cy": 8710,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_93",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #93",
+    "cx": 3500,
+    "cy": 3390,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_94",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #94",
+    "cx": 5820,
+    "cy": 8510,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_95",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #95",
+    "cx": 6060,
+    "cy": 3990,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_96",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #96",
+    "cx": 5660,
+    "cy": 4070,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_97",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #97",
+    "cx": 7300,
+    "cy": 3030,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_98",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #98",
+    "cx": 780,
+    "cy": 5950,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_99",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #99",
+    "cx": 2180,
+    "cy": 6030,
+    "r": 14
+  },
+  {
+    "id": "col_rocha_100",
+    "tipo": "circle",
+    "nome": "Rocha com Musgo #100",
+    "cx": 860,
+    "cy": 3270,
+    "r": 14
+  }
+]

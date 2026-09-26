@@ -104,6 +104,164 @@ window.desenharLinhaMiraSniper = function(x, y, ang, comprimento) {
     ctx.restore();
 };
 
+
+function desenharFolhaGhillie(ctx, lx, ly, tam, ang, cor) {
+    ctx.save();
+    ctx.translate(lx, ly);
+    ctx.rotate(ang);
+    ctx.fillStyle = cor;
+    ctx.beginPath();
+    ctx.ellipse(0, 0, tam, tam * 0.45, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(0,0,0,0.2)';
+    ctx.lineWidth = 0.6;
+    ctx.stroke();
+    ctx.restore();
+}
+
+function desenharSniperGhilliePlanta(ctx, x, y, isMoving, angulo, posicao, armaV, danoFlash) {
+    ctx.save();
+    let agora = Date.now();
+    let resp = Math.sin(agora / 400) * 0.8;
+    let corFolhaEscura = danoFlash ? '#c0392b' : '#183a1b';
+    let corFolhaMedia  = danoFlash ? '#e74c3c' : '#275a2a';
+    let corFolhaViva   = danoFlash ? '#ff7675' : '#3d8344';
+    let corFolhaClara  = danoFlash ? '#ffbe76' : '#69b85c';
+    let corFolhaLuz    = danoFlash ? '#ffffff' : '#9ce08d';
+
+    if (!posicao) {
+        // Postura em pé / agachado camuflado de arbusto
+        ctx.translate(x, y);
+        // Sombra de folhagem no chão
+        ctx.fillStyle = "rgba(10, 30, 10, 0.45)";
+        ctx.beginPath();
+        ctx.ellipse(12, 32, 11, 3.8, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.save();
+        let sway = isMoving ? Math.sin(window.walkCycle || (agora / 100)) * 2.2 : 0;
+        ctx.translate(12, 16 + resp * 0.4);
+
+        // 1) Pernas e base do arbusto (folhagem densa inferior)
+        for (let i = -3; i <= 3; i++) {
+            let fx = i * 3.8 + Math.sin(i * 1.5) * 1.8;
+            let fy = 10 + Math.abs(i) * 1.4;
+            let angF = (i * 0.28) + (sway * 0.05);
+            desenharFolhaGhillie(ctx, fx, fy, 6.2, angF + Math.PI / 2, corFolhaEscura);
+            desenharFolhaGhillie(ctx, fx, fy - 2, 5.2, angF + Math.PI / 2, corFolhaMedia);
+        }
+
+        // 2) Tronco e manto de camuflagem (Ghillie foliage cloak)
+        ctx.fillStyle = corFolhaEscura;
+        ctx.beginPath();
+        ctx.ellipse(0, 2, 10, 11, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        const folhasCorpo = [
+            [-7, 5, 5.8, -0.6], [-4, 7.5, 6.2, -0.2], [0, 8.5, 6.8, 0], [4, 7.5, 6.2, 0.2], [7, 5, 5.8, 0.6],
+            [-8, 0, 5.8, -0.8], [-4, 3, 5.8, -0.3], [0, 3.5, 6.2, 0], [4, 3, 5.8, 0.3], [8, 0, 5.8, 0.8],
+            [-6, -4, 5.2, -0.7], [-2, -2, 5.8, -0.2], [2, -2, 5.8, 0.2], [6, -4, 5.2, 0.7],
+            [-4, -6.5, 4.8, -0.5], [0, -5.5, 5.2, 0], [4, -6.5, 4.8, 0.5]
+        ];
+        for (let j = 0; j < folhasCorpo.length; j++) {
+            let fc = folhasCorpo[j];
+            let cor = (j % 3 === 0) ? corFolhaViva : ((j % 2 === 0) ? corFolhaMedia : corFolhaClara);
+            desenharFolhaGhillie(ctx, fc[0], fc[1], fc[2], fc[3], cor);
+        }
+
+        // 3) Capuz Ghillie e folhagem da cabeça
+        ctx.fillStyle = corFolhaMedia;
+        ctx.beginPath();
+        ctx.arc(0, -11, 6.2, 0, Math.PI * 2);
+        ctx.fill();
+
+        const folhasCapuz = [
+            [-5, -14, 4.8, -0.8], [0, -15.5, 5.2, -Math.PI / 2], [5, -14, 4.8, 0.8],
+            [-6, -11, 4.2, -0.5], [6, -11, 4.2, 0.5],
+            [-3, -14.5, 4.2, -1.1], [3, -14.5, 4.2, 1.1]
+        ];
+        for (let k = 0; k < folhasCapuz.length; k++) {
+            let fk = folhasCapuz[k];
+            desenharFolhaGhillie(ctx, fk[0], fk[1], fk[2], fk[3], (k % 2 === 0) ? corFolhaViva : corFolhaClara);
+        }
+
+        desenharFolhaGhillie(ctx, -2.5, -9.8, 4.2, 0.1, corFolhaViva);
+        desenharFolhaGhillie(ctx, 2.5, -9.8, 4.2, -0.1, corFolhaViva);
+
+        // Fresta dos olhos táticos peering through foliage
+        ctx.fillStyle = "#0c180d";
+        ctx.beginPath();
+        ctx.ellipse(0, -9.5, 4.2, 1.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = "#5eff78";
+        ctx.shadowColor = "#39ff5c";
+        ctx.shadowBlur = 5;
+        ctx.fillRect(-2.4, -10.2, 1.7, 1.3);
+        ctx.fillRect(0.7, -10.2, 1.7, 1.3);
+        ctx.shadowBlur = 0;
+
+        // 4) Braços camuflados segurando o RIFLE BARRETT
+        ctx.save();
+        ctx.rotate(angulo || 0);
+        ctx.translate(7, 2);
+        desenharFolhaGhillie(ctx, -2, -1, 4.8, 0, corFolhaMedia);
+        desenharFolhaGhillie(ctx, 1, 0, 4.2, 0.3, corFolhaViva);
+        if (typeof window.desenharFuzilExposta === 'function') {
+            window.desenharFuzilExposta(ctx, armaV);
+        }
+        desenharFolhaGhillie(ctx, 5, -2, 3.2, -0.4, corFolhaViva);
+        desenharFolhaGhillie(ctx, 11, -2, 3.0, -0.3, corFolhaClara);
+        ctx.restore();
+
+        ctx.restore();
+    } else {
+        // Postura deitado camuflado (moita rasteira)
+        ctx.translate(x, y);
+        ctx.fillStyle = "rgba(10, 30, 10, 0.45)";
+        ctx.beginPath();
+        ctx.ellipse(12, 20, 16, 5.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.save();
+        ctx.translate(12, 20);
+
+        ctx.fillStyle = corFolhaEscura;
+        ctx.beginPath();
+        ctx.ellipse(0, 0, 14, 5.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        const folhasDeitado = [
+            [-10, -2, 5.8, -0.3], [-6, -3, 6.2, -0.1], [0, -3.5, 6.8, 0], [6, -3, 6.2, 0.1], [10, -2, 5.8, 0.3],
+            [-9, 2, 5.2, 0.4], [-4, 2.5, 5.8, 0.1], [2, 2.5, 5.8, -0.1], [8, 2, 5.2, -0.4],
+            [-12, 0, 4.8, -0.8], [12, 0, 4.8, 0.8]
+        ];
+        for (let j = 0; j < folhasDeitado.length; j++) {
+            let fd = folhasDeitado[j];
+            desenharFolhaGhillie(ctx, fd[0], fd[1], fd[2], fd[3], (j % 2 === 0) ? corFolhaMedia : corFolhaViva);
+        }
+
+        ctx.fillStyle = "#5eff78";
+        ctx.shadowColor = "#39ff5c";
+        ctx.shadowBlur = 4;
+        ctx.fillRect(-8, -2, 1.8, 1.2);
+        ctx.fillRect(-5, -2, 1.8, 1.2);
+        ctx.shadowBlur = 0;
+
+        ctx.save();
+        ctx.rotate(angulo || 0);
+        ctx.translate(2, 0);
+        if (typeof window.desenharFuzilExposta === 'function') {
+            window.desenharFuzilExposta(ctx, armaV);
+        }
+        desenharFolhaGhillie(ctx, 4, -2, 3.2, -0.3, corFolhaViva);
+        desenharFolhaGhillie(ctx, 10, -2, 3.0, -0.2, corFolhaClara);
+        ctx.restore();
+
+        ctx.restore();
+    }
+    ctx.restore();
+}
+
 window.desenharSniper = function(x, y, isMoving, angulo, hp, maxHp, extra) {
     if (hp <= 0 || !window.ctx) return;
     let ctx = window.ctx;
@@ -112,11 +270,74 @@ window.desenharSniper = function(x, y, isMoving, angulo, hp, maxHp, extra) {
 
     let posicao = (pp ? !!pp.snPosicao : !!window.snPosicaoAtivo);
     let camuflado = (pp ? !!pp.snCamuflado : !!window.snCamufladoAtivo);
-    let alph = camuflado ? 0.22 : 1.0;
-    let corTorso = camuflado ? "#2d6a4f" : "#556b2f";
+
+    // ===== v1.50.0 — ROUPA DE CAMUFLAGEM (vestida pelo DASH, 5s) =====
+    // Não é mais "transparência esverdeada": o Sniper troca de visual e
+    // passa a usar um uniforme de camuflagem de verdade (manchas sobre
+    // calça, colete, capacete e gola). Opaco de propósito — o que esconde
+    // o Sniper agora é a ROUPA, não a transparência.
+    let vestindoRoupa = pp
+        ? !!pp.snRoupaCamo
+        : (Date.now() < (window.snRoupaCamoAte || 0));
+    // Escondido no mato (skill 4): mantém um véu leve por cima da roupa
+    let alph = camuflado ? 0.62 : 1.0;
+    let corTorso = vestindoRoupa ? "#4a5d3a" : (camuflado ? "#2d6a4f" : "#556b2f");
+    let corCalca = vestindoRoupa ? "#3c4a2f" : "#4a5326";
+    let corDetalhe = vestindoRoupa ? "#2e3a22" : "#3a4420";
+    let corBolso = vestindoRoupa ? "#26301c" : "#2f3a1c";
+    let corPele = vestindoRoupa ? "#8f9a7d" : "#cbbd9c";
+    // Paleta de manchas do camuflagem (3 tons de verde/castanho)
+    const CAMO = vestindoRoupa
+        ? ['#6b7a45', '#3f4a2a', '#8a8455', '#2b3320', '#55603a']
+        : null;
 
     ctx.save();
     ctx.globalAlpha = alph;
+
+    // Manchas de camuflagem: manchas fixas (não "fazem crawl"), recortadas
+    // dentro de cada peça. Helper local que só existe no modo camuflado.
+    function manchas(quadro, semente) {
+        if (!CAMO) return;
+        // 5 elipses determinísticas por peça — mesma roupa todo frame
+        for (let i = 0; i < 5; i++) {
+            const h1 = ((semente + i * 7) % 11) / 11;
+            const h2 = ((semente * 3 + i * 5) % 13) / 13;
+            const h3 = ((semente * 5 + i * 3) % 7) / 7;
+            ctx.fillStyle = CAMO[i % CAMO.length];
+            ctx.beginPath();
+            ctx.ellipse(
+                quadro[0] + h1 * quadro[2],
+                quadro[1] + h2 * quadro[3],
+                1.6 + h3 * 2.6,
+                1.1 + h1 * 1.9,
+                h2 * 1.6, 0, Math.PI * 2
+            );
+            ctx.fill();
+        }
+    }
+
+    let wpItem = window.inventario ? window.inventario.arma : null;
+    let armaVisual = null;
+    if (x === window.meuX && y === window.meuY) { 
+        if (wpItem && wpItem.customVisual) armaVisual = wpItem;
+    }
+    let danoFlashAtivo = ((window.danoFlashTimer || 0) > 0);
+
+    // ===== v1.51.0: CAMUFLAGEM DE PLANTA / GHILLIE SUIT COMPLETO =====
+    // Quando camuflado (dash ou skill), o visual MUDA COMPLETAMENTE para
+    // uma planta/moita humanoide (folhagem densa, capuz, folhas rasteiras),
+    // mantendo apenas o fuzil Barrett empunhado na mira.
+    if (vestindoRoupa || camuflado) {
+        desenharSniperGhilliePlanta(ctx, x, y, isMoving, angulo, posicao, armaVisual, danoFlashAtivo);
+        ctx.restore();
+
+        // Aim line própria
+        if (ehEu && window.snAimAtivo && typeof window.desenharLinhaMiraSniper === "function") {
+            window.desenharLinhaMiraSniper(x + 12, y + 16, angulo, 700);
+        }
+        desenharBadgeCamo(x, y, posicao, pp, ctx);
+        return;
+    }
 
     if (!posicao) {
         // ===== POSTURA EM PÉ (agachado) =====
@@ -130,16 +351,18 @@ window.desenharSniper = function(x, y, isMoving, angulo, hp, maxHp, extra) {
         ctx.save();
         ctx.translate(12, 14 + agachamento * 0.3);
 
-        // Pernas
+        // Pernas — calça camuflada
         let legOffset = isMoving ? Math.sin(window.walkCycle || 0) * 3.2 : 0;
-        ctx.fillStyle = "#4a5326";
+        ctx.fillStyle = corCalca;
         ctx.fillRect(-5, 9, 3.2, 7 + legOffset);
         ctx.fillRect(2, 9, 3.2, 7 - legOffset);
-        ctx.fillStyle = "#2c2c1a";
+        manchas([-5, 9, 3.2, 7 + legOffset], 3);
+        manchas([2, 9, 3.2, 7 - legOffset], 9);
+        ctx.fillStyle = vestindoRoupa ? "#20281a" : "#2c2c1a";
         ctx.fillRect(-6, 16 + legOffset, 5, 3);
         ctx.fillRect(1, 16 - legOffset, 5, 3);
 
-        // Corpo: colete tático
+        // Corpo: colete tático (ou colete de camuflagem)
         let torso = ((window.danoFlashTimer || 0) > 0) ? "#e74c3c" : corTorso;
         ctx.fillStyle = torso;
         ctx.beginPath();
@@ -149,19 +372,33 @@ window.desenharSniper = function(x, y, isMoving, angulo, hp, maxHp, extra) {
         ctx.lineTo(-8, 10);
         ctx.closePath();
         ctx.fill();
-        ctx.fillStyle = "#3a4420";
+        manchas([-6, -6, 14, 16], 5);
+        ctx.fillStyle = corDetalhe;
         ctx.fillRect(-6, 3, 12, 2);
-        ctx.fillStyle = "#8f9b4a";
+        ctx.fillStyle = vestindoRoupa ? "#7f8a5a" : "#8f9b4a";
         ctx.fillRect(2, 4, 3, 2); // coldre
         // Bolso de arame/camuflagem
-        ctx.fillStyle = "#2f3a1c";
+        ctx.fillStyle = corBolso;
         ctx.fillRect(-7, -2, 3, 4);
 
         // Cabeça com óculos de mira
-        ctx.fillStyle = "#cbbd9c";
+        ctx.fillStyle = corPele;
         ctx.beginPath();
         ctx.arc(0, -11, 4.5, 0, Math.PI * 2);
         ctx.fill();
+        // capacete de camuflagem (substitui a faixa de cabeça)
+        if (vestindoRoupa) {
+            ctx.fillStyle = "#55603a";
+            ctx.beginPath();
+            ctx.arc(0, -12, 5.0, Math.PI * 1.02, Math.PI * 1.98);
+            ctx.fill();
+            manchas([-5, -17, 10, 6], 11);
+            // aba/capuz puxado para a frente
+            ctx.fillStyle = "#3f4a2a";
+            ctx.beginPath();
+            ctx.ellipse(2.6, -14.6, 4.4, 2.4, -0.15, 0, Math.PI * 2);
+            ctx.fill();
+        }
         ctx.fillStyle = "#3d4223";
         ctx.beginPath();
         ctx.arc(0, -13, 4.4, Math.PI * 1.05, Math.PI * 1.95);
@@ -176,16 +413,23 @@ window.desenharSniper = function(x, y, isMoving, angulo, hp, maxHp, extra) {
         ctx.fillRect(-3.2, -11.6, 1.6, 1.8);
         ctx.fillRect(1.6, -11.6, 1.6, 1.8);
         ctx.shadowBlur = 0;
-        // Faixa de camuflagem na cabeça
-        ctx.fillStyle = "#556b2f";
-        ctx.fillRect(-5, -7.4, 10, 1.6);
+        if (!vestindoRoupa) {
+            // Faixa de camuflagem na cabeça (visual normal)
+            ctx.fillStyle = "#556b2f";
+            ctx.fillRect(-5, -7.4, 10, 1.6);
+        } else {
+            // gola alta do uniforme
+            ctx.fillStyle = "#3f4a2a";
+            ctx.fillRect(-5, -7.6, 10, 2.0);
+        }
 
         // Braço + RIFLE BARRETT longo (segue a mira)
         ctx.save();
         ctx.rotate(angulo || 0);
         ctx.translate(7, 2);
-        ctx.fillStyle = "#5c6840";
+        ctx.fillStyle = vestindoRoupa ? "#55603a" : "#5c6840";
         ctx.fillRect(-3, -1.6, 6, 3.2); // braço
+        manchas([-3, -1.6, 6, 3.2], 17);
         // Rifle
         let wp = window.inventario ? window.inventario.arma : null;
         let armaV = null;
@@ -212,18 +456,27 @@ window.desenharSniper = function(x, y, isMoving, angulo, hp, maxHp, extra) {
         ctx.beginPath();
         ctx.roundRect(-6, -3, 13, 5.4, 2);
         ctx.fill();
-        ctx.fillStyle = "#3a4420";
+        manchas([-6, -3, 13, 5.4], 23);
+        ctx.fillStyle = corDetalhe;
         ctx.fillRect(-4, 0, 9, 2);
         // Pernas esticadas
-        ctx.fillStyle = "#4a5326";
+        ctx.fillStyle = corCalca;
         ctx.beginPath();
         ctx.roundRect(5, -2, 10, 3.6, 2);
         ctx.fill();
+        manchas([5, -2, 10, 3.6], 29);
         // Cabeça deitada apoiada
-        ctx.fillStyle = "#cbbd9c";
+        ctx.fillStyle = corPele;
         ctx.beginPath();
         ctx.arc(-8, -1, 3.6, 0, Math.PI * 2);
         ctx.fill();
+        if (vestindoRoupa) {          // capacete deitado
+            ctx.fillStyle = "#55603a";
+            ctx.beginPath();
+            ctx.arc(-8, -1.4, 4.0, Math.PI * 1.0, Math.PI * 2.0);
+            ctx.fill();
+            manchas([-12, -5.5, 8, 4.5], 31);
+        }
         ctx.fillStyle = "#1f2a12";
         ctx.beginPath();
         ctx.roundRect(-11, -2.8, 7, 2.4, 1.4);
@@ -252,6 +505,47 @@ window.desenharSniper = function(x, y, isMoving, angulo, hp, maxHp, extra) {
     if (ehEu && window.snAimAtivo && typeof window.desenharLinhaMiraSniper === "function") {
         window.desenharLinhaMiraSniper(x + 12, y + 16, angulo, 700);
     }
+
+    function desenharBadgeCamo(x, y, posicao, pp, ctx) {
+    // Fica acima da cabeça só enquanto o uniforme está vestido (5s), para o
+    // jogador (e quem o vê) saber que a skill 4 está liberada e até quando.
+    //
+    // O TEMPO restante é a fonte da verdade e vem SEMPRE do prazo absoluto, que
+    // pode vir de dois lugares: o snapshot do servidor (outros jogadores) ou o
+    // `expiraEm` que o cliente guardou para si. Calcular o tempo ANTES de
+    // qualquer desenho garante a limpeza mesmo se o flag ficou "preso" — sem
+    // isso, um pacote perdido deixaria o Sniper vestido de camuflagem para
+    // sempre (o `snRoupaCamo` do snapshot nunca mais viria para limpar).
+    const camoRestante = pp
+        ? Math.max(0, (pp.snRoupaCamoAte || 0) - Date.now())
+        : Math.max(0, (window.snRoupaCamoAte || 0) - Date.now());
+    if (camoRestante <= 0) {
+        // prazo vencido (ou nunca houve): limpa o flag para o corpo voltar ao
+        // personagem normal. Nao depende de `vestindoRoupa` — se o flag ficou
+        // preso, `vestindoRoupa` ja e false e o `if` nao entraria.
+        if (pp) pp.snRoupaCamo = false; else window.snRoupaCamoAte = 0;
+    } else {
+        let seg = (camoRestante / 1000).toFixed(1);
+        let bx = x + 12, by = (posicao ? y + 4 : y - 22) - 20;
+        ctx.save();
+        // últimos 1,5s: pisca (avisa que o uniforme está prestes a cair)
+        if (camoRestante < 1500 && Math.floor(Date.now() / 200) % 2 === 0) ctx.globalAlpha = 0.55;
+        ctx.fillStyle = 'rgba(0,0,0,0.55)';
+        ctx.beginPath();
+        if (ctx.roundRect) ctx.roundRect(bx - 16, by - 8, 32, 16, 5); else ctx.rect(bx - 16, by - 8, 32, 16);
+        ctx.fill();
+        ctx.fillStyle = '#27ae60';
+        ctx.font = 'bold 11px system-ui, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('🌿 ' + seg + 's', bx, by + 0.5);
+        // barra fininha de tempo
+        ctx.fillStyle = 'rgba(39,174,96,0.85)';
+        ctx.fillRect(bx - 15, by + 9, 30 * Math.min(1, camoRestante / 5000), 2);
+        ctx.restore();
+    }
+}
+    desenharBadgeCamo(x, y, posicao, pp, ctx);
 
     if (typeof window.desenharBarraHp === "function") {
         window.desenharBarraHp(x - 3, y - 8, hp, maxHp);

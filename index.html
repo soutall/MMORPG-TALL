@@ -10,10 +10,10 @@
     <link rel="stylesheet" href="style.css?v=244">
     <link rel="stylesheet" href="inventario.css?v=135">
     <link rel="stylesheet" href="skills.css?v=144">
-    <link rel="stylesheet" href="config.css?v=146">
+    <link rel="stylesheet" href="config.css?v=147">
     <link rel="stylesheet" href="atributos.css?v=5">
     <link rel="stylesheet" href="spawn-admin.css?v=2">
-    <link rel="stylesheet" href="colisao-editor.css?v=2">
+    <link rel="stylesheet" href="colisao-editor.css?v=3">
     <link rel="stylesheet" href="dragdrop.css?v=4">
     <link rel="stylesheet" href="ferreiro.css?v=1">
     <link rel="stylesheet" href="intro.css?v=1">
@@ -73,7 +73,7 @@
             <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" autofocus />
             <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
         </div>
-        <div class="game-version-display">v1.41.2</div>
+        <div class="game-version-display">v1.59.0</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -122,7 +122,7 @@
 
     <div id="status" data-ui="status">Desconectado</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
-    <div id="hud-version" class="game-version-display">v1.41.2</div>
+    <div id="hud-version" class="game-version-display">v1.59.0</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -304,6 +304,10 @@
 
     <!-- NOVO MINIMAPA COM RADAR E ZOOM -->
     <div id="minimap-wrapper" data-ui="minimap">
+        <div id="minimap-relogio" class="minimap-clock-badge" onclick="notificarCicloDiaNoite()" title="Horário do Servidor (Ciclo Dia/Noite)">
+            <span id="relogio-icone">☀️</span>
+            <span id="relogio-texto">12:00</span>
+        </div>
         <div id="minimap-header">
             <span id="minimap-bioma">🌿 Campo Verde</span>
             <div id="minimap-zoom-bar">
@@ -352,7 +356,7 @@
 
     <div class="actions" >
         <button id="btn-autofarm" class="btn-action btn-autofarm" ontouchstart="alternarAutofarm(); event.stopPropagation();" onclick="alternarAutofarm();" title="Autofarm (R)">🤖<span class="key-badge">R</span></button>
-        <button id="btn-dash" class="btn-action btn-dash" ontouchstart="usarDash(); event.stopPropagation();" onclick="usarDash();" title="Dash (1)">💨<span class="key-badge">1</span></button>
+        <button id="btn-dash" class="btn-action btn-dash" ontouchstart="usarDash(); event.stopPropagation();" ontouchend="soltarDash(); event.stopPropagation();" onmouseup="soltarDash();" onclick="usarDash();" title="Dash (1)">💨<span class="key-badge">1</span></button>
         <button id="btn-tornado" class="btn-action btn-tornado" ontouchstart="usarTornado(); event.stopPropagation();" onclick="usarTornado();" title="Tornado (2)">🌪️<span class="key-badge">2</span></button>
         <button id="btn-guerreiro-provocacao" class="btn-action btn-guerreiro-provocacao" ontouchstart="usarGritoProvocacao(); event.stopPropagation();" onclick="usarGritoProvocacao();" title="Grito de Provocação (3)">📢<span class="key-badge">3</span></button>
         <button id="btn-meteoro" class="btn-action btn-meteoro" ontouchstart="iniciarDragSkill(event,'meteoro'); event.preventDefault(); event.stopPropagation();" onclick="ativarMeteoroSmartCast();" title="Meteoro (1)">☄️<span class="key-badge">1</span></button>
@@ -421,7 +425,7 @@
         <button id="btn-summoner-golem" class="btn-action btn-summoner-golem" ontouchstart="usarGolemSismico(); event.stopPropagation();" onclick="usarGolemSismico();" title="Golem Sísmico (4)">⛰️<span class="key-badge">4</span></button>
         <button id="btn-arqueiro-salto" class="btn-action btn-arqueiro-salto" ontouchstart="usarSaltoArqueiro(); event.stopPropagation();" onclick="usarSaltoArqueiro();" title="Salto + Chuva (4)">🦅<span class="key-badge">4</span></button>
         <button id="btn-curandeiro-cantico" class="btn-action btn-curandeiro-cantico" ontouchstart="usarCanticoCelestial(); event.stopPropagation();" onclick="usarCanticoCelestial();" title="Cântico Celestial (4)">👼<span class="key-badge">4</span></button>
-        <button id="btn-barbaro-vinculo" class="btn-action btn-barbaro-vinculo" ontouchstart="iniciarDragSkill(event,'barbaro_vinculo'); event.preventDefault(); event.stopPropagation();" onclick="ativarVinculoSmartCast();" title="Vínculo Berserker (4)">⛓️<span class="key-badge">4</span></button>
+        <button id="btn-barbaro-vinculo" class="btn-action btn-barbaro-vinculo" ontouchstart="usarVinculoBerserker(); event.stopPropagation();" onclick="usarVinculoBerserker();" title="Vínculo Berserker (4)">⛓️<span class="key-badge">4</span></button>
         <button id="btn-arcano-buraco" class="btn-action btn-arcano-buraco" ontouchstart="iniciarDragSkill(event,'astral_buraco'); event.preventDefault(); event.stopPropagation();" onclick="ativarBuracoNegroSmartCast();" title="Buraco Negro Astral (4)">🌌<span class="key-badge">4</span></button>
 
         <!-- ATAQUE BÁSICO MANUAL REMOVIDO (v1.30.2): só o auto-attack fica ativo; botão oculto -->
@@ -431,6 +435,7 @@
     <div id="util-buttons" >
         <button id="btn-colisao-editor" class="btn-util btn-colisao-editor" onclick="window.toggleEditorColisao()" title="Editor de Colisões (Admin)" style="display:none;">🧱</button>
         <button id="btn-item-admin" class="btn-util btn-item-admin" onclick="window.toggleItemAdmin()" title="Forjador de Armas (Admin)" style="display:none;">⚒️</button>
+        <button id="btn-admin-cheats" class="btn-util btn-admin-cheats" onclick="window.toggleAdminCheats()" title="Painel Admin (Cheats) [F2]" style="display:none;">👑</button>
         <button id="btn-pvp" class="btn-util btn-pvp" onclick="togglePvP()" title="Ativar/Desativar PvP (P)">⚔️<span class="key-badge">P</span></button>
         <button id="btn-social" class="btn-util btn-social" onclick="abrirSocialModal()" title="Menu Social (O)">👥<span class="key-badge">O</span></button>
         <button id="btn-mapa" class="btn-util btn-mapa" onclick="toggleBigMap()" title="Mapa Mundial (M)">🗺️<span class="key-badge">M</span></button>
@@ -487,10 +492,13 @@
                 <button class="btn-teleportare" data-mapa="cidade" onclick="selecionarMapa('cidade')">🏰 Cidade de Davahl</button>
                 <button class="btn-teleportare" data-mapa="green" onclick="selecionarMapa('green')">🌿 Campo Verde</button>
                 <button class="btn-teleportare" data-mapa="desert" onclick="selecionarMapa('desert')">🏜️ Deserto com Oásis</button>
-                <button class="btn-teleportare" data-mapa="pantano" onclick="selecionarMapa('pantano')">🪷 Pântano Lodoso</button>
+                <button class="btn-teleportare" data-mapa="pantano" onclick="selecionarMapa('pantano')">🌿 Pântano Realista</button>
                 <button class="btn-teleportare" data-mapa="caverna" onclick="selecionarMapa('caverna')">🕳️ Caverna Sombria (DG)</button>
                 <button class="btn-teleportare" data-mapa="arena" onclick="selecionarMapa('arena')">⚔️ Arena de Davahl</button>
                 <button class="btn-teleportare" data-mapa="cidadeperdida" onclick="selecionarMapa('cidadeperdida')">🏛️ Cidade Perdida</button>
+                <button class="btn-teleportare" data-mapa="testevisual" onclick="selecionarMapa('testevisual')">🌿 Arena Visual (Pântano Realista)</button>
+                <button class="btn-teleportare" data-mapa="zonazero" onclick="selecionarMapa('zonazero')">❄️ Zona Zero (Bioma de Gelo)</button>
+                <button class="btn-teleportare" data-mapa="castelo" onclick="selecionarMapa('castelo')">🏯 Castelo Anda 1 (DG)</button>
             </div>
             <button id="btn-teleportare-confirmar" style="display:none;" onclick="confirmarTeleporte()">✅ CONFIRMAR</button>
             <button id="btn-teleportare-fechar" onclick="fecharTeleporteMapas()">FECHAR</button>
@@ -738,14 +746,22 @@
                         <option value="off">Sem texto</option>
                     </select>
                 </div>
+                <div class="settings-linha" id="vis-tela-linha" style="display:none;">
+                    <div class="settings-label">🖥️ MODO DE TELA (PC)</div>
+                    <select id="vis-tela-modo" class="settings-select" onchange="mudarVisualTela(this.value)">
+                        <option value="janela">Modo Janela</option>
+                        <option value="fullscreen">Modo Full Janela</option>
+                    </select>
+                    <div class="settings-dica">Escolha do modo de tela deste personagem (salva por ID).</div>
+                </div>
             </div>
             <div id="settings-roda-pe">MMORPG PC &amp; MOBILE</div>
         </div>
     </div>
 
     <script src="mapas.js?v=233"></script>
-    <script src="mapa_deserto.js?v=6"></script>
-    <script src="mapa_pantano.js?v=5"></script>
+    <script src="mapa_deserto.js?v=9"></script>
+    <script src="mapa_pantano.js?v=7"></script>
     <script src="mapa_caverna.js?v=2"></script>
     <!-- Three.js WebGL Engine — Cidade de Davahl 2.5D -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
@@ -754,6 +770,9 @@
     <!-- <script src="mapa_cidade_three.js?v=1"></script> -->
     <script src="mapa_arena.js?v=6"></script>
     <script src="mapa_cidade_perdida.js?v=3"></script>
+    <script src="mapa_teste_visual.js?v=3"></script>
+    <script src="mapa_zona_zero.js?v=1"></script>
+    <script src="mapa_castelo.js?v=1"></script>
     <script src="solari.js?v=5"></script>
     <script>
         (function () {
@@ -768,8 +787,14 @@
             }
         })();
     </script>
+    <!-- SISTEMA DE CICLO DIA/NOITE & ILUMINAÇÃO DINÂMICA (v1.52.1) -->
+    <script src="sistema_dia_noite_cliente.js?v=1521"></script>
+    <!-- DASH v2: módulo ISOMÓRFICO (o MESMO arquivo é require() no server.js).
+         Precisa vir antes das classes porque elas podem consultar window.DASH. -->
+    <script src="dash.js?v=1500"></script>
+    <script src="dash-vfx.js?v=1500"></script>
     <script src="classes/comum.js?v=1001"></script>
-    <script src="classes/guerreiro.js?v=1010"></script>
+    <script src="classes/guerreiro.js?v=1500"></script>
     <script src="classes/mago.js?v=1002"></script>
     <script src="classes/summoner.js?v=1001"></script>
     <script src="classes/arqueiro.js?v=1002"></script>
@@ -777,55 +802,57 @@
     <script src="classes/barbaro.js?v=1002"></script>
     <script src="classes/roqueiro.js?v=1002"></script>
     <script src="classes/ladino.js?v=1301"></script>
-    <script src="classes/dronemaster.js?v=1004"></script>
-    <script src="classes/arqueiro_arcano.js?v=1001"></script>
-    <script src="classes/sniper.js?v=1001"></script>
-    <script src="classes/pikeman.js?v=9"></script>
+    <script src="classes/dronemaster.js?v=1005"></script>
+    <script src="classes/arqueiro_arcano.js?v=1002"></script>
+    <script src="classes/sniper.js?v=1500"></script>
+    <script src="classes/pikeman.js?v=10"></script>
     <script src="efeitos/arqueiro_efeitos.js?v=230"></script>
     <script src="efeitos/curandeiro_efeitos.js?v=231"></script>
     <script src="efeitos/barbaro_efeitos.js?v=231"></script>
     <script src="efeitos/guerreiro_efeitos.js?v=235"></script>
-    <script src="efeitos/mago_efeitos.js?v=1"></script>
+    <script src="efeitos/mago_efeitos.js?v=1551"></script>
     <script src="efeitos/roqueiro_efeitos.js?v=231"></script>
     <script src="efeitos/ladino_efeitos.js?v=1300"></script>
-    <script src="efeitos/pikeman_efeitos.js?v=1"></script>
-    <script src="efeitos.js?v=234"></script>
+    <script src="efeitos/pikeman_efeitos.js?v=2"></script>
+    <script src="efeitos.js?v=235"></script>
     <script src="efeitos/vfx_master.js?v=1"></script>
-    <script src="efeitos/vfx_guerreiro_escudo.js?v=1"></script>
-    <script src="efeitos/vfx_mago_bola.js?v=1"></script>
-    <script src="efeitos/vfx_summoner_golem.js?v=1"></script>
+    <script src="efeitos/vfx_guerreiro_escudo.js?v=2"></script>
+    <script src="efeitos/vfx_mago_bola.js?v=3"></script>
+    <script src="efeitos/vfx_summoner_golem.js?v=3"></script>
     <script src="efeitos/vfx_arqueiro_salto.js?v=1"></script>
     <script src="efeitos/vfx_curandeiro_cantico.js?v=1"></script>
     <script src="efeitos/vfx_barbaro_vinculo.js?v=1"></script>
-    <script src="efeitos/vfx_astral_buraco.js?v=1"></script>
-    <script src="debuffs.js?v=2"></script>
+    <script src="efeitos/vfx_astral_buraco.js?v=2"></script>
+    <script src="debuffs.js?v=1500"></script>
     <script src="efeitos/boss_golem.js?v=230"></script>
     <script src="monstros.js?v=2007"></script>
     <script src="inventario.js?v=133"></script>
     <script src="skills.js?v=146"></script>
-    <script src="config.js?v=143"></script>
+    <script src="config.js?v=144"></script>
     <script src="atributos.js?v=3"></script>
     <script src="spawn-admin.js?v=3"></script>
-    <script src="map-vfx-admin.js?v=1"></script>
-    <script src="mob-editor.js?v=1"></script>
+    <script src="map-vfx-admin.js?v=2"></script>
+    <script src="mob-editor.js?v=1511"></script>
     <script src="mob-vfx.js?v=1"></script>
     <script src="dragdrop.js?v=5"></script>
     <script src="ferreiro.js?v=1"></script>
-    <script src="colisao-editor.js?v=2"></script>
-    <script src="mapa-editor.js?v=1"></script>
+    <script src="colisao-editor.js?v=3"></script>
+    <script src="mapa-editor.js?v=2"></script>
     <script src="audio-manager.js?v=3"></script>
-    <script src="sonoro.js?v=5"></script>
+    <script src="sonoro.js?v=1580"></script>
     <script src="intro.js?v=1"></script>
     <script src="mobile-hud.js?v=1"></script>
     <script src="item-admin.js?v=5"></script>
+    <script src="admin-cheats.js?v=1"></script>
     <script>
-        const GAME_VERSION = 'v1.41.2';
+        const GAME_VERSION = 'v1.59.0';
         window.GAME_VERSION = GAME_VERSION;
-        const WORLD_WIDTH = 71920;
+        const WORLD_WIDTH = 84200;
         const WORLD_HEIGHT = 36000;
         window.WORLD_WIDTH = WORLD_WIDTH;
         window.WORLD_HEIGHT = WORLD_HEIGHT;
         window.LARGURA_VERDE = 18000;
+        window.ALTO_VERDE = 5400;
         window.LARGURA_DESERTO = 50000;
         window.LARGURA_PANTANO = 58000;
         window.FIM_CAVERNA = 59800;
@@ -838,6 +865,15 @@
         window.LARGURA_CIDADE_PERDIDA = 65040;
         window.FIM_CIDADE_PERDIDA = 71920;
         window.ALTO_CIDADE_PERDIDA = 3920;
+        window.LARGURA_TESTE_VISUAL = 72000;
+        window.FIM_TESTE_VISUAL = 73280;
+        window.ALTO_TESTE_VISUAL = 960;
+        window.LARGURA_ZONA_ZERO = 74000;
+        window.FIM_ZONA_ZERO = 82000;
+        window.ALTO_ZONA_ZERO = 9000;
+        window.LARGURA_CASTELO = 82000;
+        window.FIM_CASTELO = 84200;
+        window.ALTO_CASTELO = 1800;
         // Ponto de spawn da cidade de Davahl (espelho do server: CIDADE_SPAWN_X/Y = 60474,640).
         // O respawn do jogador SEMPRE devolve para cá.
         window.SPAWN_CIDADE = { x: 60474, y: 640 };
@@ -965,6 +1001,7 @@ function ativarEscudoSmartCast() {
 function dispararEscudo(tx, ty) {
     window.cdGuerreiroEscudo = true; btnGuerreiroEscudo.classList.add("cooldown"); registrarCooldownBotao(btnGuerreiroEscudo, 10000);
     setTimeout(() => { window.cdGuerreiroEscudo = false; btnGuerreiroEscudo.classList.remove("cooldown"); btnGuerreiroEscudo.dataset.cdUntil = ''; }, 10000);
+    if (window.tocarSonoro) window.tocarSonoro('guerreiro_skill4');
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'guerreiro_escudo_lancamento', targetX: tx, targetY: ty }));
 }
 function ativarBolaElementalSmartCast() {
@@ -977,6 +1014,7 @@ function ativarBolaElementalSmartCast() {
 function dispararBolaElemental(tx, ty) {
     window.cdMagoBola = true; btnMagoBola.classList.add("cooldown"); registrarCooldownBotao(btnMagoBola, 20000);
     setTimeout(() => { window.cdMagoBola = false; btnMagoBola.classList.remove("cooldown"); btnMagoBola.dataset.cdUntil = ''; }, 20000);
+    if (window.tocarSonoro) window.tocarSonoro('mago_skill4');
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'mago_bola_elemental', targetX: tx, targetY: ty }));
 }
 function ativarBuracoNegroSmartCast() {
@@ -989,18 +1027,75 @@ function ativarBuracoNegroSmartCast() {
 function dispararBuracoNegro(tx, ty) {
     window.cdArcanoBuraco = true; btnArcanoBuraco.classList.add("cooldown"); registrarCooldownBotao(btnArcanoBuraco, 25000);
     setTimeout(() => { window.cdArcanoBuraco = false; btnArcanoBuraco.classList.remove("cooldown"); btnArcanoBuraco.dataset.cdUntil = ''; }, 25000);
+    if (window.tocarSonoro) window.tocarSonoro('astral_skill4');
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'astral_buraco_negro', targetX: tx, targetY: ty }));
 }
-function ativarVinculoSmartCast() {
-    if(window.estaMorto || window.cdBarbaroVinculo || window.minhaClasse !== 'barbaro') return;
-    if (!window.modoMiraVinculo) { cancelarTodasMiras(); window.modoMiraVinculo = true; btnBarbaroVinculo.classList.add("aiming"); return; }
-    // Vinculo needs a target, firing without target fails.
+function usarVinculoBerserker() {
+    if (window.estaMorto || window.minhaClasse !== 'barbaro') return;
+    if (window.cdBarbaroVinculo) return;
+    if (!checarSkill('vinculo', 20)) return;
+
+    let pX = window.meuX + 12, pY = window.meuY + 16;
+    let alvoMaisProximo = null;
+    let menorDist = 380;
+
+    if (Array.isArray(window.listaSlimes)) {
+        for (let s of window.listaSlimes) {
+            if (s && s.hp > 0) {
+                let d = Math.hypot(s.x - pX, s.y - pY);
+                if (d < menorDist) {
+                    menorDist = d;
+                    alvoMaisProximo = { id: s.id, tipo: 'slime', x: s.x, y: s.y };
+                }
+            }
+        }
+    }
+
+    let bList = window.listaBosses || (typeof listaBosses !== 'undefined' ? listaBosses : null);
+    if (Array.isArray(bList)) {
+        for (let b of bList) {
+            if (b && b.hp > 0) {
+                let d = Math.hypot(b.x - pX, b.y - pY);
+                if (d < menorDist) {
+                    menorDist = d;
+                    alvoMaisProximo = { id: b.id, tipo: 'boss', x: b.x, y: b.y };
+                }
+            }
+        }
+    }
+
+    if (!alvoMaisProximo) {
+        if (typeof window.avisoSkillLocal === 'function') {
+            window.avisoSkillLocal('alcance');
+        } else if (window.floatingTexts) {
+            window.floatingTexts.push({ x: pX, y: pY - 34, text: "⚠️ Sem inimigo próximo!", color: "#e74c3c", alpha: 1.0 });
+        }
+        return;
+    }
+
+    window.cdBarbaroVinculo = true;
+    if (btnBarbaroVinculo) {
+        btnBarbaroVinculo.classList.add("cooldown");
+        registrarCooldownBotao(btnBarbaroVinculo, 30000);
+    }
+    setTimeout(() => {
+        window.cdBarbaroVinculo = false;
+        if (btnBarbaroVinculo) {
+            btnBarbaroVinculo.classList.remove("cooldown");
+            btnBarbaroVinculo.dataset.cdUntil = '';
+        }
+    }, 30000);
+
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+            action: 'barbaro_vinculo',
+            targetId: alvoMaisProximo.id,
+            targetTipo: alvoMaisProximo.tipo
+        }));
+    }
 }
-function dispararVinculo(targetId) {
-    window.cdBarbaroVinculo = true; btnBarbaroVinculo.classList.add("cooldown"); registrarCooldownBotao(btnBarbaroVinculo, 30000);
-    setTimeout(() => { window.cdBarbaroVinculo = false; btnBarbaroVinculo.classList.remove("cooldown"); btnBarbaroVinculo.dataset.cdUntil = ''; }, 30000);
-    if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'barbaro_vinculo', targetId: targetId }));
-}
+function ativarVinculoSmartCast() { usarVinculoBerserker(); }
+function dispararVinculo(targetId) { usarVinculoBerserker(); }
 
 function usarGolemSismico() {
     if(window.estaMorto || window.minhaClasse !== 'summoner') return;
@@ -1063,6 +1158,7 @@ function usarCanticoCelestial() {
     if (!checarSkill('cantico', 30)) return;
     window.cdCurandeiroCantico = true; btnCurandeiroCantico.classList.add("cooldown"); registrarCooldownBotao(btnCurandeiroCantico, 15000);
     setTimeout(() => { window.cdCurandeiroCantico = false; btnCurandeiroCantico.classList.remove("cooldown"); btnCurandeiroCantico.dataset.cdUntil = ''; }, 15000);
+    if (window.tocarSonoro) window.tocarSonoro('curandeiro_skill4');
     if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'curandeiro_cantico' }));
 }
 // ====== FIM NOVAS SKILLS ======
@@ -1139,7 +1235,11 @@ function usarCanticoCelestial() {
 
         function tentarHorizontalAutomatico() {
             try {
-                if (!document.fullscreenElement) { document.documentElement.requestFullscreen().catch(() => {}); }
+                // PC: só entra em tela cheia se o jogador escolheu "Full Janela"
+                // na aba VISUAL (senão o "Modo Janela" seria ignorado).
+                // MOBILE: sempre tenta (o jogo depende do paisagem).
+                var podeFull = (typeof window.autoFullscreenPermitido !== 'function') || window.autoFullscreenPermitido();
+                if (podeFull && !document.fullscreenElement) { document.documentElement.requestFullscreen().catch(() => {}); }
                 if (screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(() => {}); }
             } catch (e) {}
         }
@@ -1323,13 +1423,6 @@ function usarCanticoCelestial() {
             meteoro:     { raio: 85,  alcanceMax: 380, classe: 'mago',       cor: '#e67e22', nome: '☄️ METEORO' },
             guerreiro_escudo: { raio: 25, alcanceMax: 250, classe: 'guerreiro', cor: '#95a5a6', nome: '🛡️ Lançamento do Escudo' },
             mago_bola: { raio: 40, alcanceMax: 400, classe: 'mago', cor: '#3498db', nome: '🔮 Bola Elemental' },
-            barbaro_vinculo: { raio: 25, alcanceMax: 200, classe: 'barbaro', cor: '#e74c3c', nome: '⛓️ Vínculo Berserker', requiresTarget: true },
-            astral_buraco: { raio: 120, alcanceMax: 300, classe: 'arqueiro_arcano', cor: '#8e44ad', nome: '🌌 Buraco Negro Astral' },
-            salto_chuva: { raio: 120, alcanceMax: 500, classe: 'arqueiro', cor: '#2ecc71', nome: '🌧️ Chuva de Flechas do Alto' },
-
-            guerreiro_escudo: { raio: 25, alcanceMax: 250, classe: 'guerreiro', cor: '#95a5a6', nome: '🛡️ Lançamento do Escudo' },
-            mago_bola: { raio: 40, alcanceMax: 400, classe: 'mago', cor: '#3498db', nome: '🔮 Bola Elemental' },
-            barbaro_vinculo: { raio: 25, alcanceMax: 200, classe: 'barbaro', cor: '#e74c3c', nome: '⛓️ Vínculo Berserker', requiresTarget: true },
             astral_buraco: { raio: 120, alcanceMax: 300, classe: 'arqueiro_arcano', cor: '#8e44ad', nome: '🌌 Buraco Negro Astral' },
             salto_chuva: { raio: 120, alcanceMax: 500, classe: 'arqueiro', cor: '#2ecc71', nome: '🌧️ Chuva de Flechas do Alto' },
 
@@ -1450,13 +1543,16 @@ function usarCanticoCelestial() {
         // Arena para dentro da Cidade Perdida (fundo verde #1c2a1d).
         function limitesMapaClienteAtivo() {
             const m = window.currentMap;
+            if (m === 'castelo') return { minX: (window.LARGURA_CASTELO || 82000) + 20, maxX: (window.FIM_CASTELO || 84200) - 40, minY: 20, maxY: 1760 };
+            if (m === 'zonazero') return { minX: (window.LARGURA_ZONA_ZERO || 74000) + 20, maxX: (window.FIM_ZONA_ZERO || 82000) - 40, minY: 20, maxY: 8960 };
+            if (m === 'testevisual') return { minX: (window.LARGURA_TESTE_VISUAL || 72000) + 20, maxX: (window.FIM_TESTE_VISUAL || 73280) - 40, minY: 20, maxY: 920 };
             if (m === 'arena' || m === 'solari') return { minX: window.LARGURA_ARENA + 20, maxX: window.FIM_ARENA - 40, minY: 20, maxY: 1200 };
             if (m === 'cidadeperdida') return { minX: window.LARGURA_CIDADE_PERDIDA + 20, maxX: window.FIM_CIDADE_PERDIDA - 40, minY: 20, maxY: 3880 };
             if (m === 'cidade') return { minX: window.LARGURA_CIDADE + 20, maxX: window.FIM_CIDADE - 40, minY: 20, maxY: 1105 };
             if (m === 'caverna') return { minX: window.LARGURA_PANTANO + 20, maxX: window.FIM_CAVERNA - 40, minY: 20, maxY: 1760 };
             if (m === 'pantano') return { minX: window.LARGURA_DESERTO + 20, maxX: window.LARGURA_PANTANO - 40, minY: 20, maxY: 8960 };
             if (m === 'desert') return { minX: window.LARGURA_VERDE + 20, maxX: window.LARGURA_DESERTO - 40, minY: 20, maxY: 35960 };
-            return { minX: 20, maxX: window.LARGURA_VERDE - 40, minY: 20, maxY: 17960 }; // green
+            return { minX: 20, maxX: window.LARGURA_VERDE - 40, minY: 20, maxY: (window.ALTO_VERDE || 5400) - 40 }; // green
         }
 
         function clamparAlcanceSkill(skill, tx, ty) {
@@ -1479,6 +1575,13 @@ function usarCanticoCelestial() {
         // v1.30.3: nenhuma skill pode ENTRAR em recarga quando falha por mana ou alcance.
         // O servidor continua autoritativo — aqui só avisamos e impedimos o CD visual.
         function avisoSkillLocal(tipo) {
+            if (tipo === 'escudo') {
+                if (window.floatingTexts) window.floatingTexts.push({
+                    x: window.meuX + 12, y: window.meuY - 34,
+                    text: "🛡️ Escudo erguido!", color: "#3498db", alpha: 1.0
+                });
+                return;
+            }
             if (window.floatingTexts) window.floatingTexts.push({
                 x: window.meuX + 12,
                 y: window.meuY - 34,
@@ -1504,7 +1607,11 @@ function usarCanticoCelestial() {
         // Verifica mana/alcance ANTES de ativar o cooldown visual da skill.
         // tx/ty/alcanceMax opcionais (skills de mira). Retorna false = falhou (já avisou).
         function checarSkill(skillId, baseMp, tx, ty, alcanceMax) {
-            if (baseMp > 0) {
+            // DASH v2: Guerreiro com o escudo erguido NÃO USA SKILL.
+            // O servidor também bloqueia (dashBloqueiaAcoes) — este é só o
+            // feedback instantâneo, para o MP não ser gasto no cliente.
+            if (window.escudoGuerreiroAtivo) { avisoSkillLocal('escudo'); return false; }
+            if (baseMp > 0 && !(window.adminCheats && window.adminCheats.manaInfinita)) {
                 let custo = custoManaLocal(skillId, baseMp);
                 if ((window.meuMp || 0) < custo) { avisoSkillLocal('mana'); return false; }
             }
@@ -1610,7 +1717,7 @@ function usarCanticoCelestial() {
             cancelarTodasMiras();
             window.meteoroCooldownAtivo = true; btnMeteoro.classList.add("cooldown"); registrarCooldownBotao(btnMeteoro, 7000);
             setTimeout(() => { window.meteoroCooldownAtivo = false; btnMeteoro.classList.remove("cooldown"); btnMeteoro.dataset.cdUntil = ''; }, 7000);
-            if (window.tocarSonoro) window.tocarSonoro('mago_meteoro');
+            if (window.tocarSonoro) window.tocarSonoro('mago_meteoro_queda');
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'meteoro', targetX: tx, targetY: ty })); }
         }
 
@@ -1940,6 +2047,7 @@ function usarCanticoCelestial() {
             window.ultimoSkillEnviado = { skill: 'arqueiro_cometas', ts: Date.now() };
             setTimeout(() => { window.arcanoCometasCooldown = false; btnArcanoCometas.classList.remove("cooldown"); btnArcanoCometas.dataset.cdUntil = ''; }, 7000);
             if (typeof window.criarFlechaArcanoVoo === 'function') window.criarFlechaArcanoVoo(window.meuX + 12, window.meuY + 16, tx, ty, '#fff6c2');
+            if (window.tocarSonoro) window.tocarSonoro('astral_skill1');
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'arqueiro_cometas', targetX: tx, targetY: ty })); }
         }
 
@@ -1967,6 +2075,7 @@ function usarCanticoCelestial() {
             window.ultimoSkillEnviado = { skill: 'arqueiro_orbe', ts: Date.now() };
             setTimeout(() => { window.arcanoOrbeCooldown = false; btnArcanoOrbe.classList.remove("cooldown"); btnArcanoOrbe.dataset.cdUntil = ''; }, 8000);
             if (typeof window.criarFlechaArcanoVoo === 'function') window.criarFlechaArcanoVoo(window.meuX + 12, window.meuY + 16, tx, ty, '#c39bff');
+            if (window.tocarSonoro) window.tocarSonoro('astral_skill2');
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'arqueiro_orbe', targetX: tx, targetY: ty })); }
         }
 
@@ -1993,12 +2102,16 @@ function usarCanticoCelestial() {
             window.arcanoCascataCooldown = true; btnArcanoCascata.classList.add("cooldown"); registrarCooldownBotao(btnArcanoCascata, 8000);
             window.ultimoSkillEnviado = { skill: 'arqueiro_cascata', ts: Date.now() };
             setTimeout(() => { window.arcanoCascataCooldown = false; btnArcanoCascata.classList.remove("cooldown"); btnArcanoCascata.dataset.cdUntil = ''; }, 8000);
+            if (window.tocarSonoro) window.tocarSonoro('astral_skill3');
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'arqueiro_cascata', angulo: window.meuAngulo || 0 })); }
         }
 
         // ===== SNIPER (v1.31): Disparo Supremo, Arame, Posição e Camuflagem =====
         window.sniperAimCooldown = false; window.sniperRedeCooldown = false; window.sniperPosicaoCooldown = false;
         window.snAimAtivo = false; window.snPosicaoAtivo = false; window.snCamufladoAtivo = false;
+        // v1.50.0: ROUPA DE CAMUFLAGEM (vestida pelo DASH). Timestamp de expiração
+        // absoluto; 0 = corpo normal. É o que libera a skill 4.
+        window.snRoupaCamoAte = 0;
         window.sniperUltimoTiroEm = 0;
         let tSniperAimTimer = null;
 
@@ -2117,6 +2230,16 @@ function usarCanticoCelestial() {
         function usarCamuflagemSniper() {
             if (window.estaMorto || window.minhaClasse !== 'sniper') return;
             if (window.snCamufladoAtivo) return;
+            // v1.50.0: a Camuflagem Natural só funciona VESTINDO a roupa de
+            // camuflagem (o DASH veste). O servidor valida de novo, mas o aviso
+            // aqui evita um clique morto e gasto de MP.
+            if (Date.now() >= (window.snRoupaCamoAte || 0)) {
+                if (window.floatingTexts) {
+                    window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 44, text: '🎽 Vista a camuflagem (ESPAÇO) primeiro!', color: '#e67e22', alpha: 1.0 });
+                }
+                if (typeof window.tocarSonoro === 'function') window.tocarSonoro('erro');
+                return;
+            }
             window.ultimoSkillEnviado = { skill: 'sniper_camuflagem', ts: Date.now() };
             if (window.tocarSonoro) window.tocarSonoro('sniper_camuflagem');
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'sniper_camuflagem' })); }
@@ -2300,6 +2423,19 @@ function usarCanticoCelestial() {
                     grad2.addColorStop(1, 'rgba(0,0,0,0.18)');
                     ctx.fillStyle = grad2;
                     ctx.fillRect(bx, by, fillW, bh);
+
+                    // v1.51.0: Efeito Branco proporcional do Escudo sobre a barra de HP (HUD Superior)
+                    if (c.bar === B.hp && window.meuEscudoAbsoluto > 0) {
+                        var shieldRatio = Math.max(0, Math.min(1, window.meuEscudoAbsoluto / maxHp));
+                        var sW = bw * shieldRatio;
+                        if (sW > 0) {
+                            ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
+                            ctx.shadowColor = "#ffffff";
+                            ctx.shadowBlur = Math.round(6 * escala + 1);
+                            ctx.fillRect(bx, by, sW, bh);
+                            ctx.shadowBlur = 0;
+                        }
+                    }
 
                     ctx.restore();
                 }
@@ -2525,18 +2661,51 @@ function usarCanticoCelestial() {
                     btn.style.setProperty('--cd-pct', 0);
                 }
             });
-            // v1.41.2: Camuflagem Natural (Sniper) é toggle SEM cooldown → brilha quando DISPONÍVEL (não camuflado)
+            // v1.51.0: Sniper camuflado e parado: congela os cooldowns das skills
+            let agoraCd = Date.now();
+            let dtCd = agoraCd - (window._sniperUltimoCdTick || agoraCd);
+            window._sniperUltimoCdTick = agoraCd;
+            let sniperParadoCamuflado = (window.minhaClasse === 'sniper') &&
+                (window.snCamufladoAtivo || (window.snRoupaCamoAte && agoraCd < window.snRoupaCamoAte)) &&
+                (!moveX && !moveY && !window.movendoTeclado && !window.joystickAtivo);
+            if (sniperParadoCamuflado && dtCd > 0 && dtCd < 1000) {
+                const sniperBtnIds = ['btn-sniper-apontar', 'btn-sniper-rede', 'btn-sniper-posicao', 'btn-dash'];
+                sniperBtnIds.forEach(id => {
+                    const b = document.getElementById(id);
+                    if (b && b.dataset.cdUntil && Number(b.dataset.cdUntil) > agoraCd) {
+                        b.dataset.cdUntil = String(Number(b.dataset.cdUntil) + dtCd);
+                    }
+                });
+            }
+
+            // v1.50.0: a Camuflagem Natural (Sniper) só brilha quando está
+            // VESTINDO a roupa de camuflagem (puxada pelo DASH) e ainda não
+            // camuflou. Sem a roupa, o botão fica apagado com a dica do motivo.
             if (window.minhaClasse === 'sniper' && btnSniperCamuflagem) {
+                const vestindoRoupa = Date.now() < (window.snRoupaCamoAte || 0);
                 if (window.snCamufladoAtivo) {
                     btnSniperCamuflagem.classList.remove('cd-ready', 'cd-active', 'show-cd');
-                } else {
+                    btnSniperCamuflagem.classList.remove('camo-bloqueado');
+                    btnSniperCamuflagem.title = 'Camuflagem Natural (4) — ativo';
+                } else if (vestindoRoupa) {
                     btnSniperCamuflagem.classList.add('cd-ready');
+                    btnSniperCamuflagem.classList.remove('camo-bloqueado');
+                    btnSniperCamuflagem.title = 'Camuflagem Natural (4) — precisa estar no mato';
+                } else {
+                    btnSniperCamuflagem.classList.remove('cd-ready', 'cd-active', 'show-cd');
+                    btnSniperCamuflagem.classList.add('camo-bloqueado');
+                    btnSniperCamuflagem.title = 'Camuflagem Natural (4) — pressione ESPAÇO (dash) para vestir a roupa de camuflagem';
                 }
             }
         }
 
         function registrarCooldownBotao(btn, milissegundos) {
             if (!btn) return;
+            if (window.adminCheats && window.adminCheats.semCooldown) {
+                btn.classList.remove("cooldown");
+                btn.dataset.cdUntil = '';
+                return;
+            }
             btn.dataset.cdUntil = String(Date.now() + milissegundos);
             btn.dataset.cdDur = String(milissegundos); // v1.34: usado pelo anel de cooldown
         }
@@ -2597,7 +2766,7 @@ function usarCanticoCelestial() {
                         // do proprio jogador em OUTRO mapa (cidade) e precisam SEMPRE passar,
                         // senao o respawn e descartado e o jogador fica preso na borda do mapa.
                         if (dados && Number.isFinite(dados.x) && Number.isFinite(dados.y) && dados.type !== 'init' && dados.type !== 'teleporte_confirmado' && dados.type !== 'respawn_confirmado') {
-                            const mapaEvento = dados.x >= window.LARGURA_CIDADE_PERDIDA ? 'cidadeperdida' : (dados.x >= window.LARGURA_ARENA ? 'arena' : (dados.x >= window.LARGURA_CIDADE && dados.x < window.FIM_CIDADE ? 'cidade' : (dados.x >= window.LARGURA_PANTANO ? 'caverna' : (dados.x >= window.LARGURA_DESERTO ? 'pantano' : (dados.x >= window.LARGURA_VERDE ? 'desert' : 'green')))));
+                            const mapaEvento = dados.x >= (window.LARGURA_CASTELO || 82000) ? 'castelo' : (dados.x >= (window.LARGURA_ZONA_ZERO || 74000) ? 'zonazero' : (dados.x >= (window.LARGURA_TESTE_VISUAL || 72000) ? 'testevisual' : (dados.x >= window.LARGURA_CIDADE_PERDIDA ? 'cidadeperdida' : (dados.x >= window.LARGURA_ARENA ? 'arena' : (dados.x >= window.LARGURA_CIDADE && dados.x < window.FIM_CIDADE ? 'cidade' : (dados.x >= window.LARGURA_PANTANO ? 'caverna' : (dados.x >= window.LARGURA_DESERTO ? 'pantano' : (dados.x >= window.LARGURA_VERDE ? 'desert' : 'green'))))))));
                             if (mapaEvento !== window.currentMap) return;
                         }
                         if (window.AudioManager && typeof window.AudioManager.handleGameEvent === 'function') window.AudioManager.handleGameEvent(dados);
@@ -2636,6 +2805,9 @@ function usarCanticoCelestial() {
                         document.getElementById("trade-modal").style.display = "none";
                         window.tradeData = null;
                         let msg = dados.mensagem || "Troca Encerrada";
+                        if (msg.indexOf('Concluída') !== -1 || msg.indexOf('Concluida') !== -1) {
+                            if (window.tocarSonoro) window.tocarSonoro('ui_gold');
+                        }
                         if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 30, text: msg, color: "#f39c12", alpha: 1.0 });
                     }
                     if (dados.type === 'ui_layout' && dados.layout) {
@@ -2645,6 +2817,12 @@ function usarCanticoCelestial() {
                     }
                     if (dados.type === 'init') {
                         window.meuId = dados.id;
+                        // Recarrega os ajustes visuais agora que o ID do personagem
+                        // é conhecido (o modo de tela é salvo por ID).
+                        if (typeof carregarConfigVisual === 'function') {
+                            carregarConfigVisual();
+                            if (typeof atualizarSeletorTela === 'function') atualizarSeletorTela();
+                        }
                         if (window.InterfaceEditor && typeof window.InterfaceEditor.recarregarLocal === 'function') {
                             window.InterfaceEditor.recarregarLocal();
                         }
@@ -2653,7 +2831,7 @@ function usarCanticoCelestial() {
                             // CORREÇÃO: seta o mapa certo na 1ª frame (ex.: personagem salvo na Arena
                             // ou em qualquer bioma que não seja a cidade). Sem isso, a 1ª frame renderiza
                             // a cidade e o clamp puxa o char para o canto (X = FIM_CIDADE - 42).
-                            window.currentMap = (window.meuX >= window.LARGURA_CIDADE_PERDIDA) ? 'cidadeperdida' : ((window.meuX >= window.LARGURA_ARENA) ? (window.solariAtivo ? 'solari' : 'arena') : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 'cidade' : ((window.meuX >= window.LARGURA_PANTANO) ? 'caverna' : ((window.meuX >= window.LARGURA_DESERTO) ? 'pantano' : ((window.meuX >= window.LARGURA_VERDE) ? 'desert' : 'green')))));
+                            window.currentMap = (window.meuX >= (window.LARGURA_CASTELO || 82000)) ? 'castelo' : ((window.meuX >= (window.LARGURA_ZONA_ZERO || 74000)) ? 'zonazero' : ((window.meuX >= (window.LARGURA_TESTE_VISUAL || 72000)) ? 'testevisual' : ((window.meuX >= window.LARGURA_CIDADE_PERDIDA) ? 'cidadeperdida' : ((window.meuX >= window.LARGURA_ARENA) ? (window.solariAtivo ? 'solari' : 'arena') : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 'cidade' : ((window.meuX >= window.LARGURA_PANTANO) ? 'caverna' : ((window.meuX >= window.LARGURA_DESERTO) ? 'pantano' : ((window.meuX >= window.LARGURA_VERDE) ? 'desert' : 'green'))))))));
                         }
                         if (dados.level !== undefined) meuLevel = dados.level;
                         if (dados.xp !== undefined) meuXp = dados.xp;
@@ -2685,6 +2863,7 @@ function usarCanticoCelestial() {
                             if (typeof window.mostrarBotaoVfxAdmin === "function") window.mostrarBotaoVfxAdmin();
                             if (typeof mostrarBotaoColisaoEditor === "function") mostrarBotaoColisaoEditor();
                             if (typeof window.mostrarBotaoMapaEditor === "function") window.mostrarBotaoMapaEditor();
+                            if (typeof window.mostrarBotaoAdminCheats === "function") window.mostrarBotaoAdminCheats();
                             let bAdmin = document.getElementById('btn-item-admin');
                             if (bAdmin) bAdmin.style.display = 'flex';
                         }
@@ -2705,7 +2884,7 @@ function usarCanticoCelestial() {
                             // Arena de Solari: entra (ou sai) do modo Solari
                             window.solariAtivo = (mapaDestino === 'solari');
                             if (typeof window.solariMudouMapa === 'function') window.solariMudouMapa(mapaDestino === 'solari');
-                            let mapaMostrar = (mapaDestino === 'solari') ? 'solari' : ((mapaDestino === 'arena') ? 'arena' : ((mapaDestino === 'cidade') ? 'cidade' : ((mapaDestino === 'cidadeperdida') ? 'cidadeperdida' : ((mapaDestino === 'caverna') ? 'caverna' : ((mapaDestino === 'pantano') ? 'pantano' : ((mapaDestino === 'desert') ? 'desert' : 'green'))))));
+                            let mapaMostrar = (mapaDestino === 'testevisual') ? 'testevisual' : ((mapaDestino === 'solari') ? 'solari' : ((mapaDestino === 'arena') ? 'arena' : ((mapaDestino === 'cidade') ? 'cidade' : ((mapaDestino === 'cidadeperdida') ? 'cidadeperdida' : ((mapaDestino === 'caverna') ? 'caverna' : ((mapaDestino === 'pantano') ? 'pantano' : ((mapaDestino === 'desert') ? 'desert' : 'green')))))));
                             fadeTeleporte(mapaMostrar, dados.x, dados.y);
                             if (statusText) statusText.innerText = "🌀 Teleportado para " + mapaMostrar + "!";
                         }
@@ -2762,15 +2941,31 @@ function usarCanticoCelestial() {
                         else window.mapaObjetos = dados.objetos || [];
                     }
 
+                    if (dados.type === 'colisoes_iniciais') {
+                        if (typeof window.carregarColisoesIniciais === 'function') {
+                            window.carregarColisoesIniciais(dados.colisoes, dados.camadas);
+                        }
+                        if (dados.colisoes && dados.colisoes.cidade && window.mapaCidade && typeof window.mapaCidade.carregarObstaculos === 'function') {
+                            window.mapaCidade.carregarObstaculos(dados.colisoes.cidade);
+                            if (dados.camadas && dados.camadas.cidade && typeof window.mapaCidade.carregarCamadas === 'function') {
+                                window.mapaCidade.carregarCamadas(dados.camadas.cidade);
+                            }
+                        }
+                    }
+
                     if (dados.type === 'colisoes_atualizadas') {
-                        if (dados.mapa === 'cidade' && window.mapaCidade && typeof window.mapaCidade.carregarObstaculos === 'function') {
+                        const mapaAtualizado = dados.mapa || 'cidade';
+                        if (typeof window.receberColisoesServidor === 'function') {
+                            window.receberColisoesServidor(mapaAtualizado, dados.obstaculos, dados.camadas);
+                        }
+                        if (mapaAtualizado === 'cidade' && window.mapaCidade && typeof window.mapaCidade.carregarObstaculos === 'function') {
                             window.mapaCidade.carregarObstaculos(dados.obstaculos);
                             if (Array.isArray(dados.camadas) && typeof window.mapaCidade.carregarCamadas === 'function') {
                                 window.mapaCidade.carregarCamadas(dados.camadas);
                             }
-                            if (typeof window.atualizarListaColisoesUI === 'function') window.atualizarListaColisoesUI();
-                            if (typeof window.atualizarPropriedadesUI === 'function') window.atualizarPropriedadesUI();
                         }
+                        if (typeof window.atualizarListaColisoesUI === 'function') window.atualizarListaColisoesUI();
+                        if (typeof window.atualizarPropriedadesUI === 'function') window.atualizarPropriedadesUI();
                     }
 
                     if (dados.type === 'xp_ganho') {
@@ -2863,6 +3058,12 @@ function usarCanticoCelestial() {
 
                     if (dados.type === 'skill_aviso' && dados.motivo === 'fora_mato') {
                         if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 34, text: "🌿 Camuflagem precisa estar no mato!", color: "#7d8a3d", alpha: 1.0 });
+                        if (typeof cancelarCooldownUltimaSkill === 'function') cancelarCooldownUltimaSkill();
+                    }
+
+                    // v1.50.0: Sniper sem a ROUPA de camuflagem (vestida pelo DASH)
+                    if (dados.type === 'skill_aviso' && dados.motivo === 'sem_roupa') {
+                        if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 34, text: "🎽 Vista a camuflagem (ESPAÇO) primeiro!", color: "#e67e22", alpha: 1.0 });
                         if (typeof cancelarCooldownUltimaSkill === 'function') cancelarCooldownUltimaSkill();
                     }
 
@@ -3069,6 +3270,19 @@ function usarCanticoCelestial() {
                         Object.keys(dados.players || {}).forEach(function(pid) {
                             let atual = dados.players[pid];
                             let anterior = jogadoresAnteriores[pid] || {};
+                            if (pid !== window.meuId && anterior.hp !== undefined && atual.hp < anterior.hp) {
+                                if ((atual.classe === 'arqueiro_arcano' || atual.classe === 'arqueiro_astral') && window.tocarSonoroProximidade) {
+                                    window.tocarSonoroProximidade('astral_damage', atual.x, atual.y);
+                                } else if (atual.classe === 'guerreiro' && window.tocarSonoroProximidade) {
+                                    window.tocarSonoroProximidade('guerreiro_damage', atual.x, atual.y);
+                                } else if (atual.classe === 'roqueiro' && window.tocarSonoroProximidade) {
+                                    window.tocarSonoroProximidade('roqueiro_damage', atual.x, atual.y);
+                                } else if (atual.classe === 'sniper' && window.tocarSonoroProximidade) {
+                                    window.tocarSonoroProximidade('sniper_damage', atual.x, atual.y);
+                                } else if (atual.classe === 'summoner' && window.tocarSonoroProximidade) {
+                                    window.tocarSonoroProximidade('summoner_damage', atual.x, atual.y);
+                                }
+                            }
                             if (atual.rajadaAtiva && atual.rajadaFase === 'disparo' && anterior.rajadaFase !== 'disparo') {
                                 if (pid === window.meuId) window.arqueiroRajadaLigada = false;
                                 if (typeof window.finalizarCarregamentoRajada === 'function') window.finalizarCarregamentoRajada(pid);
@@ -3131,6 +3345,14 @@ function usarCanticoCelestial() {
                         window.redesSniper = dados.redesSniper || (window.redesSniper || []);
                         window.moitas = dados.moitas || (window.moitas || []);
 
+                        // v1.52.0: CICLO DIA E NOITE (autoridade do servidor)
+                        if (dados.tempoMundo) {
+                            window.tempoMundo = dados.tempoMundo;
+                            if (typeof window.atualizarRelogioMinimapa === 'function') {
+                                window.atualizarRelogioMinimapa(dados.tempoMundo);
+                            }
+                        }
+
                         let bossAtivoHud = null;
                         let melhorDistHud = 520;
                         listaBosses.forEach(bx => {
@@ -3156,7 +3378,20 @@ function usarCanticoCelestial() {
 
                             if (window.todosJogadores[window.meuId].atributos) window.meusAtributos = window.todosJogadores[window.meuId].atributos;
                             if (window.todosJogadores[window.meuId].atributosTotais) window.atributosTotais = window.todosJogadores[window.meuId].atributosTotais;
-                            if (Array.isArray(window.todosJogadores[window.meuId].efeitos)) window.meusEfeitos = window.todosJogadores[window.meuId].efeitos;
+                            if (Array.isArray(window.todosJogadores[window.meuId].efeitos)) {
+                                window.meusEfeitos = window.todosJogadores[window.meuId].efeitos;
+                                let temStunLocal = window.meusEfeitos.some(function (e) { return e && e.id === 'stun' && e.tempo > 0; });
+                                if (temStunLocal && !window._tinhaStunLocal) {
+                                    if (window.tocarSonoro) window.tocarSonoro('debuff_stun');
+                                }
+                                window._tinhaStunLocal = temStunLocal;
+
+                                let temLentLocal = window.meusEfeitos.some(function (e) { return e && (e.id === 'lentidao' || e.id === 'slow') && e.tempo > 0; });
+                                if (temLentLocal && !window._tinhaLentLocal) {
+                                    if (window.tocarSonoro) window.tocarSonoro('debuff_lentidao');
+                                }
+                                window._tinhaLentLocal = temLentLocal;
+                            }
                             if (window.todosJogadores[window.meuId].pontosDisponiveis !== undefined) window.pontosDisponiveis = window.todosJogadores[window.meuId].pontosDisponiveis;
                             if (window.todosJogadores[window.meuId].maxHp) window.meuMaxHp = window.todosJogadores[window.meuId].maxHp;
 
@@ -3166,6 +3401,21 @@ function usarCanticoCelestial() {
                                 window.meuHp = hpServidor;
                                 window.danoFlashTimer = 10;
                                 window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 15, text: "-" + danoRecebido, color: "#e74c3c", alpha: 1.0 });
+                                if (window.minhaClasse === 'pikeman' && Math.random() < 0.40) {
+                                    if (window.tocarSonoro) window.tocarSonoro('pikeman_damage');
+                                } else if (window.minhaClasse === 'mago') {
+                                    if (window.tocarSonoro) window.tocarSonoro('mago_damage');
+                                } else if (window.minhaClasse === 'arqueiro_arcano' || window.minhaClasse === 'arqueiro_astral') {
+                                    if (window.tocarSonoro) window.tocarSonoro('astral_damage');
+                                } else if (window.minhaClasse === 'guerreiro') {
+                                    if (window.tocarSonoro) window.tocarSonoro('guerreiro_damage');
+                                } else if (window.minhaClasse === 'roqueiro') {
+                                    if (window.tocarSonoro) window.tocarSonoro('roqueiro_damage');
+                                } else if (window.minhaClasse === 'sniper') {
+                                    if (window.tocarSonoro) window.tocarSonoro('sniper_damage');
+                                } else if (window.minhaClasse === 'summoner') {
+                                    if (window.tocarSonoro) window.tocarSonoro('summoner_damage');
+                                }
                             } else if (hpServidor > window.meuHp) {
                                 let curado = hpServidor - window.meuHp;
                                 window.meuHp = hpServidor;
@@ -3189,6 +3439,7 @@ function usarCanticoCelestial() {
 
                             window.__deadMsg = (window.meuHp <= 0) ? Date.now() : window.__deadMsg;
                             if (window.meuHp <= 0 && !window.estaMorto) {
+                                if (typeof window.pararSomPikemanCarregando === 'function') window.pararSomPikemanCarregando();
                                 window.__morteExecutou = window.__morteExecutou || Date.now();
                                 window.estaMorto = true; autofarmLigado = false;
                                 if (window.minhaClasse === 'guerreiro' && window.tocarSonoro) window.tocarSonoro('guerreiro_morto');
@@ -3220,6 +3471,7 @@ function usarCanticoCelestial() {
                         window.meuOuro = dados.ouro;
                         if (statusText) statusText.innerText = "🪙 +" + dados.quantidade + " Ouro!";
                         if (window.atualizarHudOuro) window.atualizarHudOuro();
+                        if (window.tocarSonoro) window.tocarSonoro('ui_gold');
                     }
                     // v1.34: poção usada (atualiza slots HP/MP) / indisponível / stamina
                     if (dados.type === 'pocao_usada') {
@@ -3308,16 +3560,26 @@ function usarCanticoCelestial() {
                     if (dados.type === 'action_magia_basica' && window.todosJogadores[dados.id] && dados.id !== window.meuId) {
                         let __pjR = window.todosJogadores[dados.id];
                         if (__pjR && __pjR.classe === 'roqueiro') {
-                            if (window.tocarSonoro) window.tocarSonoro('roqueiro_atk'); else tocarSomMagiaBasica();
+                            if (window.tocarSonoroProximidade) window.tocarSonoroProximidade('roqueiro_atk', __pjR.x, __pjR.y); else tocarSomMagiaBasica();
                             if (!window._roqueiroGolpePorId) window._roqueiroGolpePorId = {};
                             window._roqueiroGolpePorId[dados.id] = Date.now();
-                        } else {
-                            tocarSomMagiaBasica();
+                        } else if (__pjR) {
+                            if (window.tocarSonoroProximidade) window.tocarSonoroProximidade('mago_atk', __pjR.x, __pjR.y); else tocarSomMagiaBasica();
                         }
                     }
-                    if (dados.type === 'action_orbe' && window.todosJogadores[dados.id] && dados.id !== window.meuId) { tocarSomOrbe(); }
+                    if (dados.type === 'action_orbe' && window.todosJogadores[dados.id] && dados.id !== window.meuId) {
+                        let __pjO = window.todosJogadores[dados.id];
+                        tocarSomOrbe(__pjO.x, __pjO.y);
+                    }
                     if (dados.type === 'action_flecha') {
-                        if (dados.id !== window.meuId) tocarSomFlecha();
+                        if (dados.id !== window.meuId) {
+                            let __pjF = window.todosJogadores && window.todosJogadores[dados.id];
+                            if (__pjF && window.tocarSonoroProximidade) {
+                                window.tocarSonoroProximidade('arqueira_atk', __pjF.x, __pjF.y);
+                            } else {
+                                tocarSomFlecha();
+                            }
+                        }
                         // Registra o instante do tiro de OUTROS jogadores para a animação de engate
                         if (dados.id && window.meuId !== dados.id) {
                             if (!window._arqueiroTiroPorId) window._arqueiroTiroPorId = {};
@@ -3327,11 +3589,14 @@ function usarCanticoCelestial() {
                         // world_update → playerProjeteis (desenharPlayerProjetil). A chamada
                         // criarAnimacaoFlechaBasica criava uma SEGUNDA flecha sobre a mesma.
                     }
-                    if (dados.type === 'action_sagrado' && window.todosJogadores[dados.id] && dados.id !== window.meuId) { tocarSomLuzSagrada(); }
+                    if (dados.type === 'action_sagrado' && window.todosJogadores[dados.id] && dados.id !== window.meuId) {
+                        let __pjS = window.todosJogadores[dados.id];
+                        tocarSomLuzSagrada(__pjS.x, __pjS.y);
+                    }
                     if (dados.type === 'action_ogro_sismico') { if(typeof window.criarAnimacaoOgroSismico === "function") window.criarAnimacaoOgroSismico(dados.x, dados.y); }
                     if (dados.type === 'action_ogro_salto') { if(typeof window.criarAnimacaoSaltoOgro === "function") window.criarAnimacaoSaltoOgro(dados.startX, dados.startY, dados.targetX, dados.targetY); }
                     if (dados.type === 'action_ogro_rugido') {
-                        if (typeof tocarSomRugidoOgro === 'function') tocarSomRugidoOgro();
+                        if (typeof tocarSomRugidoOgro === 'function') tocarSomRugidoOgro(dados.x, dados.y);
                         if (typeof window.criarAnimacaoRugidoOgro === 'function') window.criarAnimacaoRugidoOgro(dados.x, dados.y);
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 45, text: "🦁 RUGIDO!", color: "#9b59b6", alpha: 1.0 });
                     }
@@ -3341,15 +3606,11 @@ function usarCanticoCelestial() {
                     if (dados.type === 'vulcao_projetil') { if(typeof window.criarVulcaoProjetil === "function") window.criarVulcaoProjetil(dados.vx, dados.vy, dados.tx, dados.ty, dados.tipo, dados.id); }
                     if (dados.type === 'vulcao_impacto') {
                         if (typeof window.criarVulcaoImpacto === "function") window.criarVulcaoImpacto(dados.tx, dados.ty, dados.tipo, dados.id);
-                        // Som do IMPACTO da lava: só do vulcão do jogador local (posição conhecida)
-                        let mvImpacto = window.meuVulcao;
                         let agoraImpacto = Date.now();
-                        if (mvImpacto && agoraImpacto < mvImpacto.ate && agoraImpacto - (window.ultimoImpactoLava || 0) > 200) {
-                            let dxi = dados.tx - mvImpacto.x, dyi = dados.ty - mvImpacto.y;
-                            if (dxi * dxi + dyi * dyi <= 170 * 170) {
-                                window.ultimoImpactoLava = agoraImpacto;
-                                if (window.tocarSonoro) window.tocarSonoro('mago_lava_impacto');
-                            }
+                        if (agoraImpacto - (window.ultimoImpactoLava || 0) > 200) {
+                            window.ultimoImpactoLava = agoraImpacto;
+                            if (window.tocarSonoroProximidade) window.tocarSonoroProximidade('mago_lava_impacto', dados.tx, dados.ty);
+                            else if (window.tocarSonoro) window.tocarSonoro('mago_lava_impacto');
                         }
                     }
                     if (dados.type === 'reacao_congelante') { if(typeof window.criarReacaoCongelante === "function") window.criarReacaoCongelante(dados.x, dados.y); }
@@ -3370,6 +3631,13 @@ function usarCanticoCelestial() {
                         window.dmDroneX = (window.meuX || 0) + 12 + 26;
                         window.dmDroneY = (window.meuY || 0) + 16 - 16;
                     }
+                    if (dados.type === 'action_dm_assalto_ataque') {
+                        if (dados.id === window.meuId) {
+                            if (window.tocarSonoro) window.tocarSonoro('dronemaster_assalto_impacto');
+                        } else if (window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('dronemaster_assalto_impacto', dados.x, dados.y);
+                        }
+                    }
                     if (dados.type === 'action_dm_caixa') {
                         if (!window.caixasFerramentas) window.caixasFerramentas = [];
                         window.caixasFerramentas.push({ x: dados.x || dados.targetX, y: dados.y || dados.targetY, tempo: 240, dono: dados.id });
@@ -3388,6 +3656,9 @@ function usarCanticoCelestial() {
                         let dx = (dados.alvoX !== undefined ? dados.alvoX : (dados.tx || dados.x || sx + 100));
                         let dy = (dados.alvoY !== undefined ? dados.alvoY : (dados.ty || dados.y || sy));
                         if (typeof window.criarFlechaArcanoBasica === "function") window.criarFlechaArcanoBasica(sx, sy, dx, dy);
+                        if (dados.id !== window.meuId && window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('astral_atk', sx, sy);
+                        }
                     }
                     function removerZonaCliente(lista, id) {
                         if (!lista) return;
@@ -3398,10 +3669,15 @@ function usarCanticoCelestial() {
                         let idZone = dados.id !== undefined ? dados.id : ('zz_' + Date.now());
                         // evita duplicar quando o cast + o init se cruzam
                         removerZonaCliente(window.chuvasCometas, idZone);
-                        window.chuvasCometas.push({ id: idZone, x: dados.targetX || dados.x, y: dados.targetY || dados.y, raio: dados.raio || 85, tempo: 80, duracao: 80, dono: dados.ownerId !== undefined ? dados.ownerId : dados.id });
+                        let cx = dados.targetX || dados.x || 0, cy = dados.targetY || dados.y || 0;
+                        window.chuvasCometas.push({ id: idZone, x: cx, y: cy, raio: dados.raio || 85, tempo: 80, duracao: 80, dono: dados.ownerId !== undefined ? dados.ownerId : dados.id });
                         if (!window.impactosCometas) window.impactosCometas = [];
-                        window.impactosCometas.push({ x: dados.targetX || dados.x, y: dados.targetY || dados.y, tempo: 16, tempoMax: 16, tipo: 'impacto' });
-                        window.floatingTexts.push({ x: (dados.targetX || dados.x), y: (dados.targetY || dados.y) - 24, text: "☄️ Chuva de Cometas!", color: "#c39bff", alpha: 1.0 });
+                        window.impactosCometas.push({ x: cx, y: cy, tempo: 16, tempoMax: 16, tipo: 'impacto' });
+                        window.floatingTexts.push({ x: cx, y: cy - 24, text: "☄️ Chuva de Cometas!", color: "#c39bff", alpha: 1.0 });
+                        let donoCometa = dados.ownerId !== undefined ? dados.ownerId : dados.id;
+                        if (donoCometa !== window.meuId && window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('astral_skill1', cx, cy);
+                        }
                     }
                     if (dados.type === 'action_arcano_cometas_dano') {
                         if (!window.chuvasCometas) window.chuvasCometas = [];
@@ -3417,7 +3693,12 @@ function usarCanticoCelestial() {
                         if (!window.orbeConstelacoes) window.orbeConstelacoes = [];
                         let idOrbe = dados.id !== undefined ? dados.id : ('orb_' + Date.now());
                         removerZonaCliente(window.orbeConstelacoes, idOrbe);
-                        window.orbeConstelacoes.push({ id: idOrbe, x: dados.targetX || dados.x, y: dados.targetY || dados.y, raio: dados.raio || 100, tempo: 40, duracao: 40, dono: dados.ownerId !== undefined ? dados.ownerId : dados.id });
+                        let ox = dados.targetX || dados.x || 0, oy = dados.targetY || dados.y || 0;
+                        window.orbeConstelacoes.push({ id: idOrbe, x: ox, y: oy, raio: dados.raio || 100, tempo: 40, duracao: 40, dono: dados.ownerId !== undefined ? dados.ownerId : dados.id });
+                        let donoOrbe = dados.ownerId !== undefined ? dados.ownerId : dados.id;
+                        if (donoOrbe !== window.meuId && window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('astral_skill2', ox, oy);
+                        }
                     }
                     if (dados.type === 'action_arcano_orbe_quebra') {
                         if (!window.orbeConstelacoes) window.orbeConstelacoes = [];
@@ -3436,6 +3717,9 @@ function usarCanticoCelestial() {
                         let oy = pjV ? pjV.y + 16 : ((dados.y || window.meuY + 16));
                         if (!window.cascatasEstelar) window.cascatasEstelar = [];
                         window.cascatasEstelar.push({ x: ox, y: oy, angulo: dados.ang || dados.angulo || (pjV ? pjV.angulo || 0 : window.meuAngulo || 0), tempo: 40, raio: 280, dono: dados.id });
+                        if (dados.id !== window.meuId && window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('astral_skill3', ox, oy);
+                        }
                     }
                     // ===== v1.31 — SNIPER =====
                     if (dados.type === 'action_sniper_tiro' || dados.type === 'action_sniper_super_tiro') {
@@ -3471,56 +3755,83 @@ function usarCanticoCelestial() {
                     }
                     if (dados.type === 'action_sniper_camuflagem_fim') {
                         if (dados.id === window.meuId) { window.snCamufladoAtivo = false; }
-                    }
-                    // ===== AÇÕES DO PIKEMAN =====
+                    }                    // ===== AÇÕES DO PIKEMAN =====
                     if (dados.type === 'action_pikeman_foice') {
                         if (dados.id && dados.id !== window.meuId) {
-                            if (window.tocarSonoro) window.tocarSonoro('pikeman_atk');
+                            let pj = window.todosJogadores && window.todosJogadores[dados.id];
+                            if (pj && window.tocarSonoroProximidade) window.tocarSonoroProximidade('pikeman_atk', pj.x, pj.y);
                         }
                         if (typeof window.registrarPikemanAnim === 'function') window.registrarPikemanAnim(dados.id, 'foice', 320);
                     }
                     if (dados.type === 'action_pikeman_giro') {
-                        if (dados.id === window.meuId && window.tocarSonoro) window.tocarSonoro('pikeman_giro');
+                        if (dados.id !== window.meuId && window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('pikeman_giro', dados.x, dados.y);
+                        }
                         if (typeof window.criarAnimacaoGiroPikeman === 'function') window.criarAnimacaoGiroPikeman(dados.id, dados.x, dados.y, dados.durMs);
                     }
                     if (dados.type === 'action_pikeman_giro_hit') {
                         if (typeof window.criarFlashPikeman === 'function') window.criarFlashPikeman(dados.x, dados.y, '#ff5d7a', 8);
                     }
                     if (dados.type === 'action_pikeman_pirueta') {
-                        if (dados.id === window.meuId && window.tocarSonoro) window.tocarSonoro('pikeman_pirueta');
+                        if (dados.id !== window.meuId && window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('pikeman_pirueta', dados.x, dados.y);
+                        }
                         if (typeof window.criarAnimacaoPiruetaPikeman === 'function') window.criarAnimacaoPiruetaPikeman(dados.id, dados.x, dados.y);
                     }
                     if (dados.type === 'action_pikeman_pirueta_hit') {
                         if (typeof window.criarImpactoPiruetaPikeman === 'function') window.criarImpactoPiruetaPikeman(dados.x, dados.y, dados.hit);
                     }
                     if (dados.type === 'action_pikeman_geada') {
-                        if (dados.id === window.meuId && window.tocarSonoro) window.tocarSonoro('pikeman_geada');
+                        if (dados.id !== window.meuId && window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('pikeman_geada', dados.x, dados.y);
+                        }
                         if (typeof window.criarAnimacaoGeadaPikeman === 'function') window.criarAnimacaoGeadaPikeman(dados.id, dados.x, dados.y, dados.raio);
                     }
                     if (dados.type === 'action_pikeman_geada_hit') {
                         if (typeof window.criarImpactoGeadaPikeman === 'function') window.criarImpactoGeadaPikeman(dados.x, dados.y);
                     }
                     if (dados.type === 'action_pikeman_execucao') {
-                        if (dados.id === window.meuId && window.tocarSonoro) window.tocarSonoro('pikeman_execucao');
+                        if (dados.id !== window.meuId && window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('pikeman_skill4_carregar', dados.x, dados.y);
+                        }
                         if (typeof window.criarAnimacaoExecucaoPikeman === 'function') window.criarAnimacaoExecucaoPikeman(dados.id, dados.x, dados.y, dados.alvoX, dados.alvoY, dados.durMs);
                     }
                     if (dados.type === 'action_pikeman_execucao_hit') {
                         if (typeof window.criarImpactoExecucaoPikeman === 'function') window.criarImpactoExecucaoPikeman(dados.pX, dados.pY, dados.hit, dados.x, dados.y);
                         let animEx = (window.pikemanAnims && window.pikemanAnims[dados.id]) || null;
                         if (animEx && animEx.estado === 'execucao') animEx.hit = dados.hit || 1;
+                        if (typeof window.pararSomPikemanCarregando === 'function') window.pararSomPikemanCarregando();
+                        if (window.tocarSonoro) {
+                            if (dados.id === window.meuId) {
+                                if (dados.hit === 1) window.tocarSonoro('pikeman_skill4_hit1');
+                                else if (dados.hit === 2) window.tocarSonoro('pikeman_skill4_hit2');
+                                else if (dados.hit === 3) window.tocarSonoro('pikeman_skill4_hit3');
+                            } else if (window.tocarSonoroProximidade) {
+                                let pX = dados.pX || dados.x || 0, pY = dados.pY || dados.y || 0;
+                                if (dados.hit === 1) window.tocarSonoroProximidade('pikeman_skill4_hit1', pX, pY);
+                                else if (dados.hit === 2) window.tocarSonoroProximidade('pikeman_skill4_hit2', pX, pY);
+                                else if (dados.hit === 3) window.tocarSonoroProximidade('pikeman_skill4_hit3', pX, pY);
+                            }
+                        }
                     }
                     if (dados.type === 'action_pikeman_execucao_end') {
                         if (typeof window.registrarPikemanAnim === 'function') window.registrarPikemanAnim(dados.id, 'idle', 500);
+                        if (typeof window.pararSomPikemanCarregando === 'function') window.pararSomPikemanCarregando();
                     }
                     if (dados.type === 'action_pikeman_execucao_cancel') {
                         if (typeof window.cancelarAnimacaoExecucaoPikeman === 'function') window.cancelarAnimacaoExecucaoPikeman(dados.id);
+                        if (typeof window.pararSomPikemanCarregando === 'function') window.pararSomPikemanCarregando();
                     }
                     if (dados.type === 'action_tornado' && window.todosJogadores[dados.id]) {
                         window.tornadoTimers[dados.id] = 30;
                         if (dados.id === window.meuId) { if (window.tocarSonoro) window.tocarSonoro('guerreiro_tornado'); else tocarSomTornado(); }
                     }
                     if (dados.type === 'action_guerreiro_provocacao') {
-                        if (window.tocarSonoro) window.tocarSonoro('guerreiro_grito'); else tocarSomProvocacao();
+                        if (dados.id === window.meuId) {
+                            if (window.tocarSonoro) window.tocarSonoro('guerreiro_grito'); else tocarSomProvocacao();
+                        } else if (window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('guerreiro_grito', dados.x, dados.y);
+                        }
                         if (typeof window.criarAnimacaoGritoProvocacao === "function") {
                             window.criarAnimacaoGritoProvocacao(dados.id, dados.x, dados.y);
                         }
@@ -3530,19 +3841,32 @@ function usarCanticoCelestial() {
                         if (typeof window.registrarDefesaGuerreiro === 'function') window.registrarDefesaGuerreiro(dados.id);
                     }
                     if (dados.type === 'action_roqueiro_grito_guerra') {
+                        if (dados.id === window.meuId) {
+                            if (window.tocarSonoro) window.tocarSonoro('roqueiro_skill4');
+                        } else if (window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('roqueiro_skill4', dados.x, dados.y);
+                        }
                         if (typeof window.criarAnimacaoGritoGuerra === 'function') {
                             window.criarAnimacaoGritoGuerra(dados.id, dados.x, dados.y, dados.raio);
                         }
                     }
                     if (dados.type === 'action_dash' && window.todosJogadores[dados.id]) {
-                        dashTrails.push({ x: dados.x + 12, y: dados.y + 16, alpha: 1.0 });
+                        const pj = window.todosJogadores[dados.id];
+                        if (pj && pj.classe !== 'roqueiro') {
+                            const cor = pj.classe === 'barbaro' ? 'rgba(231, 76, 60, ' : 'rgba(52, 152, 219, ';
+                            dashTrails.push({ x: dados.x + 12, y: dados.y + 16, alpha: 1.0, cor: cor });
+                        }
                         if (dados.id === window.meuId) {
                             if (window.minhaClasse === 'roqueiro' && window.tocarSonoro) window.tocarSonoro('roqueiro_dash');
+                            else if (window.minhaClasse === 'pikeman' && window.tocarSonoro) window.tocarSonoro('pikeman_dash');
                             else if (window.minhaClasse !== 'mago' && window.minhaClasse !== 'summoner') tocarSomDash();
+                        } else if (pj && window.tocarSonoroProximidade) {
+                            if (pj.classe === 'pikeman') window.tocarSonoroProximidade('pikeman_dash', pj.x, pj.y);
+                            else if (pj.classe === 'roqueiro') window.tocarSonoroProximidade('roqueiro_dash', pj.x, pj.y);
                         }
                     }
                     if (dados.type === 'action_golem_ataque') {
-                        tocarSomAtaqueGolem();
+                        tocarSomAtaqueGolem(dados.x, dados.y);
                         if (typeof window.criarAnimacaoImpactoGolem === 'function') {
                             window.criarAnimacaoImpactoGolem(dados.x, dados.y);
                         }
@@ -3551,16 +3875,16 @@ function usarCanticoCelestial() {
                         registrarDanoCausado(dmg);
                     }
                     if (dados.type === 'action_lacaio_dano') {
-                        tocarSomBlock();
+                        tocarSomBlock(dados.x, dados.y);
                         let dmgOgro = (dados.dano !== undefined && dados.dano !== null) ? dados.dano : 10;
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 44, text: "-" + dmgOgro, color: "#ff5252", alpha: 1.0 });
                     }
                     if (dados.type === 'action_lacaio_morreu') {
-                        tocarSomImpactoPesado();
+                        tocarSomImpactoPesado(dados.x, dados.y);
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 64, text: "💀 OGOR CAIU!", color: "#ff5252", alpha: 1.0 });
                     }
                     if (dados.type === 'action_ogro_colossal') {
-                                                tocarSomImpactoPesado();
+                        tocarSomImpactoPesado(dados.x, dados.y);
                         window.lacaioColossal = window.lacaioColossal || {};
                         window.lacaioColossal[dados.pid] = true;
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 60, text: "🗿 GOLEM COLOSSAL!", color: "#e67e22", alpha: 1.0 });
@@ -3570,7 +3894,7 @@ function usarCanticoCelestial() {
                     }
                     if (dados.type === 'ogro_pedra_enorme') {
                         if (typeof window.criarPedraEnorme === 'function') window.criarPedraEnorme(dados.sx, dados.sy, dados.tx, dados.ty);
-                        tocarSomImpactoPesado();
+                        tocarSomImpactoPesado(dados.sx, dados.sy);
                     }
                     if (dados.type === 'ogro_ultimo_vinculo') {
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 40, text: "💠 ÚLTIMO VÍNCULO!", color: "#2ecc71", alpha: 1.0 });
@@ -3584,33 +3908,49 @@ function usarCanticoCelestial() {
                         if (typeof window.criarAnimacaoBesouroDecolagem === "function") window.criarAnimacaoBesouroDecolagem(dados.x, dados.y);
                     }
                     if (dados.type === 'action_besouro_impacto') {
-                        if (typeof tocarSomImpactoPesado === 'function') tocarSomImpactoPesado();
+                        if (typeof tocarSomImpactoPesado === 'function') tocarSomImpactoPesado(dados.x, dados.y);
                         if (typeof window.criarAnimacaoBesouroImpacto === "function") window.criarAnimacaoBesouroImpacto(dados.pid, dados.x, dados.y);
                     }
                     if (dados.type === 'action_morcego_chirp') {
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 30, text: "🦇 SCREE!", color: "#8e44ad", alpha: 1.0 });
                     }
                     if (dados.type === 'action_arqueiro_chuva') {
-                        tocarSomChuvaFlechas();
+                        if (dados.id !== window.meuId && window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('arqueira_chuva', dados.targetX, dados.targetY);
+                        } else {
+                            tocarSomChuvaFlechas();
+                        }
                         if (typeof window.criarAnimacaoChuvaFlechas === 'function') {
                             window.criarAnimacaoChuvaFlechas(dados.targetX, dados.targetY, dados.duracaoMs);
                         }
                     }
                     if (dados.type === 'action_arqueiro_perfurante') {
-                        tocarSomDisparoPerfurante();
+                        if (dados.id !== window.meuId && window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('arqueira_perfurante', dados.x, dados.y);
+                        } else {
+                            tocarSomDisparoPerfurante();
+                        }
                         if (typeof window.criarAnimacaoDisparoPerfurante === 'function') {
                             window.criarAnimacaoDisparoPerfurante(dados.x, dados.y, dados.vx, dados.vy, dados.angulo);
                         }
                     }
                     if (dados.type === 'action_arqueiro_rajada_start') {
-                        if (dados.id === window.meuId) window.arqueiroRajadaLigada = true;
+                        if (dados.id === window.meuId) {
+                            window.arqueiroRajadaLigada = true;
+                            if (window.tocarSonoro) window.tocarSonoro('arqueira_rajada_carregar');
+                        } else if (window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('arqueira_rajada_carregar', dados.x, dados.y);
+                        }
                         if (typeof window.iniciarCarregamentoRajada === 'function') {
                             window.iniciarCarregamentoRajada(dados.id, dados.x, dados.y, dados.angulo);
                         }
-                        if (window.tocarSonoro) window.tocarSonoro('arqueira_rajada_carregar');
                     }
                     if (dados.type === 'action_arqueiro_rajada_fire') {
-                        if (window.tocarSonoro) window.tocarSonoro('arqueira_rajada_soltar');
+                        if (dados.id === window.meuId) {
+                            if (window.tocarSonoro) window.tocarSonoro('arqueira_rajada_soltar');
+                        } else if (window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('arqueira_rajada_soltar', dados.x, dados.y);
+                        }
                     }
                     if (dados.type === 'action_arqueiro_rajada_hit') {
                         if (typeof window.criarAnimacaoImpactoFlecha === 'function') {
@@ -3631,7 +3971,11 @@ function usarCanticoCelestial() {
                         }
                     }
                     if (dados.type === 'action_curandeiro_cura') {
-                        if (window.tocarSonoro) window.tocarSonoro('curandeiro_cura'); else tocarSomCura();
+                        if (dados.id === window.meuId) {
+                            if (window.tocarSonoro) window.tocarSonoro('curandeiro_cura'); else tocarSomCura();
+                        } else if (window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('curandeiro_cura', dados.x, dados.y);
+                        }
                         if (typeof window.criarAnimacaoCuraDivina === 'function') {
                             window.criarAnimacaoCuraDivina(dados.x, dados.y, dados.valor);
                         }
@@ -3676,7 +4020,11 @@ function usarCanticoCelestial() {
                         }
                     }
                     if (dados.type === 'action_curandeiro_julgamento') {
-                        if (window.tocarSonoro) window.tocarSonoro('curandeiro_julgamento'); else tocarSomJulgamento();
+                        if (dados.id === window.meuId) {
+                            if (window.tocarSonoro) window.tocarSonoro('curandeiro_julgamento'); else tocarSomJulgamento();
+                        } else if (window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('curandeiro_julgamento', dados.targetX, dados.targetY);
+                        }
                         if (typeof window.criarAnimacaoJulgamentoSagrado === 'function') {
                             window.criarAnimacaoJulgamentoSagrado(dados.targetX, dados.targetY);
                         }
@@ -3684,7 +4032,7 @@ function usarCanticoCelestial() {
                     // Ações do Bárbaro
                     if (dados.type === 'action_machadada') {
                         if (dados.id && dados.id !== window.meuId) {
-                            if (window.tocarSonoro) window.tocarSonoro('barbaro_atk'); else tocarSomMachado();
+                            if (window.tocarSonoroProximidade) window.tocarSonoroProximidade('barbaro_atk', dados.x, dados.y); else tocarSomMachado();
                         }
                         if (typeof window.registrarMachadadaBarbaro === 'function') window.registrarMachadadaBarbaro(dados.id);
                         if (typeof window.criarAnimacaoSangue === 'function') {
@@ -3693,7 +4041,7 @@ function usarCanticoCelestial() {
                     }
                     if (dados.type === 'action_barbaro_furia') {
                         if (dados.id && dados.id !== window.meuId) {
-                            if (window.tocarSonoro) window.tocarSonoro('barbaro_furia'); else tocarSomFuria();
+                            if (window.tocarSonoroProximidade) window.tocarSonoroProximidade('barbaro_furia', dados.x, dados.y); else tocarSomFuria();
                         }
                         if (typeof window.criarAnimacaoFuriaBerserker === 'function') {
                             window.criarAnimacaoFuriaBerserker(dados.id, dados.duracaoMs);
@@ -3702,7 +4050,7 @@ function usarCanticoCelestial() {
                     if (dados.type === 'action_barbaro_giro_start') {
                         if (dados.id === window.meuId) window.giroDescontroladoLigado = true;
                         if (dados.id && dados.id !== window.meuId) {
-                            if (window.tocarSonoro) window.tocarSonoro('barbaro_giro'); else tocarSomEsmagamento();
+                            if (window.tocarSonoroProximidade) window.tocarSonoroProximidade('barbaro_giro', dados.x, dados.y); else tocarSomEsmagamento();
                         }
                         if (typeof window.criarAnimacaoGiroBarbaro === 'function') {
                             window.criarAnimacaoGiroBarbaro(dados.id, dados.x, dados.y, dados.duracaoMs);
@@ -3716,38 +4064,53 @@ function usarCanticoCelestial() {
                     }
                     if (dados.type === 'action_barbaro_esmagamento') {
                         if (dados.id && dados.id !== window.meuId) {
-                            if (window.tocarSonoro) window.tocarSonoro('barbaro_esmagamento'); else tocarSomEsmagamento();
+                            if (window.tocarSonoroProximidade) window.tocarSonoroProximidade('barbaro_esmagamento', dados.x, dados.y); else tocarSomEsmagamento();
                         }
                         if (typeof window.criarAnimacaoEsmagamentoBarbaro === 'function') {
                             window.criarAnimacaoEsmagamentoBarbaro(dados.x, dados.y);
                         }
                     }
                     if (dados.type === 'action_riff' && window.todosJogadores[dados.id] && dados.id !== window.meuId) {
-                        if (window.tocarSonoro) window.tocarSonoro('roqueiro_atk'); else tocarSomOrbe();
+                        let pjR = window.todosJogadores[dados.id];
+                        if (window.tocarSonoroProximidade) window.tocarSonoroProximidade('roqueiro_atk', pjR.x, pjR.y); else tocarSomOrbe(pjR.x, pjR.y);
                     }
                     if (dados.type === 'action_roqueiro_bateria') {
-                        tocarSomImpactoPesado();
+                        if (dados.id === window.meuId) {
+                            tocarSomImpactoPesado();
+                        } else if (window.tocarSonoroProximidade) {
+                            if (dados.start) {
+                                window.tocarSonoroProximidade('roqueiro_bateria', dados.x, dados.y);
+                            }
+                        } else {
+                            tocarSomImpactoPesado(dados.x, dados.y);
+                        }
                         if (typeof window.criarAnimacaoBateriaSolo === 'function') {
                             window.criarAnimacaoBateriaSolo(dados.x, dados.y);
                         }
                     }
-                    if (dados.type === 'action_roqueiro_bateria_end' && dados.id === window.meuId) {
-                        window.roqueiroBateriaLigada = false;
-                        window.roqueiroBateriaIniciadaEm = 0;
-                        let btnRoq = document.getElementById("btn-roqueiro-bateria");
-                        if (btnRoq) {
-                            btnRoq.classList.remove("active");
-                            if (dados.cooldown) {
-                                window.roqueiroBateriaCooldown = true;
-                                btnRoq.classList.add("cooldown");
-                                registrarCooldownBotao(btnRoq, 10000);
-                                setTimeout(() => { window.roqueiroBateriaCooldown = false; btnRoq.classList.remove("cooldown"); }, 10000);
+                    if (dados.type === 'action_roqueiro_bateria_end') {
+                        if (dados.id === window.meuId) {
+                            window.roqueiroBateriaLigada = false;
+                            window.roqueiroBateriaIniciadaEm = 0;
+                            let btnRoq = document.getElementById("btn-roqueiro-bateria");
+                            if (btnRoq) {
+                                btnRoq.classList.remove("active");
+                                if (dados.cooldown) {
+                                    window.roqueiroBateriaCooldown = true;
+                                    btnRoq.classList.add("cooldown");
+                                    registrarCooldownBotao(btnRoq, 10000);
+                                    setTimeout(() => { window.roqueiroBateriaCooldown = false; btnRoq.classList.remove("cooldown"); }, 10000);
+                                }
                             }
                         }
                         if (window.pararSomBateria) window.pararSomBateria();
                     }
                     if (dados.type === 'action_roqueiro_teleporte' && window.todosJogadores[dados.id]) {
-                        if (window.tocarSonoro) window.tocarSonoro('roqueiro_dash'); else if (dados.id === window.meuId) tocarSomSalto();
+                        if (dados.id === window.meuId) {
+                            if (window.tocarSonoro) window.tocarSonoro('roqueiro_dash'); else tocarSomSalto();
+                        } else if (window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('roqueiro_dash', dados.x, dados.y);
+                        }
                         if (typeof window.criarAnimacaoTeleporteRoqueiro === 'function') {
                             window.criarAnimacaoTeleporteRoqueiro(dados.x + 12, dados.y + 16);
                         }
@@ -3812,6 +4175,113 @@ function usarCanticoCelestial() {
                         if (dados.id !== window.meuId && window.todosJogadores[dados.id]) {
                             let jp = window.todosJogadores[dados.id];
                             if (typeof window.criarFumacaLadino === 'function') window.criarFumacaLadino(jp.x + 12, jp.y + 16, 8, '#9b59b6');
+                        }
+                    }
+
+                    // =================================================================
+                    // DASH v2 — eventos do servidor
+                    // =================================================================
+                    if (dados.type === 'dash_confirmado' && dados.id !== window.meuId) { /* irrelevant p/ outros */ }
+                    if (dados.type === 'dash_confirmado') {
+                        // Aplica o cooldown REAL (anti-exploit) e valida a predição
+                        if (dados.cooldownMs) dashCdAteServidor = Date.now() + dados.cooldownMs;
+                        if (typeof window.dashConfirmar === 'function') window.dashConfirmar(dados);
+                    }
+                    if (dados.type === 'dash_bloqueado') {
+                        if (dados.motivo !== 'escudo_erguido') {
+                            if (typeof window.dashRecusado === 'function') window.dashRecusado();
+                        }
+                    }
+                    if (dados.type === 'action_dash') {
+                        // VFX para TODOS (inclusive o dono, que já fez a predição)
+                        if (typeof window.dashAdicionarVfxApos === 'function') {
+                            window.dashAdicionarVfxApos(dados);
+                        }
+                    }
+                    if (dados.type === 'action_dash_fim') {
+                        if (dados.id === window.meuId) {
+                            window.dashPrev = null;
+                            window.dashMultVel = 1;
+                            window.dashMultVelAte = 0;
+                        }
+                        if (typeof window.dashAdicionarVfxApos === 'function') window.dashAdicionarVfxApos(dados);
+                    }
+                    if (dados.type === 'action_guerreiro_escudo') {
+                        if (dados.lancamento) return;
+                        if (!window.guerreiroEscudoDe) window.guerreiroEscudoDe = {};
+                        if (dados.ativo) {
+                            window.guerreiroEscudoDe[dados.id] = {
+                                ang: Number.isFinite(dados.angulo) ? dados.angulo : 0
+                            };
+                            if (dados.id === window.meuId && typeof window.tocarSonoro === 'function') window.tocarSonoro('guerreiro_escudo');
+                        } else {
+                            delete window.guerreiroEscudoDe[dados.id];
+                        }
+                        if (dados.id === window.meuId) {
+                            window.escudoGuerreiroAtivo = !!dados.ativo;
+                            if (dados.ativo && Number.isFinite(dados.angulo)) window.escudoGuerreiroAng = dados.angulo;
+                        }
+                    }
+                    // O escudo vira junto com a espada: o servidor reenvia o ângulo
+                    // do arco de bloqueio quando ele muda (no máx. ~8x/s).
+                    if (dados.type === 'action_guerreiro_escudo_ang') {
+                        if (window.guerreiroEscudoDe && window.guerreiroEscudoDe[dados.id] && Number.isFinite(dados.angulo)) {
+                            window.guerreiroEscudoDe[dados.id].ang = dados.angulo;
+                        }
+                        if (dados.id === window.meuId) window.escudoGuerreiroAng = dados.angulo;
+                    }
+                    // BAQUE DE ESCUDO (1x a cada 2s com o escudo erguido)
+                    if (dados.type === 'action_guerreiro_escudo_baque') {
+                        if (typeof window.dashAdicionarVfxReal === 'function') {
+                            window.dashAdicionarVfxReal('guerreiro_baque', dados.x, dados.y, dados.angulo,
+                                { dur: 420, raio: dados.raio || 62 });
+                        }
+                        if (dados.id === window.meuId) {
+                            if (window.floatingTexts) {
+                                window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 46, text: '🛡️ Baque!', color: '#85c1e9', alpha: 1.0 });
+                            }
+                            if (window.hudVibrar) window.hudVibrar(40);
+                        }
+                    }
+                    if (dados.type === 'guerreiro_escudo_fim') {
+                        window.escudoGuerreiroAtivo = false;
+                        if (window.guerreiroEscudoDe) delete window.guerreiroEscudoDe[window.meuId];
+                        if (window.floatingTexts && dados.forcado) {
+                            window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 44, text: '💨 Escudo caiu!', color: '#e67e22', alpha: 1.0 });
+                        }
+                    }
+                    if (dados.type === 'action_curandeiro_escudo_area') {
+                        if (typeof window.dashAdicionarVfxApos === 'function') window.dashAdicionarVfxApos(Object.assign({ tipo: 'curandeiro_escudo_area' }, dados));
+                    }
+                    if (dados.type === 'action_curandeiro_escudo_area_carga') {
+                        if (typeof window.dashAdicionarVfxApos === 'function') window.dashAdicionarVfxApos(Object.assign({ tipo: 'curandeiro_escudo_area_carga' }, dados));
+                    }
+                    if (dados.type === 'action_curandeiro_escudo_solto' && dados.id === window.meuId) {
+                        if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 44, text: '⚡ Atordoada!', color: '#f1c40f', alpha: 1.0 });
+                    }
+                    if (dados.type === 'action_summoner_pet_teleporte') {
+                        if (typeof window.dashAdicionarVfxApos === 'function') window.dashAdicionarVfxApos(Object.assign({ tipo: 'summoner_pet_teleporte' }, dados));
+                    }
+                    // SNIPER — ROUPA DE CAMUFLAGEM (vestida pelo DASH, dura 5s)
+                    if (dados.type === 'action_sniper_roupa_camo') {
+                        if (dados.ativo === false) {
+                            window.snRoupaCamoAte = 0;
+                        } else {
+                            window.snRoupaCamoAte = Number.isFinite(dados.expiraEm) ? dados.expiraEm : (Date.now() + 5000);
+                            // o VFX usa a posicao do SNIPER que se vestiu — se
+                            // fosse a do jogador local, todo mundo veria a onda
+                            // verde nascendo em si mesmo ao ver um aliado vestir
+                            const rx = Number.isFinite(dados.x) ? dados.x : window.meuX;
+                            const ry = Number.isFinite(dados.y) ? dados.y : window.meuY;
+                            if (typeof window.dashAdicionarVfxReal === 'function') {
+                                window.dashAdicionarVfxReal('sniper_camo', rx + 12, ry + 16, 0, { dur: 700 });
+                            }
+                            if (dados.id === window.meuId) {
+                                if (window.floatingTexts) {
+                                    window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 48, text: '🎽 Roupa de camuflagem (5s)', color: '#27ae60', alpha: 1.0 });
+                                }
+                                if (typeof window.tocarSonoro === 'function') window.tocarSonoro('sniper_camuflagem');
+                            }
                         }
                     }
                     if (dados.type === 'action_ladino_estrela') {
@@ -3978,6 +4448,7 @@ function usarCanticoCelestial() {
             } else if (window.minhaClasse === 'pikeman') {
                 btnPikemanGiro.style.display = "block"; btnPikemanPirueta.style.display = "block"; btnPikemanGeada.style.display = "block"; btnPikemanExecucao.style.display = "block"; btnAttack.innerText = "⚖️"; btnAttack.style.background = "#5c2d36";
             } else {
+                if (btnGuerreiroEscudo) btnGuerreiroEscudo.style.display = "block";
                 btnTornado.style.display = "block";
                 if (btnGuerreiroProvocacao) btnGuerreiroProvocacao.style.display = "block";
                 btnAttack.innerText = "⚔️"; btnAttack.style.background = "#d9534f";
@@ -4106,19 +4577,25 @@ function usarCanticoCelestial() {
             sub.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 0.6);
         }
 
-        function tocarSomAtaqueGolem() {
+        function tocarSomAtaqueGolem(sourceX, sourceY) {
+            let fator = (sourceX !== undefined && sourceY !== undefined && typeof window.calcularVolumeProximidade === 'function')
+                ? window.calcularVolumeProximidade(sourceX, sourceY) : 1.0;
+            if (fator <= 0.02) return;
             iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime;
             let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
             osc.type = 'triangle'; osc.frequency.setValueAtTime(140, now); osc.frequency.exponentialRampToValueAtTime(40, now + 0.2);
-            gain.gain.setValueAtTime(0.7, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.2);
+            gain.gain.setValueAtTime(0.7 * fator, now); gain.gain.exponentialRampToValueAtTime(0.01 * fator, now + 0.2);
             osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.2);
         }
 
-        function tocarSomRugidoOgro() {
+        function tocarSomRugidoOgro(sourceX, sourceY) {
+            let fator = (sourceX !== undefined && sourceY !== undefined && typeof window.calcularVolumeProximidade === 'function')
+                ? window.calcularVolumeProximidade(sourceX, sourceY) : 1.0;
+            if (fator <= 0.02) return;
             iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime;
             let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
             osc.type = 'sawtooth'; osc.frequency.setValueAtTime(90, now); osc.frequency.exponentialRampToValueAtTime(220, now + 0.4);
-            gain.gain.setValueAtTime(0.5, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+            gain.gain.setValueAtTime(0.5 * fator, now); gain.gain.exponentialRampToValueAtTime(0.01 * fator, now + 0.45);
             osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.45);
         }
 
@@ -4140,11 +4617,14 @@ function usarCanticoCelestial() {
             osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.25);
         }
 
-        function tocarSomLuzSagrada() {
+        function tocarSomLuzSagrada(sourceX, sourceY) {
+            let fator = (sourceX !== undefined && sourceY !== undefined && typeof window.calcularVolumeProximidade === 'function')
+                ? window.calcularVolumeProximidade(sourceX, sourceY) : 1.0;
+            if (fator <= 0.02) return;
             iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime;
             let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
             osc.type = 'sine'; osc.frequency.setValueAtTime(700, now); osc.frequency.exponentialRampToValueAtTime(1400, now + 0.15);
-            gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+            gain.gain.setValueAtTime(0.3 * fator, now); gain.gain.exponentialRampToValueAtTime(0.01 * fator, now + 0.15);
             osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.15);
         }
 
@@ -4200,11 +4680,27 @@ function usarCanticoCelestial() {
             osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.4);
         }
 
-        function tocarSomImpactoPesado() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let sub = audioCtx.createOscillator(); let gain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(180, now); sub.frequency.exponentialRampToValueAtTime(30, now + 0.6); gain.gain.setValueAtTime(0.9, now); gain.gain.exponentialRampToValueAtTime(0.001, now + 0.6); sub.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 0.6); }
+        function tocarSomImpactoPesado(sourceX, sourceY) {
+            let fator = (sourceX !== undefined && sourceY !== undefined && typeof window.calcularVolumeProximidade === 'function')
+                ? window.calcularVolumeProximidade(sourceX, sourceY) : 1.0;
+            if (fator <= 0.02) return;
+            iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let sub = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+            sub.type = 'sine'; sub.frequency.setValueAtTime(180, now); sub.frequency.exponentialRampToValueAtTime(30, now + 0.6);
+            gain.gain.setValueAtTime(0.9 * fator, now); gain.gain.exponentialRampToValueAtTime(0.001 * fator, now + 0.6);
+            sub.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 0.6);
+        }
         function tocarSomSalto() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(500, now + 0.3); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.3); }
         function tocarSomCorte() { iniciarAudio(); if (!audioCtx) return; let bufferSize = audioCtx.sampleRate * 0.15; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.setValueAtTime(1000, audioCtx.currentTime); filter.frequency.exponentialRampToValueAtTime(300, audioCtx.currentTime + 0.15); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.5, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(); noise.stop(audioCtx.currentTime + 0.15); }
         function tocarSomMagiaBasica() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sine'; osc.frequency.setValueAtTime(550, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1200, audioCtx.currentTime + 0.18); gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.18); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.18); }
-        function tocarSomOrbe() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(350, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.15); gain.gain.setValueAtTime(0.3, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.15); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15); }
+        function tocarSomOrbe(sourceX, sourceY) {
+            let fator = (sourceX !== undefined && sourceY !== undefined && typeof window.calcularVolumeProximidade === 'function')
+                ? window.calcularVolumeProximidade(sourceX, sourceY) : 1.0;
+            if (fator <= 0.02) return;
+            iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
+            osc.type = 'triangle'; osc.frequency.setValueAtTime(350, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(900, audioCtx.currentTime + 0.15);
+            gain.gain.setValueAtTime(0.3 * fator, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01 * fator, audioCtx.currentTime + 0.15);
+            osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.15);
+        }
         function tocarSomFlecha() {
             if (window.tocarSonoro) { window.tocarSonoro('arqueira_atk'); return; }
             iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain();
@@ -4214,16 +4710,22 @@ function usarCanticoCelestial() {
         }
         function tocarSomEscudoBoss() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(150, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(450, audioCtx.currentTime + 0.25); gain.gain.setValueAtTime(0.35, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.25); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.25); }
         function tocarSomPinoLocal() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'square'; osc.frequency.setValueAtTime(880, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.08); gain.gain.setValueAtTime(0.15, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.08); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.08); }
-        function tocarSomQuedaMeteoro() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.55); gain.gain.setValueAtTime(0.35, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.55); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.55); }
-        function tocarSomImpactoMeteoro() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let sub = audioCtx.createOscillator(); let subGain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(140, now); sub.frequency.exponentialRampToValueAtTime(30, now + 1.0); subGain.gain.setValueAtTime(0.8, now); subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.0); sub.connect(subGain); subGain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 1.0); let bufferSize = audioCtx.sampleRate * 0.9; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(800, now); filter.frequency.exponentialRampToValueAtTime(80, now + 0.9); let noiseGain = audioCtx.createGain(); noiseGain.gain.setValueAtTime(0.7, now); noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9); noise.connect(filter); filter.connect(noiseGain); noiseGain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); noise.stop(now + 0.9); }
+        function tocarSomQuedaMeteoro() { if (window.tocarSonoro) { window.tocarSonoro('mago_meteoro_queda'); return; } iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.55); gain.gain.setValueAtTime(0.35, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.55); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.55); }
+        function tocarSomImpactoMeteoro() { if (window.tocarSonoro) { window.tocarSonoro('mago_meteoro_impacto'); return; } iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let sub = audioCtx.createOscillator(); let subGain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(140, now); sub.frequency.exponentialRampToValueAtTime(30, now + 1.0); subGain.gain.setValueAtTime(0.8, now); subGain.gain.exponentialRampToValueAtTime(0.001, now + 1.0); sub.connect(subGain); subGain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 1.0); let bufferSize = audioCtx.sampleRate * 0.9; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(800, now); filter.frequency.exponentialRampToValueAtTime(80, now + 0.9); let noiseGain = audioCtx.createGain(); noiseGain.gain.setValueAtTime(0.7, now); noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.9); noise.connect(filter); filter.connect(noiseGain); noiseGain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); noise.stop(now + 0.9); }
         function tocarSomNevasca() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let bufferSize = audioCtx.sampleRate * 1.5; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'bandpass'; filter.frequency.setValueAtTime(600, now); filter.frequency.linearRampToValueAtTime(1400, now + 0.8); filter.frequency.linearRampToValueAtTime(450, now + 1.5); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.4, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.5); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); noise.stop(now + 1.5); }
         function tocarSomDash() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'triangle'; osc.frequency.setValueAtTime(200, now); osc.frequency.exponentialRampToValueAtTime(600, now + 0.3); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.3); }
-        function tocarSomVulcaoErupcao() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let bufferSize = audioCtx.sampleRate * 1.2; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(120, now); filter.frequency.linearRampToValueAtTime(400, now + 0.5); filter.frequency.linearRampToValueAtTime(80, now + 1.2); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.7, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 1.2); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); noise.stop(now + 1.2); let sub = audioCtx.createOscillator(); let subGain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(50, now); sub.frequency.exponentialRampToValueAtTime(25, now + 1.0); subGain.gain.setValueAtTime(0.6, now); subGain.gain.exponentialRampToValueAtTime(0.01, now + 1.0); sub.connect(subGain); subGain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 1.0); }
-        function tocarSomVulcaoLancamento() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(220, now); osc.frequency.exponentialRampToValueAtTime(90, now + 0.3); gain.gain.setValueAtTime(0.3, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now); osc.stop(now + 0.3); }
-        function tocarSomVulcaoImpacto() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; let bufferSize = audioCtx.sampleRate * 0.4; let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate); let data = buffer.getChannelData(0); for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1; let noise = audioCtx.createBufferSource(); noise.buffer = buffer; let filter = audioCtx.createBiquadFilter(); filter.type = 'lowpass'; filter.frequency.setValueAtTime(800, now); filter.frequency.exponentialRampToValueAtTime(100, now + 0.4); let gain = audioCtx.createGain(); gain.gain.setValueAtTime(0.6, now); gain.gain.exponentialRampToValueAtTime(0.01, now + 0.4); noise.connect(filter); filter.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); noise.start(now); noise.stop(now + 0.4); let sub = audioCtx.createOscillator(); let subGain = audioCtx.createGain(); sub.type = 'sine'; sub.frequency.setValueAtTime(120, now); sub.frequency.exponentialRampToValueAtTime(30, now + 0.35); subGain.gain.setValueAtTime(0.7, now); subGain.gain.exponentialRampToValueAtTime(0.01, now + 0.35); sub.connect(subGain); subGain.connect(window.audioGanhoMaster || audioCtx.destination); sub.start(now); sub.stop(now + 0.35); }
+        function tocarSomVulcaoErupcao() {}
+        function tocarSomVulcaoLancamento() {}
+        function tocarSomVulcaoImpacto() {}
         function tocarSomTornado() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; [300, 450, 600, 750, 500].forEach((freq, idx) => { let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'sawtooth'; osc.frequency.setValueAtTime(freq, now + (idx * 0.08)); gain.gain.setValueAtTime(0.2, now + (idx * 0.08)); gain.gain.exponentialRampToValueAtTime(0.01, now + (idx * 0.08) + 0.12); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now + (idx * 0.08)); osc.stop(now + (idx * 0.08) + 0.12); }); }
         function tocarSomBlock() { iniciarAudio(); if (!audioCtx) return; let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.type = 'square'; osc.frequency.setValueAtTime(800, audioCtx.currentTime); osc.frequency.exponentialRampToValueAtTime(200, audioCtx.currentTime + 0.1); gain.gain.setValueAtTime(0.4, audioCtx.currentTime); gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.1); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(); osc.stop(audioCtx.currentTime + 0.1); }
-        function tocarSomLevelUp() { iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => { let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.frequency.setValueAtTime(freq, now + index * 0.1); gain.gain.setValueAtTime(0.2, now + index * 0.1); gain.gain.exponentialRampToValueAtTime(0.01, now + index * 0.1 + 0.25); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now + index * 0.1); osc.stop(now + index * 0.1 + 0.25); }); }
+        function tocarSomLevelUp() {
+            if (window.tocarSonoro) {
+                window.tocarSonoro('ui_levelup');
+                return;
+            }
+            iniciarAudio(); if (!audioCtx) return; let now = audioCtx.currentTime; [523.25, 659.25, 783.99, 1046.50].forEach((freq, index) => { let osc = audioCtx.createOscillator(); let gain = audioCtx.createGain(); osc.frequency.setValueAtTime(freq, now + index * 0.1); gain.gain.setValueAtTime(0.2, now + index * 0.1); gain.gain.exponentialRampToValueAtTime(0.01, now + index * 0.1 + 0.25); osc.connect(gain); gain.connect(window.audioGanhoMaster || audioCtx.destination); osc.start(now + index * 0.1); osc.stop(now + index * 0.1 + 0.25); });
+        }
 
         // ===================================
         // HABILIDADES DO BÁRBARO
@@ -4340,8 +4842,9 @@ function usarCanticoCelestial() {
         }
 
         function enviarAtaquePikeman(anguloForcado, alvoTipo, alvoId) {
-            if (window.estaMorto || window.pikemanEstadoLocal.execucaoAtiva) return;
-            if (typeof window.registrarPikemanAnim === 'function') window.registrarPikemanAnim(window.meuId, 'foice', 320);
+            if (window.estaMorto || (window.pikemanEstadoLocal && window.pikemanEstadoLocal.execucaoAtiva)) return;
+            if (typeof window.pikemanEmAnimacaoSkill === 'function' && window.pikemanEmAnimacaoSkill(window.meuId)) return;
+            if (typeof window.registrarPikemanAnim === 'function') window.registrarPikemanAnim(window.meuId, 'foice', 420);
             if (window.tocarSonoro) window.tocarSonoro('pikeman_atk'); else if (typeof tocarSomMachado === 'function') tocarSomMachado();
             if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_pikeman' }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
         }
@@ -4394,7 +4897,7 @@ function usarCanticoCelestial() {
             if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnPikemanExecucao, 30000);
             setTimeout(() => { window.execucaoPikemanCooldown = false; limparCdBotao(btnPikemanExecucao); }, 30000);
             if (typeof window.criarAnimacaoExecucaoPikeman === 'function') window.criarAnimacaoExecucaoPikeman(window.meuId, window.meuX + 12, window.meuY + 16, alvo.x, alvo.y, 3000);
-            if (window.tocarSonoro) window.tocarSonoro('pikeman_execucao');
+            if (window.tocarSonoro) window.tocarSonoro('pikeman_skill4_carregar');
             if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'pikeman_execucao', alvoTipo: alvo.tipo, alvoId: alvo.id }));
         }
 
@@ -4685,6 +5188,7 @@ function usarCanticoCelestial() {
                 if (btn) btn.classList.remove('cooldown');
             }, 60000);
 
+            if (window.tocarSonoro) window.tocarSonoro('roqueiro_skill4');
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ action: 'roqueiro_grito_guerra' }));
             }
@@ -4756,6 +5260,7 @@ function usarCanticoCelestial() {
             if (c === 'dronemaster') return (window.dmTitaAtivo ? 416 : 560);
             if (c === 'arqueiro_arcano') return 500;
             if (c === 'sniper') return 936;
+            if (c === 'pikeman') return 520;
             return 350; // guerreiro / fallback
         }
 
@@ -4764,6 +5269,7 @@ function usarCanticoCelestial() {
             let mult = 1;
             let ef = window.meusEfeitos || [];
             if (ef.some(e => e && e.id === 'gritoDeGuerra' && e.tempo > 0)) mult *= 0.90;
+            if (window.barbaroVinculoAtivo && window.barbaroVinculoExpires > Date.now()) mult *= 0.80;
             let inv = window.inventario || {};
             for (let chave in inv) {
                 let it = inv[chave];
@@ -4827,6 +5333,7 @@ function usarCanticoCelestial() {
 
         function dispararAutoAtaque() {
             if (!autoAlvo || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) return;
+            if (window.minhaClasse === 'pikeman' && typeof window.pikemanEmAnimacaoSkill === 'function' && window.pikemanEmAnimacaoSkill(window.meuId)) return;
             let ang = Math.atan2(autoAlvo.y - (window.meuY + 16), autoAlvo.x - (window.meuX + 12));
             if (joystickTouchId !== null || !window.mouseJaMoveu) {
                 window.meuAngulo = ang; // orienta o personagem apenas no mobile touch ou sem mouse
@@ -4852,11 +5359,14 @@ function usarCanticoCelestial() {
             let ef = window.meusEfeitos || [];
             let trava = ef.some(e => e && (e.id === 'paralisia' || e.id === 'sono') && e.tempo > 0);
             if (window.meuStunTimer > 0 || trava || window.roqueiroBateriaLigada || window.arqueiroRajadaLigada || window.spawnAdminAberto || window.teleporteAberto || window.ferreiroAberto || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) { autoAlvo = null; return; }
-            // v1.30.2: ataque básico bloqueado durante Estrela da Morte / Dança das Adagas / Giro Descontrolado
-            if (window.ladinoEstrelaAtivo || window.ladinoDancaAtivo || window.giroDescontroladoLigado || (window.pikemanEstadoLocal && window.pikemanEstadoLocal.execucaoAtiva) || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) { autoAlvo = null; return; }
+            // v1.30.2: ataque básico bloqueado durante Estrela da Morte / Dança das Adagas / Giro Descontrolado / Animações de Skill do Pikeman
+            if (window.ladinoEstrelaAtivo || window.ladinoDancaAtivo || window.giroDescontroladoLigado || (window.minhaClasse === 'pikeman' && typeof window.pikemanEmAnimacaoSkill === 'function' && window.pikemanEmAnimacaoSkill(window.meuId)) || (window.pikemanEstadoLocal && window.pikemanEstadoLocal.execucaoAtiva) || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) { autoAlvo = null; return; }
             if (window.snAimAtivo || window.snPosicaoAtivo) { autoAlvo = null; return; }
             // SNIPER camuflado na moita: NÃO ataca automaticamente; só volta a atacar ao usar uma skill
             if (window.minhaClasse === 'sniper' && window.snCamufladoAtivo) { autoAlvo = null; return; }
+            // DASH v2: Guerreiro com o escudo erguido NÃO dá ataque básico.
+            // (O servidor também bloqueia via dashBloqueiaAcoes.)
+            if (window.escudoGuerreiroAtivo) { autoAlvo = null; return; }
             buscarAutoAlvo();
             if (!autoAlvo) return;
             if (!autoAlvoEstaEmAlcance()) return; // fora do alcance: ataque para; movimento continua
@@ -4922,7 +5432,7 @@ function usarCanticoCelestial() {
         }
 
         function enviarAtaqueMago(anguloForcado, alvoTipo, alvoId) {
-            if (window.estaMorto) return; tocarSomMagiaBasica(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = (anguloForcado !== undefined) ? anguloForcado : (alvoDetectado ? alvoDetectado.angulo : window.meuAngulo);
+            if (window.estaMorto) return; if (window.tocarSonoro) window.tocarSonoro('mago_atk'); else tocarSomMagiaBasica(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = (anguloForcado !== undefined) ? anguloForcado : (alvoDetectado ? alvoDetectado.angulo : window.meuAngulo);
             if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_mago', angulo: anguloDisparo }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
         }
 
@@ -4936,47 +5446,270 @@ function usarCanticoCelestial() {
             if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_arqueiro', angulo: anguloDisparo }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
         }
 
-        function usarDash() {
-            if (window.estaMorto || window.meuStunTimer > 0 || dashCooldownAtivo) return;
-            if (window.minhaClasse === 'dronemaster') {
-                // DRONEMASTER: o Dash NÃO desloca mais — vira Escudo de Energia (50% vida máx, CD 10s)
-                if (!checarEstamina(40)) return;
-                dashCooldownAtivo = true; btnDash.classList.add("cooldown");
-                if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnDash, 10000);
-                setTimeout(() => { dashCooldownAtivo = false; btnDash.classList.remove("cooldown"); btnDash.dataset.cdUntil = ''; }, 10000);
-                if (window.tocarSonoro) window.tocarSonoro('dronemaster_escudo');
-                if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 38, text: "🛡️ Escudo de Energia!", color: "#ffffff", alpha: 1.0 });
-                if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'dash' })); }
-                return;
+        // =====================================================================
+        // DASH v2 (v1.50.0) — CLIENTE
+        //
+        // Este lado é PREDICAO, não autoridade. Ao apertar, o char responde
+        // NA HORA (sem esperar o servidor) e o servidor confirma depois. Se a
+        // resposta chegar com destino diferente (parede no servidor, lag), o
+        // cliente é puxado para a posição do servidor e a animação acaba.
+        //
+        // Tudo que decide regra (custo, cooldown, stun, área do grupo) está no
+        // server.js. Aqui só há COSMÉTICA e a sensação de resposta imediata.
+        // =====================================================================
+        window.dashPrev = null;      // animação local em curso (predição)
+        window.dashVfx = [];         // efeitos visuais do dash
+        window.escudoGuerreiroAtivo = false;
+        window.escudoGuerreiroAng = 0;
+        // v1.50.0: registro por jogador dos escudos erguidos (o GUERREIRO
+        // desenha o escudo REAL na mão, na direção em que a espada aponta).
+        window.guerreiroEscudoDe = {};
+        window.dashCdAteServidor = 0; // eco do cooldown real (anti-exploit)
+
+        function dashConfig() {
+            return (window.DASH && window.DASH.configDe) ? window.DASH.configDe(window.minhaClasse) : { tipo: 'teleporte', distancia: 160, stamina: 25, cooldownMs: 2000, vfx: 'dash_padrao' };
+        }
+
+        function dashColideLocal(x, y) {
+            if (typeof window.colideMapaAtivo === 'function') {
+                return window.colideMapaAtivo(x + 12, y + 16, 12);
             }
-            if (!checarEstamina(25)) return;
+            return false;
+        }
+
+        // Espelha dashColide() do servidor (dash.js) para o mesmo resultado.
+        function dashResolverDestino(x0, y0, ang, dist) {
+            if (window.DASH && window.DASH.resolverDestino) {
+                return window.DASH.resolverDestino(x0, y0, ang, dist, dashColideLocal);
+            }
+            // Fallback (dash.js não carregou): marcha simples
+            const cos = Math.cos(ang), sin = Math.sin(ang);
+            let x = x0, y = y0;
+            const passos = Math.max(1, Math.ceil(dist / 10));
+            for (let i = 1; i <= passos; i++) {
+                const nx = x0 + cos * dist * (i / passos), ny = y0 + sin * dist * (i / passos);
+                if (dashColideLocal(nx, ny)) break;
+                x = nx; y = ny;
+            }
+            return { x: x, y: y, distPercorrida: Math.hypot(x - x0, y - y0) };
+        }
+
+        // Delega para dash-vfx.js (o dono da lista de efeitos). Aqui só
+        // mantemos o nome curto para os call sites ficarem legíveis.
+        function dashAdicionarVfx(tipo, x, y, ang, extra) {
+            if (typeof window.dashAdicionarVfxReal === 'function') window.dashAdicionarVfxReal(tipo, x, y, ang, extra);
+        }
+
+        // Sobe a "bandeira" de escudo: skills e ataque básico param no cliente
+        // (o servidor também bloqueia — isto aqui é só para o botão não piscar).
+        window.escudoTravandoAcoes = function () { return window.escudoGuerreiroAtivo; };
+
+        function usarDash() {
+            if (window.estaMorto || window.meuStunTimer > 0) return;
+            const cfg = dashConfig();
+
+            // Já segurando o escudo: o segundo toque não faz nada
+            if (cfg.tipo === 'escudo' && window.escudoGuerreiroAtivo) return;
+
+            if (cfg.tipo !== 'escudo') {
+                // Cooldown: usa o mais restritivo entre o timer local e o eco do servidor
+                if (Date.now() < dashCdAteServidor) return;
+                if (dashCooldownAtivo) return;
+                if (cfg.stamina === 'TODA') {
+                    if ((window.minhaEstamina || 0) < 20) {
+                        if (typeof mostrarAvisoEstamina === 'function') mostrarAvisoEstamina();
+                        return;
+                    }
+                } else if (!checarEstamina(cfg.stamina)) {
+                    return;
+                }
+            }
+
             if (typeof window.atualizarMiraMouse === 'function') window.atualizarMiraMouse();
-            dashCooldownAtivo = true; btnDash.classList.add("cooldown"); 
-            if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnDash, 2000);
-            setTimeout(() => { dashCooldownAtivo = false; btnDash.classList.remove("cooldown"); }, 2000); 
-            if (window.minhaClasse === 'mago') { if (window.tocarSonoro) window.tocarSonoro('mago_teleport'); }
-            else if (window.minhaClasse === 'summoner') { if (window.tocarSonoro) window.tocarSonoro('summoner_teleport'); }
-            else if (window.minhaClasse === 'roqueiro') { if (window.tocarSonoro) window.tocarSonoro('roqueiro_dash'); }
-            else { tocarSomDash(); }
+            const ang = window.meuAngulo || 0;
 
-            dashTrails.push({ x: window.meuX + 12, y: window.meuY + 16, alpha: 1.0 });
+            // Ativa a escotilha visual do cooldown imediatamente (resposta instantânea).
+            // O valor REAL vem do servidor em `dash_confirmado`.
+            if (cfg.cooldownMs > 0) {
+                dashCooldownAtivo = true;
+                btnDash.classList.add("cooldown");
+                if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnDash, cfg.cooldownMs);
+                setTimeout(function () { dashCooldownAtivo = false; btnDash.classList.remove("cooldown"); }, cfg.cooldownMs);
+            }
 
-            let distanciaDash = 160;
-            let novoX = window.meuX + Math.cos(window.meuAngulo) * distanciaDash;
-            let novoY = window.meuY + Math.sin(window.meuAngulo) * distanciaDash;
+            switch (cfg.tipo) {
+                case 'escudo':
+                    // GUERREIRO: só levanta. O visual completo vem do servidor.
+                    window.escudoGuerreiroAtivo = true;
+                    window.escudoGuerreiroAng = ang;
+                    dashAdicionarVfx('guerreiro_escudo', window.meuX, window.meuY, ang, { dur: 400 });
+                    if (window.tocarSonoro) window.tocarSonoro('guerreiro_escudo');
+                    break;
 
-            novoX = Math.max(20, Math.min(WORLD_WIDTH - 40, novoX));
-            novoY = Math.max(20, Math.min(WORLD_HEIGHT - 40, novoY));
+                case 'energia':
+                    // DRONEMASTER: inalterado (escudo de energia)
+                    if (window.tocarSonoro) window.tocarSonoro('dronemaster_escudo');
+                    if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 38, text: "🛡️ Escudo de Energia!", color: "#ffffff", alpha: 1.0 });
+                    break;
 
-            window.meuX = novoX;
-            window.meuY = novoY;
+                case 'camuflagem':
+                    // SNIPER: veste a ROUPA DE CAMUFLAGEM por 5s (previsão local
+                    // imediata; o servidor manda o `expiraEm` definitivo).
+                    window.snRoupaCamoAte = Date.now() + (cfg.duracaoMs || 5000);
+                    dashAdicionarVfx('sniper_camo', window.meuX + 12, window.meuY + 16, 0, { dur: 700 });
+                    if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 44, text: "🎽 Roupa de camuflagem (5s)", color: "#27ae60", alpha: 1.0 });
+                    if (window.tocarSonoro) window.tocarSonoro('sniper_camuflagem');
+                    break;
 
-            dashTrails.push({ x: window.meuX + 12, y: window.meuY + 16, alpha: 1.0 });
+                case 'area':
+                    // CURANDEIRO: área para o grupo + atordoamento próprio
+                    dashAdicionarVfx('curandeiro_escudo_area', window.meuX, window.meuY, ang, { raio: cfg.raio, dur: 900 });
+                    if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 44, text: "🛡️ Escudo do Grupo!", color: "#2ecc71", alpha: 1.0 });
+                    if (window.tocarSonoro) window.tocarSonoro('curandeiro_escudo');
+                    break;
 
-            if (ws && ws.readyState === WebSocket.OPEN) { 
-                ws.send(JSON.stringify({ action: 'dash', novoX: window.meuX, novoY: window.meuY })); 
+                case 'teleporte':
+                    // MAGO / SUMMONER / ARQUEIRO ARCANO: teleporte seco + VFX
+                    dashTrails.push({ x: window.meuX + 12, y: window.meuY + 16, alpha: 1.0 });
+                    dashAdicionarVfx(cfg.vfx, window.meuX, window.meuY, ang, { origem: true });
+                    if (window.tocarSonoro) {
+                        if (cfg.vfx === 'mago_teleporte') window.tocarSonoro('mago_teleport');
+                        else if (cfg.vfx === 'summoner_teleporte') window.tocarSonoro('summoner_teleport');
+                        else window.tocarSonoro('arqueiro_arcano_buraco');
+                    }
+                    break;
+
+                case 'corrida':
+                case 'investida':
+                case 'arranque':
+                    // DASH ANIMADO: começa a predição local agora. O servidor roda
+                    // a MESMA animação no tick de 50ms e manda o caminho real.
+                    if (cfg.soBuff) {
+                        // LADINO (v1.50.0): o dash NÃO desloca — é só o buff.
+                        // Espelha o +velocidade na hora (resposta instantânea);
+                        // o servidor reenvia o `multVelAte` autoritativo depois.
+                        window.dashMultVel = cfg.velocidade || 1.9;
+                        window.dashMultVelAte = Date.now() + (cfg.duracaoMs || 2000);
+                        dashAdicionarVfx(cfg.vfx, window.meuX + 12, window.meuY + 16, ang, { dur: 600 });
+                        if (window.floatingTexts) {
+                            window.floatingTexts.push({
+                                x: window.meuX + 12, y: window.meuY - 44,
+                                text: '🗡️ Invisível +' + Math.round(((cfg.velocidade || 1.9) - 1) * 100) + '% vel.',
+                                color: '#9b59b6', alpha: 1.0
+                            });
+                        }
+                        if (window.tocarSonoro) window.tocarSonoro('dash');
+                    } else {
+                        iniciarPredicaoDash(ang, cfg);
+                        if (window.tocarSonoro) {
+                            if (cfg.vfx === 'roqueiro_dash') window.tocarSonoro('roqueiro_dash');
+                            else if (cfg.vfx === 'pikeman_fantasma' || window.minhaClasse === 'pikeman') window.tocarSonoro('pikeman_dash');
+                            else window.tocarSonoro('dash');
+                        }
+                    }
+                    break;
+            }
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'dash', angulo: ang }));
             }
         }
+
+        // Predição local da animação de corrida/investida/arranque.
+        function iniciarPredicaoDash(ang, cfg) {
+            const destino = dashResolverDestino(window.meuX, window.meuY, ang, cfg.distancia);
+            if (destino.distPercorrida < 4) return;   // parede colada: nada a fazer
+            window.dashPrev = {
+                x0: window.meuX, y0: window.meuY, x1: destino.x, y1: destino.y,
+                ang: ang, inicio: Date.now(), duracaoMs: cfg.duracaoMs,
+                ultimoX: window.meuX, ultimoY: window.meuY, confirmado: false
+            };
+            // Se o servidor não confirmar em 400ms, a predição se auto-cancela
+            // (o servidor é quem manda; nunca deixamos o char "fantasma").
+            setTimeout(function () {
+                if (window.dashPrev && !window.dashPrev.confirmado) window.dashPrev = null;
+            }, 400 + cfg.duracaoMs);
+            dashAdicionarVfx(cfg.vfx, window.meuX, window.meuY, ang, { origem: true });
+        }
+
+        // Chamado pelo servidor (dash_confirmado): substitui a predição pela
+        // versão autoritativa. Se os caminhos divergirem, o cliente se realinha.
+        window.dashConfirmar = function (dados) {
+            if (dados.tipo && dados.cooldownMs) dashCdAteServidor = Date.now() + dados.cooldownMs;
+
+            if (dados.tipo === 'escudo') { window.escudoGuerreiroAtivo = true; return; }
+            if (dados.tipo === 'teleporte') {
+                window.dashPrev = null;
+                if (Number.isFinite(dados.x)) { window.meuX = dados.x; window.meuY = dados.y; }
+                return;
+            }
+            if (dados.tipo === 'area') { window.dashPrev = null; return; }
+            // SNIPER: a roupa de camuflagem tem prazo autoritativo (o cliente só
+            // tinha previsto os 5s da sua própria config).
+            if (dados.tipo === 'camuflagem') {
+                window.dashPrev = null;
+                window.snRoupaCamoAte = Number.isFinite(dados.expiraEm)
+                    ? dados.expiraEm
+                    : (Date.now() + (dados.duracaoMs || 5000));
+                return;
+            }
+            if (dados.semMovimento) { window.dashPrev = null; return; }
+
+            // ARRANCQUE: espelha o bônus de velocidade na hora, sem esperar o
+            // efeitos_sync do servidor chegar. O FIM do buff é sempre o
+            // timestamp do servidor (multVelAte) — nunca um timer local.
+            if (dados.tipo === 'arranque' && window.DASH) {
+                const cfgA = window.DASH.configDe(window.minhaClasse);
+                window.dashMultVel = (Number.isFinite(dados.multVelocidade) ? dados.multVelocidade : cfgA.velocidade) || 1.8;
+                window.dashMultVelAte = Number.isFinite(dados.multVelAte)
+                    ? dados.multVelAte
+                    : (Date.now() + (window.DASH.duracaoBuffVelocidade
+                        ? window.DASH.duracaoBuffVelocidade(window.minhaClasse)
+                        : (cfgA.invisivelMs || 1000) + cfgA.duracaoMs));
+            }
+            // LADINO 'soBuff': o servidor não manda caminho (x0/x1) — o char
+            // nunca sai do lugar, o buff que faz o trabalho.
+            if (dados.tipo === 'arranque' && dados.soBuff) { window.dashPrev = null; return; }
+
+            if (Number.isFinite(dados.x0) && Number.isFinite(dados.x1)) {
+                if (window.dashPrev) {
+                    // Mantém a animação já em curso (evita "puxar para trás"),
+                    // mas passa a seguir o caminho do servidor.
+                    window.dashPrev.x0 = dados.x0; window.dashPrev.y0 = dados.y0;
+                    window.dashPrev.x1 = dados.x1; window.dashPrev.y1 = dados.y1;
+                    window.dashPrev.inicio = Date.now();
+                    window.dashPrev.duracaoMs = dados.duracaoMs;
+                    window.dashPrev.confirmado = true;
+                } else {
+                    // O servidor katou o dash (o cliente nem previu): faz o char
+                    // deslizar até lá para o jogador não ver teleporte seco.
+                    window.meuX = dados.x0; window.meuY = dados.y0;
+                    window.dashPrev = {
+                        x0: dados.x0, y0: dados.y0, x1: dados.x1, y1: dados.y1,
+                        ang: dados.angulo || 0, inicio: Date.now(),
+                        duracaoMs: dados.duracaoMs, ultimoX: dados.x0, ultimoY: dados.y0,
+                        confirmado: true
+                    };
+                }
+            }
+        };
+
+        // Soltar o escudo do Guerreiro (tecla/botão solto, ou stamina zerou).
+        function soltarDash() {
+            if (!window.escudoGuerreiroAtivo) return;
+            window.escudoGuerreiroAtivo = false;
+            if (window.guerreiroEscudoDe) delete window.guerreiroEscudoDe[window.meuId];
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'dash', acao: 'soltar' }));
+            }
+        }
+        window.soltarDash = soltarDash;
+        // Erro do servidor: reverte o estado local (ex.: escudo recusado)
+        window.dashRecusado = function () {
+            window.escudoGuerreiroAtivo = false;
+            if (window.guerreiroEscudoDe) delete window.guerreiroEscudoDe[window.meuId];
+            window.dashPrev = null;
+        };
 
         function usarTornado() {
             if (window.estaMorto || tornadoCooldownAtivo || window.minhaClasse !== 'guerreiro') return;
@@ -5706,6 +6439,7 @@ function usarCanticoCelestial() {
 
             if (code === 'Space') {
                 e.preventDefault();
+                if (e.repeat) return;
                 usarDash();
                 return;
             }
@@ -5750,11 +6484,6 @@ function usarCanticoCelestial() {
                 fecharModalSuperiorOuConfig();
                 return;
             }
-            if (code === 'Space') {
-                e.preventDefault();
-                if (typeof executarAtaqueBasico === 'function') executarAtaqueBasico();
-                return;
-            }
             if (key === 'r') {
                 e.preventDefault();
                 if (typeof alternarAutofarm === 'function') alternarAutofarm();
@@ -5792,7 +6521,7 @@ function usarCanticoCelestial() {
                 if (window.minhaClasse === 'summoner') { if (typeof usarGolemSismico === 'function') usarGolemSismico(); return; }
                 if (window.minhaClasse === 'arqueiro') { if (typeof usarSaltoArqueiro === 'function') usarSaltoArqueiro(); return; }
                 if (window.minhaClasse === 'curandeiro') { if (typeof usarCanticoCelestial === 'function') usarCanticoCelestial(); return; }
-                if (window.minhaClasse === 'barbaro') { if (typeof ativarVinculoSmartCast === 'function') ativarVinculoSmartCast(); return; }
+                if (window.minhaClasse === 'barbaro') { if (typeof usarVinculoBerserker === 'function') usarVinculoBerserker(); return; }
                 if (window.minhaClasse === 'arqueiro_arcano') { if (typeof ativarBuracoNegroSmartCast === 'function') ativarBuracoNegroSmartCast(); return; }
                 if (window.minhaClasse === 'roqueiro') {
                     usarGritoDeGuerraRoqueiro();
@@ -5823,6 +6552,26 @@ function usarCanticoCelestial() {
                 teclasMovimento[code] = false;
                 atualizarMovimentoTeclado();
             }
+            // DASH v2: soltar o Espaço BAIXA o escudo do Guerreiro.
+            // Sem isto o escudo ficaria erguido até a stamina zerar.
+            if (code === 'Space' && typeof soltarDash === 'function') soltarDash();
+        });
+
+        // DASH v2 — mobile: o botão de dash precisa reportar o "soltar",
+        // senão no celular o escudo do Guerreiro nunca abaixa.
+        window.addEventListener('touchend', (e) => {
+            if (window.escudoGuerreiroAtivo && typeof soltarDash === 'function') {
+                // Se o toque terminou sobre o botão de dash, solta o escudo.
+                for (let i = 0; i < (e.changedTouches ? e.changedTouches.length : 0); i++) {
+                    const t = e.changedTouches[i];
+                    if (!t.target || (t.target.id === 'btn-dash')) { soltarDash(); return; }
+                }
+            }
+        }, { passive: true });
+        window.addEventListener('mouseup', (e) => {
+            if (window.escudoGuerreiroAtivo && e.target && e.target.id === 'btn-dash') {
+                soltarDash();
+            }
         });
 
         window.addEventListener("touchstart", (e) => {
@@ -5844,7 +6593,7 @@ function usarCanticoCelestial() {
             iniciarAudio();
             if (window.estaMorto || window.spawnAdminAberto || window.teleporteAberto || window.ferreiroAberto || (window.colisaoEditorAtivo && !window.editorMinimizado) || (window.mapaEditorAtivo && !window.mapaEditorMinimizado)) return;
             // Se o toque foi dentro de uma janela de interface (inventário, skills, status, config), não ativa joystick nem ações do mundo
-            if (e.target && e.target.closest && e.target.closest('#inv-window, #skills-window, #atributos-window, #detalhes-window, #settings-window, #colisao-editor-screen, #spawn-admin-window, #mapa-editor-screen, #ferreiro-window')) return;
+            if (e.target && e.target.closest && e.target.closest('#inv-window, #skills-window, #atributos-window, #detalhes-window, #settings-window, #colisao-editor-screen, #spawn-admin-window, #mapa-editor-screen, #ferreiro-window, #admin-cheats-window')) return;
             // ADMIN: toque em cima de uma bandeira de spawn → abre o painel de edição
             if (window.ehAdmin && window.listaBandeiras && window.listaBandeiras.length && window.dragSkill && !window.dragSkill.ativo) {
                 for (let i = 0; i < e.changedTouches.length; i++) {
@@ -6220,12 +6969,58 @@ function usarCanticoCelestial() {
             let efeitoVelocidade = efeitosMove.find(function (e) { return e && e.id === 'velocidade' && e.tempo > 0; });
             if (efeitoVelocidade) multEfeitosVel *= 1 + (Number(efeitoVelocidade.intensidade) || 0.5);
             let efeitoTravaMovimento = temEf('paralisia') || temEf('sono');
+
+            // =================================================================
+            // DASH v2 — PREDICAO LOCAL (corre/investida/arranque)
+            // Enquanto a animação do dash roda, ela DONA da posição do
+            // personagem e o movimento normal fica travado. E o mais
+            // importante: o VELOCITY BOOST (Ladino/PikeMan) entra no passo
+            // normal logo abaixo, para a "corrida invisível" do arranque
+            // parecer um dash de verdade e não um teleporte.
+            // =================================================================
+            let dashTravandoMovimento = false;
+            if (window.dashPrev && window.DASH && window.DASH.amostrar) {
+                const d = window.dashPrev;
+                const amostra = window.DASH.amostrar(d, Date.now() - d.inicio);
+                if (amostra.t >= 1) {
+                    window.meuX = d.ultimoX; window.meuY = d.ultimoY;
+                    window.dashPrev = null;
+                } else if (!dashColideLocal(amostra.x, amostra.y)) {
+                    window.meuX = amostra.x; window.meuY = amostra.y;
+                    d.ultimoX = amostra.x; d.ultimoY = amostra.y;
+                    // Rastro: alimenta o mesmo array usado pelo dash antigo,
+                    // então o visual de velocidade reaproveita o renderizador.
+                    if (typeof dashTrails !== 'undefined' && dashTrails.length < 24 && window.minhaClasse !== 'roqueiro') {
+                        const cor = window.minhaClasse === 'barbaro' ? 'rgba(231, 76, 60, ' : 'rgba(52, 152, 219, ';
+                        dashTrails.push({ x: amostra.x + 12, y: amostra.y + 16, alpha: 1.0, cor: cor });
+                    }
+                } else {
+                    // Bateu em parede no cliente: trava aqui (o servidor trava junto)
+                    window.meuX = d.ultimoX; window.meuY = d.ultimoY;
+                    window.dashPrev = null;
+                }
+                if (window.dashPrev) dashTravandoMovimento = true;
+            }
+            // ESCUDO DO GUERREIRO: v1.51.0 permite caminhar com o escudo erguido
+
+            // ARRANCQUE (Ladino/PikeMan): +80% de velocidade por 1s.
+            // O efeito `velocidade` já vem do servidor via efeitos_sync, mas
+            // o espelho local abaixo evita 1 round-trip de lag no primeiro frame.
             let velocidadeAtual = ((typeof window.estaNaAgua === "function" && window.estaNaAgua(window.meuX, window.meuY)) ? 2.52 : 3.6) * bonusVelocidadeFuria * bonusVelocidadeAgilidade * multEfeitosVel;
+            if (!dashTravandoMovimento && window.dashMultVel && Date.now() < window.dashMultVelAte) {
+                velocidadeAtual *= window.dashMultVel;
+            }
+            if (dashTravandoMovimento) efeitoTravaMovimento = true;
 
             // Andar com o Roqueiro cancela imediatamente a Bateria (Solo)
             if (window.roqueiroBateriaLigada && (moveX !== 0 || moveY !== 0)) {
                 cancelarBateriaRoqueiro();
             }
+
+            // Gelo Liso na Zona Zero: física de deslizamento e inércia
+            window.inerciaGeloX = window.inerciaGeloX || 0;
+            window.inerciaGeloY = window.inerciaGeloY || 0;
+            const noGelo = (window.currentMap === 'zonazero' && typeof window.ehGeloZonaZero === 'function' && window.ehGeloZonaZero(window.meuX + 12, window.meuY + 16));
 
             if (autofarmLigado && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo) {
                 // Autofarm só cuida do DESLOCAMENTO até o inimigo; o ataque em si é o auto-attack (atualizarAutoAtaque abaixo).
@@ -6243,14 +7038,70 @@ function usarCanticoCelestial() {
                         }
                     }
                 }
-            } else if (!window.transicaoMapaAtiva && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo && !window.snAimAtivo && !window.snPosicaoAtivo && (moveX !== 0 || moveY !== 0)) {
-                let proximoX = window.meuX + (moveX / 2) * (velocidadeAtual / 1.8) * window.dt; let proximoY = window.meuY + (moveY / 2) * (velocidadeAtual / 1.8) * window.dt;
-                let colidiu = false;
-                if (window.currentMap === 'green' && typeof window.arvores !== "undefined") {
-                    for (let arv of window.arvores) { if (Math.hypot((proximoX + 12) - arv.x, (proximoY + 16) - arv.y) < arv.raioColisao + 10) { colidiu = true; break; } }
+            } else if (!window.transicaoMapaAtiva && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo && !window.snAimAtivo && !window.snPosicaoAtivo && ((moveX !== 0 || moveY !== 0) || (noGelo && (Math.abs(window.inerciaGeloX) > 0.08 || Math.abs(window.inerciaGeloY) > 0.08)))) {
+                let movendoEntrada = (moveX !== 0 || moveY !== 0);
+                if (noGelo) {
+                    if (movendoEntrada) {
+                        const velDesejadaX = (moveX / 2) * (velocidadeAtual / 1.8);
+                        const velDesejadaY = (moveY / 2) * (velocidadeAtual / 1.8);
+                        window.inerciaGeloX += (velDesejadaX - window.inerciaGeloX) * 0.16;
+                        window.inerciaGeloY += (velDesejadaY - window.inerciaGeloY) * 0.16;
+                    } else {
+                        window.inerciaGeloX *= 0.95;
+                        window.inerciaGeloY *= 0.95;
+                    }
+                    if (Math.abs(window.inerciaGeloX) < 0.05) window.inerciaGeloX = 0;
+                    if (Math.abs(window.inerciaGeloY) < 0.05) window.inerciaGeloY = 0;
+                } else {
+                    window.inerciaGeloX = 0;
+                    window.inerciaGeloY = 0;
                 }
-                if (!colidiu && typeof window.colideMapaAtivo === "function" && window.colideMapaAtivo(proximoX + 12, proximoY + 16, 12)) colidiu = true;
-                if (!colidiu) { window.meuX = proximoX; window.meuY = proximoY; isMoving = true; window.walkCycle += 0.15; }
+
+                let velPassoX = noGelo ? (window.inerciaGeloX * window.dt) : ((moveX / 2) * (velocidadeAtual / 1.8) * window.dt);
+                let velPassoY = noGelo ? (window.inerciaGeloY * window.dt) : ((moveY / 2) * (velocidadeAtual / 1.8) * window.dt);
+
+                let proximoX = window.meuX + velPassoX;
+                let proximoY = window.meuY + velPassoY;
+
+                function checarColisaoPonto(tx, ty) {
+                    if (window.currentMap === 'green' && typeof window.arvores !== "undefined") {
+                        for (let arv of window.arvores) {
+                            if (Math.hypot((tx + 12) - arv.x, (ty + 16) - arv.y) < arv.raioColisao + 10) return true;
+                        }
+                    }
+                    if (typeof window.colideMapaAtivo === "function" && window.colideMapaAtivo(tx + 12, ty + 16, 12)) return true;
+                    return false;
+                }
+
+                if (!checarColisaoPonto(proximoX, proximoY)) {
+                    window.meuX = proximoX;
+                    window.meuY = proximoY;
+                    isMoving = true;
+                    window.walkCycle += (noGelo && !movendoEntrada) ? 0.03 : 0.15;
+                } else {
+                    // Deslizamento suave em paredes/obstáculos (Axis Separation)
+                    let moveu = false;
+                    const livreX = velPassoX !== 0 && !checarColisaoPonto(proximoX, window.meuY);
+                    const livreY = velPassoY !== 0 && !checarColisaoPonto(window.meuX, proximoY);
+
+                    if (livreX && !livreY) {
+                        window.meuX = proximoX;
+                        if (noGelo) window.inerciaGeloY = 0;
+                        moveu = true;
+                    } else if (livreY && !livreX) {
+                        window.meuY = proximoY;
+                        if (noGelo) window.inerciaGeloX = 0;
+                        moveu = true;
+                    }
+
+                    if (moveu) {
+                        isMoving = true;
+                        window.walkCycle += (noGelo && !movendoEntrada) ? 0.03 : 0.15;
+                    } else if (noGelo) {
+                        window.inerciaGeloX = 0;
+                        window.inerciaGeloY = 0;
+                    }
+                }
             } else if (window.estaMorto) { moveX = 0; moveY = 0; joystickBase.style.display = "none"; }
 
             // REDE DE SEGURANÇA v1.34.2: se a posição vira NaN (bug cross-mapa ou
@@ -6272,10 +7123,10 @@ function usarCanticoCelestial() {
             // Antes, o clamp usava o currentMap da frame ANTERIOR (padrão 'cidade'); um personagem
             // salvo em outro mapa (ex.: Arena X=63800+) era puxado para FIM_CIDADE-42 (=X 61132)
             // e ficava travado no canto, sem conseguir andar nem teleportar.
-            window.currentMap = (window.meuX >= window.LARGURA_CIDADE_PERDIDA) ? 'cidadeperdida' : ((window.meuX >= window.LARGURA_ARENA) ? (window.solariAtivo ? 'solari' : 'arena') : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 'cidade' : ((window.meuX >= window.LARGURA_PANTANO) ? 'caverna' : ((window.meuX >= window.LARGURA_DESERTO) ? 'pantano' : ((window.meuX >= window.LARGURA_VERDE) ? 'desert' : 'green')))));
-            let maxYMapa = (window.currentMap === 'arena' || window.currentMap === 'solari') ? 1240 : ((window.currentMap === 'cidade') ? 1145 : ((window.currentMap === 'cidadeperdida') ? 3920 : ((window.currentMap === 'caverna') ? 1800 : ((window.currentMap === 'pantano') ? 9000 : ((window.currentMap === 'desert') ? 36000 : 18000)))));
+            window.currentMap = (window.meuX >= (window.LARGURA_CASTELO || 82000)) ? 'castelo' : ((window.meuX >= (window.LARGURA_ZONA_ZERO || 74000)) ? 'zonazero' : ((window.meuX >= (window.LARGURA_TESTE_VISUAL || 72000)) ? 'testevisual' : ((window.meuX >= window.LARGURA_CIDADE_PERDIDA) ? 'cidadeperdida' : ((window.meuX >= window.LARGURA_ARENA) ? (window.solariAtivo ? 'solari' : 'arena') : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 'cidade' : ((window.meuX >= window.LARGURA_PANTANO) ? 'caverna' : ((window.meuX >= window.LARGURA_DESERTO) ? 'pantano' : ((window.meuX >= window.LARGURA_VERDE) ? 'desert' : 'green'))))))));
+            let maxYMapa = (window.currentMap === 'castelo') ? (window.ALTO_CASTELO || 1800) : ((window.currentMap === 'zonazero') ? (window.ALTO_ZONA_ZERO || 9000) : ((window.currentMap === 'testevisual') ? (window.ALTO_TESTE_VISUAL || 960) : ((window.currentMap === 'arena' || window.currentMap === 'solari') ? 1240 : ((window.currentMap === 'cidade') ? 1145 : ((window.currentMap === 'cidadeperdida') ? 3920 : ((window.currentMap === 'caverna') ? 1800 : ((window.currentMap === 'pantano') ? 9000 : ((window.currentMap === 'desert') ? 36000 : (window.ALTO_VERDE || 5400)))))))));
             if (window.meuY > maxYMapa - 40) window.meuY = maxYMapa - 40;
-            const limitesMapaAtual = { green: [0, window.LARGURA_VERDE], desert: [window.LARGURA_VERDE, window.LARGURA_DESERTO], pantano: [window.LARGURA_DESERTO, window.LARGURA_PANTANO], caverna: [window.LARGURA_PANTANO, window.FIM_CAVERNA], cidade: [window.LARGURA_CIDADE, window.FIM_CIDADE], arena: [window.LARGURA_ARENA, window.FIM_ARENA], solari: [window.LARGURA_ARENA, window.FIM_ARENA], cidadeperdida: [window.LARGURA_CIDADE_PERDIDA, window.FIM_CIDADE_PERDIDA] }[window.currentMap];
+            const limitesMapaAtual = { green: [0, window.LARGURA_VERDE], desert: [window.LARGURA_VERDE, window.LARGURA_DESERTO], pantano: [window.LARGURA_DESERTO, window.LARGURA_PANTANO], caverna: [window.LARGURA_PANTANO, window.FIM_CAVERNA], cidade: [window.LARGURA_CIDADE, window.FIM_CIDADE], arena: [window.LARGURA_ARENA, window.FIM_ARENA], solari: [window.LARGURA_ARENA, window.FIM_ARENA], cidadeperdida: [window.LARGURA_CIDADE_PERDIDA, window.FIM_CIDADE_PERDIDA], testevisual: [window.LARGURA_TESTE_VISUAL || 72000, window.FIM_TESTE_VISUAL || 73280], zonazero: [window.LARGURA_ZONA_ZERO || 74000, window.FIM_ZONA_ZERO || 82000], castelo: [window.LARGURA_CASTELO || 82000, window.FIM_CASTELO || 84200] }[window.currentMap];
             if (limitesMapaAtual) {
                 window.meuX = Math.max(limitesMapaAtual[0] + 10, Math.min(limitesMapaAtual[1] - 42, window.meuX));
             }
@@ -6295,6 +7146,21 @@ function usarCanticoCelestial() {
             atualizarAutoAtaque();
 
             let agora = Date.now();
+
+            // SOM DE MOVIMENTAÇÃO / PASSOS (v1.56.0) — Padrão para todas as classes
+            let movendoPasso = isMoving && !window.transicaoMapaAtiva && !window.estaMorto && !dashTravandoMovimento;
+            if (noGelo && !movendoEntrada) movendoPasso = false;
+            if (movendoPasso) {
+                if (!window._ultimoPassoLocal) window._ultimoPassoLocal = 0;
+                let intervaloPasso = Math.max(220, Math.min(460, Math.round(340 / (velocidadeAtual / 3.6))));
+                if (agora - window._ultimoPassoLocal >= intervaloPasso) {
+                    window._ultimoPassoLocal = agora;
+                    if (typeof window.tocarSonoro === 'function') {
+                        window.tocarSonoro('andar');
+                    }
+                }
+            }
+
             // Durante Dança/Estrela o personagem NÃO reporta deslocamento próprio (a coreografia é do servidor)
             let movingReportado = isMoving && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo;
             if (ws && ws.readyState === WebSocket.OPEN && (agora - ultimoEnvioRede > 30)) { ws.send(JSON.stringify({ x: window.meuX, y: window.meuY, angulo: window.meuAngulo, moving: movingReportado })); ultimoEnvioRede = agora; }
@@ -6308,13 +7174,28 @@ function usarCanticoCelestial() {
 
             ctx.setTransform(1, 0, 0, 0, 0, 0);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.fillStyle = (window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'solari') ? "#150f24" : ((window.currentMap === 'pantano') ? "#24301a" : ((window.currentMap === 'desert') ? "#d9b45c" : ((window.currentMap === 'caverna') ? "#1a0f0f" : ((window.currentMap === 'cidade') ? "#2c2a27" : ((window.currentMap === 'cidadeperdida') ? "#1c2a1d" : "#163f18"))))));
+            ctx.fillStyle = (window.currentMap === 'castelo') ? "#0d0a07" : ((window.currentMap === 'zonazero') ? "#0a1622" : ((window.currentMap === 'testevisual') ? "#1c2817" : ((window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'solari') ? "#150f24" : ((window.currentMap === 'pantano') ? "#24301a" : ((window.currentMap === 'desert') ? "#d9b45c" : ((window.currentMap === 'caverna') ? "#1a0f0f" : ((window.currentMap === 'cidade') ? "#2c2a27" : ((window.currentMap === 'cidadeperdida') ? "#1c2a1d" : "#163f18")))))))));
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.save(); ctx.scale((window.cameraZoomAtual || ZOOM_CAMERA), (window.cameraZoomAtual || ZOOM_CAMERA)); ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
 
             // ===== FUNDO + CENÁRIO: desenha SOMENTE o bioma do currentMap ativo =====
             let tempoAnimacao = Date.now() / 1000;
-            if (window.currentMap === 'arena' || window.currentMap === 'solari') {
+            if (window.currentMap === 'castelo') {
+                ctx.fillStyle = "#0d0a07"; // pedra negra ancestral
+                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+                if (typeof window.desenharCenarioCastelo === "function") window.desenharCenarioCastelo(tempoAnimacao);
+                if (typeof window.desenharPortalCasteloSaida === "function") window.desenharPortalCasteloSaida(tempoAnimacao);
+            } else if (window.currentMap === 'zonazero') {
+                ctx.fillStyle = "#0a1622";
+                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+                if (typeof window.desenharCenarioZonaZero === "function") window.desenharCenarioZonaZero(tempoAnimacao);
+                if (typeof window.desenharPortalZonaZero === "function") window.desenharPortalZonaZero(tempoAnimacao);
+                if (typeof window.desenharPortalCasteloEntrada === "function") window.desenharPortalCasteloEntrada(tempoAnimacao);
+            } else if (window.currentMap === 'testevisual') {
+                ctx.fillStyle = "#1c2817";
+                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+                if (typeof window.desenharCenarioTesteVisual === "function") window.desenharCenarioTesteVisual(tempoAnimacao);
+            } else if (window.currentMap === 'arena' || window.currentMap === 'solari') {
                 ctx.fillStyle = (window.currentMap === 'solari') ? "#150f24" : "#141210";
                 ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
                 if (typeof window.desenharCenarioArena === "function") window.desenharCenarioArena(tempoAnimacao);
@@ -6347,7 +7228,7 @@ function usarCanticoCelestial() {
             } else {
                 ctx.fillStyle = "#163f18"; // cor de fundo do mapa verde (limpa o buffer)
                 ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenario === "function") window.desenharCenario();
+                if (typeof window.desenharCenario === "function") window.desenharCenario(tempoAnimacao);
                 if (typeof window.desenharPortalVerde === "function") window.desenharPortalVerde(tempoAnimacao);
                 if (typeof window.desenharPortalCavernaVerde === "function") window.desenharPortalCavernaVerde(tempoAnimacao);
                 if (typeof window.desenharPortalCidadeVerde === "function") window.desenharPortalCidadeVerde(tempoAnimacao);
@@ -6444,14 +7325,23 @@ function usarCanticoCelestial() {
                 }
             }
 
+            // Blindagem: impede que qualquer efeito visual de skill anterior contamine monstros ou herói
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
+
             // ===== Y-SORT: profundidade entre cenário decorado, monstros e jogadores =====
             let spritesSort = [];
+            if (window.currentMap === 'zonazero' && typeof window.coletarZonaZeroSortables === "function") window.coletarZonaZeroSortables(tempoAnimacao, spritesSort);
+            if (window.currentMap === 'testevisual' && typeof window.coletarTestevisualSortables === "function") window.coletarTestevisualSortables(tempoAnimacao, spritesSort);
             if ((window.currentMap === 'arena' || window.currentMap === 'solari') && typeof window.coletarArenaSortables === "function") window.coletarArenaSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'desert' && typeof window.coletarDesertSortables === "function") window.coletarDesertSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'pantano' && typeof window.coletarPantanoSortables === "function") window.coletarPantanoSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'caverna' && typeof window.coletarCavernaSortables === "function") window.coletarCavernaSortables(tempoAnimacao, spritesSort);
+            if (window.currentMap === 'castelo' && typeof window.coletarCasteloSortables === "function") window.coletarCasteloSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'cidade' && typeof window.coletarCidadeSortables === "function") window.coletarCidadeSortables(tempoAnimacao, spritesSort);
+            if (window.currentMap === 'green' && typeof window.coletarVerdeSortables === "function") window.coletarVerdeSortables(tempoAnimacao, spritesSort);
             if (typeof window.coletarObjetosMapa === "function") window.coletarObjetosMapa(tempoAnimacao, spritesSort);
+            if (typeof window.coletarCamadasMapaAtivo === "function") window.coletarCamadasMapaAtivo(tempoAnimacao, spritesSort);
 
             if (typeof window.verificarMortesMonstros === "function") window.verificarMortesMonstros();
 
@@ -6496,6 +7386,23 @@ function usarCanticoCelestial() {
                 let pp = window.todosJogadores[id];
                 let posX = (id === window.meuId) ? window.meuX : (pp ? pp.x : 0);
                 let posY = (id === window.meuId) ? window.meuY : (pp ? pp.y : 0);
+
+                // Passos de outros jogadores via Proximidade Sonora (v1.56.0)
+                if (id !== window.meuId && pp && pp.hp > 0 && pp.moving) {
+                    let agoraPP = Date.now();
+                    let ultimoPP = pp._ultimoPasso || 0;
+                    if (agoraPP - ultimoPP >= 340) {
+                        pp._ultimoPasso = agoraPP;
+                        let distPP = Math.hypot(posX - window.meuX, posY - window.meuY);
+                        if (distPP <= 650 && (agoraPP - (window._ultimoPassoRemotoGlobal || 0) >= 70)) {
+                            window._ultimoPassoRemotoGlobal = agoraPP;
+                            if (typeof window.tocarSonoroProximidade === 'function') {
+                                window.tocarSonoroProximidade('andar', posX, posY);
+                            }
+                        }
+                    }
+                }
+
                 if (id !== window.meuId && (!pp || pp.hp <= 0 || posX < cameraBounds.minX || posX > cameraBounds.maxX || posY < cameraBounds.minY || posY > cameraBounds.maxY)) continue;
                 (function (pid, pj) {
                     spritesSort.push({
@@ -6602,9 +7509,9 @@ function usarCanticoCelestial() {
 
                             // ===== ESCUDO DE ENERGIA: barra branca sobre o HP (dono E aliados) =====
                             let escudoAbs = (pid === window.meuId) ? (window.meuEscudoAbsoluto || 0) : ((pp.escudoAbsoluto || 0));
-                            let escudoAbsMax = (pid === window.meuId) ? (window.meuEscudoAbsolutoMax || 0) : ((pp.escudoAbsolutoMax || 0));
+                            let maxHpRef = (pid === window.meuId) ? (window.meuMaxHp || 100) : (pp.maxHp || 100);
                             if (escudoAbs > 0) {
-                                let fracEsc = (escudoAbsMax > 0) ? Math.max(0, Math.min(1, escudoAbs / escudoAbsMax)) : 1;
+                                let fracEsc = (maxHpRef > 0) ? Math.max(0, Math.min(1, escudoAbs / maxHpRef)) : 0;
                                 ctx.save();
                                 ctx.fillStyle = "rgba(255,255,255,0.92)";
                                 ctx.shadowColor = "#ffffff";
@@ -6613,6 +7520,29 @@ function usarCanticoCelestial() {
                                 ctx.strokeStyle = "rgba(255,255,255,0.4)";
                                 ctx.lineWidth = 1;
                                 ctx.strokeRect(posX - 2, posY - 12, 28, 3);
+                                ctx.restore();
+                            }
+
+                            // v1.51.0: DroneMaster com escudo ativo - aura de energia azul brilhante ao redor
+                            if (classeJogador === 'dronemaster' && escudoAbs > 0) {
+                                ctx.save();
+                                let tempoAura = Date.now() / 220;
+                                let pulsoAura = Math.sin(tempoAura) * 2.5;
+                                let rAura = 22 + pulsoAura;
+                                let cx = posX + 12, cy = posY + 16;
+                                ctx.beginPath();
+                                ctx.arc(cx, cy, rAura, 0, Math.PI * 2);
+                                ctx.strokeStyle = 'rgba(0, 195, 255, 0.85)';
+                                ctx.lineWidth = 2.4;
+                                ctx.shadowColor = '#00c3ff';
+                                ctx.shadowBlur = 12;
+                                ctx.stroke();
+                                let gAura = ctx.createRadialGradient(cx, cy, 5, cx, cy, rAura);
+                                gAura.addColorStop(0, 'rgba(0, 195, 255, 0)');
+                                gAura.addColorStop(0.65, 'rgba(0, 195, 255, 0.12)');
+                                gAura.addColorStop(1, 'rgba(0, 195, 255, 0.32)');
+                                ctx.fillStyle = gAura;
+                                ctx.fill();
                                 ctx.restore();
                             }
 
@@ -6801,7 +7731,14 @@ function usarCanticoCelestial() {
                 for (let i = window.caixasFerramentas.length - 1; i >= 0; i--) { let z = window.caixasFerramentas[i]; z.tempo--; if (z.tempo <= 0) { window.caixasFerramentas.splice(i, 1); continue; } if (typeof window.desenharCaixaFerramentas === "function") window.desenharCaixaFerramentas(z, z.tempo); }
             }
 
-            for (let i = dashTrails.length - 1; i >= 0; i--) { let dt = dashTrails[i]; dt.alpha -= 0.05; if (dt.alpha <= 0) { dashTrails.splice(i, 1); } else { ctx.save(); ctx.fillStyle = "rgba(52, 152, 219, " + dt.alpha + ")"; ctx.beginPath(); ctx.arc(dt.x, dt.y, 18, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } }
+            for (let i = dashTrails.length - 1; i >= 0; i--) { let dt = dashTrails[i]; dt.alpha -= 0.05; if (dt.alpha <= 0) { dashTrails.splice(i, 1); } else { ctx.save(); ctx.fillStyle = (dt.cor || "rgba(52, 152, 219, ") + dt.alpha + ")"; ctx.beginPath(); ctx.arc(dt.x, dt.y, 18, 0, Math.PI * 2); ctx.fill(); ctx.restore(); } }
+
+            // ===== DASH v2 — VFX do dash =====
+            if (typeof window.desenharDashVfx === 'function') window.desenharDashVfx(ctx);
+            if (window.escudoGuerreiroAtivo && typeof window.desenharEscudoGuerreiro === 'function') {
+                window.desenharEscudoGuerreiro(ctx);
+            }
+
             for (let i = slashes.length - 1; i >= 0; i--) { let s = slashes[i]; s.alpha -= 0.08; s.escala += 0.1; if (s.alpha <= 0) { slashes.splice(i, 1); } else { ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.angulo); ctx.globalAlpha = s.alpha; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 4; ctx.shadowColor = "#3498db"; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(20, 0, 25 * s.escala, -Math.PI / 3, Math.PI / 3); ctx.stroke(); ctx.restore(); } }
             for (let i = window.floatingTexts.length - 1; i >= 0; i--) { 
                 let ft = window.floatingTexts[i]; 
@@ -6860,6 +7797,11 @@ function usarCanticoCelestial() {
 
             ctx.restore();
 
+            // v1.52.0: CICLO DIA/NOITE & ILUMINAÇÃO DINÂMICA (véu de escuridão com recortes de luz)
+            if (typeof window.renderizarCicloDiaNoite === 'function') {
+                window.renderizarCicloDiaNoite(ctx, cameraX, cameraY, shakeX, shakeY, (window.cameraZoomAtual || ZOOM_CAMERA));
+            }
+
             // ======= NOVO MINIMAPA FUNCIONAL (COM RADAR DE ZOOM, MONSTROS, PLAYERS E DROPS) =======
             if (mmCtx && mmCanvas && mmCanvas.style.display !== "none" && typeof window.meuX === "number") {
                 let mw = mmCanvas.width = 176, mh = mmCanvas.height = 100;
@@ -6867,7 +7809,7 @@ function usarCanticoCelestial() {
 
                 // Header do minimapa: bioma e coordenadas
                 if (minimapBioma) {
-                    let biomaLabel = (window.currentMap === 'arena') ? "⚔️ Arena" : ((window.currentMap === 'solari') ? "🔮 Arena de Solari" : ((window.currentMap === 'cidade') ? "🏰 Davahl" : ((window.currentMap === 'cidadeperdida') ? "🏛️ Cidade Perdida" : ((window.currentMap === 'caverna') ? "🕳️ Caverna" : ((window.currentMap === 'pantano') ? "🪷 Pântano" : ((window.currentMap === 'desert') ? "🏜️ Deserto" : "🌿 Verde"))))));
+                    let biomaLabel = (window.currentMap === 'castelo') ? "🏯 Castelo Anda 1 (DG)" : ((window.currentMap === 'zonazero') ? "❄️ Zona Zero (Gelo)" : ((window.currentMap === 'testevisual') ? "🌿 Arena Visual (Pântano)" : ((window.currentMap === 'arena') ? "⚔️ Arena" : ((window.currentMap === 'solari') ? "🔮 Arena de Solari" : ((window.currentMap === 'cidade') ? "🏰 Davahl" : ((window.currentMap === 'cidadeperdida') ? "🏛️ Cidade Perdida" : ((window.currentMap === 'caverna') ? "🕳️ Caverna" : ((window.currentMap === 'pantano') ? "🪷 Pântano" : ((window.currentMap === 'desert') ? "🏜️ Deserto" : "🌿 Verde")))))))));
                     minimapBioma.innerText = biomaLabel;
                 }
                 if (minimapCoords) {
@@ -6888,7 +7830,7 @@ function usarCanticoCelestial() {
                     }
 
                     // Fundo temático do bioma ativo
-                    let corFundoBioma = (window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'solari') ? "#201430" : ((window.currentMap === 'cidade') ? "#132333" : ((window.currentMap === 'cidadeperdida') ? "#1c2a1d" : ((window.currentMap === 'caverna') ? "#241315" : ((window.currentMap === 'pantano') ? "#1a2714" : ((window.currentMap === 'desert') ? "#4a3915" : "#163a1c"))))));
+                    let corFundoBioma = (window.currentMap === 'castelo') ? "#140e0a" : ((window.currentMap === 'zonazero') ? "#0c1f2e" : ((window.currentMap === 'testevisual') ? "#141f10" : ((window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'solari') ? "#201430" : ((window.currentMap === 'cidade') ? "#132333" : ((window.currentMap === 'cidadeperdida') ? "#1c2a1d" : ((window.currentMap === 'caverna') ? "#241315" : ((window.currentMap === 'pantano') ? "#1a2714" : ((window.currentMap === 'desert') ? "#4a3915" : "#163a1c")))))))));
                     mmCtx.fillStyle = corFundoBioma;
                     mmCtx.fillRect(0, 0, mw, mh);
 
@@ -7003,6 +7945,19 @@ function usarCanticoCelestial() {
                     mmCtx.lineWidth = 1.2;
                     mmCtx.stroke();
                     mmCtx.restore();
+
+                    // Efeito Madrugada / Breu no Radar do Minimapa (00:00 às 04:00)
+                    if (window.tempoMundo && window.tempoMundo.escuridao > 0.70) {
+                        let fBreu = Math.min(1.0, (window.tempoMundo.escuridao - 0.70) / 0.30);
+                        mmCtx.save();
+                        let rGrad = mmCtx.createRadialGradient(cx0, cy0, 20, cx0, cy0, mw * 0.48);
+                        rGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
+                        rGrad.addColorStop(0.55, 'rgba(2, 4, 10, ' + (fBreu * 0.65).toFixed(3) + ')');
+                        rGrad.addColorStop(1, 'rgba(0, 0, 0, ' + (fBreu * 0.95).toFixed(3) + ')');
+                        mmCtx.fillStyle = rGrad;
+                        mmCtx.fillRect(0, 0, mw, mh);
+                        mmCtx.restore();
+                    }
 
                 } else {
                     // MODO MUNDO GLOBAL

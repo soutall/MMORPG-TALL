@@ -124,7 +124,7 @@ function chaveVisual() {
 }
 
 function carregarConfigVisual() {
-    var padrao = { hpBar: 'max', mpBar: 'max', xpBar: 'pct' };
+    var padrao = { hpBar: 'max', mpBar: 'max', xpBar: 'pct', tela: 'fullscreen' };
     window.configVisual = padrao;
     try {
         var s = localStorage.getItem(chaveVisual());
@@ -181,6 +181,107 @@ window.mudarVisualXpBar = function (val) {
     refrescarBarrasHud();
 };
 
+/* ===== MODO DE TELA — JANELA vs FULL JANELA (SOMENTE PC) =====
+   O navegador NÃO deixa uma aba comum redimensionar a janela do sistema, então
+   aqui a opção controla a Fullscreen API:
+     - "Modo Janela"       -> sai da tela cheia (jogo na janela do navegador)
+     - "Modo Full Janela"  -> tela cheia real (sem barra de navegador)
+   A escolha é salva POR ID DO PERSONAGEM (mesma chave dos demais ajustes visuais:
+   mmorpg_visual_<id>) e num espelho global (mmorpg_tela) usado antes do login,
+   já que o id do personagem só é conhecido depois do 'init' do servidor.
+   No MOBILE a opção fica oculta: lá a tela cheia é obrigatória (jogo em
+   paisagem), então o 'fullscreen' automático continua valendo. */
+
+var TELA_CHAVE_GLOBAL = "mmorpg_tela";
+
+// Detecta a PLATAFORMA (não o tamanho da janela): uma janela de PC pequena
+// continua sendo PC e por isso o seletor não pode sumir quando o jogador
+// escolhe "Modo Janela" e encolhe o navegador.
+function plataformaEhPC() {
+    if (window.__forcarDispositivo === 'mobile') return false;
+    if (window.__forcarDispositivo === 'pc') return true;
+    try {
+        var ua = navigator.userAgent || '';
+        if (/Android|iPhone|iPad|iPod|Windows Phone|Opera Mini|Mobile|Silk/i.test(ua)) return false;
+        // iPadOS 13+ se apresenta como "Macintosh", mas tem vários pontos de toque.
+        if (/Macintosh/i.test(ua) && (navigator.maxTouchPoints || 0) > 1) return false;
+    } catch (e) {}
+    return true;
+}
+
+function telaEstaFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement ||
+              document.mozFullScreenElement || document.msFullscreenElement);
+}
+
+function telaPreferida() {
+    var cfg = window.configVisual || {};
+    if (cfg.tela === 'janela' || cfg.tela === 'fullscreen') return cfg.tela;
+    try {
+        var g = localStorage.getItem(TELA_CHAVE_GLOBAL);
+        if (g === 'janela' || g === 'fullscreen') return g;
+    } catch (e) {}
+    return 'fullscreen';
+}
+
+function salvarTelaPreferida(modo) {
+    var cfg = window.configVisual = window.configVisual || {};
+    cfg.tela = modo;
+    salvarConfigVisual();
+    try { localStorage.setItem(TELA_CHAVE_GLOBAL, modo); } catch (e) {}
+}
+
+function aplicarModoTela(modo) {
+    var querFull = (modo !== 'janela');
+    if (querFull === telaEstaFullscreen()) return;
+    try {
+        if (querFull) {
+            var el = document.documentElement;
+            var req = el.requestFullscreen || el.webkitRequestFullscreen ||
+                      el.mozRequestFullScreen || el.msRequestFullscreen;
+            if (req) { var p = req.call(el); if (p && p.catch) p.catch(function () {}); }
+        } else {
+            var sai = document.exitFullscreen || document.webkitExitFullscreen ||
+                      document.mozCancelFullScreen || document.msExitFullscreen;
+            if (sai) { var q = sai.call(document); if (q && q.catch) q.catch(function () {}); }
+        }
+    } catch (e) {}
+    if (typeof redimensionarCanvas === 'function') setTimeout(redimensionarCanvas, 150);
+}
+
+function atualizarSeletorTela() {
+    var linha = document.getElementById("vis-tela-linha");
+    if (linha) linha.style.display = plataformaEhPC() ? "" : "none";
+    var sel = document.getElementById("vis-tela-modo");
+    if (sel) sel.value = telaPreferida();
+}
+
+window.mudarVisualTela = function (val) {
+    var modo = (val === 'janela') ? 'janela' : 'fullscreen';
+    salvarTelaPreferida(modo);
+    aplicarModoTela(modo);
+};
+
+// O auto-fullscreen do 1º clique (index.html) consulta isto: no PC ele só
+// entra em tela cheia se o jogador escolheu "Full Janela"; no mobile sempre.
+window.autoFullscreenPermitido = function () {
+    if (!plataformaEhPC()) return true;
+    return telaPreferida() === 'fullscreen';
+};
+
+// Se o jogador sair/entrar da tela cheia por fora (Esc, F11), a preferência
+// passa a refletir a realidade — o seletor nunca mente sobre o estado atual.
+function sincronizarTelaReal() {
+    var modo = telaEstaFullscreen() ? 'fullscreen' : 'janela';
+    if (telaPreferida() !== modo) salvarTelaPreferida(modo);
+    atualizarSeletorTela();
+    if (typeof redimensionarCanvas === 'function') setTimeout(redimensionarCanvas, 150);
+}
+if (document.addEventListener) {
+    document.addEventListener('fullscreenchange', sincronizarTelaReal);
+    document.addEventListener('webkitfullscreenchange', sincronizarTelaReal);
+}
+
 function preencherAbaVisual() {
     var cfg = window.configVisual || {};
     var sh = document.getElementById("vis-hp-modo");
@@ -189,6 +290,7 @@ function preencherAbaVisual() {
     if (sm) sm.value = cfg.mpBar || 'max';
     var sx = document.getElementById("vis-xp-modo");
     if (sx) sx.value = cfg.xpBar || 'pct';
+    atualizarSeletorTela();
 }
 
 window.requerProximidade = function (px, py, raio) {

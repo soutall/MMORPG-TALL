@@ -198,6 +198,7 @@ window.desenharArqueiroArcano = function(x, y, isMoving, angulo, hp, maxHp) {
 // Ataque básico: Disparo Estelar (o dano é do servidor; o projétil vem via broadcast)
 window.enviarAtaqueArcano = function(ang, alvoTipo, alvoId) {
     if (window.estaMorto) return;
+    if (window.tocarSonoro) window.tocarSonoro('astral_atk');
     let msg = { action: 'ataque_arqueiro_arcano' };
     if (alvoTipo) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; }
     if (ang !== undefined) msg.angulo = ang;

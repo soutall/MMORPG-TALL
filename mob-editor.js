@@ -8,9 +8,25 @@
 
     function tipos() { return Object.keys(window.mobEditorConf || {}); }
 
+    // `window.EFEITOS` (debuffs.js) é um MAPA `id -> {nome, classe, icon, cor,
+    // desc, formato}` — não é um array. Chamar `.forEach` nele estourava
+    // "not a function" e matava a aba "Editor de Monstros" a cada
+    // `monstros_config` que chegasse. Aqui percorremos as CHAVES (o id) e ainda
+    // aceitamos array, para o editor não quebrar se a forma mudar de novo.
+    function efeitoParaLista() {
+        var ef = window.EFEITOS;
+        if (!ef) return [];
+        if (Array.isArray(ef)) return ef;
+        return Object.keys(ef).map(function (id) {
+            var e = ef[id] || {};
+            // o id é a CHAVE do mapa; dentro do objeto ele não existe mais
+            return { id: id, nome: e.nome || id, emoji: e.icon || e.emoji || '', classe: e.classe };
+        });
+    }
+
     function lintas() {
         var d = [], b = [];
-        (window.EFEITOS || []).forEach(function (e) {
+        efeitoParaLista().forEach(function (e) {
             var item = { id: e.id, nome: e.nome || e.id, emoji: e.emoji || '' };
             if (e.classe === 'debuff') d.push(item);
             if (e.classe === 'buff') b.push(item);

@@ -129,6 +129,53 @@
     max-height: calc(85vh - 90px);
 }
 
+/* Barra de Seleção de Mapa (v1.46.0) */
+.col-map-bar {
+    background: #171410;
+    border: 1px solid #7a5829;
+    border-radius: 5px;
+    padding: 6px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    box-shadow: inset 0 1px 4px rgba(0,0,0,0.5);
+}
+.col-map-bar label {
+    font-size: 11px;
+    font-weight: bold;
+    color: #f39c12;
+    white-space: nowrap;
+}
+#col-map-select {
+    flex: 1;
+    background: #251e16;
+    border: 1px solid #e67e22;
+    border-radius: 4px;
+    color: #fff;
+    padding: 4px 6px;
+    font-size: 12px;
+    font-weight: bold;
+    font-family: 'Rajdhani', sans-serif;
+    cursor: pointer;
+    outline: none;
+}
+#col-map-select:hover, #col-map-select:focus {
+    border-color: #f1c40f;
+    background: #32271a;
+}
+#col-map-select option {
+    background: #1e1a14;
+    color: #fff;
+}
+.col-map-badge {
+    background: #27ae60;
+    color: #fff;
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 10px;
+    font-weight: bold;
+}
+
 /* Barra de Ferramentas / Modos */
 .col-toolbar {
     display: grid;

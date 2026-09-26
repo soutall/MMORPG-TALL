@@ -15,27 +15,102 @@
     window.dragEstado = null;
     window.editorMinimizado = false;
 
-    const CID_X0 = 59800;
+    // Configuração de todos os 9 mapas suportados pelo jogo (v1.47.0)
+    const MAPAS_CONFIG = {
+        cidade:        { x0: 59800, y0: 0, w: 1374,  h: 1145,  nome: 'Cidade de Davahl',   icone: '🏰' },
+        green:         { x0: 0,     y0: 0, w: 18000, h: 5400,  nome: 'Campo Verde',       icone: '🌿' },
+        desert:        { x0: 18000, y0: 0, w: 32000, h: 36000, nome: 'Deserto com Oásis', icone: '🏜️' },
+        pantano:       { x0: 50000, y0: 0, w: 8000,  h: 9000,  nome: 'Pântano Realista',   icone: '🌿' },
+        caverna:       { x0: 58000, y0: 0, w: 1800,  h: 1800,  nome: 'Caverna Sombria',    icone: '🕳️' },
+        arena:         { x0: 63800, y0: 0, w: 1240,  h: 1240,  nome: 'Arena de Davahl',    icone: '⚔️' },
+        cidadeperdida: { x0: 65040, y0: 0, w: 6880,  h: 3920,  nome: 'Cidade Perdida',     icone: '🏛️' },
+        testevisual:   { x0: 72000, y0: 0, w: 1280,  h: 960,   nome: 'Arena Visual Teste', icone: '🌿' },
+        zonazero:      { x0: 74000, y0: 0, w: 8000,  h: 9000,  nome: 'Zona Zero (Gelo)',   icone: '❄️' },
+        castelo:       { x0: 82000, y0: 0, w: 2200,  h: 1800,  nome: 'Castelo Anda 1 (DG)', icone: '🏯' }
+    };
+
+    window.MAPAS_CONFIG = MAPAS_CONFIG;
+    window.colisoesPorMapa = window.colisoesPorMapa || {};
+    window.camadasPorMapa = window.camadasPorMapa || {};
+    window.mapaEdicaoAtivo = window.mapaEdicaoAtivo || 'cidade';
+
+    function obterConfigMapaAtivo() {
+        return MAPAS_CONFIG[window.mapaEdicaoAtivo] || MAPAS_CONFIG.cidade;
+    }
 
     function modoCamadaAtivo() {
         return window.modoEdicaoMapa === 'camada';
     }
 
     function obterListaEditor() {
-        if (!global.mapaCidade) return [];
-        if (modoCamadaAtivo() && typeof global.mapaCidade.obterCamadas === 'function') return global.mapaCidade.obterCamadas();
-        if (typeof global.mapaCidade.obterObstaculos === 'function') return global.mapaCidade.obterObstaculos();
-        return [];
+        const mapa = window.mapaEdicaoAtivo || 'cidade';
+        if (modoCamadaAtivo()) {
+            if (!Array.isArray(window.camadasPorMapa[mapa])) {
+                if (mapa === 'cidade' && global.mapaCidade && typeof global.mapaCidade.obterCamadas === 'function') {
+                    window.camadasPorMapa[mapa] = global.mapaCidade.obterCamadas();
+                } else {
+                    window.camadasPorMapa[mapa] = [];
+                }
+            }
+            return window.camadasPorMapa[mapa];
+        } else {
+            if (!Array.isArray(window.colisoesPorMapa[mapa])) {
+                if (mapa === 'cidade' && global.mapaCidade && typeof global.mapaCidade.obterObstaculos === 'function') {
+                    window.colisoesPorMapa[mapa] = global.mapaCidade.obterObstaculos();
+                } else {
+                    window.colisoesPorMapa[mapa] = [];
+                }
+            }
+            return window.colisoesPorMapa[mapa];
+        }
     }
 
     function carregarListaEditor(lista) {
-        if (!global.mapaCidade) return;
-        if (modoCamadaAtivo() && typeof global.mapaCidade.carregarCamadas === 'function') global.mapaCidade.carregarCamadas(lista);
-        else if (typeof global.mapaCidade.carregarObstaculos === 'function') global.mapaCidade.carregarObstaculos(lista);
+        const mapa = window.mapaEdicaoAtivo || 'cidade';
+        if (modoCamadaAtivo()) {
+            window.camadasPorMapa[mapa] = lista;
+            if (mapa === 'cidade' && global.mapaCidade && typeof global.mapaCidade.carregarCamadas === 'function') {
+                global.mapaCidade.carregarCamadas(lista);
+            }
+        } else {
+            window.colisoesPorMapa[mapa] = lista;
+            if (mapa === 'cidade' && global.mapaCidade && typeof global.mapaCidade.carregarObstaculos === 'function') {
+                global.mapaCidade.carregarObstaculos(lista);
+            }
+        }
     }
 
-    // Converte Coordenadas de Tela (Mouse/Touch) para Coordenadas Locais da Cidade
-    function telaParaLocalCidade(clientX, clientY) {
+    window.setMapaEdicao = function (mapa) {
+        if (!MAPAS_CONFIG[mapa]) return;
+        window.mapaEdicaoAtivo = mapa;
+        window.colisaoSelecionadaId = null;
+        window.dragEstado = null;
+
+        const sel = document.getElementById('col-map-select');
+        if (sel && sel.value !== mapa) sel.value = mapa;
+
+        const badge = document.getElementById('colisao-editor-hud-badge');
+        if (badge) {
+            const span = badge.querySelector('span');
+            if (span) span.innerHTML = (modoCamadaAtivo() ? '🌿 ' : '🧱 ') + (MAPAS_CONFIG[mapa].icone || '🗺️') + ' ' + (MAPAS_CONFIG[mapa].nome || mapa).toUpperCase();
+        }
+
+        const titulo = document.getElementById('colisao-editor-title');
+        if (titulo) {
+            titulo.innerHTML = (modoCamadaAtivo() ? '🌿 EDITOR DE CAMADAS' : '🧱 EDITOR DE COLISÕES') + ' · <span style="font-size:11px;color:#f39c12;">' + (MAPAS_CONFIG[mapa].icone || '') + ' ' + (MAPAS_CONFIG[mapa].nome || mapa) + '</span>';
+        }
+
+        window.atualizarPropriedadesUI();
+        window.atualizarListaColisoesUI();
+        window.mostrarToast('Editando mapa: ' + (MAPAS_CONFIG[mapa].nome || mapa));
+    };
+
+    window.obterMapaEdicao = function () {
+        return window.mapaEdicaoAtivo || 'cidade';
+    };
+
+    // Converte Coordenadas de Tela (Mouse/Touch) para Coordenadas Locais do Mapa Ativo
+    function telaParaLocal(clientX, clientY) {
         const cv = global.canvas;
         if (!cv) return { lx: 0, ly: 0, wx: 0, wy: 0 };
         const rect = cv.getBoundingClientRect();
@@ -53,11 +128,13 @@
 
         const wx = camX + screenX;
         const wy = camY + screenY;
-        const lx = wx - CID_X0;
-        const ly = wy;
+        const cfg = obterConfigMapaAtivo();
+        const lx = wx - cfg.x0;
+        const ly = wy - cfg.y0;
 
         return { lx: Math.round(lx), ly: Math.round(ly), wx: Math.round(wx), wy: Math.round(wy) };
     }
+    const telaParaLocalCidade = telaParaLocal;
 
     function distPontoSegmento(px, py, x1, y1, x2, y2) {
         const dx = x2 - x1;
@@ -183,6 +260,19 @@
                     '</div>' +
                 '</div>' +
                 '<div id="colisao-editor-body">' +
+                    '<div class="col-map-bar">' +
+                        '<label>🗺️ MAPA:</label>' +
+                        '<select id="col-map-select" onchange="window.setMapaEdicao(this.value)">' +
+                            '<option value="cidade">🏰 Cidade de Davahl</option>' +
+                            '<option value="green">🌿 Campo Verde</option>' +
+                            '<option value="desert">🏜️ Deserto com Oásis</option>' +
+                            '<option value="pantano">🌿 Pântano Realista</option>' +
+                            '<option value="caverna">🕳️ Caverna Sombria</option>' +
+                            '<option value="arena">⚔️ Arena de Davahl</option>' +
+                            '<option value="cidadeperdida">🏛️ Cidade Perdida</option>' +
+                            '<option value="testevisual">🌿 Arena Visual Teste</option>' +
+                        '</select>' +
+                    '</div>' +
                     '<div class="col-toolbar">' +
                         '<button id="tool-btn-mode-colisao" class="col-tool-btn active" onclick="window.setModoEdicaoMapa(\'colisao\')">🧱 COLISÃO</button>' +
                         '<button id="tool-btn-mode-camada" class="col-tool-btn btn-tool-layer" onclick="window.setModoEdicaoMapa(\'camada\')">🌿 CAMADA</button>' +
@@ -208,7 +298,7 @@
                                 '<input type="text" id="prop-nome" oninput="window.atualizarPropriedadeSelecionada(\'nome\', this.value)">' +
                             '</div>' +
                             '<div class="col-field">' +
-                                '<label>Posição X (Cidade)</label>' +
+                                '<label>Posição X (Local)</label>' +
                                 '<div class="col-stepper-row">' +
                                     '<button class="col-step-btn" onclick="window.ajustarPropriedadePasso(\'x\', -10)">-10</button>' +
                                     '<button class="col-step-btn" onclick="window.ajustarPropriedadePasso(\'x\', -1)">-1</button>' +
@@ -218,7 +308,7 @@
                                 '</div>' +
                             '</div>' +
                             '<div class="col-field">' +
-                                '<label>Posição Y (Cidade)</label>' +
+                                '<label>Posição Y (Local)</label>' +
                                 '<div class="col-stepper-row">' +
                                     '<button class="col-step-btn" onclick="window.ajustarPropriedadePasso(\'y\', -10)">-10</button>' +
                                     '<button class="col-step-btn" onclick="window.ajustarPropriedadePasso(\'y\', -1)">-1</button>' +
@@ -524,7 +614,7 @@
 
     window.atualizarPropriedadeSelecionada = function (prop, valor) {
         const sel = window.obterColisaoSelecionada();
-        if (!sel || !global.mapaCidade) return;
+        if (!sel) return;
         const lista = obterListaEditor();
 
         for (let i = 0; i < lista.length; i++) {
@@ -583,9 +673,26 @@
         window.atualizarPropriedadesUI();
     };
 
+    function atualizarOpcoesMapaSelect() {
+        const sel = document.getElementById('col-map-select');
+        if (!sel) return;
+        const valorAtual = window.mapaEdicaoAtivo || 'cidade';
+        let html = '';
+        Object.keys(MAPAS_CONFIG).forEach(function (key) {
+            const cfg = MAPAS_CONFIG[key];
+            const colCount = (window.colisoesPorMapa && window.colisoesPorMapa[key]) ? window.colisoesPorMapa[key].length : 0;
+            const camCount = (window.camadasPorMapa && window.camadasPorMapa[key]) ? window.camadasPorMapa[key].length : 0;
+            const badgeTxt = modoCamadaAtivo() ? (' (' + camCount + ' cam)') : (' (' + colCount + ' col)');
+            html += '<option value="' + key + '"' + (key === valorAtual ? ' selected' : '') + '>' + (cfg.icone || '🗺️') + ' ' + cfg.nome + badgeTxt + '</option>';
+        });
+        sel.innerHTML = html;
+        sel.value = valorAtual;
+    }
+
     window.atualizarListaColisoesUI = function (filtro) {
+        atualizarOpcoesMapaSelect();
         const container = document.getElementById('col-lista-container');
-        if (!container || !global.mapaCidade) return;
+        if (!container) return;
         const lista = obterListaEditor();
         const badgeCount = document.getElementById('col-count-badge');
         if (badgeCount) badgeCount.textContent = lista.length + ' ativas';
@@ -625,11 +732,11 @@
     // CRIAÇÃO, DUPLICAÇÃO E EXCLUSÃO
     // ============================================================================
     window.criarColisaoNoPlayer = function () {
-        if (!global.mapaCidade) return;
-        const pCenterX = (typeof global.meuX === 'number' ? global.meuX : (CID_X0 + 687)) + 12;
-        const pCenterY = (typeof global.meuY === 'number' ? global.meuY : 660) + 16;
-        const lx = Math.max(0, Math.min(1374 - 40, Math.round(pCenterX - CID_X0 - 20)));
-        const ly = Math.max(0, Math.min(1145 - 40, Math.round(pCenterY - 20)));
+        const cfg = obterConfigMapaAtivo();
+        const pCenterX = (typeof global.meuX === 'number' ? global.meuX : (cfg.x0 + 100)) + 12;
+        const pCenterY = (typeof global.meuY === 'number' ? global.meuY : (cfg.y0 + 100)) + 16;
+        const lx = Math.max(0, Math.min(cfg.w - 40, Math.round(pCenterX - cfg.x0 - 20)));
+        const ly = Math.max(0, Math.min(cfg.h - 40, Math.round(pCenterY - cfg.y0 - 20)));
 
         const novo = {
             id: (modoCamadaAtivo() ? 'camada_' : 'col_') + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
@@ -651,7 +758,7 @@
 
     window.duplicarColisaoSelecionada = function () {
         const sel = window.obterColisaoSelecionada();
-        if (!sel || !global.mapaCidade) return;
+        if (!sel) return;
         const copia = JSON.parse(JSON.stringify(sel));
         copia.id = (modoCamadaAtivo() ? 'camada_' : (copia.tipo === 'line' ? 'line_' : 'col_')) + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6);
         copia.nome = (copia.nome || (modoCamadaAtivo() ? 'Camada' : 'Colisão')) + ' (Cópia)';
@@ -674,8 +781,9 @@
     window.teleportarParaSelecionada = function () {
         const sel = window.obterColisaoSelecionada();
         if (!sel) return;
-        let tx = CID_X0 + (sel.tipo === 'circle' ? sel.cx : (sel.tipo === 'line' ? (sel.pontos && sel.pontos.length ? sel.pontos[0].x : sel.x) : (sel.x + sel.w / 2)));
-        let ty = (sel.tipo === 'circle' ? sel.cy + sel.r + 25 : (sel.tipo === 'line' ? (sel.pontos && sel.pontos.length ? sel.pontos[0].y + 25 : sel.y + 25) : (sel.y + sel.h + 25)));
+        const cfg = obterConfigMapaAtivo();
+        let tx = cfg.x0 + (sel.tipo === 'circle' ? sel.cx : (sel.tipo === 'line' ? (sel.pontos && sel.pontos.length ? sel.pontos[0].x : sel.x) : (sel.x + sel.w / 2)));
+        let ty = cfg.y0 + (sel.tipo === 'circle' ? sel.cy + sel.r + 25 : (sel.tipo === 'line' ? (sel.pontos && sel.pontos.length ? sel.pontos[0].y + 25 : sel.y + 25) : (sel.y + sel.h + 25)));
         global.meuX = tx;
         global.meuY = ty;
         if (global.ws && global.ws.readyState === WebSocket.OPEN) {
@@ -690,7 +798,6 @@
     };
 
     window.excluirColisaoPorId = function (id) {
-        if (!global.mapaCidade) return;
         const lista = obterListaEditor();
         const nova = lista.filter(function (o) { return o.id !== id; });
         carregarListaEditor(nova);
@@ -708,17 +815,18 @@
             alert('Erro: Conexão com o servidor não está aberta.');
             return;
         }
-        if (!global.mapaCidade || typeof global.mapaCidade.obterObstaculos !== 'function') return;
-        const obstaculos = global.mapaCidade.obterObstaculos();
-        const camadas = typeof global.mapaCidade.obterCamadas === 'function' ? global.mapaCidade.obterCamadas() : [];
+        const mapa = window.mapaEdicaoAtivo || 'cidade';
+        const obstaculos = (window.colisoesPorMapa && window.colisoesPorMapa[mapa]) || (mapa === 'cidade' && global.mapaCidade && global.mapaCidade.obterObstaculos ? global.mapaCidade.obterObstaculos() : []);
+        const camadas = (window.camadasPorMapa && window.camadasPorMapa[mapa]) || (mapa === 'cidade' && global.mapaCidade && global.mapaCidade.obterCamadas ? global.mapaCidade.obterCamadas() : []);
 
         global.ws.send(JSON.stringify({
             action: 'admin_salvar_colisoes',
-            mapa: 'cidade',
+            mapa: mapa,
             obstaculos: obstaculos,
             camadas: camadas
         }));
-        window.mostrarToast('💾 ' + obstaculos.length + ' colisões e ' + camadas.length + ' camadas salvas!');
+        const nomeMapa = (MAPAS_CONFIG[mapa] && MAPAS_CONFIG[mapa].nome) || mapa;
+        window.mostrarToast('💾 ' + obstaculos.length + ' colisões e ' + camadas.length + ' camadas salvas em ' + nomeMapa + '!');
     };
 
     window.mostrarToast = function (msg) {
@@ -735,8 +843,7 @@
     // RENDERIZAÇÃO OVERLAY NO CANVAS DO JOGO
     // ============================================================================
     window.desenharOverlayColisoes = function (ctx) {
-        if (!window.editorColisaoVisivel || !global.mapaCidade || !global.mapaCidade.obterObstaculos) return;
-        const lista = global.mapaCidade.obterObstaculos();
+        if (!window.editorColisaoVisivel) return;
         const camX = global.camX || 0;
         const camY = global.camY || 0;
         const zoom = (typeof global.ZOOM_CAMERA === 'number' && global.ZOOM_CAMERA > 0) ? global.ZOOM_CAMERA : 0.92;
@@ -745,189 +852,199 @@
 
         ctx.save();
 
-        if (typeof global.mapaCidade.obterCamadas === 'function') {
-            const camadas = global.mapaCidade.obterCamadas();
-            for (let ci = 0; ci < camadas.length; ci++) {
-                const camada = camadas[ci];
-                const wx = CID_X0 + camada.x;
-                const wy = camada.y;
-                const selecionada = camada.id === window.colisaoSelecionadaId && modoCamadaAtivo();
-                const margem = camada.tipo === 'line' ? (camada.espessura || 16) : 0;
-                if (wx + camada.w + margem < camX || wx - margem > camX + cw || wy + camada.h + margem < camY || wy - margem > camY + ch) continue;
-                if (camada.tipo === 'line' && camada.pontos && camada.pontos.length > 1) {
-                    ctx.save();
-                    ctx.lineCap = 'round';
-                    ctx.lineJoin = 'round';
-                    ctx.beginPath();
-                    ctx.moveTo(CID_X0 + camada.pontos[0].x, camada.pontos[0].y);
-                    for (let cpi = 1; cpi < camada.pontos.length; cpi++) ctx.lineTo(CID_X0 + camada.pontos[cpi].x, camada.pontos[cpi].y);
-                    ctx.lineWidth = camada.espessura || 16;
-                    ctx.strokeStyle = selecionada ? 'rgba(46, 204, 113, 0.55)' : 'rgba(26, 188, 156, 0.38)';
-                    ctx.stroke();
-                    ctx.lineWidth = selecionada ? 3 : 2;
-                    ctx.strokeStyle = selecionada ? '#f1c40f' : '#1abc9c';
-                    ctx.setLineDash([7, 4]);
-                    ctx.stroke();
-                    ctx.setLineDash([]);
-                    for (let cpi = 0; cpi < camada.pontos.length; cpi++) {
-                        ctx.fillStyle = selecionada ? '#f1c40f' : '#a7f3d0';
+        const mapasParaDesenhar = [window.mapaEdicaoAtivo || 'cidade'];
+        if (global.currentMap && mapasParaDesenhar.indexOf(global.currentMap) === -1) {
+            mapasParaDesenhar.push(global.currentMap);
+        }
+
+        mapasParaDesenhar.forEach(function (mapaKey) {
+            const cfg = MAPAS_CONFIG[mapaKey];
+            if (!cfg) return;
+            const x0 = cfg.x0;
+            const y0 = cfg.y0;
+            const isMapaEdicao = (mapaKey === window.mapaEdicaoAtivo);
+
+            // 1. Desenhar Camadas
+            const camadas = (window.camadasPorMapa && window.camadasPorMapa[mapaKey]) || (mapaKey === 'cidade' && global.mapaCidade && global.mapaCidade.obterCamadas ? global.mapaCidade.obterCamadas() : []);
+            if (Array.isArray(camadas)) {
+                for (let ci = 0; ci < camadas.length; ci++) {
+                    const camada = camadas[ci];
+                    const wx = x0 + (camada.x || 0);
+                    const wy = y0 + (camada.y || 0);
+                    const selecionada = isMapaEdicao && (camada.id === window.colisaoSelecionadaId) && modoCamadaAtivo();
+                    const margem = camada.tipo === 'line' ? (camada.espessura || 16) : 0;
+                    if (wx + (camada.w || 40) + margem < camX || wx - margem > camX + cw || wy + (camada.h || 40) + margem < camY || wy - margem > camY + ch) continue;
+
+                    if (camada.tipo === 'line' && camada.pontos && camada.pontos.length > 1) {
+                        ctx.save();
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'round';
                         ctx.beginPath();
-                        ctx.arc(CID_X0 + camada.pontos[cpi].x, camada.pontos[cpi].y, 3, 0, Math.PI * 2);
-                        ctx.fill();
+                        ctx.moveTo(x0 + camada.pontos[0].x, y0 + camada.pontos[0].y);
+                        for (let cpi = 1; cpi < camada.pontos.length; cpi++) ctx.lineTo(x0 + camada.pontos[cpi].x, y0 + camada.pontos[cpi].y);
+                        ctx.lineWidth = camada.espessura || 16;
+                        ctx.strokeStyle = selecionada ? 'rgba(46, 204, 113, 0.55)' : 'rgba(26, 188, 156, 0.38)';
+                        ctx.stroke();
+                        ctx.lineWidth = selecionada ? 3 : 2;
+                        ctx.strokeStyle = selecionada ? '#f1c40f' : '#1abc9c';
+                        ctx.setLineDash([7, 4]);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                        for (let cpi = 0; cpi < camada.pontos.length; cpi++) {
+                            ctx.fillStyle = selecionada ? '#f1c40f' : '#a7f3d0';
+                            ctx.beginPath();
+                            ctx.arc(x0 + camada.pontos[cpi].x, y0 + camada.pontos[cpi].y, 3, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+                        const pontoRotulo = camada.pontos[Math.floor(camada.pontos.length / 2)];
+                        ctx.fillStyle = 'rgba(10, 10, 10, 0.78)';
+                        ctx.font = 'bold 10px monospace';
+                        const labelLinha = '🌿 ' + (camada.nome || 'Camada Curva') + ' [esp:' + (camada.espessura || 16) + 'px]';
+                        const twLinha = ctx.measureText(labelLinha).width;
+                        ctx.fillRect(x0 + pontoRotulo.x + 5, y0 + pontoRotulo.y - 18, twLinha + 6, 13);
+                        ctx.fillStyle = selecionada ? '#f1c40f' : '#a7f3d0';
+                        ctx.fillText(labelLinha, x0 + pontoRotulo.x + 8, y0 + pontoRotulo.y - 8);
+                        ctx.restore();
+                        continue;
                     }
-                    const pontoRotulo = camada.pontos[Math.floor(camada.pontos.length / 2)];
+                    ctx.fillStyle = selecionada ? 'rgba(46, 204, 113, 0.42)' : 'rgba(26, 188, 156, 0.28)';
+                    ctx.fillRect(wx, wy, camada.w, camada.h);
+                    ctx.strokeStyle = selecionada ? '#f1c40f' : '#1abc9c';
+                    ctx.lineWidth = selecionada ? 3 : 2;
+                    ctx.setLineDash([7, 4]);
+                    ctx.strokeRect(wx, wy, camada.w, camada.h);
+                    ctx.setLineDash([]);
                     ctx.fillStyle = 'rgba(10, 10, 10, 0.78)';
+                    const label = '🌿 ' + (camada.nome || 'Camada') + ' [' + camada.w + 'x' + camada.h + ']';
                     ctx.font = 'bold 10px monospace';
-                    const labelLinha = '🌿 ' + (camada.nome || 'Camada Curva') + ' [esp:' + (camada.espessura || 16) + 'px]';
-                    const twLinha = ctx.measureText(labelLinha).width;
-                    ctx.fillRect(CID_X0 + pontoRotulo.x + 5, pontoRotulo.y - 18, twLinha + 6, 13);
+                    const tw = ctx.measureText(label).width;
+                    ctx.fillRect(wx + 2, wy + 2, tw + 6, 13);
                     ctx.fillStyle = selecionada ? '#f1c40f' : '#a7f3d0';
-                    ctx.fillText(labelLinha, CID_X0 + pontoRotulo.x + 8, pontoRotulo.y - 8);
-                    ctx.restore();
-                    continue;
+                    ctx.fillText(label, wx + 5, wy + 12);
+                    if (selecionada && window.colisaoEditorAtivo) desenharHandlesRetangulo(ctx, wx, wy, camada.w, camada.h);
                 }
-                ctx.fillStyle = selecionada ? 'rgba(46, 204, 113, 0.42)' : 'rgba(26, 188, 156, 0.28)';
-                ctx.fillRect(wx, wy, camada.w, camada.h);
-                ctx.strokeStyle = selecionada ? '#f1c40f' : '#1abc9c';
-                ctx.lineWidth = selecionada ? 3 : 2;
-                ctx.setLineDash([7, 4]);
-                ctx.strokeRect(wx, wy, camada.w, camada.h);
-                ctx.setLineDash([]);
-                ctx.fillStyle = 'rgba(10, 10, 10, 0.78)';
-                const label = '🌿 ' + (camada.nome || 'Camada') + ' [' + camada.w + 'x' + camada.h + ']';
-                ctx.font = 'bold 10px monospace';
-                const tw = ctx.measureText(label).width;
-                ctx.fillRect(wx + 2, wy + 2, tw + 6, 13);
-                ctx.fillStyle = selecionada ? '#f1c40f' : '#a7f3d0';
-                ctx.fillText(label, wx + 5, wy + 12);
-                if (selecionada && window.colisaoEditorAtivo) desenharHandlesRetangulo(ctx, wx, wy, camada.w, camada.h);
             }
-        }
 
-        for (let i = 0; i < lista.length; i++) {
-            const o = lista[i];
-            const isSel = (o.id === window.colisaoSelecionadaId);
+            // 2. Desenhar Colisões
+            const lista = (window.colisoesPorMapa && window.colisoesPorMapa[mapaKey]) || (mapaKey === 'cidade' && global.mapaCidade && global.mapaCidade.obterObstaculos ? global.mapaCidade.obterObstaculos() : []);
+            if (Array.isArray(lista)) {
+                for (let i = 0; i < lista.length; i++) {
+                    const o = lista[i];
+                    const isSel = isMapaEdicao && (o.id === window.colisaoSelecionadaId);
 
-            if (o.tipo === 'rect') {
-                const wx = CID_X0 + o.x;
-                const wy = o.y;
-                if (wx + o.w < camX || wx > camX + cw || wy + o.h < camY || wy > camY + ch) continue;
+                    if (o.tipo === 'rect') {
+                        const wx = x0 + (o.x !== undefined ? o.x : (o.x1 !== undefined ? o.x1 : 0));
+                        const wy = y0 + (o.y !== undefined ? o.y : (o.y1 !== undefined ? o.y1 : 0));
+                        const ow = o.w !== undefined ? o.w : (o.x2 !== undefined ? (o.x2 - o.x1) : 40);
+                        const oh = o.h !== undefined ? o.h : (o.y2 !== undefined ? (o.y2 - o.y1) : 40);
+                        if (wx + ow < camX || wx > camX + cw || wy + oh < camY || wy > camY + ch) continue;
 
-                // Preenchimento
-                ctx.fillStyle = isSel ? 'rgba(241, 196, 15, 0.38)' : 'rgba(231, 76, 60, 0.28)';
-                ctx.fillRect(wx, wy, o.w, o.h);
+                        ctx.fillStyle = isSel ? 'rgba(241, 196, 15, 0.38)' : 'rgba(231, 76, 60, 0.28)';
+                        ctx.fillRect(wx, wy, ow, oh);
+                        ctx.strokeStyle = isSel ? '#f1c40f' : 'rgba(231, 76, 60, 0.9)';
+                        ctx.lineWidth = isSel ? 3 : 1.5;
+                        ctx.strokeRect(wx, wy, ow, oh);
 
-                // Borda
-                ctx.strokeStyle = isSel ? '#f1c40f' : 'rgba(231, 76, 60, 0.9)';
-                ctx.lineWidth = isSel ? 3 : 1.5;
-                ctx.strokeRect(wx, wy, o.w, o.h);
+                        ctx.fillStyle = 'rgba(10, 10, 10, 0.75)';
+                        const label = (o.nome || 'Caixa') + ' [' + ow + 'x' + oh + ']';
+                        ctx.font = 'bold 10px monospace';
+                        const tw = ctx.measureText(label).width;
+                        ctx.fillRect(wx + 2, wy + 2, tw + 6, 13);
+                        ctx.fillStyle = isSel ? '#f1c40f' : '#ffffff';
+                        ctx.fillText(label, wx + 5, wy + 12);
 
-                // Rótulo da Colisão
-                ctx.fillStyle = 'rgba(10, 10, 10, 0.75)';
-                const label = (o.nome || 'Caixa') + ' [' + o.w + 'x' + o.h + ']';
-                ctx.font = 'bold 10px monospace';
-                const tw = ctx.measureText(label).width;
-                ctx.fillRect(wx + 2, wy + 2, tw + 6, 13);
-                ctx.fillStyle = isSel ? '#f1c40f' : '#ffffff';
-                ctx.fillText(label, wx + 5, wy + 12);
+                        if (isSel && window.colisaoEditorAtivo) {
+                            desenharHandlesRetangulo(ctx, wx, wy, ow, oh);
+                        }
+                    } else if (o.tipo === 'circle') {
+                        const wcx = x0 + (o.cx !== undefined ? o.cx : (o.x || 0));
+                        const wcy = y0 + (o.cy !== undefined ? o.cy : (o.y || 0));
+                        const r = o.r || 20;
+                        if (wcx + r < camX || wcx - r > camX + cw || wcy + r < camY || wcy - r > camY + ch) continue;
 
-                // Se selecionada, desenha handles de transformação
-                if (isSel && window.colisaoEditorAtivo) {
-                    desenharHandlesRetangulo(ctx, wx, wy, o.w, o.h);
+                        ctx.fillStyle = isSel ? 'rgba(241, 196, 15, 0.38)' : 'rgba(155, 89, 182, 0.28)';
+                        ctx.beginPath();
+                        ctx.arc(wcx, wcy, r, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.strokeStyle = isSel ? '#f1c40f' : 'rgba(155, 89, 182, 0.95)';
+                        ctx.lineWidth = isSel ? 3 : 2;
+                        ctx.stroke();
+
+                        ctx.fillStyle = 'rgba(10, 10, 10, 0.75)';
+                        const label = (o.nome || 'Círculo') + ' [r:' + r + ']';
+                        ctx.font = 'bold 10px monospace';
+                        const tw = ctx.measureText(label).width;
+                        ctx.fillRect(wcx - tw / 2 - 3, wcy - 6, tw + 6, 13);
+                        ctx.fillStyle = isSel ? '#f1c40f' : '#ffffff';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(label, wcx, wcy + 4);
+                        ctx.textAlign = 'left';
+
+                        if (isSel && window.colisaoEditorAtivo) {
+                            desenharHandlesCirculo(ctx, wcx, wcy, r);
+                        }
+                    } else if (o.tipo === 'line') {
+                        if (!o.pontos || o.pontos.length < 2) continue;
+                        const esp = o.espessura || 16;
+                        const minWx = x0 + (o.x || 0) - esp;
+                        const maxWx = x0 + (o.x || 0) + (o.w || 10) + esp;
+                        const minWy = y0 + (o.y || 0) - esp;
+                        const maxWy = y0 + (o.y || 0) + (o.h || 10) + esp;
+                        if (maxWx < camX || minWx > camX + cw || maxWy < camY || minWy > camY + ch) continue;
+
+                        ctx.save();
+                        ctx.lineCap = 'round';
+                        ctx.lineJoin = 'round';
+
+                        ctx.beginPath();
+                        ctx.moveTo(x0 + o.pontos[0].x, y0 + o.pontos[0].y);
+                        for (let pi = 1; pi < o.pontos.length; pi++) {
+                            ctx.lineTo(x0 + o.pontos[pi].x, y0 + o.pontos[pi].y);
+                        }
+                        ctx.lineWidth = esp;
+                        ctx.strokeStyle = isSel ? 'rgba(241, 196, 15, 0.45)' : 'rgba(142, 68, 173, 0.35)';
+                        ctx.stroke();
+
+                        ctx.lineWidth = 2.5;
+                        ctx.strokeStyle = isSel ? '#f1c40f' : '#9b59b6';
+                        ctx.stroke();
+
+                        ctx.lineWidth = 1;
+                        ctx.strokeStyle = '#ffffff';
+                        ctx.setLineDash([4, 4]);
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+
+                        for (let pi = 0; pi < o.pontos.length; pi++) {
+                            const px = x0 + o.pontos[pi].x;
+                            const py = y0 + o.pontos[pi].y;
+                            ctx.fillStyle = (pi === 0 || pi === o.pontos.length - 1) ? '#e74c3c' : (isSel ? '#2ecc71' : '#f39c12');
+                            ctx.beginPath();
+                            ctx.arc(px, py, (pi === 0 || pi === o.pontos.length - 1) ? 4.5 : 2.5, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+
+                        const midIdx = Math.floor(o.pontos.length / 2);
+                        const midPt = o.pontos[midIdx];
+                        const label = (o.nome || 'Curva') + ' [esp:' + esp + 'px]';
+                        ctx.font = 'bold 10px monospace';
+                        const tw = ctx.measureText(label).width;
+                        ctx.fillStyle = 'rgba(10, 10, 10, 0.8)';
+                        ctx.fillRect(x0 + midPt.x - tw / 2 - 3, midPt.y - 18, tw + 6, 13);
+                        ctx.fillStyle = isSel ? '#f1c40f' : '#e0b0ff';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(label, x0 + midPt.x, midPt.y - 8);
+                        ctx.textAlign = 'left';
+
+                        ctx.restore();
+                    }
                 }
-            } else if (o.tipo === 'circle') {
-                const wcx = CID_X0 + o.cx;
-                const wcy = o.cy;
-                if (wcx + o.r < camX || wcx - o.r > camX + cw || wcy + o.r < camY || wcy - o.r > camY + ch) continue;
-
-                // Preenchimento
-                ctx.fillStyle = isSel ? 'rgba(241, 196, 15, 0.38)' : 'rgba(155, 89, 182, 0.28)';
-                ctx.beginPath();
-                ctx.arc(wcx, wcy, o.r, 0, Math.PI * 2);
-                ctx.fill();
-
-                // Borda
-                ctx.strokeStyle = isSel ? '#f1c40f' : 'rgba(155, 89, 182, 0.95)';
-                ctx.lineWidth = isSel ? 3 : 2;
-                ctx.stroke();
-
-                // Rótulo
-                ctx.fillStyle = 'rgba(10, 10, 10, 0.75)';
-                const label = (o.nome || 'Círculo') + ' [r:' + o.r + ']';
-                ctx.font = 'bold 10px monospace';
-                const tw = ctx.measureText(label).width;
-                ctx.fillRect(wcx - tw / 2 - 3, wcy - 6, tw + 6, 13);
-                ctx.fillStyle = isSel ? '#f1c40f' : '#ffffff';
-                ctx.textAlign = 'center';
-                ctx.fillText(label, wcx, wcy + 4);
-                ctx.textAlign = 'left';
-
-                if (isSel && window.colisaoEditorAtivo) {
-                    desenharHandlesCirculo(ctx, wcx, wcy, o.r);
-                }
-            } else if (o.tipo === 'line') {
-                if (!o.pontos || o.pontos.length < 2) continue;
-                const esp = o.espessura || 16;
-                const minWx = CID_X0 + o.x - esp;
-                const maxWx = CID_X0 + o.x + o.w + esp;
-                const minWy = o.y - esp;
-                const maxWy = o.y + o.h + esp;
-                if (maxWx < camX || minWx > camX + cw || maxWy < camY || minWy > camY + ch) continue;
-
-                ctx.save();
-                ctx.lineCap = 'round';
-                ctx.lineJoin = 'round';
-
-                // Faixa da espessura (corpo da colisão)
-                ctx.beginPath();
-                ctx.moveTo(CID_X0 + o.pontos[0].x, o.pontos[0].y);
-                for (let pi = 1; pi < o.pontos.length; pi++) {
-                    ctx.lineTo(CID_X0 + o.pontos[pi].x, o.pontos[pi].y);
-                }
-                ctx.lineWidth = esp;
-                ctx.strokeStyle = isSel ? 'rgba(241, 196, 15, 0.45)' : 'rgba(142, 68, 173, 0.35)';
-                ctx.stroke();
-
-                // Borda neon viva
-                ctx.lineWidth = 2.5;
-                ctx.strokeStyle = isSel ? '#f1c40f' : '#9b59b6';
-                ctx.stroke();
-
-                // Linha guia central pontilhada
-                ctx.lineWidth = 1;
-                ctx.strokeStyle = '#ffffff';
-                ctx.setLineDash([4, 4]);
-                ctx.stroke();
-                ctx.setLineDash([]);
-
-                // Vértices da curva
-                for (let pi = 0; pi < o.pontos.length; pi++) {
-                    const px = CID_X0 + o.pontos[pi].x;
-                    const py = o.pontos[pi].y;
-                    ctx.fillStyle = (pi === 0 || pi === o.pontos.length - 1) ? '#e74c3c' : (isSel ? '#2ecc71' : '#f39c12');
-                    ctx.beginPath();
-                    ctx.arc(px, py, (pi === 0 || pi === o.pontos.length - 1) ? 4.5 : 2.5, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-
-                // Rótulo no ponto médio
-                const midIdx = Math.floor(o.pontos.length / 2);
-                const midPt = o.pontos[midIdx];
-                const label = (o.nome || 'Curva') + ' [esp:' + esp + 'px]';
-                ctx.font = 'bold 10px monospace';
-                const tw = ctx.measureText(label).width;
-                ctx.fillStyle = 'rgba(10, 10, 10, 0.8)';
-                ctx.fillRect(CID_X0 + midPt.x - tw / 2 - 3, midPt.y - 18, tw + 6, 13);
-                ctx.fillStyle = isSel ? '#f1c40f' : '#e0b0ff';
-                ctx.textAlign = 'center';
-                ctx.fillText(label, CID_X0 + midPt.x, midPt.y - 8);
-                ctx.textAlign = 'left';
-
-                ctx.restore();
             }
-        }
+        });
 
         // Desenha prévia ao vivo enquanto o admin arrasta para criar nova forma
+        const cfgAtivo = obterConfigMapaAtivo();
         if (window.dragEstado && window.dragEstado.tipo === 'drawing_new') {
             const de = window.dragEstado;
             const x1 = Math.min(de.startX, de.currX);
@@ -968,12 +1085,12 @@
                 ctx.lineJoin = 'round';
 
                 ctx.beginPath();
-                ctx.moveTo(CID_X0 + pts[0].x, pts[0].y);
+                ctx.moveTo(cfgAtivo.x0 + pts[0].x, cfgAtivo.y0 + pts[0].y);
                 for (let i = 1; i < pts.length; i++) {
-                    ctx.lineTo(CID_X0 + pts[i].x, pts[i].y);
+                    ctx.lineTo(cfgAtivo.x0 + pts[i].x, cfgAtivo.y0 + pts[i].y);
                 }
                 if (de.currLx !== undefined && de.currLy !== undefined) {
-                    ctx.lineTo(CID_X0 + de.currLx, de.currLy);
+                    ctx.lineTo(cfgAtivo.x0 + de.currLx, cfgAtivo.y0 + de.currLy);
                 }
 
                 const esp = de.espessura || 16;
@@ -994,14 +1111,14 @@
                 for (let i = 0; i < pts.length; i++) {
                     ctx.fillStyle = (i === 0) ? '#2ecc71' : '#f1c40f';
                     ctx.beginPath();
-                    ctx.arc(CID_X0 + pts[i].x, pts[i].y, 3, 0, Math.PI * 2);
+                    ctx.arc(cfgAtivo.x0 + pts[i].x, cfgAtivo.y0 + pts[i].y, 3, 0, Math.PI * 2);
                     ctx.fill();
                 }
 
                 if (de.currLx !== undefined && de.currLy !== undefined) {
                     ctx.fillStyle = '#f1c40f';
                     ctx.font = 'bold 11px monospace';
-                    ctx.fillText('✏️ ' + pts.length + ' pts (esp: ' + esp + 'px)', CID_X0 + de.currLx + 12, de.currLy - 10);
+                    ctx.fillText('✏️ ' + pts.length + ' pts (esp: ' + esp + 'px)', cfgAtivo.x0 + de.currLx + 12, cfgAtivo.y0 + de.currLy - 10);
                 }
                 ctx.restore();
             }
@@ -1219,7 +1336,6 @@
             return;
         }
 
-        if (!global.mapaCidade) return;
         const lista = obterListaEditor();
         const item = lista.find(function (o) { return o.id === de.targetId; });
         if (!item) return;
@@ -1316,7 +1432,7 @@
                 const novo = {
                     id: (modoCamadaAtivo() ? 'camada_line_' : 'line_') + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
                     tipo: 'line',
-                    nome: modoCamadaAtivo() ? 'Foreground Curvo ' + (obterListaEditor().length + 1) : 'Linha Curva ' + (global.mapaCidade.obterObstaculos().length + 1),
+                    nome: modoCamadaAtivo() ? 'Foreground Curvo ' + (obterListaEditor().length + 1) : 'Linha Curva ' + (obterListaEditor().length + 1),
                     espessura: de.espessura || 16,
                     pontos: pts,
                     baseY: Math.max.apply(null, pts.map(function (pt) { return pt.y; })),
@@ -1365,7 +1481,7 @@
                     const novo = {
                         id: 'col_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
                         tipo: 'circle',
-                        nome: 'Círculo ' + (global.mapaCidade.obterObstaculos().length + 1),
+                        nome: 'Círculo ' + (obterListaEditor().length + 1),
                         cx: Math.round(de.startLx),
                         cy: Math.round(de.startLy),
                         r: Math.round(r)
@@ -1381,6 +1497,143 @@
         }
         window.atualizarListaColisoesUI();
     }
+
+    // ============================================================================
+    // SINCRONIZAÇÃO E INTEGRAÇÃO DE COLISÕES E CAMADAS CLIENTE (v1.46.0)
+    // ============================================================================
+    window.receberColisoesServidor = function (mapa, obstaculos, camadas) {
+        if (!mapa) return;
+        window.colisoesPorMapa = window.colisoesPorMapa || {};
+        window.camadasPorMapa = window.camadasPorMapa || {};
+        if (Array.isArray(obstaculos)) window.colisoesPorMapa[mapa] = obstaculos;
+        if (Array.isArray(camadas)) window.camadasPorMapa[mapa] = camadas;
+        if (window.colisaoEditorAtivo && window.mapaEdicaoAtivo === mapa) {
+            window.atualizarListaColisoesUI();
+            window.atualizarPropriedadesUI();
+        }
+    };
+
+    window.carregarColisoesIniciais = function (colisoes, camadas) {
+        window.colisoesPorMapa = colisoes || {};
+        window.camadasPorMapa = camadas || {};
+        if (window.colisaoEditorAtivo) {
+            window.atualizarListaColisoesUI();
+            window.atualizarPropriedadesUI();
+        }
+    };
+
+    window.colideObstaculosCustomizadosCliente = function (mapa, cx, cy, raio) {
+        const lista = window.colisoesPorMapa && window.colisoesPorMapa[mapa];
+        if (!Array.isArray(lista) || lista.length === 0) return false;
+        const cfg = MAPAS_CONFIG[mapa];
+        if (!cfg) return false;
+
+        const r = (typeof raio === 'number') ? raio : 12;
+        const lx = cx - cfg.x0;
+        const ly = cy - cfg.y0;
+
+        for (let i = 0; i < lista.length; i++) {
+            const o = lista[i];
+            if (!o) continue;
+
+            const ox = (o.cx !== undefined) ? o.cx : ((o.x !== undefined) ? (o.x + (o.w ? o.w / 2 : 0)) : 0);
+            const oy = (o.cy !== undefined) ? o.cy : ((o.y !== undefined) ? (o.y + (o.h ? o.h / 2 : 0)) : 0);
+            if (Math.abs(lx - ox) > 160 || Math.abs(ly - oy) > 160) continue;
+
+            if (o.tipo === 'rect' || o.tipo === 'caixa' || o.tipo === 'box') {
+                const x1 = o.x !== undefined ? o.x : (o.x1 !== undefined ? o.x1 : 0);
+                const y1 = o.y !== undefined ? o.y : (o.y1 !== undefined ? o.y1 : 0);
+                const x2 = o.w !== undefined ? (x1 + o.w) : (o.x2 !== undefined ? o.x2 : x1 + 40);
+                const y2 = o.h !== undefined ? (y1 + o.h) : (o.y2 !== undefined ? o.y2 : y1 + 40);
+                if (lx + r >= x1 && lx - r <= x2 && ly + r >= y1 && ly - r <= y2) return true;
+            } else if (o.tipo === 'circle' || o.tipo === 'circulo') {
+                const dx = lx - (o.cx !== undefined ? o.cx : (o.x || 0));
+                const dy = ly - (o.cy !== undefined ? o.cy : (o.y || 0));
+                const rTotal = (o.r || 20) + r;
+                if ((dx * dx + dy * dy) <= rTotal * rTotal) return true;
+            } else if (o.tipo === 'line') {
+                if (o.pontos && o.pontos.length >= 2) {
+                    const esp = (o.espessura ? o.espessura / 2 : 8) + r;
+                    const minBoxX = (o.x !== undefined ? o.x : 0) - esp;
+                    const maxBoxX = (o.x !== undefined && o.w !== undefined ? o.x + o.w : 100000) + esp;
+                    const minBoxY = (o.y !== undefined ? o.y : 0) - esp;
+                    const maxBoxY = (o.y !== undefined && o.h !== undefined ? o.y + o.h : 100000) + esp;
+
+                    if (lx >= minBoxX && lx <= maxBoxX && ly >= minBoxY && ly <= maxBoxY) {
+                        for (let j = 0; j < o.pontos.length - 1; j++) {
+                            const p1 = o.pontos[j];
+                            const p2 = o.pontos[j + 1];
+                            const minSegX = Math.min(p1.x, p2.x) - esp;
+                            const maxSegX = Math.max(p1.x, p2.x) + esp;
+                            const minSegY = Math.min(p1.y, p2.y) - esp;
+                            const maxSegY = Math.max(p1.y, p2.y) + esp;
+                            if (lx >= minSegX && lx <= maxSegX && ly >= minSegY && ly <= maxSegY) {
+                                if (distPontoSegmento(lx, ly, p1.x, p1.y, p2.x, p2.y) <= esp) return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    };
+
+    // Coleta camadas para Z-sorting nos mapas (exceto cidade que já possui coletarCidadeSortables)
+    window.coletarCamadasMapaAtivo = function (t, arr) {
+        if (!Array.isArray(arr)) return;
+        const mapa = window.currentMap;
+        if (!mapa || mapa === 'cidade') return;
+        const camadas = window.camadasPorMapa && window.camadasPorMapa[mapa];
+        if (!Array.isArray(camadas) || camadas.length === 0) return;
+        const cfg = MAPAS_CONFIG[mapa];
+        if (!cfg) return;
+
+        const camX = global.camX || 0;
+        const camY = global.camY || 0;
+        const zoom = (typeof global.ZOOM_CAMERA === 'number' && global.ZOOM_CAMERA > 0) ? global.ZOOM_CAMERA : 0.92;
+        const cw = ((global.canvas && global.canvas.width) || 800) / zoom;
+        const ch = ((global.canvas && global.canvas.height) || 600) / zoom;
+
+        for (let i = 0; i < camadas.length; i++) {
+            const c = camadas[i];
+            const wx = cfg.x0 + (c.x || 0);
+            const wy = cfg.y0 + (c.y || 0);
+            const margem = c.tipo === 'line' ? (c.espessura || 16) : 0;
+            if (wx + (c.w || 40) + margem < camX || wx - margem > camX + cw || wy + (c.h || 40) + margem < camY || wy - margem > camY + ch) continue;
+
+            const baseY = cfg.y0 + (c.baseY || (c.y + (c.h || 40))) + (c.ordem || 0) * 0.001;
+            arr.push({
+                y: baseY,
+                draw: function () {
+                    // Reserva para expansão futura de recorte com base em sprites de bioma
+                }
+            });
+        }
+    };
+
+    // Encadeia colisão no colideMapaAtivo global do cliente
+    function encadearColisaoCliente() {
+        const prevColide = global.colideMapaAtivo;
+        global.colideMapaAtivo = function (x, y, raio) {
+            const mapa = global.currentMap || window.mapaEdicaoAtivo || 'cidade';
+            if (mapa === 'castelo' && (global.mapaCastelo || window.mapaCastelo)) {
+                const mc = global.mapaCastelo || window.mapaCastelo;
+                if (typeof mc.colideCastelo === 'function' && mc.colideCastelo(x, y)) return true;
+            }
+            if (mapa === 'zonazero' && global.mapaZonaZero && typeof global.mapaZonaZero.colideZonaZero === 'function') {
+                if (global.mapaZonaZero.colideZonaZero(x, y, raio)) return true;
+            }
+            if (mapa === 'pantano' && global.mapaPantano && typeof global.mapaPantano.colidePantano === 'function') {
+                if (global.mapaPantano.colidePantano(x, y, raio)) return true;
+            }
+            if (window.colideObstaculosCustomizadosCliente && window.colideObstaculosCustomizadosCliente(mapa, x, y, raio)) {
+                return true;
+            }
+            if (prevColide && prevColide(x, y, raio)) return true;
+            return false;
+        };
+    }
+    encadearColisaoCliente();
 
     // Inicialização ao carregar a página
     if (typeof window !== 'undefined') {

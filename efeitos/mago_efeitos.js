@@ -63,6 +63,8 @@ function drawStar4(ctx, x, y, r, color, alpha) {
 // O meteoro entra do alto, aquece o chão, deixa rastro de fogo/fumaça,
 // ganha brilho atmosférico e termina com impacto + craterização visual.
 window.criarMeteoroMago = function(tx, ty, raio) {
+    if (typeof window.tocarSonoroProximidade === 'function') window.tocarSonoroProximidade('mago_meteoro_queda', tx, ty);
+    else if (typeof window.tocarSonoro === 'function') window.tocarSonoro('mago_meteoro_queda');
     window.meteorosMagoAtivos.push({
         x: tx, y: ty,
         raio: raio || 85,
@@ -124,6 +126,8 @@ function desenharMeteorosMago(ctx) {
                 ctx.arc(bx, by, 7 - t * 0.7, 0, Math.PI * 2);
                 ctx.fill();
             }
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
 
             // Núcleo rochoso incandescente.
             ctx.save();
@@ -142,6 +146,8 @@ function desenharMeteorosMago(ctx) {
             ctx.lineTo(6, 8); ctx.lineTo(-4, 10); ctx.closePath();
             ctx.fill();
             ctx.restore();
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
 
             // Fagulhas.
             for (let s = 0; s < 4; s++) {
@@ -163,6 +169,11 @@ function desenharMeteorosMago(ctx) {
 
         // Impacto final: explosão + anéis + fragmentos.
         if (impactT > 0) {
+            if (!m.impactoTocado) {
+                m.impactoTocado = true;
+                if (typeof window.tocarSonoroProximidade === 'function') window.tocarSonoroProximidade('mago_meteoro_impacto', m.x, m.y);
+                else if (typeof window.tocarSonoro === 'function') window.tocarSonoro('mago_meteoro_impacto');
+            }
             const f = clamp01(impactT);
             const alpha = Math.max(0, desaparecer);
 
@@ -177,6 +188,8 @@ function desenharMeteorosMago(ctx) {
                 ctx.ellipse(m.x, m.y + 10, rr, rr * 0.36, 0, 0, Math.PI * 2);
                 ctx.stroke();
             }
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
 
             const flash = ctx.createRadialGradient(m.x, m.y + 10, 1, m.x, m.y + 10, 45);
             flash.addColorStop(0, '#ffffff');
@@ -311,6 +324,8 @@ function desenharNevascasMago(ctx) {
                 ctx.arc(px, py, sz, 0, Math.PI * 2);
                 ctx.fill();
             }
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
 
             // Pico do tornado.
             ctx.strokeStyle = 'rgba(255,190,90,0.28)';
@@ -331,6 +346,8 @@ function desenharNevascasMago(ctx) {
         }
 
         ctx.restore();
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
 
         if (n.timer >= n.duracao) window.nevascasMagoAtivas.splice(i, 1);
     }
@@ -382,8 +399,6 @@ window.desenharPedrasEnormes = function() {
 };
 
 window.criarAnimacaoVulcao = function(tx, ty, radius, duracao) {
-    if (typeof tocarSomVulcaoErupcao === 'function') tocarSomVulcaoErupcao();
-
     const rachaduras = [];
     for (let i = 0; i < 16; i++) {
         const ang = (Math.PI * 2 / 16) * i + (Math.random() - 0.5) * 0.35;
@@ -422,8 +437,6 @@ window.criarAnimacaoVulcao = function(tx, ty, radius, duracao) {
 };
 
 window.criarVulcaoProjetil = function(vx, vy, tx, ty, tipo, id) {
-    if (typeof tocarSomVulcaoLancamento === 'function') tocarSomVulcaoLancamento();
-
     window.vulcaoIndicadores.push({
         x: tx, y: ty, timer: 0, maxTimer: 50,
         raio: 40, tipo, id
@@ -438,8 +451,6 @@ window.criarVulcaoProjetil = function(vx, vy, tx, ty, tipo, id) {
 };
 
 window.criarVulcaoImpacto = function(tx, ty, tipo, id) {
-    if (typeof tocarSomVulcaoImpacto === 'function') tocarSomVulcaoImpacto();
-
     for (let i = window.vulcaoIndicadores.length - 1; i >= 0; i--) {
         if (window.vulcaoIndicadores[i].id === id) {
             window.vulcaoIndicadores.splice(i, 1);
@@ -501,18 +512,25 @@ window.desenharEfeitosMago = function() {
     if (!ctx) return;
     const agora = Date.now();
 
-    desenharMeteorosMago(ctx);
-    desenharNevascasMago(ctx);
+    ctx.save();
+    try {
+        desenharMeteorosMago(ctx);
+        desenharNevascasMago(ctx);
 
-    desenharVulcoes(ctx, agora);
-    desenharIndicadores(ctx, agora);
-    desenharProjeteis(ctx, agora);
-    desenharImpactos(ctx, agora);
-    desenharReacoesCongelantes(ctx, agora);
+        desenharVulcoes(ctx, agora);
+        desenharIndicadores(ctx, agora);
+        desenharProjeteis(ctx, agora);
+        desenharImpactos(ctx, agora);
+        desenharReacoesCongelantes(ctx, agora);
 
-    // Mantém a API anterior caso algum sistema externo use a função.
-    if (typeof window.desenharPedrasEnormes === 'function') {
-        window.desenharPedrasEnormes();
+        // Mantém a API anterior caso algum sistema externo use a função.
+        if (typeof window.desenharPedrasEnormes === 'function') {
+            window.desenharPedrasEnormes();
+        }
+    } finally {
+        ctx.restore();
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
     }
 };
 
@@ -678,6 +696,8 @@ function desenharVulcoes(ctx, agora) {
                 ctx.arc(lv.x, lv.y, 2.1, 0, Math.PI * 2);
                 ctx.fill();
             }
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
 
             // Coluna de fumaça mais volumosa.
             if (v.timer % 5 === 0 && v.fumacas.length < 16) {
@@ -735,6 +755,8 @@ function desenharVulcoes(ctx, agora) {
                 ctx.arc(br.x, br.y, 1.5 + Math.random(), 0, Math.PI * 2);
                 ctx.fill();
             }
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
 
             // Pequena erupção de lava a cada ciclo.
             if (v.timer % 22 === 0) {
@@ -745,10 +767,14 @@ function desenharVulcoes(ctx, agora) {
                 ctx.beginPath();
                 ctx.arc((Math.random() - 0.5) * 9, -h + 1, burst, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.shadowBlur = 0;
+                ctx.shadowColor = 'transparent';
             }
         }
 
         ctx.restore();
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
 
         if (Date.now() - v.startTime >= v.duracaoMs) {
             window.vulcoesAtivos.splice(i, 1);
@@ -793,72 +819,100 @@ function desenharIndicadores(ctx, agora) {
 }
 
 function desenharProjeteis(ctx, agora) {
-    for (let i = window.vulcaoProjeteis.length - 1; i >= 0; i--) {
-        const p = window.vulcaoProjeteis[i];
-        p.progresso += p.velocidade;
-        if (p.progresso >= 1) {
-            window.vulcaoProjeteis.splice(i, 1);
-            continue;
-        }
+    ctx.save();
+    try {
+        for (let i = window.vulcaoProjeteis.length - 1; i >= 0; i--) {
+            const p = window.vulcaoProjeteis[i];
+            p.progresso += p.velocidade;
+            if (p.progresso >= 1) {
+                window.vulcaoProjeteis.splice(i, 1);
+                continue;
+            }
 
-        const t = p.progresso;
-        const curX = p.sx + (p.tx - p.sx) * t;
-        const curY = p.sy + (p.ty - p.sy) * t - 115 * Math.sin(t * Math.PI);
-        const cor = p.tipo === 'lava' ? '#ff4b1d' : '#f7a521';
+            const t = p.progresso;
+            const curX = p.sx + (p.tx - p.sx) * t;
+            const curY = p.sy + (p.ty - p.sy) * t - 115 * Math.sin(t * Math.PI);
+            const cor = p.tipo === 'lava' ? '#ff4b1d' : '#f7a521';
 
-        p.trail.push({ x: curX, y: curY, alpha: 0.78 });
-        if (p.trail.length > 16) p.trail.shift();
+            ctx.save();
 
-        for (let ti = 0; ti < p.trail.length; ti++) {
-            const tr = p.trail[ti];
-            tr.alpha *= 0.89;
-            if (tr.alpha < 0.03) continue;
-            const size = 4.5 - ti * 0.18;
-            ctx.fillStyle = rgba(cor, tr.alpha * 0.72);
-            ctx.shadowColor = cor;
-            ctx.shadowBlur = 8;
-            ctx.beginPath();
-            ctx.arc(tr.x, tr.y, Math.max(1, size), 0, Math.PI * 2);
-            ctx.fill();
-        }
+            p.trail.push({ x: curX, y: curY, alpha: 0.78 });
+            if (p.trail.length > 16) p.trail.shift();
 
-        for (let s = 0; s < 3; s++) {
-            if (Math.random() < 0.65) {
-                ctx.fillStyle = rgba('#ffb84a', 0.5);
+            // Rastro de fogo fluido e otimizado (sem o peso de shadowBlur repetitivo)
+            for (let ti = 0; ti < p.trail.length; ti++) {
+                const tr = p.trail[ti];
+                tr.alpha *= 0.89;
+                if (tr.alpha < 0.03) continue;
+                const size = Math.max(1, 4.5 - ti * 0.18);
+
+                // Halo externo suave
+                ctx.fillStyle = rgba(cor, tr.alpha * 0.28);
                 ctx.beginPath();
-                ctx.arc(curX + (Math.random() - 0.5) * 10, curY + (Math.random() - 0.5) * 10,
-                    1.1 + Math.random() * 0.8, 0, Math.PI * 2);
+                ctx.arc(tr.x, tr.y, size * 1.8, 0, Math.PI * 2);
+                ctx.fill();
+
+                // Núcleo incandescente
+                ctx.fillStyle = rgba(cor, tr.alpha * 0.85);
+                ctx.beginPath();
+                ctx.arc(tr.x, tr.y, size, 0, Math.PI * 2);
                 ctx.fill();
             }
+
+            // Fagulhas leves
+            for (let s = 0; s < 3; s++) {
+                if (Math.random() < 0.65) {
+                    ctx.fillStyle = rgba('#ffb84a', 0.55);
+                    ctx.beginPath();
+                    ctx.arc(curX + (Math.random() - 0.5) * 10, curY + (Math.random() - 0.5) * 10,
+                        1.1 + Math.random() * 0.8, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
+
+            // Corpo principal da bola de fogo (com degradê radial eficiente)
+            ctx.save();
+            ctx.translate(curX, curY);
+            const ang = Math.atan2(p.ty - p.sy, p.tx - p.sx);
+            ctx.rotate(ang);
+
+            const size = p.tipo === 'lava' ? 9 : 8;
+
+            // Halo luminoso externo em degradê (substitui o shadowBlur=20 mantendo visual brilhante a 60 FPS)
+            const haloExterno = ctx.createRadialGradient(0, 0, size * 0.3, 0, 0, size * 2.2);
+            haloExterno.addColorStop(0, rgba(cor, 0.45));
+            haloExterno.addColorStop(0.5, rgba(cor, 0.15));
+            haloExterno.addColorStop(1, 'rgba(0,0,0,0)');
+            ctx.fillStyle = haloExterno;
+            ctx.beginPath();
+            ctx.arc(0, 0, size * 2.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Núcleo esférico
+            const gp = ctx.createRadialGradient(0, 0, 1, 0, 0, size);
+            gp.addColorStop(0, '#fffde5');
+            gp.addColorStop(0.24, '#ffd36c');
+            gp.addColorStop(0.55, cor);
+            gp.addColorStop(1, 'rgba(100,10,0,0)');
+            ctx.fillStyle = gp;
+            ctx.beginPath();
+            ctx.arc(0, 0, size, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Rocha magmática escura no centro
+            ctx.fillStyle = '#3a2218';
+            ctx.beginPath();
+            ctx.moveTo(-4, -3); ctx.lineTo(3, -5); ctx.lineTo(6, 0);
+            ctx.lineTo(2, 5); ctx.lineTo(-5, 3); ctx.closePath();
+            ctx.fill();
+
+            ctx.restore(); // Restaura corpo
+            ctx.restore(); // Restaura projétil
         }
-
-        // Corpo principal em camadas.
-        ctx.save();
-        ctx.translate(curX, curY);
-        const ang = Math.atan2(p.ty - p.sy, p.tx - p.sx);
-        ctx.rotate(ang);
-
-        const size = p.tipo === 'lava' ? 9 : 8;
-        ctx.shadowColor = cor;
-        ctx.shadowBlur = 20;
-
-        const gp = ctx.createRadialGradient(0, 0, 1, 0, 0, size);
-        gp.addColorStop(0, '#fffde5');
-        gp.addColorStop(0.24, '#ffd36c');
-        gp.addColorStop(0.55, cor);
-        gp.addColorStop(1, 'rgba(100,10,0,0)');
-        ctx.fillStyle = gp;
-        ctx.beginPath();
-        ctx.arc(0, 0, size, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = '#3a2218';
-        ctx.beginPath();
-        ctx.moveTo(-4, -3); ctx.lineTo(3, -5); ctx.lineTo(6, 0);
-        ctx.lineTo(2, 5); ctx.lineTo(-5, 3); ctx.closePath();
-        ctx.fill();
-
+    } finally {
         ctx.restore();
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
     }
 }
 
@@ -905,6 +959,8 @@ function desenharImpactos(ctx, agora) {
                 ctx.arc(fx, fy + 6, 2.5 + Math.random() * 3, 0, Math.PI * 2);
                 ctx.fill();
             }
+            ctx.shadowBlur = 0;
+            ctx.shadowColor = 'transparent';
         }
 
         for (let fi = imp.frags.length - 1; fi >= 0; fi--) {
@@ -938,9 +994,13 @@ function desenharImpactos(ctx, agora) {
         }
 
         ctx.restore();
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
 
         if (imp.timer >= imp.maxTimer) window.vulcaoImpactos.splice(i, 1);
     }
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
 }
 
 function desenharReacoesCongelantes(ctx, agora) {
@@ -1006,11 +1066,17 @@ function desenharReacoesCongelantes(ctx, agora) {
             ctx.arc(pt.x, pt.y, pt.size * (pt.life / 50), 0, Math.PI * 2);
             ctx.fill();
         }
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
 
         ctx.restore();
+        ctx.shadowBlur = 0;
+        ctx.shadowColor = 'transparent';
 
         if (rc.timer >= rc.maxTimer) window.reacoesCongelantes.splice(i, 1);
     }
+    ctx.shadowBlur = 0;
+    ctx.shadowColor = 'transparent';
 };
 
 // =====================================================================

@@ -99,15 +99,15 @@ window.vfxListeners.push(function(dados) {
         
         let g = window.vfxSummonerGolems[ownerId];
         
-        // Boulders estáticos amontoados na base
+        // Boulders estáticos amontoados na base (proporcionais ao tamanho ~40% menor)
         for (let i = 0; i < 9; i++) {
             let a = (i / 9) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
-            let dist = 28 + Math.random() * 26;
+            let dist = 18 + Math.random() * 16;
             g.boulders.push({
                 x: Math.cos(a) * dist,
                 y: Math.sin(a) * dist * 0.65,
-                w: 12 + Math.random() * 12,
-                h: 9 + Math.random() * 9,
+                w: 8 + Math.random() * 8,
+                h: 6 + Math.random() * 6,
                 cor: i % 2 === 0 ? '#455260' : '#333e4a',
                 ang: Math.random() * Math.PI
             });
@@ -141,6 +141,15 @@ window.vfxListeners.push(function(dados) {
         // Intensifica screen shake conforme o final se aproxima
         let shakePower = 3.5 + progress * 7.5; // Começa suave (3.5) e chega a forte (11.0)
         window.tremorTela = Math.max(window.tremorTela || 0, shakePower);
+
+        // Áudio alternado de pulso sísmico (Summoner_skill4_1 (1).wav e (2).wav)
+        window._summonerSkill4PulseContador = (window._summonerSkill4PulseContador || 0) + 1;
+        let chaveSomPulse = (window._summonerSkill4PulseContador % 2 === 1) ? 'summoner_skill4_1' : 'summoner_skill4_2';
+        if (dados.ownerId === window.meuId) {
+            if (typeof window.tocarSonoro === 'function') window.tocarSonoro(chaveSomPulse);
+        } else if (typeof window.tocarSonoroProximidade === 'function') {
+            window.tocarSonoroProximidade(chaveSomPulse, x, y);
+        }
         
         // Adiciona onda sísmica em expansão
         window.vfxSummonerGolemPulses.push({
@@ -201,13 +210,13 @@ window.vfxListeners.push(function(dados) {
         if (gx !== undefined && gy !== undefined) {
             for (let i = 0; i < 48; i++) {
                 let ang = Math.random() * Math.PI * 2;
-                let spd = Math.random() * 8 + 3;
+                let spd = Math.random() * 6 + 2.5;
                 window.vfxSummonerGolemDebris.push({
-                    x: gx + (Math.random() - 0.5) * 40,
-                    y: gy - 25 + (Math.random() - 0.5) * 50,
+                    x: gx + (Math.random() - 0.5) * 25,
+                    y: gy - 15 + (Math.random() - 0.5) * 30,
                     vx: Math.cos(ang) * spd,
-                    vy: Math.sin(ang) * spd - Math.random() * 5,
-                    size: 9 + Math.random() * 14,
+                    vy: Math.sin(ang) * spd - Math.random() * 3.5,
+                    size: 6 + Math.random() * 9,
                     life: 45 + Math.random() * 20,
                     maxLife: 65,
                     rot: Math.random() * Math.PI * 2,
@@ -217,6 +226,13 @@ window.vfxListeners.push(function(dados) {
             }
             // Tremor de encerramento
             window.tremorTela = Math.max(window.tremorTela || 0, 9);
+        }
+
+        // Áudio de término da skill 4 (Summoner_Skill4_3.wav)
+        if (ownerId === window.meuId) {
+            if (typeof window.tocarSonoro === 'function') window.tocarSonoro('summoner_skill4_fim');
+        } else if (typeof window.tocarSonoroProximidade === 'function' && gx !== undefined && gy !== undefined) {
+            window.tocarSonoroProximidade('summoner_skill4_fim', gx, gy);
         }
         
         delete window.vfxSummonerGolems[ownerId];
@@ -340,11 +356,11 @@ function desenharMonolitoRochoso(ctx, golem, elapsed, progress) {
     let emergeRatio = Math.min(1, elapsed / golem.emergeDuration);
     // Easing de subida da rocha: emerge progressivamente do chão nos 2 primeiros segundos
     let easeRise = 1 - Math.pow(1 - emergeRatio, 3);
-    let yOffset = (1 - easeRise) * 65; // Começa 65px soterrado e sobe
+    let yOffset = (1 - easeRise) * 40; // Começa 40px soterrado e sobe (proporcional ao tamanho reduzido)
     
-    // Escala: 50% maior que o normal (cresce até 1.5x)
-    let escalaFinal = 1.5;
-    let escalaAtual = 1.0 + (escalaFinal - 1.0) * easeRise;
+    // Escala: reduzida em 40% a pedido visual (escalaFinal de 1.5 -> 0.90)
+    let escalaFinal = 0.90;
+    let escalaAtual = 0.60 + (escalaFinal - 0.60) * easeRise;
     
     // Vibração sísmica da rocha aumentando no final
     let shakeIntensity = (progress > 0.4 ? (progress - 0.4) * 5.5 : 0.8);

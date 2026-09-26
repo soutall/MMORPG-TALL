@@ -765,9 +765,16 @@
         var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
         ret(ctx, x + W * 0.45, y + H * 0.2, W * 0.1, H * 0.8, '#263238');
         circulo(ctx, x + W / 2, y + H * 0.16, W * 0.3, '#5d6d7e');
-        ctx.fillStyle = '#ffd166'; ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 12;
-        circulo(ctx, x + W / 2, y + H * 0.16, W * 0.14, '#ffe082');
-        ctx.shadowBlur = 0;
+        var acesa = (typeof window.isLuzMapaAtiva === 'function') ? window.isLuzMapaAtiva() : true;
+        if (acesa || window.mapaEditorAtivo) {
+            ctx.fillStyle = '#ffd166'; ctx.shadowColor = '#ffd166'; ctx.shadowBlur = 14;
+            circulo(ctx, x + W / 2, y + H * 0.16, W * 0.14, '#ffe082');
+            ctx.shadowBlur = 0;
+        } else {
+            // Apagada de dia (vidro fosco cinza, sem emissão de luz)
+            ctx.fillStyle = '#4a4e52';
+            circulo(ctx, x + W / 2, y + H * 0.16, W * 0.14, '#373a3c');
+        }
     }
 
     function pintarEstaca(o, ctx) {
@@ -1316,6 +1323,10 @@
     function desenharEfeitoObjeto(o, ctx, t) {
         var ef = o.efeito;
         if (!ef || ef === 'nenhum' || ef === 'none') return;
+        if (typeof window.isEfeitoLuz === 'function' && window.isEfeitoLuz(ef)) {
+            var acesa = (typeof window.isLuzMapaAtiva === 'function') ? window.isLuzMapaAtiva() : true;
+            if (!acesa && !window.mapaEditorAtivo) return; // Apagada durante o dia (06h às 19h)
+        }
         var cor = /^#[0-9a-fA-F]{6}$/.test(o.efeitoCor || '') ? o.efeitoCor : (EFX_CORES[ef] || '#ffd166');
         var cx = o.x + (o.w || 40) / 2;
         var cy = o.y + (o.h || 40) / 2;

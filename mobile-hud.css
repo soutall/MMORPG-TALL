@@ -302,7 +302,8 @@
     #btn-pikeman-execucao,
     #btn-summoner-golem,
     #btn-arqueiro-salto,
-    #btn-curandeiro-cantico {
+    #btn-curandeiro-cantico,
+    #btn-barbaro-vinculo {
         grid-column: 2 !important;
         grid-row: 2 !important;
     }

@@ -785,6 +785,22 @@
         let defIni = window.guerreiroDefesas[pidK] || 0;
         let defesa = (prepTimer > 0) || (defIni && (agora - defIni) < 620);
 
+        // v1.50.0 — ESCUDO DO DASH (ESPAÇO segurado): o escudo REAL da mão
+        // esquerda, levantado e VIRADO para onde a espada está apontando.
+        // Antes isto era só um brilho de VFX desenhado por cima; agora o
+        // desenho do personagem assume a postura, com o mesmo `angulo` do
+        // braço da espada. Para os OUTROS jogadores o estado vem do servidor
+        // (action_guerreiro_escudo / _ang), para o próprio é o flag local.
+        let escudoDash = false;
+        if (pidK) {
+            if (pidK === window.meuId) escudoDash = !!window.escudoGuerreiroAtivo;
+            else {
+                const reg = window.guerreiroEscudoDe;
+                escudoDash = !!(reg && reg[pidK]);
+            }
+        }
+        if (escudoDash) defesa = true;   // mesma postura baixa do escudo erguido
+
         // Aura da Passiva Resistência do Último Fôlego (intacta)
         if (pctHp <= 0.50) desenharAuraUltimoFolego(ctx, pctHp, Date.now());
 
@@ -824,6 +840,27 @@
             desenharEscudo(ctx, false, resp);
             ctx.restore();
             desenharEspadaDefesa(ctx, armaVisual);
+        } else if (escudoDash) {
+            // ---- ESCUDO DO DASH (ESPAÇO segurado) ----
+            // Braço + escudo torre giram em torno do corpo pelo MESMO ângulo
+            // da espada: o escudo cobre exatamente o arco que o servidor
+            // protege (-70% de dano). É o escudo de verdade, na mão dele.
+            desenharEspadaDefesa(ctx, armaVisual);
+            ctx.save();
+            ctx.translate(12, 16);
+            ctx.rotate(angulo);
+            ctx.translate(-11.5, 0);
+            desenharBracoEscudante(ctx, resp, isMoving);
+            desenharEscudo(ctx, true, resp);
+            // brilho de "escudo ativo" na borda (leve — o arco de proteção
+            // grande é desenhado pelo dash-vfx.js em frente ao personagem)
+            ctx.strokeStyle = 'rgba(133,193,233,' + (0.55 + 0.35 * Math.sin(agora / 130)) + ')';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(2.2, 1.6);
+            ctx.lineTo(2.2, 25.0);
+            ctx.stroke();
+            ctx.restore();
         } else if (defesa) {
             // DEFESA: escudo torre erguido cobrindo a frente; espada preparada atrás
             desenharEspadaDefesa(ctx, armaVisual);

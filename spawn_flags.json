@@ -91,19 +91,6 @@
     "timerRespawn": 25
   },
   {
-    "id": "flag_deserto_besouro_2",
-    "criadoEm": 1789338680133,
-    "tipo": "besouro_negro",
-    "maxQtd": 10,
-    "comportamento": "agressivo",
-    "hpBase": 340,
-    "respawnSeg": 5,
-    "x": 33000,
-    "y": 4500,
-    "temPosicao": true,
-    "timerRespawn": 25
-  },
-  {
     "id": "flag_deserto_zumbi_2",
     "criadoEm": 1789338680134,
     "tipo": "zumbi",
@@ -167,32 +154,6 @@
     "y": 3500,
     "temPosicao": true,
     "timerRespawn": 25
-  },
-  {
-    "id": "flag_dg_morcegos_1",
-    "criadoEm": 1789338680139,
-    "tipo": "morcego",
-    "maxQtd": 20,
-    "comportamento": "agressivo",
-    "hpBase": 160,
-    "respawnSeg": 4,
-    "x": 58350,
-    "y": 850,
-    "temPosicao": true,
-    "timerRespawn": 20
-  },
-  {
-    "id": "flag_dg_morcegos_2",
-    "criadoEm": 1789338680140,
-    "tipo": "morcego",
-    "maxQtd": 24,
-    "comportamento": "agressivo",
-    "hpBase": 180,
-    "respawnSeg": 4,
-    "x": 58800,
-    "y": 920,
-    "temPosicao": true,
-    "timerRespawn": 20
   },
   {
     "id": "flag_mu7ue0ds_cm9wf",
@@ -312,19 +273,6 @@
     "timerRespawn": 100
   },
   {
-    "id": "flag_muev0nkt_qy1nt",
-    "criadoEm": 1790213705309,
-    "tipo": "melee",
-    "maxQtd": 3,
-    "comportamento": "agressivo",
-    "hpBase": 50000,
-    "respawnSeg": 5,
-    "x": 65568,
-    "y": 509,
-    "temPosicao": true,
-    "timerRespawn": 100
-  },
-  {
     "id": "flag_muey0eqa_rlvdu",
     "criadoEm": 1790218732690,
     "tipo": "zumbi",
@@ -334,6 +282,19 @@
     "respawnSeg": 5,
     "x": 64308,
     "y": 536,
+    "temPosicao": true,
+    "timerRespawn": 100
+  },
+  {
+    "id": "flag_muh9d1sw_6d42p",
+    "criadoEm": 1790358730592,
+    "tipo": "melee",
+    "maxQtd": 3,
+    "comportamento": "agressivo",
+    "hpBase": 50,
+    "respawnSeg": 5,
+    "x": 65800,
+    "y": 528,
     "temPosicao": true,
     "timerRespawn": 100
   }

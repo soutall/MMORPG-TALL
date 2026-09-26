@@ -118,6 +118,7 @@
         }
         if (window.meuId === id) {
             window.pikemanEstadoLocal.execucaoAtiva = false;
+            if (typeof window.pararSomPikemanCarregando === 'function') window.pararSomPikemanCarregando();
         }
     };
     window.criarImpactoExecucaoPikeman = function (x, y, hit, alvoX, alvoY) {

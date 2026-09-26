@@ -109,7 +109,9 @@ window.criarAnimacaoRugidoOgro = function(x, y) {
 };
 
 window.criarAnimacaoMeteoro = function(tx, ty) {
-    if (typeof tocarSomQuedaMeteoro === 'function') tocarSomQuedaMeteoro();
+    if (typeof window.tocarSonoroProximidade === 'function') window.tocarSonoroProximidade('mago_meteoro_queda', tx, ty);
+    else if (window.tocarSonoro) window.tocarSonoro('mago_meteoro_queda');
+    else if (typeof tocarSomQuedaMeteoro === 'function') tocarSomQuedaMeteoro();
     window.meteorosAtivos.push({ startX: tx - 240, startY: ty - 420, targetX: tx, targetY: ty, progresso: 0, velocidade: 0.032, rastro: [] });
 };
 
@@ -135,35 +137,71 @@ window.desenharEfeitosMeteoro = function() {
         fogo.duracao--;
         if (fogo.duracao <= 0) { window.chaoEmChamas.splice(i, 1); } else {
             const progFogo = fogo.duracaoInicial ? fogo.duracao / fogo.duracaoInicial : 1;
-            const fadeFogo = Math.min(1, progFogo / 0.25); // some só nos últimos 25%
+            const fadeFogo = Math.min(1, progFogo / 0.20); // Mantém vivo por 80% do tempo e fade suave no final
             window.ctx.save();
 
-            // Iluminação quente no chão (5s)
-            let luzChao = window.ctx.createRadialGradient(fogo.x, fogo.y + 8, 2, fogo.x, fogo.y + 8, 80);
-            luzChao.addColorStop(0, "rgba(255, 180, 90, " + (0.30 * fadeFogo) + ")");
-            luzChao.addColorStop(0.55, "rgba(230, 90, 30, " + (0.16 * fadeFogo) + ")");
-            luzChao.addColorStop(1, "rgba(180, 40, 0, 0)");
+            // 1) Iluminação quente e pulsante no solo (5s)
+            const pulsoLuz = Math.sin(Date.now() / 140) * 0.08 + 0.92;
+            let luzChao = window.ctx.createRadialGradient(fogo.x, fogo.y + 6, 4, fogo.x, fogo.y + 6, 95);
+            luzChao.addColorStop(0, "rgba(255, 190, 80, " + (0.38 * fadeFogo * pulsoLuz) + ")");
+            luzChao.addColorStop(0.5, "rgba(240, 90, 20, " + (0.22 * fadeFogo * pulsoLuz) + ")");
+            luzChao.addColorStop(0.85, "rgba(180, 40, 0, " + (0.08 * fadeFogo) + ")");
+            luzChao.addColorStop(1, "rgba(0, 0, 0, 0)");
             window.ctx.fillStyle = luzChao;
-            window.ctx.beginPath(); window.ctx.ellipse(fogo.x, fogo.y + 8, 80, 40, 0, 0, Math.PI * 2); window.ctx.fill();
+            window.ctx.beginPath(); window.ctx.ellipse(fogo.x, fogo.y + 6, 95, 48, 0, 0, Math.PI * 2); window.ctx.fill();
 
-            window.ctx.fillStyle = "rgba(20, 10, 5, 0.75)";
-            window.ctx.beginPath(); window.ctx.ellipse(fogo.x, fogo.y, 75, 45, 0, 0, Math.PI * 2); window.ctx.fill();
-            window.ctx.strokeStyle = "rgba(230, 126, 34, 0.5)"; window.ctx.lineWidth = 3; window.ctx.stroke();
-            for (let p of fogo.particulasFogo) {
-                p.y -= p.vy; p.x += Math.sin(Date.now() / 150 + p.offset) * 0.8; p.vida -= 0.03;
-                if (p.vida <= 0) { p.vida = 1.0; p.y = fogo.y + (Math.random() * 30 - 15); p.x = fogo.x + (Math.random() * 80 - 40); }
-                window.ctx.fillStyle = p.cor; window.ctx.shadowColor = "#e67e22"; window.ctx.shadowBlur = 8;
-                window.ctx.beginPath(); window.ctx.arc(p.x, p.y, p.tamanho * p.vida, 0, Math.PI * 2); window.ctx.fill();
+            // 2) Cratera de terra calcinada / rocha derretida
+            window.ctx.fillStyle = "rgba(18, 8, 4, " + (0.80 * fadeFogo) + ")";
+            window.ctx.beginPath(); window.ctx.ellipse(fogo.x, fogo.y, 78, 42, 0, 0, Math.PI * 2); window.ctx.fill();
+            window.ctx.strokeStyle = "rgba(245, 130, 32, " + (0.65 * fadeFogo) + ")";
+            window.ctx.lineWidth = 2.5;
+            window.ctx.stroke();
+
+            // 3) Chamas dançantes procedurais na cratera
+            window.ctx.save();
+            window.ctx.globalCompositeOperation = 'lighter';
+            const tempoFogo = Date.now() / 90;
+            for (let fIdx = 0; fIdx < 7; fIdx++) {
+                const offX = Math.cos(fIdx * 1.05 + 0.4) * 45;
+                const offY = Math.sin(fIdx * 1.05 + 0.4) * 18;
+                const altChama = 14 + Math.sin(tempoFogo + fIdx * 1.8) * 8;
+                const largChama = 6 + Math.cos(tempoFogo + fIdx) * 2;
+
+                const gradChama = window.ctx.createLinearGradient(fogo.x + offX, fogo.y + offY - altChama, fogo.x + offX, fogo.y + offY);
+                gradChama.addColorStop(0, "rgba(255, 245, 180, " + (0.85 * fadeFogo) + ")");
+                gradChama.addColorStop(0.45, "rgba(255, 120, 0, " + (0.75 * fadeFogo) + ")");
+                gradChama.addColorStop(1, "rgba(200, 20, 0, " + (0.2 * fadeFogo) + ")");
+                window.ctx.fillStyle = gradChama;
+
+                window.ctx.beginPath();
+                window.ctx.moveTo(fogo.x + offX, fogo.y + offY - altChama);
+                window.ctx.lineTo(fogo.x + offX + largChama, fogo.y + offY);
+                window.ctx.lineTo(fogo.x + offX - largChama, fogo.y + offY);
+                window.ctx.closePath();
+                window.ctx.fill();
             }
-            // Fumaça subindo (chamas queimando o chão)
+            window.ctx.restore();
+
+            // 4) Brasas incandescentes flutuando continuamente para cima
+            window.ctx.save();
+            window.ctx.globalCompositeOperation = 'lighter';
+            for (let p of fogo.particulasFogo) {
+                p.y -= p.vy; p.x += Math.sin(Date.now() / 150 + p.offset) * 0.8; p.vida -= 0.025;
+                if (p.vida <= 0) { p.vida = 1.0; p.y = fogo.y + (Math.random() * 24 - 12); p.x = fogo.x + (Math.random() * 70 - 35); }
+                const bAlpha = p.vida * fadeFogo;
+                window.ctx.fillStyle = p.cor;
+                window.ctx.beginPath(); window.ctx.arc(p.x, p.y, p.tamanho * (0.5 + p.vida * 0.5), 0, Math.PI * 2); window.ctx.fill();
+            }
+            window.ctx.restore();
+
+            // 5) Fumaça volumosa subindo e dispersando
             if (Array.isArray(fogo.fumaça)) {
                 for (let s = fogo.fumaça.length - 1; s >= 0; s--) {
                     const sm = fogo.fumaça[s];
-                    sm.y -= sm.vy; sm.vida -= 0.012; sm.tamanho += 0.08;
-                    if (sm.vida <= 0) { sm.vida = 1.0; sm.y = fogo.y + (Math.random() * 24 - 12); sm.x = fogo.x + (Math.random() * 70 - 35); }
-                    window.ctx.fillStyle = "rgba(90, 88, 95, " + (0.20 * sm.vida * fadeFogo) + ")";
-                    window.ctx.shadowColor = "transparent"; window.ctx.shadowBlur = 0;
-                    window.ctx.beginPath(); window.ctx.arc(sm.x, sm.y, sm.tamanho * sm.vida, 0, Math.PI * 2); window.ctx.fill();
+                    sm.y -= sm.vy; sm.vida -= 0.010; sm.tamanho += 0.09;
+                    if (sm.vida <= 0) { sm.vida = 1.0; sm.y = fogo.y + (Math.random() * 20 - 10); sm.x = fogo.x + (Math.random() * 60 - 30); sm.tamanho = 7 + Math.random() * 5; }
+                    window.ctx.fillStyle = "rgba(65, 60, 60, " + (0.24 * sm.vida * fadeFogo) + ")";
+                    window.ctx.beginPath(); window.ctx.arc(sm.x, sm.y, sm.tamanho, 0, Math.PI * 2); window.ctx.fill();
                 }
             }
             window.ctx.restore();
@@ -186,7 +224,9 @@ window.desenharEfeitosMeteoro = function() {
         window.ctx.beginPath(); window.ctx.arc(curX, curY, 28, 0, Math.PI * 2); window.ctx.fill();
         window.ctx.restore();
         if (m.progresso >= 1) {
-            if (typeof tocarSomImpactoMeteoro === 'function') tocarSomImpactoMeteoro();
+            if (typeof window.tocarSonoroProximidade === 'function') window.tocarSonoroProximidade('mago_meteoro_impacto', m.targetX, m.targetY);
+            else if (window.tocarSonoro) window.tocarSonoro('mago_meteoro_impacto');
+            else if (typeof tocarSomImpactoMeteoro === 'function') tocarSomImpactoMeteoro();
             window.tremorTela = 14;
             
             if (typeof registrarDanoCausado === 'function') {

@@ -12,31 +12,33 @@ window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
     ctx.save();
     ctx.translate(x, y);
 
-    // Aura passiva de notas musicais
-    if (!window.notasMusicais) window.notasMusicais = [];
-    // FIX tela verde: com a Bateria ligada a taxa de spawn 0.6/frame estourava o canvas
-    // (centenas de fillText + filtros). Reduzimos a taxa e limitamos a pilha de notas.
-    let chanceNota = window.roqueiroBateriaLigada ? 0.22 : 0.10;
-    if (window.notasMusicais.length < 40 && Math.random() < chanceNota) {
-        window.notasMusicais.push({
+    // Aura passiva de notas musicais (isolada por jogador / pid)
+    if (!window.notasMusicaisPorPid) window.notasMusicaisPorPid = {};
+    let safePid = pid || 'local';
+    if (!window.notasMusicaisPorPid[safePid]) window.notasMusicaisPorPid[safePid] = [];
+    let notas = window.notasMusicaisPorPid[safePid];
+    let isBateria = (safePid === 'local' || safePid === window.meuId) ? !!window.roqueiroBateriaLigada : false;
+    let chanceNota = isBateria ? 0.22 : 0.10;
+    if (notas.length < 20 && Math.random() < chanceNota) {
+        notas.push({
             x: 12 + (Math.random() - 0.5) * 40,
             y: 16 + (Math.random() - 0.5) * 40,
             vy: -1.0 - Math.random(),
             alpha: 1.0,
             char: ['🎵', '🎶', '🎸', '🤘', '⚡'][Math.floor(Math.random() * 5)],
-            escala: window.roqueiroBateriaLigada ? 1.6 : 1.0
+            escala: isBateria ? 1.6 : 1.0
         });
     }
-    window.notasMusicais.forEach((nota, index) => {
+    notas.forEach((nota, index) => {
         ctx.save();
         ctx.globalAlpha = nota.alpha;
         ctx.font = Math.floor(12 * nota.escala) + "px Arial";
-        ctx.fillStyle = window.roqueiroBateriaLigada ? "#f1c40f" : "#ecf0f1";
+        ctx.fillStyle = isBateria ? "#f1c40f" : "#ecf0f1";
         ctx.fillText(nota.char, nota.x, nota.y);
         ctx.restore();
         nota.y += nota.vy;
         nota.alpha -= 0.03;
-        if (nota.alpha <= 0) window.notasMusicais.splice(index, 1);
+        if (nota.alpha <= 0) notas.splice(index, 1);
     });
 
     // Sombra no chão

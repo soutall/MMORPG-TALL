@@ -633,7 +633,7 @@ window.desenharDronemaster = function(x, y, isMoving, angulo, hp, maxHp, extra) 
 // Ataque básico: o Drone Companheiro dispara (o dano é do servidor; o flash é visual local)
 window.enviarAtaqueDronemaster = function(ang, alvoTipo, alvoId) {
     if (window.estaMorto) return;
-    if (window.tocarSonoro) window.tocarSonoro('dronemaster_atk');
+    if (!window.dmAssaltoVisual && window.tocarSonoro) window.tocarSonoro('dronemaster_atk');
     if (typeof window.dmOrbitarDrone === 'function' && !window.dmAssaltoVisual) window.dmOrbitarDrone();
     window.dmUltimoTiroEm = Date.now();
     let msg = { action: 'ataque_dronemaster' };

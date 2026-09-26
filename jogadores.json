@@ -711,15 +711,15 @@
     "pontosDisponiveis": 4
   },
   "tall": {
-    "level": 1,
-    "xp": 35,
-    "classe": "arqueiro",
-    "hp": 100,
-    "x": 60297,
-    "y": 509,
-    "ultimoLogin": 1789763128749,
+    "level": 2,
+    "xp": 101,
+    "classe": "roqueiro",
+    "hp": 50,
+    "x": 50443,
+    "y": 1757,
+    "ultimoLogin": 1790390367254,
     "atributos": {
-      "forca": 1,
+      "forca": 4,
       "inteligencia": 1,
       "agilidade": 1,
       "destreza": 1,
@@ -728,7 +728,7 @@
       "divindade": 1,
       "afinidade": 1
     },
-    "pontosDisponiveis": 3,
+    "pontosDisponiveis": 1,
     "inventario": {
       "slots": {
         "capacete": null,
@@ -741,11 +741,43 @@
         "bota": null,
         "luva": null
       },
-      "mochila": []
+      "mochila": [
+        {
+          "id": "drop_1790382299190_4",
+          "uid": "muhne7g6-dd7mdy3do",
+          "tipo": "pedra",
+          "raridade": "lendario",
+          "raridadeNome": "PEDRA DE UPGRADE LENDÁRIA",
+          "nome": "💎 Pedra de Upgrade Lendária",
+          "icon": "💎",
+          "cor": "#ff7a00",
+          "quantidade": 1,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790382299190_3",
+          "uid": "muhne7g6-d4fghihry",
+          "tipo": "equipamento",
+          "slot": "capa",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🧥 CAPA COMUM",
+          "icon": "🧥",
+          "status": {
+            "agilidade": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        }
+      ]
     },
     "skills": {},
-    "pontosHabilidade": 0,
-    "mana": 50
+    "pontosHabilidade": 1,
+    "mana": 50,
+    "ouro": 0
   },
   "cavernoso": {
     "level": 1,
@@ -788,13 +820,13 @@
     "pontosDisponiveis": 3
   },
   "Admin": {
-    "level": 16,
-    "xp": 2588,
-    "classe": "barbaro",
-    "hp": 876,
-    "x": 60474,
-    "y": 640,
-    "ultimoLogin": 1790251611510,
+    "level": 17,
+    "xp": 923,
+    "classe": "pikeman",
+    "hp": 628,
+    "x": 74216,
+    "y": 523,
+    "ultimoLogin": 1790350409189,
     "atributos": {
       "forca": 4,
       "inteligencia": 1,
@@ -805,7 +837,7 @@
       "divindade": 1,
       "afinidade": 1
     },
-    "pontosDisponiveis": 2,
+    "pontosDisponiveis": 3,
     "inventario": {
       "slots": {
         "capacete": {
@@ -942,7 +974,7 @@
           "nome": "💎 Pedra de Upgrade Comum",
           "icon": "💎",
           "cor": "#ffffff",
-          "quantidade": 18,
+          "quantidade": 29,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -956,7 +988,7 @@
           "nome": "💎 Pedra de Upgrade Lendária",
           "icon": "💎",
           "cor": "#ff7a00",
-          "quantidade": 14,
+          "quantidade": 16,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -970,7 +1002,7 @@
           "nome": "💎 Pedra de Upgrade Épica",
           "icon": "💎",
           "cor": "#a855f7",
-          "quantidade": 16,
+          "quantidade": 24,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -984,7 +1016,7 @@
           "nome": "💎 Pedra de Upgrade Rara",
           "icon": "💎",
           "cor": "#4da6ff",
-          "quantidade": 12,
+          "quantidade": 16,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -999,7 +1031,7 @@
           "icon": "💎",
           "cor": "#7ec8ff",
           "pctCura": 1,
-          "quantidade": 2,
+          "quantidade": 4,
           "autocoleta": true,
           "stackavel": false
         },
@@ -1013,7 +1045,7 @@
           "icon": "🔮",
           "cor": "#3498db",
           "pctCura": 0.3,
-          "quantidade": 6,
+          "quantidade": 8,
           "autocoleta": true,
           "stackavel": false
         },
@@ -1027,7 +1059,7 @@
           "icon": "🔮",
           "cor": "#3498db",
           "pctCura": 0.2,
-          "quantidade": 12,
+          "quantidade": 21,
           "autocoleta": true,
           "stackavel": false
         },
@@ -1136,18 +1168,21 @@
           }
         },
         {
-          "id": "drop_1790251592819_39",
-          "uid": "mufhkprn-9j0nwnj0y",
-          "tipo": "consumivel",
-          "subtipo": "pocao_hp",
-          "nivel": 2,
-          "nome": "🧪 Poção de Vida II",
-          "icon": "🧪",
-          "cor": "#e74c3c",
-          "pctCura": 0.4,
-          "quantidade": 1,
-          "autocoleta": true,
-          "stackavel": false
+          "id": "drop_1790311909354_1",
+          "uid": "mughhiay-bwl0w9oi7",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "💍 ANEL RARO",
+          "icon": "💍",
+          "status": {
+            "divindade": 2,
+            "afinidade": 3
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
         }
       ]
     },
@@ -1155,7 +1190,7 @@
     "skills": {
       "execucao_morte": 3
     },
-    "pontosHabilidade": 0,
+    "pontosHabilidade": 1,
     "mana": 120,
     "uiLayout": {
       "hud-status-window": {
@@ -1211,7 +1246,7 @@
         "h": 101
       }
     },
-    "ouro": 1368
+    "ouro": 2396
   },
   "Admin2": {
     "level": 3,
@@ -4267,9 +4302,9 @@
     "xp": 47,
     "classe": "summoner",
     "hp": 100,
-    "x": 60487,
-    "y": 660,
-    "ultimoLogin": 1790074694061,
+    "x": 74205,
+    "y": 999,
+    "ultimoLogin": 1790347043993,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -8912,16 +8947,16 @@
     "ultimoLogin": 1790188619910
   },
   "admin": {
-    "level": 5,
-    "xp": 700,
-    "classe": "curandeiro",
-    "hp": 46,
-    "x": 63913.7880794702,
-    "y": 828.8211920529801,
-    "ultimoLogin": 1790238743970,
+    "level": 10,
+    "xp": 1720,
+    "classe": "roqueiro",
+    "hp": 0,
+    "x": 50174,
+    "y": 1642,
+    "ultimoLogin": 1790390858459,
     "atributos": {
       "forca": 1,
-      "inteligencia": 1,
+      "inteligencia": 4,
       "agilidade": 1,
       "destreza": 1,
       "vida": 1,
@@ -8929,185 +8964,46 @@
       "divindade": 1,
       "afinidade": 7
     },
-    "pontosDisponiveis": 1,
+    "pontosDisponiveis": 3,
     "inventario": {
       "slots": {
         "capacete": null,
         "peitoral": null,
-        "arma": null,
-        "armaSecundaria": null,
-        "colar": null,
-        "anel": null,
-        "capa": null,
-        "bota": null,
-        "luva": null
-      },
-      "mochila": [
-        {
-          "id": 1790196633048,
+        "arma": {
+          "id": "drop_1790341173256_23",
+          "uid": "mugywqh4-437c5phox",
           "tipo": "equipamento",
           "slot": "arma",
-          "icon": "⚔️",
-          "nome": "A Lâmina Viva",
-          "raridade": "lendario",
-          "raridadeNome": "LENDARIO",
-          "status": {
-            "forca": 50,
-            "vida": 20
-          },
-          "customVisual": {
-            "tamanho": 40,
-            "largura": 3.5,
-            "cBase": "#000000",
-            "cMeio": "#ff6600",
-            "cPonta": "#ff0000",
-            "cFio": "#ff0000"
-          }
-        },
-        {
-          "id": 1790197037698,
-          "tipo": "equipamento",
-          "slot": "arma",
-          "icon": "⚔️",
-          "nome": "Espada Do Rei",
-          "raridade": "lendario",
-          "raridadeNome": "LENDARIO",
-          "status": {
-            "forca": 50,
-            "vida": 20
-          },
-          "customVisual": {
-            "tamanho": 40,
-            "largura": 6,
-            "cBase": "#fbff00",
-            "cMeio": "#000000",
-            "cPonta": "#ffffff",
-            "cFio": "#ffffff"
-          }
-        },
-        {
-          "id": "muekmuep6iec-689y7xwo8",
-          "uid": "muekmuep6iec-689y7xwo8",
-          "tipo": "equipamento",
-          "slot": "arma",
-          "subTipo": "muekmuep6iec-689y7xwo8",
-          "armaChave": "muekmuep6iec-689y7xwo8",
-          "classe": "roqueiro",
-          "classeRestrita": "roqueiro",
-          "icon": "⚔️",
-          "nome": "A Lâmina Viva",
-          "raridade": "lendario",
-          "raridadeNome": "LENDARIO",
-          "status": {
-            "forca": 50,
-            "vida": 20
-          },
-          "customVisual": {
-            "tamanho": 40,
-            "largura": 3.5,
-            "cBase": "#0a0000",
-            "cMeio": "#cc0000",
-            "cPonta": "#b8c9db",
-            "cFio": "#eeff00"
-          }
-        },
-        {
-          "id": "muekmuer56b8-q3h3v3agv",
-          "uid": "muekmuer56b8-q3h3v3agv",
-          "tipo": "equipamento",
-          "slot": "arma",
-          "subTipo": "muekmuer56b8-q3h3v3agv",
-          "armaChave": "muekmuer56b8-q3h3v3agv",
-          "classe": "guerreiro",
-          "classeRestrita": "guerreiro",
-          "icon": "⚔️",
-          "nome": "A Lâmina Viva",
-          "raridade": "lendario",
-          "raridadeNome": "LENDARIO",
-          "status": {
-            "forca": 50,
-            "vida": 20
-          },
-          "customVisual": {
-            "tamanho": 40,
-            "largura": 5.5,
-            "cBase": "#ff0000",
-            "cMeio": "#ff0000",
-            "cPonta": "#b8c9db",
-            "cFio": "#ffd500"
-          }
-        },
-        {
-          "id": "drop_1790207442843_7",
-          "uid": "muerafff-8v2q6umnd",
-          "tipo": "pedra",
           "raridade": "epico",
-          "raridadeNome": "PEDRA DE UPGRADE ÉPICA",
-          "nome": "💎 Pedra de Upgrade Épica",
-          "icon": "💎",
+          "raridadeNome": "ÉPICO",
+          "nome": "✨ Luz Sagrada ÉPICO",
+          "icon": "✨",
+          "status": {
+            "inteligencia": 4,
+            "divindade": 5
+          },
           "cor": "#a855f7",
-          "quantidade": 2,
-          "autocoleta": true,
-          "stackavel": false,
-          "pedra": true
+          "classe": "curandeiro",
+          "armaChave": "luz_sagrada"
         },
-        {
-          "id": "drop_1790213706782_2",
-          "uid": "muev0opq-5jciwxfrz",
-          "tipo": "pedra",
-          "raridade": "raro",
-          "raridadeNome": "PEDRA DE UPGRADE RARA",
-          "nome": "💎 Pedra de Upgrade Rara",
-          "icon": "💎",
-          "cor": "#4da6ff",
-          "quantidade": 3,
-          "autocoleta": true,
-          "stackavel": false,
-          "pedra": true
-        },
-        {
-          "id": "drop_1790213714982_7",
-          "uid": "muev0v1i-c3fjdoo2t",
-          "tipo": "pedra",
+        "armaSecundaria": {
+          "id": "drop_1790341173218_14",
+          "uid": "mugywqg2-uaaou2798",
+          "tipo": "equipamento",
+          "slot": "armaSecundaria",
           "raridade": "comum",
-          "raridadeNome": "PEDRA DE UPGRADE COMUM",
-          "nome": "💎 Pedra de Upgrade Comum",
-          "icon": "💎",
+          "raridadeNome": "COMUM",
+          "nome": "🕊️ Rosário Sagrado",
+          "icon": "🕊️",
+          "status": {
+            "divindade": 1
+          },
           "cor": "#ffffff",
-          "quantidade": 3,
-          "autocoleta": true,
-          "stackavel": false,
-          "pedra": true
+          "classe": "curandeiro",
+          "armaChave": "rosario_sagrado"
         },
-        {
-          "id": "drop_1790213762847_17",
-          "uid": "muev1vz3-acxx1l31y",
-          "tipo": "pedra",
-          "raridade": "lendario",
-          "raridadeNome": "PEDRA DE UPGRADE LENDÁRIA",
-          "nome": "💎 Pedra de Upgrade Lendária",
-          "icon": "💎",
-          "cor": "#ff7a00",
-          "quantidade": 1,
-          "autocoleta": true,
-          "stackavel": false,
-          "pedra": true
-        },
-        {
-          "id": "drop_1790215393521_46",
-          "uid": "muew0u7l-kol7hffqw",
-          "tipo": "consumivel",
-          "subtipo": "pocao_mp",
-          "nivel": 3,
-          "nome": "🔮 Poção de Mana III",
-          "icon": "💎",
-          "cor": "#7ec8ff",
-          "pctCura": 1,
-          "quantidade": 2,
-          "autocoleta": true,
-          "stackavel": false
-        },
-        {
+        "colar": null,
+        "anel": {
           "id": "drop_1790218735398_1",
           "uid": "muey0gti-gbqdbk92w",
           "tipo": "equipamento",
@@ -9124,6 +9020,81 @@
           "classe": null,
           "armaChave": null
         },
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": [
+        {
+          "id": "drop_1790207442843_7",
+          "uid": "muerafff-8v2q6umnd",
+          "tipo": "pedra",
+          "raridade": "epico",
+          "raridadeNome": "PEDRA DE UPGRADE ÉPICA",
+          "nome": "💎 Pedra de Upgrade Épica",
+          "icon": "💎",
+          "cor": "#a855f7",
+          "quantidade": 16,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790213706782_2",
+          "uid": "muev0opq-5jciwxfrz",
+          "tipo": "pedra",
+          "raridade": "raro",
+          "raridadeNome": "PEDRA DE UPGRADE RARA",
+          "nome": "💎 Pedra de Upgrade Rara",
+          "icon": "💎",
+          "cor": "#4da6ff",
+          "quantidade": 15,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790213714982_7",
+          "uid": "muev0v1i-c3fjdoo2t",
+          "tipo": "pedra",
+          "raridade": "comum",
+          "raridadeNome": "PEDRA DE UPGRADE COMUM",
+          "nome": "💎 Pedra de Upgrade Comum",
+          "icon": "💎",
+          "cor": "#ffffff",
+          "quantidade": 20,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790213762847_17",
+          "uid": "muev1vz3-acxx1l31y",
+          "tipo": "pedra",
+          "raridade": "lendario",
+          "raridadeNome": "PEDRA DE UPGRADE LENDÁRIA",
+          "nome": "💎 Pedra de Upgrade Lendária",
+          "icon": "💎",
+          "cor": "#ff7a00",
+          "quantidade": 8,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790215393521_46",
+          "uid": "muew0u7l-kol7hffqw",
+          "tipo": "consumivel",
+          "subtipo": "pocao_mp",
+          "nivel": 3,
+          "nome": "🔮 Poção de Mana III",
+          "icon": "💎",
+          "cor": "#7ec8ff",
+          "pctCura": 1,
+          "quantidade": 5,
+          "autocoleta": true,
+          "stackavel": false
+        },
         {
           "id": "drop_1790218992002_37",
           "uid": "muey5yte-h0wcviqa7",
@@ -9134,7 +9105,7 @@
           "icon": "🔮",
           "cor": "#3498db",
           "pctCura": 0.3,
-          "quantidade": 1,
+          "quantidade": 5,
           "autocoleta": true,
           "stackavel": false
         },
@@ -9148,19 +9119,117 @@
           "icon": "🔮",
           "cor": "#3498db",
           "pctCura": 0.2,
+          "quantidade": 9,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790341173231_20",
+          "uid": "mugywqgf-mf9s1fqnl",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "💍 ANEL COMUM",
+          "icon": "💍",
+          "status": {
+            "destreza": 1
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790341172504_12",
+          "uid": "mugywpw8-ry195xfm4",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "💍 ANEL RARO",
+          "icon": "💍",
+          "status": {
+            "destreza": 5,
+            "afinidade": 4
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790370181864_23",
+          "uid": "muhg6hns-hmyor03x0",
+          "tipo": "equipamento",
+          "slot": "capa",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "🧥 CAPA LENDÁRIO",
+          "icon": "🧥",
+          "status": {
+            "agilidade": 9,
+            "inteligencia": 6,
+            "destreza": 6,
+            "vida": 8
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790377335471_24",
+          "uid": "muhkftf3-3vp5ekobn",
+          "tipo": "consumivel",
+          "subtipo": "pocao_hp",
+          "nivel": 3,
+          "nome": "🧪 Poção de Vida III",
+          "icon": "❣️",
+          "cor": "#ff4d4d",
+          "pctCura": 1,
+          "quantidade": 5,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790389152769_41",
+          "uid": "muhrh3pd-1fe1tpblt",
+          "tipo": "consumivel",
+          "subtipo": "pocao_hp",
+          "nivel": 1,
+          "nome": "🧪 Poção de Vida I",
+          "icon": "🧪",
+          "cor": "#e74c3c",
+          "pctCura": 0.2,
           "quantidade": 1,
           "autocoleta": true,
           "stackavel": false
+        },
+        {
+          "id": "drop_1790390112473_69",
+          "uid": "muhs1o7t-p4c62v74p",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "📿 COLAR LENDÁRIO",
+          "icon": "📿",
+          "status": {
+            "vida": 11,
+            "afinidade": 12,
+            "divindade": 6
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
         }
       ]
     },
     "skills": {
       "giro_descontrolado": 4
     },
-    "pontosHabilidade": 1,
-    "mana": 50,
-    "maxHp": 100,
-    "ouro": 1358,
+    "pontosHabilidade": 6,
+    "mana": 120,
+    "maxHp": 116,
+    "ouro": 2228,
     "uiLayout": {
       "pc": {
         "status": {
@@ -9711,5 +9780,301 @@
     "skills": {},
     "pontosHabilidade": 0,
     "mana": 39
+  },
+  "TestHero": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 60489,
+    "y": 652,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50,
+    "ultimoLogin": 1790348390557
+  },
+  "TestHero_99": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 60461,
+    "y": 629,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50,
+    "ultimoLogin": 1790348431801
+  },
+  "TestPlayer_296": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 60469,
+    "y": 653,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50,
+    "ultimoLogin": 1790367615330
+  },
+  "TestPlayer_846": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 60473,
+    "y": 649,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50,
+    "ultimoLogin": 1790367622072
+  },
+  "TestPlayer_439": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 60459,
+    "y": 625,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50,
+    "ultimoLogin": 1790368222858
+  },
+  "TestPlayer_587": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 60462,
+    "y": 627,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50,
+    "ultimoLogin": 1790368229923
+  },
+  "TestPlayer_510": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 60473,
+    "y": 652,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50,
+    "ultimoLogin": 1790368305483
+  },
+  "TestPlayer_385": {
+    "level": 1,
+    "xp": 0,
+    "classe": "guerreiro",
+    "hp": 100,
+    "x": 60478,
+    "y": 646,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "skills": {},
+    "pontosHabilidade": 0,
+    "mana": 50,
+    "ultimoLogin": 1790372205550
   }
 }

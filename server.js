@@ -10,6 +10,14 @@ process.on('unhandledRejection', (reason) => {
     console.error('[PROMISE NÃO TRATADA]', reason);
 });
 
+let mapaVerde = null;
+try {
+    mapaVerde = require('./mapas.js');
+    console.log("Fase 1 'Campo Verde' carregada (" + mapaVerde.COLS + "x" + mapaVerde.ROWS + " tiles).");
+} catch (e) {
+    console.log("Aviso: mapas.js não carregado: " + e.message);
+}
+
 let mapaDeserto = null;
 try {
     mapaDeserto = require('./mapa_deserto.js');
@@ -58,6 +66,32 @@ try {
     console.log("Aviso: mapa_cidade_perdida.js não carregado: " + e.message);
 }
 
+let mapaTesteVisual = null;
+try {
+    mapaTesteVisual = require('./mapa_teste_visual.js');
+    console.log("Arena Visual 'Teste Gráfico' carregada (" + mapaTesteVisual.COLS + "x" + mapaTesteVisual.ROWS + " tiles).");
+} catch (e) {
+    console.log("Aviso: mapa_teste_visual.js não carregado: " + e.message);
+}
+
+let mapaZonaZero = null;
+try {
+    mapaZonaZero = require('./mapa_zona_zero.js');
+    console.log("Fase Glacial 'Zona Zero' carregada (" + mapaZonaZero.COLS + "x" + mapaZonaZero.ROWS + " tiles).");
+} catch (e) {
+    console.log("Aviso: mapa_zona_zero.js não carregado: " + e.message);
+}
+
+let mapaCastelo = null;
+try {
+    mapaCastelo = require('./mapa_castelo.js');
+    console.log("Dungeon 'Castelo Anda 1' carregada (" + mapaCastelo.COLS + "x" + mapaCastelo.ROWS + " tiles).");
+} catch (e) {
+    console.log("Aviso: mapa_castelo.js não carregado: " + e.message);
+}
+
+
+
 let salvarProgresso = () => {}, carregarProgresso = () => null;
 try {
     const db = require('./database.js');
@@ -79,6 +113,15 @@ try {
 // ============ SISTEMA DE EQUIPAMENTOS (drop) ============
 let equipamentos = null;
 let bancoItens = null;
+
+// ============ SISTEMA DE CICLO DIA E NOITE (v1.52.0) ============
+let sistemaDiaNoite = null;
+try {
+    sistemaDiaNoite = require('./sistema_dia_noite.js');
+    console.log("Sistema de Ciclo Dia e Noite carregado (v1.52.0).");
+} catch (e) {
+    console.log("Aviso: sistema_dia_noite.js não carregado: " + e.message);
+}
 try {
     equipamentos = require('./equipamentos.js');
     console.log("Sistema de Equipamentos (drop) carregado.");
@@ -99,6 +142,20 @@ try {
     console.log("Sistema de Upgrade do Ferreiro carregado.");
 } catch (e) {
     console.log("Aviso: upgrade.js não carregado: " + e.message);
+}
+
+// ============ SISTEMA DE DASH v2 (compartilhado com o cliente) ============
+// dash.js é ISOMÓRFICO: o mesmo arquivo é carregado no <script> do index.html
+// e no require() daqui. Cliente e servidor resolvem o caminho do dash com o
+// MESMO algoritmo, então a predição do cliente e a autoridade do servidor
+// convergem sem o personagem "puxar" para trás.
+let DASH_MOD = null;
+try {
+    DASH_MOD = require('./dash.js');
+    console.log("Sistema de Dash v2 carregado (" + Object.keys(DASH_MOD.DASH).length + " classes).");
+} catch (e) {
+    console.log("ERRO FATAL: dash.js não carregou: " + e.message);
+    throw e;
 }
 
 // ============ SISTEMA DE DEBUFFS/BUFFS ============
@@ -256,6 +313,7 @@ function pikemanGolpeExecucao(playerId, alvoTipo, alvoId, dano, num) {
 function pikemanDispararExecucao(playerId, alvoTipo, alvoId) {
     let pk = players[playerId];
     if (!pk || pk.hp <= 0) return;
+    pk.pikemanSkillAte = Date.now() + 640;
     let dano = dmgSkill(pk, 'execucao_morte', 42);
     pikemanGolpeExecucao(playerId, alvoTipo, alvoId, dano, 1);
     setTimeout(() => pikemanGolpeExecucao(playerId, alvoTipo, alvoId, dano, 2), 240);
@@ -397,7 +455,7 @@ function colisaoObjetosDoMapa(mapa, cx, cy, raio) {
     return false;
 }
 
-const WORLD_WIDTH = 71920;
+const WORLD_WIDTH = 84200;
 const WORLD_HEIGHT = 36000;
 const LARGURA_VERDE = 18000; // Fase 1 (mapa verde — 10x maior)
 const LARGURA_DESERTO = 50000; // Fase 2 (deserto — 20x maior)
@@ -410,13 +468,166 @@ const LARGURA_ARENA = 63800; // Fase 6 (arena, apos a cidade)
 const FIM_ARENA = 65040;
 const LARGURA_CIDADE_PERDIDA = 65040; // Fase 7 (cidade perdida, apos a arena)
 const FIM_CIDADE_PERDIDA = 71920;
-const ALTO_VERDE = 18000, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 1145, ALTO_ARENA = 1240, ALTO_CIDADE_PERDIDA = 3920;
+const LARGURA_TESTE_VISUAL = 72000; // Arena Visual (teste gráfico)
+const FIM_TESTE_VISUAL = 73280;
+const LARGURA_ZONA_ZERO = 74000; // Fase Glacial «Zona Zero» (8.000 × 9.000 px)
+const FIM_ZONA_ZERO = 82000;
+const LARGURA_CASTELO = 82000; // Dungeon «Castelo Anda 1» (2.200 × 1.800 px)
+const FIM_CASTELO = 84200;
+const ALTO_VERDE = 5400, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 1145, ALTO_ARENA = 1240, ALTO_CIDADE_PERDIDA = 3920, ALTO_TESTE_VISUAL = 960, ALTO_ZONA_ZERO = 9000, ALTO_CASTELO = 1800;
 const CIDADE_SPAWN_X = 60474, CIDADE_SPAWN_Y = 640;
 // ATENCAO: cada ponto precisa ficar FORA do raio do portal de retorno do mapa,
 // senao o cliente detecta o portal e dispara transicao falsa (tela preta).
 // arena: 64180/460 = PONTO_CHEGADA de mapa_arena.js (portal fica em 63980/460, r=62).
 // cidadeperdida: 65360/460 = PONTO_CHEGADA de mapa_cidade_perdida.js (portal em 65140/460, r=62).
-const PONTOS_TELEPORTE = { green: { x: 5000, y: 1200 }, desert: { x: 18300, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, arena: { x: 64180, y: 460 }, cidadeperdida: { x: 65360, y: 460 } };
+// testevisual: 72480/480 = PONTO_CHEGADA de mapa_teste_visual.js (portal em 72160/480, r=55).
+// zonazero: 74200/1000 = PONTO_SPAWN de mapa_zona_zero.js (portal fica em 74160/1000, r=56).
+// castelo: 82200/900 = SPAWN_CASTELO de mapa_castelo.js (portal de saída em 82060/900, r=52).
+const PONTOS_TELEPORTE = { green: { x: 5000, y: 1200 }, desert: { x: 18500, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, arena: { x: 64180, y: 460 }, cidadeperdida: { x: 65360, y: 460 }, testevisual: { x: 72480, y: 480 }, zonazero: { x: 74200, y: 1000 }, castelo: { x: 82200, y: 900 } };
+
+// ============================================================================
+// CONFIGURAÇÃO MULTI-MAPA DE COLISÕES E CAMADAS (Admin Editor v1.46.0 / v1.47.0)
+// ============================================================================
+const MAPAS_CONFIG = {
+    cidade:        { x0: 59800, y0: 0, w: 1374,  h: 1145,  nome: 'Cidade de Davahl',   icone: '🏰' },
+    green:         { x0: 0,     y0: 0, w: 18000, h: 5400,  nome: 'Campo Verde',       icone: '🌿' },
+    desert:        { x0: 18000, y0: 0, w: 32000, h: 36000, nome: 'Deserto com Oásis', icone: '🏜️' },
+    pantano:       { x0: 50000, y0: 0, w: 8000,  h: 9000,  nome: 'Pântano Realista',   icone: '🌿' },
+    caverna:       { x0: 58000, y0: 0, w: 1800,  h: 1800,  nome: 'Caverna Sombria',    icone: '🕳️' },
+    arena:         { x0: 63800, y0: 0, w: 1240,  h: 1240,  nome: 'Arena de Davahl',    icone: '⚔️' },
+    cidadeperdida: { x0: 65040, y0: 0, w: 6880,  h: 3920,  nome: 'Cidade Perdida',     icone: '🏛️' },
+    testevisual:   { x0: 72000, y0: 0, w: 1280,  h: 960,   nome: 'Arena Visual Teste', icone: '🌿' },
+    zonazero:      { x0: 74000, y0: 0, w: 8000,  h: 9000,  nome: 'Zona Zero (Gelo)',   icone: '❄️' },
+    castelo:       { x0: 82000, y0: 0, w: 2200,  h: 1800,  nome: 'Castelo Anda 1 (DG)', icone: '🏯' }
+};
+
+const colisoesPorMapa = {};
+const camadasPorMapa = {};
+
+function carregarColisoesECamadasTodas() {
+    Object.keys(MAPAS_CONFIG).forEach(function (mapa) {
+        // Carrega colisões
+        try {
+            const fileCol = path.join(__dirname, 'colisoes_' + mapa + '.json');
+            if (fs.existsSync(fileCol)) {
+                const raw = fs.readFileSync(fileCol, 'utf-8');
+                const parsed = JSON.parse(raw);
+                if (Array.isArray(parsed)) colisoesPorMapa[mapa] = parsed;
+                else colisoesPorMapa[mapa] = [];
+            } else {
+                colisoesPorMapa[mapa] = [];
+            }
+        } catch (e) {
+            console.error('Erro ao carregar colisoes_' + mapa + '.json:', e.message);
+            colisoesPorMapa[mapa] = [];
+        }
+
+        // Carrega camadas
+        try {
+            const fileCam = path.join(__dirname, 'camadas_' + mapa + '.json');
+            if (fs.existsSync(fileCam)) {
+                const rawCam = fs.readFileSync(fileCam, 'utf-8');
+                const parsedCam = JSON.parse(rawCam);
+                if (Array.isArray(parsedCam)) camadasPorMapa[mapa] = parsedCam;
+                else camadasPorMapa[mapa] = [];
+            } else {
+                camadasPorMapa[mapa] = [];
+            }
+        } catch (e) {
+            console.error('Erro ao carregar camadas_' + mapa + '.json:', e.message);
+            camadasPorMapa[mapa] = [];
+        }
+    });
+
+    // Sincroniza cidade se mapaCidade carregar dados próprios
+    if (mapaCidade && typeof mapaCidade.obterObstaculos === 'function') {
+        const obsCidade = mapaCidade.obterObstaculos();
+        if (Array.isArray(obsCidade) && obsCidade.length > 0) {
+            colisoesPorMapa['cidade'] = obsCidade;
+        }
+    }
+    if (mapaCidade && typeof mapaCidade.obterCamadas === 'function') {
+        const camCidade = mapaCidade.obterCamadas();
+        if (Array.isArray(camCidade) && camCidade.length > 0) {
+            camadasPorMapa['cidade'] = camCidade;
+        }
+    }
+}
+carregarColisoesECamadasTodas();
+
+function distPontoSegmento(px, py, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const lenSq = dx * dx + dy * dy;
+    if (lenSq === 0) return Math.hypot(px - x1, py - y1);
+    let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+}
+
+function colideObstaculosCustomizados(mapa, cx, cy, raio) {
+    const lista = colisoesPorMapa[mapa];
+    if (!Array.isArray(lista) || lista.length === 0) return false;
+    const cfg = MAPAS_CONFIG[mapa];
+    if (!cfg) return false;
+
+    const r = (typeof raio === 'number') ? raio : PLAYER_COLLISION_RADIUS;
+    const lx = cx - cfg.x0;
+    const ly = cy - cfg.y0;
+
+    for (let i = 0; i < lista.length; i++) {
+        const o = lista[i];
+        if (!o) continue;
+
+        const ox = (o.cx !== undefined) ? o.cx : ((o.x !== undefined) ? (o.x + (o.w ? o.w / 2 : 0)) : 0);
+        const oy = (o.cy !== undefined) ? o.cy : ((o.y !== undefined) ? (o.y + (o.h ? o.h / 2 : 0)) : 0);
+        if (Math.abs(lx - ox) > 160 || Math.abs(ly - oy) > 160) continue;
+
+        if (o.tipo === 'rect' || o.tipo === 'caixa' || o.tipo === 'box') {
+            const x1 = o.x !== undefined ? o.x : (o.x1 !== undefined ? o.x1 : 0);
+            const y1 = o.y !== undefined ? o.y : (o.y1 !== undefined ? o.y1 : 0);
+            const x2 = o.w !== undefined ? (x1 + o.w) : (o.x2 !== undefined ? o.x2 : x1 + 40);
+            const y2 = o.h !== undefined ? (y1 + o.h) : (o.y2 !== undefined ? o.y2 : y1 + 40);
+
+            if (lx + r >= x1 && lx - r <= x2 && ly + r >= y1 && ly - r <= y2) {
+                return true;
+            }
+        } else if (o.tipo === 'circle' || o.tipo === 'circulo') {
+            const dx = lx - (o.cx !== undefined ? o.cx : (o.x || 0));
+            const dy = ly - (o.cy !== undefined ? o.cy : (o.y || 0));
+            const rTotal = (o.r || 20) + r;
+            if ((dx * dx + dy * dy) <= rTotal * rTotal) {
+                return true;
+            }
+        } else if (o.tipo === 'line') {
+            if (o.pontos && o.pontos.length >= 2) {
+                const esp = (o.espessura ? o.espessura / 2 : 8) + r;
+                const minBoxX = (o.x !== undefined ? o.x : 0) - esp;
+                const maxBoxX = (o.x !== undefined && o.w !== undefined ? o.x + o.w : 100000) + esp;
+                const minBoxY = (o.y !== undefined ? o.y : 0) - esp;
+                const maxBoxY = (o.y !== undefined && o.h !== undefined ? o.y + o.h : 100000) + esp;
+
+                if (lx >= minBoxX && lx <= maxBoxX && ly >= minBoxY && ly <= maxBoxY) {
+                    for (let j = 0; j < o.pontos.length - 1; j++) {
+                        const p1 = o.pontos[j];
+                        const p2 = o.pontos[j + 1];
+                        const minSegX = Math.min(p1.x, p2.x) - esp;
+                        const maxSegX = Math.max(p1.x, p2.x) + esp;
+                        const minSegY = Math.min(p1.y, p2.y) - esp;
+                        const maxSegY = Math.max(p1.y, p2.y) + esp;
+                        if (lx >= minSegX && lx <= maxSegX && ly >= minSegY && ly <= maxSegY) {
+                            if (distPontoSegmento(lx, ly, p1.x, p1.y, p2.x, p2.y) <= esp) {
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
 
 // ============ ARENA DE SOLARI (v1.32) ============
 // Portal ROXO na Cidade de Davahl (60488,236) → partida em grupo de até 4
@@ -434,8 +645,7 @@ const SOLARI_ROUNDS = [
     { round: 6,  danoMult: 1.45, hpMult: 1.50, total: 180 },
     { round: 7,  danoMult: 1.55, hpMult: 1.60, total: 200 },
     { round: 8,  danoMult: 2.25, hpMult: 2.50, total: 220 },
-    { round: 9,  danoMult: 3.25, hpMult: 3.00, total: 230 },
-    { round: 10, danoMult: 3.55, hpMult: 6.00, total: 500 }
+    { round: 9,  danoMult: 3.55, hpMult: 5.00, total: 320, elite: true } // Último round oficial (v1.59.0)
 ];
 // Tipos usados na arena (sem clamp de bioma, sem projéteis invisíveis e com
 // dano escalável): melee, zumbi, caveira_melee, escorpiao, assassino, ogro,
@@ -650,6 +860,7 @@ function multiplicadorVelocidadeAtaque(p) {
     if (!p) return 1;
     let mult = 1;
     if (efeitos && efeitos.temEfeito(p, 'gritoDeGuerra')) mult *= 0.90;
+    if (p.vinculoAtivo && p.vinculoExpires > Date.now()) mult *= 0.80; // VÍNCULO BERSERKER: +20% velocidade de ataque
     if (p.inventario && p.inventario.slots) {
         for (let s in p.inventario.slots) {
             let it = p.inventario.slots[s];
@@ -696,7 +907,7 @@ function tempoBaseAtaqueBasico(p) {
     if (p.classe === 'curandeiro') return 600;
     if (p.classe === 'roqueiro') return 750;
     if (p.classe === 'ladino') return 400;
-    if (p.classe === 'pikeman') return 400;
+    if (p.classe === 'pikeman') return 520;
     return 300;
 }
 
@@ -797,6 +1008,10 @@ function tentarRessurreicaoAutomatica(alvoId) {
 // Checa mana e desconta; se insuficiente avisa e retorna false
 function gastarMana(ws, p, custo) {
     if (!custo || custo <= 0) return true;
+    if (p && p.adminCheats && p.adminCheats.manaInfinita) {
+        p.mana = p.maxMp || 100;
+        return true;
+    }
     if ((p.mana || 0) < custo) {
         ws.send(JSON.stringify({ type: 'mp_insuficiente', custo: custo, mana: Math.round(p.mana || 0) }));
         return false;
@@ -810,6 +1025,10 @@ function gastarMana(ws, p, custo) {
 // Igual ao gastarMana, mas usa a barra laranja de estamina.
 function gastarEstamina(ws, p, custo) {
     if (!custo || custo <= 0) return true;
+    if (p && p.adminCheats && p.adminCheats.semCooldown) {
+        p.estamina = 100;
+        return true;
+    }
     if ((p.estamina || 0) < custo) {
         ws.send(JSON.stringify({ type: 'stamina_insuficiente', custo: custo, estamina: Math.round(p.estamina || 0) }));
         return false;
@@ -864,6 +1083,387 @@ function sincronizarEfeitos(pid, p) {
     });
 }
 
+// ============================================================================
+// DASH v2 (v1.50.0) — SERVIDOR AUTORITATIVO
+//
+// O dash deixou de ser "um teleport genérico" e virou uma mecânica por classe,
+// toda validada AQUI (nada de cooldown ou custo só no cliente).
+//
+// · COOLDOWN validado no servidor  -> elimina o exploit de spamming
+// · CUSTO de stamina validado aqui -> cliente não decide o preço
+// · DESTINO validado com o mesmo algoritmo do cliente (dash.js) -> sem divergência
+// · ANIMAÇÃO (corrida/investida/arranque) roda no tick de 50ms -> o char
+//   realmente CORRE no servidor; o cliente só desenha o que o servidor decide
+// ============================================================================
+
+function removerEfeitoAoVivo(pid, efeitoId) {
+    if (!efeitos) return;
+    if (efeitos.removerEfeito(players[pid], efeitoId)) {
+        sincronizarEfeitos(pid, players[pid]);
+    }
+}
+
+function dashEnviar(tipo, dados) {
+    const msg = JSON.stringify(Object.assign({ type: tipo }, dados || {}));
+    wss.clients.forEach(c => { if (c.readyState === 1) c.send(msg); });
+}
+
+function dashNoCd(p) {
+    if (p.adminCheats && p.adminCheats.semCooldown) return true;
+    return Date.now() >= (p.dashCdAte || 0);
+}
+
+function dashAplicarCd(p, cfg) {
+    p.dashCdAte = Date.now() + (cfg.cooldownMs || 2000);
+}
+
+// Colisão do jogador no servidor (usa a MESMA função do movimento normal, com
+// o offset do centro do corpo). Fora do castelo o raio 12px já vem embutido.
+function dashColide(px, py) {
+    return !posicaoJogadorValida(px, py);
+}
+
+function dashDestino(p, ang, distancia) {
+    return DASH_MOD.resolverDestino(p.x, p.y, ang, distancia, dashColide);
+}
+
+function dashIniciarAnimacao(p, x1, y1, ang, duracaoMs) {
+    p.dashAnim = {
+        x0: p.x, y0: p.y, x1: x1, y1: y1, ang: ang,
+        inicio: Date.now(), duracaoMs: duracaoMs,
+        ultimoX: p.x, ultimoY: p.y
+    };
+}
+
+// Investida do Bárbaro: dano contínuo nos slimes que atravessar + atropelamento.
+// Bosses TOMAM dano reduzido mas NÃO são movidos.
+function dashInvestidaDano(pid, p, d) {
+    const cfg = DASH_MOD.configDe(p.classe);
+    const agora = Date.now();
+    if (d.proximoDano && agora < d.proximoDano) return;
+    d.proximoDano = agora + 120;
+    const cx = p.x + PLAYER_OFFSET_X, cy = p.y + PLAYER_OFFSET_Y;
+    const danoCheio = dmgSkill(p, 'dash', cfg.dano);
+    slimes.forEach(s => {
+        if (s.hp <= 0) return;
+        if (Math.hypot(s.x - cx, s.y - cy) > cfg.raioLateral) return;
+        registrarDanoMonstro(s, pid, danoCheio);
+        if (!s.isBoss) {
+            const a = Math.atan2(s.y - cy, s.x - cx);
+            s.x += Math.cos(a) * cfg.empurraoPx;
+            s.y += Math.sin(a) * cfg.empurraoPx;
+            s.stunTimer = Math.max(s.stunTimer || 0, 10);
+        }
+    });
+    bosses.forEach(b => {
+        if (b.hp <= 0) return;
+        if (Math.hypot(b.x - cx, b.y - cy) > cfg.raioLateral) return;
+        registrarDanoBoss(b, pid, Math.round(danoCheio * cfg.danoBossMult), 'skill', 'player');
+    });
+}
+
+// Escudo de área da Curandeira: só allies do MESMO GRUPO, empurra inimigos
+// (nunca bosses) e atordoa a própria Curandeira.
+function dashEscudoArea(pid, p) {
+    const cfg = DASH_MOD.configDe('curandeiro');
+    const cx = p.x + PLAYER_OFFSET_X, cy = p.y + PLAYER_OFFSET_Y;
+    const protegidos = [pid];
+    if (p.partyId && parties[p.partyId]) {
+        parties[p.partyId].forEach(mid => {
+            const m = players[mid];
+            if (!m || m.hp <= 0) return;
+            if (Math.hypot((m.x + PLAYER_OFFSET_X) - cx, (m.y + PLAYER_OFFSET_Y) - cy) <= cfg.raio) {
+                if (mid !== pid) protegidos.push(mid);
+            }
+        });
+    }
+    protegidos.forEach(mid => {
+        const m = players[mid];
+        if (!m) return;
+        darEscudoAbsorvente(m, Math.round(m.maxHp * 0.20), cfg.duracaoMs);
+        // A própria Curandeira TAMBÉM recebe o evento: sem isso ela só veria o
+        // flash de 0,9s da predição local e ficaria 9s sem saber que está
+        // protegida. `proprio` diz ao cliente para segurar o domo a duracao toda.
+        dashEnviar('action_curandeiro_escudo_area', {
+            id: mid, x: m.x, y: m.y, duracaoMs: cfg.duracaoMs, proprio: (mid === pid)
+        });
+    });
+    dashEnviar('action_curandeiro_escudo_area_carga', { id: pid, x: p.x, y: p.y, raio: cfg.raio });
+
+    // Empurra inimigos para longe (BOSSES NUNCA são empurrados)
+    const empurrar = (e, ehBoss) => {
+        if (e.hp <= 0 || ehBoss) return;
+        const a = Math.atan2(e.y - cy, e.x - cx);
+        e.x += Math.cos(a) * cfg.empurraoPx;
+        e.y += Math.sin(a) * cfg.empurraoPx;
+    };
+    slimes.forEach(s => empurrar(s, s.isBoss));
+    bosses.forEach(b => empurrar(b, true));
+
+    // ATORDOAMENTO DA PRÓPRIA CURANDEIRA (castigo)
+    p.stunTimer = Math.max(p.stunTimer || 0, Math.floor(cfg.atordoamentoMs / 50));
+    p.curandeiraAtordoada = true;
+    p.curandeiraAtordoadaAte = Date.now() + cfg.atordoamentoMs;
+    p.reducaoAtordoada = cfg.reducaoAtordoado;
+}
+
+function dashSummonerPetTeleporta(pid, p) {
+    const ogro = lacaios[pid];
+    if (!ogro) return;
+    // EXCEÇÃO: não teleporta enquanto o Golem Sísmico está em cena
+    if (ogro.sismicoAtivo || p.golemSismoAtivo) return;
+    const alvo = DASH_MOD.resolverDestino(p.x, p.y, p.angulo, 55, function (x, y) {
+        return !posicaoPetValida(x, y);
+    });
+    ogro.x = alvo.x; ogro.y = alvo.y;
+    dashEnviar('action_summoner_pet_teleporte', { id: pid, x: ogro.x, y: ogro.y });
+}
+
+// ---------------------------------------------------------------------------
+// SNIPER — ROUPA DE CAMUFLAGEM (v1.50.0)
+// O dash não cria mais moita: ele VESTE o uniforme de camuflagem por 5s.
+// Esse estado (`snRoupaCamo`) é o que LIBERA a skill 4 (Camuflagem Natural),
+// que antes exigia apenas estar dentro de uma moita do mapa.
+//
+// São dois estados de propósito:
+//   snRoupaCamo -> "está VESTIDO" (visual + habilita a skill 4). Vem do DASH.
+//   snCamuflado -> "está ESCONDIDO no mato" (inimigos perdem o alvo, ataque
+//                  básico bloqueado, CD da skill 1 zerado). Vem da SKILL 4.
+//
+// A camuflagem nunca sobrevive à roupa: quando o uniforme cai, as duas caem.
+// ---------------------------------------------------------------------------
+function dashCamuflagemSniper(pid, p, duracaoMs) {
+    const dur = duracaoMs || DASH_MOD.configDe('sniper').duracaoMs;
+    p.snRoupaCamo = true;
+    p.snRoupaCamoAte = Date.now() + dur;
+    p.snCamuflado = true;
+    p.snCamofladoAte = Date.now() + dur;
+    if (efeitos) efeitos.aplicarEfeito(p, 'camuflagem', Math.ceil(dur / 50), 1);
+    if (p.snPosicao) {                          // não dá pra deitar usando o uniforme
+        p.snPosicao = false;
+        dashEnviar('action_sniper_posicao', { id: pid, ativo: false });
+    }
+    dashEnviar('action_sniper_camuflagem', { id: pid, ativo: true });
+    dashEnviar('action_sniper_roupa_camo', {
+        id: pid, x: p.x, y: p.y, duracaoMs: dur, expiraEm: p.snRoupaCamoAte
+    });
+    return p.snRoupaCamoAte;
+}
+
+// ---------------------------------------------------------------------------
+// GUERREIRO — BAQUE DE ESCUDO (disparado 1x a cada 2s com o escudo erguido)
+// Estocada na direção em que a espada está apontando: dano + empurrão nos
+// inimigos dentro do arco frontal. Bosses TOMAM dano reduzido e NÃO são
+// empurrados. O arco é o MESMO do arco de bloqueio (66°), então o que o
+// jogador protege é exatamente o que ele empurra.
+// ---------------------------------------------------------------------------
+function escudoGuerreiroBaque(pid, p, cfg) {
+    const cx = p.x + PLAYER_OFFSET_X, cy = p.y + PLAYER_OFFSET_Y;
+    const ang = (p.escudoGuerreiro && Number.isFinite(p.escudoGuerreiro.ang))
+        ? p.escudoGuerreiro.ang
+        : (p.angulo || 0);
+    const meioArco = (cfg.arco || 1.15) / 2;
+    const danoBase = dmgSkill(p, 'dash', cfg.danoBaque);
+
+    // só conta quem está DENTRO do arco protegido (mesmosLados normaliza o ângulo)
+    const noArco = (ex, ey) => {
+        const dx = ex - cx, dy = ey - cy;
+        if (Math.hypot(dx, dy) > cfg.raioBaque) return false;
+        return Math.abs(Math.atan2(Math.sin(Math.atan2(dy, dx) - ang), Math.cos(Math.atan2(dy, dx) - ang))) <= meioArco;
+    };
+
+    slimes.forEach(s => {
+        if (s.hp <= 0 || !noArco(s.x, s.y)) return;
+        registrarDanoMonstro(s, pid, danoBase);
+        s.x += Math.cos(ang) * cfg.empurraoBaque;
+        s.y += Math.sin(ang) * cfg.empurraoBaque;
+        s.stunTimer = Math.max(s.stunTimer || 0, cfg.atordoaBaque);
+    });
+    bosses.forEach(b => {
+        if (b.hp <= 0 || !noArco(b.x, b.y)) return;
+        registrarDanoBoss(b, pid, Math.round(danoBase * cfg.danoBaqueBossMult), 'skill', 'player');
+    });
+    // PvP: só entre jogadores com PvP ligado e no mesmo mapa
+    if (p.pvpAtivo) {
+        for (let outro in players) {
+            if (outro === pid) continue;
+            const p2 = players[outro];
+            if (!p2 || !p2.pvpAtivo || p2.hp <= 0) continue;
+            if (mapaPorCoordenada(p2.x) !== mapaPorCoordenada(p.x)) continue;
+            if (!noArco(p2.x + PLAYER_OFFSET_X, p2.y + PLAYER_OFFSET_Y)) continue;
+            aplicarDanoJogador(outro, cx, cy, danoBase);
+        }
+    }
+
+    dashEnviar('action_guerreiro_escudo_baque', {
+        id: pid, angulo: ang, x: cx, y: cy, raio: cfg.raioBaque
+    });
+}
+
+function iniciarDash(playerId, ws, data) {
+    const p = players[playerId];
+    if (!p || p.hp <= 0) return;
+
+    if (data.acao === 'soltar') {
+        if (p.escudoGuerreiro) soltarEscudoGuerreiro(playerId, p, false);
+        return;
+    }
+    if (p.stunTimer > 0) return;
+    if (p.dashAnim) return;                       // já está animando um dash
+
+    const cfg = DASH_MOD.configDe(p.classe);
+
+    // ---------- GUERREIRO: escudo frontal SEGURADO ----------
+    if (cfg.tipo === 'escudo') {
+        if (p.escudoGuerreiro) return;
+        if (!dashNoCd(p)) { ws.send(JSON.stringify({ type: 'skill_erro', mensagem: 'Escudo em recarga!' })); return; }
+        if ((p.estamina || 0) < 10) { ws.send(JSON.stringify({ type: 'stamina_insuficiente', custo: 10, estamina: Math.round(p.estamina || 0) })); return; }
+        const agora = Date.now();
+        p.escudoGuerreiro = {
+            ang: Number(data.angulo) || p.angulo || 0,
+            desde: agora,
+            staminaInicial: p.estamina || 0,   // base ABSOLUTA do dreno (ver tick)
+            angUltimoSync: -99,                 // evita reenviar o mesmo ângulo
+            ultimoSync: 0,
+            proximoBaque: agora + cfg.primeiroBaqueMs   // 1º baque logo depois de erguer
+        };
+        p.dashBloqueiaAcoes = true;
+        dashEnviar('action_guerreiro_escudo', { id: playerId, angulo: p.escudoGuerreiro.ang, ativo: true });
+        ws.send(JSON.stringify({ type: 'dash_confirmado', classe: p.classe, tipo: 'escudo', cooldownMs: cfg.cooldownMs }));
+        return;
+    }
+
+    // ---------- DRONEMASTER: inalterado (escudo de energia) ----------
+    if (cfg.tipo === 'energia') {
+        if (!dashNoCd(p)) return;
+        if (p.escudoAbsoluto > 0 && p.escudoAbsolutoExpirador > Date.now()) return;
+        if (!gastarEstamina(ws, p, 40)) return;
+        dashAplicarCd(p, cfg);
+        const escudoDash = Math.round(p.maxHp * 0.50);
+        darEscudoAbsorvente(p, escudoDash, 3000);
+        p.dmDashEscudo = escudoDash;
+        p.dmDashEscudoExpirador = Date.now() + 3000;
+        dashEnviar('action_dm_dash_escudo', { id: playerId });
+        ws.send(JSON.stringify({ type: 'dash_confirmado', classe: p.classe, tipo: 'energia', cooldownMs: cfg.cooldownMs }));
+        return;
+    }
+
+    if (!dashNoCd(p)) return;
+    if (cfg.stamina === 'TODA') {
+        if ((p.estamina || 0) < 20) { ws.send(JSON.stringify({ type: 'stamina_insuficiente', custo: 20, estamina: Math.round(p.estamina || 0) })); return; }
+    } else if (!gastarEstamina(ws, p, cfg.stamina)) return;
+    dashAplicarCd(p, cfg);
+
+    const ang = Number.isFinite(Number(data.angulo)) ? Number(data.angulo) : (p.angulo || 0);
+
+    // ---------- CURANDEIRO: escudo de área, não move ----------
+    if (cfg.tipo === 'area') {
+        p.estamina = 0;
+        ws.send(JSON.stringify({ type: 'stamina_sync', estamina: 0 }));
+        dashEscudoArea(playerId, p);
+        dashEnviar('action_curandeiro_escudo_solto', { id: playerId });
+        ws.send(JSON.stringify({ type: 'dash_confirmado', classe: p.classe, tipo: 'area', cooldownMs: cfg.cooldownMs }));
+        return;
+    }
+
+    // ---------- SNIPER: veste a ROUPA DE CAMUFLAGEM (5s), não move ----------
+    if (cfg.tipo === 'camuflagem') {
+        const expiraEm = dashCamuflagemSniper(playerId, p, cfg.duracaoMs);
+        dashEnviar('action_dash', { id: playerId, x: p.x, y: p.y, vfx: cfg.vfx, angulo: ang, duracaoMs: cfg.duracaoMs });
+        ws.send(JSON.stringify({
+            type: 'dash_confirmado', classe: p.classe, tipo: 'camuflagem',
+            x: p.x, y: p.y, duracaoMs: cfg.duracaoMs, expiraEm: expiraEm, cooldownMs: cfg.cooldownMs
+        }));
+        return;
+    }
+
+    // ---------- LADINO: SÓ BUFF (invisível + 90% de velocidade por 2s) ----------
+    // Não roteiriza nada: o jogador continua no comando dele, só que mais
+    // rápido e invisível. O movimento por inércia (ice/água) continua valendo.
+    if (cfg.tipo === 'arranque' && cfg.soBuff) {
+        p.dashAngulo = ang;
+        p.dashVelocidadeMult = DASH_MOD.multVelocidade(p.classe, true);
+        p.dashAte = Date.now() + cfg.duracaoMs;
+        if (efeitos) efeitos.aplicarEfeito(p, 'invisivel', Math.floor(cfg.invisivelMs / 50), 1);
+        sincronizarEfeitos(playerId, p);
+        dashEnviar('action_dash', { id: playerId, x: p.x, y: p.y, vfx: cfg.vfx, angulo: ang, duracaoMs: cfg.duracaoMs });
+        ws.send(JSON.stringify({
+            type: 'dash_confirmado', classe: p.classe, tipo: 'arranque',
+            soBuff: true, multVelocidade: p.dashVelocidadeMult,
+            multVelAte: Date.now() + DASH_MOD.duracaoBuffVelocidade(p.classe),
+            x: p.x, y: p.y, angulo: ang, cooldownMs: cfg.cooldownMs
+        }));
+        return;
+    }
+
+    const destino = dashDestino(p, ang, cfg.distancia);
+
+    // ---------- TELEA PORTE (mago / summoner / arqueiro_arcano) ----------
+    if (cfg.tipo === 'teleporte') {
+        p.x = destino.x; p.y = destino.y;
+        if (p.classe === 'summoner') dashSummonerPetTeleporta(playerId, p);
+        dashEnviar('action_dash', { id: playerId, x: p.x, y: p.y, vfx: cfg.vfx, angulo: ang });
+        // Dano de contato (mantém o comportamento antigo do dash)
+        const danoDash = dmgSkill(p, 'dash', 20);
+        slimes.forEach(s => {
+            if (s.hp > 0 && Math.hypot((p.x + 12) - s.x, (p.y + 16) - s.y) < 65) {
+                registrarDanoMonstro(s, playerId, danoDash);
+                s.stunTimer = 40;
+            }
+        });
+        danoEmBosses(p.x + 12, p.y + 16, 90, playerId, danoDash, 'skill');
+        ws.send(JSON.stringify({ type: 'dash_confirmado', classe: p.classe, tipo: 'teleporte', x: p.x, y: p.y, cooldownMs: cfg.cooldownMs }));
+        return;
+    }
+
+    // ---------- CORRIDA / INVESTIDA / ARRANQUE: animação ----------
+    if (destino.distPercorrida < 4) {
+        // Parede colada: sem animação, mas sem penalizar o jogador
+        dashEnviar('action_dash', { id: playerId, x: p.x, y: p.y, vfx: cfg.vfx, angulo: ang, semMovimento: true });
+        ws.send(JSON.stringify({ type: 'dash_confirmado', classe: p.classe, tipo: cfg.tipo, x: p.x, y: p.y, semMovimento: true, cooldownMs: cfg.cooldownMs }));
+        return;
+    }
+
+    p.dashAngulo = ang;
+    p.dashVelocidadeMult = DASH_MOD.multVelocidade(p.classe, cfg.tipo === 'arranque');
+    p.dashAte = Date.now() + cfg.duracaoMs;
+    if (cfg.tipo === 'arranque') {
+        if (efeitos) efeitos.aplicarEfeito(p, 'invisivel', Math.floor(cfg.invisivelMs / 50), 1);
+        sincronizarEfeitos(playerId, p);
+    }
+    dashIniciarAnimacao(p, destino.x, destino.y, ang, cfg.duracaoMs);
+    dashEnviar('action_dash', {
+        id: playerId, tipo: cfg.tipo, vfx: cfg.vfx, angulo: ang,
+        x0: p.dashAnim.x0, y0: p.dashAnim.y0, x1: destino.x, y1: destino.y,
+        duracaoMs: cfg.duracaoMs
+    });
+    ws.send(JSON.stringify({
+        type: 'dash_confirmado', classe: p.classe, tipo: cfg.tipo,
+        x0: p.dashAnim.x0, y0: p.dashAnim.y0, x1: destino.x, y1: destino.y,
+        duracaoMs: cfg.duracaoMs, angulo: ang, cooldownMs: cfg.cooldownMs
+    }));
+}
+
+function soltarEscudoGuerreiro(playerId, p, forcado) {
+    if (!p || !p.escudoGuerreiro) return;
+    p.escudoGuerreiro = null;
+    p.dashBloqueiaAcoes = false;
+    const cfg = DASH_MOD.configDe('guerreiro');
+    p.dashCdAte = Date.now() + cfg.cooldownMs;
+    dashEnviar('action_guerreiro_escudo', { id: playerId, ativo: false, forcado: !!forcado });
+    const ws = playerSockets[playerId];
+    if (ws && ws.readyState === 1) ws.send(JSON.stringify({ type: 'guerreiro_escudo_fim' }));
+}
+
+// Ao desconectar, o Sniper não deixa fita de camuflagem pendurada: os dois
+// estados (roupa + camuflagem) são por jogador e morrem com ele.
+function limparCamuflagemSniper(pid) {
+    const p = players[pid];
+    if (!p) return;
+    p.snRoupaCamo = false; p.snRoupaCamoAte = 0;
+    p.snCamuflado = false; p.snCamofladoAte = 0;
+}
+
 // Zona de chão com remoção + broadcast de fim (padrão gasesVeneno)
 function removerZonaNova(array, index, tipoFim) {
     const z = array[index];
@@ -911,6 +1511,7 @@ function posicaoDrone(p) {
 function finalizarCamuflagemSniper(p, pid, motivo) {
     if (!p || !p.snCamuflado) return;
     p.snCamuflado = false;
+    p.snCamofladoAte = 0;
     if (efeitos) efeitos.removerEfeito(p, 'camuflagem');
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
@@ -922,7 +1523,7 @@ function finalizarCamuflagemSniper(p, pid, motivo) {
 
 // ==== SNIPER: congela os cooldowns enquanto camuflado (server-side) ====
 function congelarCooldownsSniper(p, ticks) {
-    if (!p || !p.snCamuflado) return;
+    if (!p || !p.snCamuflado || p.moving) return;
     if (p.snAimCooldown > 0) p.snAimCooldown += ticks;
     if (p.snRedeCooldown > 0) p.snRedeCooldown += ticks;
     if (p.snPosicaoCd > 0) p.snPosicaoCd += ticks;
@@ -1026,6 +1627,7 @@ function calcularDanoJogador(autorId, quantidade, tipoOrigem, alvo) {
         if (efeitos.temEfeito(p, 'fervor')) mult *= 1.25;     // Fervor: +25%
     }
     if (aliadoNaAura(autorId)) mult *= 1.05;
+    if (p && p.vinculoAtivo && p.vinculoExpires > Date.now()) mult *= 1.30; // VÍNCULO BERSERKER: +30% de dano
     if (p && p.classe === 'barbaro' && p.maxHp > 0) {
         let pctHp = (p.hp > 0 ? p.hp : p.maxHp) / p.maxHp;
         if (pctHp <= 0.20) mult *= 1.15;
@@ -1164,7 +1766,11 @@ function xNoDeserto(x) { return x >= LARGURA_VERDE && x < LARGURA_DESERTO; }
 // de cada bioma + os limites de altura de cada mapa.
 function podeAndar(x, y) {
     if (!(y >= 0)) return false;
-    if (x < LARGURA_VERDE) return y < ALTO_VERDE;
+    if (x < LARGURA_VERDE) {
+        if (y >= ALTO_VERDE) return false;
+        if (mapaVerde && mapaVerde.colideVerde(x, y)) return false;
+        return true;
+    }
     if (x < LARGURA_DESERTO) {
         if (y >= ALTO_DESERTO) return false;
         if (mapaDeserto && mapaDeserto.colideDeserto(x, y)) return false;
@@ -1218,6 +1824,9 @@ function mapaPorCoordenada(x) {
     if (x < FIM_CIDADE) return 'cidade';
     if (x >= LARGURA_ARENA && x < FIM_ARENA) return 'arena';
     if (x >= LARGURA_CIDADE_PERDIDA && x < FIM_CIDADE_PERDIDA) return 'cidadeperdida';
+    if (x >= LARGURA_TESTE_VISUAL && x < FIM_TESTE_VISUAL) return 'testevisual';
+    if (x >= LARGURA_ZONA_ZERO && x < FIM_ZONA_ZERO) return 'zonazero';
+    if (x >= LARGURA_CASTELO && x < FIM_CASTELO) return 'castelo';
     return null;
 }
 
@@ -1250,7 +1859,7 @@ function jogadorPodeUsarPortalMapa(player, destino) {
         return (mapaAtual === 'cidade' && perto(60474, 640)) ||
             (mapaAtual === 'green' && perto(17080, 4500));
     }
-    if (destino === 'pantano' || destino === 'caverna' || destino === 'arena' || destino === 'cidadeperdida') {
+    if (destino === 'pantano' || destino === 'caverna' || destino === 'arena' || destino === 'cidadeperdida' || destino === 'testevisual' || destino === 'zonazero' || destino === 'castelo') {
         return mapaAtual === 'cidade' && perto(60474, 640);
     }
     if (destino === 'cidade') return true; // Permitir retorno livre para a cidade pelo mapa mundial
@@ -1336,17 +1945,61 @@ function limitesMapaJogador(cx, cy) {
     if (cx < FIM_CIDADE) return { minX: LARGURA_CIDADE, maxX: FIM_CIDADE, maxY: ALTO_CIDADE };
     if (cx >= LARGURA_ARENA && cx < FIM_ARENA) return { minX: LARGURA_ARENA, maxX: FIM_ARENA, maxY: ALTO_ARENA };
     if (cx >= LARGURA_CIDADE_PERDIDA && cx < FIM_CIDADE_PERDIDA) return { minX: LARGURA_CIDADE_PERDIDA, maxX: FIM_CIDADE_PERDIDA, maxY: ALTO_CIDADE_PERDIDA };
+    if (cx >= LARGURA_TESTE_VISUAL && cx < FIM_TESTE_VISUAL) return { minX: LARGURA_TESTE_VISUAL, maxX: FIM_TESTE_VISUAL, maxY: ALTO_TESTE_VISUAL };
+    if (cx >= LARGURA_ZONA_ZERO && cx < FIM_ZONA_ZERO) return { minX: LARGURA_ZONA_ZERO, maxX: FIM_ZONA_ZERO, maxY: ALTO_ZONA_ZERO };
+    if (cx >= LARGURA_CASTELO && cx < FIM_CASTELO) return { minX: LARGURA_CASTELO, maxX: FIM_CASTELO, maxY: ALTO_CASTELO };
     return null;
 }
 
 function colideMapaJogador(cx, cy) {
-    if (cx < LARGURA_VERDE) return false;
-    if (cx < LARGURA_DESERTO) { if (mapaDeserto && mapaDeserto.colideDeserto(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('desert', cx, cy); }
-    if (cx < LARGURA_PANTANO) { if (mapaPantano && mapaPantano.colidePantano(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('pantano', cx, cy); }
-    if (cx < FIM_CAVERNA) { if (mapaCaverna && mapaCaverna.colideCaverna(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('caverna', cx, cy); }
-    if (cx < FIM_CIDADE) { if (mapaCidade && mapaCidade.colideCidade(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('cidade', cx, cy); }
-    if (cx >= LARGURA_ARENA && cx < FIM_ARENA) { if (mapaArena && mapaArena.colideArena(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('arena', cx, cy); }
-    if (cx >= LARGURA_CIDADE_PERDIDA && cx < FIM_CIDADE_PERDIDA) { if (mapaCidadePerdida && mapaCidadePerdida.colideCidadePerdida(cx, cy, PLAYER_COLLISION_RADIUS)) return true; return colisaoObjetosDoMapa('cidadeperdida', cx, cy); }
+    if (cx < LARGURA_VERDE) {
+        if (mapaVerde && mapaVerde.colideVerde(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
+        return colideObstaculosCustomizados('green', cx, cy, PLAYER_COLLISION_RADIUS);
+    }
+    if (cx < LARGURA_DESERTO) {
+        if (mapaDeserto && mapaDeserto.colideDeserto(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
+        if (colisaoObjetosDoMapa('desert', cx, cy)) return true;
+        return colideObstaculosCustomizados('desert', cx, cy, PLAYER_COLLISION_RADIUS);
+    }
+    if (cx < LARGURA_PANTANO) {
+        if (mapaPantano && mapaPantano.colidePantano(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
+        if (colisaoObjetosDoMapa('pantano', cx, cy)) return true;
+        return colideObstaculosCustomizados('pantano', cx, cy, PLAYER_COLLISION_RADIUS);
+    }
+    if (cx < FIM_CAVERNA) {
+        if (mapaCaverna && mapaCaverna.colideCaverna(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
+        if (colisaoObjetosDoMapa('caverna', cx, cy)) return true;
+        return colideObstaculosCustomizados('caverna', cx, cy, PLAYER_COLLISION_RADIUS);
+    }
+    if (cx < FIM_CIDADE) {
+        if (mapaCidade && mapaCidade.colideCidade(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
+        if (colisaoObjetosDoMapa('cidade', cx, cy)) return true;
+        return colideObstaculosCustomizados('cidade', cx, cy, PLAYER_COLLISION_RADIUS);
+    }
+    if (cx >= LARGURA_ARENA && cx < FIM_ARENA) {
+        if (mapaArena && mapaArena.colideArena(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
+        if (colisaoObjetosDoMapa('arena', cx, cy)) return true;
+        return colideObstaculosCustomizados('arena', cx, cy, PLAYER_COLLISION_RADIUS);
+    }
+    if (cx >= LARGURA_CIDADE_PERDIDA && cx < FIM_CIDADE_PERDIDA) {
+        if (mapaCidadePerdida && mapaCidadePerdida.colideCidadePerdida(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
+        if (colisaoObjetosDoMapa('cidadeperdida', cx, cy)) return true;
+        return colideObstaculosCustomizados('cidadeperdida', cx, cy, PLAYER_COLLISION_RADIUS);
+    }
+    if (cx >= LARGURA_TESTE_VISUAL && cx < FIM_TESTE_VISUAL) {
+        if (mapaTesteVisual && mapaTesteVisual.colide(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
+        return colideObstaculosCustomizados('testevisual', cx, cy, PLAYER_COLLISION_RADIUS);
+    }
+    if (cx >= LARGURA_ZONA_ZERO && cx < FIM_ZONA_ZERO) {
+        if (mapaZonaZero && mapaZonaZero.colideZonaZero(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
+        if (colisaoObjetosDoMapa('zonazero', cx, cy)) return true;
+        return colideObstaculosCustomizados('zonazero', cx, cy, PLAYER_COLLISION_RADIUS);
+    }
+    if (cx >= LARGURA_CASTELO && cx < FIM_CASTELO) {
+        if (mapaCastelo && mapaCastelo.colideCastelo(cx, cy)) return true;
+        if (colisaoObjetosDoMapa('castelo', cx, cy)) return true;
+        return colideObstaculosCustomizados('castelo', cx, cy, PLAYER_COLLISION_RADIUS);
+    }
     return true;
 }
 
@@ -1487,8 +2140,14 @@ function sobVenenoPantano(x, y) {
 
 function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
     if (!slime || !autorId || slime.hp <= 0) return { dano: 0, critico: false };
+    const autorP = players[autorId];
     let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem, slime);
     let danoFinal = calc.dano;
+    // ===== ADMIN CHEAT: SUPER ATAQUE =====
+    if (autorP && autorP.adminCheats && autorP.adminCheats.superAtaque) {
+        danoFinal = 9999999;
+        calc.critico = true;
+    }
 
     // ===== EDITOR "EDIT MOOB": defesa (% de redução) e block (chance de bloquear) =====
     if (danoFinal > 0 && slime.defesa > 0) {
@@ -1514,15 +2173,18 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
     if (!slime.tabelaDano) slime.tabelaDano = {};
     if (danoFinal > 0) slime.tabelaDano[autorId] = (slime.tabelaDano[autorId] || 0) + danoFinal;
     if (!slime.flagPassivo) {
-        const autorP = players[autorId];
         // LADINO invisível / SNIPER camuflado: o dano NÃO revela a posição (sem agro)
         if (!autorP || !(efeitos && (efeitos.temEfeito(autorP, 'invisivel') || efeitos.temEfeito(autorP, 'camuflagem')))) slime.targetId = autorId;
     }
     slime.hp -= danoFinal;
     // LADINO — PASSIVA LÂMINAS SANGRENTAS (20% → sangramento 20% do dano físico/s por 5s)
     if (tipoOrigem === 'player' && danoFinal > 0) tentarSangrarLadino(slime, autorId, danoFinal);
+    if (autorP && autorP.classe === 'barbaro' && (autorP.vinculoAtivo || (autorP.vampirismoBonus && autorP.vampirismoBonus > 0)) && autorP.vinculoExpires > Date.now() && danoFinal > 0) {
+        let pctVamp = autorP.vampirismoBonus || 0.20;
+        aplicarCuraAoJogador(autorId, Math.max(1, Math.round(danoFinal * pctVamp)));
+    }
     if (calc.critico) broadcastCritico(slime.x, slime.y, autorId);
-    if (danoFinal > 0 && players[autorId] && tipoOrigem !== 'pet') broadcastDanoFlut(slime.x, slime.y, danoFinal, autorId);
+    if (danoFinal > 0 && autorP && tipoOrigem !== 'pet') broadcastDanoFlut(slime.x, slime.y, danoFinal, autorId);
 
     if (slime.hp <= 0) {
         slime.hp = 0;
@@ -1614,6 +2276,11 @@ function distribuirXpMorte(slime) {
 function aplicarDanoJogador(pid, origemX, origemY, dano) {
     let jogador = players[pid];
     if (!jogador || jogador.hp <= 0) return false;
+    // ===== ADMIN CHEAT: VIDA INFINITA (GOD MODE) =====
+    if (jogador.adminCheats && jogador.adminCheats.vidaInfinita) {
+        jogador.hp = jogador.maxHp;
+        return true;
+    }
     let debuffedAttacker = false;
     for (let s of slimes) {
         if (s && s.hp > 0 && s.canticoDebuffExpires && s.canticoDebuffExpires > Date.now()) {
@@ -1638,7 +2305,35 @@ function aplicarDanoJogador(pid, origemX, origemY, dano) {
     // nem projéteis em voo, nem AOE de monstro). PvP usa aplicarDanoPvP (separado).
     if (efeitos && efeitos.temEfeito(jogador, 'invisivel')) return true;
 
-    if (jogador.classe === 'guerreiro' && jogador.estamina >= 15) {
+    // ===== GUERREIRO — ESCUDO FRONTAL SEGURADO (DASH v2) =====
+    // Com o escudo erguido, o arco de bloqueio acompanha a MIRA atual
+    // (p.escudoGuerreiro.ang é reescrito a cada tick com p.angulo, ou seja,
+    // o escudo vira para onde a ESPADA está apontando). Fora do arco frontal
+    // o dano passa inteiro.
+    //
+    // `arco` é a LARGURA TOTAL; o meio-ângulo é metade dela. Antes usava
+    // `arco` inteiro como meio-ângulo (132° reais em vez dos 66° do design).
+    if (jogador.escudoGuerreiro) {
+        const cfgEsc = DASH_MOD.configDe('guerreiro');
+        const angAtaque = Math.atan2(origemY - (jogador.y + 16), origemX - (jogador.x + 12));
+        const diff = Math.abs(Math.atan2(
+            Math.sin(angAtaque - jogador.escudoGuerreiro.ang),
+            Math.cos(angAtaque - jogador.escudoGuerreiro.ang)
+        ));
+        if (diff <= (cfgEsc.arco / 2)) {
+            dano = Math.max(1, Math.round(dano * (1 - cfgEsc.reducaoFrontal)));
+        }
+    }
+
+    // ===== CURANDEIRA — ATORDOADA PELO PRÓPRIO ESCUDO DE ÁREA (DASH v2) =====
+    // O castigo pelos 5s de atordoamento NÃO é morte instantânea: 50% de redução.
+    if (jogador.curandeiraAtordoada && jogador.reducaoAtordoada > 0) {
+        dano = Math.max(1, Math.round(dano * (1 - jogador.reducaoAtordoada)));
+    }
+
+    // PASSIVA ANTIGA (bloqueio por estamina ao estar virado para o golpe):
+    // não roda junto com o escudo erguido, senão a redução viraria 91%.
+    if (jogador.classe === 'guerreiro' && jogador.estamina >= 15 && !jogador.escudoGuerreiro) {
         let anguloAtaque = Math.atan2(origemY - (jogador.y + 16), origemX - (jogador.x + 12));
         let anguloEscudo = jogador.angulo + Math.PI;
         let diff = Math.abs(Math.atan2(Math.sin(anguloEscudo - anguloAtaque), Math.cos(anguloEscudo - anguloAtaque)));
@@ -1747,6 +2442,12 @@ function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem) {
 
     let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem, boss);
     let danoFinal = calc.dano;
+    let autorP = players[autorId];
+    // ===== ADMIN CHEAT: SUPER ATAQUE =====
+    if (autorP && autorP.adminCheats && autorP.adminCheats.superAtaque) {
+        danoFinal = 9999999;
+        calc.critico = true;
+    }
     if (danoFinal > 0 && boss.canticoDebuffExpires && boss.canticoDebuffExpires > Date.now()) {
         danoFinal = Math.max(1, Math.round(danoFinal * 1.20));
     }
@@ -1767,8 +2468,13 @@ function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem) {
     if (boss.hp < 0) boss.hp = 0;
     // LADINO — PASSIVA LÂMINAS SANGRENTAS em Bosses
     if (tipoOrigem === 'player' && danoFinal > 0) tentarSangrarLadino(boss, autorId, danoFinal);
+    let autorBossP = players[autorId];
+    if (autorBossP && autorBossP.classe === 'barbaro' && (autorBossP.vinculoAtivo || (autorBossP.vampirismoBonus && autorBossP.vampirismoBonus > 0)) && autorBossP.vinculoExpires > Date.now() && danoFinal > 0) {
+        let pctVamp = autorBossP.vampirismoBonus || 0.20;
+        aplicarCuraAoJogador(autorId, Math.max(1, Math.round(danoFinal * pctVamp)));
+    }
     if (calc.critico) broadcastCritico(boss.x, boss.y, autorId);
-    if (danoFinal > 0 && players[autorId] && tipoOrigem !== 'pet') broadcastDanoFlut(boss.x, boss.y, danoFinal, autorId);
+    if (danoFinal > 0 && autorBossP && tipoOrigem !== 'pet') broadcastDanoFlut(boss.x, boss.y, danoFinal, autorId);
     return { dano: danoFinal, critico: calc.critico };
 }
 
@@ -2095,7 +2801,7 @@ function solariIniciar(pid) {
     const todosOk = s.membros.every(function (m) { return m.ok; });
     if (!todosOk) return false;
     s.fase = 'contagem';
-    s.contagemFimEm = Date.now() + 10000;
+    s.contagemFimEm = Date.now() + 12000; // 12 segundos sincronizados com o áudio oficial
     s.contagemUltimoSeg = -1;
     s.membros.forEach(function (m) { if (players[m.id]) solariTeleportarParaArena(m.id); });
     solariEnviarEstado();
@@ -2223,7 +2929,7 @@ function solariIniciarSorteio() {
     if (!conf) { solariEncerrarSessao(); return; }
     s.fase = 'leilao';
     s.leilao = { itens: itens, indice: 0, rolagens: {}, ultimaRolagemEm: 0, itemAbertoEm: Date.now(), estado: 'aberto', vencedorId: undefined };
-    solariBroadcast('solari_leilao', { fase: 'abrir', indice: 1, total: itens.length, item: itens[0], classeBonus: true, round: s.round, roundsTotal: 10 });
+    solariBroadcast('solari_leilao', { fase: 'abrir', indice: 1, total: itens.length, item: itens[0], classeBonus: true, round: s.round, roundsTotal: 9 });
     solariBroadcast('solari_banner', { texto: '🎲 SORTEIO DA RODADA ' + s.round, cor: '#ffd700', fim: false });
     console.log('[SOLARI] round=' + s.round + ' sorteio pós-combate=' + itens.length + ' itens');
     solariEnviarEstado();
@@ -2296,6 +3002,21 @@ function solariVoltarCidade(pid) {
     p.mana = p.maxMp;
     p.stunTimer = 0;
     p.efeitos = [];
+    // ===== DASH v2: estado por sessão (nada disso é salvo em disco) =====
+    p.dashCdAte = 0;              // cooldown do dash, autoritativo (anti-exploit)
+    p.dashAnim = null;            // animação de corrida/investida/arranque em curso
+    p.dashAte = 0;                // fim do buff de velocidade/invisibilidade
+    p.dashAngulo = 0;
+    p.dashVelocidadeMult = 1;
+    p.escudoGuerreiro = null;     // escudo frontal SEGURADO
+    p.dashBloqueiaAcoes = false;  // trava skills/ataque básico enquanto segura
+    p.curandeiraAtordoada = false;
+    p.reducaoAtordoada = 0;
+    // Sniper: "roupa de camuflagem" (dash) x "camuflagem natural" (skill 4)
+    p.snRoupaCamo = false;
+    p.snRoupaCamoAte = 0;
+    p.snCamuflado = false;
+    p.snCamofladoAte = 0;
     const dest = encontrarPosicaoJogadorSegura(p, CIDADE_SPAWN_X, CIDADE_SPAWN_Y);
     p.x = dest ? dest.x : CIDADE_SPAWN_X;
     p.y = dest ? dest.y : CIDADE_SPAWN_Y;
@@ -2330,9 +3051,10 @@ function atualizarSolari() {
         if (!solariSessao) return;
     }
 
-    // Contagem regressiva de entrada (10s) → START (ROUND 1 direto no combate).
+    // Contagem regressiva de entrada (12s) → START (ROUND 1 direto no combate).
     if (s.fase === 'contagem') {
-        const restante = Math.max(0, Math.ceil((s.contagemFimEm - agora) / 1000));
+        const decorrido = agora - (s.contagemFimEm - 12000);
+        const restante = Math.max(0, Math.min(10, 11 - Math.floor(decorrido / 1000)));
         if (restante !== s.contagemUltimoSeg) {
             s.contagemUltimoSeg = restante;
             solariBroadcast('solari_contagem', { seg: restante, mensagem: '' });
@@ -2397,7 +3119,7 @@ function atualizarSolari() {
         const L = s.leilao;
         const itemAtual = L.itens[L.indice];
         if (!itemAtual) {
-            if (s.round >= 10) {
+            if (s.round >= 9) {
                 s.fase = 'fim';
                 s.fimEm = agora + 6000;
                 solariBroadcast('solari_banner', { texto: '🏆 ARENA DE SOLARI CONCLUÍDA!', cor: '#ffd700', fim: true });
@@ -2516,10 +3238,19 @@ function cancelarTrade(pid) {
 function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
     let p2 = players[defId];
     if (!p2 || p2.hp <= 0) return;
+    // ===== ADMIN CHEAT: VIDA INFINITA (PVP) =====
+    if (p2.adminCheats && p2.adminCheats.vidaInfinita) {
+        p2.hp = p2.maxHp;
+        return;
+    }
     // LADINO — imune durante a Dança das Adagas (server-side, inclusive PvP)
     if (p2.ladinoDancaAtivo) return;
     // LADINO — CAMUFLAGEM SOMBRIA: primeiro acerto em PvP também consome o bônus +100%
     let atk = players[atkId];
+    // ===== ADMIN CHEAT: SUPER ATAQUE (PVP) =====
+    if (atk && atk.adminCheats && atk.adminCheats.superAtaque) {
+        dano = 9999999;
+    }
     if (atk && atk.classe === 'ladino' && atk.ladinoInvisivel && atk.ladinoInvisivelBonus) {
         dano = Math.round(dano * 2);
         finalizarInvisibilidadeLadino(atk, atkId);
@@ -2528,6 +3259,10 @@ function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
     if (aliadoNaAura(defId)) dano = Math.round(dano * 0.90);
     p2.hp -= dano;
     if (p2.hp < 0) p2.hp = 0;
+    if (atk && atk.classe === 'barbaro' && (atk.vinculoAtivo || (atk.vampirismoBonus && atk.vampirismoBonus > 0)) && atk.vinculoExpires > Date.now() && dano > 0) {
+        let pctVamp = atk.vampirismoBonus || 0.20;
+        aplicarCuraAoJogador(atkId, Math.max(1, Math.round(dano * pctVamp)));
+    }
     broadcastDanoFlut(p2.x, p2.y - 20, dano, atkId);
     if (p2.hp <= 0) {
         // DRONEMASTER — PROTOCOLO TITÃ (revive especial em PvP também)
@@ -3120,35 +3855,72 @@ function moverMonstroEspecial(slime, dx, dy, velocidade, fatorLentidao) {
 const PET_COLLISION_RADIUS = 24;
 const PET_DISTANCIA_INIMIGO = 30;      // distância mínima do corpo dos slimes
 const PET_DISTANCIA_BOSS = 34;         // bosses são maiores
+// DG Castelo: a passagem secreta da Câmara Secreta tem 1 tile (40px) de largura,
+// então o pet usa um raio menor para ainda conseguir atravessá-la.
+const PET_COLLISION_RADIUS_CASTELO = 12;
 
 function posicaoPetValida(ox, oy) {
     if (!Number.isFinite(ox) || !Number.isFinite(oy)) return false;
     if (ox < 0 || oy < 0) return false;
-    if (ox < LARGURA_VERDE) return oy < ALTO_VERDE;
+    if (ox < LARGURA_VERDE) {
+        if (oy >= ALTO_VERDE) return false;
+        return !colideObstaculosCustomizados('green', ox, oy, PET_COLLISION_RADIUS);
+    }
     if (ox < LARGURA_DESERTO) {
         if (oy >= ALTO_DESERTO) return false;
         if (mapaDeserto && mapaDeserto.colideDeserto(ox, oy, PET_COLLISION_RADIUS)) return false;
-        return !colisaoObjetosDoMapa('desert', ox, oy);
+        if (colisaoObjetosDoMapa('desert', ox, oy)) return false;
+        return !colideObstaculosCustomizados('desert', ox, oy, PET_COLLISION_RADIUS);
     }
     if (ox < LARGURA_PANTANO) {
         if (oy >= ALTO_PANTANO) return false;
         if (mapaPantano && mapaPantano.colidePantano(ox, oy, PET_COLLISION_RADIUS)) return false;
-        return !colisaoObjetosDoMapa('pantano', ox, oy);
+        if (colisaoObjetosDoMapa('pantano', ox, oy)) return false;
+        return !colideObstaculosCustomizados('pantano', ox, oy, PET_COLLISION_RADIUS);
     }
     if (ox < FIM_CAVERNA) {
         if (oy >= ALTO_CAVERNA) return false;
         if (mapaCaverna && mapaCaverna.colideCaverna(ox, oy, PET_COLLISION_RADIUS)) return false;
-        return !colisaoObjetosDoMapa('caverna', ox, oy);
+        if (colisaoObjetosDoMapa('caverna', ox, oy)) return false;
+        return !colideObstaculosCustomizados('caverna', ox, oy, PET_COLLISION_RADIUS);
     }
     if (ox < FIM_CIDADE) {
         if (oy >= ALTO_CIDADE) return false;
         if (mapaCidade && mapaCidade.colideCidade(ox, oy, PET_COLLISION_RADIUS)) return false;
-        return !colisaoObjetosDoMapa('cidade', ox, oy);
+        if (colisaoObjetosDoMapa('cidade', ox, oy)) return false;
+        return !colideObstaculosCustomizados('cidade', ox, oy, PET_COLLISION_RADIUS);
     }
     if (ox >= LARGURA_ARENA && ox < FIM_ARENA) {
         if (oy >= ALTO_ARENA) return false;
         if (mapaArena && mapaArena.colideArena(ox, oy, PET_COLLISION_RADIUS)) return false;
-        return !colisaoObjetosDoMapa('arena', ox, oy);
+        if (colisaoObjetosDoMapa('arena', ox, oy)) return false;
+        return !colideObstaculosCustomizados('arena', ox, oy, PET_COLLISION_RADIUS);
+    }
+    if (ox >= LARGURA_CIDADE_PERDIDA && ox < FIM_CIDADE_PERDIDA) {
+        if (oy >= ALTO_CIDADE_PERDIDA) return false;
+        if (mapaCidadePerdida && mapaCidadePerdida.colideCidadePerdida(ox, oy, PET_COLLISION_RADIUS)) return false;
+        if (colisaoObjetosDoMapa('cidadeperdida', ox, oy)) return false;
+        return !colideObstaculosCustomizados('cidadeperdida', ox, oy, PET_COLLISION_RADIUS);
+    }
+    if (ox >= LARGURA_TESTE_VISUAL && ox < FIM_TESTE_VISUAL) {
+        if (oy >= ALTO_TESTE_VISUAL) return false;
+        if (mapaTesteVisual && mapaTesteVisual.colide(ox, oy, PET_COLLISION_RADIUS)) return false;
+        return !colideObstaculosCustomizados('testevisual', ox, oy, PET_COLLISION_RADIUS);
+    }
+    if (ox >= LARGURA_ZONA_ZERO && ox < FIM_ZONA_ZERO) {
+        if (oy >= ALTO_ZONA_ZERO) return false;
+        if (mapaZonaZero && mapaZonaZero.colideZonaZero(ox, oy, PET_COLLISION_RADIUS)) return false;
+        if (colisaoObjetosDoMapa('zonazero', ox, oy)) return false;
+        return !colideObstaculosCustomizados('zonazero', ox, oy, PET_COLLISION_RADIUS);
+    }
+    // DG «Castelo Anda 1» — SEM este ramo o pet nascia e ficava CONGELADO dentro do
+    // castelo (todas as posições caíam no `return false` final). Raio menor que o
+    // global porque a passagem secreta da Câmara Secreta tem apenas 1 tile (40px).
+    if (ox >= LARGURA_CASTELO && ox < FIM_CASTELO) {
+        if (oy >= ALTO_CASTELO) return false;
+        if (mapaCastelo && mapaCastelo.colideCastelo(ox, oy, PET_COLLISION_RADIUS_CASTELO)) return false;
+        if (colisaoObjetosDoMapa('castelo', ox, oy)) return false;
+        return !colideObstaculosCustomizados('castelo', ox, oy, PET_COLLISION_RADIUS_CASTELO);
     }
     return false;
 }
@@ -3427,6 +4199,7 @@ setInterval(() => {
                     registrarDanoMonstro(s, f.ownerId, Math.floor(f.dano * 0.2));
                 }
             });
+            danoEmBosses(f.x, f.y, 100, f.ownerId, Math.floor(f.dano * 0.2), 'skill');
         }
     }
     // Escudos Lancados
@@ -3440,13 +4213,21 @@ setInterval(() => {
         if (hit) {
             let p = players[e.ownerId];
             if(p) {
-                hit.pull = { x: p.x + Math.cos(e.ang)*30, y: p.y + Math.sin(e.ang)*30, speed: 6 };
+                hit.pull = { x: p.x + Math.cos(e.ang)*30, y: p.y + Math.sin(e.ang)*30, speed: 14 };
                 
                 hit.tauntTarget = e.ownerId;
                 hit.tauntTimer = 100;
                 registrarDanoMonstro(hit, e.ownerId, e.dano);
                 wss.clients.forEach(c => {
-                    if(c.readyState === 1) c.send(JSON.stringify({ type: 'action_guerreiro_escudo_hit', mobId: hit.id, x: hit.x, y: hit.y }));
+                    if(c.readyState === 1) c.send(JSON.stringify({
+                        type: 'action_guerreiro_escudo_hit',
+                        mobId: hit.id,
+                        x: hit.x,
+                        y: hit.y,
+                        ownerId: e.ownerId,
+                        targetX: p.x + Math.cos(e.ang)*30,
+                        targetY: p.y + Math.sin(e.ang)*30
+                    }));
                 });
             }
             escudosLancados.splice(i, 1);
@@ -3483,7 +4264,7 @@ setInterval(() => {
                     }
                 });
                 danoEmBosses(b.x, b.y, raioExplosao, b.ownerId, b.dano * 2, 'skill');
-                wss.clients.forEach(c => { if(c.readyState === 1) c.send(JSON.stringify({ type: 'action_mago_bola_hit', x: b.x, y: b.y, ballType: 'fogo', radius: raioExplosao })); });
+                wss.clients.forEach(c => { if(c.readyState === 1) c.send(JSON.stringify({ type: 'action_mago_bola_hit', id: b.id, x: b.x, y: b.y, ballType: 'fogo', radius: raioExplosao })); });
             } else if (b.type === 'gelo') {
                 // GELO: congela inimigos próximos (raio 85) por 2s + cristaliza o chão
                 const raioGelo = 85;
@@ -3507,7 +4288,7 @@ setInterval(() => {
                 });
                 wss.clients.forEach(c => {
                     if(c.readyState === 1) {
-                        c.send(JSON.stringify({ type: 'action_mago_bola_hit', x: b.x, y: b.y, ballType: 'gelo', radius: raioGelo }));
+                        c.send(JSON.stringify({ type: 'action_mago_bola_hit', id: b.id, x: b.x, y: b.y, ballType: 'gelo', radius: raioGelo }));
                         alvos.forEach(al => c.send(JSON.stringify({ type: 'reacao_congelante', x: al.x, y: al.y })));
                     }
                 });
@@ -3526,7 +4307,7 @@ setInterval(() => {
                         s.y += Math.sin(b.ang) * 60;
                     }
                 });
-                wss.clients.forEach(c => { if(c.readyState === 1) c.send(JSON.stringify({ type: 'action_mago_bola_hit', x: b.x, y: b.y, ballType: 'normal', radius: 60 })); });
+                wss.clients.forEach(c => { if(c.readyState === 1) c.send(JSON.stringify({ type: 'action_mago_bola_hit', id: b.id, x: b.x, y: b.y, ballType: 'normal', radius: 60 })); });
             }
             bolasElementais.splice(i, 1);
         }
@@ -3616,6 +4397,10 @@ setInterval(() => {
     // Chuva de Flechas Arqueiro
     for(let pid in players) {
         let p = players[pid];
+        if (p.adminCheats) {
+            if (p.adminCheats.vidaInfinita && p.hp < p.maxHp) p.hp = p.maxHp;
+            if (p.adminCheats.manaInfinita && p.mana < p.maxMp) p.mana = p.maxMp;
+        }
         if(p.saltoChuvaAtivo && agora >= p.saltoChuvaExpires) {
             p.saltoChuvaAtivo = false;
             p.saltoChuvaEmAndamento = false;
@@ -3641,15 +4426,31 @@ setInterval(() => {
     for(let pid in vinculosBerserker) {
         let v = vinculosBerserker[pid];
         let p = players[pid];
-        let target = slimes.find(s => s.id === v.targetId);
-        if(!p || !target || target.hp <= 0 || agora >= v.expires) {
+        let target = slimes.find(s => s && s.id === v.targetId);
+        if (!target) target = bosses.find(b => b && b.id === v.targetId);
+        if (!target) target = players[v.targetId];
+        let distanciaQuebrou = false;
+        if (p && target) {
+            let dist = Math.hypot(p.x - target.x, p.y - target.y);
+            if (dist > (v.maxDistance || 450)) distanciaQuebrou = true;
+        }
+        if(!p || !target || target.hp <= 0 || agora >= v.expires || distanciaQuebrou) {
             if(p) {
-                p.vampirismoBonus = Math.max(0, (p.vampirismoBonus || 0) - 0.2);
-                p.danoBonus = Math.max(0, (p.danoBonus || 0) - 0.3);
-                p.atkSpeedBonus = Math.max(0, (p.atkSpeedBonus || 0) - 0.2);
+                p.vampirismoBonus = 0;
+                p.danoBonus = 0;
+                p.atkSpeedBonus = 0;
+                p.vinculoAtivo = false;
             }
             delete vinculosBerserker[pid];
-            wss.clients.forEach(c => { if(c.readyState === 1) c.send(JSON.stringify({ type: 'action_barbaro_vinculo_end', ownerId: pid })); });
+            wss.clients.forEach(c => {
+                if(c.readyState === 1) {
+                    c.send(JSON.stringify({
+                        type: 'action_barbaro_vinculo_end',
+                        ownerId: pid,
+                        motivo: distanciaQuebrou ? 'distancia' : (target && target.hp <= 0 ? 'morte' : 'tempo')
+                    }));
+                }
+            });
         }
     }
     
@@ -3731,6 +4532,108 @@ setInterval(() => {
 
         if (player.estamina === undefined) player.estamina = 100;
         if (player.estamina < 100) player.estamina = Math.min(100, player.estamina + 0.75);
+
+        // ============================================================
+        // DASH v2 — máquina de estado por TICK (50ms)
+        // Roda DEPOIS da regeneração de stamina, então o dreno do escudo
+        // do Guerreiro vence a regeneração (dreno 50/s vs regen 15/s).
+        // ============================================================
+        if (player.hp > 0) {
+            // ---- 1) ANIMAÇÃO (corrida / investida / arranque) ----
+            // O servidor é quem MOVE o personagem durante o dash. O cliente
+            // só desenha. Sem isto, um dash animado seria só um teleport
+            // com VFX e o servidor aceitaria a posição final como um
+            // "movimento normal" (teletransporte de graça).
+            if (player.dashAnim) {
+                const d = player.dashAnim;
+                const cfg = DASH_MOD.configDe(player.classe);
+                const amostra = DASH_MOD.amostrar(d, Date.now() - d.inicio);
+                let travou = false;
+                if (amostra.t >= 1) {
+                    // Fim: confirma a posição final se for válida
+                    if (!dashColide(d.x1, d.y1)) { player.x = d.x1; player.y = d.y1; }
+                    else { player.x = d.ultimoX; player.y = d.ultimoY; }
+                } else {
+                    if (!dashColide(amostra.x, amostra.y)) {
+                        player.x = amostra.x;
+                        player.y = amostra.y;
+                        d.ultimoX = amostra.x;
+                        d.ultimoY = amostra.y;
+                    } else {
+                        travou = true;
+                        player.x = d.ultimoX;
+                        player.y = d.ultimoY;
+                    }
+                }
+
+                if (cfg.tipo === 'investida' && !travou) dashInvestidaDano(pid, player, d);
+
+                if (travou || amostra.t >= 1) {
+                    player.dashAnim = null;
+                    player.dashVelocidadeMult = 1;
+                    player.dashAte = 0;
+                    if (cfg.tipo === 'arranque') {
+                        // Arranque ended: reaparece
+                        removerEfeitoAoVivo(pid, 'invisivel');
+                        dashEnviar('action_dash_fim', { id: pid, x: player.x, y: player.y, vfx: cfg.vfx });
+                    }
+                }
+            } else if (player.dashAte && Date.now() >= player.dashAte) {
+                player.dashAte = 0;
+                player.dashVelocidadeMult = 1;
+                removerEfeitoAoVivo(pid, 'invisivel');
+                dashEnviar('action_dash_fim', { id: pid, x: player.x, y: player.y });
+            }
+
+            // ---- 2) ESCUDO DO GUERREIRO (segurado) ----
+            if (player.escudoGuerreiro) {
+                const cfgE = DASH_MOD.configDe('guerreiro');
+                const eg = player.escudoGuerreiro;
+                const agora = Date.now();
+
+                // 2a) O escudo SEGUE A ESPADA: o arco de bloqueio (-70%) é
+                //     recalculado a partir do ângulo de mira atual (p.angulo),
+                //     não do ângulo do instante em que o escudo foi erguido.
+                //     Sem isto o jogador "viraria" o escudo e o servidor
+                //     continuaria protegendo a direção antiga.
+                if (Number.isFinite(player.angulo)) eg.ang = player.angulo;
+
+                // 2b) Ângulo é sincronizado para os OUTROS clientes com
+                //     orçamento: só reenvia se mudou o bastante (0,20 rad ≈ 11°)
+                //     E se já passou 120ms. No máx. ~8 pacotes/s por guerreiro.
+                if (agora - (eg.ultimoSync || 0) >= 120 && Math.abs(eg.ang - (eg.angUltimoSync ?? -99)) >= 0.20) {
+                    eg.ultimoSync = agora;
+                    eg.angUltimoSync = eg.ang;
+                    dashEnviar('action_guerreiro_escudo_ang', { id: pid, angulo: eg.ang });
+                }
+
+                // 2c) BAQUE DE ESCUDO: 1x a cada 2s com o escudo erguido, na
+                //     direção da espada. É a "ação" do escudo segurado.
+                if (agora >= (eg.proximoBaque || 0)) {
+                    eg.proximoBaque = agora + cfgE.intervaloBaqueMs;
+                    escudoGuerreiroBaque(pid, player, cfgE);
+                }
+
+                // 2d) Dreno ABSOLUTO a partir da stamina do instante em que o escudo
+                //     foi erguido. Subtrair do valor já drenado a cada tick daria um
+                //     juro geométrico (100 zerava em 0,5s em vez dos 2s previstos).
+                const decorrido = (agora - eg.desde) / 1000;
+                const alvo = Math.max(0, Math.min(100, eg.staminaInicial - (cfgE.drenoPorSegundo * decorrido)));
+                player.estamina = alvo;
+                playerSockets[pid] && playerSockets[pid].readyState === 1 &&
+                    playerSockets[pid].send(JSON.stringify({ type: 'stamina_sync', estamina: Math.round(alvo) }));
+                if (alvo <= 0) soltarEscudoGuerreiro(pid, player, true);
+            }
+
+            // ---- 3) ATORDOAMENTO DA CURANDEIRA ----
+            if (player.curandeiraAtordoada && Date.now() >= (player.curandeiraAtordoadaAte || 0)) {
+                player.curandeiraAtordoada = false;
+                player.reducaoAtordoada = 0;
+            }
+        }
+
+        // (a expiração da ROUPA DE CAMUFLAGEM do Sniper é tratada no bloco
+        //  "===== SNIPER" mais abaixo, junto dos outros estados de skill)
 
         // ===== LADINO: máquinas de estado das skills (Dança / Camuflagem / Estrela) =====
         if (player.classe === 'ladino' && player.hp > 0) {
@@ -4028,10 +4931,21 @@ setInterval(() => {
                     });
                 }
             }
+            // ROUPA DE CAMUFLAGEM (vinda do DASH): quando o uniforme cai, o
+            // corpo volta ao normal E a Camuflagem Natural cai junto.
+            if (player.snRoupaCamo && Date.now() >= (player.snRoupaCamoAte || 0)) {
+                player.snRoupaCamo = false;
+                player.snRoupaCamoAte = 0;
+                // avisa SEMPRE (mesmo com a camuflagem ativa): é este evento que
+                // troca o uniforme do personagem na tela dos outros jogadores
+                dashEnviar('action_sniper_roupa_camo', { id: pid, ativo: false });
+                if (player.snCamuflado) finalizarCamuflagemSniper(player, pid, 'tempo');
+            }
             // Camuflado: congelamento dos cooldowns (não contam enquanto escondido)
             if (player.snCamuflado) {
                 congelarCooldownsSniper(player, 50);
-                if (!efeitos.temEfeito(player, 'camuflagem')) finalizarCamuflagemSniper(player, pid, 'efeito_removido');
+                if (Date.now() >= (player.snCamofladoAte || 0)) finalizarCamuflagemSniper(player, pid, 'tempo');
+                else if (!efeitos.temEfeito(player, 'camuflagem')) finalizarCamuflagemSniper(player, pid, 'efeito_removido');
             }
             // Posição de Franco-Atirador: detecta inimigos invisíveis na área
             if (player.snPosicao) {
@@ -4059,6 +4973,7 @@ setInterval(() => {
                 player.snAim = null;
                 player.snPosicao = false;
                 if (player.snCamuflado) finalizarCamuflagemSniper(player, pid, 'morte');
+                player.snRoupaCamo = false; player.snRoupaCamoAte = 0;
             }
         }
 
@@ -4707,7 +5622,10 @@ setInterval(() => {
     for (let pid in bandas) {
         let banda = bandas[pid];
         let player = players[pid];
-        if (!player || player.hp <= 0) { delete bandas[pid]; continue; }
+        if (!player || player.hp <= 0 || (banda.expiraEm && Date.now() > banda.expiraEm)) {
+            delete bandas[pid];
+            continue;
+        }
 
         for (let i = banda.membros.length - 1; i >= 0; i--) {
             let m = banda.membros[i];
@@ -4892,7 +5810,11 @@ setInterval(() => {
         p.vida--;
 
         let projectileRemoved = false;
-        if (mapaDeserto && xNoDeserto(p.x) && mapaDeserto.colideProjetilDeserto(p.x, p.y)) {
+        if (mapaVerde && p.x < LARGURA_VERDE && mapaVerde.colideProjetilVerde(p.x, p.y)) {
+            projeteis.splice(i, 1);
+            projectileRemoved = true;
+        }
+        if (!projectileRemoved && mapaDeserto && xNoDeserto(p.x) && mapaDeserto.colideProjetilDeserto(p.x, p.y)) {
             projeteis.splice(i, 1);
             projectileRemoved = true;
         }
@@ -4905,6 +5827,14 @@ setInterval(() => {
             projectileRemoved = true;
         }
         if (!projectileRemoved && mapaCidade && p.x >= LARGURA_CIDADE && p.x < FIM_CIDADE && mapaCidade.colideProjetilCidade(p.x, p.y)) {
+            projeteis.splice(i, 1);
+            projectileRemoved = true;
+        }
+        if (!projectileRemoved && mapaTesteVisual && p.x >= LARGURA_TESTE_VISUAL && p.x < FIM_TESTE_VISUAL && mapaTesteVisual.colideProjetil(p.x, p.y)) {
+            projeteis.splice(i, 1);
+            projectileRemoved = true;
+        }
+        if (!projectileRemoved && mapaZonaZero && p.x >= LARGURA_ZONA_ZERO && p.x < FIM_ZONA_ZERO && mapaZonaZero.colideProjetilZonaZero(p.x, p.y)) {
             projeteis.splice(i, 1);
             projectileRemoved = true;
         }
@@ -4941,7 +5871,11 @@ setInterval(() => {
         pp.vida--;
 
         let removido = false;
-        if (mapaDeserto && xNoDeserto(pp.x) && mapaDeserto.colideProjetilDeserto(pp.x, pp.y)) {
+        if (mapaVerde && pp.x < LARGURA_VERDE && mapaVerde.colideProjetilVerde(pp.x, pp.y)) {
+            playerProjeteis.splice(i, 1);
+            removido = true;
+        }
+        if (!removido && mapaDeserto && xNoDeserto(pp.x) && mapaDeserto.colideProjetilDeserto(pp.x, pp.y)) {
             playerProjeteis.splice(i, 1);
             removido = true;
         }
@@ -4954,6 +5888,14 @@ setInterval(() => {
             removido = true;
         }
         if (!removido && mapaCidade && pp.x >= LARGURA_CIDADE && pp.x < FIM_CIDADE && mapaCidade.colideProjetilCidade(pp.x, pp.y)) {
+            playerProjeteis.splice(i, 1);
+            removido = true;
+        }
+        if (!removido && mapaTesteVisual && pp.x >= LARGURA_TESTE_VISUAL && pp.x < FIM_TESTE_VISUAL && mapaTesteVisual.colideProjetil(pp.x, pp.y)) {
+            playerProjeteis.splice(i, 1);
+            removido = true;
+        }
+        if (!removido && mapaZonaZero && pp.x >= LARGURA_ZONA_ZERO && pp.x < FIM_ZONA_ZERO && mapaZonaZero.colideProjetilZonaZero(pp.x, pp.y)) {
             playerProjeteis.splice(i, 1);
             removido = true;
         }
@@ -5081,6 +6023,22 @@ setInterval(() => {
             return;
         }
 
+        // PUXÃO DE HABILIDADE (ex: Lançamento de Escudo do Guerreiro)
+        if (slime.pull) {
+            let pDx = slime.pull.x - slime.x;
+            let pDy = slime.pull.y - slime.y;
+            let pDist = Math.hypot(pDx, pDy);
+            let pSpeed = slime.pull.speed || 14;
+            if (pDist <= pSpeed || pDist < 10) {
+                slime.x = slime.pull.x;
+                slime.y = slime.pull.y;
+                delete slime.pull;
+            } else {
+                slime.x += (pDx / pDist) * pSpeed;
+                slime.y += (pDy / pDist) * pSpeed;
+            }
+        }
+
         if (slime.stunTimer > 0 && !slime.imuneControle) {
             slime.stunTimer--;
             return;
@@ -5126,7 +6084,13 @@ setInterval(() => {
                 let p = players[pid];
                 if (p.hp <= 0) continue;
                 // LADINO invisível / SNIPER camuflado: não são vistos pelo agro de proximidade
-                if (efeitos && (efeitos.temEfeito(p, 'invisivel') || efeitos.temEfeito(p, 'camuflagem'))) continue;
+                if (efeitos && (efeitos.temEfeito(p, 'invisivel') || efeitos.temEfeito(p, 'camuflagem'))) {
+                    if (p.classe === 'sniper' && (p.snCamuflado || p.snRoupaCamo)) {
+                        if (!p.moving) continue;
+                    } else {
+                        continue;
+                    }
+                }
                 if (!alvoDentroDaVisao(slime, p)) continue;
                 let d2 = distanciaEntidadesQuadrada(p, slime);
                 if (d2 < menorDist * menorDist) { menorDist = Math.sqrt(d2); alvoProximo = pid; }
@@ -5143,7 +6107,8 @@ setInterval(() => {
                 else if (players[slime.tauntId]) alvo = players[slime.tauntId];
             }
             // LADINO invisível / SNIPER camuflado: o alvo some da visão — solta o agro
-            if (efeitos && (efeitos.temEfeito(alvo, 'invisivel') || (alvo.classe === 'sniper' && efeitos.temEfeito(alvo, 'camuflagem')))) {
+            const sniperParado = (alvo.classe === 'sniper' && (alvo.snCamuflado || alvo.snRoupaCamo) && !alvo.moving);
+            if (efeitos && (efeitos.temEfeito(alvo, 'invisivel') || sniperParado || (alvo.classe === 'sniper' && efeitos.temEfeito(alvo, 'camuflagem') && !alvo.moving))) {
                 slime.targetId = null;
                 return;
             }
@@ -5521,7 +6486,7 @@ setInterval(() => {
         let pX = player.x + 12;
         let pY = player.y + 16;
 
-        enviarParaMapaDoJogador(pid, 'action_roqueiro_bateria', { x: pX, y: pY });
+        enviarParaMapaDoJogador(pid, 'action_roqueiro_bateria', { id: pid, x: pX, y: pY, beat: true });
 
         slimes.forEach(slime => {
             if (slime.hp > 0 && Math.hypot(slime.x - pX, slime.y - pY) < 110) {
@@ -5688,7 +6653,7 @@ setInterval(() => {
 
         if (!player || player.hp <= 0) {
             delete pikemanCanais[pid];
-            if (player) player.pikemanProgresso = 0;
+            if (player) { player.pikemanProgresso = 0; delete player.pikemanSkillAte; }
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify({ type: 'action_pikeman_execucao_cancel', id: pid }));
@@ -5702,6 +6667,7 @@ setInterval(() => {
             // moveu durante o carregamento → cancela (igual Rajada)
             delete pikemanCanais[pid];
             player.pikemanProgresso = 0;
+            delete player.pikemanSkillAte;
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify({ type: 'action_pikeman_execucao_cancel', id: pid }));
@@ -6068,10 +7034,19 @@ if (g.hp <= 0) {
         playersVisivel[pid].dmAssaltoAtivo = (p.classe === 'dronemaster') ? (p.dmAssaltoTimer > 0) : false;
         playersVisivel[pid].snPosicao = (p.classe === 'sniper') ? !!p.snPosicao : false;
         playersVisivel[pid].snCamuflado = (p.classe === 'sniper') ? !!p.snCamuflado : false;
+        // Roupa de camuflagem (dash do Sniper) — o cliente troca o visual inteiro
+        playersVisivel[pid].snRoupaCamo = (p.classe === 'sniper') ? !!p.snRoupaCamo : false;
+        playersVisivel[pid].snRoupaCamoAte = (p.classe === 'sniper') ? (p.snRoupaCamoAte || 0) : 0;
+        // Escudo do Guerreiro: ângulo do arco de bloqueio (o cliente desenha o
+        // escudo real na mão nessa direção e o brilho do arco protegido)
+        playersVisivel[pid].escudoGuerreiroAtivo = !!p.escudoGuerreiro;
+        playersVisivel[pid].escudoGuerreiroAng = p.escudoGuerreiro ? (p.escudoGuerreiro.ang || 0) : 0;
         playersVisivel[pid].snAimAtivo = (p.classe === 'sniper') ? !!p.snAim : false;
         playersVisivel[pid].escudoAbsoluto = Math.round(p.escudoAbsoluto || 0);
         playersVisivel[pid].escudoAbsolutoMax = Math.round(p.escudoAbsolutoMax || 0);
     }
+
+    const tempoMundoAtual = sistemaDiaNoite ? sistemaDiaNoite.calcularTempoMundo() : null;
 
     wss.clients.forEach((client) => {
         if (client.readyState !== WebSocket.OPEN) return;
@@ -6092,6 +7067,7 @@ if (g.hp <= 0) {
         }
         client.send(JSON.stringify({
             type: 'world_update',
+            tempoMundo: tempoMundoAtual,
             players: jogadoresDoMapa,
             slimes: filtrarPorMapa(slimes, mapaCliente),
             projeteis: filtrarPorMapa(projeteis, mapaCliente),
@@ -6234,6 +7210,9 @@ aaCometasCooldown: 0,
                     snAimCooldown: 0,
                     snRedeCooldown: 0,
                     snCamuflado: false,
+                    snRoupaCamo: false,         // ROUPA de camuflagem (vestida pelo DASH, 5s)
+                    snRoupaCamoAte: 0,
+                    snCamofladoAte: 0,
                     snPosicao: false,           // Posição de Franco-Atirador (deitado)
                     snPosicaoCd: 0,
                     // ===== ESCUDO ABSORVENTE (caixa de ferramentas / dash do DroneMaster) =====
@@ -6242,7 +7221,8 @@ aaCometasCooldown: 0,
                     escudoAbsolutoMax: 0,
                     // SUMMONER: modo do Golem (agressivo ataca o alvo focado; passivo só rodeia a invocadora)
                     ogroModo: (dadosSalvos && (dadosSalvos.ogroModo === 'agressivo' || dadosSalvos.ogroModo === 'passivo')) ? dadosSalvos.ogroModo : 'agressivo',
-                    isAdmin: ehAdminConta
+                    isAdmin: ehAdminConta,
+                    adminCheats: { vidaInfinita: false, superAtaque: false, manaInfinita: false, semCooldown: false }
                 };
                 players[playerId].maxHp = calcularMaxHp(players[playerId]);
                 if (players[playerId].hp > players[playerId].maxHp) players[playerId].hp = players[playerId].maxHp;
@@ -6307,6 +7287,13 @@ aaCometasCooldown: 0,
                 }
                 ws.send(JSON.stringify({ type: 'map_vfx', vfx: mapVfx }));
                 ws.send(JSON.stringify({ type: 'map_objetos', objetos: mapObjetos }));
+                // Sincronização de colisões e camadas de todos os mapas (v1.46.0)
+                ws.send(JSON.stringify({
+                    type: 'colisoes_iniciais',
+                    mapas: MAPAS_CONFIG,
+                    colisoes: colisoesPorMapa,
+                    camadas: camadasPorMapa
+                }));
                 if (mapaCidade && typeof mapaCidade.obterObstaculos === 'function') {
                     ws.send(JSON.stringify({
                         type: 'colisoes_atualizadas',
@@ -6955,18 +7942,8 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     delete lacaios[playerId];
                     delete petRespawnTimer[playerId];
                 }
-                if (data.classe === 'roqueiro') {
-                    if (!bandas[playerId]) bandas[playerId] = { membros: [] };
-                    let banda = bandas[playerId];
-                    banda.membros = [];
-                    let angBanda = Math.random() * Math.PI * 2;
-                    banda.membros.push({
-                        x: players[playerId].x + Math.cos(angBanda) * 40,
-                        y: players[playerId].y + Math.sin(angBanda) * 40,
-                        angulo: 0,
-                        attackCooldown: 0
-                    });
-                } else {
+                // Roqueiro: ao trocar para outra classe, remove qualquer banda ativa
+                if (data.classe !== 'roqueiro') {
                     delete bandas[playerId];
                 }
                 // Ladino: limpa máquinas de estado ao trocar de classe
@@ -6997,6 +7974,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     np.snPosicao = false;
                     if (np.snCamuflado) finalizarCamuflagemSniper(np, playerId, 'classe_alterada');
                     np.snCamuflado = false;
+                    np.snCamofladoAte = 0;
+                    np.snRoupaCamo = false;
+                    np.snRoupaCamoAte = 0;
                     if (efeitos) efeitos.removerEfeito(np, 'camuflagem');
                 }
                 // PIKEMAN: limpa máquinas de estado ao trocar de classe
@@ -7022,6 +8002,31 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (caixasFerramentas[i].ownerId === playerId) caixasFerramentas.splice(i, 1);
                 }
             }
+            // ===== ADMIN CHEATS (MODO TESTE) =====
+            if (data.action === 'admin_cheats_toggle') {
+                if (!ws.ehAdminCliente) {
+                    console.warn('[ADMIN CHEATS] Tentativa não autorizada rejeitada para:', playerId);
+                    return;
+                }
+                let p = players[playerId];
+                if (!p) return;
+                p.adminCheats = Object.assign({
+                    vidaInfinita: false,
+                    superAtaque: false,
+                    manaInfinita: false,
+                    semCooldown: false
+                }, p.adminCheats || {}, data.cheats || {});
+
+                if (p.adminCheats.vidaInfinita) p.hp = p.maxHp;
+                if (p.adminCheats.manaInfinita) p.mana = p.maxMp;
+
+                console.log('[ADMIN CHEATS]', p.nome || playerId, 'atualizou cheats:', p.adminCheats);
+                ws.send(JSON.stringify({
+                    type: 'admin_cheats_sync',
+                    cheats: p.adminCheats
+                }));
+            }
+            // ===== FIM ADMIN CHEATS =====
             // ===== ADMIN: FORJADOR DE ARMAS =====
             if (data.action === 'admin_spawn_weapon') {
                 let p = players[playerId];
@@ -7229,33 +8234,39 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     return;
                 }
                 const mapa = data.mapa || 'cidade';
-                if (mapa === 'cidade' && Array.isArray(data.obstaculos)) {
-                    if (mapaCidade && typeof mapaCidade.carregarObstaculos === 'function') {
-                        mapaCidade.carregarObstaculos(data.obstaculos);
-                    }
+                if (MAPAS_CONFIG[mapa] && Array.isArray(data.obstaculos)) {
+                    colisoesPorMapa[mapa] = data.obstaculos;
                     try {
-                        const fileCol = path.join(__dirname, 'colisoes_cidade.json');
+                        const fileCol = path.join(__dirname, 'colisoes_' + mapa + '.json');
                         fs.writeFileSync(fileCol, JSON.stringify(data.obstaculos, null, 2), 'utf-8');
-                        console.log('[ADMIN] Colisões da cidade salvas com sucesso (' + data.obstaculos.length + ' obstáculos).');
+                        console.log('[ADMIN] Colisões do mapa ' + mapa + ' salvas com sucesso (' + data.obstaculos.length + ' obstáculos).');
                     } catch (err) {
-                        console.error('Erro ao salvar colisoes_cidade.json:', err.message);
+                        console.error('Erro ao salvar colisoes_' + mapa + '.json:', err.message);
                     }
-                    if (Array.isArray(data.camadas) && mapaCidade && typeof mapaCidade.carregarCamadas === 'function') {
-                        mapaCidade.carregarCamadas(data.camadas);
+                    if (Array.isArray(data.camadas)) {
+                        camadasPorMapa[mapa] = data.camadas;
                         try {
-                            const fileCamadas = path.join(__dirname, 'camadas_cidade.json');
+                            const fileCamadas = path.join(__dirname, 'camadas_' + mapa + '.json');
                             fs.writeFileSync(fileCamadas, JSON.stringify(data.camadas, null, 2), 'utf-8');
-                            console.log('[ADMIN] Camadas da cidade salvas com sucesso (' + data.camadas.length + ' áreas).');
+                            console.log('[ADMIN] Camadas do mapa ' + mapa + ' salvas com sucesso (' + data.camadas.length + ' áreas).');
                         } catch (err) {
-                            console.error('Erro ao salvar camadas_cidade.json:', err.message);
+                            console.error('Erro ao salvar camadas_' + mapa + '.json:', err.message);
+                        }
+                    }
+                    if (mapa === 'cidade') {
+                        if (mapaCidade && typeof mapaCidade.carregarObstaculos === 'function') {
+                            mapaCidade.carregarObstaculos(data.obstaculos);
+                        }
+                        if (Array.isArray(data.camadas) && mapaCidade && typeof mapaCidade.carregarCamadas === 'function') {
+                            mapaCidade.carregarCamadas(data.camadas);
                         }
                     }
                     // Broadcast para todos os clientes conectados
                     const msg = JSON.stringify({
                         type: 'colisoes_atualizadas',
-                        mapa: 'cidade',
-                        obstaculos: (mapaCidade && typeof mapaCidade.obterObstaculos === 'function') ? mapaCidade.obterObstaculos() : data.obstaculos,
-                        camadas: (mapaCidade && typeof mapaCidade.obterCamadas === 'function') ? mapaCidade.obterCamadas() : (data.camadas || [])
+                        mapa: mapa,
+                        obstaculos: colisoesPorMapa[mapa] || [],
+                        camadas: camadasPorMapa[mapa] || []
                     });
                     wss.clients.forEach(function (c) {
                         if (c.readyState === WebSocket.OPEN) c.send(msg);
@@ -7264,6 +8275,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         ws.send(JSON.stringify({
                             type: 'colisoes_salvas',
                             sucesso: true,
+                            mapa: mapa,
                             total: data.obstaculos.length,
                             totalCamadas: Array.isArray(data.camadas) ? data.camadas.length : 0
                         }));
@@ -7546,6 +8558,33 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     });
                 }
 
+                // ===== ADMIN CHEATS: BYPASS COOLDOWNS & RECURSOS =====
+                if (players[playerId] && players[playerId].adminCheats) {
+                    let pAc = players[playerId];
+                    if (pAc.adminCheats.semCooldown) {
+                        pAc.lastEscudo = 0; pAc.lastBola = 0; pAc.lastGolemSismico = 0; pAc.lastSaltoChuva = 0;
+                        pAc.lastCantico = 0; pAc.lastVinculo = 0; pAc.lastBuraco = 0; pAc.lastProvocacao = 0;
+                        pAc.lastVulcao = 0; pAc.lastDash = 0; pAc.lastTornado = 0; pAc.lastFuria = 0;
+                        pAc.lastEsmagamento = 0; pAc.lastGiro = 0; pAc.lastCura = 0; pAc.lastJulgamento = 0;
+                        pAc.lastAura = 0; pAc.lastRiff = 0; pAc.lastBateria = 0; pAc.lastTeleporte = 0;
+                        pAc.lastGrito = 0; pAc.lastDanca = 0; pAc.lastBomba = 0; pAc.lastCamuflagem = 0;
+                        pAc.lastEstrela = 0; pAc.lastSupressao = 0; pAc.lastAssalto = 0; pAc.lastCaixa = 0;
+                        pAc.lastTita = 0; pAc.lastCometas = 0; pAc.lastOrbe = 0; pAc.lastCascata = 0;
+                        pAc.lastApontar = 0; pAc.lastRede = 0; pAc.lastPosicao = 0;
+                        pAc.ladinoCamuflagemCooldown = 0; pAc.giroDescontroladoCooldown = 0;
+                        pAc.snAimCooldown = 0; pAc.snRedeCooldown = 0;
+                        pAc.pikemanGiroCd = 0; pAc.pikemanPiruetaCd = 0; pAc.pikemanGeadaCd = 0; pAc.pikemanExecucaoCd = 0;
+                        pAc.estamina = 100;
+                    }
+                    if (pAc.adminCheats.manaInfinita) {
+                        pAc.mana = pAc.maxMp || 100;
+                    }
+                    if (pAc.adminCheats.vidaInfinita) {
+                        pAc.hp = pAc.maxHp || 100;
+                    }
+                }
+                // ===== FIM ADMIN CHEATS BYPASS =====
+
                 // BLOQUEIO POR CC (Stun, Sono, Paralisia, Levantado)
                 let ccAtivo = false;
                 if (players[playerId] && players[playerId].efeitos) {
@@ -7565,6 +8604,29 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 ];
                 if (ccAtivo && acoesBloqueadasPorCC.indexOf(data.action) !== -1) {
                     return; // Bloqueado por CC
+                }
+
+                // ===== DASH v2 — GUERREIRO COM ESCUDO ERGUIDO =====
+                // Enquanto o escudo está segurado, skills e ataque básico são
+                // BLOQUEADOS NO SERVIDOR (o cliente também bloqueia, mas quem
+                // decide é o servidor — um client modificado não ganha nada).
+                // O `dash` com acao:'soltar' passa: é justamente o gesto de
+                // baixar o escudo. Também passam movimento/salvar/estado.
+                if (players[playerId] && players[playerId].dashBloqueiaAcoes) {
+                    const eEscudo = (data.action === 'dash' && data.acao === 'soltar');
+                    // ATENCAO: o pacote de MOVIMENTO do cliente nao tem `action`
+                    // (e so {x, y, angulo, moving}). Sem tratar o undefined aqui
+                    // o servidor descartava TODO movimento enquanto o escudo
+                    // estava erguido — o guerreiro ficava congelado no lugar.
+                    const eMovimento = (data.action === undefined && data.x !== undefined);
+                    const eLivre = eMovimento ||
+                        ['movimento', 'salvar_progresso', 'client_estado', 'dash', 'usar_item', 'abrir_inventario', 'fechar_inventario', 'chat', 'abrir_loja'].indexOf(data.action) !== -1;
+                    if (!eEscudo && !eLivre) {
+                        if (ws.readyState === WebSocket.OPEN) {
+                            ws.send(JSON.stringify({ type: 'dash_bloqueado', motivo: 'escudo_erguido' }));
+                        }
+                        return;
+                    }
                 }
                 // PIKEMAN — EXECUÇÃO DA MORTE: durante o carregamento, ações de ataque são bloqueadas
                 if (pikemanCanais[playerId] && data.action !== 'pikeman_execucao_cancelar' && data.action !== 'client_estado' && data.action !== 'movimento' && data.action !== 'salvar_progresso') {
@@ -7750,7 +8812,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
 
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
-                    enviarParaMapaDoJogador(playerId, 'action_roqueiro_bateria', { x: pX, y: pY });
+                    enviarParaMapaDoJogador(playerId, 'action_roqueiro_bateria', { id: playerId, x: pX, y: pY, start: true });
                 }
 
                 if (data.action === 'roqueiro_bateria_cancelar') {
@@ -7787,11 +8849,12 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     });
                 }
 
-                // ROQUEIRO: CHAMAR A BANDA (1 membro que segue e ataca)
+                // ROQUEIRO: CHAMAR A BANDA (1 membro que segue e ataca durante 15s)
                 if (data.action === 'roqueiro_banda') {
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'banda', 30))) return;
                     if (!bandas[playerId]) bandas[playerId] = { membros: [] };
                     let banda = bandas[playerId];
+                    banda.expiraEm = agora + 15000;
                     banda.membros = [];
                     let angBanda = Math.random() * Math.PI * 2;
                     banda.membros.push({
@@ -8350,8 +9413,8 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 if (data.action === 'ataque_sniper') {
                     let pS = players[playerId];
                     if (!pS || pS.hp <= 0) return;
-                    // Camuflado na moita: ataque básico BLOQUEADO até usar uma skill (que quebra a camuflagem)
-                    if (pS.snCamuflado) return;
+                    // Camuflado: disparar quebra a camuflagem
+                    if (pS.snCamuflado) finalizarCamuflagemSniper(pS, playerId, 'tiro');
                     if (pS.snAim) return; // não atira básico enquanto mira o super tiro
                     if (Date.now() - pS.lastBasicAttack < tempoAtaqueBasico(pS, 936)) return;
                     pS.lastBasicAttack = Date.now();
@@ -8524,11 +9587,17 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     });
                 }
 
-                // ---- SNIPER SKILL 3: CAMUFLAGEM (só dentro do mato — reset CD da Skill 1) ----
+                // ---- SNIPER SKILL 3: CAMUFLAGEM NATURAL (exige a ROUPA do dash + estar no mato) ----
                 if (data.action === 'sniper_camuflagem') {
                     let pC = players[playerId];
                     if (!pC || pC.hp <= 0) return;
                     if (pC.snCamuflado) return;
+                    // v1.50.0: o DASH (ESPAÇO) é o que veste o uniforme por 5s.
+                    // A Camuflagem Natural só LIGA enquanto ele estiver vestido.
+                    if (!pC.snRoupaCamo) {
+                        ws.send(JSON.stringify({ type: 'skill_aviso', skill: 'sniper_camuflagem', motivo: 'sem_roupa' }));
+                        return;
+                    }
                     // Camuflar-se obriga a sair da Posição de Franco-Atirador
                     if (pC.snPosicao) {
                         pC.snPosicao = false;
@@ -8542,12 +9611,20 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         ws.send(JSON.stringify({ type: 'skill_aviso', skill: 'sniper_camuflagem', motivo: 'fora_mato' }));
                         return;
                     }
+                    // Agora sim: escondido no mato. A camuflagem NUNCA passa da
+                    // roupa (o uniforme é o prazo do dash: 5s, e acabou). Se o
+                    // jogador usar a skill quase no fim, ela dá o que sobrou.
+                    const restante = Math.max(500, (pC.snRoupaCamoAte || 0) - Date.now());
                     pC.snCamuflado = true;
-                    efeitos.aplicarEfeito(pC, 'camuflagem', 200000, 1); // enquanto estiver no mato
+                    pC.snCamofladoAte = Date.now() + restante;
+                    efeitos.aplicarEfeito(pC, 'camuflagem', Math.ceil(restante / 50), 1);
                     pC.snAimCooldown = 0; // RESET do cooldown da Skill 1 (Disparo Supremo)
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_sniper_camuflagem', id: playerId }));
+                            client.send(JSON.stringify({
+                                type: 'action_sniper_camuflagem', id: playerId,
+                                origem: 'skill', expiraEm: pC.snCamofladoAte
+                            }));
                         }
                     });
                     sincronizarEfeitos(playerId, pC);
@@ -8582,54 +9659,11 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     });
                 }
 
-                if (data.action === 'dash') {
-                    // DRONEMASTER: o Dash vira um ESCUDO tecnológico (50% vida máx, 3s)
-                    const pDm = players[playerId];
-                    if (pDm && pDm.classe === 'dronemaster') {
-                        if (pDm.dmDashEscudoCooldown && Date.now() < pDm.dmDashEscudoCooldown) return; // CD 10s
-                        if (pDm.escudoAbsoluto > 0 && pDm.escudoAbsolutoExpirador > Date.now()) return; // já ativo
-                        if (!gastarEstamina(ws, pDm, 40)) return; // v1.34: DASH usa STAMINA (dronemaster: 40)
-                        pDm.dmDashEscudoCooldown = Date.now() + 10000; // Escudo de Energia: 10s de recarga
-                        const escudoDash = Math.round(pDm.maxHp * 0.50);
-                        darEscudoAbsorvente(pDm, escudoDash, 3000);
-                        pDm.dmDashEscudo = escudoDash;
-                        pDm.dmDashEscudoExpirador = Date.now() + 3000;
-                        wss.clients.forEach((client) => {
-                            if (client.readyState === WebSocket.OPEN) {
-                                client.send(JSON.stringify({ type: 'action_dm_dash_escudo', id: playerId }));
-                            }
-                        });
-                        return;
-                    }
-                    const dashX = Number(data.novoX);
-                    const dashY = Number(data.novoY);
-                    const destinoDash = validarMovimentoJogador(
-                        players[playerId],
-                        dashX,
-                        dashY,
-                        { maxStep: MAX_PLAYER_COLLISION_STEP, maxDistance: 160 }
-                    );
-                    if (!gastarEstamina(ws, players[playerId], 25)) return; // v1.34: DASH usa STAMINA (25)
-                    if (destinoDash.aceito || destinoDash.parcial) {
-                        players[playerId].x = destinoDash.x;
-                        players[playerId].y = destinoDash.y;
-                    }
 
-                    wss.clients.forEach((client) => {
-                        if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_dash', id: playerId, x: players[playerId].x, y: players[playerId].y }));
-                        }
-                    });
+if (data.action === 'dash') {
+    iniciarDash(playerId, ws, data);
+}
 
-                    let danoDash = dmgSkill(players[playerId], 'dash', 20);
-                    slimes.forEach(slime => {
-                        if (slime.hp > 0 && Math.hypot((players[playerId].x + 12) - slime.x, (players[playerId].y + 16) - slime.y) < 65) {
-                            registrarDanoMonstro(slime, playerId, danoDash);
-                            slime.stunTimer = 40;
-                        }
-                    });
-                    danoEmBosses(players[playerId].x + 12, players[playerId].y + 16, 90, playerId, danoDash, 'skill');
-                }
 
                 if (data.action === 'tornado') {
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'tornado', 20))) return;
@@ -8665,7 +9699,17 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     escudosLancados.push({ id: Math.random(), ownerId: playerId, x: p.x, y: p.y, ang: ang, speed: 10, dist: 0, dano: dmgSkill(p, 'escudo_lancamento', 45) });
                     wss.clients.forEach(c => {
                         if(c.readyState === WebSocket.OPEN) {
-                            c.send(JSON.stringify({ type: 'action_guerreiro_escudo', ownerId: playerId, targetX: data.targetX, targetY: data.targetY }));
+                            c.send(JSON.stringify({
+                                type: 'action_guerreiro_escudo',
+                                lancamento: true,
+                                ownerId: playerId,
+                                targetX: data.targetX,
+                                targetY: data.targetY,
+                                startX: p.x,
+                                startY: p.y,
+                                ang: ang,
+                                maxDist: 300
+                            }));
                         }
                     });
                 }
@@ -8815,21 +9859,67 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if(!p.lastVinculo) p.lastVinculo = 0;
                     if(Date.now() - p.lastVinculo < 29500) return;
                     
-                    let target = slimes.find(s => s.id === data.targetId && s.hp > 0);
-                    if(target) {
-                        if (!gastarMana(ws, p, mpSkill(p, 'vinculo', 20))) return;
-                        p.lastVinculo = Date.now();
-                        vinculosBerserker[playerId] = { targetId: target.id, expires: Date.now() + 10000 };
-                        p.vampirismoBonus = (p.vampirismoBonus || 0) + 0.2;
-                        p.danoBonus = (p.danoBonus || 0) + 0.3;
-                        p.atkSpeedBonus = (p.atkSpeedBonus || 0) + 0.2;
-                        
-                        wss.clients.forEach(c => {
-                            if(c.readyState === WebSocket.OPEN) {
-                                c.send(JSON.stringify({ type: 'action_barbaro_vinculo', ownerId: playerId, targetId: target.id, x: target.x, y: target.y }));
+                    let target = null;
+                    let targetTipo = 'slime';
+                    if (data.targetId) {
+                        target = slimes.find(s => s && s.id === data.targetId && s.hp > 0);
+                        if (!target) {
+                            target = bosses.find(b => b && b.id === data.targetId && b.hp > 0);
+                            if (target) targetTipo = 'boss';
+                        }
+                    }
+                    if (!target) {
+                        let menorDist = 380;
+                        slimes.forEach(s => {
+                            if (s && s.hp > 0) {
+                                let d = Math.hypot(s.x - p.x, s.y - p.y);
+                                if (d < menorDist) { menorDist = d; target = s; targetTipo = 'slime'; }
+                            }
+                        });
+                        bosses.forEach(b => {
+                            if (b && b.hp > 0) {
+                                let d = Math.hypot(b.x - p.x, b.y - p.y);
+                                if (d < menorDist) { menorDist = d; target = b; targetTipo = 'boss'; }
                             }
                         });
                     }
+
+                    if (!target || Math.hypot(target.x - p.x, target.y - p.y) > 420) {
+                        if (ws.readyState === WebSocket.OPEN) {
+                            ws.send(JSON.stringify({ type: 'msg_aviso', mensagem: 'Nenhum alvo ao alcance!' }));
+                            ws.send(JSON.stringify({ type: 'skill_rejeitada', skill: 'barbaro_vinculo' }));
+                        }
+                        return;
+                    }
+
+                    if (!gastarMana(ws, p, mpSkill(p, 'vinculo', 20))) return;
+                    p.lastVinculo = Date.now();
+                    
+                    p.vinculoAtivo = true;
+                    p.vinculoExpires = Date.now() + 10000;
+                    vinculosBerserker[playerId] = {
+                        targetId: target.id,
+                        targetTipo: targetTipo,
+                        expires: Date.now() + 10000,
+                        maxDistance: 450
+                    };
+                    p.vampirismoBonus = 0.2;
+                    p.danoBonus = 0.3;
+                    p.atkSpeedBonus = 0.2;
+                    
+                    wss.clients.forEach(c => {
+                        if(c.readyState === WebSocket.OPEN) {
+                            c.send(JSON.stringify({
+                                type: 'action_barbaro_vinculo',
+                                ownerId: playerId,
+                                targetId: target.id,
+                                targetTipo: targetTipo,
+                                x: target.x,
+                                y: target.y,
+                                duration: 10000
+                            }));
+                        }
+                    });
                 }
                 if (data.action === 'astral_buraco_negro') {
                     let p = players[playerId];
@@ -8905,6 +9995,8 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 // PIKEMAN — ATAQUE BÁSICO: FOICADA (Foice Curta, golpe em cone)
                 // ============================================================
                 if (data.action === 'ataque_pikeman') {
+                    if (pikemanCanais[playerId]) return;
+                    if (players[playerId] && players[playerId].pikemanSkillAte && agora < players[playerId].pikemanSkillAte) return;
                     if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], tempoBaseAtaqueBasico(players[playerId]))) return;
                     players[playerId].lastBasicAttack = agora;
 
@@ -8948,6 +10040,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (pk.pikemanGiroCd && Date.now() < pk.pikemanGiroCd) return;
                     if (!gastarMana(ws, pk, mpSkill(pk, 'giro_foice', 25))) return;
                     pk.pikemanGiroCd = Date.now() + 7000;
+                    pk.pikemanSkillAte = Date.now() + 1200;
                     let pX = pk.x + 12, pY = pk.y + 16;
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
@@ -8982,6 +10075,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (Math.hypot(alvoPirueta.x - pX, alvoPirueta.y - pY) > 120) return; // fora do alcance da pirueta
                     if (!gastarMana(ws, pk, mpSkill(pk, 'pirueta_morte', 22))) return;
                     pk.pikemanPiruetaCd = Date.now() + 10000;
+                    pk.pikemanSkillAte = Date.now() + 860;
 
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
@@ -9003,6 +10097,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (pk.pikemanGeadaCd && Date.now() < pk.pikemanGeadaCd) return;
                     if (!gastarMana(ws, pk, mpSkill(pk, 'geada_morte', 25))) return;
                     pk.pikemanGeadaCd = Date.now() + 12000;
+                    pk.pikemanSkillAte = Date.now() + 650;
                     let pX = pk.x + 12, pY = pk.y + 16;
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
@@ -9045,6 +10140,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (Math.hypot(alvoExe.x - pX0, alvoExe.y - pY0) > 125) return;
                     if (!gastarMana(ws, pk, mpSkill(pk, 'execucao_morte', 35))) return;
                     pk.pikemanExecucaoCd = Date.now() + 30000;
+                    pk.pikemanSkillAte = Date.now() + 3600;
                     pikemanCanais[playerId] = {
                         startX: pk.x, startY: pk.y,
                         alvoTipo: data.alvoTipo, alvoId: data.alvoId,
@@ -9062,7 +10158,10 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 if (data.action === 'pikeman_execucao_cancelar') {
                     if (pikemanCanais[playerId]) {
                         delete pikemanCanais[playerId];
-                        if (players[playerId]) players[playerId].pikemanProgresso = 0;
+                        if (players[playerId]) {
+                            players[playerId].pikemanProgresso = 0;
+                            delete players[playerId].pikemanSkillAte;
+                        }
                         wss.clients.forEach((client) => {
                             if (client.readyState === WebSocket.OPEN) {
                                 client.send(JSON.stringify({ type: 'action_pikeman_execucao_cancel', id: playerId }));
@@ -9606,6 +10705,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 mana: players[playerId].mana
             });
             cancelarTrade(playerId);
+            // DASH v2: a roupa de camuflagem do Sniper é estado do jogador —
+            // limpo aqui para não sobrar flag ao recarregar o personagem
+            limparCamuflagemSniper(playerId);
             delete players[playerId];
             delete playerSockets[playerId];
             delete lacaios[playerId];

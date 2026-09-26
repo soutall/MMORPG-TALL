@@ -6,6 +6,9 @@ window.vfxAstralBuracos = [];
 
 window.vfxListeners.push(function(dados) {
     if (dados.type === 'action_astral_buraco_negro') {
+        if (dados.ownerId !== window.meuId && typeof window.tocarSonoroProximidade === 'function') {
+            window.tocarSonoroProximidade('astral_skill4', dados.targetX, dados.targetY);
+        }
         window.vfxAstralBuracos.push({
             ownerId: dados.ownerId,
             x: dados.targetX,

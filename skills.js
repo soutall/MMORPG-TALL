@@ -80,11 +80,11 @@ const SKILLS_INFO = {
           area: 'Raio 140', alcance: 'Mira 380px',
           duracao: '6s', duracaoBase: null, extras: ['Erupção vulcânica', 'Queimadura em área'] },
         { id: 'bola_elemental', nome: 'Bola Elemental', icon: '🔮', categoria: 'ataque',
-          desc: 'Lança uma BOLA GIGANTE que rola pelo chão empurrando inimigos. Ao cruzar a área da NEVASCA vira GELO e congela em área; ao cruzar o FOGO do Meteoro vira FOGO e explode em área com dano ×2.',
+          desc: 'Lança uma BOLA GIGANTE giratória que rola pelo chão empurrando inimigos. Ao cruzar a área da NEVASCA vira GELO e congela inimigos por 2s; ao cruzar o fogo do METEORO vira FOGO e causa uma grande explosão.',
           danoBase: 60, danoUnidade: 'mágico', danoNota: '×2 no Fogo / congela no Gelo',
           mp: 30, cd: 20, escala: 'dano',
           area: 'Projétil rolante 400px / Explosão 130 / Gelo 85', alcance: '400px',
-          duracao: null, duracaoBase: null, extras: ['Normal: empurra inimigos para trás', 'Gelo (Nevasca): congela alvos em área por 2s', 'Fogo (Meteoro): grande explosão em área com dano ×2', 'Fogo do Meteoro queima o chão por 5s'] }
+          duracao: null, duracaoBase: null, extras: ['Normal: rola pelo chão e empurra inimigos para trás', 'Gelo (Nevasca): congela inimigos ao contato por 2s', 'Fogo (Meteoro): grande explosão em área com dano ×2', 'Fogo do Meteoro queima o chão por 5s'] }
     ],
     summoner: [
         { id: 'orbe', nome: 'Orbe das Sombras', icon: '👁️', categoria: 'ataque',
@@ -229,11 +229,11 @@ const SKILLS_INFO = {
           area: 'Raio 75', alcance: 'Salto 160px',
           duracao: null, duracaoBase: null, extras: [] },
         { id: 'vinculo', nome: 'Vínculo Berserker', icon: '⛓️', categoria: 'buff',
-          desc: 'Prende um inimigo em um vínculo de sangue por 10s: +20% de vampirismo, +30% de dano e +20% de velocidade de ataque.',
+          desc: 'Cria um pacto demoníaco com o inimigo mais próximo: concede +20% de vampirismo, +30% de dano e +20% de velocidade de ataque por 10s. O vínculo é quebrado se o alvo morrer ou se afastar.',
           danoBase: null, danoUnidade: null, danoNota: 'Buff 10s',
           mp: 20, cd: 30, escala: 'nenhum',
-          area: '1 alvo (marca)', alcance: 'Mira até 200px',
-          duracao: '10s', duracaoBase: 10, extras: ['+20% vampirismo', '+30% dano', '+20% velocidade de ataque', 'Exige um alvo para mirar'] }
+          area: 'Inimigo mais próximo', alcance: 'Raio 380px',
+          duracao: '10s', duracaoBase: 10, extras: ['+20% Vampirismo (cura ao atacar)', '+30% Dano geral', '+20% Velocidade de Ataque', 'Autotarget no inimigo mais próximo', 'Cancela se o alvo morrer ou se distanciar'] }
     ],
     roqueiro: [
         { id: 'riff', nome: 'Riff de Guitarra', icon: '🎸', categoria: 'ataque',

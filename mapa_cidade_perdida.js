@@ -293,7 +293,7 @@
     function onUpdatePosicao(x, y) {
         if (global.estaMorto) return;
         if (typeof global.portalMapaPodeDisparar === 'function' && !global.portalMapaPodeDisparar(x, y)) return;
-        if (x >= CPD_X0) {
+        if (x >= CPD_X0 && x < CPD_X1) {
             const info = infoPortalCidadePerdida(x, y);
             if (info) {
                 if (typeof global.solicitarTeleporteMapa === 'function') {

@@ -33,6 +33,11 @@ window.vfxListeners.push(function(dados) {
 
     // 2. Cria a Aura Celestial e o Feixe de Luz no Curandeiro
     if (healerFound) {
+        if (dados.ownerId === window.meuId) {
+            if (window.tocarSonoro) window.tocarSonoro('curandeiro_skill4');
+        } else if (window.tocarSonoroProximidade) {
+            window.tocarSonoroProximidade('curandeiro_skill4', healerX, healerY);
+        }
         window.vfxCurandeiroCanticos.push({
             type: 'aura_celestial',
             x: healerX,

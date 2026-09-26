@@ -448,7 +448,7 @@ window.desenharLacaio = function (lacaio) {
     const petKey = lacaio.pid || lacaio.id;
     if (window.golemsSismicosAtivos && petKey && window.golemsSismicosAtivos[petKey]) {
         if (typeof window.desenharBarraHp === "function") {
-            window.desenharBarraHp(lacaio.x - 18, lacaio.y - 75, lacaio.hp, lacaio.maxHp);
+            window.desenharBarraHp(lacaio.x - 18, lacaio.y - 90, lacaio.hp, lacaio.maxHp);
         }
         ctx.save();
         ctx.font = "bold 11px sans-serif";
@@ -456,7 +456,7 @@ window.desenharLacaio = function (lacaio) {
         ctx.textAlign = "center";
         ctx.shadowColor = "rgba(0,0,0,0.85)";
         ctx.shadowBlur = 4;
-        ctx.fillText("🛡️ IMUNE", lacaio.x, lacaio.y - 82);
+        ctx.fillText("🛡️ IMUNE", lacaio.x, lacaio.y - 97);
         ctx.restore();
         return;
     }
