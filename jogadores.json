@@ -820,15 +820,15 @@
     "pontosDisponiveis": 3
   },
   "Admin": {
-    "level": 17,
-    "xp": 923,
+    "level": 18,
+    "xp": 2526,
     "classe": "pikeman",
-    "hp": 628,
-    "x": 74216,
-    "y": 523,
-    "ultimoLogin": 1790350409189,
+    "hp": 952,
+    "x": 4788,
+    "y": 1265,
+    "ultimoLogin": 1790451968530,
     "atributos": {
-      "forca": 4,
+      "forca": 7,
       "inteligencia": 1,
       "agilidade": 1,
       "destreza": 14,
@@ -837,22 +837,24 @@
       "divindade": 1,
       "afinidade": 1
     },
-    "pontosDisponiveis": 3,
+    "pontosDisponiveis": 1,
     "inventario": {
       "slots": {
         "capacete": {
-          "id": "drop_1789396756083_1",
+          "id": "drop_1790419732939_65",
+          "uid": "mui9ojij-vphjam9wg",
           "tipo": "equipamento",
           "slot": "capacete",
-          "raridade": "epico",
-          "raridadeNome": "ÉPICO",
-          "nome": "🪖 CAPACETE ÉPICO",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "🪖 CAPACETE LENDÁRIO",
           "icon": "🪖",
           "status": {
-            "divindade": 5,
-            "vida": 4
+            "divindade": 8,
+            "forca": 6,
+            "vida": 6
           },
-          "cor": "#a855f7",
+          "cor": "#ff7a00",
           "classe": null,
           "armaChave": null
         },
@@ -974,7 +976,7 @@
           "nome": "💎 Pedra de Upgrade Comum",
           "icon": "💎",
           "cor": "#ffffff",
-          "quantidade": 29,
+          "quantidade": 50,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -988,7 +990,7 @@
           "nome": "💎 Pedra de Upgrade Lendária",
           "icon": "💎",
           "cor": "#ff7a00",
-          "quantidade": 16,
+          "quantidade": 25,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -1002,7 +1004,7 @@
           "nome": "💎 Pedra de Upgrade Épica",
           "icon": "💎",
           "cor": "#a855f7",
-          "quantidade": 24,
+          "quantidade": 38,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -1016,7 +1018,7 @@
           "nome": "💎 Pedra de Upgrade Rara",
           "icon": "💎",
           "cor": "#4da6ff",
-          "quantidade": 16,
+          "quantidade": 32,
           "autocoleta": true,
           "stackavel": false,
           "pedra": true
@@ -1031,7 +1033,7 @@
           "icon": "💎",
           "cor": "#7ec8ff",
           "pctCura": 1,
-          "quantidade": 4,
+          "quantidade": 6,
           "autocoleta": true,
           "stackavel": false
         },
@@ -1045,7 +1047,7 @@
           "icon": "🔮",
           "cor": "#3498db",
           "pctCura": 0.3,
-          "quantidade": 8,
+          "quantidade": 11,
           "autocoleta": true,
           "stackavel": false
         },
@@ -1059,113 +1061,9 @@
           "icon": "🔮",
           "cor": "#3498db",
           "pctCura": 0.2,
-          "quantidade": 21,
+          "quantidade": 31,
           "autocoleta": true,
           "stackavel": false
-        },
-        {
-          "id": "muekmuen732c-en1tiumj2",
-          "uid": "muekmuen732c-en1tiumj2",
-          "tipo": "equipamento",
-          "slot": "arma",
-          "subTipo": "muekmuen732c-en1tiumj2",
-          "armaChave": "muekmuen732c-en1tiumj2",
-          "classe": "mago",
-          "classeRestrita": "mago",
-          "icon": "⚔️",
-          "nome": "A Lâmina Viva",
-          "raridade": "lendario",
-          "raridadeNome": "LENDARIO",
-          "status": {
-            "forca": 50,
-            "vida": 20
-          },
-          "customVisual": {
-            "tamanho": 40,
-            "largura": 3.5,
-            "cBase": "#39434f",
-            "cMeio": "#6b7e92",
-            "cPonta": "#b8c9db",
-            "cFio": "#00ff00"
-          }
-        },
-        {
-          "id": "muekmuena9m5-5ycz9e264",
-          "uid": "muekmuena9m5-5ycz9e264",
-          "tipo": "equipamento",
-          "slot": "arma",
-          "subTipo": "muekmuena9m5-5ycz9e264",
-          "armaChave": "muekmuena9m5-5ycz9e264",
-          "classe": "mago",
-          "classeRestrita": "mago",
-          "icon": "⚔️",
-          "nome": "A Lâmina Viva",
-          "raridade": "lendario",
-          "raridadeNome": "LENDARIO",
-          "status": {
-            "forca": 50,
-            "vida": 20
-          },
-          "customVisual": {
-            "tamanho": 25,
-            "largura": 3.5,
-            "cBase": "#39434f",
-            "cMeio": "#6b7e92",
-            "cPonta": "#b8c9db",
-            "cFio": "#00ff00"
-          }
-        },
-        {
-          "id": "muekmuenb32d-qdyffd3pw",
-          "uid": "muekmuenb32d-qdyffd3pw",
-          "tipo": "equipamento",
-          "slot": "arma",
-          "subTipo": "muekmuenb32d-qdyffd3pw",
-          "armaChave": "muekmuenb32d-qdyffd3pw",
-          "classe": "mago",
-          "classeRestrita": "mago",
-          "icon": "⚔️",
-          "nome": "A Lâmina Viva",
-          "raridade": "lendario",
-          "raridadeNome": "LENDARIO",
-          "status": {
-            "forca": 50,
-            "vida": 20
-          },
-          "customVisual": {
-            "tamanho": 40,
-            "largura": 4.5,
-            "cBase": "#ffff00",
-            "cMeio": "#ff0000",
-            "cPonta": "#0000ff",
-            "cFio": "#ffff00"
-          }
-        },
-        {
-          "id": "muekmuenc4su-smrtr86zl",
-          "uid": "muekmuenc4su-smrtr86zl",
-          "tipo": "equipamento",
-          "slot": "arma",
-          "subTipo": "muekmuenc4su-smrtr86zl",
-          "armaChave": "muekmuenc4su-smrtr86zl",
-          "classe": "dronemaster",
-          "classeRestrita": "dronemaster",
-          "icon": "⚔️",
-          "nome": "A Lâmina Viva",
-          "raridade": "lendario",
-          "raridadeNome": "LENDARIO",
-          "status": {
-            "forca": 50,
-            "vida": 20
-          },
-          "customVisual": {
-            "tamanho": 14,
-            "largura": 4.5,
-            "cBase": "#000000",
-            "cMeio": "#ff0000",
-            "cPonta": "#ff0000",
-            "cFio": "#ff0000"
-          }
         },
         {
           "id": "drop_1790311909354_1",
@@ -1183,14 +1081,211 @@
           "cor": "#4da6ff",
           "classe": null,
           "armaChave": null
+        },
+        {
+          "id": "drop_1790419673392_13",
+          "uid": "mui9n9kg-g82a81vgg",
+          "tipo": "consumivel",
+          "subtipo": "pocao_hp",
+          "nivel": 1,
+          "nome": "🧪 Poção de Vida I",
+          "icon": "🧪",
+          "cor": "#e74c3c",
+          "pctCura": 0.2,
+          "quantidade": 11,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790419673692_15",
+          "uid": "mui9n9ss-5smd0t905",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "📿 COLAR ÉPICO",
+          "icon": "📿",
+          "status": {
+            "vida": 5,
+            "inteligencia": 6,
+            "divindade": 4
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790419675511_29",
+          "uid": "mui9nb7b-blgtvv2pz",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "🧤 LUVA LENDÁRIO",
+          "icon": "🧤",
+          "status": {
+            "destreza": 9,
+            "velocidadeAtaque": 8,
+            "forca": 8
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1789396756083_1",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🪖 CAPACETE ÉPICO",
+          "icon": "🪖",
+          "status": {
+            "divindade": 5,
+            "vida": 4
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790419867295_110",
+          "uid": "mui9rf6n-sxcc2564g",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "lendario",
+          "raridadeNome": "LENDÁRIO",
+          "nome": "🛡️ ARMADURA LENDÁRIO",
+          "icon": "🛡️",
+          "status": {
+            "vida": 9,
+            "divindade": 11,
+            "forca": 8,
+            "agilidade": 11
+          },
+          "cor": "#ff7a00",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790423252877_20",
+          "uid": "muibrzil-4311rx5ra",
+          "tipo": "consumivel",
+          "subtipo": "pocao_hp",
+          "nivel": 3,
+          "nome": "🧪 Poção de Vida III",
+          "icon": "❣️",
+          "cor": "#ff4d4d",
+          "pctCura": 1,
+          "quantidade": 3,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790423332588_35",
+          "uid": "muibtp0s-38h5w3e2f",
+          "tipo": "consumivel",
+          "subtipo": "pocao_hp",
+          "nivel": 2,
+          "nome": "🧪 Poção de Vida II",
+          "icon": "🧪",
+          "cor": "#e74c3c",
+          "pctCura": 0.4,
+          "quantidade": 3,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790451591444_68",
+          "uid": "muisndp0-95lanalg5",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "💍 ANEL COMUM",
+          "icon": "💍",
+          "status": {
+            "divindade": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790451591461_70",
+          "uid": "muisndph-exbkvkx21",
+          "tipo": "equipamento",
+          "slot": "colar",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "📿 COLAR ÉPICO",
+          "icon": "📿",
+          "status": {
+            "divindade": 6,
+            "vida": 6
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790451685884_76",
+          "uid": "muispekc-0mzr05pk4",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🛡️ ARMADURA ÉPICO",
+          "icon": "🛡️",
+          "status": {
+            "agilidade": 7,
+            "forca": 7,
+            "vida": 7
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790451687630_87",
+          "uid": "muispfwu-gt9mragkj",
+          "tipo": "equipamento",
+          "slot": "peitoral",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🛡️ ARMADURA COMUM",
+          "icon": "🛡️",
+          "status": {
+            "vida": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790451713115_117",
+          "uid": "muispzkr-qvv3drtg6",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🧤 LUVA RARO",
+          "icon": "🧤",
+          "status": {
+            "destreza": 4,
+            "vida": 2
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
         }
       ]
     },
-    "maxHp": 876,
+    "maxHp": 940,
     "skills": {
       "execucao_morte": 3
     },
-    "pontosHabilidade": 1,
+    "pontosHabilidade": 2,
     "mana": 120,
     "uiLayout": {
       "hud-status-window": {
@@ -1246,7 +1341,7 @@
         "h": 101
       }
     },
-    "ouro": 2396
+    "ouro": 4522
   },
   "Admin2": {
     "level": 3,
@@ -4304,7 +4399,7 @@
     "hp": 100,
     "x": 74205,
     "y": 999,
-    "ultimoLogin": 1790347043993,
+    "ultimoLogin": 1790434927358,
     "atributos": {
       "forca": 1,
       "inteligencia": 1,
@@ -10076,5 +10171,270 @@
     "pontosHabilidade": 0,
     "mana": 50,
     "ultimoLogin": 1790372205550
+  },
+  "Admin12387": {
+    "level": 5,
+    "xp": 910,
+    "classe": "summoner",
+    "hp": 168,
+    "x": 72488,
+    "y": 278,
+    "ultimoLogin": 1790451513242,
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 3,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 6
+    },
+    "pontosDisponiveis": 0,
+    "skills": {
+      "ogro": 5
+    },
+    "pontosHabilidade": 0,
+    "inventario": {
+      "slots": {
+        "capacete": {
+          "id": "drop_1790439580245_29",
+          "uid": "muilhxsl-3uk7wzg7j",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🪖 CAPACETE COMUM",
+          "icon": "🪖",
+          "status": {
+            "vida": 2
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": {
+          "id": "drop_1790439541252_14",
+          "uid": "muilh3pg-46jtjl5gi",
+          "tipo": "equipamento",
+          "slot": "anel",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "💍 ANEL COMUM",
+          "icon": "💍",
+          "status": {
+            "destreza": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        "capa": {
+          "id": "drop_1790439542432_17",
+          "uid": "muilh4m8-o4pt3e4ec",
+          "tipo": "equipamento",
+          "slot": "capa",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🧥 CAPA COMUM",
+          "icon": "🧥",
+          "status": {
+            "inteligencia": 1
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        "bota": null,
+        "luva": {
+          "id": "drop_1790439597417_45",
+          "uid": "muilib1l-631pzeg44",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "epico",
+          "raridadeNome": "ÉPICO",
+          "nome": "🧤 LUVA ÉPICO",
+          "icon": "🧤",
+          "status": {
+            "destreza": 8,
+            "forca": 7
+          },
+          "cor": "#a855f7",
+          "classe": null,
+          "armaChave": null
+        }
+      },
+      "mochila": [
+        {
+          "id": "drop_1790439541256_16",
+          "uid": "muilh3pk-vfql3cb0g",
+          "tipo": "pedra",
+          "raridade": "comum",
+          "raridadeNome": "PEDRA DE UPGRADE COMUM",
+          "nome": "💎 Pedra de Upgrade Comum",
+          "icon": "💎",
+          "cor": "#ffffff",
+          "quantidade": 8,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790439565669_21",
+          "uid": "muilhmjp-nfodex2ju",
+          "tipo": "pedra",
+          "raridade": "raro",
+          "raridadeNome": "PEDRA DE UPGRADE RARA",
+          "nome": "💎 Pedra de Upgrade Rara",
+          "icon": "💎",
+          "cor": "#4da6ff",
+          "quantidade": 5,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790439565669_20",
+          "uid": "muilhmjp-vebvzy8n6",
+          "tipo": "consumivel",
+          "subtipo": "pocao_mp",
+          "nivel": 1,
+          "nome": "🔮 Poção de Mana I",
+          "icon": "🔮",
+          "cor": "#3498db",
+          "pctCura": 0.2,
+          "quantidade": 8,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790439578538_28",
+          "uid": "muilhwh6-388qa7m8i",
+          "tipo": "pedra",
+          "raridade": "lendario",
+          "raridadeNome": "PEDRA DE UPGRADE LENDÁRIA",
+          "nome": "💎 Pedra de Upgrade Lendária",
+          "icon": "💎",
+          "cor": "#ff7a00",
+          "quantidade": 2,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790439586606_39",
+          "uid": "muili2pa-kjj6zjx44",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🪖 CAPACETE RARO",
+          "icon": "🪖",
+          "status": {
+            "forca": 4,
+            "divindade": 3
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790439580394_32",
+          "uid": "muilhxwq-njfvuam4f",
+          "tipo": "equipamento",
+          "slot": "capacete",
+          "raridade": "raro",
+          "raridadeNome": "RARO",
+          "nome": "🪖 CAPACETE RARO",
+          "icon": "🪖",
+          "status": {
+            "destreza": 3,
+            "inteligencia": 5
+          },
+          "cor": "#4da6ff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790439596831_41",
+          "uid": "muilialb-bjao6h00r",
+          "tipo": "equipamento",
+          "slot": "luva",
+          "raridade": "comum",
+          "raridadeNome": "COMUM",
+          "nome": "🧤 LUVA COMUM",
+          "icon": "🧤",
+          "status": {
+            "forca": 3
+          },
+          "cor": "#ffffff",
+          "classe": null,
+          "armaChave": null
+        },
+        {
+          "id": "drop_1790439597424_47",
+          "uid": "muilib1s-dckd7iovh",
+          "tipo": "pedra",
+          "raridade": "epico",
+          "raridadeNome": "PEDRA DE UPGRADE ÉPICA",
+          "nome": "💎 Pedra de Upgrade Épica",
+          "icon": "💎",
+          "cor": "#a855f7",
+          "quantidade": 3,
+          "autocoleta": true,
+          "stackavel": false,
+          "pedra": true
+        },
+        {
+          "id": "drop_1790451441543_40",
+          "uid": "muisk613-qqrkmpwiw",
+          "tipo": "consumivel",
+          "subtipo": "pocao_hp",
+          "nivel": 2,
+          "nome": "🧪 Poção de Vida II",
+          "icon": "🧪",
+          "cor": "#e74c3c",
+          "pctCura": 0.4,
+          "quantidade": 2,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790451441564_44",
+          "uid": "muisk61o-ldvj3g3jw",
+          "tipo": "consumivel",
+          "subtipo": "pocao_hp",
+          "nivel": 1,
+          "nome": "🧪 Poção de Vida I",
+          "icon": "🧪",
+          "cor": "#e74c3c",
+          "pctCura": 0.2,
+          "quantidade": 3,
+          "autocoleta": true,
+          "stackavel": false
+        },
+        {
+          "id": "drop_1790451443836_65",
+          "uid": "muisk7ss-k6dwo9ozh",
+          "tipo": "consumivel",
+          "subtipo": "pocao_mp",
+          "nivel": 2,
+          "nome": "🔮 Poção de Mana II",
+          "icon": "🔮",
+          "cor": "#3498db",
+          "pctCura": 0.3,
+          "quantidade": 1,
+          "autocoleta": true,
+          "stackavel": false
+        }
+      ]
+    },
+    "ouro": 252,
+    "mana": 60,
+    "maxHp": 168
   }
 }

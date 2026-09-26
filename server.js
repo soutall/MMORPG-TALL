@@ -167,6 +167,17 @@ try {
     console.log("Aviso: debuffs.js não carregado: " + e.message);
 }
 
+// ============ SISTEMA UNIVERSAL DE AFINIDADE (pets/lacaios) ============
+// Tabela única de transferência + herança de atributos. Só o servidor calcula.
+let afinidadePets = null;
+try {
+    afinidadePets = require('./sistemas/afinidade_pets.js');
+    console.log("Sistema de Afinidade de Pets carregado.");
+} catch (e) {
+    console.log("ERRO FATAL: sistemas/afinidade_pets.js não carregou: " + e.message);
+    throw e;
+}
+
 const server = http.createServer((req, res) => {
     let urlSemQuery = req.url.split('?')[0];
     try { urlSemQuery = decodeURIComponent(urlSemQuery); } catch (e) { /* mantém original */ }
@@ -1045,6 +1056,52 @@ function avisaForaAlcance(ws, skill) {
     ws.send(JSON.stringify({ type: 'skill_aviso', skill: skill || '', motivo: 'fora_alcance' }));
 }
 
+// v1.60.1 — AUDITORIA: ALCANCE VALIDADO NO SERVIDOR.
+// O cliente já validava (checarSkill/SKILLS_DRAG), mas o servidor aceitava o
+// cast de qualquer coordenada. Agora o servidor é a autoridade: alvo não finito
+// ou além de `limitePx` (medido do centro do jogador) => rejeita.
+// Usa o MESMO feedback já existente (avisaForaAlcance) e roda ANTES do cooldown,
+// para que um cast errado não queime a recarga da skill.
+function alcanceSkillValido(p, targetX, targetY, limitePx) {
+    if (!p) return false;
+    const x = Number(targetX), y = Number(targetY);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return false;
+    return Math.hypot(x - (p.x + PLAYER_OFFSET_X), y - (p.y + PLAYER_OFFSET_Y)) <= limitePx;
+}
+
+// v1.60.0 — AUDITORIA: COOLDOWN SERVER-SIDE
+// Antes destas 9 skills o cooldown existia SÓ no cliente (o servidor aceitava
+// spam se o client fosse adulterado). O servidor passa a ser quem decide.
+// Os valores são os do cliente COM a margem de -500ms já usada pelo resto do
+// servidor (ex.: lastVulcao 19500 p/ 20s, lastCantico 14500 p/ 15s): o cliente
+// zera o anel no ENVIO e o servidor começa a contar no RECEBIMENTO, então a
+// margem evita o "pronto no cliente, ainda em recarga no servidor".
+// Usa o MESMO padrão já existente de `p.lastX` (ex.: lastVulcao/lastBola),
+// por isso o bypass de admin `semCooldown` (que zera esses campos) continua
+// funcionando — basta manter o campo na lista de reset.
+function avisaSkillCooldown(ws, skill, restanteMs) {
+    if (!ws || ws.readyState !== WebSocket.OPEN) return;
+    ws.send(JSON.stringify({ type: 'skill_aviso', skill: skill || '', motivo: 'cooldown', restante: Math.max(0, Math.round(restanteMs || 0)) }));
+}
+
+// Retorna false e avisa o cliente se a skill ainda estiver em recarga.
+function cdSkillExpirado(ws, p, campoLast, cdMs, acao) {
+    if (!p) return false;
+    if (!p[campoLast]) p[campoLast] = 0;
+    const restante = cdMs - (Date.now() - p[campoLast]);
+    if (restante > 0) {
+        avisaSkillCooldown(ws, acao, restante);
+        return false;
+    }
+    return true;
+}
+
+// Marca o início do cooldown DEPOIS que a skill realmente foi aceita
+// (se o mana falhar, a skill não entra em recarga).
+function marcarSkillUsada(p, campoLast) {
+    if (p) p[campoLast] = Date.now();
+}
+
 // ==================================================================
 // NOVAS CLASSES (v1.31) — HELPERS COMPARTILHADOS
 // ==================================================================
@@ -1568,20 +1625,22 @@ function causarDanoZona(z, danoBase) {
     danoEmBosses(z.x, z.y, z.raio, z.ownerId, danoBase, 'skill', 'dot');
 }
 
-// AFINIDADE: vida do lacaio/ogro (90 base)
+// AFINIDADE: vida do lacaio/ogro (90 base) — herda a Vida efetiva do personagem
 function calcularVidaPet(player) {
-    return 90 + (getAtr(player, 'afinidade') - 1) * 15;
+    const herdados = afinidadePets.getPetInheritedAttributes(player, atributosTotais(player));
+    return 90 + herdados.vida * 15;
 }
 
 // Calcula dano final do autor, aplicando multiplicadores de atributo + crítico
-// tipoOrigem: 'player' (força/inteligência por classe + crítico), 'pet' (afinidade), 'dot' (profanidade)
+// tipoOrigem: 'player' (força/inteligência por classe + crítico), 'pet' (atributos herdados pela Afinidade), 'dot' (profanidade)
 function calcularDanoJogador(autorId, quantidade, tipoOrigem, alvo) {
     let p = players[autorId];
     if (!p) return { dano: Math.round(quantidade), critico: false };
     let mult = 1;
     let critMult = 1;
     if (tipoOrigem === 'pet') {
-        mult += (getAtr(p, 'afinidade') - 1) * 0.05;
+        const herdadosPet = afinidadePets.getPetInheritedAttributes(p, atributosTotais(p));
+        mult += (herdadosPet.forca + herdadosPet.inteligencia) * 0.05;
     } else if (tipoOrigem === 'dot') {
         mult += (getAtr(p, 'profanidade') - 1) * 0.05;
     } else {
@@ -2300,6 +2359,14 @@ function aplicarDanoJogador(pid, origemX, origemY, dano) {
 
     // LADINO — DANÇA DAS ADAGAS: imune a dano durante a sequência de teleportes
     if (jogador.ladinoDancaAtivo) return true;
+
+    // ARQUEIRO — SALTO + CHUVA DO ALTO: `p.imune` era setado/limpo pelo servidor
+    // mas NUNCA era lido aqui (imunidade declarada e inoperante). Agora vale.
+    // Vale enquanto o arqueiro está "no alto": do cast até o tiro ou 3s (o que
+    // vier primeiro) — mesma janela que já era controlada por saltoChuvaExpires.
+    // SÓ PvE: `aplicarDanoPvP` NÃO consulta .imune de propósito — a imunidade
+    // nunca vira imunidade PvP (v1.60.1).
+    if (jogador.imune) return true;
 
     // LADINO — CAMUFLAGEM SOMBRIA: invisível = inimigos NÃO o acertam (nem melee,
     // nem projéteis em voo, nem AOE de monstro). PvP usa aplicarDanoPvP (separado).
@@ -3245,6 +3312,8 @@ function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
     }
     // LADINO — imune durante a Dança das Adagas (server-side, inclusive PvP)
     if (p2.ladinoDancaAtivo) return;
+    // NOTA v1.60.1: `p2.imune` (Salto + Chuva do Alto, Arqueiro) NÃO é consultado
+    // aqui de propósito — essa imunidade é PvE e não pode virar imunidade PvP.
     // LADINO — CAMUFLAGEM SOMBRIA: primeiro acerto em PvP também consome o bônus +100%
     let atk = players[atkId];
     // ===== ADMIN CHEAT: SUPER ATAQUE (PVP) =====
@@ -5331,8 +5400,8 @@ setInterval(() => {
                     sincronizarEfeitos(pid, p);
                 }
             }
-            // LADINO — Dança das Adagas: imune inclusive ao veneno do pântano
-            if (!p.ladinoDancaAtivo && efeitos.temEfeito(p, 'veneno') && global.venenoTick % 10 === 0) {
+            // LADINO — Dança das Adagas / ARQUEIRO — Salto + Chuva: imunes ao veneno do pântano
+            if (!p.ladinoDancaAtivo && !p.imune && efeitos.temEfeito(p, 'veneno') && global.venenoTick % 10 === 0) {
                 const veneno = efeitos.pegarEfeito(p, 'veneno');
                 p.hp = Math.max(0, p.hp - Math.max(5, Math.round(5 * ((veneno && veneno.intensidade) || 1))));
             }
@@ -8307,8 +8376,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (p.mana > p.maxMp) p.mana = p.maxMp;
                 }
 
-                // AFINIDADE: aumenta a vida do lacaio do summoner também
-                if (data.atributo === 'afinidade' && lacaios[playerId]) {
+                // AFINIDADE/ATRIBUTOS HERDADOS: recalcula a vida do lacaio do summoner também
+                const atributoHerdadoPet = (data.atributo === 'afinidade' || afinidadePets.ATRIBUTOS_HERDADOS.indexOf(data.atributo) !== -1);
+                if (atributoHerdadoPet && lacaios[playerId]) {
                     let novaVidaPet = calcularVidaPet(p);
                     lacaios[playerId].maxHp = novaVidaPet;
                     if (lacaios[playerId].hp > novaVidaPet) lacaios[playerId].hp = novaVidaPet;
@@ -8567,6 +8637,8 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         pAc.lastVulcao = 0; pAc.lastDash = 0; pAc.lastTornado = 0; pAc.lastFuria = 0;
                         pAc.lastEsmagamento = 0; pAc.lastGiro = 0; pAc.lastCura = 0; pAc.lastJulgamento = 0;
                         pAc.lastAura = 0; pAc.lastRiff = 0; pAc.lastBateria = 0; pAc.lastTeleporte = 0;
+                        pAc.lastMeteoro = 0; pAc.lastNevasca = 0; pAc.lastChuva = 0;
+                        pAc.lastPerfurante = 0; pAc.lastRajada = 0;
                         pAc.lastGrito = 0; pAc.lastDanca = 0; pAc.lastBomba = 0; pAc.lastCamuflagem = 0;
                         pAc.lastEstrela = 0; pAc.lastSupressao = 0; pAc.lastAssalto = 0; pAc.lastCaixa = 0;
                         pAc.lastTita = 0; pAc.lastCometas = 0; pAc.lastOrbe = 0; pAc.lastCascata = 0;
@@ -8711,7 +8783,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         mapaPorCoordenada(players[playerId].x + PLAYER_OFFSET_X)
                     );
                     if (!destinoEsmagamento.aceito) return;
+                    if (!cdSkillExpirado(ws, players[playerId], 'lastEsmagamento', 5500, 'barbaro_esmagamento')) return; // CD 6s no cliente / margem server -500ms
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'esmagamento-barbaro', 25))) return;
+                    marcarSkillUsada(players[playerId], 'lastEsmagamento');
                     players[playerId].x = destinoEsmagamento.x;
                     players[playerId].y = destinoEsmagamento.y;
 
@@ -9666,7 +9740,9 @@ if (data.action === 'dash') {
 
 
                 if (data.action === 'tornado') {
+                    if (!cdSkillExpirado(ws, players[playerId], 'lastTornado', 4500, 'tornado')) return; // CD 5s no cliente / margem server -500ms
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'tornado', 20))) return;
+                    marcarSkillUsada(players[playerId], 'lastTornado');
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'action_tornado', id: playerId }));
@@ -10298,7 +10374,9 @@ if (data.action === 'dash') {
                 }
 
                 if (data.action === 'curandeiro_cura') {
+                    if (!cdSkillExpirado(ws, players[playerId], 'lastCura', 4500, 'curandeiro_cura')) return; // CD 5s no cliente / margem server -500ms
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'cura', 25))) return;
+                    marcarSkillUsada(players[playerId], 'lastCura');
                     // Ponto alvo: se vier targetX/targetY usa (cura em área selecionada)
                     let pX = (typeof data.targetX === 'number') ? data.targetX : (players[playerId].x + 12);
                     let pY = (typeof data.targetY === 'number') ? data.targetY : (players[playerId].y + 16);
@@ -10322,7 +10400,10 @@ if (data.action === 'dash') {
                 }
 
                 if (data.action === 'curandeiro_julgamento') {
+                    if (!alcanceSkillValido(players[playerId], data.targetX, data.targetY, 340)) { avisaForaAlcance(ws, 'curandeiro_julgamento'); return; } // mira 340px (autoridade server)
+                    if (!cdSkillExpirado(ws, players[playerId], 'lastJulgamento', 6000, 'curandeiro_julgamento')) return; // CD 6.5s no cliente / margem server -500ms
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'julgamento', 24))) return;
+                    marcarSkillUsada(players[playerId], 'lastJulgamento');
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'action_curandeiro_julgamento', targetX: data.targetX, targetY: data.targetY }));
@@ -10340,7 +10421,10 @@ if (data.action === 'dash') {
                 }
 
                 if (data.action === 'arqueiro_chuva') {
+                    if (!alcanceSkillValido(players[playerId], data.targetX, data.targetY, 420)) { avisaForaAlcance(ws, 'arqueiro_chuva'); return; } // mira 420px (autoridade server)
+                    if (!cdSkillExpirado(ws, players[playerId], 'lastChuva', 5500, 'arqueiro_chuva')) return; // CD 6s no cliente / margem server -500ms
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'chuva', 22))) return;
+                    marcarSkillUsada(players[playerId], 'lastChuva');
                     const duracaoChuvaMs = Math.round(140 * (1000 / 60));
                     chuvasServidor.push({ ownerId: playerId, x: data.targetX, y: data.targetY, duracao: Math.ceil(duracaoChuvaMs / 50), expiresAt: Date.now() + duracaoChuvaMs, danoChuva: dmgSkill(players[playerId], 'chuva', 8) });
                     wss.clients.forEach((client) => {
@@ -10351,7 +10435,9 @@ if (data.action === 'dash') {
                 }
 
                 if (data.action === 'arqueiro_perfurante') {
+                    if (!cdSkillExpirado(ws, players[playerId], 'lastPerfurante', 4000, 'arqueiro_perfurante')) return; // CD 4.5s no cliente / margem server -500ms
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'perfurante', 18))) return;
+                    marcarSkillUsada(players[playerId], 'lastPerfurante');
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
                     let ang = (data.angulo !== undefined) ? data.angulo : players[playerId].angulo;
@@ -10379,8 +10465,10 @@ if (data.action === 'dash') {
                 }
 
                 if (data.action === 'arqueiro_rajada') {
+                    if (!cdSkillExpirado(ws, players[playerId], 'lastRajada', 11500, 'arqueiro_rajada')) return; // CD 12s no cliente / margem server -500ms
                     if (rajadaCanal[playerId]) return;
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'rajada', 30))) return;
+                    marcarSkillUsada(players[playerId], 'lastRajada');
                     rajadaCanal[playerId] = {
                         startX: players[playerId].x,
                         startY: players[playerId].y,
@@ -10402,7 +10490,10 @@ if (data.action === 'dash') {
                 }
 
                 if (data.action === 'meteoro') {
+                    if (!alcanceSkillValido(players[playerId], data.targetX, data.targetY, 380)) { avisaForaAlcance(ws, 'meteoro'); return; } // mira 380px (autoridade server)
+                    if (!cdSkillExpirado(ws, players[playerId], 'lastMeteoro', 6500, 'meteoro')) return; // CD 7s no cliente / margem server -500ms
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'meteoro', 30))) return;
+                    marcarSkillUsada(players[playerId], 'lastMeteoro');
                     let danoMeteoro = dmgSkill(players[playerId], 'meteoro', 25);
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
@@ -10422,7 +10513,10 @@ if (data.action === 'dash') {
                 }
 
                 if (data.action === 'nevasca') {
+                    if (!alcanceSkillValido(players[playerId], data.targetX, data.targetY, 350)) { avisaForaAlcance(ws, 'nevasca'); return; } // mira 350px (autoridade server)
+                    if (!cdSkillExpirado(ws, players[playerId], 'lastNevasca', 11500, 'nevasca')) return; // CD 12s no cliente / margem server -500ms
                     if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'nevasca', 35))) return;
+                    marcarSkillUsada(players[playerId], 'lastNevasca');
                     const duracaoNevascaMs = Math.round(480 * (1000 / 60));
                     const soundIdNevasca = 'nevasca_' + playerId + '_' + Date.now();
                     blizzards.push({ ownerId: playerId, x: data.targetX, y: data.targetY, radius: 115, duracao: Math.ceil(duracaoNevascaMs / 50), expiresAt: Date.now() + duracaoNevascaMs, soundId: soundIdNevasca, danoNevasca: dmgSkill(players[playerId], 'nevasca', 6) });

@@ -1985,9 +1985,9 @@ function usarCanticoCelestial() {
             if (window.dmTitaAtivo) { statusText.innerText = "🦾 Protocolo Titã ativo! Não pode usar habilidades."; return; }
             if (!checarSkill('assalto_dm', 25)) return;
             cancelarTodasMiras();
-            window.dmAssaltoCooldown = true; btnDmAssalto.classList.add("cooldown"); registrarCooldownBotao(btnDmAssalto, 10000);
+            window.dmAssaltoCooldown = true; btnDmAssalto.classList.add("cooldown"); registrarCooldownBotao(btnDmAssalto, 15000);
             window.ultimoSkillEnviado = { skill: 'dronemaster_assalto', ts: Date.now() };
-            setTimeout(() => { window.dmAssaltoCooldown = false; btnDmAssalto.classList.remove("cooldown"); btnDmAssalto.dataset.cdUntil = ''; }, 10000);
+            setTimeout(() => { window.dmAssaltoCooldown = false; btnDmAssalto.classList.remove("cooldown"); btnDmAssalto.dataset.cdUntil = ''; }, 15000);
             if (window.tocarSonoro) window.tocarSonoro('dronemaster_assalto');
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'dronemaster_assalto' })); }
         }
@@ -2583,11 +2583,11 @@ function usarCanticoCelestial() {
                 ['btn-vulcao', () => window.vulcaoCooldownAtivo, 20],
                 ['btn-mago-bola', () => window.cdMagoBola, 20],
                 ['btn-arqueiro-chuva', () => window.chuvaCooldownAtivo, 6],
-                ['btn-arqueiro-perfurante', () => perfuranteCooldownAtivo, 8],
+                ['btn-arqueiro-perfurante', () => perfuranteCooldownAtivo, 4.5],
                 ['btn-arqueiro-rajada', () => window.arqueiroRajadaCooldown, 12],
                 ['btn-arqueiro-salto', () => window.cdArqueiroSalto, 25],
-                ['btn-curandeiro-cura', () => curaCooldownAtivo, 6],
-                ['btn-curandeiro-julgamento', () => window.julgamentoCooldownAtivo, 6],
+                ['btn-curandeiro-cura', () => curaCooldownAtivo, 5],
+                ['btn-curandeiro-julgamento', () => window.julgamentoCooldownAtivo, 6.5],
                 ['btn-curandeiro-aura', () => window.auraSagradaCooldown, 5],
                 ['btn-curandeiro-cantico', () => window.cdCurandeiroCantico, 15],
                 ['btn-barbaro-furia', () => furiaCooldownAtivo, 15],
@@ -2603,7 +2603,7 @@ function usarCanticoCelestial() {
                 ['btn-ladino-camuflagem', () => window.ladinoCamuflagemCooldown, 10],
                 ['btn-ladino-estrela', () => window.ladinoEstrelaCooldown, 20],
                 ['btn-dm-supressao', () => window.dmSupressaoCooldown, 10],
-                ['btn-dm-assalto', () => window.dmAssaltoCooldown, 10],
+                ['btn-dm-assalto', () => window.dmAssaltoCooldown, 15],
                 ['btn-dm-caixa', () => window.dmCaixaCooldown, 15],
                 ['btn-dm-tita', () => window.dmTitaCooldown, 45],
                 ['btn-arcano-cometas', () => window.arcanoCometasCooldown, 7],
@@ -2618,7 +2618,7 @@ function usarCanticoCelestial() {
                 ['btn-ogro-colossal', () => window.ogroColossalCooldown, 45],
                 ['btn-summoner-golem', () => window.cdSummonerGolem, 30],
                 ['btn-dash', () => window.dashCooldownAtivo, 5],
-                ['btn-tornado', () => tornadoCooldownAtivo, 10],
+                ['btn-tornado', () => tornadoCooldownAtivo, 5],
                 ['btn-guerreiro-provocacao', () => provocacaoCooldownAtivo, 15],
                 ['btn-guerreiro-escudo', () => window.cdGuerreiroEscudo, 10],
                 ['btn-pikeman-giro', () => window.giroPikemanCooldown, 7],
@@ -3054,6 +3054,13 @@ function usarCanticoCelestial() {
                     if (dados.type === 'skill_aviso' && dados.motivo === 'fora_alcance') {
                         if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 34, text: "🎯 Fora de alcance!", color: "#e74c3c", alpha: 1.0 });
                         if (typeof cancelarCooldownUltimaSkill === 'function') cancelarCooldownUltimaSkill();
+                    }
+
+                    // v1.60.0 — O SERVIDOR recusou a skill por COOLDOWN (autoridade).
+                    // O cooldown do cliente NÃO é cancelado: ele já está correto.
+                    // Só avisamos o jogador e o anel continua contando.
+                    if (dados.type === 'skill_aviso' && dados.motivo === 'cooldown') {
+                        if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 34, text: "⏳ Em recarga!", color: "#f1c40f", alpha: 1.0 });
                     }
 
                     if (dados.type === 'skill_aviso' && dados.motivo === 'fora_mato') {

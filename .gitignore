@@ -23,3 +23,5 @@ imagem/HUD/Imagem do Codex*.png
 *.zip
 *.7z
 RODRIGO NAO DELETAR.rar
+# Backups de auditoria locais (nao sobem para o GitHub)
+backup_auditoria/
