@@ -72,3 +72,141 @@
     margin-top: 5px;
     line-height: 1.35;
 }
+
+/* ===== Container do conteúdo e barra de ações (desktop/mobile) ===== */
+#settings-conteudo { display: block; }
+
+#settings-acoes { display: block; }
+
+.btn-ico { line-height: 1; }
+
+/* ===== UI DE CONFIG REDESENHADA — SOMENTE MOBILE =====
+   Janela larga (ocupa a horizontal da tela), menus lado a lado
+   (Áudio e Visual em 2 colunas) e ações como botões de ícone.
+   O tamanho acompanha a tela automaticamente: largura limitada por
+   vh, altura limitada por vw e alturas fixas em rem (não px), então
+   a janela muda de tamanho junto com a tela — sem barra de rolagem. */
+@media (max-width: 1024px) and (orientation: landscape), (max-width: 900px), (pointer: coarse) {
+    :root {
+        --cfg-altura: min(94vh, 46vw);
+    }
+
+    #settings-window {
+        /* Largura limitada também pela ALTURA da tela: evita janelas
+           largas e baixas (telas deitada) que estouravam a vertical. */
+        width: min(96vw, calc(var(--cfg-altura) * 1.7));
+        max-width: 96vw;
+        /* Acompanha a altura da tela; em telas baixas encolhe e as
+           colunas refluem (auto-fit) em vez de gerar rolagem. */
+        height: var(--cfg-altura);
+        max-height: 94vh;
+        padding: 0.8rem 1rem;
+        border-width: 2px;
+        box-shadow: 4px 4px 0 #000, inset 2px 2px 0 #3a3528;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        text-align: left;
+    }
+
+    /* --- Título: fecha em cima, barra de ações encostada embaixo --- */
+    #settings-header {
+        order: 1;
+        flex: 0 0 auto;
+        margin: 0;
+        padding-bottom: 0.4rem;
+        border-bottom: 2px solid #3a3528;
+    }
+
+    #settings-titulo { font-size: 1.1rem; letter-spacing: 0.2em; }
+
+    #btn-settings-fechar {
+        width: 2.1rem;
+        height: 2.1rem;
+        font-size: 1rem;
+        border-radius: 0.35rem;
+    }
+
+    /* As duas abas aparecem JUNTAS, lado a lado — sem barra de abas */
+    #settings-abas { display: none; }
+
+    /* --- Colunas: refluem sozinhas conforme a largura/altura da tela --- */
+    #settings-conteudo {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+        gap: 0.4rem 1.2rem;
+        margin: 0;
+        flex: 1 1 auto;
+        min-height: 0;
+        overflow-y: auto;
+        align-content: start;
+    }
+
+    #settings-tab-audio,
+    #settings-tab-visual {
+        display: block !important;
+    }
+
+    /* --- Opções: ícones à esquerda, controle e valor à direita --- */
+    .settings-linha {
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+        margin: 0 0 0.45rem;
+        padding-top: 0.4rem;
+    }
+
+    .settings-linha:last-child { margin-bottom: 0; }
+
+    .settings-label {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+        font-size: 0.68rem;
+        letter-spacing: 0.06em;
+        margin: 0;
+    }
+
+    .settings-ico { font-size: 1rem; line-height: 1; }
+
+    .volume-row { gap: 0.4rem; }
+    .vol-icone { font-size: 0.9rem; }
+    #volume-valor, #volume-bgm-valor, #volume-sfx-valor { font-size: 0.9rem; min-width: 2.4rem; }
+
+    #volume-slider, #volume-bgm-slider, #volume-sfx-slider { height: 0.5rem; }
+    #volume-slider::-webkit-slider-thumb, #volume-bgm-slider::-webkit-slider-thumb, #volume-sfx-slider::-webkit-slider-thumb { width: 1.5rem; height: 1.5rem; }
+    #volume-slider::-moz-range-thumb, #volume-bgm-slider::-moz-range-thumb, #volume-sfx-slider::-moz-range-thumb { width: 1.4rem; height: 1.4rem; }
+
+    .settings-select { font-size: 0.85rem; padding: 0.5rem 0.55rem; }
+
+    /* --- Ações: ícones pequenos, na vertical, encostadas embaixo --- */
+    #settings-acoes {
+        display: flex;
+        flex-direction: column;
+        flex: 0 0 auto;
+        gap: 0.35rem;
+        margin: 0;
+        padding-top: 0.4rem;
+        border-top: 2px solid #3a3528;
+    }
+
+    .btn-config-acao {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.5rem;
+        width: 100%;
+        height: 2.2rem;
+        font-size: 0.7rem;
+        letter-spacing: 0.05em;
+        padding: 0 0.6rem;
+        border-bottom-width: 3px;
+        text-align: left;
+    }
+
+    .btn-ico { font-size: 1.15rem; }
+
+    .btn-sair { margin-top: 0; }
+
+    #settings-roda-pe { display: none; }
+}

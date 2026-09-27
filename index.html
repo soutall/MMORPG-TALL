@@ -7,10 +7,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Oswald:wght@500;600;700&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=244">
+    <link rel="stylesheet" href="style.css?v=245">
     <link rel="stylesheet" href="inventario.css?v=135">
     <link rel="stylesheet" href="skills.css?v=144">
-    <link rel="stylesheet" href="config.css?v=147">
+    <link rel="stylesheet" href="config.css?v=150">
     <link rel="stylesheet" href="atributos.css?v=5">
     <link rel="stylesheet" href="spawn-admin.css?v=2">
     <link rel="stylesheet" href="colisao-editor.css?v=3">
@@ -19,6 +19,7 @@
     <link rel="stylesheet" href="intro.css?v=1">
     <link rel="stylesheet" href="mobile-hud.css?v=2">
     <link rel="stylesheet" href="item-admin.css?v=2">
+    <link rel="stylesheet" href="personagem-select.css?v=2">
 </head>
 <body oncontextmenu="return false;">
     <script>
@@ -70,7 +71,9 @@
         <h1>⚔️ ENTRAR NO MUNDO</h1>
         <p>Digite o nome do seu Herói:</p>
         <div id="login-box">
-            <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" autofocus />
+            <!-- Sem autofocus: no celular o teclado subia sozinho ao abrir o jogo.
+                 Agora só abre ao tocar no campo. -->
+            <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" />
             <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
         </div>
         <div class="game-version-display">v1.59.0</div>
@@ -684,9 +687,10 @@
                 <button id="btn-aba-audio" class="settings-aba ativo" onclick="mudarAbaConfig('audio')">🎵 ÁUDIO</button>
                 <button id="btn-aba-visual" class="settings-aba" onclick="mudarAbaConfig('visual')">🎨 VISUAL</button>
             </div>
+            <div id="settings-conteudo">
             <div id="settings-tab-audio">
                 <div class="settings-linha">
-                    <div class="settings-label">🔊 VOLUME GERAL</div>
+                    <div class="settings-label"><span class="settings-ico">🔊</span>VOLUME GERAL</div>
                     <div class="volume-row">
                         <span class="vol-icone">🔈</span>
                         <input type="range" id="volume-slider" min="0" max="100" value="80" oninput="mudarVolumeGeral(this.value)">
@@ -695,16 +699,16 @@
                     </div>
                 </div>
                 <div class="settings-linha">
-                    <div class="settings-label">🎵 VOLUME BGM (MÚSICA DO MAPA)</div>
+                    <div class="settings-label"><span class="settings-ico">🎵</span>VOLUME BGM (MÚSICA)</div>
                     <div class="volume-row">
                         <span class="vol-icone">🔈</span>
-                        <input type="range" id="volume-bgm-slider" min="0" max="100" value="80" oninput="mudarVolumeBgm(this.value)">
+                        <input type="range" id="volume-bgm-slider" min="0" max="100" value="10" oninput="mudarVolumeBgm(this.value)">
                         <span class="vol-icone">🎵</span>
-                        <span id="volume-bgm-valor">80%</span>
+                        <span id="volume-bgm-valor">10%</span>
                     </div>
                 </div>
                 <div class="settings-linha">
-                    <div class="settings-label">💥 VOLUME EFEITOS (SFX / SKILLS)</div>
+                    <div class="settings-label"><span class="settings-ico">💥</span>VOLUME EFEITOS (SFX)</div>
                     <div class="volume-row">
                         <span class="vol-icone">🔈</span>
                         <input type="range" id="volume-sfx-slider" min="0" max="100" value="80" oninput="mudarVolumeSfx(this.value)">
@@ -712,19 +716,10 @@
                         <span id="volume-sfx-valor">80%</span>
                     </div>
                 </div>
-                <div class="settings-linha">
-                    <button id="btn-editar-interface" class="btn-config-acao btn-editar-ui" onclick="window.ativarEditarInterface()">🔧 EDITAR INTERFACE</button>
-                </div>
-                <div class="settings-linha">
-                    <button id="btn-trocar-char" class="btn-config-acao btn-trocar" onclick="trocarDePersonagem()">🔁 TROCAR DE PERSONAGEM</button>
-                </div>
-                <div class="settings-linha">
-                    <button id="btn-sair-jogo" class="btn-config-acao btn-sair" onclick="sairDoJogo()">🚪 SAIR DO JOGO</button>
-                </div>
             </div>
             <div id="settings-tab-visual" class="settings-tab-conteudo" style="display:none;">
                 <div class="settings-linha">
-                    <div class="settings-label">❤️ BARRA DE VIDA</div>
+                    <div class="settings-label"><span class="settings-ico">❤️</span>BARRA DE VIDA</div>
                     <select id="vis-hp-modo" class="settings-select" onchange="mudarVisualHpBar(this.value)">
                         <option value="max">Vida / Máx. (100/100)</option>
                         <option value="pct">Vida (%)</option>
@@ -732,7 +727,7 @@
                     </select>
                 </div>
                 <div class="settings-linha">
-                    <div class="settings-label">💙 BARRA DE MANA</div>
+                    <div class="settings-label"><span class="settings-ico">💙</span>BARRA DE MANA</div>
                     <select id="vis-mp-modo" class="settings-select" onchange="mudarVisualMpBar(this.value)">
                         <option value="max">Mana / Máx. (50/50)</option>
                         <option value="pct">Mana (%)</option>
@@ -740,20 +735,42 @@
                     </select>
                 </div>
                 <div class="settings-linha">
-                    <div class="settings-label">⭐ BARRA DE XP</div>
+                    <div class="settings-label"><span class="settings-ico">⚡</span>BARRA DE STAMINA</div>
+                    <select id="vis-stamina-modo" class="settings-select" onchange="mudarVisualStaminaBar(this.value)">
+                        <option value="pct">Stamina (%)</option>
+                        <option value="max">Stamina / Máx. (100/100)</option>
+                        <option value="off">Sem texto</option>
+                    </select>
+                </div>
+                <div class="settings-linha">
+                    <div class="settings-label"><span class="settings-ico">⭐</span>BARRA DE XP</div>
                     <select id="vis-xp-modo" class="settings-select" onchange="mudarVisualXpBar(this.value)">
                         <option value="pct">XP (%)</option>
                         <option value="off">Sem texto</option>
                     </select>
                 </div>
+                <div class="settings-linha">
+                    <div class="settings-label"><span class="settings-ico">📶</span>MOSTRAR FPS / PING</div>
+                    <select id="vis-fps-ping" class="settings-select" onchange="mudarVisualFpsPing(this.value)">
+                        <option value="sim">Mostrar</option>
+                        <option value="nao">Ocultar</option>
+                    </select>
+                    <div class="settings-dica">Esconde as duas etiquetas de status e FPS no topo da tela.</div>
+                </div>
                 <div class="settings-linha" id="vis-tela-linha" style="display:none;">
-                    <div class="settings-label">🖥️ MODO DE TELA (PC)</div>
+                    <div class="settings-label"><span class="settings-ico">🖥️</span>MODO DE TELA (PC)</div>
                     <select id="vis-tela-modo" class="settings-select" onchange="mudarVisualTela(this.value)">
                         <option value="janela">Modo Janela</option>
                         <option value="fullscreen">Modo Full Janela</option>
                     </select>
                     <div class="settings-dica">Escolha do modo de tela deste personagem (salva por ID).</div>
                 </div>
+            </div>
+            </div>
+            <div id="settings-acoes">
+                <button id="btn-editar-interface" class="btn-config-acao btn-editar-ui" onclick="window.ativarEditarInterface()"><span class="btn-ico">🔧</span><span class="btn-lbl">EDITAR INTERFACE</span></button>
+                <button id="btn-trocar-char" class="btn-config-acao btn-trocar" onclick="trocarDePersonagem()"><span class="btn-ico">🔁</span><span class="btn-lbl">TROCAR CHAR</span></button>
+                <button id="btn-sair-jogo" class="btn-config-acao btn-sair" onclick="sairDoJogo()"><span class="btn-ico">🚪</span><span class="btn-lbl">SAIR DO JOGO</span></button>
             </div>
             <div id="settings-roda-pe">MMORPG PC &amp; MOBILE</div>
         </div>
@@ -828,22 +845,24 @@
     <script src="monstros.js?v=2007"></script>
     <script src="inventario.js?v=133"></script>
     <script src="skills.js?v=146"></script>
-    <script src="config.js?v=144"></script>
+    <script src="config.js?v=145"></script>
     <script src="atributos.js?v=3"></script>
     <script src="spawn-admin.js?v=3"></script>
     <script src="map-vfx-admin.js?v=2"></script>
     <script src="mob-editor.js?v=1511"></script>
     <script src="mob-vfx.js?v=1"></script>
-    <script src="dragdrop.js?v=5"></script>
+    <script src="dragdrop.js?v=6"></script>
     <script src="ferreiro.js?v=1"></script>
     <script src="colisao-editor.js?v=3"></script>
     <script src="mapa-editor.js?v=2"></script>
     <script src="audio-manager.js?v=3"></script>
-    <script src="sonoro.js?v=1580"></script>
+    <script src="sonoro.js?v=1582"></script>
     <script src="intro.js?v=1"></script>
     <script src="mobile-hud.js?v=1"></script>
     <script src="item-admin.js?v=5"></script>
     <script src="admin-cheats.js?v=1"></script>
+    <script src="personagens-historias.js?v=1"></script>
+    <script src="personagem-select.js?v=4"></script>
     <script>
         const GAME_VERSION = 'v1.59.0';
         window.GAME_VERSION = GAME_VERSION;
@@ -878,9 +897,18 @@
         // O respawn do jogador SEMPRE devolve para cá.
         window.SPAWN_CIDADE = { x: 60474, y: 640 };
         window.currentMap = 'cidade'; // ESTADO ÚNICO DE MAPA: 'green' | 'desert' | 'pantano' | 'caverna' | 'cidade' | 'arena' | 'solari' | 'cidadeperdida'
+        // Pré-jogo: tela de login / seleção de personagem é independente do mundo.
+        // Só vira true quando o jogador realmente entra (selecionarClasse).
+        window.jogoIniciado = false;
         window.solariAtivo = false; // TRUE dentro da Arena de Solari (faixa leste da arena)
         window.transicaoMapaAtiva = false;
         window.portalMapaBloqueado = null;
+        // Música de fundo (BGM): começa DESLIGADA. Só é liberada de verdade
+        // quando o jogador entra no mundo com um personagem (selecionarClasse
+        // -> jogoIniciado = true). Antes disso (tela de login, seleção de char
+        // e criação de char) o navegador pode tocar o primeiro gesto do usuário
+        // e a música tocava enquanto ele digitava o ID.
+        window.bgmLiberado = false;
 
         window.solicitarTeleporteMapa = function (mapa, portal) {
             if (!mapa || window.transicaoMapaAtiva || window.estaMorto) return true;
@@ -2269,14 +2297,32 @@ function usarCanticoCelestial() {
         function registrarDanoCausado(valor) { let agora = Date.now(); historicoDano.push({ valor: valor, tempo: agora }); danoTotalAcumulado += valor; }
         function atualizarDpsLive() { return; }
 
-        function aplicarTextoBarra(el, valor, max, modo) {
-            if (!el) return;
-            if (modo === 'off' || !modo || !max) { el.textContent = ''; return; }
-            if (modo === 'pct') { el.textContent = Math.max(0, Math.min(100, Math.round((valor / max) * 100))) + '%'; return; }
-            el.textContent = Math.max(0, Math.round(valor)) + '/' + Math.round(max);
+        // Formato do texto das barras, em UM lugar só (barras do Canvas e
+        // barras DOM usam esta função). 'off' = sem texto.
+        function formatarBarra(valor, max, modo) {
+            if (modo === 'off' || !modo || !max) return '';
+            var v = Math.max(0, Math.round(valor || 0));
+            if (modo === 'pct') return Math.max(0, Math.min(100, Math.round((v / max) * 100))) + '%';
+            return v + '/' + Math.round(max);
         }
 
-        function barrasModo() { return window.configVisual || {}; }
+        function aplicarTextoBarra(el, valor, max, modo) {
+            if (!el) return;
+            el.textContent = formatarBarra(valor, max, modo);
+        }
+
+        // Configurações de exibição das barras. O padrão é '%' — se o jogador
+        // nunca abriu as Configurações, as barras mostram porcentagem.
+        function barrasModo() {
+            var c = window.configVisual || {};
+            return {
+                hpBar: c.hpBar || 'pct',
+                mpBar: c.mpBar || 'pct',
+                staminaBar: c.staminaBar || 'pct',
+                xpBar: c.xpBar || 'pct',
+                mostrarFpsPing: (c.mostrarFpsPing !== false)
+            };
+        }
 
         const tabelaXp = {"1":100,"2":273,"3":491,"4":746,"5":1031,"6":1343,"7":1680,"8":2039,"9":2419,"10":2818,"11":3236,"12":3671,"13":4123,"14":4590,"15":5073,"16":5571,"17":6083,"18":6609,"19":7148,"20":7700,"21":8264,"22":8841,"23":9429,"24":10030,"25":10641,"26":11264,"27":11898,"28":12542,"29":13197,"30":13861,"31":14536,"32":15221,"33":15916,"34":16620,"35":17333,"36":18056,"37":18788,"38":19529,"39":20278,"40":21037,"41":21804,"42":22579,"43":23363,"44":24154,"45":24955,"46":25763,"47":26579,"48":27403,"49":28234,"50":29074,"51":29921,"52":30775,"53":31637,"54":32506,"55":33383,"56":34266,"57":35157,"58":36055,"59":36960,"60":37872};
         function atualizarHudXp() { let xpMax = tabelaXp[meuLevel] || 100; xpBarFill.style.width = Math.min(100, (meuXp / xpMax) * 100) + "%"; levelText.innerText = `LVL ${meuLevel}`; aplicarTextoBarra(xpBarTexto, meuXp, xpMax, barrasModo().xpBar); }
@@ -2285,31 +2331,35 @@ function usarCanticoCelestial() {
         // v1.34: barra de VIDA (vermelho forte) na HUD
         function atualizarHudHp() { if (!window.hpBarFill) return; let max = window.meuMaxHp || 100; let h = window.meuHp || 0; window.hpBarFill.style.width = Math.max(0, Math.min(100, (h / max) * 100)) + "%"; aplicarTextoBarra(hpBarTexto, h, max, barrasModo().hpBar); }
 
-        // === v1.35: HUD CANVAS OFICIAL — HudHP.png + preenchimentos dinâmicos ===
+        // === HUD CANVAS — moldura minima (linha fina) + barras com % ===
         (function () {
-            var _hudImg = new Image();
-            _hudImg.src = 'imagem/HUD/HudHP.png?v=HUD36';
-            window._hudImg = _hudImg;
+            // Mesmo espaço de projeto do layout antigo (2172×724), para nada
+            // posicionar em cima da HUD precisar se mover.
+            var DESENHO_W = 2172, DESENHO_H = 724;
 
-            // Coordenadas EXATAS das áreas internas das barras (espaço original 2172×724).
-            // Medidas por scan de pixel: preenche o track interno (entre as molduras douradas),
-            // sem tocar nos ícones (esquerda) nem nas bordas de ouro entre as barras.
+            // Trilho interno de cada barra. O preenchimento entra aqui e a
+            // linha fina é desenhada por fora, sem invadir a barra.
             window.HUD_BARS = {
-                hp:      { x: 641,  y: 166, w: 1453, h: 104 }, // direita≈2094 · baixo≈269
-                mana:    { x: 659,  y: 326, w: 1438, h: 100 }, // direita≈2097 · baixo≈425
-                stamina: { x: 668,  y: 486, w: 1424, h: 91  }  // direita≈2092 · baixo≈576
+                hp:      { x: 641,  y: 166, w: 1453, h: 104 },
+                mana:    { x: 659,  y: 326, w: 1438, h: 100 },
+                stamina: { x: 668,  y: 486, w: 1424, h: 91  }
             };
+
+            // Retrato QUADRADO, 20% maior que a versão anterior.
+            var RETRATO = { x: 345, y: 350, meia: 246 };
+
+            // Só uma linha fina amarela em volta — sem aro de metal, sem brilho,
+            // sem emblemas. A cor de cada recurso aparece só no preenchimento.
+            var LINHA = '#f1c40f';
+            var FUNDO_BARRA = 'rgba(8,10,14,0.72)';
+            var ESPESSURA_LINHA = 2; // px no espaço de projeto
 
             // Valores de interpolação (suavização — nunca altera valores reais)
             window._displayHp = -1;
             window._displayMana = -1;
             window._displayStamina = -1;
 
-            // === v1.36/v1.37: FOTO DE PERFIL no círculo do retrato ===
-            // Círculo no espaço da imagem (2172×724): centro (345, 350), raio 200.
-            // A foto é desenhada ANTES da HudHP.png; a PNG, pintada por último,
-            // cobre automaticamente qualquer sobra sobre moldura/gemas/ornamentos
-            // (sem destination-out, sem apagar arte). Mapa classe -> arquivo:
+            // Mapa classe -> arquivo de perfil. Os PNGs são quadrados (1254×1254).
             var _perfilMapa = {
                 guerreiro:       'Guerreiro',
                 mago:            'Mago',
@@ -2330,18 +2380,39 @@ function usarCanticoCelestial() {
                 if (!classe || !_perfilMapa[classe]) return null;
                 if (!_perfilCache[classe]) {
                     var im = new Image();
-                    im.src = 'imagem/HUD/Perfil/' + _perfilMapa[classe] + '.png?v=perfil2';
+                    im.src = 'imagem/HUD/Perfil/' + _perfilMapa[classe] + '.png?v=perfil3';
                     _perfilCache[classe] = im;
                 }
                 return _perfilCache[classe];
             }
 
-            // Desenho do HUD Canvas — chamado a cada frame no loop()
+            // ============ Primitivas ============
+
+            // Retângulo de cantos arredondados (fallback se roundRect não existir).
+            function caminhoRedondo(c, x, y, w, h, r) {
+                r = Math.max(0, Math.min(r, w / 2, h / 2));
+                c.beginPath();
+                if (c.roundRect) { c.roundRect(x, y, w, h, r); return; }
+                c.moveTo(x + r, y);
+                c.lineTo(x + w - r, y); c.quadraticCurveTo(x + w, y, x + w, y + r);
+                c.lineTo(x + w, y + h - r); c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+                c.lineTo(x + r, y + h); c.quadraticCurveTo(x, y + h, x, y + h - r);
+                c.lineTo(x, y + r); c.quadraticCurveTo(x, y, x + r, y);
+                c.closePath();
+            }
+
+            // Linha fina amarela em volta de uma caixa.
+            function linhaFina(c, x, y, w, h, r, espessura) {
+                caminhoRedondo(c, x, y, w, h, r);
+                c.strokeStyle = LINHA;
+                c.lineWidth = espessura;
+                c.stroke();
+            }
+
+            // Desenho da HUD Canvas — chamado a cada frame no loop()
             window.desenharHudCanvas = function () {
                 var ctx = window.ctx, canvas = window.canvas;
-                var img = window._hudImg;
-                if (!ctx || !img || !img.complete || !img.naturalWidth) return;
-                if (!window.meuId) return;
+                if (!ctx || !window.meuId) return;
 
                 var W = canvas.width;
                 var B = window.HUD_BARS;
@@ -2370,104 +2441,112 @@ function usarCanticoCelestial() {
                 var manaR = Math.max(0, Math.min(1, window._displayMana / maxMana));
                 var stR = Math.max(0, Math.min(1, window._displayStamina / 100));
 
-                // --- Escala responsiva (reusa o sistema atual: canvas width) ---
+                // --- Escala responsiva (mesma conta do layout anterior) ---
                 var escala = Math.max(0.06, Math.min(0.30, W / 8000));
                 escala *= 0.80; // v1.39.6: Redução de 20% no tamanho geral da HUD
-                var imgW = 2172, imgH = 724;
-                var hudW = imgW * escala, hudH = imgH * escala;
                 var hx = Math.round(W * 0.012);
                 var hy = 8;
+                var e = escala;
+                var U = function (v) { return hx + v * e; };
+                var V = function (v) { return hy + v * e; };
+                var L = function (v) { return v * e; };
 
-                // === 1) PREENCHIMENTOS PRIMEIRO (HP, MANA, STAMINA) ===
-                // Cada barra: clip() SOMENTE na área INTERNA, para o preenchimento
-                // nunca ultrapassar a barra. A moldura da HudHP.png fica por cima.
-                var barCfgs = [
-                    { bar: B.hp,      ratio: hpR,   lc: '#ff6655', mc: '#dd2211', dc: '#880000', gc: '#ff3322' },
-                    { bar: B.mana,    ratio: manaR,  lc: '#55aaff', mc: '#2266dd', dc: '#002266', gc: '#4499ff' },
-                    { bar: B.stamina, ratio: stR,    lc: '#55ff55', mc: '#22aa22', dc: '#004400', gc: '#44dd44' }
+                // A linha fina nunca fica invisível nem gigante: 1,5px a 3px.
+                var esp = Math.max(1.5, ESPESSURA_LINHA * e);
+
+                // ============ 1) RETRATO QUADRADO (só a linha fina) ============
+                var rMeia = L(RETRATO.meia);
+                var rLado = rMeia * 2;
+                var rX = U(RETRATO.x) - rMeia;
+                var rY = V(RETRATO.y) - rMeia;
+                var rRaio = L(20);
+
+                // Fundo escuro + linha fina em volta.
+                caminhoRedondo(ctx, rX, rY, rLado, rLado, rRaio);
+                ctx.fillStyle = FUNDO_BARRA;
+                ctx.fill();
+
+                // A foto entra num quadrado ligeiramente menor, para a linha
+                // ficar por fora dela.
+                var pad = Math.max(1, esp * 0.9);
+                var fotoLado = rLado - pad * 2;
+                var fotoRaio = Math.max(1, rRaio - pad);
+                var perfil = _perfilDaClasse(window.minhaClasse);
+                if (perfil && perfil.complete && perfil.naturalWidth) {
+                    ctx.save();
+                    caminhoRedondo(ctx, rX + pad, rY + pad, fotoLado, fotoLado, fotoRaio);
+                    ctx.clip();
+                    // Cover-crop centralizado: preenche o quadrado e corta o excesso.
+                    var pS = Math.max(fotoLado / perfil.naturalWidth, fotoLado / perfil.naturalHeight);
+                    var pW = perfil.naturalWidth * pS, pH = perfil.naturalHeight * pS;
+                    ctx.drawImage(perfil, rX + pad + (fotoLado - pW) / 2, rY + pad + (fotoLado - pH) / 2, pW, pH);
+                    ctx.restore();
+                }
+                linhaFina(ctx, rX, rY, rLado, rLado, rRaio, esp);
+
+                // ============ 2) BARRAS: fundo, preenchimento e texto (config) ============
+                // O texto respeita a opção das Configurações > Visual:
+                // 'pct' = só porcentagem, 'max' = valor/máximo, 'off' = sem texto.
+                // Não desenhamos mais os rótulos HP/MP/STAMINA.
+                var cfg = barrasModo();
+                var specs = [
+                    { bar: B.hp,      modo: cfg.hpBar,      valor: hp,       max: maxHp,   cor: '#e74c3c', ratio: hpR },
+                    { bar: B.mana,    modo: cfg.mpBar,      valor: mana,     max: maxMana, cor: '#3498db', ratio: manaR },
+                    { bar: B.stamina, modo: cfg.staminaBar, valor: stamina,  max: 100,     cor: '#f39c12', ratio: stR }
                 ];
 
-                ctx.save();
-                for (var f = 0; f < barCfgs.length; f++) {
-                    var c = barCfgs[f];
-                    var bx = hx + c.bar.x * escala;
-                    var by = hy + c.bar.y * escala;
-                    var bw = c.bar.w * escala;
-                    var bh = c.bar.h * escala;
-                    var fillW = bw * c.ratio;
-                    if (fillW < 1) continue;
+                for (var i = 0; i < specs.length; i++) {
+                    var sp = specs[i];
+                    var bx = U(sp.bar.x), by = V(sp.bar.y);
+                    var bw = L(sp.bar.w), bh = L(sp.bar.h);
+                    var raio = Math.max(2, bh * 0.28);
+                    var e2 = L(ESPESSURA_LINHA) / 2;
 
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.rect(bx, by, bw, bh);
-                    ctx.clip();
+                    // Fundo da barra
+                    caminhoRedondo(ctx, bx, by, bw, bh, raio);
+                    ctx.fillStyle = FUNDO_BARRA;
+                    ctx.fill();
 
-                    // Gradiente vertical (claro no topo → escuro no fundo)
-                    var grad = ctx.createLinearGradient(0, by, 0, by + bh);
-                    grad.addColorStop(0, c.lc);
-                    grad.addColorStop(0.45, c.mc);
-                    grad.addColorStop(1, c.dc);
-                    ctx.fillStyle = grad;
-                    ctx.shadowColor = c.gc;
-                    ctx.shadowBlur = Math.round(5 * escala + 1);
+                    // Preenchimento proporcional
+                    if (sp.ratio > 0) {
+                        var fillW = bw * sp.ratio;
+                        if (fillW >= 1) {
+                            ctx.save();
+                            caminhoRedondo(ctx, bx, by, bw, bh, raio);
+                            ctx.clip();
+                            var g = ctx.createLinearGradient(0, by, 0, by + bh);
+                            g.addColorStop(0, sp.cor);
+                            g.addColorStop(1, 'rgba(0,0,0,0.45)');
+                            ctx.fillStyle = g;
+                            ctx.fillRect(bx, by, fillW, bh);
 
-                    // Preenche esquerda → direita até a razão
-                    ctx.fillRect(bx, by, fillW, bh);
-
-                    // Brilho interno (sem sombra — camada de profundidade)
-                    ctx.shadowBlur = 0;
-                    ctx.shadowColor = 'transparent';
-                    var grad2 = ctx.createLinearGradient(0, by, 0, by + bh);
-                    grad2.addColorStop(0, 'rgba(255,255,255,0.22)');
-                    grad2.addColorStop(0.5, 'rgba(255,255,255,0.05)');
-                    grad2.addColorStop(1, 'rgba(0,0,0,0.18)');
-                    ctx.fillStyle = grad2;
-                    ctx.fillRect(bx, by, fillW, bh);
-
-                    // v1.51.0: Efeito Branco proporcional do Escudo sobre a barra de HP (HUD Superior)
-                    if (c.bar === B.hp && window.meuEscudoAbsoluto > 0) {
-                        var shieldRatio = Math.max(0, Math.min(1, window.meuEscudoAbsoluto / maxHp));
-                        var sW = bw * shieldRatio;
-                        if (sW > 0) {
-                            ctx.fillStyle = "rgba(255, 255, 255, 0.85)";
-                            ctx.shadowColor = "#ffffff";
-                            ctx.shadowBlur = Math.round(6 * escala + 1);
-                            ctx.fillRect(bx, by, sW, bh);
-                            ctx.shadowBlur = 0;
+                            // Escudo: camada branca proporcional sobre o HP
+                            if (i === 0 && window.meuEscudoAbsoluto > 0) {
+                                var sR = Math.max(0, Math.min(1, window.meuEscudoAbsoluto / maxHp));
+                                var sW = bw * sR;
+                                if (sW > 0) {
+                                    ctx.fillStyle = 'rgba(255,255,255,0.85)';
+                                    ctx.fillRect(bx, by, sW, bh);
+                                }
+                            }
+                            ctx.restore();
                         }
                     }
 
-                    ctx.restore();
-                }
-                ctx.restore();
+                    // Linha fina amarela em volta
+                    linhaFina(ctx, bx, by, bw, bh, raio, esp);
 
-                // === 1.5) FOTO DE PERFIL no círculo central (antes da PNG) ===
-                // Clip circular no espaço do retrato. A HudHP.png vem por cima,
-                // então qualquer sobra sobre moldura/gemas/ornamentos é coberta
-                // pela própria arte — a foto nunca fica por cima de nada.
-                var perfil = _perfilDaClasse(window.minhaClasse);
-                if (perfil && perfil.complete && perfil.naturalWidth) {
-                    var pCx = hx + 345 * escala;
-                    var pCy = hy + 350 * escala;
-                    var pRaio = 200 * escala;
-                    ctx.save();
-                    ctx.beginPath();
-                    ctx.arc(pCx, pCy, pRaio, 0, Math.PI * 2);
-                    ctx.clip();
-                    // Cover-crop centralizado (imagens do perfil são quadradas)
-                    var pSw = perfil.naturalWidth, pSh = perfil.naturalHeight;
-                    var pLado = pRaio * 2;
-                    var pS = Math.max(pLado / pSw, pLado / pSh);
-                    var pW = pSw * pS, pH = pSh * pS;
-                    ctx.drawImage(perfil, pCx - pW / 2, pCy - pH / 2, pW, pH);
-                    ctx.restore();
+                    // Só o valor, no formato escolhido nas Configurações.
+                    var texto = formatarBarra(sp.valor, sp.max, sp.modo);
+                    if (texto) {
+                        var fs = Math.max(7, Math.round(bh * 0.62));
+                        ctx.font = '700 ' + fs + 'px Rajdhani, sans-serif';
+                        ctx.textBaseline = 'middle';
+                        ctx.textAlign = 'right';
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillText(texto, bx + bw - (e2 + fs * 0.45), by + bh / 2);
+                    }
                 }
-
-                // === 2) HudHP.png POR ÚLTIMO — OVERLAY PURO por cima de tudo ===
-                // A moldura dourada, ícones, bordas, gemas e detalhes ficam intactos
-                // e SEMPRE visíveis. Sem destination-out, sem clip na moldura,
-                // sem apagar/modificar a imagem — a PNG é só desenhada por cima.
-                ctx.drawImage(img, hx, hy, hudW, hudH);
             };
         })();
 
@@ -2725,9 +2804,22 @@ function usarCanticoCelestial() {
         function enviarServidor(obj) { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj)); }
         window.enviarServidor = enviarServidor;
 
+        // FONTE UNICA DA URL DO WEBSOCKET.
+        // Local  : http://localhost:8080 -> ws://localhost:8080
+        // Render : https://app.onrender.com -> wss://app.onrender.com
+        // O WebSocket segue a MESMA origem da pagina, entao nunca ha dominio
+        // fixo no codigo e nada quebra ao trocar entre local e producao.
+        function obterURLWebSocket() {
+            if (window.location && window.location.host) {
+                const protocoloWs = (window.location.protocol === 'https:') ? 'wss://' : 'ws://';
+                return protocoloWs + window.location.host;
+            }
+            return 'ws://localhost:8080';
+        }
+        window.obterURLWebSocket = obterURLWebSocket;
+
         function conectarWebSocket(userIdDigitado) {
-            let wsUrl = 'ws://localhost:8080';
-            if (window.location.host) { wsUrl = (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host; }
+            const wsUrl = obterURLWebSocket();
             ws = new WebSocket(wsUrl);
             window.ws = ws;
 
@@ -2761,6 +2853,8 @@ function usarCanticoCelestial() {
                 try {
                         let dados = JSON.parse(event.data);
                         window.__msgTipo = (dados && dados.type) || '?';
+                        // Tela de seleção/criação de personagens (PC + mobile)
+                        if (dados && window.PersonagemSelect) window.PersonagemSelect.onMessage(dados);
                         // Eventos espaciais de outro mapa nao podem produzir imagem ou som local.
                         // EXCECOES: init/teleporte_confirmado/respawn_confirmado carregam a posicao
                         // do proprio jogador em OUTRO mapa (cidade) e precisam SEMPRE passar,
@@ -2817,6 +2911,8 @@ function usarCanticoCelestial() {
                     }
                     if (dados.type === 'init') {
                         window.meuId = dados.id;
+                        // Fecha a tela de seleção/criação de personagens.
+                        if (window.PersonagemSelect) window.PersonagemSelect.tratarInit(dados);
                         // Recarrega os ajustes visuais agora que o ID do personagem
                         // é conhecido (o modo de tela é salvo por ID).
                         if (typeof carregarConfigVisual === 'function') {
@@ -2867,11 +2963,15 @@ function usarCanticoCelestial() {
                             let bAdmin = document.getElementById('btn-item-admin');
                             if (bAdmin) bAdmin.style.display = 'flex';
                         }
+                        let autoClassePersonagem = (window.PersonagemSelect && typeof window.PersonagemSelect.autoEntrarComClasse === 'function') ? window.PersonagemSelect.autoEntrarComClasse() : false;
                         if (classePendente) {
                             // trocou de personagem com o socket fechado: re-loga direto com a nova classe
                             let cp = classePendente;
                             classePendente = null;
                             selecionarClasse(cp);
+                        } else if (autoClassePersonagem && dados.classe) {
+                            // Entrou pela tela de seleção de personagens: já usa a classe salva dele.
+                            selecionarClasse(dados.classe);
                         } else {
                             charSelectScreen.style.display = "flex";
                         }
@@ -4361,7 +4461,8 @@ function usarCanticoCelestial() {
                 alert("Por favor, digite um ID para o seu herói!");
                 return;
             }
-            window.bgmLiberado = true;   // BGM da cidade só a partir daqui (clicou em JOGAR)
+            // BGM NÃO é liberado aqui: clicar em JOGAR só abre a seleção de char.
+            // A música dos mapas só começa em selecionarClasse (jogoIniciado).
             localStorage.setItem("mmorpg_user_id", nomeValido);
             loginScreen.style.display = "none";
             // v1.34.1: sem foco preso no input do login, os atalhos do teclado funcionam de imediato
@@ -4462,12 +4563,17 @@ function usarCanticoCelestial() {
             }
             btnDash.style.display = "block";
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'escolher_classe', classe: window.minhaClasse })); }
+            // A partir daqui o jogador está no jogo: teclado/mouse/toque passam a agir no mundo.
+            window.jogoIniciado = true;
+            // BGM dos mapas só começa depois de logado no personagem (não no login).
+            window.bgmLiberado = true;
         }
 
         let audioCtx = null;
         let _savedUid = localStorage.getItem("mmorpg_user_id") || "default";
         window.volumeGeral = parseFloat(localStorage.getItem("mmorpg_volume_" + _savedUid)) || parseFloat(localStorage.getItem("mmorpg_volume")) || 0.8;
-        window.volumeBgm = parseFloat(localStorage.getItem("mmorpg_volume_bgm_" + _savedUid)) || 0.8;
+        // Novos personagens (sem volume BGM salvo) iniciam a música em 10%.
+        window.volumeBgm = parseFloat(localStorage.getItem("mmorpg_volume_bgm_" + _savedUid)) || 0.1;
         window.volumeSfx = parseFloat(localStorage.getItem("mmorpg_volume_sfx_" + _savedUid)) || 0.8;
 
         function iniciarAudio() {
@@ -4835,7 +4941,13 @@ function usarCanticoCelestial() {
             let pX = window.meuX + 12, pY = window.meuY + 16;
             // 1º: mantém o autoAlvo estável (se ainda estiver vivo e em alcance)
             if (autoAlvo && autoAlvo.id) {
-                let a = autoAlvo.tipo === 'slime' ? window.listaSlimes.find(s => s && s.id === autoAlvo.id) : (autoAlvo.tipo === 'boss' ? listaBosses.find(b => b && b.id === autoAlvo.id) : null);
+                let a = null;
+                if (autoAlvo.tipo === 'slime') a = window.listaSlimes.find(s => s && s.id === autoAlvo.id);
+                else if (autoAlvo.tipo === 'boss') a = listaBosses.find(b => b && b.id === autoAlvo.id);
+                else if (autoAlvo.tipo === 'player' && typeof pvpMeuAtivo === 'function' && pvpMeuAtivo()) {
+                    let p = window.todosJogadores && window.todosJogadores[autoAlvo.id];
+                    if (p && p.pvpAtivo && p.hp > 0) a = p;
+                }
                 if (a && a.hp > 0 && Math.hypot(a.x - pX, a.y - pY) <= limite) {
                     autoAlvo.x = a.x; autoAlvo.y = a.y;
                     return { tipo: autoAlvo.tipo, id: autoAlvo.id, x: a.x, y: a.y };
@@ -4843,8 +4955,21 @@ function usarCanticoCelestial() {
             }
             // 2º: o inimigo mais próximo dentro do limite
             let melhor = null, menor = Infinity;
-            window.listaSlimes.forEach(s => { if (s && s.hp > 0) { let d = Math.hypot(s.x - pX, s.y - pY); if (d <= limite && d < menor) { menor = d; melhor = { tipo: 'slime', id: s.id, x: s.x, y: s.y }; } } });
-            if (!melhor) listaBosses.forEach(b => { if (b && b.hp > 0) { let d = Math.hypot(b.x - pX, b.y - pY); if (d <= limite && d < menor) { menor = d; melhor = { tipo: 'boss', id: b.id, x: b.x, y: b.y }; } } });
+            let considerar = function (alvo, tipo) {
+                if (!alvo || alvo.hp <= 0) return;
+                let d = Math.hypot(alvo.x - pX, alvo.y - pY);
+                if (d <= limite && d < menor) { menor = d; melhor = { tipo: tipo, id: alvo.id, x: alvo.x, y: alvo.y }; }
+            };
+            window.listaSlimes.forEach(s => considerar(s, 'slime'));
+            listaBosses.forEach(b => considerar(b, 'boss'));
+            // PvP: só entra jogador com PvP ligado dos dois lados.
+            if (typeof pvpMeuAtivo === 'function' && pvpMeuAtivo() && window.todosJogadores) {
+                for (let pid in window.todosJogadores) {
+                    if (pid === window.meuId) continue;
+                    let p = window.todosJogadores[pid];
+                    if (p && p.pvpAtivo) considerar(p, 'player');
+                }
+            }
             return melhor;
         }
 
@@ -5289,12 +5414,25 @@ function usarCanticoCelestial() {
             return Math.max(120, Math.round(base * mult));
         }
 
+        // PvP: só entra na mira quem tem PvP LIGADO no servidor. `pvpAtivo` chega
+        // pela sincronia de jogadores; sem ele no pacote o cliente não arrisca.
+        function pvpMeuAtivo() {
+            if (!window.meuId || !window.todosJogadores) return false;
+            let eu = window.todosJogadores[window.meuId];
+            return !!(eu && eu.pvpAtivo);
+        }
+
         // Alvo estável: mantém o atual enquanto vivo/válido/em alcance; só troca quando necessário.
         function buscarAutoAlvo() {
             if (autoAlvo && autoAlvo.id) {
                 let alvoAtual = null;
                 if (autoAlvo.tipo === 'slime') alvoAtual = window.listaSlimes.find(s => s && s.id === autoAlvo.id);
                 else if (autoAlvo.tipo === 'boss') alvoAtual = listaBosses.find(b => b && b.id === autoAlvo.id);
+                else if (autoAlvo.tipo === 'player') {
+                    let p = window.todosJogadores && window.todosJogadores[autoAlvo.id];
+                    // Sai da mira se o outro desativar o PvP, morrer ou sair do mapa.
+                    if (p && p.pvpAtivo && p.hp > 0 && pvpMeuAtivo()) alvoAtual = p;
+                }
                 if (alvoAtual && alvoAtual.hp > 0) {
                     let px = window.meuX + 12, py = window.meuY + 16;
                     let dx = alvoAtual.x - px, dy = alvoAtual.y - py;
@@ -5327,6 +5465,15 @@ function usarCanticoCelestial() {
             };
             window.listaSlimes.forEach(s => considerar(s, 'slime'));
             listaBosses.forEach(b => considerar(b, 'boss'));
+            // PvP: jogadores com PvP ligado entram na mesma disputa por alvo.
+            if (pvpMeuAtivo() && window.todosJogadores) {
+                for (let pid in window.todosJogadores) {
+                    if (pid === window.meuId) continue;
+                    let p = window.todosJogadores[pid];
+                    if (!p || !p.pvpAtivo || p.hp <= 0) continue;
+                    considerar(p, 'player');
+                }
+            }
             if (melhor) autoAlvo = melhor;
         }
 
@@ -5841,6 +5988,7 @@ function usarCanticoCelestial() {
         // Clique no minimapa abre o Mapa Grande
         if (mmCanvas) {
             mmCanvas.addEventListener("click", function (e) {
+                if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
                 if (window.estaMorto) return;
                 toggleBigMap();
             });
@@ -6098,6 +6246,7 @@ function usarCanticoCelestial() {
 
         if (bigMapCanvas) {
             bigMapCanvas.addEventListener("click", function(e) {
+                if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
                 let r = bigMapCanvas.getBoundingClientRect();
                 let px = (e.clientX - r.left) / r.width;
                 let py = (e.clientY - r.top) / r.height;
@@ -6432,6 +6581,7 @@ function usarCanticoCelestial() {
         }
 
         window.addEventListener('keydown', (e) => {
+            if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
             let tag = (document.activeElement && document.activeElement.tagName) || '';
             if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
@@ -6554,6 +6704,7 @@ function usarCanticoCelestial() {
         });
 
         window.addEventListener('keyup', (e) => {
+            if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
             let code = e.code;
             if (code in teclasMovimento) {
                 teclasMovimento[code] = false;
@@ -6567,6 +6718,7 @@ function usarCanticoCelestial() {
         // DASH v2 — mobile: o botão de dash precisa reportar o "soltar",
         // senão no celular o escudo do Guerreiro nunca abaixa.
         window.addEventListener('touchend', (e) => {
+            if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
             if (window.escudoGuerreiroAtivo && typeof soltarDash === 'function') {
                 // Se o toque terminou sobre o botão de dash, solta o escudo.
                 for (let i = 0; i < (e.changedTouches ? e.changedTouches.length : 0); i++) {
@@ -6576,12 +6728,14 @@ function usarCanticoCelestial() {
             }
         }, { passive: true });
         window.addEventListener('mouseup', (e) => {
+            if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
             if (window.escudoGuerreiroAtivo && e.target && e.target.id === 'btn-dash') {
                 soltarDash();
             }
         });
 
         window.addEventListener("touchstart", (e) => {
+            if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
             if (window.modoLocal && !window.estaMorto && !window.inventarioAberto && !window.skillsAberto && !window.configAberto && !window.spawnAdminAberto) {
                 if (e.cancelable) e.preventDefault();
                 for (let i = 0; i < e.changedTouches.length; i++) {
@@ -6683,6 +6837,7 @@ function usarCanticoCelestial() {
         });
 
         window.addEventListener("touchmove", (e) => {
+            if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
             if (window.dragSkill.ativo) {
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     let touch = e.changedTouches[i];
@@ -6714,6 +6869,7 @@ function usarCanticoCelestial() {
         }, { passive: false });
 
         window.addEventListener("touchend", (e) => {
+            if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
             for (let i = 0; i < e.changedTouches.length; i++) {
                 let touch = e.changedTouches[i];
                 if (touch && window.dragSkill.ativo && touch.identifier === window.dragSkill.touchId) {
@@ -6727,6 +6883,7 @@ function usarCanticoCelestial() {
         }, { passive: false });
 
         window.addEventListener("touchcancel", (e) => {
+            if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
             for (let i = 0; i < e.changedTouches.length; i++) {
                 let touch = e.changedTouches[i];
                 if (touch && window.dragSkill.ativo && touch.identifier === window.dragSkill.touchId) {
@@ -6789,6 +6946,7 @@ function usarCanticoCelestial() {
         window.atualizarMiraMouse = atualizarMiraMouse;
 
         window.addEventListener("mousemove", function (e) {
+            if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
             window.mouseClientX = e.clientX;
             window.mouseClientY = e.clientY;
             window.mouseJaMoveu = true;
@@ -6801,6 +6959,7 @@ function usarCanticoCelestial() {
         });
 
         window.canvas.addEventListener("click", function (e) {
+            if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
             if (e.pointerType === 'touch') return;
             if (window.estaMorto || window.spawnAdminAberto || window.teleporteAberto || window.bigMapAberto || window.ferreiroAberto || (window.colisaoEditorAtivo && !window.editorMinimizado) || (window.mapaEditorAtivo && !window.mapaEditorMinimizado)) return;
             let camX = window.camX || 0, camY = window.camY || 0;
@@ -6927,7 +7086,10 @@ function usarCanticoCelestial() {
                 _tickBateria = 0;
                 if (window.ws && window.ws.readyState === WebSocket.OPEN) {
                     try {
-                        window.ws.send(JSON.stringify({ action: 'client_estado', meuX: Math.round(window.meuX), meuY: Math.round(window.meuY), cm: window.currentMap, id: window.meuId || 'null', np: Object.keys(window.todosJogadores || {}).length, ns: (window.listaSlimes || []).length, f: pingAtual, ws: window.ws.readyState, updMs: Math.max(0, Date.now() - (window.ultimoWorldUpdateAt || 0)), hp: window.meuHp, morto: window.estaMorto ? 1 : 0, cls: window.minhaClasse || '' }));
+                        // Anti-hack: NÃO enviamos hp/morto aqui. O status é
+                        // server-authoritative; mandar no payload só criava a
+                        // tentação de o servidor confiar nele no futuro.
+                        window.ws.send(JSON.stringify({ action: 'client_estado', meuX: Math.round(window.meuX), meuY: Math.round(window.meuY), cm: window.currentMap, id: window.meuId || 'null', np: Object.keys(window.todosJogadores || {}).length, ns: (window.listaSlimes || []).length, f: pingAtual, ws: window.ws.readyState, updMs: Math.max(0, Date.now() - (window.ultimoWorldUpdateAt || 0)), cls: window.minhaClasse || '' }));
                     } catch (e) {}
                 }
             }
@@ -8070,7 +8232,7 @@ function usarCanticoCelestial() {
             }
 
             if (window.atualizarBgmCidade) window.atualizarBgmCidade();
-            // v1.35: HUD Canvas Oficial (HudHP.png + barras dinâmicas)
+            // HUD Canvas (moldura vetorial + barras dinâmicas)
             if (window.desenharHudCanvas) window.desenharHudCanvas();
             requestAnimationFrame(loop);
         }

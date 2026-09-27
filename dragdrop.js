@@ -601,6 +601,12 @@
         return LAYOUT_PREF + (uid || "anonimo") + "_" + d;
     }
 
+    // Elementos que ficam SEMPRE centralizados no topo (status do servidor e
+    // FPS). São registrados no sistema de UI (têm data-ui), mas nunca podem
+    // receber posição automática: o resolvedor de colisões gravava left/top
+    // inline com transform:none e quebrava o centralizado do CSS.
+    var UI_CENTRALIZADA_TOPO = { status: true, fps: true };
+
     function cargarLayoutLocal() {
         // Carrega (mescla) a chave do dispositivo ATUAL. Não limpa layoutUI:
         // chamadas como recarregarLocal() (pós-init do servidor) dependem disso.
@@ -620,7 +626,13 @@
             if (s) {
                 var d = JSON.parse(s);
                 if (d && typeof d === "object") {
-                    for (var k in d) layoutUI[k] = d[k];
+                    for (var k in d) {
+                        // Ignora posições antigas de status/fps: foram salvas
+                        // tortas pelo resolvedor de colisões. O centralizado do
+                        // topo passa a ser sempre o do CSS/padrão.
+                        if (UI_CENTRALIZADA_TOPO[k]) continue;
+                        layoutUI[k] = d[k];
+                    }
                 }
             }
         } catch (e) { }
@@ -654,6 +666,8 @@
 
     // Posições padrão (0..1 = fração da tela) para telas pequenas (mobile v1.39).
     var LAYOUT_PADRAO_MOBILE = {
+        "status":            { x: 0.5, y: 0.012, alinharX: "center" },
+        "fps":               { x: 0.5, y: 0.04,  alinharX: "center" },
         "hud-status-window": { x: 0.015, y: 0.02, alinharX: "left" },
         "minimap":           { x: 0.985, y: 0.02, alinharX: "right" },
         "joystick":          { x: 0.08,  y: 0.82 },
@@ -875,6 +889,7 @@
                 var nm = nomes[i];
                 var reg = elementosUI[nm];
                 if (!reg || !reg.el || !uiVisivel(reg) || dentroDeOutraUI(reg)) continue;
+                if (UI_CENTRALIZADA_TOPO[nm]) continue;
                 var r = retanguloUI(reg);
                 if (!r) continue;
                 var res = resolverColisaoUI(nm, r.left, r.top, r.width, r.height);

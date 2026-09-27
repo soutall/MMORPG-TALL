@@ -59,6 +59,16 @@ function carregarProgresso(userId) {
     return banco[userId] || null;
 }
 
+// Remove definitivamente um registro do banco (usado pela exclusão de personagem)
+function removerProgresso(userId) {
+    if (!userId) return false;
+    const banco = carregarTodos();
+    if (!Object.prototype.hasOwnProperty.call(banco, userId)) return false;
+    delete banco[userId];
+    salvarTodos(banco);
+    return true;
+}
+
 // Salva/Atualiza o progresso individual de um ID específico
 function salvarProgresso(userId, novosDados) {
     if (!userId) return;
@@ -83,5 +93,7 @@ function salvarProgresso(userId, novosDados) {
 
 module.exports = {
     carregarProgresso,
-    salvarProgresso
+    salvarProgresso,
+    carregarTodos,
+    removerProgresso
 };

@@ -67,7 +67,7 @@
         dronemaster_caixa:            { caminho: 'Sonoro/DroneMaster/Caixa%20de%20ferramenta.ogg', volume: 0.75 },
         dronemaster_tita:             { caminho: 'Sonoro/DroneMaster/Protocolo_Titan.wav',         volume: 0.85 },
         dronemaster_escudo:           { caminho: 'Sonoro/DroneMaster/Escudo_energia.ogg',          volume: 0.7 },
-        cidade_bgm:                   { caminho: 'Sonoro/Cidade/dentro_cidade.mp3',        volume: 0.38 },
+        cidade_bgm:                   { caminho: 'Sonoro/Cidade/dentro_cidade.mp3',        volume: 0.19 },
         // ===== ROQUEIRO (GUITARRISTA) =====
         roqueiro_atk:          { caminho: 'Sonoro/Roqueiro/atk_basico.mp3',        volume: 0.65 },
         roqueiro_banda:        { caminho: 'Sonoro/Roqueiro/Banda.ogg',             volume: 0.8 },
@@ -92,7 +92,7 @@
         pikeman_skill4_hit2:      { caminho: 'Sonoro/Pikeman/Skill4_hit2.wav',        volume: 0.9 },
         pikeman_skill4_hit3:      { caminho: 'Sonoro/Pikeman/Skill4_hit3.wav',        volume: 0.95 },
         // ===== ARENA DE SOLARI (v1.59.0) =====
-        solari_bgm:            { caminho: 'Sonoro/Arena%20Solare/BGM_Fundo.mp3',                   volume: 0.38 },
+        solari_bgm:            { caminho: 'Sonoro/Arena%20Solare/BGM_Fundo.mp3',                   volume: 0.19 },
         solari_contagem:       { caminho: 'Sonoro/Arena%20Solare/Contagem%2010segundos.mp3',       volume: 0.95 },
         solari_round_1:        { caminho: 'Sonoro/Arena%20Solare/round1.wav',                      volume: 0.85 },
         solari_round_2:        { caminho: 'Sonoro/Arena%20Solare/round2.wav',                      volume: 0.85 },
@@ -212,7 +212,8 @@
         return Math.max(0, Math.min(1, global.volumeGeral !== undefined ? Number(global.volumeGeral) : 0.8));
     }
     function volumeBgm() {
-        return Math.max(0, Math.min(1, global.volumeBgm !== undefined ? Number(global.volumeBgm) : 0.8));
+        // Padrão 10% para contas novas (sem volumeBgm definido).
+        return Math.max(0, Math.min(1, global.volumeBgm !== undefined ? Number(global.volumeBgm) : 0.1));
     }
     function volumeSfx() {
         return Math.max(0, Math.min(1, global.volumeSfx !== undefined ? Number(global.volumeSfx) : 0.8));
@@ -742,32 +743,32 @@
         cidade: {
             dia:    'Sonoro/Cidade/dentro_cidade.mp3',
             noite:  'Sonoro/Cidade/dentro_cidade.mp3',
-            volume: 0.38
+            volume: 0.19
         },
         green: {
             dia:    'Sonoro/Cidade/mapa%20verde/Verde_Dia.mp3',
             noite:  'Sonoro/Cidade/mapa%20verde/Verde_noite.mp3',
-            volume: 0.38
+            volume: 0.19
         },
         desert: {
             dia:    'Sonoro/Cidade/deserto-1/Deserto_dia.mp3',
             noite:  'Sonoro/Cidade/deserto-1/Deserto_noite.mp3',
-            volume: 0.38
+            volume: 0.19
         },
         pantano: {
             dia:    'Sonoro/Cidade/pantano-1/Pantano_dia.mp3',
             noite:  'Sonoro/Cidade/pantano-1/Pantano_Noite.mp3',
-            volume: 0.38
+            volume: 0.19
         },
         zonazero: {
             dia:    'Sonoro/Cidade/zero-1/Zero_dia.mp3',
             noite:  'Sonoro/Cidade/zero-1/Zero_Noite.mp3',
-            volume: 0.38
+            volume: 0.19
         },
         solari: {
             dia:    'Sonoro/Arena%20Solare/BGM_Fundo.mp3',
             noite:  'Sonoro/Arena%20Solare/BGM_Fundo.mp3',
-            volume: 0.38
+            volume: 0.19
         }
     };
 
@@ -798,9 +799,17 @@
         return periodo === 'noite' ? (cfg.noite || cfg.dia) : cfg.dia;
     }
 
+    // O BGM dos mapas só toca com o jogador REALMENTE logado no personagem.
+    // Exige as duas flags: bgmLiberado (o jogador autorizou) e jogoIniciado
+    // (o personagem entrou no mundo). Sem isso a música tocava já na tela de
+    // login, no primeiro toque do jogador.
+    function bgmPodeTocar() {
+        return !!(global.bgmLiberado && global.jogoIniciado);
+    }
+
     function tentarTocarBgm() {
         try {
-            if (!global.bgmLiberado) return;
+            if (!bgmPodeTocar()) return;
             if (_trackAtiva && _trackAtiva.audio && _trackAtiva.audio.paused) {
                 var p = _trackAtiva.audio.play();
                 if (p && typeof p.catch === 'function') p.catch(function () { });
@@ -832,8 +841,8 @@
      */
     global.atualizarBgmCidade = function () {
         try {
-            // O BGM só toca após o jogador clicar em JOGAR
-            if (!global.bgmLiberado) {
+            // O BGM só toca após o jogador logar no personagem
+            if (!bgmPodeTocar()) {
                 if (_trackAtiva && _trackAtiva.audio && !_trackAtiva.audio.paused) {
                     _trackAtiva.audio.pause();
                 }

@@ -93,10 +93,13 @@ try {
 
 
 let salvarProgresso = () => {}, carregarProgresso = () => null;
+let dbCarregarTodos = () => ({}), dbRemoverProgresso = () => false;
 try {
     const db = require('./database.js');
     if (db.salvarProgresso) salvarProgresso = db.salvarProgresso;
     if (db.carregarProgresso) carregarProgresso = db.carregarProgresso;
+    if (db.carregarTodos) dbCarregarTodos = db.carregarTodos;
+    if (db.removerProgresso) dbRemoverProgresso = db.removerProgresso;
 } catch (e) {
     console.log("Aviso: database.js em memória.");
 }
@@ -182,6 +185,13 @@ const server = http.createServer((req, res) => {
     let urlSemQuery = req.url.split('?')[0];
     try { urlSemQuery = decodeURIComponent(urlSemQuery); } catch (e) { /* mantém original */ }
     let urlFinal = urlSemQuery === '/' ? '/index.html' : urlSemQuery;
+    // Health check (Render usa GET /health para validar o Web Service).
+    // Rota fixa, sem tocar no resto do servidor de arquivos.
+    if (urlFinal === '/health') {
+        res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+        res.end('OK');
+        return;
+    }
     let filePath = path.join(__dirname, urlFinal);
     // Segurança: nunca servir arquivos fora da pasta do projeto
     const raizProjeto = __dirname + path.sep;
@@ -216,7 +226,9 @@ const server = http.createServer((req, res) => {
     });
 });
 
-const wss = new WebSocket.Server({ server });
+// maxPayload trava o tamanho de cada mensagem: sem isso um cliente pode mandar
+// um frame gigante e estourar a memória do processo.
+const wss = new WebSocket.Server({ server, maxPayload: 64 * 1024 });
 wss.on('error', (err) => {
     console.error('[WSS ERRO]', err && err.message ? err.message : err);
 });
@@ -259,7 +271,9 @@ let golemsSismicos = {};
 
 
 // ===== PIKEMAN — helpers da Execução da Morte (3 hits separados) =====
-function pikemanLocalizarAlvo(alvoTipo, alvoId) {
+// Resolve o alvo informado pelo cliente. 'player' passa pelas regras de PvP
+// (ambos com PvP ligado, vivos e no mesmo mapa) — nunca confiar no cliente.
+function pikemanLocalizarAlvo(playerId, alvoTipo, alvoId) {
     if (alvoTipo === 'slime') {
         for (let s of slimes) { if (s.id === alvoId && s.hp > 0) return s; }
         return null;
@@ -268,6 +282,10 @@ function pikemanLocalizarAlvo(alvoTipo, alvoId) {
         for (let b of bosses) { if (b.id === alvoId && b.hp > 0) return b; }
         return null;
     }
+    if (alvoTipo === 'player') {
+        if (!pvpPodeAtacar(playerId, alvoId)) return null;
+        return players[alvoId];
+    }
     return null;
 }
 
@@ -275,13 +293,14 @@ function pikemanLocalizarAlvo(alvoTipo, alvoId) {
 function pikemanGolpePirueta(playerId, alvoTipo, alvoId, dano, num) {
     let pk = players[playerId];
     if (!pk || pk.hp <= 0) return;
-    let alvo = pikemanLocalizarAlvo(alvoTipo, alvoId);
+    let alvo = pikemanLocalizarAlvo(playerId, alvoTipo, alvoId);
     if (alvo) {
         let pX = pk.x + 12, pY = pk.y + 16;
         // ainda dentro do alcance (135 de folga sobre os 120 do disparo)
         if (Math.hypot(alvo.x - pX, alvo.y - pY) <= 135) {
             if (alvoTipo === 'slime') registrarDanoMonstro(alvo, playerId, dano, 'player');
-            else registrarDanoBoss(alvo, playerId, dano, 'skill', 'player');
+            else if (alvoTipo === 'boss') registrarDanoBoss(alvo, playerId, dano, 'skill', 'player');
+            else aplicarDanoPvP(playerId, alvoId, dano, 'pirueta');
         }
         wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
@@ -294,13 +313,14 @@ function pikemanGolpePirueta(playerId, alvoTipo, alvoId, dano, num) {
 function pikemanGolpeExecucao(playerId, alvoTipo, alvoId, dano, num) {
     let pk = players[playerId];
     if (!pk || pk.hp <= 0) return;
-    let alvo = pikemanLocalizarAlvo(alvoTipo, alvoId);
+    let alvo = pikemanLocalizarAlvo(playerId, alvoTipo, alvoId);
     let pX = pk.x + 12, pY = pk.y + 16;
     // Mesmo que o alvo morra antes, o golpe desce forte na posição (área frontal)
     let golpeouAlvo = false;
     if (alvo && Math.hypot(alvo.x - pX, alvo.y - pY) <= 145) {
         if (alvoTipo === 'slime') registrarDanoMonstro(alvo, playerId, dano, 'player');
-        else registrarDanoBoss(alvo, playerId, dano, 'skill', 'player');
+        else if (alvoTipo === 'boss') registrarDanoBoss(alvo, playerId, dano, 'skill', 'player');
+        else aplicarDanoPvP(playerId, alvoId, dano, 'execucao');
         golpeouAlvo = true;
     } else {
         // AOE de impacto no chão quando o alvo morreu/escapou
@@ -670,6 +690,65 @@ const tabelaXp = {};
 for (let lvl = 1; lvl <= 60; lvl++) {
     tabelaXp[lvl] = TABELA_XP_LITERAL[lvl] || Math.floor(100 * Math.pow(lvl, 1.45));
 }
+const NIVEL_MAXIMO = 60;
+const XP_TETO_ABSOLUTO = TABELA_XP_LITERAL[60] || tabelaXp[60];
+
+// Whitelist ÚNICA de classes do servidor. Usada na criação do personagem E em
+// 'escolher_classe' — antes esse segundo caminho aceitava qualquer string e a
+// gravava em jogadores.json (bypass de 'classePodeEquipar' e poluição do banco).
+const CLASSES_VALIDAS = ['guerreiro', 'mago', 'summoner', 'arqueiro', 'curandeiro', 'barbaro', 'roqueiro', 'ladino', 'dronemaster', 'arqueiro_arcano', 'sniper', 'pikeman'];
+function classeValida(c) {
+    return typeof c === 'string' && CLASSES_VALIDAS.indexOf(c) !== -1;
+}
+
+/**
+ * Normaliza level/xp de um jogador e Garante a INVARIANTE do level-up:
+ *   1 <= level <= 60   e   0 <= xp < tabelaXp[level]
+ * Sem isso, um xp inflado (vindo do disco ou de qualquer origem futura não
+ * validada) faz o `while` de level-up disparar dezenas de vezes de uma vez,
+ * entregando +1 ponto de atributo e +1 ponto de skill por nível.
+ * @returns {boolean} true se corrigiu algo (registro suspeito).
+ */
+function sanitizarLevelXp(jogador) {
+    if (!jogador) return false;
+    let corrigido = false;
+    let lvl = Number(jogador.level);
+    if (!Number.isFinite(lvl) || lvl < 1) { lvl = 1; corrigido = true; }
+    lvl = Math.floor(lvl);
+    if (lvl > NIVEL_MAXIMO) { lvl = NIVEL_MAXIMO; corrigido = true; }
+    if (jogador.level !== lvl) jogador.level = lvl;
+
+    let xp = Number(jogador.xp);
+    if (!Number.isFinite(xp) || xp < 0) { xp = 0; corrigido = true; }
+    xp = Math.floor(xp);
+    // Teto absoluto: nunca dá mais XP que o necessário para o nível 60.
+    const teto = Math.max(0, XP_TETO_ABSOLUTO);
+    if (xp > teto) { xp = teto; corrigido = true; }
+    // Invariante: o xp guardado é sempre MENOR que o limiar do nível atual.
+    const limiar = tabelaXp[lvl] || 100;
+    if (xp >= limiar) { xp = Math.max(0, limiar - 1); corrigido = true; }
+    if (jogador.xp !== xp) jogador.xp = xp;
+    return corrigido;
+}
+
+/** Concede XP de forma segura: sanitiza ANTES e DEPOIS do loop de level-up. */
+function concederXpSeguro(jogador, quantidade) {
+    if (!jogador) return false;
+    sanitizarLevelXp(jogador);
+    const qtd = Number(quantidade);
+    jogador.xp += (Number.isFinite(qtd) && qtd > 0) ? Math.floor(qtd) : 0;
+    let subiu = false;
+    while (jogador.xp >= (tabelaXp[jogador.level] || 100) && jogador.level < NIVEL_MAXIMO) {
+        jogador.xp -= (tabelaXp[jogador.level] || 100);
+        jogador.level++;
+        jogador.pontosDisponiveis = (jogador.pontosDisponiveis === undefined ? 0 : jogador.pontosDisponiveis) + PONTOS_POR_LEVEL;
+        jogador.pontosHabilidade = (jogador.pontosHabilidade || 0) + 1;
+        jogador.mana = jogador.maxMp;
+        subiu = true;
+    }
+    sanitizarLevelXp(jogador);
+    return subiu;
+}
 
 // ============ SISTEMA DE ATRIBUTOS ============
 const ATRIBUTOS = ['forca', 'inteligencia', 'agilidade', 'destreza', 'vida', 'profanidade', 'divindade', 'afinidade'];
@@ -885,9 +964,9 @@ function multiplicadorVelocidadeAtaque(p) {
 }
 
 // ===== ATAQUE BÁSICO AUTOMÁTICO: VALIDAÇÃO DE ALVO (server-authoritative) =====
-// O cliente apenas solicita com { alvoTipo: 'slime'|'boss', alvoId }. O servidor
-// valida existência, vida, mesmo mapa e distância REAL (quadrada) antes de aplicar
-// dano. Auto-ataque NUNCA mira em jogadores (PvP segue as regras atuais).
+// O cliente apenas solicita com { alvoTipo: 'slime'|'boss'|'player', alvoId }. O
+// servidor valida existência, vida, mesmo mapa e distância REAL (quadrada) antes
+// de aplicar dano. Alvo 'player' exige PvP ligado dos DOIS lados.
 function alcanceAtaqueBasicoClasse(p) {
     if (!p) return 300;
     if (p.classe === 'arqueiro') return 250;
@@ -922,6 +1001,26 @@ function tempoBaseAtaqueBasico(p) {
     return 300;
 }
 
+// ===== ALVO JOGADOR (PvP) =====
+// Regra única e server-authoritative para qualquer habilidade mirar num jogador:
+// os dois com PvP ligado, vivos, no mesmo mapa e distintos entre si.
+// Usar SEMPRE antes de aplicarDanoPvP em caminho de alvo único.
+function pvpPodeAtacar(atkId, defId) {
+    const p1 = players[atkId];
+    const p2 = players[defId];
+    if (!p1 || !p2) return false;
+    if (atkId === defId) return false;
+    if (p1.hp <= 0 || p2.hp <= 0) return false;
+    if (!p1.pvpAtivo || !p2.pvpAtivo) return false;
+    if (mapaPorCoordenada(p1.x + PLAYER_OFFSET_X) !== mapaPorCoordenada(p2.x + PLAYER_OFFSET_X)) return false;
+    return true;
+}
+
+// Distância em linha reta entre o centro de um jogador e o ponto de origem informado.
+function pvpDistancia(atk, ox, oy) {
+    return Math.hypot(atk.x + PLAYER_OFFSET_X - ox, atk.y + PLAYER_OFFSET_Y - oy);
+}
+
 function obterAlvoAtaqueServidor(alvoTipo, alvoId) {
     if (alvoTipo === 'slime') {
         for (let s of slimes) { if (s.id === alvoId && s.hp > 0) return s; }
@@ -931,10 +1030,15 @@ function obterAlvoAtaqueServidor(alvoTipo, alvoId) {
         for (let b of bosses) { if (b.id === alvoId && b.hp > 0) return b; }
         return null;
     }
+    if (alvoTipo === 'player') {
+        const p2 = players[alvoId];
+        if (p2 && p2.hp > 0) return p2;
+        return null;
+    }
     return null;
 }
 
-function validarAtaqueBasicoAlvo(p, alvoTipo, alvoId) {
+function validarAtaqueBasicoAlvo(playerId, p, alvoTipo, alvoId) {
     if (!p || p.hp <= 0) return null;
     if (!alvoTipo || !alvoId) return null;
     let alvo = obterAlvoAtaqueServidor(alvoTipo, alvoId);
@@ -942,6 +1046,8 @@ function validarAtaqueBasicoAlvo(p, alvoTipo, alvoId) {
     let px = p.x + PLAYER_OFFSET_X;
     let py = p.y + PLAYER_OFFSET_Y;
     if (mapaPorCoordenada(px) !== mapaPorCoordenada(alvo.x)) return null;
+    // PvP: o cliente não pode forjar alvo em jogador com PvP desligado.
+    if (alvoTipo === 'player' && !pvpPodeAtacar(playerId, alvoId)) return null;
     let alc = alcanceAtaqueBasicoClasse(p);
     let dx = alvo.x - px;
     let dy = alvo.y - py;
@@ -1217,6 +1323,15 @@ function dashInvestidaDano(pid, p, d) {
         if (Math.hypot(b.x - cx, b.y - cy) > cfg.raioLateral) return;
         registrarDanoBoss(b, pid, Math.round(danoCheio * cfg.danoBossMult), 'skill', 'player');
     });
+    // PvP: a investida atropela quem estiver com PvP ligado no mesmo mapa.
+    if (p.pvpAtivo) {
+        for (let outro in players) {
+            if (!pvpPodeAtacar(pid, outro)) continue;
+            const p2 = players[outro];
+            if (Math.hypot(p2.x - cx, p2.y - cy) > cfg.raioLateral) continue;
+            aplicarDanoPvP(pid, outro, danoCheio, 'dash');
+        }
+    }
 }
 
 // Escudo de área da Curandeira: só allies do MESMO GRUPO, empurra inimigos
@@ -1343,12 +1458,9 @@ function escudoGuerreiroBaque(pid, p, cfg) {
     // PvP: só entre jogadores com PvP ligado e no mesmo mapa
     if (p.pvpAtivo) {
         for (let outro in players) {
-            if (outro === pid) continue;
-            const p2 = players[outro];
-            if (!p2 || !p2.pvpAtivo || p2.hp <= 0) continue;
-            if (mapaPorCoordenada(p2.x) !== mapaPorCoordenada(p.x)) continue;
-            if (!noArco(p2.x + PLAYER_OFFSET_X, p2.y + PLAYER_OFFSET_Y)) continue;
-            aplicarDanoJogador(outro, cx, cy, danoBase);
+            if (!pvpPodeAtacar(pid, outro)) continue;
+            if (!noArco(players[outro].x + PLAYER_OFFSET_X, players[outro].y + PLAYER_OFFSET_Y)) continue;
+            aplicarDanoPvP(pid, outro, danoBase, 'baque');
         }
     }
 
@@ -2288,20 +2400,11 @@ function distribuirXpMorte(slime) {
         let p = players[pid];
         let wsTarget = playerSockets[pid];
         if (p && wsTarget && wsTarget.readyState === WebSocket.OPEN) {
-            p.xp += xpPorPessoa;
-            let subiuLevel = false;
-            let xpNecessario = tabelaXp[p.level] || 100;
-
-            while (p.xp >= xpNecessario && p.level < 60) {
-                p.xp -= xpNecessario;
-                p.level++;
-                if (p.pontosDisponiveis === undefined) p.pontosDisponiveis = 0;
-                p.pontosDisponiveis += PONTOS_POR_LEVEL;
-                p.pontosHabilidade = (p.pontosHabilidade || 0) + 1;
-                p.mana = p.maxMp;
-                subiuLevel = true;
-                xpNecessario = tabelaXp[p.level] || 100;
-            }
+            // Anti-hack: o level-up é creditado pelo servidor a partir do XP
+            // que ELE mesmo concessionou, e sanitizarLevelXp() garante que um xp
+            // inflado (do disco ou de qualquer origem) nunca dispare dozens de
+            // pontos de atributo/skill de uma vez.
+            let subiuLevel = concederXpSeguro(p, xpPorPessoa);
 
 
             salvarProgresso(p.nome, {
@@ -2556,8 +2659,11 @@ function refletirDanoBoss(boss, autorId, quantidade) {
     });
 }
 
-function danoEmBosses(x, y, raio, autorId, quantidade, tipo, tipoOrigem) {
-    danoEmPlayers(x, y, raio, autorId, quantidade, tipo);
+// `ang`/`meiaAbertura` são repassados ao dano em jogadores: quando o corpo-a-corpo
+// chama com cone, o PvP passa a respeitar a mesma abertura usada contra slimes
+// (a área contra bosses continua 360°, como sempre foi).
+function danoEmBosses(x, y, raio, autorId, quantidade, tipo, tipoOrigem, ang, meiaAbertura) {
+    danoEmPlayers(x, y, raio, autorId, quantidade, tipo, null, ang, meiaAbertura);
     let ret = null;
     for (let bb of bosses) {
         if (bb.hp > 0 && Math.hypot(bb.x - x, bb.y - y) < raio) {
@@ -3326,6 +3432,11 @@ function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
     }
     if (aliadoNaAura(atkId)) dano = Math.round(dano * 1.05);
     if (aliadoNaAura(defId)) dano = Math.round(dano * 0.90);
+    // CÂNTICO CELESTIAL (Curandeira): espelha a regra dos monstros — quem está
+    // sob o cântico causa e recebe +20% de dano pelos 10s do debuff.
+    const agoraCantico = Date.now();
+    if (p2.canticoDebuffExpires && p2.canticoDebuffExpires > agoraCantico) dano = Math.max(1, Math.round(dano * 1.20));
+    if (atk && atk.canticoDebuffExpires && atk.canticoDebuffExpires > agoraCantico) dano = Math.max(1, Math.round(dano * 1.20));
     p2.hp -= dano;
     if (p2.hp < 0) p2.hp = 0;
     if (atk && atk.classe === 'barbaro' && (atk.vinculoAtivo || (atk.vampirismoBonus && atk.vampirismoBonus > 0)) && atk.vinculoExpires > Date.now() && dano > 0) {
@@ -3368,18 +3479,28 @@ function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
     }
 }
 
-function danoEmPlayers(x, y, raio, attackerId, dano, tipo = 'skill', cb = null) {
+// Atinge jogadores com PvP ligado. Por padrão é uma área CHEIA (360°) em volta de
+// (x, y) — o comportamento das skills em área. Ataque básico corpo-a-corpo passa
+// `ang` + `meiaAbertura` para restringirem o dano ao cone realmente animado.
+// `mapaFixo` evita atingir jogadores do mapa vizinho (bandas de X encostadas).
+function danoEmPlayers(x, y, raio, attackerId, dano, tipo = 'skill', cb = null, ang = null, meiaAbertura = null) {
     let p1 = players[attackerId];
     if (!p1 || !p1.pvpAtivo) return;
+    const mapaAtk = mapaPorCoordenada(p1.x + PLAYER_OFFSET_X);
     for (let pId in players) {
         if (pId === attackerId) continue;
         let p2 = players[pId];
-        if (p2.pvpAtivo && p2.hp > 0) {
-            if (Math.hypot(p2.x - x, p2.y - y) < raio) {
-                aplicarDanoPvP(attackerId, pId, dano, tipo);
-                if (cb) cb(p2);
-            }
+        if (!p2.pvpAtivo || p2.hp <= 0) continue;
+        // Sem PvP entre mapas: as bandas de X são encostadas e o raio pode passar.
+        if (mapaPorCoordenada(p2.x + PLAYER_OFFSET_X) !== mapaAtk) continue;
+        if (Math.hypot(p2.x - x, p2.y - y) >= raio) continue;
+        if (ang !== null && meiaAbertura !== null) {
+            let angAteAlvo = Math.atan2(p2.y - y, p2.x - x);
+            let diff = Math.atan2(Math.sin(angAteAlvo - ang), Math.cos(angAteAlvo - ang));
+            if (Math.abs(diff) >= meiaAbertura) continue;
         }
+        aplicarDanoPvP(attackerId, pId, dano, tipo);
+        if (cb) cb(p2);
     }
 }
 
@@ -3826,20 +3947,11 @@ function distribuirXpBoss(boss) {
         let p = players[pid];
         let wsTarget = playerSockets[pid];
         if (p && wsTarget && wsTarget.readyState === WebSocket.OPEN) {
-            p.xp += xpPorPessoa;
-            let subiuLevel = false;
-            let xpNecessario = tabelaXp[p.level] || 100;
-
-            while (p.xp >= xpNecessario && p.level < 60) {
-                p.xp -= xpNecessario;
-                p.level++;
-                if (p.pontosDisponiveis === undefined) p.pontosDisponiveis = 0;
-                p.pontosDisponiveis += PONTOS_POR_LEVEL;
-                p.pontosHabilidade = (p.pontosHabilidade || 0) + 1;
-                p.mana = p.maxMp;
-                subiuLevel = true;
-                xpNecessario = tabelaXp[p.level] || 100;
-            }
+            // Anti-hack: o level-up é creditado pelo servidor a partir do XP
+            // que ELE mesmo concessionou, e sanitizarLevelXp() garante que um xp
+            // inflado (do disco ou de qualquer origem) nunca dispare dozens de
+            // pontos de atributo/skill de uma vez.
+            let subiuLevel = concederXpSeguro(p, xpPorPessoa);
 
             salvarProgresso(p.nome, {
                 level: p.level,
@@ -7113,6 +7225,10 @@ if (g.hp <= 0) {
         playersVisivel[pid].snAimAtivo = (p.classe === 'sniper') ? !!p.snAim : false;
         playersVisivel[pid].escudoAbsoluto = Math.round(p.escudoAbsoluto || 0);
         playersVisivel[pid].escudoAbsolutoMax = Math.round(p.escudoAbsolutoMax || 0);
+        // PvP: o cliente só mira em quem está com PvP ligado, então o estado
+        // precisa viajar na sincronia (antes o botão do próprio jogador era o
+        // único lugar que recebia essa flag).
+        playersVisivel[pid].pvpAtivo = !!p.pvpAtivo;
     }
 
     const tempoMundoAtual = sistemaDiaNoite ? sistemaDiaNoite.calcularTempoMundo() : null;
@@ -7157,6 +7273,99 @@ if (g.hp <= 0) {
     });
 }, 50);
 
+// ============ SISTEMA DE PERSONAGENS (seleção / criação / exclusão) ============
+// O personagem só é criado no mundo depois que o cliente confirma a seleção.
+const MAX_PERSONAGENS_POR_CONTA = 5;
+const TAMANHO_MIN_NOME = 3;
+const TAMANHO_MAX_NOME = 16;
+const PASTA_CHAR_DELETADOS = path.join(__dirname, 'Char deletados');
+const PALAVRAS_PROIBIDAS_NOME = ['admin', 'administrator', 'moderador', 'moderator', 'suporte', 'game_master', 'gamemaster', 'staff', 'owner', 'root'];
+
+// Ações aceitas enquanto o jogador ainda não escolheu um personagem.
+// Qualquer outra ação é descartada: nada de gameplay antes da confirmação.
+const ACOES_ANTES_DA_SELECAO = [
+    'login', 'personagem_listar', 'personagem_verificar_nome',
+    'personagem_criar', 'personagem_deletar', 'personagem_selecionar',
+    'ping', 'client_error', 'client_estado'
+];
+
+function validarNomePersonagem(valor) {
+    if (typeof valor !== 'string') return { ok: false, mensagem: 'Contem Caracteres proibido ou inapropriados' };
+    const nome = valor.trim();
+    if (nome.length < TAMANHO_MIN_NOME || nome.length > TAMANHO_MAX_NOME) {
+        return { ok: false, mensagem: 'Contem Caracteres proibido ou inapropriados' };
+    }
+    if (!/^[A-Za-z0-9_-]+$/.test(nome)) {
+        return { ok: false, mensagem: 'Contem Caracteres proibido ou inapropriados' };
+    }
+    const baixo = nome.toLowerCase();
+    for (let i = 0; i < PALAVRAS_PROIBIDAS_NOME.length; i++) {
+        if (baixo.indexOf(PALAVRAS_PROIBIDAS_NOME[i]) !== -1) {
+            return { ok: false, mensagem: 'Contem Caracteres proibido ou inapropriados' };
+        }
+    }
+    return { ok: true, nome: nome };
+}
+
+// Registro legado (conta == nome) não tem "owner": nesse caso a chave é a conta.
+function contaDoRegistro(registro, nomeChave) {
+    if (registro && typeof registro.owner === 'string' && registro.owner) return registro.owner;
+    return nomeChave;
+}
+
+function personagemPertenceAConta(nome, contaId) {
+    if (!nome || !contaId) return false;
+    const registro = carregarProgresso(nome);
+    if (!registro) return false;
+    return contaDoRegistro(registro, nome) === contaId;
+}
+
+function listarPersonagensDaConta(contaId) {
+    const lista = [];
+    let banco = {};
+    try { banco = dbCarregarTodos() || {}; } catch (e) { banco = {}; }
+    for (const chave of Object.keys(banco)) {
+        const registro = banco[chave];
+        if (!registro || typeof registro !== 'object') continue;
+        if (contaDoRegistro(registro, chave) !== contaId) continue;
+        lista.push({
+            personagem: chave,
+            personagemId: (typeof registro.personagemId === 'string' && registro.personagemId) ? registro.personagemId : chave,
+            classe: registro.classe || 'guerreiro',
+            level: registro.level || 1,
+            xp: registro.xp || 0
+        });
+    }
+    lista.sort((a, b) => (b.xp || 0) - (a.xp || 0));
+    return lista;
+}
+
+function gerarIdPersonagem(nome) {
+    const sufixo = Math.random().toString(36).slice(2, 8);
+    return 'p_' + nome + '_' + sufixo;
+}
+
+// Backup obrigatório ANTES de apagar. Se falhar, a exclusão é abortada.
+function criarBackupExclusaoPersonagem(nome, registro) {
+    const idUnico = (registro && typeof registro.personagemId === 'string' && registro.personagemId) ? registro.personagemId : nome;
+    const pastaId = String(idUnico).replace(/[^A-Za-z0-9_-]/g, '_');
+    const destino = path.join(PASTA_CHAR_DELETADOS, pastaId);
+    const pastaLogs = path.join(destino, 'logs');
+    if (!fs.existsSync(PASTA_CHAR_DELETADOS)) fs.mkdirSync(PASTA_CHAR_DELETADOS, { recursive: true });
+    if (!fs.existsSync(destino)) fs.mkdirSync(destino, { recursive: true });
+    if (!fs.existsSync(pastaLogs)) fs.mkdirSync(pastaLogs, { recursive: true });
+    fs.writeFileSync(path.join(destino, 'personagem.json'), JSON.stringify(registro, null, 2), 'utf-8');
+    fs.writeFileSync(path.join(pastaLogs, 'exclusao.json'), JSON.stringify({
+        personagem: nome,
+        personagemId: idUnico,
+        conta: contaDoRegistro(registro, nome),
+        backupEm: Date.now(),
+        dataISO: new Date().toISOString(),
+        dados: registro
+    }, null, 2), 'utf-8');
+    return destino;
+}
+
 wss.on('connection', (ws) => {
     ws.on('error', (err) => {
         console.error('[WS CLIENTE ERRO]', err && err.message ? err.message : err);
@@ -7184,13 +7393,189 @@ wss.on('connection', (ws) => {
             let data = JSON.parse(message);
             let agora = Date.now();
 
+            // Nenhuma ação de jogo antes de o personagem ser selecionado/criado.
+            if (!ws._charSelecionado && ACOES_ANTES_DA_SELECAO.indexOf(data.action) === -1) return;
+
+            // ============ CONTA (login) — não cria nem spawna personagem ============
             if (data.action === 'login') {
-                userId = (data.userId || data.id || "Guerreiro").trim();
+                const contaId = String(data.userId || data.id || '').trim();
+                if (!contaId) {
+                    ws.send(JSON.stringify({ type: 'login_erro', mensagem: 'Nome de conta inválido.' }));
+                    return;
+                }
+                ws._contaId = contaId;
+                ws._charSelecionado = false;
+                userId = null;
+                playerId = null;
+                ws._playerId = null;
+                ws.ehAdminContaGlobal = (contaId.toLowerCase() === 'admin') || (spawnsAdmin ? spawnsAdmin.ehAdmin(contaId) : false);
+                ws.ehAdminCliente = ws.ehAdminContaGlobal;
+                ws.send(JSON.stringify({
+                    type: 'personagens_lista',
+                    conta: contaId,
+                    maximo: MAX_PERSONAGENS_POR_CONTA,
+                    personagens: listarPersonagensDaConta(contaId)
+                }));
+                return;
+            }
+
+            if (data.action === 'personagem_listar') {
+                if (!ws._contaId) return;
+                ws.send(JSON.stringify({
+                    type: 'personagens_lista',
+                    conta: ws._contaId,
+                    maximo: MAX_PERSONAGENS_POR_CONTA,
+                    personagens: listarPersonagensDaConta(ws._contaId)
+                }));
+                return;
+            }
+
+            if (data.action === 'personagem_verificar_nome') {
+                if (!ws._contaId) return;
+                const entrada = typeof data.personagem === 'string' ? data.personagem : '';
+                const verificado = validarNomePersonagem(entrada);
+                if (!verificado.ok) {
+                    ws.send(JSON.stringify({ type: 'personagem_nome_status', personagem: entrada, disponivel: false, mensagem: verificado.mensagem }));
+                    return;
+                }
+                const jaExiste = !!carregarProgresso(verificado.nome);
+                ws.send(JSON.stringify({
+                    type: 'personagem_nome_status',
+                    personagem: verificado.nome,
+                    disponivel: !jaExiste,
+                    mensagem: jaExiste ? 'Nome já Utilizado' : ''
+                }));
+                return;
+            }
+
+            if (data.action === 'personagem_criar') {
+                if (!ws._contaId) return;
+                const contaId = ws._contaId;
+                const atuais = listarPersonagensDaConta(contaId);
+                if (atuais.length >= MAX_PERSONAGENS_POR_CONTA) {
+                    ws.send(JSON.stringify({ type: 'personagem_criado', ok: false, mensagem: 'Limite de personagens atingido.' }));
+                    return;
+                }
+                const validado = validarNomePersonagem(data.personagem);
+                if (!validado.ok) {
+                    ws.send(JSON.stringify({ type: 'personagem_criado', ok: false, personagem: typeof data.personagem === 'string' ? data.personagem : '', mensagem: validado.mensagem }));
+                    return;
+                }
+                const nomeNovo = validado.nome;
+                if (carregarProgresso(nomeNovo)) {
+                    ws.send(JSON.stringify({ type: 'personagem_criado', ok: false, personagem: nomeNovo, mensagem: 'Nome já Utilizado' }));
+                    return;
+                }
+                // CLASSES_VALIDAS agora vive no escopo do módulo (fonte única).
+                const classe = classeValida(data.classe) ? data.classe : 'guerreiro';
+                try {
+                    salvarProgresso(nomeNovo, {
+                        personagemId: gerarIdPersonagem(nomeNovo),
+                        owner: contaId,
+                        classe: classe,
+                        level: 1,
+                        xp: 0,
+                        hp: 100,
+                        x: CIDADE_SPAWN_X,
+                        y: CIDADE_SPAWN_Y,
+                        atributos: atributosIniciais(),
+                        pontosDisponiveis: PONTOS_INICIAIS,
+                        pontosHabilidade: 0,
+                        skills: {},
+                        inventario: inventarioPadrao(),
+                        uiLayout: normalizarUiLayout(null),
+                        criadoEm: Date.now()
+                    });
+                } catch (e) {
+                    ws.send(JSON.stringify({ type: 'personagem_criado', ok: false, personagem: nomeNovo, mensagem: 'Erro ao criar o personagem.' }));
+                    return;
+                }
+                console.log('[PERSONAGEM] criado "' + nomeNovo + '" (classe ' + classe + ') na conta "' + contaId + '"');
+                ws.send(JSON.stringify({ type: 'personagem_criado', ok: true, personagem: nomeNovo, classe: classe }));
+                ws.send(JSON.stringify({
+                    type: 'personagens_lista',
+                    conta: contaId,
+                    maximo: MAX_PERSONAGENS_POR_CONTA,
+                    personagens: listarPersonagensDaConta(contaId)
+                }));
+                return;
+            }
+
+            if (data.action === 'personagem_deletar') {
+                if (!ws._contaId) return;
+                const contaId = ws._contaId;
+                const nomeDel = String(data.personagem || '').trim();
+                if (!nomeDel || !personagemPertenceAConta(nomeDel, contaId)) {
+                    ws.send(JSON.stringify({ type: 'personagem_deletado', ok: false, mensagem: 'Personagem inválido.' }));
+                    return;
+                }
+                const registroDel = carregarProgresso(nomeDel);
+                if (!registroDel) {
+                    ws.send(JSON.stringify({ type: 'personagem_deletado', ok: false, mensagem: 'Personagem inválido.' }));
+                    return;
+                }
+                let caminhoBackup = null;
+                try {
+                    caminhoBackup = criarBackupExclusaoPersonagem(nomeDel, registroDel);
+                } catch (e) {
+                    console.error('[PERSONAGEM] Falha no backup de "' + nomeDel + '", exclusão abortada:', e.message);
+                    ws.send(JSON.stringify({ type: 'personagem_deletado', ok: false, mensagem: 'Falha no backup. O personagem NÃO foi excluído.' }));
+                    return;
+                }
+                // Se estiver online em outra conexão, derruba a sessão antes de apagar.
+                const idOnline = 'heroi_' + nomeDel;
+                if (players[idOnline]) {
+                    if (playerSockets[idOnline] && playerSockets[idOnline] !== ws) {
+                        try { playerSockets[idOnline].close(); } catch (e) {}
+                    }
+                    delete players[idOnline];
+                    delete playerSockets[idOnline];
+                    delete lacaios[idOnline];
+                    delete petRespawnTimer[idOnline];
+                    delete aurasSagradas[idOnline];
+                    delete cooldownAuraSagrada[idOnline];
+                    delete cooldownRessurreicao[idOnline];
+                    delete bandas[idOnline];
+                }
+                try {
+                    dbRemoverProgresso(nomeDel);
+                } catch (e) {
+                    console.error('[PERSONAGEM] Falha ao remover "' + nomeDel + '":', e.message);
+                    ws.send(JSON.stringify({ type: 'personagem_deletado', ok: false, mensagem: 'Erro ao excluir o personagem.' }));
+                    return;
+                }
+                console.log('[PERSONAGEM] "' + nomeDel + '" excluído da conta "' + contaId + '" | backup em: ' + caminhoBackup);
+                ws.send(JSON.stringify({ type: 'personagem_deletado', ok: true, personagem: nomeDel, backup: caminhoBackup }));
+                ws.send(JSON.stringify({
+                    type: 'personagens_lista',
+                    conta: contaId,
+                    maximo: MAX_PERSONAGENS_POR_CONTA,
+                    personagens: listarPersonagensDaConta(contaId)
+                }));
+                return;
+            }
+
+            // ============ SELECIONAR — a partir daqui o personagem existe no mundo ============
+            if (data.action === 'personagem_selecionar') {
+                const contaId = ws._contaId || '';
+                const nomeSel = String(data.personagem || '').trim();
+                if (!contaId || !nomeSel || !personagemPertenceAConta(nomeSel, contaId)) {
+                    ws.send(JSON.stringify({ type: 'personagem_selecionar_erro', mensagem: 'Personagem inválido.' }));
+                    return;
+                }
+                // Troca de personagem exige nova conexão (evita sessão órfã no mundo).
+                if (ws._charSelecionado && userId && userId !== nomeSel) {
+                    ws.send(JSON.stringify({ type: 'personagem_selecionar_erro', mensagem: 'Conecte novamente para trocar de personagem.' }));
+                    return;
+                }
+
+                userId = nomeSel;
                 playerId = "heroi_" + userId;
                 ws._playerId = playerId;
                 playerSockets[playerId] = ws;
+                ws._charSelecionado = true;
 
-                let ehAdminConta = (userId.toLowerCase() === 'admin') || (spawnsAdmin ? spawnsAdmin.ehAdmin(userId) : false);
+                let ehAdminConta = (ws.ehAdminContaGlobal === true);
                 ws.ehAdminCliente = ehAdminConta;
 
                 let dadosSalvos = carregarProgresso(userId);
@@ -7214,8 +7599,8 @@ wss.on('connection', (ws) => {
                     maxHp: 100,
                     estamina: 100,
                     classe: dadosSalvos ? (dadosSalvos.classe || 'guerreiro') : 'guerreiro',
-                    level: dadosSalvos ? (dadosSalvos.level || 1) : 1,
-                    xp: dadosSalvos ? (dadosSalvos.xp || 0) : 0,
+                    level: dadosSalvos ? (Number(dadosSalvos.level) || 1) : 1,
+                    xp: dadosSalvos ? (Number(dadosSalvos.xp) || 0) : 0,
                     atributos: (dadosSalvos && dadosSalvos.atributos) ? dadosSalvos.atributos : atributosIniciais(),
                     pontosDisponiveis: pontosInit,
                     skills: (dadosSalvos && dadosSalvos.skills) ? dadosSalvos.skills : {},
@@ -7297,6 +7682,14 @@ aaCometasCooldown: 0,
                 if (players[playerId].hp > players[playerId].maxHp) players[playerId].hp = players[playerId].maxHp;
                 players[playerId].maxMp = calcularMaxMp(players[playerId]);
                 if (players[playerId].mana > players[playerId].maxMp) players[playerId].mana = players[playerId].maxMp;
+                // Anti-hack (defesa em profundidade): revalida level/xp vindos do
+                // disco. Registros forjados por versões antigas do
+                // 'salvar_progresso' (aceitava level/xp do cliente) são corrigidos
+                // aqui na entrada em vez de contaminarem o level-up.
+                if (sanitizarLevelXp(players[playerId])) {
+                    console.warn('[ANTI-HACK] level/xp inválido corrigido ao carregar:',
+                        userId, '| level=' + players[playerId].level, 'xp=' + players[playerId].xp);
+                }
                 // CORREÇÃO (canto preso): se a posição salva caiu na "zona morta" entre o fim
                 // da cidade (FIM_CIDADE) e o início da arena (LARGURA_ARENA) — onde NÃO existe
                 // mapa — o char não consegue andar nem teleportar. Nesse caso, devolve para a
@@ -7993,6 +8386,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
             }
 
             if (data.action === 'escolher_classe') {
+                // Anti-hack: classe tem que existir na whitelist do servidor.
+                // Antes aceitava qualquer string do cliente e persistia.
+                if (!classeValida(data.classe)) return;
                 if (aurasSagradas[playerId]) desativarAuraSagrada(playerId, 'classe_alterada');
                 players[playerId].classe = data.classe;
                 salvarProgresso(userId, { 
@@ -8119,8 +8515,11 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     raridade: data.raridade || 'lendario',
                     raridadeNome: (data.raridade || 'lendario').toUpperCase(),
                     status: {
-                        forca: data.forca || 0,
-                        vida: data.vida || 0
+                        // Anti-hack: clamp dos status. Sem teto, um item com
+                        // forca/vida enormes fazia calcularMaxHp() retornar
+                        // HP na casa das bilhões (HP infinito).
+                        forca: Math.max(0, Math.min(500, Number(data.forca) || 0)),
+                        vida: Math.max(0, Math.min(500, Number(data.vida) || 0))
                     },
                     customVisual: data.customVisual || null
                 };
@@ -8547,6 +8946,12 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
             // Respawn tem prioridade sobre a janela de transicao do teleporte:
             // morrer e renascer deve sempre devolver o jogador para a cidade.
             if (data.action === 'respawn' && players[playerId]) {
+                // Anti-hack: só renasce se estiver MORTO. Sem esta guarda o
+                // jogador enviava {action:'respawn'} a qualquer momento e o
+                // servidor curava HP/MP/estamina, zerava todo CC/buff e ainda
+                // persistia o HP novo em jogadores.json (botão de fuga/reset
+                // infinito, inclusive no meio de uma briga).
+                if (players[playerId].hp > 0) return;
                 // Arena de Solari: renascer (botão) = sair da partida e voltar pra cidade
                 if (solariEmSessao(playerId)) solariRemoverMembro(playerId, 'respawn');
                 if (aurasSagradas[playerId]) desativarAuraSagrada(playerId, 'respawn');
@@ -8611,20 +9016,17 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 if (data.angulo !== undefined) players[playerId].angulo = data.angulo;
 
                 if (data.action === 'salvar_progresso') {
-                    if (data.level !== undefined) players[playerId].level = data.level;
-                    if (data.xp !== undefined) players[playerId].xp = data.xp;
-                    salvarProgresso(userId, { 
-                        level: players[playerId].level, 
-                        xp: players[playerId].xp, 
-                        classe: players[playerId].classe,
+                    // O cliente NUNCA envia esta mensagem (verificado em index.html
+                    // e em todos os .js do cliente). Ela existia só para gravar
+                    // posição, mas aceitava level/xp CRU do cliente — um jogador
+                    // com devtools podia mandar level/xp de qualquer valor e o
+                    // servidor gravava em jogadores.json (vindo a ser XP falsa
+                    // que o loop de level-up converte em pontos de atributo/skill).
+                    // AGORA: level/xp NUNCA vêm do cliente. Só a posição e o
+                    // status que o SERVIDOR já calculou são persistidos.
+                    salvarProgresso(userId, {
                         x: Math.round(players[playerId].x),
-                        y: Math.round(players[playerId].y),
-                        hp: players[playerId].hp,
-                        atributos: players[playerId].atributos,
-                        pontosDisponiveis: players[playerId].pontosDisponiveis,
-                        skills: players[playerId].skills || {},
-                        pontosHabilidade: players[playerId].pontosHabilidade || 0,
-                        mana: players[playerId].mana
+                        y: Math.round(players[playerId].y)
                     });
                 }
 
@@ -8718,7 +9120,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     players[playerId].lastBasicAttack = agora;
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
-                    let alvoAuto = validarAtaqueBasicoAlvo(players[playerId], data.alvoTipo, data.alvoId);
+                    let alvoAuto = validarAtaqueBasicoAlvo(playerId, players[playerId], data.alvoTipo, data.alvoId);
                     if (data.alvoTipo || data.alvoId) {
                         if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
                     }
@@ -8752,9 +9154,17 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                             }
                         }
                     });
-                    danoEmBosses(pX, pY, 100, playerId, 20, 'basico');
-                    if (players[playerId].furiaTimer > 0 && bosses.some(bb => bb.hp > 0 && Math.hypot(pX - bb.x, pY - bb.y) < 95)) {
-                        aplicarCuraAoJogador(playerId, 8);
+                    danoEmBosses(pX, pY, 100, playerId, danoMachado, 'basico', null, anguloMachado, 1.1);
+                    if (players[playerId].furiaTimer > 0) {
+                        let acertouMonstro = bosses.some(bb => bb.hp > 0 && Math.hypot(pX - bb.x, pY - bb.y) < 95);
+                        if (!acertouMonstro && players[playerId].pvpAtivo) {
+                            for (let outro in players) {
+                                if (outro === playerId) continue;
+                                let p2 = players[outro];
+                                if (p2.pvpAtivo && p2.hp > 0 && Math.hypot(p2.x - pX, p2.y - pY) < 95) { acertouMonstro = true; break; }
+                            }
+                        }
+                        if (acertouMonstro) aplicarCuraAoJogador(playerId, 8);
                     }
                 }
 
@@ -8830,7 +9240,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     players[playerId].lastBasicAttack = agora;
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
-                    let alvoAuto = validarAtaqueBasicoAlvo(players[playerId], data.alvoTipo, data.alvoId);
+                    let alvoAuto = validarAtaqueBasicoAlvo(playerId, players[playerId], data.alvoTipo, data.alvoId);
                     if (data.alvoTipo || data.alvoId) {
                         if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
                     }
@@ -8993,7 +9403,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     pA.lastBasicAttack = agora;
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
-                    let alvoAuto = validarAtaqueBasicoAlvo(pA, data.alvoTipo, data.alvoId);
+                    let alvoAuto = validarAtaqueBasicoAlvo(playerId, pA, data.alvoTipo, data.alvoId);
                     if (data.alvoTipo || data.alvoId) {
                         if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
                     }
@@ -9021,7 +9431,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                             }
                         }
                     });
-                    danoEmBosses(pX, pY, alcanceAdaga, playerId, danoAdaga, 'basico', 'player');
+                    danoEmBosses(pX, pY, alcanceAdaga, playerId, danoAdaga, 'basico', 'player', anguloAdaga, 1.05);
                 }
 
                 // ===== LADINO SKILL 1: DANÇA DAS ADAGAS (5 teleportes/hits + retorno + imune) =====
@@ -9188,7 +9598,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         // Forma Robô: ataque à distância tecnológico (mesmo handler, outro dano)
                         if (Date.now() - pD.lastBasicAttack < tempoAtaqueBasico(pD, 416)) return;
                         pD.lastBasicAttack = Date.now();
-                        let alvoAutoR = validarAtaqueBasicoAlvo(pD, data.alvoTipo, data.alvoId);
+                        let alvoAutoR = validarAtaqueBasicoAlvo(playerId, pD, data.alvoTipo, data.alvoId);
                         if (data.alvoTipo || data.alvoId) { if (!alvoAutoR) return; }
                         let pXR = pD.x + PLAYER_OFFSET_X, pYR = pD.y + PLAYER_OFFSET_Y;
                         let angR = alvoAutoR ? Math.atan2(alvoAutoR.y - pYR, alvoAutoR.x - pXR) : ((data.angulo !== undefined) ? data.angulo : pD.angulo);
@@ -9218,7 +9628,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     // Drone normal: tiro à distância do Drone (range 90)
                     if (Date.now() - pD.lastBasicAttack < tempoAtaqueBasico(pD, 560)) return;
                     pD.lastBasicAttack = Date.now();
-                    let alvoAuto = validarAtaqueBasicoAlvo(pD, data.alvoTipo, data.alvoId);
+                    let alvoAuto = validarAtaqueBasicoAlvo(playerId, pD, data.alvoTipo, data.alvoId);
                     if (data.alvoTipo || data.alvoId) { if (!alvoAuto) return; }
                     let pX = pD.dmDroneX !== undefined ? pD.dmDroneX : (pD.x + PLAYER_OFFSET_X + 30);
                     let pY = pD.dmDroneY !== undefined ? pD.dmDroneY : (pD.y + PLAYER_OFFSET_Y - 14);
@@ -9340,7 +9750,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (!pA || pA.hp <= 0) return;
                     if (Date.now() - pA.lastBasicAttack < tempoAtaqueBasico(pA, 500)) return;
                     pA.lastBasicAttack = Date.now();
-                    let alvoAuto = validarAtaqueBasicoAlvo(pA, data.alvoTipo, data.alvoId);
+                    let alvoAuto = validarAtaqueBasicoAlvo(playerId, pA, data.alvoTipo, data.alvoId);
                     if (data.alvoTipo || data.alvoId) { if (!alvoAuto) return; }
                     let pX = pA.x + PLAYER_OFFSET_X, pY = pA.y + PLAYER_OFFSET_Y;
                     let angulo = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : ((data.angulo !== undefined) ? data.angulo : pA.angulo);
@@ -9492,7 +9902,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (pS.snAim) return; // não atira básico enquanto mira o super tiro
                     if (Date.now() - pS.lastBasicAttack < tempoAtaqueBasico(pS, 936)) return;
                     pS.lastBasicAttack = Date.now();
-                    let alvoAuto = validarAtaqueBasicoAlvo(pS, data.alvoTipo, data.alvoId);
+                    let alvoAuto = validarAtaqueBasicoAlvo(playerId, pS, data.alvoTipo, data.alvoId);
                     if (data.alvoTipo || data.alvoId) { if (!alvoAuto) return; }
                     let pX = pS.x + PLAYER_OFFSET_X, pY = pS.y + PLAYER_OFFSET_Y;
                     let angulo = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : ((data.angulo !== undefined) ? data.angulo : pS.angulo);
@@ -9568,8 +9978,21 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                             if (dp <= 42) { if (!bossAlvo || dp < bossAlvo.dp) bossAlvo = { b: b, dp: dp, dist: dist, x: b.x, y: b.y }; }
                         }
                     }
-                    const tx = alvoF ? alvoF.s.x : (bossAlvo ? bossAlvo.b.x : Math.round(tpX));
-                    const ty = alvoF ? alvoF.s.y : (bossAlvo ? bossAlvo.b.y : Math.round(tpY));
+                    // PvP: concorre na mesma seleção de "1 inimigo" (PvP ligado, mesmo mapa,
+                    // até 700px do atirador e a 42px do ponto mirado).
+                    let pvpAlvo = null;
+                    if (!alvoF && !bossAlvo) {
+                        for (let outro in players) {
+                            if (!pvpPodeAtacar(playerId, outro)) continue;
+                            const p2 = players[outro];
+                            let dist = Math.hypot(p2.x - fx0, p2.y - fy0);
+                            if (dist > 700) continue;
+                            let dp = Math.hypot(p2.x - tpX, p2.y - tpY);
+                            if (dp <= 42) { if (!pvpAlvo || dp < pvpAlvo.dp) pvpAlvo = { id: outro, dp: dp, x: p2.x, y: p2.y }; }
+                        }
+                    }
+                    const tx = alvoF ? alvoF.s.x : (bossAlvo ? bossAlvo.b.x : (pvpAlvo ? pvpAlvo.x : Math.round(tpX)));
+                    const ty = alvoF ? alvoF.s.y : (bossAlvo ? bossAlvo.b.y : (pvpAlvo ? pvpAlvo.y : Math.round(tpY)));
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'action_sniper_super_tiro', id: playerId, x: fx0, y: fy0, tx: tx, ty: ty }));
@@ -9577,6 +10000,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     });
                     if (alvoF) registrarDanoMonstro(alvoF.s, playerId, danoFinal, 'player');
                     if (bossAlvo) registrarDanoBoss(bossAlvo.b, playerId, danoFinal, 'skill', 'player');
+                    if (pvpAlvo) aplicarDanoPvP(playerId, pvpAlvo.id, danoFinal, 'disparo_supremo');
                     // Um único tiro por preparação
                     pF.snAim.fired = true;
                     pF.snAim = null;
@@ -9771,7 +10195,12 @@ if (data.action === 'dash') {
                     if(Date.now() - p.lastEscudo < 9500) return;
                     if (!gastarMana(ws, p, mpSkill(p, 'escudo_lancamento', 15))) return;
                     p.lastEscudo = Date.now();
-                    let ang = Math.atan2(data.targetY - p.y, data.targetX - p.x);
+                    // Anti-hack: coordenadas tem que ser número finito. Sem isto,
+                    // targetX="abc" gera atan2(NaN,NaN) e o NaN se espalha por
+                    // todos os clientes que recebem o projétil.
+                    const escudoTX = Number(data.targetX), escudoTY = Number(data.targetY);
+                    if (!Number.isFinite(escudoTX) || !Number.isFinite(escudoTY)) return;
+                    let ang = Math.atan2(escudoTY - p.y, escudoTX - p.x);
                     escudosLancados.push({ id: Math.random(), ownerId: playerId, x: p.x, y: p.y, ang: ang, speed: 10, dist: 0, dano: dmgSkill(p, 'escudo_lancamento', 45) });
                     wss.clients.forEach(c => {
                         if(c.readyState === WebSocket.OPEN) {
@@ -9796,7 +10225,11 @@ if (data.action === 'dash') {
                     if(Date.now() - p.lastBola < 20000) return; // CD 20s (v2)
                     if (!gastarMana(ws, p, mpSkill(p, 'bola_elemental', 30))) return;
                     p.lastBola = Date.now();
-                    let ang = Math.atan2(data.targetY - p.y, data.targetX - p.x);
+                    // Anti-hack: coordenadas tem que ser número finito (evita NaN
+                    // no atan2 se espalhando para todos os clientes).
+                    const bolaTX = Number(data.targetX), bolaTY = Number(data.targetY);
+                    if (!Number.isFinite(bolaTX) || !Number.isFinite(bolaTY)) return;
+                    let ang = Math.atan2(bolaTY - p.y, bolaTX - p.x);
                     let novaBola = { id: Math.random(), ownerId: playerId, x: p.x, y: p.y, ang: ang, speed: 12, dist: 0, dano: dmgSkill(p, 'bola_elemental', 60), type: 'normal' };
                     bolasElementais.push(novaBola);
                     wss.clients.forEach(c => {
@@ -9887,11 +10320,20 @@ if (data.action === 'dash') {
                             if (dist <= 360) candidatos.push({ ent: b, tipo: 'boss', dist: dist });
                         }
                     });
+                    // PvP: jogadores com PvP ligado entram na mesma disputa pelos 5 alvos.
+                    if (p.pvpAtivo) {
+                        for (let outro in players) {
+                            if (!pvpPodeAtacar(playerId, outro)) continue;
+                            const p2 = players[outro];
+                            let dist = Math.hypot(p2.x - p.x, p2.y - p.y);
+                            if (dist <= 360) candidatos.push({ ent: p2, tipo: 'player', id: outro, dist: dist });
+                        }
+                    }
                     candidatos.sort((a, b) => a.dist - b.dist);
                     let escolhidos = candidatos.slice(0, 5);
 
                     let netTargets = escolhidos.map(c => ({
-                        id: c.ent.id,
+                        id: c.tipo === 'player' ? c.id : c.ent.id,
                         tipo: c.tipo,
                         x: Math.round(c.ent.x),
                         y: Math.round(c.ent.y)
@@ -9916,6 +10358,8 @@ if (data.action === 'dash') {
                         escolhidos.forEach(c => {
                             let target = c.ent;
                             if (!target || target.hp <= 0) return;
+                            // PvP revalida 600ms depois: o alvo pode ter saído do PvP ou do mapa.
+                            if (c.tipo === 'player' && !pvpPodeAtacar(playerId, c.id)) return;
                             
                             target.canticoDebuffExpires = Date.now() + 10000;
                             target.canticoDefDebuff = 0.20;
@@ -9925,6 +10369,8 @@ if (data.action === 'dash') {
                                 registrarDanoMonstro(target, playerId, danoBase, 'skill');
                             } else if (c.tipo === 'boss') {
                                 registrarDanoBoss(target, playerId, danoBase, 'skill', 'player');
+                            } else {
+                                aplicarDanoPvP(playerId, c.id, danoBase, 'cantico');
                             }
                         });
                     }, 600);
@@ -10077,7 +10523,7 @@ if (data.action === 'dash') {
                     players[playerId].lastBasicAttack = agora;
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
-                    let alvoAuto = validarAtaqueBasicoAlvo(players[playerId], data.alvoTipo, data.alvoId);
+                    let alvoAuto = validarAtaqueBasicoAlvo(playerId, players[playerId], data.alvoTipo, data.alvoId);
                     if (data.alvoTipo || data.alvoId) {
                         if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
                     }
@@ -10105,7 +10551,7 @@ if (data.action === 'dash') {
                             }
                         }
                     });
-                    danoEmBosses(pX, pY, 100, playerId, danoFoice, 'basico', 'player');
+                    danoEmBosses(pX, pY, 100, playerId, danoFoice, 'basico', 'player', anguloFoice, Math.PI / 2.2);
                 }
 
                 // ============================================================
@@ -10199,6 +10645,19 @@ if (data.action === 'dash') {
                             if (typeof bb.slowTimer === 'number') bb.slowTimer = Math.max(bb.slowTimer, 45);
                         }
                     });
+                    // PvP: mesma geada (dano + 60% de lentidão) em quem estiver com PvP ligado.
+                    if (pk.pvpAtivo) {
+                        for (let outro in players) {
+                            if (!pvpPodeAtacar(playerId, outro)) continue;
+                            const p2 = players[outro];
+                            if (Math.hypot(p2.x - pX, p2.y - pY) >= 130) continue;
+                            aplicarDanoPvP(playerId, outro, danoGeada, 'geada');
+                            efeitos.aplicarEfeito(p2, 'gelo', 60, 1);
+                            wss.clients.forEach((client) => {
+                                if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_pikeman_geada_hit', x: Math.round(p2.x), y: Math.round(p2.y) }));
+                            });
+                        }
+                    }
                 }
 
                 // ============================================================
@@ -10251,7 +10710,7 @@ if (data.action === 'dash') {
                     players[playerId].lastBasicAttack = agora;
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
-                    let alvoAuto = validarAtaqueBasicoAlvo(players[playerId], data.alvoTipo, data.alvoId);
+                    let alvoAuto = validarAtaqueBasicoAlvo(playerId, players[playerId], data.alvoTipo, data.alvoId);
                     if (data.alvoTipo || data.alvoId) {
                         if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
                     }
@@ -10281,7 +10740,7 @@ if (data.action === 'dash') {
                             }
                         }
                     });
-                    danoEmBosses(pX, pY, 100, playerId, danoCorte, 'basico'); // TESTE: dano real do guerreiro em boss = 100 (era 110)
+                    danoEmBosses(pX, pY, 100, playerId, danoCorte, 'basico', null, anguloCorte, 1.0); // TESTE: dano real do guerreiro em boss = 100 (era 110)
                 }
 
                 if (data.action === 'ataque_mago' || data.action === 'ataque_summoner' || data.action === 'ataque_arqueiro' || data.action === 'ataque_curandeiro') {
@@ -10289,7 +10748,7 @@ if (data.action === 'dash') {
                     players[playerId].lastBasicAttack = agora;
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
-                    let alvoAuto = validarAtaqueBasicoAlvo(players[playerId], data.alvoTipo, data.alvoId);
+                    let alvoAuto = validarAtaqueBasicoAlvo(playerId, players[playerId], data.alvoTipo, data.alvoId);
                     if (data.alvoTipo || data.alvoId) {
                         if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
                     }
@@ -10742,6 +11201,8 @@ if (data.action === 'dash') {
             }
 
             if (data.action === 'respawn') {
+                // Mesma guarda do handler de respawn acima: só renasce morto.
+                if (!players[playerId] || players[playerId].hp > 0) return;
                 // Arena de Solari: renascer (botão) = sair da partida e voltar pra cidade
                 if (solariEmSessao(playerId)) solariRemoverMembro(playerId, 'respawn');
                 if (aurasSagradas[playerId]) desativarAuraSagrada(playerId, 'respawn');
@@ -10772,7 +11233,17 @@ if (data.action === 'dash') {
                     y: players[playerId].y
                 }));
             }
-        } catch (e) {}
+        } catch (e) {
+            // Antes era catch vazio: qualquer erro (inclusive vindo de uma
+            // mensagem forjada pelo cliente) sumia sem deixar rastro, e era
+            // impossível detectar tentativa de exploit em produção.
+            if (e instanceof SyntaxError) {
+                console.warn('[WS] JSON inválido recebido (ignorado).');
+            } else {
+                console.error('[WS] erro ao processar mensagem de', userId || ws._contaId || '?',
+                    '| action=' + ((data && data.action) || '?'), '|', (e && e.message) || e);
+            }
+        }
     });
 
     ws.on('close', () => {
@@ -10827,15 +11298,19 @@ if (data.action === 'dash') {
     });
 });
 
-let PORT = parseInt(process.env.PORT, 10) || 8080;
+// Render injeta PORT. Localmente o fallback 8080 mantem o endereco de sempre.
+let PORT = Number(process.env.PORT) || 8080;
+// O Render sobe UM servico: se ele mandou PORT, nunca trocamos de porta
+// (a troca em EADDRINUSE so vale para desenvolvimento local).
+const PORT_DO_AMBIENTE = !!process.env.PORT;
 
 server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE') {
+    if (err.code === 'EADDRINUSE' && !PORT_DO_AMBIENTE) {
         console.warn(`[AVISO] Porta ${PORT} em uso. Tentando porta alternativa ${PORT + 1}...`);
         PORT = PORT + 1;
         setTimeout(() => {
             try { server.close(); } catch (_) {}
-            server.listen(PORT, () => {
+            server.listen(PORT, '0.0.0.0', () => {
                 console.log("Servidor rodando na porta " + PORT);
             });
         }, 500);
@@ -10844,6 +11319,9 @@ server.on('error', (err) => {
     }
 });
 
-server.listen(PORT, () => {
+// '0.0.0.0' obrigatorio no Render: escutar so em localhost/127.0.0.1 deixa o
+// servico inalcancavel por fora. Sem host o Node ja faz isso, mas ficar
+// explicito evita regressao.
+server.listen(PORT, '0.0.0.0', () => {
     console.log("Servidor rodando na porta " + PORT);
 });

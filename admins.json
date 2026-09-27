@@ -1,3 +1,10 @@
 {
-  "admins": ["admin", "Admin", "admin1", "Admin1", "admin2", "Admin2"]
+  "admins": [
+    "admin",
+    "Admin",
+    "admin1",
+    "Admin1",
+    "admin2",
+    "Admin2"
+  ]
 }

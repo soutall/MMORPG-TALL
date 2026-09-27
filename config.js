@@ -11,7 +11,8 @@ function carregarConfiguracoesAudio() {
     let vSfx = localStorage.getItem("mmorpg_volume_sfx_" + uid);
 
     window.volumeGeral = vGeral !== null ? parseFloat(vGeral) : 0.8;
-    window.volumeBgm = vBgm !== null ? parseFloat(vBgm) : 0.8;
+    // BGM (música de fundo) nasce em 10% para contas novas (sem valor salvo).
+    window.volumeBgm = vBgm !== null ? parseFloat(vBgm) : 0.1;
     window.volumeSfx = vSfx !== null ? parseFloat(vSfx) : 0.8;
 }
 
@@ -124,7 +125,10 @@ function chaveVisual() {
 }
 
 function carregarConfigVisual() {
-    var padrao = { hpBar: 'max', mpBar: 'max', xpBar: 'pct', tela: 'fullscreen' };
+    // Padrão: as barras mostram PORCENTAGEM. 'max' mostra valor/máximo e
+    // 'off' some com o texto. mostrarFpsPing = false esconde as etiquetas de
+    // status e FPS no topo.
+    var padrao = { hpBar: 'pct', mpBar: 'pct', staminaBar: 'pct', xpBar: 'pct', mostrarFpsPing: true, tela: 'fullscreen' };
     window.configVisual = padrao;
     try {
         var s = localStorage.getItem(chaveVisual());
@@ -179,6 +183,34 @@ window.mudarVisualXpBar = function (val) {
     window.configVisual.xpBar = val;
     salvarConfigVisual();
     refrescarBarrasHud();
+};
+
+window.mudarVisualStaminaBar = function (val) {
+    window.configVisual = window.configVisual || {};
+    window.configVisual.staminaBar = val;
+    salvarConfigVisual();
+    refrescarBarrasHud();
+};
+
+// Mostra/oculta as duas etiquetas do topo (status do servidor + FPS/PING).
+window.mudarVisualFpsPing = function (val) {
+    window.configVisual = window.configVisual || {};
+    window.configVisual.mostrarFpsPing = (val === 'sim' || val === true);
+    salvarConfigVisual();
+    if (typeof window.aplicarVisibilidadeFpsPing === 'function') window.aplicarVisibilidadeFpsPing();
+};
+
+// Aplica a opção de FPS/PING no DOM. Usa display:none (e não só opacity) para
+// o elemento sair de vez do fluxo e não interceptar toque no mobile.
+// Lê window.configVisual direto (e não barrasModo) porque roda no carregamento,
+// antes de o script principal do jogo estar definido.
+window.aplicarVisibilidadeFpsPing = function () {
+    var cfg = window.configVisual || {};
+    var mostrar = (cfg.mostrarFpsPing !== false);
+    ['status', 'fps-counter'].forEach(function (id) {
+        var el = document.getElementById(id);
+        if (el) el.style.display = mostrar ? '' : 'none';
+    });
 };
 
 /* ===== MODO DE TELA — JANELA vs FULL JANELA (SOMENTE PC) =====
@@ -285,11 +317,15 @@ if (document.addEventListener) {
 function preencherAbaVisual() {
     var cfg = window.configVisual || {};
     var sh = document.getElementById("vis-hp-modo");
-    if (sh) sh.value = cfg.hpBar || 'max';
+    if (sh) sh.value = cfg.hpBar || 'pct';
     var sm = document.getElementById("vis-mp-modo");
-    if (sm) sm.value = cfg.mpBar || 'max';
+    if (sm) sm.value = cfg.mpBar || 'pct';
+    var ss = document.getElementById("vis-stamina-modo");
+    if (ss) ss.value = cfg.staminaBar || 'pct';
     var sx = document.getElementById("vis-xp-modo");
     if (sx) sx.value = cfg.xpBar || 'pct';
+    var sf = document.getElementById("vis-fps-ping");
+    if (sf) sf.value = (cfg.mostrarFpsPing === false) ? 'nao' : 'sim';
     atualizarSeletorTela();
 }
 
@@ -317,6 +353,9 @@ function trocarDePersonagem() {
 
     try { if (typeof ws !== 'undefined' && ws) { ws.onclose = null; ws.close(); ws = null; } } catch (e) {}
     window.meuId = null;
+    // Saiu do personagem: a música dos mapas para até logar no próximo.
+    window.jogoIniciado = false;
+    window.bgmLiberado = false;
 
     if (charSelectScreen) charSelectScreen.style.display = "flex";
 }
@@ -328,3 +367,7 @@ function sairDoJogo() {
 }
 
 if (configScreenEl()) configScreenEl().addEventListener("click", function(e) { if (e.target === configScreenEl()) fecharConfig(); });
+
+// Aplica a opção de FPS/PING já no carregamento (a função só existe acima
+// deste ponto, por isso a chamada fica no fim do arquivo).
+if (typeof window.aplicarVisibilidadeFpsPing === 'function') window.aplicarVisibilidadeFpsPing();

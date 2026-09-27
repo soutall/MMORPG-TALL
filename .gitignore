@@ -25,3 +25,13 @@ imagem/HUD/Imagem do Codex*.png
 RODRIGO NAO DELETAR.rar
 # Backups de auditoria locais (nao sobem para o GitHub)
 backup_auditoria/
+
+# Descartados: arquivos inuteis/obsoletos movidos para revisao (nao sobem para o repo)
+_arquivos_inuteis/
+
+# Config local de ferramenta de IA (nao sobem para o repo)
+.abacusai/
+
+# Dados de runtime gerados pelo servidor (nao sobem para o repo)
+Char deletados/
+$null
