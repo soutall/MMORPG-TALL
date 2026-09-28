@@ -46,7 +46,8 @@ const TIPOS_MONSTROS = {
     void_master: { nome: 'Void Master', emoji: '◉', baseHp: 900, nivelMinimo: 20, arquetipo: 'void_laser', aggroRange: 850, attackRange: 680, dano: 44, cor: '#6c35a8', distanciaPreferida: 480, skillRange: 720, skillCooldown: 260 },
     ogro: { nome: 'Ogro', emoji: '👹', baseHp: 2600, nivelMinimo: 30, arquetipo: 'tank_melee', aggroRange: 500, attackRange: 90, dano: 72, cor: '#68734b', velocidade: 1.25, maxQtd: 1, resistenciaControle: 0.65 },
     gargula: { nome: 'Gárgula', emoji: '🦇', baseHp: 1100, nivelMinimo: 20, arquetipo: 'gargoyle', aggroRange: 620, attackRange: 75, dano: 42, cor: '#59616c', velocidade: 2.7, ignoreMapCollision: true, imuneControle: true },
-    mamute: { nome: 'Mamute', emoji: '🐘', baseHp: 3200, nivelMinimo: 30, arquetipo: 'tank_melee', aggroRange: 500, attackRange: 100, dano: 78, cor: '#6e6254', velocidade: 1.05, resistenciaControle: 0.8 }
+    mamute: { nome: 'Mamute', emoji: '🐘', baseHp: 3200, nivelMinimo: 30, arquetipo: 'tank_melee', aggroRange: 500, attackRange: 100, dano: 78, cor: '#6e6254', velocidade: 1.05, resistenciaControle: 0.8 },
+    soldado_lanceiro: { nome: 'Soldado Lanceiro', emoji: '🛡️', baseHp: 1400, nivelMinimo: 20, arquetipo: 'lanceiro', aggroRange: 620, attackRange: 70, dano: 58, cor: '#8b1e2d', velocidade: 2.45, skillRange: 360, skillCooldown: 180 }
 };
 
 // Bioma do Besouro Negro: vive APENAS no deserto (x ∈ [1800, 3400), y ∈ [0, 1800))
@@ -64,7 +65,7 @@ const CADENCIA_POR_TIPO = {
     golem_pedra: 65, caveira_arqueira: 55, caveira_melee: 42,
     aranha_negra: 42, aranha_dark: 42, escorpiao: 42, goblin: 55,
     mago_arcano: 55, assassino: 42, void_master: 55,
-    ogro: 65, gargula: 42, mamute: 65
+    ogro: 65, gargula: 42, mamute: 65, soldado_lanceiro: 50
 };
 
 const VELOCIDADE_POR_TIPO = { zumbi: 3.8, besouro_negro: 3.4, morcego: 4.2 };
@@ -74,7 +75,7 @@ const EHEMELLE_POR_TIPO = {
     golem_pedra: true, caveira_arqueira: false, caveira_melee: true,
     aranha_negra: true, aranha_dark: true, escorpiao: true, goblin: false,
     mago_arcano: false, assassino: true, void_master: false,
-    ogro: true, gargula: true, mamute: true
+    ogro: true, gargula: true, mamute: true, soldado_lanceiro: true
 };
 
 const DEBUFFS_INICIAIS = {
@@ -289,6 +290,24 @@ function criarMonstroBandeira(flag) {
         mob.ziguezague = 0;
         mob.x = Math.max(5000, Math.min(6790, mob.x));
         mob.y = Math.max(0, Math.min(1790, mob.y));
+    }
+    if (flag.tipo === 'soldado_lanceiro') {
+        mob.skillCooldown = Math.floor(70 + Math.random() * 80);
+        mob.skillChargeMax = 20;
+        mob.skillChargeTimer = 0;
+        mob.skillCharging = false;
+        mob.skillAim = null;
+        mob.skillKind = null;
+        mob.lanceiroFaceAngle = 0;
+        mob.lanceiroDashing = false;
+        mob.lanceiroDashVx = 0;
+        mob.lanceiroDashVy = 0;
+        mob.lanceiroDashFrames = 0;
+        mob.lanceiroDashHit = false;
+        mob.lanceiroBloqueando = false;
+        mob.lanceiroBlockTimer = 0;
+        mob.lanceiroBlockCooldown = 90;
+        mob.escudoFrontal = true;
     }
     return mob;
 }

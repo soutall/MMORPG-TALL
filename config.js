@@ -207,7 +207,7 @@ window.mudarVisualFpsPing = function (val) {
 window.aplicarVisibilidadeFpsPing = function () {
     var cfg = window.configVisual || {};
     var mostrar = (cfg.mostrarFpsPing !== false);
-    ['status', 'fps-counter'].forEach(function (id) {
+    ['status', 'fps-counter', 'ping-counter'].forEach(function (id) {
         var el = document.getElementById(id);
         if (el) el.style.display = mostrar ? '' : 'none';
     });

@@ -13,7 +13,7 @@
         guerreiro: 'Guerreiro', mago: 'Mago', summoner: 'Summoner', arqueiro: 'Arqueira',
         barbaro: 'Barbaro', roqueiro: 'Roqueiro', ladino: 'Ladino', dronemaster: 'DroneMaster',
         arqueiro_arcano: 'Arqueir_astral', arqueiro_astral: 'Arqueir_astral', sniper: 'sniper',
-        pikeman: 'PikeMan', curandeiro: 'curandeiro'
+        pikeman: 'PikeMan', curandeiro: 'curandeiro', florim: 'Florim'
     };
 
     var CLASSES = null;
@@ -81,6 +81,7 @@
     function retratoUrl(classe) {
         var nome = PERFIL_POR_CLASSE[classe];
         if (!nome) return '';
+        if (classe === 'florim') return 'imagem/HUD/Perfil/Florim.svg' + FOTO_RETRY;
         return 'imagem/HUD/Perfil/' + nome + '.png' + FOTO_RETRY;
     }
 

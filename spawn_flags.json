@@ -154,5 +154,44 @@
     "y": 1338,
     "temPosicao": true,
     "timerRespawn": 100
+  },
+  {
+    "id": "flag_mulhwe8p_t0f0i",
+    "criadoEm": 1790614934809,
+    "tipo": "melee",
+    "maxQtd": 3,
+    "comportamento": "agressivo",
+    "hpBase": 50,
+    "respawnSeg": 5,
+    "x": 6700,
+    "y": 1472,
+    "temPosicao": true,
+    "timerRespawn": 100
+  },
+  {
+    "id": "flag_ruinas_soldado_lanceiro_01",
+    "criadoEm": 1790615148608,
+    "tipo": "soldado_lanceiro",
+    "maxQtd": 1,
+    "comportamento": "agressivo",
+    "hpBase": 1400,
+    "respawnSeg": 5,
+    "x": 88700,
+    "y": 950,
+    "temPosicao": true,
+    "timerRespawn": 100
+  },
+  {
+    "id": "flag_muli7gly_9b62g",
+    "criadoEm": 1790615451094,
+    "tipo": "soldado_lanceiro",
+    "maxQtd": 1,
+    "comportamento": "agressivo",
+    "hpBase": 1400,
+    "respawnSeg": 5,
+    "x": 6008,
+    "y": 1390,
+    "temPosicao": true,
+    "timerRespawn": 100
   }
 ]

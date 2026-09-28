@@ -15,23 +15,15 @@
     window.dragEstado = null;
     window.editorMinimizado = false;
 
-    // Configuração de todos os 9 mapas suportados pelo jogo (v1.47.0)
-    const MAPAS_CONFIG = {
-        cidade:        { x0: 59800, y0: 0, w: 1374,  h: 1145,  nome: 'Cidade de Davahl',   icone: '🏰' },
-        green:         { x0: 0,     y0: 0, w: 18000, h: 5400,  nome: 'Campo Verde',       icone: '🌿' },
-        desert:        { x0: 18000, y0: 0, w: 32000, h: 36000, nome: 'Deserto com Oásis', icone: '🏜️' },
-        pantano:       { x0: 50000, y0: 0, w: 8000,  h: 9000,  nome: 'Pântano Realista',   icone: '🌿' },
-        caverna:       { x0: 58000, y0: 0, w: 1800,  h: 1800,  nome: 'Caverna Sombria',    icone: '🕳️' },
-        arena:         { x0: 63800, y0: 0, w: 1240,  h: 1240,  nome: 'Arena de Davahl',    icone: '⚔️' },
-        cidadeperdida: { x0: 65040, y0: 0, w: 6880,  h: 3920,  nome: 'Cidade Perdida',     icone: '🏛️' },
-        testevisual:   { x0: 72000, y0: 0, w: 1280,  h: 960,   nome: 'Arena Visual Teste', icone: '🌿' },
-        zonazero:      { x0: 74000, y0: 0, w: 8000,  h: 9000,  nome: 'Zona Zero (Gelo)',   icone: '❄️' },
-        castelo:       { x0: 82000, y0: 0, w: 2200,  h: 1800,  nome: 'Castelo Anda 1 (DG)', icone: '🏯' }
-    };
+    // Configuração de todos os mapas suportados pelo jogo.
+    const MAPAS_CONFIG = window.MAPAS_REGISTRY || {};
 
     window.MAPAS_CONFIG = MAPAS_CONFIG;
     window.colisoesPorMapa = window.colisoesPorMapa || {};
     window.camadasPorMapa = window.camadasPorMapa || {};
+    // Cada mapa pode registrar um renderizador específico. Quando não houver,
+    // usamos o snapshot genérico do terreno capturado pelo loop principal.
+    window.desenharCamadaMapaAtivoPorMapa = window.desenharCamadaMapaAtivoPorMapa || {};
     window.mapaEdicaoAtivo = window.mapaEdicaoAtivo || 'cidade';
 
     function obterConfigMapaAtivo() {
@@ -271,6 +263,7 @@
                             '<option value="arena">⚔️ Arena de Davahl</option>' +
                             '<option value="cidadeperdida">🏛️ Cidade Perdida</option>' +
                             '<option value="testevisual">🌿 Arena Visual Teste</option>' +
+                            '<option value="bemvindo">Ilha BemVindo</option>' +
                         '</select>' +
                     '</div>' +
                     '<div class="col-toolbar">' +
@@ -1579,6 +1572,39 @@
     };
 
     // Coleta camadas para Z-sorting nos mapas (exceto cidade que já possui coletarCidadeSortables)
+    function desenharCamadaGenericaSnapshot(ctx, camada, cfg) {
+        const snap = window._mapLayerSnapshot;
+        if (!ctx || !camada || !cfg || !snap || !snap.canvas) return;
+        const zoom = snap.zoom > 0 ? snap.zoom : 1;
+        const camX = snap.camX || 0;
+        const camY = snap.camY || 0;
+        const sx = (cfg.x0 + (camada.x || 0) - camX) * zoom;
+        const sy = (cfg.y0 + (camada.y || 0) - camY) * zoom;
+        const sw = Math.max(4, camada.w || 40) * zoom;
+        const sh = Math.max(4, camada.h || 40) * zoom;
+
+        ctx.save();
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.beginPath();
+        if (camada.tipo === 'line' && Array.isArray(camada.pontos) && camada.pontos.length > 1) {
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
+            ctx.moveTo((cfg.x0 + camada.pontos[0].x - camX) * zoom, (cfg.y0 + camada.pontos[0].y - camY) * zoom);
+            for (let i = 1; i < camada.pontos.length; i++) {
+                ctx.lineTo((cfg.x0 + camada.pontos[i].x - camX) * zoom, (cfg.y0 + camada.pontos[i].y - camY) * zoom);
+            }
+            ctx.lineWidth = Math.max(4, camada.espessura || 16) * zoom;
+            ctx.stroke();
+            ctx.clip();
+            ctx.drawImage(snap.canvas, 0, 0);
+        } else {
+            ctx.rect(sx, sy, sw, sh);
+            ctx.clip();
+            ctx.drawImage(snap.canvas, 0, 0);
+        }
+        ctx.restore();
+    }
+
     window.coletarCamadasMapaAtivo = function (t, arr) {
         if (!Array.isArray(arr)) return;
         const mapa = window.currentMap;
@@ -1605,7 +1631,12 @@
             arr.push({
                 y: baseY,
                 draw: function () {
-                    // Reserva para expansão futura de recorte com base em sprites de bioma
+                    const renderPorMapa = window.desenharCamadaMapaAtivoPorMapa && window.desenharCamadaMapaAtivoPorMapa[mapa];
+                    if (typeof renderPorMapa === 'function') {
+                        renderPorMapa(global.ctx, c, cfg);
+                    } else {
+                        desenharCamadaGenericaSnapshot(global.ctx, c, cfg);
+                    }
                 }
             });
         }

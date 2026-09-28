@@ -31,6 +31,7 @@ _arquivos_inuteis/
 
 # Config local de ferramenta de IA (nao sobem para o repo)
 .abacusai/
+MEMORIA_IA_PROJETO.md
 
 # Dados de runtime gerados pelo servidor (nao sobem para o repo)
 Char deletados/

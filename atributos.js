@@ -26,6 +26,9 @@ function abrirAtributos() {
     window.atributosAberto = true;
     ATRIBUTOS_SCREEN.style.display = "flex";
     renderizarAtributos();
+    if (window.tutorialState && window.tutorialState.etapa === 1 && typeof ws !== 'undefined' && ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ action: 'tutorial_status_opened' }));
+    }
     if (!_intervaloAtributos) {
         _intervaloAtributos = setInterval(function () {
             if (window.atributosAberto) {

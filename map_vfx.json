@@ -284,5 +284,16 @@
     "intensidade": 0.6,
     "raio": 80,
     "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_mul4f3gc",
+    "mapa": "bemvindo",
+    "x": 86730,
+    "y": 1270,
+    "tipo": "lampada",
+    "escala": 3.9,
+    "intensidade": 1,
+    "raio": 235,
+    "cor": "#ffd166"
   }
 ]

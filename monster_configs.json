@@ -462,5 +462,30 @@
     "vfxCor": "#6e6254",
     "vfxIntensidade": 1,
     "drops": []
+  },
+  "soldado_lanceiro": {
+    "nome": "Soldado Lanceiro",
+    "emoji": "🛡️",
+    "baseHp": 1400,
+    "dano": 58,
+    "defesa": 0,
+    "block": 0,
+    "aggroRange": 620,
+    "attackRange": 70,
+    "velocidade": 2.45,
+    "cadenciaAtk": 50,
+    "velAtk": 1,
+    "velProjetil": 11,
+    "ehMelee": true,
+    "xpBase": 35,
+    "escala": 1,
+    "cor": "#8b1e2d",
+    "imuneDebuffs": [],
+    "debuffsAplicados": [],
+    "buffsAplicados": [],
+    "efeitoVisual": "none",
+    "vfxCor": "#8b1e2d",
+    "vfxIntensidade": 1,
+    "drops": []
   }
 }

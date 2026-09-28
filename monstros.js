@@ -146,6 +146,7 @@ function _info(slime) {
     else if (arq === 'void_laser' || tp === 'void_master') r = { cor: '#b56cff', raio: 22 };
     else if (tp === 'ogro') r = { cor: '#c1e36a', raio: 24 };
     else if (tp === 'mamute') r = { cor: '#ffd98a', raio: 26 };
+    else if (tp === 'soldado_lanceiro' || arq === 'lanceiro') r = { cor: '#b82b3d', raio: 25 };
     else if (tp === 'besouro_negro') r = { cor: '#b56cff', raio: 22 };
     else if (tp === 'morcego') r = { cor: '#ff4d6d', raio: 19 };
     else if (tp === 'ranged') r = { cor: '#c77dff', raio: 17 };
@@ -2445,7 +2446,52 @@ function _tanque(ctx, slime, est, info) {
     ctx.restore();
     _golpeArco(ctx, est, cor);
     _stunStar(ctx, slime, -26);
-}// ============ DISPATCHER PRINCIPAL ============
+}// ============ DEMÔNIO DO TUTORIAL ============
+function desenharDemonioTutorial(ctx, slime, est, info) {
+    var t = Date.now() / 1000;
+    var carregando = !!slime.tutorialSkillCharging;
+    var cor = '#b14cff';
+    // Telegráfico da área: círculo vermelho/púrpura pulsante no local marcado.
+    if (carregando && slime.tutorialSkillAim) {
+        var ax = slime.tutorialSkillAim.x - slime.x;
+        var ay = slime.tutorialSkillAim.y - slime.y;
+        var pulso = 0.72 + Math.sin(t * 10) * 0.22;
+        ctx.save();
+        ctx.globalAlpha = 0.22 + pulso * 0.18;
+        ctx.fillStyle = '#ff3158';
+        ctx.strokeStyle = '#ff6b7d';
+        ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.arc(ax, ay, 58 + Math.sin(t * 8) * 3, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+        ctx.globalAlpha = 0.95;
+        ctx.setLineDash([7, 6]);
+        ctx.beginPath(); ctx.arc(ax, ay, 48 + Math.sin(t * 8) * 3, 0, Math.PI * 2); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#fff'; ctx.font = 'bold 12px Arial'; ctx.textAlign = 'center';
+        ctx.fillText('ÁREA DE ATAQUE', ax, ay - 68);
+        ctx.restore();
+    }
+    // Corpo demoníaco simples, com chifres, asas e núcleo roxo.
+    ctx.save();
+    var bounce = Math.sin(t * 4 + est.fase) * 2;
+    ctx.translate(0, bounce);
+    ctx.fillStyle = 'rgba(0,0,0,0.4)'; ctx.beginPath(); ctx.ellipse(0, 19, 24, 7, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#21132f';
+    ctx.beginPath(); ctx.moveTo(-18, 5); ctx.lineTo(-32, -9); ctx.lineTo(-22, 13); ctx.lineTo(0, 7); ctx.lineTo(22, 13); ctx.lineTo(32, -9); ctx.lineTo(18, 5); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#4c245e'; ctx.beginPath(); ctx.ellipse(0, 0, 17, 22, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#7b35a0'; ctx.beginPath(); ctx.ellipse(0, -9, 13, 11, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#f0d5ff'; ctx.beginPath(); ctx.moveTo(-12, -17); ctx.lineTo(-7, -34); ctx.lineTo(-1, -18); ctx.closePath(); ctx.fill(); ctx.beginPath(); ctx.moveTo(12, -17); ctx.lineTo(7, -34); ctx.lineTo(1, -18); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = '#ff4f70'; ctx.beginPath(); ctx.arc(-5, -10, 2.8, 0, Math.PI * 2); ctx.arc(5, -10, 2.8, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#d95cff'; ctx.beginPath(); ctx.arc(0, 2, 5 + Math.sin(t * 7) * 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+    if (carregando && slime.tutorialSkillMax) {
+        var prog = 1 - slime.tutorialSkillTimer / slime.tutorialSkillMax;
+        ctx.fillStyle = 'rgba(0,0,0,.65)'; ctx.fillRect(-22, -48, 44, 6);
+        ctx.fillStyle = '#ff3158'; ctx.fillRect(-21, -47, 42 * Math.max(0, Math.min(1, prog)), 4);
+        ctx.strokeStyle = '#ffd6de'; ctx.strokeRect(-22, -48, 44, 6);
+    }
+}
+
+// ============ DISPATCHER PRINCIPAL ============
 // Barra de vida acima do monstro (renderização do client, via classes/comum.js)
 function _barraHp(slime, dx, dy, largura) {
     if (typeof window.desenharBarraHp === "function") {
@@ -2508,6 +2554,30 @@ window.desenharSlime = function(slime) {
     if (slime.invisivel) return;
 
     var info = _info(slime);
+    if (tp === 'soldado_lanceiro' || arq === 'lanceiro') {
+        var estL = _estado(slime);
+        _atualizarEstado(slime, estL);
+        ctx.save();
+        ctx.translate(slime.x, slime.y);
+        if (escala !== 1) ctx.scale(escala, escala);
+        if (typeof window.desenharSoldadoLanceiro === 'function') window.desenharSoldadoLanceiro(ctx, slime, estL);
+        ctx.restore();
+        _barraHp(slime, -23 * escala, -42 * escala, 46 * escala);
+        if (elite) _desenharEliteMark(slime, escala);
+        return;
+    }
+
+    if (tp === 'tutorial_demonio') {
+        var estD = _estado(slime);
+        _atualizarEstado(slime, estD);
+        ctx.save();
+        ctx.translate(slime.x, slime.y);
+        if (escala !== 1) ctx.scale(escala, escala);
+        desenharDemonioTutorial(ctx, slime, estD, info);
+        ctx.restore();
+        _barraHp(slime, -25 * escala, -55 * escala, 50 * escala);
+        return;
+    }
     var est = _estado(slime);
     _atualizarEstado(slime, est);
 

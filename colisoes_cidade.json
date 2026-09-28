@@ -2213,5 +2213,37 @@
     "y": 229,
     "w": 34,
     "h": 123
+  },
+  {
+    "id": "col_mul4g5x8_ena8",
+    "tipo": "rect",
+    "nome": "Caixa 36",
+    "x": 26583,
+    "y": 1183,
+    "w": 82,
+    "h": 145,
+    "x1": 26583,
+    "y1": 1183,
+    "x2": 26665,
+    "y2": 1328
+  },
+  {
+    "id": "col_mul4nzlp_9l4c",
+    "tipo": "circle",
+    "nome": "Círculo 37",
+    "cx": 26631,
+    "cy": 1141,
+    "r": 108
+  },
+  {
+    "id": "col_mul5hxsa_7uf1",
+    "tipo": "rect",
+    "nome": "Caixa 38",
+    "x": 26783,
+    "y": 1407,
+    "w": 67,
+    "h": 79,
+    "baseY": 1486,
+    "ordem": 0
   }
 ]

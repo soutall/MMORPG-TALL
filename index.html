@@ -117,6 +117,9 @@
             <div class="class-card sniper" onclick="selecionarClasse('sniper')">
                 <div class="icon">🎯</div><div class="title" style="color:#8f9b4a;">Sniper</div><div class="desc">Barrett perfurante, camuflagem e posição de tiro.</div>
             </div>
+            <div class="class-card florim" onclick="selecionarClasse('florim')">
+                <div class="icon">🌿</div><div class="title" style="color:#69c94a;">Florim</div><div class="desc">Plantas, raízes, flores, veneno e suporte natural.</div>
+            </div>
             <div class="class-card pikeman" onclick="selecionarClasse('pikeman')">
                 <div class="icon">⛓️</div><div class="title" style="color:#c0392b;">Pikeman</div><div class="desc">Foice da Morte, Geada e Execução. Burst + Controle.</div>
             </div>
@@ -125,6 +128,7 @@
 
     <div id="status" data-ui="status">Desconectado</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
+    <div id="ping-counter" data-ui="ping">PING: -- ms</div>
     <div id="hud-version" class="game-version-display">v1.60.2</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
@@ -419,6 +423,10 @@
         <button id="btn-pikeman-giro" class="btn-action btn-pikeman-giro" ontouchstart="usarGiroPikeman(); event.stopPropagation();" onclick="usarGiroPikeman();" title="Giro da Foice (1)"><img src="imagem/HUD/skills/Slotbar/Pike/skill_01.png" class="btn-action-icon-img" alt="Giro da Foice" /><span class="key-badge">1</span></button>
         <button id="btn-pikeman-pirueta" class="btn-action btn-pikeman-pirueta" ontouchstart="usarPiruetaPikeman(); event.stopPropagation();" onclick="usarPiruetaPikeman();" title="Pirueta da Morte (2)">✴️<span class="key-badge">2</span></button>
         <button id="btn-pikeman-geada" class="btn-action btn-pikeman-geada" ontouchstart="usarGeadaPikeman(); event.stopPropagation();" onclick="usarGeadaPikeman();" title="Geada da Morte (3)">🧊<span class="key-badge">3</span></button>
+        <button id="btn-florim-semente" class="btn-action btn-florim-semente" ontouchstart="iniciarDragSkill(event,'florim_semente'); event.preventDefault(); event.stopPropagation();" onclick="usarSementeFlorim();" title="Sementes (1)">🌱<span class="key-badge">1</span></button>
+        <button id="btn-florim-corrente" class="btn-action btn-florim-corrente" ontouchstart="iniciarDragSkill(event,'florim_corrente'); event.preventDefault(); event.stopPropagation();" onclick="usarCorrenteFlorim();" title="Corrente de Raízes (2)">🌿<span class="key-badge">2</span></button>
+        <button id="btn-florim-anel" class="btn-action btn-florim-anel" ontouchstart="iniciarDragSkill(event,'florim_anel'); event.preventDefault(); event.stopPropagation();" onclick="usarAnelFlorim();" title="Anel de Flores (3)">🌸<span class="key-badge">3</span></button>
+        <button id="btn-florim-praga" class="btn-action btn-florim-praga" ontouchstart="iniciarDragSkill(event,'florim_praga'); event.preventDefault(); event.stopPropagation();" onclick="usarPragaFlorim();" title="Praga Natural (4)">🍃<span class="key-badge">4</span></button>
         <button id="btn-pikeman-execucao" class="btn-action btn-pikeman-execucao" ontouchstart="usarExecucaoPikeman(); event.stopPropagation();" onclick="usarExecucaoPikeman();" title="Execução da Morte (4)">💀<span class="key-badge">4</span></button>
         
         
@@ -502,6 +510,7 @@
                 <button class="btn-teleportare" data-mapa="testevisual" onclick="selecionarMapa('testevisual')">🌿 Arena Visual (Pântano Realista)</button>
                 <button class="btn-teleportare" data-mapa="zonazero" onclick="selecionarMapa('zonazero')">❄️ Zona Zero (Bioma de Gelo)</button>
                 <button class="btn-teleportare" data-mapa="castelo" onclick="selecionarMapa('castelo')">🏯 Castelo Anda 1 (DG)</button>
+                <button class="btn-teleportare" data-mapa="ruinas_01" onclick="selecionarMapa('ruinas_01')">🏚️ Ruínas de Âmbar (ID)</button>
             </div>
             <button id="btn-teleportare-confirmar" style="display:none;" onclick="confirmarTeleporte()">✅ CONFIRMAR</button>
             <button id="btn-teleportare-fechar" onclick="fecharTeleporteMapas()">FECHAR</button>
@@ -803,6 +812,7 @@
         </div>
     </div>
 
+    <script src="mapas-registry.js?v=1"></script>
     <script src="mapas.js?v=233"></script>
     <script src="mapa_deserto.js?v=9"></script>
     <script src="mapa_pantano.js?v=7"></script>
@@ -817,7 +827,10 @@
     <script src="mapa_teste_visual.js?v=3"></script>
     <script src="mapa_zona_zero.js?v=1"></script>
     <script src="mapa_castelo.js?v=1"></script>
-    <script src="solari.js?v=5"></script>
+    <script src="mapa_bemvindo.js?v=7"></script>
+    <script src="mapa_ruinas_01.js?v=1"></script>
+    <script src="instancias.js?v=1"></script>
+    <script src="solari.js?v=6"></script>
     <script>
         (function () {
             if (typeof window !== 'undefined' && !window._earlyErros) {
@@ -850,6 +863,7 @@
     <script src="classes/arqueiro_arcano.js?v=1002"></script>
     <script src="classes/sniper.js?v=1500"></script>
     <script src="classes/pikeman.js?v=10"></script>
+<script src="classes/florim.js?v=2"></script>
     <script src="efeitos/arqueiro_efeitos.js?v=230"></script>
     <script src="efeitos/curandeiro_efeitos.js?v=231"></script>
     <script src="efeitos/barbaro_efeitos.js?v=231"></script>
@@ -858,6 +872,7 @@
     <script src="efeitos/roqueiro_efeitos.js?v=231"></script>
     <script src="efeitos/ladino_efeitos.js?v=1300"></script>
     <script src="efeitos/pikeman_efeitos.js?v=2"></script>
+<script src="efeitos/florim_efeitos.js?v=1"></script>
     <script src="efeitos.js?v=235"></script>
     <script src="efeitos/vfx_master.js?v=1"></script>
     <script src="efeitos/vfx_guerreiro_escudo.js?v=2"></script>
@@ -869,18 +884,19 @@
     <script src="efeitos/vfx_astral_buraco.js?v=2"></script>
     <script src="debuffs.js?v=1500"></script>
     <script src="efeitos/boss_golem.js?v=230"></script>
-    <script src="monstros.js?v=2007"></script>
+    <script src="soldado_lanceiro.js?v=1"></script>
+    <script src="monstros.js?v=2009"></script>
     <script src="inventario.js?v=160"></script>
-    <script src="skills.js?v=146"></script>
+    <script src="skills.js?v=147"></script>
     <script src="config.js?v=145"></script>
     <script src="atributos.js?v=3"></script>
-    <script src="spawn-admin.js?v=3"></script>
+    <script src="spawn-admin.js?v=4"></script>
     <script src="map-vfx-admin.js?v=2"></script>
     <script src="mob-editor.js?v=1511"></script>
     <script src="mob-vfx.js?v=1"></script>
     <script src="dragdrop.js?v=6"></script>
     <script src="ferreiro.js?v=1"></script>
-    <script src="colisao-editor.js?v=3"></script>
+    <script src="colisao-editor.js?v=6"></script>
     <script src="mapa-editor.js?v=2"></script>
     <script src="audio-manager.js?v=3"></script>
     <script src="sonoro.js?v=1582"></script>
@@ -893,7 +909,7 @@
     <script>
         const GAME_VERSION = 'v1.60.2';
         window.GAME_VERSION = GAME_VERSION;
-        const WORLD_WIDTH = 84200;
+        const WORLD_WIDTH = 90000;
         const WORLD_HEIGHT = 36000;
         window.WORLD_WIDTH = WORLD_WIDTH;
         window.WORLD_HEIGHT = WORLD_HEIGHT;
@@ -920,14 +936,18 @@
         window.LARGURA_CASTELO = 82000;
         window.FIM_CASTELO = 84200;
         window.ALTO_CASTELO = 1800;
+        window.LARGURA_BEMVINDO = 85000;
+        window.FIM_BEMVINDO = 87400;
+        window.ALTO_BEMVINDO = 1800;
         // Ponto de spawn da cidade de Davahl (espelho do server: CIDADE_SPAWN_X/Y = 60474,640).
         // O respawn do jogador SEMPRE devolve para cá.
         window.SPAWN_CIDADE = { x: 60474, y: 640 };
-        window.currentMap = 'cidade'; // ESTADO ÚNICO DE MAPA: 'green' | 'desert' | 'pantano' | 'caverna' | 'cidade' | 'arena' | 'solari' | 'cidadeperdida'
+        window.currentMap = 'cidade'; // ID do mapa ativo. Limites vêm de MAPAS_REGISTRY.
         // Pré-jogo: tela de login / seleção de personagem é independente do mundo.
         // Só vira true quando o jogador realmente entra (selecionarClasse).
         window.jogoIniciado = false;
-        window.solariAtivo = false; // TRUE dentro da Arena de Solari (faixa leste da arena)
+        window.solariAtivo = false; // TRUE dentro da Arena de Solari
+        window.instanciaAtualId = null; // identidade lógica do espaço instanciado
         window.transicaoMapaAtiva = false;
         window.portalMapaBloqueado = null;
         // Música de fundo (BGM): começa DESLIGADA. Só é liberada de verdade
@@ -1043,7 +1063,7 @@ window.cdArcanoBuraco = false;
 
 window.modoMiraEscudo = false;
 window.modoMiraBola = false;
-window.modoMiraBuraco = false;
+window.modoMiraBuraco = false; window.modoMiraFlorimSemente = false; window.modoMiraFlorimCorrente = false; window.modoMiraFlorimAnel = false; window.modoMiraFlorimPraga = false;
 window.modoMiraVinculo = false;
 
 function ativarEscudoSmartCast() {
@@ -1257,6 +1277,10 @@ function usarCanticoCelestial() {
         const btnPikemanPirueta = document.getElementById("btn-pikeman-pirueta");
         const btnPikemanGeada = document.getElementById("btn-pikeman-geada");
         const btnPikemanExecucao = document.getElementById("btn-pikeman-execucao");
+const btnFlorimSemente = document.getElementById("btn-florim-semente");
+const btnFlorimCorrente = document.getElementById("btn-florim-corrente");
+const btnFlorimAnel = document.getElementById("btn-florim-anel");
+const btnFlorimPraga = document.getElementById("btn-florim-praga");
         const btnAttack = document.getElementById("btn-attack");
         const dpsValorEl = null;
         const dpsTotalEl = null;
@@ -1464,7 +1488,7 @@ function usarCanticoCelestial() {
             window.modoMiraRede = false; btnSniperRede.classList.remove("aiming");
             window.modoMiraEscudo = false; if(typeof btnGuerreiroEscudo !== 'undefined' && btnGuerreiroEscudo) btnGuerreiroEscudo.classList.remove("aiming");
             window.modoMiraBola = false; if(typeof btnMagoBola !== 'undefined' && btnMagoBola) btnMagoBola.classList.remove("aiming");
-            window.modoMiraBuraco = false; if(typeof btnArcanoBuraco !== 'undefined' && btnArcanoBuraco) btnArcanoBuraco.classList.remove("aiming");
+            window.modoMiraBuraco = false; if(typeof btnArcanoBuraco !== 'undefined' && btnArcanoBuraco) btnArcanoBuraco.classList.remove("aiming"); window.modoMiraFlorimSemente=false;window.modoMiraFlorimCorrente=false;window.modoMiraFlorimAnel=false;window.modoMiraFlorimPraga=false;btnFlorimSemente.classList.remove("aiming");btnFlorimCorrente.classList.remove("aiming");btnFlorimAnel.classList.remove("aiming");btnFlorimPraga.classList.remove("aiming");
             window.modoMiraVinculo = false; if(typeof btnBarbaroVinculo !== 'undefined' && btnBarbaroVinculo) btnBarbaroVinculo.classList.remove("aiming");
             window.modoMiraSaltoChuva = false; if(typeof btnArqueiroSalto !== 'undefined' && btnArqueiroSalto) btnArqueiroSalto.classList.remove("aiming");
 
@@ -1494,7 +1518,11 @@ function usarCanticoCelestial() {
             caixa:       { raio: 100, alcanceMax: 200, classe: 'dronemaster', cor: '#f1c40f', nome: '🧰 CAIXA DE FERRAMENTAS' },
             cometas:     { raio: 85,  alcanceMax: 300, classe: 'arqueiro_arcano', cor: '#d4af37', nome: '☄️ CHUVA DE COMETAS' },
             orbe:        { raio: 100, alcanceMax: 260, classe: 'arqueiro_arcano', cor: '#c39bff', nome: '✨ ORBE DE CONSTELAÇÃO' },
-            rede:        { raio: 60,  alcanceMax: 320, classe: 'sniper',     cor: '#9f9f9f', nome: '🕸️ ARAME PRENDEDOR' }
+            rede:        { raio: 60,  alcanceMax: 320, classe: 'sniper',     cor: '#9f9f9f', nome: '🕸️ ARAME PRENDEDOR' },
+            florim_semente: { raio: 55, alcanceMax: 300, classe: 'florim', cor: '#6fbf45', nome: '🌱 SEMENTES' },
+            florim_corrente: { raio: 55, alcanceMax: 300, classe: 'florim', cor: '#3f8f3a', nome: '🌿 RAÍZES' },
+            florim_anel: { raio: 85, alcanceMax: 320, classe: 'florim', cor: '#d96ac7', nome: '🌸 ANEL DE FLORES' },
+            florim_praga: { raio: 170, alcanceMax: 320, classe: 'florim', cor: '#7cae3d', nome: '🍃 PRAGA NATURAL' }
         };
         window.SKILLS_DRAG = SKILLS_DRAG;
         window.dragSkill = { ativo: false, skill: null, touchId: null, x: 0, y: 0 };
@@ -1524,7 +1552,7 @@ function usarCanticoCelestial() {
             else if (window.modoMiraBola && window.minhaClasse === 'mago') skill = 'mago_bola';
             else if (window.modoMiraBuraco && window.minhaClasse === 'arqueiro_arcano') skill = 'astral_buraco';
             else if (window.modoMiraSaltoChuva && window.minhaClasse === 'arqueiro') skill = 'salto_chuva';
-            else if (window.modoMiraVinculo && window.minhaClasse === 'barbaro') skill = 'barbaro_vinculo';
+            else if (window.modoMiraVinculo && window.minhaClasse === 'barbaro') skill = 'barbaro_vinculo'; else if (window.modoMiraFlorimSemente && window.minhaClasse === 'florim') skill = 'florim_semente'; else if (window.modoMiraFlorimCorrente && window.minhaClasse === 'florim') skill = 'florim_corrente'; else if (window.modoMiraFlorimAnel && window.minhaClasse === 'florim') skill = 'florim_anel'; else if (window.modoMiraFlorimPraga && window.minhaClasse === 'florim') skill = 'florim_praga';
             else if (window.arqueiroSaltoNoAlto) skill = 'salto_chuva';
 
             if (!skill) return null;
@@ -1556,7 +1584,7 @@ function usarCanticoCelestial() {
             if (skill === 'caixa') return window.dmCaixaCooldown;
             if (skill === 'cometas') return window.arcanoCometasCooldown;
             if (skill === 'orbe') return window.arcanoOrbeCooldown;
-            if (skill === 'rede') return window.sniperRedeCooldown;
+            if (skill === 'rede') return window.sniperRedeCooldown; if (skill === 'florim_semente') return florimSementeCooldown; if (skill === 'florim_corrente') return florimCorrenteCooldown; if (skill === 'florim_anel') return florimAnelCooldown; if (skill === 'florim_praga') return florimPragaCooldown;
             return false;
         }
 
@@ -1596,8 +1624,24 @@ function usarCanticoCelestial() {
         // FIX v1.34.2 (tela verde na Arena/Solari): a mira das skills não pode
         // ultrapassar o mapa atual — antes caia até x=71880 e o jogador saía da
         // Arena para dentro da Cidade Perdida (fundo verde #1c2a1d).
+        function mapaConfigCliente(id) {
+            return (window.MAPAS_REGISTRY && window.MAPAS_REGISTRY[id]) || null;
+        }
+
+        function mapaPorCoordenadaCliente(x) {
+            const lista = window.MAPAS_REGISTRY || {};
+            for (const id of Object.keys(lista)) {
+                const m = lista[id];
+                if (x >= m.x0 && x < m.x0 + m.w) return id;
+            }
+            return null;
+        }
+
         function limitesMapaClienteAtivo() {
             const m = window.currentMap;
+            const cfgId = (m === 'solari') ? 'arena' : m;
+            const cfg = mapaConfigCliente(cfgId);
+            if (cfg) return { minX: cfg.x0 + 20, maxX: cfg.x0 + cfg.w - 40, minY: cfg.y0 + 20, maxY: cfg.y0 + cfg.h - 40 };
             if (m === 'castelo') return { minX: (window.LARGURA_CASTELO || 82000) + 20, maxX: (window.FIM_CASTELO || 84200) - 40, minY: 20, maxY: 1760 };
             if (m === 'zonazero') return { minX: (window.LARGURA_ZONA_ZERO || 74000) + 20, maxX: (window.FIM_ZONA_ZERO || 82000) - 40, minY: 20, maxY: 8960 };
             if (m === 'testevisual') return { minX: (window.LARGURA_TESTE_VISUAL || 72000) + 20, maxX: (window.FIM_TESTE_VISUAL || 73280) - 40, minY: 20, maxY: 920 };
@@ -1909,6 +1953,10 @@ function usarCanticoCelestial() {
             else if (skill === 'cometas') dispararChuvaCometas(tx, ty);
             else if (skill === 'orbe') dispararOrbeConstelacao(tx, ty);
             else if (skill === 'rede') dispararRedeSniper(tx, ty);
+            else if (skill === 'florim_semente' || skill === 'florim_corrente' || skill === 'florim_anel' || skill === 'florim_praga') {
+                let p = clamparAlcanceSkill(skill, tx, ty);
+                dispararFlorimSkill(skill, p.x, p.y);
+            }
         }
 
         function dispararSaltoOgro(tx, ty) {
@@ -2322,7 +2370,333 @@ function usarCanticoCelestial() {
         let moveX = 0, moveY = 0; window.meuAngulo = 0; window.walkCycle = 0;
         window.todosJogadores = {}; window.listaSlimes = []; window.listaProjeteis = []; window.listaPlayerProjeteis = [];
         let listaBosses = [];
+        window.tutorialState = null;
+        window.tutorialBloqueado = false;
+        window.tutorialIniciadoPorNPC = false;
+        window.npcDialogoAberto = false;
+
+        window.tutorialUiKey = '';
+        window.tutorialMensagemAtiva = false;
+        window.tutorialFadeTimer = null;
+        window.npcsInterativos = [];
+        window.npcInteracaoAtiva = null;
+
+        function tutorialCriarUI() {
+            let box = document.getElementById('tutorial-guia-ui');
+            if (box) return box;
+            box = document.createElement('div');
+            box.id = 'tutorial-guia-ui';
+            box.style.cssText = 'position:fixed;left:50%;top:18%;transform:translateX(-50%);z-index:99999;pointer-events:none;text-align:center;width:min(430px,62vw);max-width:calc(100vw - 90px);font-family:\'Rajdhani\',\'Segoe UI\',sans-serif;opacity:0;';
+            document.body.appendChild(box);
+            return box;
+        }
+
+        function tutorialAnimarEntrada(box) {
+            requestAnimationFrame(() => box.classList.add('tutorial-visivel'));
+        }
+
+        function tutorialEsconderSuave() {
+            const box = tutorialCriarUI();
+            clearTimeout(window.tutorialFadeTimer);
+            box.classList.remove('tutorial-visivel');
+            window.tutorialMensagemAtiva = false;
+            return box;
+        }
+        window.tutorialEsconderSuave = tutorialEsconderSuave;
+
+        function tutorialMostrarMensagem(texto, duracao) {
+            clearTimeout(window.tutorialFadeTimer);
+            // O tutorial agora acontece dentro da janela do NPC Guia.
+            // Isso mantém a mesma experiência no PC e no mobile, sem criar
+            // uma segunda caixa flutuante sobre as janelas de Status/Skills.
+            if (window.tutorialIniciadoPorNPC && window.npcDialogoAberto) {
+                abrirDialogoNPC({
+                    id: 'tutorial_guia',
+                    nome: 'Guia',
+                    dialogo: texto,
+                    tutorial: true,
+                    etapa: window.tutorialState ? window.tutorialState.etapa : 1
+                });
+                return;
+            }
+            const box = tutorialCriarUI();
+            box.classList.remove('tutorial-visivel');
+            window.tutorialMensagemAtiva = true;
+            setTimeout(() => {
+                box.innerHTML = '<div class="tutorial-moldura tutorial-mensagem"><div class="tutorial-texto">' + texto + '</div></div>';
+                tutorialAnimarEntrada(box);
+            }, 260);
+            if (duracao > 0) {
+                window.tutorialFadeTimer = setTimeout(() => tutorialEsconderSuave(), 260 + duracao);
+            }
+        }
+        window.tutorialMostrarMensagem = tutorialMostrarMensagem;
+
+        function tutorialMostrarParabens() {
+            const box = tutorialCriarUI();
+            clearTimeout(window.tutorialFadeTimer);
+            window.tutorialMensagemAtiva = true;
+            window.tutorialUiKey = 'finalizado';
+            box.classList.remove('tutorial-visivel');
+            setTimeout(() => {
+                box.classList.add('tutorial-final');
+                box.innerHTML = '<div class="tutorial-moldura tutorial-final-moldura"><div class="tutorial-parabens">PARABÉNS!</div><div class="tutorial-final-texto">Você concluiu o tutorial. Agora o mundo de MMORP-Tall está aberto para você.</div></div>';
+                tutorialAnimarEntrada(box);
+            }, 260);
+            window.tutorialFadeTimer = setTimeout(() => tutorialEsconderSuave(), 5260);
+        }
+        window.tutorialMostrarParabens = tutorialMostrarParabens;
+
+        function tutorialAtualizarUI() {
+            const t = window.tutorialState, box = tutorialCriarUI();
+            if (!t || !t.etapa || t.etapa >= 4) return;
+            if (window.tutorialIniciadoPorNPC) return;
+
+            // Enquanto a janela de Skills estiver aberta, a mensagem-guia fica
+            // completamente escondida. Os world_updates não podem fazê-la voltar.
+            if (t.etapa === 2 && t.skillAberta) {
+                clearTimeout(window.tutorialFadeTimer);
+                window.tutorialMensagemAtiva = false;
+                box.classList.remove('tutorial-visivel');
+                return;
+            }
+
+            if (window.tutorialMensagemAtiva) return;
+
+            const mobile = window.innerWidth <= 900;
+            const chave = t.etapa + '|' + (mobile ? 'm' : 'd');
+            if (window.tutorialUiKey === chave) return;
+            window.tutorialUiKey = chave;
+            window.tutorialMensagemAtiva = true;
+
+            let texto = '', alvo = '';
+            if (t.etapa === 1) {
+                texto = mobile
+                    ? 'Olá, aventureiro! Bem-vindo! Vou te mostrar a tela de Status. Abra o MENU e selecione STATUS, ou use a tecla C.'
+                    : 'Olá, aventureiro! Bem-vindo! Vou te mostrar a tela de Status. Abra Status no menu, ou aperte a tecla C.';
+                alvo = mobile ? 'mobile-sidebar-toggle' : 'btn-status';
+            } else if (t.etapa === 2) {
+                texto = mobile
+                    ? 'Agora vamos conhecer o menu de Skills. Abra o MENU e selecione SKILLS, ou use a tecla K.'
+                    : 'Agora vamos conhecer o menu de Skills. Abra Skills, ou aperte a tecla K.';
+                alvo = mobile ? 'mobile-sidebar-toggle' : 'btn-skills';
+            } else if (t.etapa === 3) {
+                tutorialMostrarMensagem('Eita! Perigo à vista! Tome cuidado e mate esse monstro!', 2000);
+                return;
+            }
+
+            const seta = alvo
+                ? (mobile
+                    ? '<div class="tutorial-seta tutorial-seta-direita">➜</div>'
+                    : '<div class="tutorial-seta tutorial-seta-baixo">↓</div>')
+                : '';
+
+            box.classList.remove('tutorial-visivel');
+            setTimeout(() => {
+                box.innerHTML = '<div class="tutorial-moldura">' +
+                    '<div class="tutorial-texto">' + texto + '</div>' + seta +
+                    '</div>';
+                box.classList.toggle('tutorial-mobile', mobile);
+                box.classList.toggle('tutorial-com-alvo', !!alvo);
+                tutorialAnimarEntrada(box);
+
+                if (mobile && alvo) {
+                    const btn = document.getElementById(alvo);
+                    if (btn) {
+                        const r = btn.getBoundingClientRect();
+                        const br = box.getBoundingClientRect();
+                        const distancia = Math.max(44, (r.left + r.width / 2) - br.right);
+                        box.style.setProperty('--tutorial-arrow-distance', distancia + 'px');
+                    }
+                }
+            }, 220);
+        }
+
+        if (!document.getElementById('tutorial-style')) {
+            const s = document.createElement('style');
+            s.id = 'tutorial-style';
+            s.textContent = [
+                '#tutorial-guia-ui{transition:opacity .28s ease,top .18s ease,left .18s ease,transform .28s ease;}',
+                '#tutorial-guia-ui:not(.tutorial-visivel){transform:translateX(-50%) translateY(7px);}',
+                '#tutorial-guia-ui.tutorial-visivel{opacity:1;transform:translateX(-50%) translateY(0);}',
+                '.tutorial-moldura{position:relative;background:rgba(10,16,22,.95);border:1.5px solid rgba(79,195,247,.72);border-radius:6px;padding:13px 18px;color:#eaf8ff;box-shadow:0 4px 14px rgba(0,0,0,.72),0 0 12px rgba(79,195,247,.18);}',
+                '.tutorial-texto{font-family:"Rajdhani","Segoe UI",sans-serif;font-size:18px;font-weight:600;line-height:1.28;letter-spacing:.2px;text-shadow:0 1px 3px rgba(0,0,0,.95);}',
+                '.tutorial-final{top:50%!important;width:min(520px,calc(100vw - 36px))!important;max-width:calc(100vw - 36px)!important;}',
+                '.tutorial-final.tutorial-visivel{transform:translate(-50%,-50%)!important;}',
+                '.tutorial-final-moldura{border-color:rgba(244,208,111,.9);box-shadow:0 6px 24px rgba(0,0,0,.8),0 0 22px rgba(244,208,111,.2);}',
+                '.tutorial-parabens{font-family:"Cinzel","Georgia",serif;font-size:32px;font-weight:900;color:#f4d06f;text-shadow:0 2px 8px #000;letter-spacing:1px;}',
+                '.tutorial-final-texto{font-family:"Rajdhani","Segoe UI",sans-serif;font-size:18px;font-weight:600;line-height:1.3;color:#eaf8ff;margin-top:6px;text-shadow:0 1px 3px #000;}',
+                '.tutorial-seta{position:absolute;color:#9ee8ff;font-weight:700;text-shadow:0 2px 8px #000;animation:tutBounce .7s infinite alternate;pointer-events:none;}',
+                '.tutorial-seta-direita{right:calc(var(--tutorial-arrow-distance,54px) * -1);top:50%;transform:translateY(-50%);font-size:42px;line-height:1;}',
+                '.tutorial-seta-direita::before{content:"";position:absolute;right:100%;top:50%;width:calc(var(--tutorial-arrow-distance,54px) - 10px);height:1.5px;background:rgba(158,232,255,.82);box-shadow:0 0 5px rgba(79,195,247,.45);transform:translateY(-50%);}',
+                '.tutorial-seta-baixo{left:50%;bottom:-48px;transform:translateX(-50%);font-size:36px;line-height:1;}',
+                '@keyframes tutBounce{from{margin-left:0}to{margin-left:8px}}',
+                '@media(max-width:900px){#tutorial-guia-ui{top:50%;width:min(420px,calc(100vw - 36px));max-width:calc(100vw - 36px);}.tutorial-guia-ui{}#tutorial-guia-ui.tutorial-mobile.tutorial-visivel{transform:translate(-50%,-50%);}.tutorial-moldura{padding:14px 18px;}.tutorial-texto{font-size:19px;line-height:1.3;}.tutorial-seta-direita{font-size:36px;}.tutorial-final-moldura{padding:22px 20px;}.tutorial-parabens{font-size:30px;}.tutorial-final-texto{font-size:19px;line-height:1.35;margin-top:8px;}}'
+            ].join('');
+            document.head.appendChild(s);
+        }
+        function abrirDialogoNPC(npc) {
+            if (!npc) return;
+            let box = document.getElementById('npc-dialogo-modal');
+            if (!box) {
+                box = document.createElement('div');
+                box.id = 'npc-dialogo-modal';
+                box.innerHTML = '<div class="npc-dialogo-caixa"><div class="npc-dialogo-nome"></div><div class="npc-dialogo-texto"></div><button class="npc-dialogo-fechar" type="button">FECHAR</button></div>';
+                document.body.appendChild(box);
+                box.querySelector('.npc-dialogo-fechar').addEventListener('click', () => {
+                    box.classList.remove('ativo');
+                    box.classList.remove('tutorial-dialogo');
+                    window.npcDialogoAberto = false;
+                    window.tutorialMensagemAtiva = false;
+                });
+            }
+            const tutorial = npc.tutorial === true;
+            window.npcDialogoAberto = true;
+            if (tutorial) window.tutorialIniciadoPorNPC = true;
+            box.classList.toggle('tutorial-dialogo', tutorial);
+            box.querySelector('.npc-dialogo-nome').textContent = npc.nome || 'NPC';
+            box.querySelector('.npc-dialogo-texto').textContent = npc.dialogo || 'Olá, aventureiro!';
+            const btn = box.querySelector('.npc-dialogo-fechar');
+            btn.textContent = tutorial ? 'CONTINUAR' : 'FECHAR';
+            btn.onclick = function () {
+                box.classList.remove('ativo');
+                box.classList.remove('tutorial-dialogo');
+                window.npcDialogoAberto = false;
+                if (tutorial) {
+                    // A própria janela do Guia já apresentou a instrução.
+                    // Ao fechar, o jogador executa o passo e depois volta a falar com ele.
+                    window.tutorialMensagemAtiva = false;
+                }
+            };
+            box.classList.add('ativo');
+        }
+        window.abrirDialogoNPC = abrirDialogoNPC;
+
+        function atualizarInteracaoNPC() {
+            const npcs = Array.isArray(window.npcsInterativos) ? window.npcsInterativos : [];
+            const canvas = window.canvas || document.getElementById('jogoCanvas');
+            if (!canvas || !window.meuId) return;
+            let npc = null, menor = Infinity;
+            for (const n of npcs) {
+                const d = Math.hypot((window.meuX || 0) - n.x, (window.meuY || 0) - n.y);
+                if (d <= (n.raioInteracao || 115) && d < menor) { menor = d; npc = n; }
+            }
+            let icon = document.getElementById('npc-interacao-icone');
+            if (!icon) {
+                icon = document.createElement('button');
+                icon.id = 'npc-interacao-icone';
+                icon.type = 'button';
+                icon.innerHTML = '💬';
+                icon.title = 'Falar com NPC';
+                icon.addEventListener('click', function () {
+                    const alvo = window.npcInteracaoAtiva;
+                    if (!alvo || typeof ws === 'undefined' || !ws || ws.readyState !== WebSocket.OPEN) return;
+                    ws.send(JSON.stringify({ action: 'npc_interact', npcId: alvo.id }));
+                });
+                document.body.appendChild(icon);
+            }
+            window.npcInteracaoAtiva = npc;
+            if (!npc) { icon.classList.remove('ativo'); return; }
+            const zoom = window.cameraZoomAtual || 1;
+            const camX = window.camX || 0, camY = window.camY || 0;
+            const rect = canvas.getBoundingClientRect();
+            const sx = rect.left + (npc.x - camX) * zoom * (rect.width / canvas.width);
+            const sy = rect.top + (npc.y - camY - 55) * zoom * (rect.height / canvas.height);
+            icon.style.left = Math.round(sx - 22) + 'px';
+            icon.style.top = Math.round(sy - 22) + 'px';
+            icon.classList.add('ativo');
+        }
+        window.atualizarInteracaoNPC = atualizarInteracaoNPC;
+
+        if (!document.getElementById('npc-interacao-style')) {
+            const s = document.createElement('style'); s.id = 'npc-interacao-style';
+            s.textContent = '#npc-interacao-icone{display:none;position:fixed;width:44px;height:44px;padding:0;border-radius:50%;border:2px solid #f4d06f;background:rgba(12,18,24,.94);color:#fff;font-size:22px;z-index:900;box-shadow:0 0 14px rgba(244,208,111,.55);cursor:pointer;transform:scale(.8);transition:opacity .18s,transform .18s;touch-action:manipulation;}#npc-interacao-icone.ativo{display:block;opacity:1;transform:scale(1);animation:npcTalkPulse 1s infinite alternate;}@keyframes npcTalkPulse{from{box-shadow:0 0 8px rgba(244,208,111,.45)}to{box-shadow:0 0 20px rgba(244,208,111,.9)}}#npc-dialogo-modal{display:none;position:fixed;inset:0;z-index:200000;align-items:center;justify-content:center;background:rgba(0,0,0,.42);padding:20px;box-sizing:border-box;}#npc-dialogo-modal.ativo{display:flex;} .npc-dialogo-caixa{width:min(520px,calc(100vw - 36px));max-height:calc(100vh - 40px);overflow:auto;padding:22px;background:rgba(10,16,22,.98);border:2px solid rgba(244,208,111,.85);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.8);text-align:center;color:#eaf8ff;font-family:Rajdhani,Segoe UI,sans-serif}.npc-dialogo-caixa.tutorial-dialogo{width:min(560px,calc(100vw - 36px));}.npc-dialogo-nome{font-family:Cinzel,Georgia,serif;font-size:25px;font-weight:900;color:#f4d06f;margin-bottom:10px}.npc-dialogo-texto{font-size:19px;line-height:1.4;font-weight:600}.npc-dialogo-fechar{margin-top:18px;padding:9px 24px;border:1px solid #f4d06f;border-radius:6px;background:#18242e;color:#fff;font-weight:700;min-height:42px;}@media(max-width:900px){#npc-dialogo-modal{padding:14px;}#npc-dialogo-modal .npc-dialogo-caixa,#npc-dialogo-modal .npc-dialogo-caixa.tutorial-dialogo{width:min(560px,calc(100vw - 28px));max-height:calc(100vh - 28px);padding:22px 18px;border-radius:12px}.npc-dialogo-nome{font-size:24px}.npc-dialogo-texto{font-size:20px;line-height:1.45}.npc-dialogo-fechar{width:100%;font-size:16px;padding:11px 18px;min-height:46px}}';
+            document.head.appendChild(s);
+        }
+
+        function tutorialAplicarEstado(t, mensagem, eventoTutorial) {
+            const etapaAnterior = window.tutorialState ? window.tutorialState.etapa : 0;
+            window.tutorialState = t || null;
+            window.tutorialBloqueado = !!(t && (t.etapa === 1 || t.etapa === 2));
+
+            if (t && t.etapa === 2 && typeof fecharAtributos === 'function') fecharAtributos();
+            if (t && t.etapa === 3 && typeof fecharSkills === 'function' && window.skillsAberto) fecharSkills();
+
+            // O tutorial só começa depois da interação com o Guia. Não recriar
+            // caixas automáticas enquanto o jogador ainda não falou com o NPC.
+            if (!window.tutorialIniciadoPorNPC && eventoTutorial !== 'tutorial_iniciado_npc') {
+                return;
+            }
+
+            if (eventoTutorial === 'tutorial_iniciado_npc') {
+                window.tutorialUiKey = '';
+                window.tutorialMensagemAtiva = false;
+            } else if (eventoTutorial === 'pontos_concluidos') {
+                // Status foi concluído. O Guia só continuará quando o jogador
+                // voltar fisicamente e interagir com ele.
+                window.tutorialUiKey = '';
+                window.tutorialMensagemAtiva = false;
+            } else if (eventoTutorial === 'tutorial_concluido') {
+                const modal = document.getElementById('npc-dialogo-modal');
+                if (modal) modal.classList.remove('ativo');
+                window.npcDialogoAberto = false;
+                tutorialMostrarParabens();
+            } else if (t && t.etapa === 1 && t.statusAberto) {
+                const modal = document.getElementById('npc-dialogo-modal');
+                if (modal) modal.classList.remove('ativo');
+                window.npcDialogoAberto = false;
+                window.tutorialMensagemAtiva = false;
+            } else if (t && t.etapa === 2 && t.skillAberta) {
+                const modal = document.getElementById('npc-dialogo-modal');
+                if (modal) modal.classList.remove('ativo');
+                window.npcDialogoAberto = false;
+                window.tutorialMensagemAtiva = false;
+            } else if (mensagem && t && t.etapa === 3) {
+                // A mensagem de perigo só é enviada junto da interação com o Guia.
+                // Não abrir/reabrir a janela em world_update.
+                window.tutorialUiKey = '';
+                window.tutorialMensagemAtiva = false;
+            } else if (mensagem) {
+                window.tutorialUiKey = '';
+                tutorialMostrarMensagem(mensagem, 0);
+            }
+
+            if (mensagem && typeof statusText !== 'undefined' && statusText) statusText.innerText = mensagem;
+        }
+        window.tutorialAplicarEstado = tutorialAplicarEstado;
+        window.addEventListener('click', function(e) {
+            if (!window.tutorialBloqueado) return;
+            const target = e.target;
+            const mobileMenu = target && target.closest ? target.closest('#mobile-sidebar-toggle') : null;
+            const mobileItem = target && target.closest ? target.closest('.mobile-sidebar-item') : null;
+            let ok = target && target.closest && target.closest('#btn-status,#btn-skills,#atributos-screen,#skills-screen,#npc-dialogo-modal,.npc-dialogo-fechar,#npc-interacao-icone');
+            if (window.innerWidth <= 900 && window.tutorialState) {
+                if (mobileMenu) ok = true;
+                if (mobileItem) {
+                    const label = (mobileItem.querySelector('.item-lbl')?.textContent || '').trim().toLowerCase();
+                    ok = (window.tutorialState.etapa === 1 && label === 'status') || (window.tutorialState.etapa === 2 && label === 'skills');
+                }
+            }
+            if (!ok) { e.preventDefault(); e.stopImmediatePropagation(); }
+        }, true);
+        window.addEventListener('touchstart', function(e) {
+            if (!window.tutorialBloqueado) return;
+            const t = e.target;
+            const mobileMenu = t && t.closest ? t.closest('#mobile-sidebar-toggle') : null;
+            const mobileItem = t && t.closest ? t.closest('.mobile-sidebar-item') : null;
+            let ok = t && t.closest && t.closest('#btn-status,#btn-skills,#atributos-screen,#skills-screen,#npc-dialogo-modal,.npc-dialogo-fechar,#npc-interacao-icone');
+            if (window.innerWidth <= 900 && window.tutorialState) {
+                if (mobileMenu) ok = true;
+                if (mobileItem) {
+                    const label = (mobileItem.querySelector('.item-lbl')?.textContent || '').trim().toLowerCase();
+                    ok = (window.tutorialState.etapa === 1 && label === 'status') || (window.tutorialState.etapa === 2 && label === 'skills');
+                }
+            }
+            if (!ok) { e.preventDefault(); e.stopImmediatePropagation(); }
+        }, { capture: true, passive: false });
         let slashes = []; let blockEffects = []; window.floatingTexts = []; let ultimoEnvioRede = 0; let pingAtual = 0;
+        function atualizarHudPing() { const el = document.getElementById('ping-counter'); if (el) el.textContent = 'PING: ' + Math.max(0, Math.round(pingAtual)) + ' ms'; }
+        window.atualizarHudPing = atualizarHudPing;
 
         function registrarDanoCausado(valor) { let agora = Date.now(); historicoDano.push({ valor: valor, tempo: agora }); danoTotalAcumulado += valor; }
         function atualizarDpsLive() { return; }
@@ -2890,13 +3264,14 @@ function usarCanticoCelestial() {
                         // do proprio jogador em OUTRO mapa (cidade) e precisam SEMPRE passar,
                         // senao o respawn e descartado e o jogador fica preso na borda do mapa.
                         if (dados && Number.isFinite(dados.x) && Number.isFinite(dados.y) && dados.type !== 'init' && dados.type !== 'teleporte_confirmado' && dados.type !== 'respawn_confirmado') {
-                            const mapaEvento = dados.x >= (window.LARGURA_CASTELO || 82000) ? 'castelo' : (dados.x >= (window.LARGURA_ZONA_ZERO || 74000) ? 'zonazero' : (dados.x >= (window.LARGURA_TESTE_VISUAL || 72000) ? 'testevisual' : (dados.x >= window.LARGURA_CIDADE_PERDIDA ? 'cidadeperdida' : (dados.x >= window.LARGURA_ARENA ? 'arena' : (dados.x >= window.LARGURA_CIDADE && dados.x < window.FIM_CIDADE ? 'cidade' : (dados.x >= window.LARGURA_PANTANO ? 'caverna' : (dados.x >= window.LARGURA_DESERTO ? 'pantano' : (dados.x >= window.LARGURA_VERDE ? 'desert' : 'green'))))))));
+                            const mapaEvento = mapaPorCoordenadaCliente(dados.x);
                             if (mapaEvento !== window.currentMap) return;
                         }
                         if (window.AudioManager && typeof window.AudioManager.handleGameEvent === 'function') window.AudioManager.handleGameEvent(dados);
                         if (typeof window.dispatchVFXEvent === 'function') window.dispatchVFXEvent(dados);
                     if (dados.type === 'pong') {
-                        pingAtual = Math.max(0, Date.now() - (dados.t || Date.now()));
+                        pingAtual = Math.max(0, Date.now() - (Number(dados.t) || Date.now()));
+                        if (typeof window.atualizarHudPing === 'function') window.atualizarHudPing();
                     }
                     if (dados.type === 'party_invite_received') {
                         let modal = document.getElementById("party-invite-modal");
@@ -2958,7 +3333,8 @@ function usarCanticoCelestial() {
                             // CORREÇÃO: seta o mapa certo na 1ª frame (ex.: personagem salvo na Arena
                             // ou em qualquer bioma que não seja a cidade). Sem isso, a 1ª frame renderiza
                             // a cidade e o clamp puxa o char para o canto (X = FIM_CIDADE - 42).
-                            window.currentMap = (window.meuX >= (window.LARGURA_CASTELO || 82000)) ? 'castelo' : ((window.meuX >= (window.LARGURA_ZONA_ZERO || 74000)) ? 'zonazero' : ((window.meuX >= (window.LARGURA_TESTE_VISUAL || 72000)) ? 'testevisual' : ((window.meuX >= window.LARGURA_CIDADE_PERDIDA) ? 'cidadeperdida' : ((window.meuX >= window.LARGURA_ARENA) ? (window.solariAtivo ? 'solari' : 'arena') : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 'cidade' : ((window.meuX >= window.LARGURA_PANTANO) ? 'caverna' : ((window.meuX >= window.LARGURA_DESERTO) ? 'pantano' : ((window.meuX >= window.LARGURA_VERDE) ? 'desert' : 'green'))))))));
+                            window.currentMap = mapaPorCoordenadaCliente(window.meuX) || 'cidade';
+            if (window.currentMap === 'arena' && window.solariAtivo) window.currentMap = 'solari';
                         }
                         if (dados.level !== undefined) meuLevel = dados.level;
                         if (dados.xp !== undefined) meuXp = dados.xp;
@@ -2983,7 +3359,11 @@ function usarCanticoCelestial() {
                         if (window.atualizarHudHp) window.atualizarHudHp();
                         if (window.atualizarHudPocoes) window.atualizarHudPocoes();
                         if (pingIntervalo) clearInterval(pingIntervalo);
-                        pingIntervalo = setInterval(() => { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'ping', t: Date.now() })); }, 2000);
+                        pingAtual = 0;
+                        if (typeof window.atualizarHudPing === 'function') window.atualizarHudPing();
+                        const enviarPingReal = () => { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'ping', t: Date.now() })); };
+                        enviarPingReal();
+                        pingIntervalo = setInterval(enviarPingReal, 1000);
                         window.ehAdmin = !!dados.admin || (window.meuId && window.meuId.toLowerCase() === 'admin');
                         if (window.ehAdmin) {
                             if (typeof mostrarBotaoSpawnAdmin === "function") mostrarBotaoSpawnAdmin();
@@ -3014,8 +3394,9 @@ function usarCanticoCelestial() {
                             let mapaDestino = dados.mapa;
                             // Arena de Solari: entra (ou sai) do modo Solari
                             window.solariAtivo = (mapaDestino === 'solari');
+                            window.instanciaAtualId = window.solariAtivo ? (dados.instanciaId || null) : null;
                             if (typeof window.solariMudouMapa === 'function') window.solariMudouMapa(mapaDestino === 'solari');
-                            let mapaMostrar = (mapaDestino === 'testevisual') ? 'testevisual' : ((mapaDestino === 'solari') ? 'solari' : ((mapaDestino === 'arena') ? 'arena' : ((mapaDestino === 'cidade') ? 'cidade' : ((mapaDestino === 'cidadeperdida') ? 'cidadeperdida' : ((mapaDestino === 'caverna') ? 'caverna' : ((mapaDestino === 'pantano') ? 'pantano' : ((mapaDestino === 'desert') ? 'desert' : 'green')))))));
+                            let mapaMostrar = mapaDestino || mapaPorCoordenadaCliente(dados.x) || 'green';
                             fadeTeleporte(mapaMostrar, dados.x, dados.y);
                             if (statusText) statusText.innerText = "🌀 Teleportado para " + mapaMostrar + "!";
                         }
@@ -3031,6 +3412,7 @@ function usarCanticoCelestial() {
                     if (dados.type === 'respawn_confirmado') {
                         autoAlvo = null; proximoAutoAtaqueEm = 0; // respawn: zera estado do auto-ataque
                         window.solariAtivo = false; // volta pra cidade → sai da Solari
+                        window.instanciaAtualId = null;
                         if (typeof window.solariMudouMapa === 'function') window.solariMudouMapa(false);
                         window.meuX = Number(dados.x);
                         window.meuY = Number(dados.y);
@@ -3250,6 +3632,17 @@ function usarCanticoCelestial() {
                     if (dados.type === 'mob_block') {
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 20, text: "BLOQUEADO", color: "#3498db", alpha: 1.0 });
                     }
+                    if (dados.type === 'monster_lanceiro_block_hit') {
+                        window.soldadoLanceiroHits = window.soldadoLanceiroHits || [];
+                        window.soldadoLanceiroHits.push({ id: dados.id, x: dados.x, y: dados.y, t: Date.now() });
+                        window.tremorTela = Math.max(window.tremorTela || 0, 4);
+                        window.floatingTexts.push({ x: dados.x, y: dados.y - 20, text: "BLOQUEADO", color: "#ff3b30", alpha: 1.0 });
+                    }
+                    if (dados.type === 'monster_lanceiro_hit') {
+                        window.tremorTela = Math.max(window.tremorTela || 0, 12);
+                        if (navigator.vibrate) { try { navigator.vibrate(60); } catch (e) {} }
+                        window.floatingTexts.push({ x: dados.x, y: dados.y - 24, text: "STUN 2s", color: "#ffd54a", alpha: 1.0 });
+                    }
 
                     if (dados.type === 'monstros_config') {
                         window.mobEditorConf = dados.conf || {};
@@ -3402,8 +3795,19 @@ function usarCanticoCelestial() {
                         }
                     }
 
+                    if (dados.type === 'tutorial_estado') {
+                        if (typeof tutorialAplicarEstado === 'function') tutorialAplicarEstado(dados.tutorial, dados.mensagem || '', dados.eventoTutorial || '');
+                    }
+
+                    if (dados.type === 'npc_dialogo') {
+                        if (typeof abrirDialogoNPC === 'function') abrirDialogoNPC(dados.npc);
+                    }
+
                     if (dados.type === 'world_update') {
                         window.ultimoWorldUpdateAt = Date.now();
+                        if (typeof tutorialAplicarEstado === 'function' && dados.tutorial) tutorialAplicarEstado(dados.tutorial);
+                        window.npcsInterativos = Array.isArray(dados.npcs) ? dados.npcs : [];
+                        atualizarInteracaoNPC();
                         let jogadoresAnteriores = window.todosJogadores || {};
                         Object.keys(dados.players || {}).forEach(function(pid) {
                             let atual = dados.players[pid];
@@ -3905,7 +4309,14 @@ function usarCanticoCelestial() {
                     }
                     if (dados.type === 'action_sniper_camuflagem_fim') {
                         if (dados.id === window.meuId) { window.snCamufladoAtivo = false; }
-                    }                    // ===== AÇÕES DO PIKEMAN =====
+                    }                    // ===== AÇÕES DO FLORIM =====
+                    if (dados.type === 'action_florim_semente') { if (typeof window.criarAnimacaoSementeFlorim === 'function') window.criarAnimacaoSementeFlorim(dados.id,dados.x,dados.y,dados.raio); }
+                    if (dados.type === 'action_florim_semente_ativada') { if (typeof window.criarAnimacaoSementeFlorimAtivada === 'function') window.criarAnimacaoSementeFlorimAtivada(dados.x,dados.y,dados.aliado); }
+                    if (dados.type === 'action_florim_corrente') { if (typeof window.criarAnimacaoCorrenteFlorim === 'function') window.criarAnimacaoCorrenteFlorim(dados.id,dados.x,dados.y,dados.alvoX,dados.alvoY,dados.durMs); }
+                    if (dados.type === 'action_florim_anel') { if (typeof window.criarAnimacaoAnelFlorim === 'function') window.criarAnimacaoAnelFlorim(dados.id,dados.x,dados.y,dados.raio,dados.durMs); }
+                    if (dados.type === 'action_florim_praga') { if (typeof window.criarAnimacaoDebuffFlorim === 'function') window.criarAnimacaoDebuffFlorim(dados.x,dados.y,dados.raio,dados.durMs); }
+
+                    // ===== AÇÕES DO PIKEMAN =====
                     if (dados.type === 'action_pikeman_foice') {
                         if (dados.id && dados.id !== window.meuId) {
                             let pj = window.todosJogadores && window.todosJogadores[dados.id];
@@ -4255,7 +4666,7 @@ function usarCanticoCelestial() {
                         }
                         if (window.pararSomBateria) window.pararSomBateria();
                     }
-                    if (dados.type === 'action_roqueiro_teleporte' && window.todosJogadores[dados.id]) {
+                    if (dados.type === 'action_roqueiro_teleporte') {
                         if (dados.id === window.meuId) {
                             if (window.tocarSonoro) window.tocarSonoro('roqueiro_dash'); else tocarSomSalto();
                         } else if (window.tocarSonoroProximidade) {
@@ -4549,6 +4960,7 @@ function usarCanticoCelestial() {
             btnArcanoCometas.style.display = "none"; btnArcanoOrbe.style.display = "none"; btnArcanoCascata.style.display = "none";
             btnSniperApontar.style.display = "none"; btnSniperRede.style.display = "none"; btnSniperPosicao.style.display = "none"; btnSniperCamuflagem.style.display = "none";
             btnPikemanGiro.style.display = "none"; btnPikemanPirueta.style.display = "none"; btnPikemanGeada.style.display = "none"; btnPikemanExecucao.style.display = "none";
+            btnFlorimSemente.style.display = "none"; btnFlorimCorrente.style.display = "none"; btnFlorimAnel.style.display = "none"; btnFlorimPraga.style.display = "none";
 
             if(btnGuerreiroEscudo) btnGuerreiroEscudo.style.display = "none";
             if(btnMagoBola) btnMagoBola.style.display = "none";
@@ -4598,6 +5010,10 @@ function usarCanticoCelestial() {
                 btnSniperApontar.style.display = "block"; btnSniperRede.style.display = "block"; btnSniperPosicao.style.display = "block"; btnSniperCamuflagem.style.display = "block"; btnAttack.innerText = "🎯"; btnAttack.style.background = "#7d8a3d";
             } else if (window.minhaClasse === 'pikeman') {
                 btnPikemanGiro.style.display = "block"; btnPikemanPirueta.style.display = "block"; btnPikemanGeada.style.display = "block"; btnPikemanExecucao.style.display = "block"; btnAttack.innerText = "⚖️"; btnAttack.style.background = "#5c2d36";
+            } else if (window.minhaClasse === 'florim') {
+                btnFlorimSemente.style.display = "block"; btnFlorimCorrente.style.display = "block"; btnFlorimAnel.style.display = "block"; btnFlorimPraga.style.display = "block";
+                btnAttack.innerText = "🌿"; btnAttack.style.background = "#4f9d45";
+                btnDash.title = 'Dash (Espaço)'; const __db = btnDash.querySelector('.key-badge'); if (__db) __db.textContent = 'SPC';
             } else {
                 if (btnGuerreiroEscudo) btnGuerreiroEscudo.style.display = "block";
                 btnTornado.style.display = "block";
@@ -4976,6 +5392,20 @@ function usarCanticoCelestial() {
         }
 
         // ============================================================
+        // ============================================================
+        // FLORIM — funções do cliente
+        // ============================================================
+        let florimSementeCooldown=false, florimCorrenteCooldown=false, florimAnelCooldown=false, florimPragaCooldown=false;
+        function florimMiraPonto(){const px=window.meuX+12,py=window.meuY+16;return{x:Number.isFinite(window.mouseWorldX)?window.mouseWorldX:px+Math.cos(window.meuAngulo||0)*180,y:Number.isFinite(window.mouseWorldY)?window.mouseWorldY:py+Math.sin(window.meuAngulo||0)*180};}
+        function florimAlvoSelecionado(){const a=typeof obterAlvoNaMira==='function'?obterAlvoNaMira():null;if(!a)return null;if(a.slime)return{tipo:'slime',id:a.slime.id,x:a.x,y:a.y};if(a.boss)return{tipo:'boss',id:a.boss.id,x:a.x,y:a.y};return null;}
+        function florimMiraPonto(){const m=typeof obterInfoMiraAtiva==='function'?obterInfoMiraAtiva():null;return m?{x:m.tx,y:m.ty}:{x:window.meuX+12+Math.cos(window.meuAngulo||0)*160,y:window.meuY+16+Math.sin(window.meuAngulo||0)*160};}
+        function florimAlvoNoPonto(x,y){let best=null,dist=9999;(window.listaSlimes||[]).forEach(m=>{if(m&&m.hp>0){let d=Math.hypot(m.x-x,m.y-y);if(d<70&&d<dist){dist=d;best={tipo:'slime',id:m.id};}}});(window.bosses||[]).forEach(m=>{if(m&&m.hp>0){let d=Math.hypot(m.x-x,m.y-y);if(d<90&&d<dist){dist=d;best={tipo:'boss',id:m.id};}}});return best;}
+        function florimAtivarMira(skill){if(window.estaMorto||window.minhaClasse!=='florim'||skillEmCooldown(skill))return;cancelarTodasMiras();const map={florim_semente:['modoMiraFlorimSemente',btnFlorimSemente],florim_corrente:['modoMiraFlorimCorrente',btnFlorimCorrente],florim_anel:['modoMiraFlorimAnel',btnFlorimAnel],florim_praga:['modoMiraFlorimPraga',btnFlorimPraga]};const c=map[skill];if(!c)return;window[c[0]]=true;c[1].classList.add('aiming');statusText.innerText='🎯 [PC] Mova o mouse e clique para lançar a skill (ESC cancela)';}
+        function usarSementeFlorim(){florimAtivarMira('florim_semente');}
+        function usarCorrenteFlorim(){florimAtivarMira('florim_corrente');}
+        function usarAnelFlorim(){florimAtivarMira('florim_anel');}
+        function usarPragaFlorim(){florimAtivarMira('florim_praga');}
+        function dispararFlorimSkill(skill,tx,ty){if(window.estaMorto||window.minhaClasse!=='florim')return;let alvo=skill==='florim_corrente'?florimAlvoNoPonto(tx,ty):null;if(skill==='florim_corrente'&&!alvo){statusText.innerText='🎯 Clique diretamente em um inimigo para prendê-lo.';return;}if(ws&&ws.readyState===WebSocket.OPEN){ws.send(JSON.stringify(alvo?{action:skill,alvoTipo:alvo.tipo,alvoId:alvo.id}:{action:skill,targetX:tx,targetY:ty}));}cancelarTodasMiras();}
         // PIKEMAN — funções do cliente (disparo/úteis/skills)
         // ============================================================
 
@@ -5383,6 +5813,7 @@ function usarCanticoCelestial() {
             if (c === 'arqueiro_arcano') return 260;
             if (c === 'sniper') return 384;
             if (c === 'pikeman') return 100;
+            if (c === 'florim') return 320;
             return 300;
         }
 
@@ -5547,6 +5978,8 @@ function usarCanticoCelestial() {
             else if (window.minhaClasse === 'arqueiro_arcano') { enviarAtaqueArcano(ang, alvoTipo, alvoId); }
             else if (window.minhaClasse === 'sniper') { enviarAtaqueSniper(ang, alvoTipo, alvoId); }
             else if (window.minhaClasse === 'pikeman') { enviarAtaquePikeman(ang, alvoTipo, alvoId); }
+            else if (window.minhaClasse === 'florim') { enviarAtaqueFlorim(ang, alvoTipo, alvoId); }
+            else if (window.minhaClasse === 'florim') { enviarAtaqueFlorim(ang, alvoTipo, alvoId); }
             else { enviarAcaoCorte(ang, alvoTipo, alvoId); }
         }
 
@@ -6379,8 +6812,73 @@ function usarCanticoCelestial() {
             });
         }
 
+        function desenharMapaMundiInstanciaSolari() {
+            if (!bigMapCtx || !bigMapCanvas) return;
+            const bw = bigMapCanvas.width = bigMapCanvas.clientWidth || 800;
+            const bh = bigMapCanvas.height = bigMapCanvas.clientHeight || 380;
+            const arena = (window.mapaArena && typeof window.mapaArena.grid === 'function') ? window.mapaArena.grid() : null;
+            const W = 1240, H = 1240;
+            const escala = Math.min((bw - 30) / W, (bh - 55) / H);
+            const ox = (bw - W * escala) / 2;
+            const oy = 38;
+            bigMapCtx.clearRect(0, 0, bw, bh);
+            bigMapCtx.fillStyle = '#090612';
+            bigMapCtx.fillRect(0, 0, bw, bh);
+            bigMapCtx.fillStyle = '#e9d5ff';
+            bigMapCtx.font = 'bold 15px Arial';
+            bigMapCtx.textAlign = 'center';
+            bigMapCtx.fillText('ARENA DE SOLARI — MAPA DA INSTÂNCIA', bw / 2, 18);
+            bigMapCtx.font = '9px Arial';
+            bigMapCtx.fillStyle = '#bda7d6';
+            bigMapCtx.fillText('Instância: ' + (window.instanciaAtualId || 'não identificada'), bw / 2, 31);
+            if (arena) {
+                const rows = arena.length, cols = rows ? arena[0].length : 31;
+                const tw = W / cols, th = H / rows;
+                for (let y = 0; y < rows; y++) {
+                    for (let x = 0; x < cols; x++) {
+                        const parede = arena[y] && arena[y][x] && arena[y][x].alt >= 2;
+                        bigMapCtx.fillStyle = parede ? '#21182b' : '#392b48';
+                        bigMapCtx.fillRect(ox + x * tw * escala, oy + y * th * escala, tw * escala + 0.5, th * escala + 0.5);
+                    }
+                }
+            } else {
+                bigMapCtx.fillStyle = '#392b48';
+                bigMapCtx.fillRect(ox, oy, W * escala, H * escala);
+            }
+            bigMapCtx.strokeStyle = '#c77dff';
+            bigMapCtx.lineWidth = 2;
+            bigMapCtx.strokeRect(ox, oy, W * escala, H * escala);
+            function ponto(x, y) { return { x: ox + (x - 63800) * escala, y: oy + y * escala }; }
+            if (window.listaSlimes) window.listaSlimes.forEach(function (s) {
+                if (!s || s.hp <= 0 || s.solari === false) return;
+                const q = ponto(s.x, s.y);
+                bigMapCtx.fillStyle = s.elite ? '#ffcc00' : '#ff7043';
+                bigMapCtx.beginPath(); bigMapCtx.arc(q.x, q.y, s.elite ? 4 : 2.5, 0, Math.PI * 2); bigMapCtx.fill();
+            });
+            if (window.todosJogadores) Object.keys(window.todosJogadores).forEach(function (id) {
+                const p = window.todosJogadores[id];
+                if (!p || p.hp <= 0) return;
+                const q = ponto(p.x, p.y);
+                bigMapCtx.fillStyle = (id === window.meuId) ? '#00ffff' : '#6bb7ff';
+                bigMapCtx.beginPath(); bigMapCtx.arc(q.x, q.y, id === window.meuId ? 5 : 3, 0, Math.PI * 2); bigMapCtx.fill();
+                if (id === window.meuId) { bigMapCtx.fillStyle = '#00ffff'; bigMapCtx.font = 'bold 9px Arial'; bigMapCtx.fillText('VOCÊ', q.x, q.y - 8); }
+            });
+            bigMapCtx.fillStyle = '#d8c3f0';
+            bigMapCtx.font = '9px Arial';
+            bigMapCtx.textAlign = 'left';
+            bigMapCtx.fillText('🟣 Instância isolada • até 5 jogadores • outros mapas não aparecem', 10, bh - 10);
+        }
+
         function desenharBigMap() {
             if (!bigMapCtx || !bigMapCanvas) return;
+            if (window.solariAtivo) {
+                const titulo = document.getElementById('big-map-title');
+                if (titulo) titulo.textContent = '🗺️ MAPA DA INSTÂNCIA — ARENA DE SOLARI';
+                desenharMapaMundiInstanciaSolari();
+                return;
+            }
+            const titulo = document.getElementById('big-map-title');
+            if (titulo) titulo.textContent = '🗺️ MAPA MUNDIAL — Davahl & Biomas';
             let bw = bigMapCanvas.width = bigMapCanvas.clientWidth || 800;
             let bh = bigMapCanvas.height = bigMapCanvas.clientHeight || 380;
             let sx = bw / WORLD_WIDTH, sy = bh / WORLD_HEIGHT;
@@ -6624,10 +7122,7 @@ function usarCanticoCelestial() {
             if (ws && ws.readyState === WebSocket.OPEN) {
                 ws.send(JSON.stringify({ action: 'ping', t: Date.now() }));
             }
-            if (statusText) {
-                statusText.innerText = "📶 PING: " + pingAtual + "ms | FPS: " + (fpsCounter ? fpsCounter.innerText : "60");
-                setTimeout(() => { if (statusText && statusText.innerText.includes("PING:")) statusText.innerText = "Status: Conectado!"; }, 2500);
-            }
+            if (typeof window.atualizarHudPing === "function") window.atualizarHudPing();
         }
 
         function fecharModalSuperiorOuConfig() {
@@ -6720,6 +7215,12 @@ function usarCanticoCelestial() {
 
             let code = e.code;
             let key = (e.key || '').toLowerCase();
+
+            if (window.tutorialBloqueado) {
+                const permitido = (window.tutorialState && window.tutorialState.etapa === 1 && key === 'c') ||
+                    (window.tutorialState && window.tutorialState.etapa === 2 && key === 'k') || code === 'Escape';
+                if (!permitido) { e.preventDefault(); return; }
+            }
 
             if (code in teclasMovimento) {
                 teclasMovimento[code] = true;
@@ -7195,7 +7696,7 @@ function usarCanticoCelestial() {
                 }
                 else if (s === 'guerreiro_escudo') { if (typeof dispararEscudo === 'function') dispararEscudo(tx, ty); }
                 else if (s === 'mago_bola') { if (typeof dispararBolaElemental === 'function') dispararBolaElemental(tx, ty); }
-                else if (s === 'astral_buraco') { if (typeof dispararBuracoNegro === 'function') dispararBuracoNegro(tx, ty); }
+                else if (s === 'astral_buraco') { if (typeof dispararBuracoNegro === 'function') dispararBuracoNegro(tx, ty); } else if (s === 'florim_semente') dispararFlorimSkill('florim_semente',tx,ty); else if (s === 'florim_corrente') dispararFlorimSkill('florim_corrente',tx,ty); else if (s === 'florim_anel') dispararFlorimSkill('florim_anel',tx,ty); else if (s === 'florim_praga') dispararFlorimSkill('florim_praga',tx,ty);
                 else if (s === 'barbaro_vinculo') {
                     let target = window.slimes && window.slimes.find(m => m.hp > 0 && Math.hypot(m.x - tx, m.y - ty) < 60);
                     let targetBoss = window.bosses && window.bosses.find(m => m.hp > 0 && Math.hypot(m.x - tx, m.y - ty) < 80);
@@ -7259,7 +7760,7 @@ function usarCanticoCelestial() {
             let nowFps = performance.now();
             if (nowFps - lastFpsUpdate >= 500) {
                 let currentFps = Math.round((frameCount * 1000) / (nowFps - lastFpsUpdate));
-                if(fpsCounter) fpsCounter.innerText = "FPS: " + currentFps + " | PING: " + pingAtual + "ms";
+                if(fpsCounter) fpsCounter.innerText = "FPS: " + currentFps;
                 frameCount = 0;
                 lastFpsUpdate = nowFps;
             }
@@ -7394,6 +7895,10 @@ function usarCanticoCelestial() {
                             if (Math.hypot((tx + 12) - arv.x, (ty + 16) - arv.y) < arv.raioColisao + 10) return true;
                         }
                     }
+                    // Colisão criada pelo Editor Admin: chamada direta como fallback,
+                    // para não depender da cadeia colideMapaAtivo de outros módulos.
+                    if (typeof window.colideObstaculosCustomizadosCliente === "function" &&
+                        window.colideObstaculosCustomizadosCliente(window.currentMap, tx + 12, ty + 16, 12)) return true;
                     if (typeof window.colideMapaAtivo === "function" && window.colideMapaAtivo(tx + 12, ty + 16, 12)) return true;
                     return false;
                 }
@@ -7448,10 +7953,13 @@ function usarCanticoCelestial() {
             // Antes, o clamp usava o currentMap da frame ANTERIOR (padrão 'cidade'); um personagem
             // salvo em outro mapa (ex.: Arena X=63800+) era puxado para FIM_CIDADE-42 (=X 61132)
             // e ficava travado no canto, sem conseguir andar nem teleportar.
-            window.currentMap = (window.meuX >= (window.LARGURA_CASTELO || 82000)) ? 'castelo' : ((window.meuX >= (window.LARGURA_ZONA_ZERO || 74000)) ? 'zonazero' : ((window.meuX >= (window.LARGURA_TESTE_VISUAL || 72000)) ? 'testevisual' : ((window.meuX >= window.LARGURA_CIDADE_PERDIDA) ? 'cidadeperdida' : ((window.meuX >= window.LARGURA_ARENA) ? (window.solariAtivo ? 'solari' : 'arena') : ((window.meuX >= window.LARGURA_CIDADE && window.meuX < window.FIM_CIDADE) ? 'cidade' : ((window.meuX >= window.LARGURA_PANTANO) ? 'caverna' : ((window.meuX >= window.LARGURA_DESERTO) ? 'pantano' : ((window.meuX >= window.LARGURA_VERDE) ? 'desert' : 'green'))))))));
-            let maxYMapa = (window.currentMap === 'castelo') ? (window.ALTO_CASTELO || 1800) : ((window.currentMap === 'zonazero') ? (window.ALTO_ZONA_ZERO || 9000) : ((window.currentMap === 'testevisual') ? (window.ALTO_TESTE_VISUAL || 960) : ((window.currentMap === 'arena' || window.currentMap === 'solari') ? 1240 : ((window.currentMap === 'cidade') ? 1145 : ((window.currentMap === 'cidadeperdida') ? 3920 : ((window.currentMap === 'caverna') ? 1800 : ((window.currentMap === 'pantano') ? 9000 : ((window.currentMap === 'desert') ? 36000 : (window.ALTO_VERDE || 5400)))))))));
+            window.currentMap = mapaPorCoordenadaCliente(window.meuX) || 'cidade';
+            if (window.currentMap === 'arena' && window.solariAtivo) window.currentMap = 'solari';
+            const mapaConfigLoop = mapaConfigCliente(window.currentMap === 'solari' ? 'arena' : window.currentMap) || mapaConfigCliente('green');
+            let maxYMapa = mapaConfigLoop.y0 + mapaConfigLoop.h;
             if (window.meuY > maxYMapa - 40) window.meuY = maxYMapa - 40;
-            const limitesMapaAtual = { green: [0, window.LARGURA_VERDE], desert: [window.LARGURA_VERDE, window.LARGURA_DESERTO], pantano: [window.LARGURA_DESERTO, window.LARGURA_PANTANO], caverna: [window.LARGURA_PANTANO, window.FIM_CAVERNA], cidade: [window.LARGURA_CIDADE, window.FIM_CIDADE], arena: [window.LARGURA_ARENA, window.FIM_ARENA], solari: [window.LARGURA_ARENA, window.FIM_ARENA], cidadeperdida: [window.LARGURA_CIDADE_PERDIDA, window.FIM_CIDADE_PERDIDA], testevisual: [window.LARGURA_TESTE_VISUAL || 72000, window.FIM_TESTE_VISUAL || 73280], zonazero: [window.LARGURA_ZONA_ZERO || 74000, window.FIM_ZONA_ZERO || 82000], castelo: [window.LARGURA_CASTELO || 82000, window.FIM_CASTELO || 84200] }[window.currentMap];
+            const cfgLimiteLoop = mapaConfigCliente(window.currentMap === 'solari' ? 'arena' : window.currentMap);
+            const limitesMapaAtual = cfgLimiteLoop ? [cfgLimiteLoop.x0, cfgLimiteLoop.x0 + cfgLimiteLoop.w] : null;
             if (limitesMapaAtual) {
                 window.meuX = Math.max(limitesMapaAtual[0] + 10, Math.min(limitesMapaAtual[1] - 42, window.meuX));
             }
@@ -7503,13 +8011,19 @@ function usarCanticoCelestial() {
 
             ctx.setTransform(1, 0, 0, 0, 0, 0);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.fillStyle = (window.currentMap === 'castelo') ? "#0d0a07" : ((window.currentMap === 'zonazero') ? "#0a1622" : ((window.currentMap === 'testevisual') ? "#1c2817" : ((window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'solari') ? "#150f24" : ((window.currentMap === 'pantano') ? "#24301a" : ((window.currentMap === 'desert') ? "#d9b45c" : ((window.currentMap === 'caverna') ? "#1a0f0f" : ((window.currentMap === 'cidade') ? "#2c2a27" : ((window.currentMap === 'cidadeperdida') ? "#1c2a1d" : "#163f18")))))))));
+            ctx.fillStyle = (window.currentMap === 'ruinas_01') ? "#151522" : ((window.currentMap === 'castelo') ? "#0d0a07" : ((window.currentMap === 'zonazero') ? "#0a1622" : ((window.currentMap === 'testevisual') ? "#1c2817" : ((window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'solari') ? "#150f24" : ((window.currentMap === 'pantano') ? "#24301a" : ((window.currentMap === 'desert') ? "#d9b45c" : ((window.currentMap === 'caverna') ? "#1a0f0f" : ((window.currentMap === 'cidade') ? "#2c2a27" : ((window.currentMap === 'cidadeperdida') ? "#1c2a1d" : "#163f18"))))))))));
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.save(); ctx.scale((window.cameraZoomAtual || ZOOM_CAMERA), (window.cameraZoomAtual || ZOOM_CAMERA)); ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
 
-            // ===== FUNDO + CENÁRIO: desenha SOMENTE o bioma do currentMap ativo =====
+            // ===== FUNDO + CENÁRIO: cada mapa é selecionado pelo ID =====
             let tempoAnimacao = Date.now() / 1000;
-            if (window.currentMap === 'castelo') {
+            if (window.currentMap === 'ruinas_01') {
+                if (typeof window.desenharMapaRuinas01 === "function") window.desenharMapaRuinas01(ctx, tempoAnimacao, cameraX, cameraY, larguraVisivel, alturaVisivel);
+            } else if (window.currentMap === 'bemvindo') {
+                ctx.fillStyle = "#07546a";
+                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+                if (typeof window.desenharCenarioBemVindo === "function") window.desenharCenarioBemVindo(tempoAnimacao);
+            } else if (window.currentMap === 'castelo') {
                 ctx.fillStyle = "#0d0a07"; // pedra negra ancestral
                 ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
                 if (typeof window.desenharCenarioCastelo === "function") window.desenharCenarioCastelo(tempoAnimacao);
@@ -7562,6 +8076,29 @@ function usarCanticoCelestial() {
                 if (typeof window.desenharPortalCavernaVerde === "function") window.desenharPortalCavernaVerde(tempoAnimacao);
                 if (typeof window.desenharPortalCidadeVerde === "function") window.desenharPortalCidadeVerde(tempoAnimacao);
             }
+            // Captura somente o quadro do cenário antes do Y-SORT de personagens.
+            // O Editor de Colisões usa este snapshot como fallback genérico para
+            // desenhar camadas em mapas que não possuem um renderizador próprio.
+            try {
+                if (!window._mapLayerSnapshotCanvas || window._mapLayerSnapshotCanvas.width !== canvas.width || window._mapLayerSnapshotCanvas.height !== canvas.height) {
+                    window._mapLayerSnapshotCanvas = document.createElement('canvas');
+                    window._mapLayerSnapshotCanvas.width = canvas.width;
+                    window._mapLayerSnapshotCanvas.height = canvas.height;
+                }
+                const layerSnapCtx = window._mapLayerSnapshotCanvas.getContext('2d');
+                layerSnapCtx.setTransform(1, 0, 0, 1, 0, 0);
+                layerSnapCtx.clearRect(0, 0, canvas.width, canvas.height);
+                layerSnapCtx.drawImage(canvas, 0, 0);
+                window._mapLayerSnapshot = {
+                    canvas: window._mapLayerSnapshotCanvas,
+                    camX: cameraX,
+                    camY: cameraY,
+                    zoom: (window.cameraZoomAtual || ZOOM_CAMERA || 1)
+                };
+            } catch (erroSnapshotCamadas) {
+                window._mapLayerSnapshot = null;
+            }
+
             if (typeof window.desenharPinosLocalizacao === "function") window.desenharPinosLocalizacao();
             if (typeof window.desenharBandeirasSpawn === "function") window.desenharBandeirasSpawn();
             if (typeof window.desenharVfxMapa === "function") window.desenharVfxMapa();
@@ -7610,6 +8147,7 @@ function usarCanticoCelestial() {
             if (typeof window.desenharEfeitosRoqueiro === "function") window.desenharEfeitosRoqueiro();
             if (typeof window.desenharEfeitosLadino === "function") window.desenharEfeitosLadino();
             if (typeof window.desenharEfeitosPikeman === "function") window.desenharEfeitosPikeman();
+if (typeof window.desenharEfeitosFlorim === "function") window.desenharEfeitosFlorim();
             if (typeof window.desenharMiraArcana === "function") window.desenharMiraArcana();
             if (typeof window.desenharMarcadorDrag === "function") window.desenharMarcadorDrag();
             if (typeof window.desenharMarcasBoss === "function") window.desenharMarcasBoss();
@@ -7667,6 +8205,7 @@ function usarCanticoCelestial() {
             if (window.currentMap === 'pantano' && typeof window.coletarPantanoSortables === "function") window.coletarPantanoSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'caverna' && typeof window.coletarCavernaSortables === "function") window.coletarCavernaSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'castelo' && typeof window.coletarCasteloSortables === "function") window.coletarCasteloSortables(tempoAnimacao, spritesSort);
+            if (window.currentMap === 'bemvindo' && typeof window.coletarBemVindoSortables === "function") window.coletarBemVindoSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'cidade' && typeof window.coletarCidadeSortables === "function") window.coletarCidadeSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'green' && typeof window.coletarVerdeSortables === "function") window.coletarVerdeSortables(tempoAnimacao, spritesSort);
             if (typeof window.coletarObjetosMapa === "function") window.coletarObjetosMapa(tempoAnimacao, spritesSort);
@@ -7784,6 +8323,8 @@ function usarCanticoCelestial() {
                             else if (classeJogador === 'arqueiro_arcano') { if (typeof window.desenharArqueiroArcano === "function") window.desenharArqueiroArcano(posX, posY, mov, ang, hpVal, maxHpVal, { eu: (pid === window.meuId), pp: pp }); }
                             else if (classeJogador === 'sniper') { if (typeof window.desenharSniper === "function") window.desenharSniper(posX, posY, mov, ang, hpVal, maxHpVal, { eu: (pid === window.meuId), pp: pp }); }
                             else if (classeJogador === 'pikeman') { if (typeof window.desenharPikeman === "function") window.desenharPikeman(posX, posY, mov, ang, hpVal, maxHpVal, { eu: (pid === window.meuId), pp: pp }, pid); }
+else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "function") window.desenharFlorim(posX, posY, mov, ang, hpVal, maxHpVal); }
+else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "function") window.desenharFlorim(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else { if (typeof window.desenharGuerreiro === "function") window.desenharGuerreiro(posX, posY, (pid === window.meuId ? "#c0392b" : "#2980b9"), mov, ang, hpVal, maxHpVal, isSpinningPlayer, window.tornadoTimers[pid] || 0, pid); }
 
                             let rajadaState = pp.rajadaAtiva && pp.rajadaFase === 'carregando' ? pp : null;
@@ -8138,7 +8679,7 @@ function usarCanticoCelestial() {
 
                 // Header do minimapa: bioma e coordenadas
                 if (minimapBioma) {
-                    let biomaLabel = (window.currentMap === 'castelo') ? "🏯 Castelo Anda 1 (DG)" : ((window.currentMap === 'zonazero') ? "❄️ Zona Zero (Gelo)" : ((window.currentMap === 'testevisual') ? "🌿 Arena Visual (Pântano)" : ((window.currentMap === 'arena') ? "⚔️ Arena" : ((window.currentMap === 'solari') ? "🔮 Arena de Solari" : ((window.currentMap === 'cidade') ? "🏰 Davahl" : ((window.currentMap === 'cidadeperdida') ? "🏛️ Cidade Perdida" : ((window.currentMap === 'caverna') ? "🕳️ Caverna" : ((window.currentMap === 'pantano') ? "🪷 Pântano" : ((window.currentMap === 'desert') ? "🏜️ Deserto" : "🌿 Verde")))))))));
+                    let biomaLabel = (window.currentMap === 'ruinas_01') ? "🏚️ Ruínas de Âmbar" : (window.currentMap === 'bemvindo') ? "🏝️ Ilha BemVindo" : (window.currentMap === 'castelo') ? "🏯 Castelo Anda 1 (DG)" : ((window.currentMap === 'zonazero') ? "❄️ Zona Zero (Gelo)" : ((window.currentMap === 'testevisual') ? "🌿 Arena Visual (Pântano)" : ((window.currentMap === 'arena') ? "⚔️ Arena" : ((window.currentMap === 'solari') ? "🔮 Arena de Solari" : ((window.currentMap === 'cidade') ? "🏰 Davahl" : ((window.currentMap === 'cidadeperdida') ? "🏛️ Cidade Perdida" : ((window.currentMap === 'caverna') ? "🕳️ Caverna" : ((window.currentMap === 'pantano') ? "🪷 Pântano" : ((window.currentMap === 'desert') ? "🏜️ Deserto" : "🌿 Verde")))))))));
                     minimapBioma.innerText = biomaLabel;
                 }
                 if (minimapCoords) {
@@ -8394,6 +8935,7 @@ function usarCanticoCelestial() {
             if (window.atualizarBgmCidade) window.atualizarBgmCidade();
             // HUD Canvas (moldura vetorial + barras dinâmicas)
             if (window.desenharHudCanvas) window.desenharHudCanvas();
+            if (window.atualizarInteracaoNPC) window.atualizarInteracaoNPC();
             requestAnimationFrame(loop);
         }
 

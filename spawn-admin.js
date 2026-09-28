@@ -25,7 +25,8 @@ var SPAWN_TIPOS = [
     { key: 'void_master', nome: '◉ Void Master (20+)', baseHp: 900, boss: false, cor: '#6c35a8' },
     { key: 'ogro', nome: '👹 Ogro (30+ · 1)', baseHp: 2600, boss: false, cor: '#68734b' },
     { key: 'gargula', nome: '🦇 Gárgula (20+)', baseHp: 1100, boss: false, cor: '#59616c' },
-    { key: 'mamute', nome: '🐘 Mamute (30+)', baseHp: 3200, boss: false, cor: '#6e6254' }
+    { key: 'mamute', nome: '🐘 Mamute (30+)', baseHp: 3200, boss: false, cor: '#6e6254' },
+    { key: 'soldado_lanceiro', nome: '🛡️ Soldado Lanceiro (20+)', baseHp: 1400, boss: false, cor: '#8b1e2d' }
 ];
 
 function spawnTipoInfo(key) {

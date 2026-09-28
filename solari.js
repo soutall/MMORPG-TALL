@@ -1,6 +1,6 @@
 // ============================================================================
 // solari.js — ARENA DE SOLARI (cliente)
-// Portal ROXO na Cidade de Davahl (60488,236) → partida em grupo (máx 4) com
+// Portal ROXO na Cidade de Davahl (60488,236) → partida em grupo (máx 5) com
 // 9 rounds, Elite no R5/R9 e leilão por round com dados 1-100 (+20 classe do item).
 // Integra-se ao index.html via: window.desenharPortalSolari, tocarPortalSolari,
 // receberSolariMensagem, solariMudouMapa.
@@ -139,7 +139,7 @@
         var minhId = window.meuId;
         var souMembro = s.membros.some(function (m) { return m.id === minhId; });
         var souLider = s.liderId === minhId && souMembro;
-        var cheio = s.membros.length >= 4;
+        var cheio = s.membros.length >= 5;
         var todosOk = s.membros.length > 0 && s.membros.every(function (m) { return m.ok; });
 
         // Cabeçalho
@@ -156,16 +156,16 @@
         var sub = document.createElement('div');
         sub.className = 'solari-sub';
         if (souMembro) {
-            if (souLider) sub.innerHTML = 'Você é o <b>líder</b> do grupo. Convide até 4 jogadores e pressione <b>JOGAR</b>.';
+            if (souLider) sub.innerHTML = 'Você é o <b>líder</b> do grupo. Convide até 5 jogadores e pressione <b>JOGAR</b>.';
             else sub.innerHTML = 'Você entrou no grupo de <b>' + (s.membros[0] ? s.membros[0].nick : '?') + '</b>. Pressione <b>JOGAR</b> para confirmar.';
         } else {
             sub.innerHTML = 'Grupo de recrutamento em andamento. Aguarde um convite do líder ou abra o próprio grupo assim que a arena ficar livre.';
         }
         painel.appendChild(sub);
 
-        // Slots (4)
+        // Slots (5)
         var slotsWrap = document.createElement('div');
-        for (var i = 0; i < 4; i++) {
+        for (var i = 0; i < 5; i++) {
             var m = s.membros[i];
             var slot = document.createElement('div');
             slot.className = 'solari-slot' + (m ? '' : ' solari-slot-vago') + (m && m.id === minhId ? ' solari-slot-mim' : '');
@@ -203,7 +203,7 @@
         if (cheio) {
             var avisoCheio = document.createElement('div');
             avisoCheio.className = 'solari-aviso-cheio';
-            avisoCheio.textContent = '⚠️ Grupo cheio (máx 4). Convites e lista de jogadores bloqueados.';
+            avisoCheio.textContent = '⚠️ Grupo cheio (máx 5). Convites e lista de jogadores bloqueados.';
             painel.appendChild(avisoCheio);
         }
 
