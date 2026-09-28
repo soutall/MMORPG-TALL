@@ -530,6 +530,7 @@ function sniperNoMato(x, y) {
 // Bandeiras de spawn criadas por admins (persistidas em spawn_flags.json)
 let bandeirasSpawn = (spawnsAdmin && typeof spawnsAdmin.carregarBandeiras === 'function') ? spawnsAdmin.carregarBandeiras() : [];
 let bandeirasInicializadas = false;
+let timersBandeiraInstancia = {};
 const MAP_VFX_FILE = path.join(__dirname, 'map_vfx.json');
 let mapVfx = [];
 try { mapVfx = JSON.parse(fs.readFileSync(MAP_VFX_FILE, 'utf8') || '[]'); if (!Array.isArray(mapVfx)) mapVfx = []; } catch (e) { mapVfx = []; }
@@ -1176,7 +1177,7 @@ function validarAtaqueBasicoAlvo(playerId, p, alvoTipo, alvoId) {
     let py = p.y + PLAYER_OFFSET_Y;
     // Ataque básico respeita a instância Solari, não apenas a coordenada física.
     if (entidadeEhSolari(p) !== entidadeEhSolari(alvo)) return null;
-    if (mapaDoJogador(playerId) !== (entidadeEhSolari(alvo) ? 'solari' : mapaPorCoordenada(alvo.x))) return null;
+    if (!instanciaCompativel(p, alvo)) return null;
     // PvP: o cliente não pode forjar alvo em jogador com PvP desligado.
     if (alvoTipo === 'player' && !pvpPodeAtacar(playerId, alvoId)) return null;
     let alc = alcanceAtaqueBasicoClasse(p);
@@ -1785,11 +1786,12 @@ function mesmosLados(angA, angB, margem) {
 }
 
 // Alvos válidos (slimes) num raio — lista unificada para as novas classes
-function slimesNoRaio(x, y, raio, mapa) {
+function slimesNoRaio(x, y, raio, mapa, instanciaId) {
     const alvos = [];
     for (let s of slimes) {
         if (s.hp <= 0 || s.flagPassivo) continue;
         if (mapa !== undefined && mapaPorCoordenada(s.x) !== mapa) continue;
+        if (mapaEhInstanciado(mapa) && instanciaId && s.instanciaId !== instanciaId) continue;
         if (Math.hypot(s.x - x, s.y - y) <= raio) alvos.push(s);
     }
     return alvos;
@@ -2006,13 +2008,13 @@ function coletarAlvosDancaLadino(player, alcance) {
     const mapa = mapaPorCoordenada(px);
     const candidatos = [];
     slimes.forEach(s => {
-        if (s.hp > 0 && mapaPorCoordenada(s.x) === mapa) {
+        if (s.hp > 0 && mapaPorCoordenada(s.x) === mapa && instanciaCompativel(player, s)) {
             const d2 = (s.x - px) * (s.x - px) + (s.y - py) * (s.y - py);
             if (d2 <= alcance * alcance) candidatos.push({ id: s.id, tipo: 'slime', x: s.x, y: s.y });
         }
     });
     bosses.forEach(b => {
-        if (b.hp > 0 && mapaPorCoordenada(b.x) === mapa) {
+        if (b.hp > 0 && mapaPorCoordenada(b.x) === mapa && instanciaCompativel(player, b)) {
             const d2 = (b.x - px) * (b.x - px) + (b.y - py) * (b.y - py);
             if (d2 <= alcance * alcance) candidatos.push({ id: b.id, tipo: 'boss', x: b.x, y: b.y });
         }
@@ -2231,7 +2233,134 @@ function mapaPorCoordenada(x) {
     return null;
 }
 
-function entidadeNoMapa(entidade, mapa) {
+// ===== INSTÂNCIAS DE MAPA — migração gradual, mapa por mapa =====
+// Primeiro mapa migrado: Campo Verde (green). O mapa físico continua no mesmo
+// intervalo de coordenadas; a separação passa a ser lógica pelo instanciaId.
+const MAPAS_INSTANCIADOS = new Set(['green']);
+const LIMITE_JOGADORES_INSTANCIA = { green: 50 };
+let instanciasMapa = {};
+
+function mapaEhInstanciado(mapa) {
+    return !!(mapa && MAPAS_INSTANCIADOS.has(mapa));
+}
+
+function criarInstanciaMapa(mapa) {
+    if (!mapaEhInstanciado(mapa)) return null;
+    const instancia = INSTANCIAS.criar(mapa, mapa, { maxMembros: LIMITE_JOGADORES_INSTANCIA[mapa] || 50 });
+    instanciasMapa[instancia.id] = { id: instancia.id, tipo: mapa, mapaId: mapa, membros: new Set(), criadaEm: instancia.criadaEm };
+    return instanciasMapa[instancia.id];
+}
+
+function instanciaMapaDoJogador(playerId) {
+    const p = players[playerId];
+    return p && p.instanciaId && instanciasMapa[p.instanciaId] ? instanciasMapa[p.instanciaId] : null;
+}
+
+function garantirInstanciaMapaParaJogador(playerId, mapa) {
+    const p = players[playerId];
+    if (!p || !mapaEhInstanciado(mapa)) return null;
+    const atual = instanciaMapaDoJogador(playerId);
+    if (atual && atual.mapaId === mapa) return atual;
+
+    let destino = Object.values(instanciasMapa).find(function (inst) {
+        return inst.mapaId === mapa && inst.membros.size < (LIMITE_JOGADORES_INSTANCIA[mapa] || 50);
+    });
+    if (!destino) destino = criarInstanciaMapa(mapa);
+    if (!destino) return null;
+
+    if (atual) atual.membros.delete(playerId);
+    destino.membros.add(playerId);
+    p.instanciaId = destino.id;
+    p.instanciaTipo = mapa;
+    // Ao abrir uma nova instância, materializa os spawns persistentes daquele mapa
+    // exclusivamente nela. As bandeiras continuam sendo a fonte de configuração.
+    if (bandeirasSpawn && bandeirasInicializadas) {
+        bandeirasSpawn.forEach(function (flag) {
+            if (mapaPorCoordenada(flag.x) === mapa) preencherBandeira(flag, destino.id);
+        });
+    }
+    return destino;
+}
+
+function limparEntidadesInstancia(instanciaId) {
+    if (!instanciaId) return;
+    slimes = slimes.filter(function (s) { return s.instanciaId !== instanciaId; });
+    bosses = bosses.filter(function (b) { return b.instanciaId !== instanciaId; });
+    projeteis = projeteis.filter(function (p) { return p.instanciaId !== instanciaId; });
+    playerProjeteis = playerProjeteis.filter(function (p) { return p.instanciaId !== instanciaId; });
+    dropsChao = dropsChao.filter(function (d) { return d.instanciaId !== instanciaId; });
+    gasesVeneno = gasesVeneno.filter(function (g) { return g.instanciaId !== instanciaId; });
+    florimSementes = florimSementes.filter(function (z) { return z.instanciaId !== instanciaId; });
+    florimCorrentes = florimCorrentes.filter(function (z) { return z.instanciaId !== instanciaId; });
+    florimAneis = florimAneis.filter(function (z) { return z.instanciaId !== instanciaId; });
+    florimDebuffs = florimDebuffs.filter(function (z) { return z.instanciaId !== instanciaId; });
+    delete timersBandeiraInstancia[instanciaId];
+}
+
+function removerJogadorDaInstanciaMapa(playerId) {
+    const p = players[playerId];
+    if (!p || !p.instanciaId) return;
+    const instancia = instanciasMapa[p.instanciaId];
+    if (instancia) {
+        instancia.membros.delete(playerId);
+        if (instancia.membros.size === 0) {
+            limparEntidadesInstancia(instancia.id);
+            delete instanciasMapa[instancia.id];
+        }
+    }
+    p.instanciaId = null;
+    p.instanciaTipo = null;
+}
+
+function sincronizarInstanciaMapaJogador(playerId) {
+    const p = players[playerId];
+    if (!p) return;
+    const mapa = mapaPorCoordenada(p.x + PLAYER_OFFSET_X);
+    if (mapaEhInstanciado(mapa)) {
+        garantirInstanciaMapaParaJogador(playerId, mapa);
+    } else if (p.instanciaId) {
+        removerJogadorDaInstanciaMapa(playerId);
+    }
+}
+
+function sincronizarEntidadesInstanciadas() {
+    // Projéteis/zonas ligados a jogador herdam a instância do dono.
+    const listas = [playerProjeteis, dropsChao, gasesVeneno, florimSementes, florimCorrentes, florimAneis, florimDebuffs];
+    listas.forEach(function (lista) {
+        if (!Array.isArray(lista)) return;
+        lista.forEach(function (ent) {
+            if (!ent || ent.instanciaId) return;
+            if (ent.ownerId && players[ent.ownerId]) ent.instanciaId = players[ent.ownerId].instanciaId || null;
+            else if (ent.autorId && players[ent.autorId]) ent.instanciaId = players[ent.autorId].instanciaId || null;
+        });
+    });
+    projeteis.forEach(function (ent) {
+        if (!ent || ent.instanciaId) return;
+        if (ent.ownerMonstro) {
+            const dono = slimes.find(function (s) { return s && s.id === ent.ownerMonstro; }) || bosses.find(function (b) { return b && b.id === ent.ownerMonstro; });
+            if (dono) ent.instanciaId = dono.instanciaId || null;
+        } else if (ent.ownerId && players[ent.ownerId]) {
+            ent.instanciaId = players[ent.ownerId].instanciaId || null;
+        }
+    });
+    Object.keys(lacaios).forEach(function (pid) {
+        if (lacaios[pid] && players[pid]) lacaios[pid].instanciaId = players[pid].instanciaId || null;
+    });
+    Object.keys(bandas).forEach(function (pid) {
+        if (bandas[pid] && players[pid]) bandas[pid].instanciaId = players[pid].instanciaId || null;
+    });
+}
+
+function instanciaCompativel(a, b) {
+    if (!a || !b) return false;
+    const mapaA = mapaPorCoordenada(a.x);
+    const mapaB = mapaPorCoordenada(b.x);
+    if (mapaA !== mapaB) return false;
+    if (!mapaEhInstanciado(mapaA)) return true;
+    return !!a.instanciaId && a.instanciaId === b.instanciaId;
+}
+
+function entidadeNoMapa(entidade, mapa, instanciaId) {
     if (!entidade) return false;
     // Entidades da Arena de Solari são uma instância isolada. Isso inclui
     // monstros e projéteis marcados pelo servidor, que nunca aparecem na Arena normal.
@@ -2239,11 +2368,13 @@ function entidadeNoMapa(entidade, mapa) {
     const mp = mapaPorCoordenada(entidade.x);
     // Cliente da Solari enxerga tudo que está na faixa da arena (x [63800,65040)).
     if (mapa === 'solari') return mp === 'arena';
-    return mp === mapa;
+    if (mp !== mapa) return false;
+    if (mapaEhInstanciado(mapa) && instanciaId) return entidade.instanciaId === instanciaId;
+    return true;
 }
 
-function filtrarPorMapa(lista, mapa) {
-    return Array.isArray(lista) ? lista.filter(function (item) { return entidadeNoMapa(item, mapa); }) : [];
+function filtrarPorMapa(lista, mapa, instanciaId) {
+    return Array.isArray(lista) ? lista.filter(function (item) { return entidadeNoMapa(item, mapa, instanciaId); }) : [];
 }
 
 function jogadorPodeUsarPortalMapa(player, destino) {
@@ -2334,7 +2465,7 @@ function podeEntidadeAtacarAlvo(entidade, alvo, alcance) {
         if (!entidade.id || !entidade.solari) return false;
         if (alvo.id && !solariEmSessao(alvo.id)) return false;
     }
-    if (mapaPorCoordenada(entidade.x) !== mapaPorCoordenada(alvo.x)) return false;
+    if (!instanciaCompativel(entidade, alvo)) return false;
     if (!Number.isFinite(alcance)) return false;
     return distanciaEntidadesQuadrada(entidade, alvo) <= alcance * alcance;
 }
@@ -2570,6 +2701,7 @@ function sobVenenoPantano(x, y) {
 function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
     if (!slime || !autorId || slime.hp <= 0) return { dano: 0, critico: false };
     const autorP = players[autorId];
+    if (autorP && !instanciaCompativel(autorP, slime)) return { dano: 0, critico: false };
     let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem, slime);
     let danoFinal = calc.dano;
     // ===== ADMIN CHEAT: SUPER ATAQUE =====
@@ -2885,6 +3017,8 @@ let bosses = [];
 
 function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem) {
     if (!boss || !autorId || boss.hp <= 0) return { dano: 0, critico: false };
+    const autorP0 = players[autorId];
+    if (autorP0 && !instanciaCompativel(autorP0, boss)) return { dano: 0, critico: false };
     let tipoDano = (tipo === 'basico') ? 'basico' : 'skill';
 
     let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem, boss);
@@ -3723,6 +3857,8 @@ function cancelarTrade(pid) {
 function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
     let p2 = players[defId];
     if (!p2 || p2.hp <= 0) return;
+    const atk0 = players[atkId];
+    if (atk0 && !instanciaCompativel(atk0, p2)) return;
     // ===== ADMIN CHEAT: VIDA INFINITA (PVP) =====
     if (p2.adminCheats && p2.adminCheats.vidaInfinita) {
         p2.hp = p2.maxHp;
@@ -3805,6 +3941,7 @@ function danoEmPlayers(x, y, raio, attackerId, dano, tipo = 'skill', cb = null, 
         if (!p2.pvpAtivo || p2.hp <= 0) continue;
         // Sem PvP entre mapas: as bandas de X são encostadas e o raio pode passar.
         if (mapaPorCoordenada(p2.x + PLAYER_OFFSET_X) !== mapaAtk) continue;
+        if (!instanciaCompativel(p1, p2)) continue;
         if (Math.hypot(p2.x - x, p2.y - y) >= raio) continue;
         if (ang !== null && meiaAbertura !== null) {
             let angAteAlvo = Math.atan2(p2.y - y, p2.x - x);
@@ -3828,7 +3965,7 @@ function posicaoBandeiraValida(flag, raio) {
     return { x: flag.x, y: flag.y };
 }
 
-function spawnMonstroBandeira(flag) {
+function spawnMonstroBandeira(flag, instanciaId) {
     if (!spawnsAdmin) return;
     // BemVindo é mapa inicial/tutorial: nenhum spawn de bandeira pode nascer aqui.
     if (Number.isFinite(flag.x) && mapaPorCoordenada(flag.x) === 'bemvindo') return;
@@ -3860,12 +3997,14 @@ function spawnMonstroBandeira(flag) {
             mob.flagPassivo = passivo;
             mob.flagAgressivo = agressivo;
         } else {
-            bosses.push(spawnsAdmin.criarBossBandeira(flag));
+            let novoBoss = spawnsAdmin.criarBossBandeira(flag);
+            if (mapaEhInstanciado(mapaPorCoordenada(flag.x))) novoBoss.instanciaId = instanciaId || null;
+            bosses.push(novoBoss);
         }
         return;
     }
 
-    let mob = slimes.find(s => s.flagId === flag.id && s.hp <= 0);
+    let mob = slimes.find(s => s.flagId === flag.id && s.hp <= 0 && (!mapaEhInstanciado(mapaPorCoordenada(flag.x)) || s.instanciaId === instanciaId));
     if (mob) {
         let pos = posicaoBandeiraValida(flag, 60);
         mob.hp = flag.hpBase;
@@ -3884,6 +4023,7 @@ function spawnMonstroBandeira(flag) {
         mob.tauntId = null;
         mob.flagPassivo = passivo;
         mob.flagAgressivo = agressivo;
+        if (mapaEhInstanciado(mapaPorCoordenada(flag.x))) mob.instanciaId = instanciaId || null;
         if (mob.tipo === 'zumbi') {
             mob.skillCharging = false;
             mob.skillChargeTimer = 0;
@@ -3904,24 +4044,31 @@ function spawnMonstroBandeira(flag) {
             mob.lanceiroBlockCooldown = 90;
         }
     } else {
-        slimes.push(spawnsAdmin.criarMonstroBandeira(flag));
+        let novoMob = spawnsAdmin.criarMonstroBandeira(flag);
+        if (mapaEhInstanciado(mapaPorCoordenada(flag.x))) novoMob.instanciaId = instanciaId || null;
+        slimes.push(novoMob);
     }
 }
 
-function preencherBandeira(flag) {
+function preencherBandeira(flag, instanciaId) {
     if (!spawnsAdmin) return;
     const config = spawnsAdmin.TIPOS_MONSTROS[flag.tipo];
     if (config && config.maxQtd) flag.maxQtd = Math.min(flag.maxQtd, config.maxQtd);
     let ehBoss = spawnsAdmin.TIPOS_MONSTROS[flag.tipo] && spawnsAdmin.TIPOS_MONSTROS[flag.tipo].boss;
     let vivos = 0;
     if (ehBoss) {
-        for (let b of bosses) if (b.flagId === flag.id && b.hp > 0) vivos++;
+        for (let b of bosses) if (b.flagId === flag.id && b.hp > 0 && (!mapaEhInstanciado(mapaPorCoordenada(flag.x)) || b.instanciaId === instanciaId)) vivos++;
     } else {
-        for (let s of slimes) if (s.flagId === flag.id && s.hp > 0) vivos++;
+        for (let s of slimes) if (s.flagId === flag.id && s.hp > 0 && (!mapaEhInstanciado(mapaPorCoordenada(flag.x)) || s.instanciaId === instanciaId)) vivos++;
     }
     let faltando = flag.maxQtd - vivos;
-    for (let i = 0; i < faltando && i < 60; i++) spawnMonstroBandeira(flag);
-    flag.timerRespawn = Math.max(1, Math.round(flag.respawnSeg * 20));
+    for (let i = 0; i < faltando && i < 60; i++) spawnMonstroBandeira(flag, instanciaId);
+    if (mapaEhInstanciado(mapaPorCoordenada(flag.x)) && instanciaId) {
+        if (!timersBandeiraInstancia[instanciaId]) timersBandeiraInstancia[instanciaId] = {};
+        timersBandeiraInstancia[instanciaId][flag.id] = Math.max(1, Math.round(flag.respawnSeg * 20));
+    } else {
+        flag.timerRespawn = Math.max(1, Math.round(flag.respawnSeg * 20));
+    }
 }
 
 function sincronizarMonstrosBandeira(flag) {
@@ -4041,11 +4188,29 @@ function validarEdicaoMob(data) {
 function atualizarBandeirasSpawn() {
     if (!spawnsAdmin) return;
     if (!bandeirasInicializadas) {
-        for (let flag of bandeirasSpawn) preencherBandeira(flag);
+        for (let flag of bandeirasSpawn) {
+            const mapaFlag = mapaPorCoordenada(flag.x);
+            // Mapas instanciados só geram mobs quando existe uma instância ativa.
+            if (!mapaEhInstanciado(mapaFlag)) preencherBandeira(flag);
+        }
         bandeirasInicializadas = true;
         return;
     }
     for (let flag of bandeirasSpawn) {
+        const mapaFlag = mapaPorCoordenada(flag.x);
+        if (mapaEhInstanciado(mapaFlag)) {
+            Object.values(instanciasMapa).filter(i => i.mapaId === mapaFlag && i.membros.size > 0).forEach(function (instancia) {
+                const iid = instancia.id;
+                if (!timersBandeiraInstancia[iid]) timersBandeiraInstancia[iid] = {};
+                if (timersBandeiraInstancia[iid][flag.id] == null) timersBandeiraInstancia[iid][flag.id] = 0;
+                if (timersBandeiraInstancia[iid][flag.id] > 0) {
+                    timersBandeiraInstancia[iid][flag.id]--;
+                    return;
+                }
+                preencherBandeira(flag, iid);
+            });
+            continue;
+        }
         let vivos = 0;
         for (let s of slimes) if (s.flagId === flag.id && s.hp > 0) vivos++;
         for (let b of bosses) if (b.flagId === flag.id && b.hp > 0) vivos++;
@@ -5442,10 +5607,10 @@ setInterval(() => {
                     player.dmDroneAtaqueCd = 8; // ~400ms entre rajadas
                     const dxD = player.dmDroneX, dyD = player.dmDroneY;
                     // até 3 slimes mais próximos + bosses na área (range 300)
-                    const alvosD = slimesNoRaio(dxD, dyD, 300, mapaPorCoordenada(player.x));
+                    const alvosD = slimesNoRaio(dxD, dyD, 300, mapaPorCoordenada(player.x), player.instanciaId);
                     const alvosBossD = [];
                     for (let b of bosses) {
-                        if (b.hp > 0 && mapaPorCoordenada(b.x) === mapaPorCoordenada(player.x) && Math.hypot(b.x - dxD, b.y - dyD) <= 300) alvosBossD.push(b);
+                        if (b.hp > 0 && mapaPorCoordenada(b.x) === mapaPorCoordenada(player.x) && instanciaCompativel(player, b) && Math.hypot(b.x - dxD, b.y - dyD) <= 300) alvosBossD.push(b);
                     }
                     const tirosD = [];
                     for (let i = 0; i < Math.min(3, alvosD.length); i++) tirosD.push({ tipo: 'slime', a: alvosD[i] });
@@ -7788,6 +7953,7 @@ if (g.hp <= 0) {
 
     // Players visíveis: sem inventário privado (sincronizado só com o dono)
     // e com atributosTotais (base + bônus de equipamento) para o cliente exibir
+    for (const pid of Object.keys(players)) sincronizarInstanciaMapaJogador(pid);
     let playersVisivel = {};
     for (let pid in players) {
         let p = players[pid];
@@ -7822,7 +7988,14 @@ if (g.hp <= 0) {
         // precisa viajar na sincronia (antes o botão do próprio jogador era o
         // único lugar que recebia essa flag).
         playersVisivel[pid].pvpAtivo = !!p.pvpAtivo;
+        playersVisivel[pid].instanciaId = p.instanciaId || null;
+        playersVisivel[pid].instanciaTipo = p.instanciaTipo || null;
     }
+
+    // Mantém a identidade de instância sincronizada mesmo quando o jogador
+    // atravessa uma fronteira de mapa por movimento, dash ou teleporte.
+    for (const pid of Object.keys(players)) sincronizarInstanciaMapaJogador(pid);
+    sincronizarEntidadesInstanciadas();
 
     const tempoMundoAtual = sistemaDiaNoite ? sistemaDiaNoite.calcularTempoMundo() : null;
 
@@ -7831,7 +8004,8 @@ if (g.hp <= 0) {
         const jogadorCliente = client._playerId ? players[client._playerId] : null;
         const clienteEmSolari = !!(client._playerId && solariSessao && solariEmSessao(client._playerId));
         const mapaCliente = clienteEmSolari ? 'solari' : (jogadorCliente ? mapaPorCoordenada(jogadorCliente.x + PLAYER_OFFSET_X) : null);
-        const instanciaCliente = clienteEmSolari && solariSessao ? solariSessao.instanciaId : null;
+        const instanciaCliente = clienteEmSolari && solariSessao ? solariSessao.instanciaId : (jogadorCliente && mapaEhInstanciado(mapaCliente) ? jogadorCliente.instanciaId : null);
+        const instanciaTipoCliente = clienteEmSolari ? 'solari' : (mapaEhInstanciado(mapaCliente) ? mapaCliente : null);
         const jogadoresDoMapa = {};
         if (mapaCliente) {
             for (const pid in playersVisivel) {
@@ -7840,7 +8014,7 @@ if (g.hp <= 0) {
                     if (solariEmSessao(pid)) jogadoresDoMapa[pid] = playersVisivel[pid];
                 } else {
                     if (solariEmSessao(pid)) continue;
-                    if (entidadeNoMapa(playersVisivel[pid], mapaCliente)) jogadoresDoMapa[pid] = playersVisivel[pid];
+                    if (entidadeNoMapa(playersVisivel[pid], mapaCliente, instanciaCliente)) jogadoresDoMapa[pid] = playersVisivel[pid];
                 }
             }
         }
@@ -7848,30 +8022,30 @@ if (g.hp <= 0) {
             type: 'world_update',
             tempoMundo: tempoMundoAtual,
             instanciaId: instanciaCliente,
-            instanciaTipo: clienteEmSolari ? 'solari' : null,
+            instanciaTipo: instanciaTipoCliente,
             players: jogadoresDoMapa,
-            slimes: filtrarPorMapa(slimes, mapaCliente).filter(function (s) {
+            slimes: filtrarPorMapa(slimes, mapaCliente, instanciaCliente).filter(function (s) {
                 return s && (s.tipo !== 'tutorial_demonio' || s.tutorialOwnerId === client._playerId);
             }),
             tutorial: tutorialEstadoParaPlayer(jogadorCliente),
             npcs: npcsParaMapa(mapaCliente),
-            projeteis: filtrarPorMapa(projeteis, mapaCliente),
-            playerProjeteis: filtrarPorMapa(playerProjeteis, mapaCliente),
-            lacaios: Object.fromEntries(Object.entries(lacaios).filter(function (entry) { return entidadeNoMapa(entry[1], mapaCliente); })),
-            bandas: Object.fromEntries(Object.entries(bandas).filter(function (entry) { return players[entry[0]] && (clienteEmSolari ? solariEmSessao(entry[0]) : mapaPorCoordenada(players[entry[0]].x + PLAYER_OFFSET_X) === mapaCliente); })),
-            bosses: filtrarPorMapa(bosses, mapaCliente),
-            drops: filtrarPorMapa(dropsChao, mapaCliente),
-            gases: filtrarPorMapa(gasesVeneno, mapaCliente),
+            projeteis: filtrarPorMapa(projeteis, mapaCliente, instanciaCliente),
+            playerProjeteis: filtrarPorMapa(playerProjeteis, mapaCliente, instanciaCliente),
+            lacaios: Object.fromEntries(Object.entries(lacaios).filter(function (entry) { return entidadeNoMapa(entry[1], mapaCliente, instanciaCliente); })), 
+            bandas: Object.fromEntries(Object.entries(bandas).filter(function (entry) { return players[entry[0]] && (clienteEmSolari ? solariEmSessao(entry[0]) : (mapaPorCoordenada(players[entry[0]].x + PLAYER_OFFSET_X) === mapaCliente && (!mapaEhInstanciado(mapaCliente) || players[entry[0]].instanciaId === instanciaCliente))); })),
+            bosses: filtrarPorMapa(bosses, mapaCliente, instanciaCliente),
+            drops: filtrarPorMapa(dropsChao, mapaCliente, instanciaCliente),
+            gases: filtrarPorMapa(gasesVeneno, mapaCliente, instanciaCliente),
             mapVfx: mapVfx.filter(function (v) { return v.mapa === mapaCliente; }),
             // ===== NOVAS CLASSES (v1.31): zonas de chão + moitas =====
-            caixasFerramentas: filtrarPorMapa(caixasFerramentas, mapaCliente),
-            chuvasCometas: filtrarPorMapa(chuvasCometas, mapaCliente),
-            orbeConstelacoes: filtrarPorMapa(orbeConstelacoes, mapaCliente),
-            redesSniper: filtrarPorMapa(redesSniper, mapaCliente),
-            florimSementes: filtrarPorMapa(florimSementes, mapaCliente),
-            florimCorrentes: filtrarPorMapa(florimCorrentes, mapaCliente),
-            florimAneis: filtrarPorMapa(florimAneis, mapaCliente),
-            florimDebuffs: filtrarPorMapa(florimDebuffs, mapaCliente),
+            caixasFerramentas: filtrarPorMapa(caixasFerramentas, mapaCliente, instanciaCliente),
+            chuvasCometas: filtrarPorMapa(chuvasCometas, mapaCliente, instanciaCliente),
+            orbeConstelacoes: filtrarPorMapa(orbeConstelacoes, mapaCliente, instanciaCliente),
+            redesSniper: filtrarPorMapa(redesSniper, mapaCliente, instanciaCliente),
+            florimSementes: filtrarPorMapa(florimSementes, mapaCliente, instanciaCliente),
+            florimCorrentes: filtrarPorMapa(florimCorrentes, mapaCliente, instanciaCliente),
+            florimAneis: filtrarPorMapa(florimAneis, mapaCliente, instanciaCliente),
+            florimDebuffs: filtrarPorMapa(florimDebuffs, mapaCliente, instanciaCliente),
             moitas: MOITAS_SNIPER
         }), () => {});
     });
@@ -12166,6 +12340,7 @@ if (data.action === 'dash') {
             // DASH v2: a roupa de camuflagem do Sniper é estado do jogador —
             // limpo aqui para não sobrar flag ao recarregar o personagem
             limparCamuflagemSniper(playerId);
+            removerJogadorDaInstanciaMapa(playerId);
             delete players[playerId];
             delete playerSockets[playerId];
             delete lacaios[playerId];
