@@ -5620,6 +5620,30 @@ function usarCanticoCelestial() {
         window.guerreiroEscudoDe = {};
         window.dashCdAteServidor = 0; // eco do cooldown real (anti-exploit)
 
+        // ------------------------------------------------------------------
+        // TRAVA DE ENVIO DE MOVIMENTO — corrige o rubber-band do dash
+        // ------------------------------------------------------------------
+        // O pacote de movimento do cliente é {x, y, angulo, moving} (sem
+        // `action`). Entre PEDIR o dash e receber o `dash_confirmado` o
+        // personagem local ainda está na posição VELHA, e esse pacote antigo
+        // seria aceito pelo servidor como movimento normal — desfazendo o
+        // teleporte e fazendo o char "puxar" para trás (ida e volta).
+        //
+        // Solução: enquanto a guarda vale, o cliente NÃO envia posição. Ela
+        // cai em três eventos: `dash_confirmado`, `dash_bloqueado`/
+        // `dash_recusado`, ou o TIMEOUT abaixo (rede morta não prende ninguém).
+        // O timeout é 400ms de margem para os pacotes que já estavam em
+        // trânsito quando o dash foi pedido (um RTT de latência normal) mais a
+        // duração local do efeito (cfg.duracaoMs, o mesmo número da animação de
+        // dash que já existia). Nenhum valor de gameplay é definido aqui.
+        let dashEnvioBloqueadoAte = 0;
+        function dashBloquearEnvio() {
+            const cfg = dashConfig();
+            dashEnvioBloqueadoAte = Date.now() + 400 + (cfg.duracaoMs || 0);
+        }
+        function dashLiberarMovimento() { dashEnvioBloqueadoAte = 0; }
+        function dashEnvioBloqueado() { return Date.now() < dashEnvioBloqueadoAte; }
+
         function dashConfig() {
             return (window.DASH && window.DASH.configDe) ? window.DASH.configDe(window.minhaClasse) : { tipo: 'teleporte', distancia: 160, stamina: 25, cooldownMs: 2000, vfx: 'dash_padrao' };
         }
@@ -5765,6 +5789,13 @@ function usarCanticoCelestial() {
             }
 
             if (ws && ws.readyState === WebSocket.OPEN) {
+                // Só trava o envio se o dash DESLOOCA o personagem. Escudo,
+                // energia, camuflagem, área e o arranque só-buff do ladino não
+                // movem ninguém — travar o movimento neles só congelaria o
+                // jogador à toa.
+                if (window.DASH && window.DASH.movePersonagem && window.DASH.movePersonagem(window.minhaClasse)) {
+                    dashBloquearEnvio();
+                }
                 ws.send(JSON.stringify({ action: 'dash', angulo: ang }));
             }
         }
@@ -5789,6 +5820,9 @@ function usarCanticoCelestial() {
         // Chamado pelo servidor (dash_confirmado): substitui a predição pela
         // versão autoritativa. Se os caminhos divergirem, o cliente se realinha.
         window.dashConfirmar = function (dados) {
+            // O servidor já decidiu: a trava de envio pode cair e o movimento
+            // normal volta a fluir a partir da posição confirmada logo abaixo.
+            dashLiberarMovimento();
             if (dados.tipo && dados.cooldownMs) dashCdAteServidor = Date.now() + dados.cooldownMs;
 
             if (dados.tipo === 'escudo') { window.escudoGuerreiroAtivo = true; return; }
@@ -5860,6 +5894,7 @@ function usarCanticoCelestial() {
         window.soltarDash = soltarDash;
         // Erro do servidor: reverte o estado local (ex.: escudo recusado)
         window.dashRecusado = function () {
+            dashLiberarMovimento();
             window.escudoGuerreiroAtivo = false;
             if (window.guerreiroEscudoDe) delete window.guerreiroEscudoDe[window.meuId];
             window.dashPrev = null;
@@ -7332,7 +7367,11 @@ function usarCanticoCelestial() {
 
             // Durante Dança/Estrela o personagem NÃO reporta deslocamento próprio (a coreografia é do servidor)
             let movingReportado = isMoving && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo;
-            if (ws && ws.readyState === WebSocket.OPEN && (agora - ultimoEnvioRede > 30)) { ws.send(JSON.stringify({ x: window.meuX, y: window.meuY, angulo: window.meuAngulo, moving: movingReportado })); ultimoEnvioRede = agora; }
+            // DURANTE A GUARDA DO DASH o pacote de posição é a posição VELHA e
+            // não pode viajar (ver dashBloquearEnvio). `ultimoEnvioRede` fica
+            // congelado de propósito: assim que a guarda cai, o envio retoma
+            // no mesmo frame em vez de esperar mais 30ms.
+            if (ws && ws.readyState === WebSocket.OPEN && (agora - ultimoEnvioRede > 30) && !dashEnvioBloqueado()) { ws.send(JSON.stringify({ x: window.meuX, y: window.meuY, angulo: window.meuAngulo, moving: movingReportado })); ultimoEnvioRede = agora; }
             const visibilidadeMargem = 150;
             const cameraBounds = {
                 minX: cameraX - visibilidadeMargem,

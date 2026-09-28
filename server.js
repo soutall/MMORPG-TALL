@@ -1569,7 +1569,12 @@ function iniciarDash(playerId, ws, data) {
 
     // ---------- TELEA PORTE (mago / summoner / arqueiro_arcano) ----------
     if (cfg.tipo === 'teleporte') {
+        const origemX = p.x, origemY = p.y;
         p.x = destino.x; p.y = destino.y;
+        // A posição resultante agora é a autoridade. Registrada ANTES do pet:
+        // dashSummonerPetTeleporta lê p.x/p.y, então a sincronia do ogro
+        // continua idêntica.
+        dashGuardarPosicao(p, origemX, origemY, p.x, p.y, cfg.duracaoMs);
         if (p.classe === 'summoner') dashSummonerPetTeleporta(playerId, p);
         dashEnviar('action_dash', { id: playerId, x: p.x, y: p.y, vfx: cfg.vfx, angulo: ang });
         // Dano de contato (mantém o comportamento antigo do dash)
@@ -1985,6 +1990,95 @@ const PLAYER_OFFSET_X = 12;
 const PLAYER_OFFSET_Y = 16;
 const PLAYER_COLLISION_RADIUS = 12;
 const MAX_PLAYER_COLLISION_STEP = 12;
+
+// ---------------------------------------------------------------------------
+// GUARDA DO DASH — rede de segurança do rubber-band do dash
+// ---------------------------------------------------------------------------
+// O pacote de movimento do cliente é {x, y, angulo, moving} e NÃO tem `action`.
+// validarMovimentoJogador NÃO limita a distância, porque o movimento normal é
+// validado por colisão, não por velocidade. Resultado: um pacote que já estava
+// em viagem quando o dash foi autorizado chega DEPOIS dele; como a posição
+// enviada é a VELHA, o servidor a aceita como movimento normal e desfaz o
+// teleporte. O cliente então se corrige (limiar de 120px) e o personagem vai e
+// volta.
+//
+// A guarda marca a posição de ORIGEM e a RESULTANTE do dash. Enquanto ela vale,
+// um pacote de movimento que ainda aponta para a região antiga (ou seja, que
+// desfaz o teleporte) é descartado. Qualquer pacote que já sai da posição
+// pós-dash dentro de um passo normal é movimento legítimo e fecha a guarda na
+// hora — o jogador não fica congelado. A guarda também morre sozinha no timeout,
+// então uma confirmação perdida não prende ninguém.
+//
+// Nenhum valor de gameplay foi alterado: as distâncias de cada classe continuam
+// exatamente as de dash.js, e a validação de colisão é a mesma de antes.
+//
+// Janela de tempo: 400ms (mesma margem da predição local do cliente) + a duração
+// local do dash + 400ms para cobrir um cliente ANTIGO. O cliente corrigido para
+// de enviar movimento assim que monta o dash, então os pacotes obsoletos dele
+// chegam em até 1 RTT. Um cliente sem a correção continua enviando até receber
+// dash_confirmado (1 RTT depois), e esses pacotes chegam em até 2 RTT. Os dois
+// cenários caem dentro desta janela até 400ms de RTT.
+const DASH_GUARDA_MS = 400;
+const DASH_GUARDA_RTT_ANTIGO = 400;
+// Tolerancia para reconhecer a posicao velha: o cliente antigo mandava a
+// propria posicao nos ultimos frames antes do dash, entao esses pacotes caem
+// a poucos pixels da origem. Eh fixa porque vale para qualquer tamanho de dash.
+const DASH_GUARDA_TOLERANCIA = 40;
+
+// origem = posição antes do dash (o que um pacote antigo ainda aponta);
+// destino = posição resultante (a nova autoridade).
+function dashGuardarPosicao(p, origemX, origemY, destinoX, destinoY, duracaoMs) {
+    if (!p) return;
+    p.dashGuardOrigemX = origemX;
+    p.dashGuardOrigemY = origemY;
+    p.dashGuardX = destinoX;
+    p.dashGuardY = destinoY;
+    p.dashGuardAte = Date.now()
+        + DASH_GUARDA_MS
+        + DASH_GUARDA_RTT_ANTIGO
+        + (Number.isFinite(duracaoMs) ? duracaoMs : 0);
+}
+
+function limparDashGuarda(p) {
+    if (!p) return;
+    p.dashGuardAte = 0;
+    p.dashGuardX = 0;
+    p.dashGuardY = 0;
+    p.dashGuardOrigemX = 0;
+    p.dashGuardOrigemY = 0;
+}
+
+// true = o pacote de movimento é obsoleto (viajou antes do dash) e deve ser
+// ignorado. Cobre o dash animado pelo `dashAnim`, que já é dirigido pelo tick.
+function dashMovimentoObsoleto(p, targetX, targetY) {
+    if (!p) return false;
+    // Dash roteirizado (corrida/investida/arranque): quem manda na posição é
+    // o tick de 50ms, não o cliente.
+    if (p.dashAnim) return true;
+    if (!p.dashGuardAte) return false;
+    if (Date.now() > p.dashGuardAte) { limparDashGuarda(p); return false; }
+
+    // Passo normal saindo da posição pós-dash: é o jogador andando de novo,
+    // então a guarda já cumpriu o papel dela e encerra na hora.
+    if (Math.hypot(targetX - p.dashGuardX, targetY - p.dashGuardY) <= MAX_PLAYER_COLLISION_STEP) {
+        limparDashGuarda(p);
+        return false;
+    }
+
+    // Um pacote obsoleto carrega a posição que o cliente tinha ANTES do dash,
+    // ou seja, cai na origem. Um passo legítimo nunca fica nesse ponto: o
+    // cliente envia a posição a cada 30ms e anda poucos pixels por pacote, então
+    // qualquer movimento real a partir do destino já sai desta área.
+    if (Math.hypot(targetX - p.dashGuardOrigemX, targetY - p.dashGuardOrigemY) <= DASH_GUARDA_TOLERANCIA) {
+        return true;
+    }
+
+    // Não é a posição velha: é movimento legítimo (o jogador andou para longe da
+    // origem ou algo o deslocou). A guarda já cumpriu o papel dela e encerra,
+    // para nunca interferir depois disso.
+    limparDashGuarda(p);
+    return false;
+}
 
 function mapaPorCoordenada(x) {
     if (!Number.isFinite(x)) return null;
@@ -3178,6 +3272,7 @@ function solariVoltarCidade(pid) {
     // ===== DASH v2: estado por sessão (nada disso é salvo em disco) =====
     p.dashCdAte = 0;              // cooldown do dash, autoritativo (anti-exploit)
     p.dashAnim = null;            // animação de corrida/investida/arranque em curso
+    limparDashGuarda(p);          // respawn não herda a guarda do dash anterior
     p.dashAte = 0;                // fim do buff de velocidade/invisibilidade
     p.dashAngulo = 0;
     p.dashVelocidadeMult = 1;
@@ -4753,6 +4848,11 @@ setInterval(() => {
                     player.dashAnim = null;
                     player.dashVelocidadeMult = 1;
                     player.dashAte = 0;
+                    // A animação acabou: a posição final do dash é a nova
+                    // referência. Registra a mesma janela de guarda usada pelas
+                    // classes de teleporte, para que um pacote de movimento que
+                    // saiu antes do dash não sobrescreva esse destino em seguida.
+                    dashGuardarPosicao(player, d.x0, d.y0, player.x, player.y, 0);
                     if (cfg.tipo === 'arranque') {
                         // Arranque ended: reaparece
                         removerEfeitoAoVivo(pid, 'invisivel');
@@ -9001,10 +9101,16 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 if (podeMover) {
                     const targetX = data.x !== undefined ? Number(data.x) : players[playerId].x;
                     const targetY = data.y !== undefined ? Number(data.y) : players[playerId].y;
-                    const movimento = validarMovimentoJogador(players[playerId], targetX, targetY);
-                    if (movimento.aceito || movimento.parcial) {
-                        players[playerId].x = movimento.x;
-                        players[playerId].y = movimento.y;
+                    // GUARDA DO DASH: pacote que apontou para a posição antiga
+                    // durante um dash autorizado é descartado. Todo o resto do
+                    // caminho (validarMovimentoJogador, colisão, `moving`) fica
+                    // exatamente como estava.
+                    if (!dashMovimentoObsoleto(players[playerId], targetX, targetY)) {
+                        const movimento = validarMovimentoJogador(players[playerId], targetX, targetY);
+                        if (movimento.aceito || movimento.parcial) {
+                            players[playerId].x = movimento.x;
+                            players[playerId].y = movimento.y;
+                        }
                     }
                     if (data.moving !== undefined) players[playerId].moving = data.moving;
                     // SNIPER — CAMUFLAGEM: saiu do mato → perde a camuflagem
