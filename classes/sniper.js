@@ -566,12 +566,15 @@ window.enviarAtaqueSniper = function(ang, alvoTipo, alvoId) {
 };
 
 window.desenharFuzilExposta = function(ctx, armaVisualCustom) {
-    let tamanho = 20;
-    let largura = 3.4;
-    let cBase = "#353b21";
-    let cMeio = "#232917";
-    let cPonta = "#3c4526";
-    let cFio = "#1a1f10";
+    // Barrett .50: silhueta pesada e longa, coronha tática, receptor, carregador,
+    // luneta de precisão e freio de boca. A arma fica visualmente dominante
+    // para o Sniper, inclusive na postura deitado.
+    let tamanho = 42;
+    let largura = 4.6;
+    let cBase = "#303522";
+    let cMeio = "#171b12";
+    let cPonta = "#465033";
+    let cFio = "#0b0f0a";
 
     if (armaVisualCustom && armaVisualCustom.customVisual) {
         let cv = armaVisualCustom.customVisual;
@@ -583,27 +586,56 @@ window.desenharFuzilExposta = function(ctx, armaVisualCustom) {
         if (cv.cFio) cFio = cv.cFio;
     }
 
+    // Coronha pesada
     ctx.fillStyle = cBase;
-    ctx.fillRect(2, -largura/2 - 0.7, tamanho, largura);
+    ctx.beginPath();
+    ctx.moveTo(-8, -3.2); ctx.lineTo(3, -3.0); ctx.lineTo(6, 3.0); ctx.lineTo(-9, 3.5);
+    ctx.lineTo(-12, 1.8); ctx.lineTo(-12, -2.2); ctx.closePath(); ctx.fill();
     ctx.fillStyle = cMeio;
-    ctx.fillRect(6, -1.2, 2, largura); // ferrolho
-    ctx.fillStyle = "#10150a";
-    ctx.fillRect(-2, -2.4, 4, 3); // luneta
-    ctx.fillStyle = "#69ff7c";
-    ctx.shadowColor = "#39ff5c";
-    ctx.shadowBlur = 5;
-    ctx.fillRect(-1, -2.1, 1.8, 1.8);
-    ctx.shadowBlur = 0;
+    ctx.fillRect(-7, -2.2, 8, 1.4);
+    // Receptor / corpo da Barrett
+    ctx.fillStyle = cBase;
+    ctx.fillRect(0, -largura / 2, tamanho, largura);
+    ctx.fillStyle = cMeio;
+    ctx.fillRect(4, -2.2, 13, 2.0);
+    ctx.fillRect(9, 2.0, 5, 1.8); // guarda-mato
+    // Carregador destacado
+    ctx.fillStyle = cMeio;
+    ctx.beginPath();
+    ctx.moveTo(12, 2.0); ctx.lineTo(18, 2.0); ctx.lineTo(17, 8); ctx.lineTo(13, 8); ctx.closePath(); ctx.fill();
+    // Ferrolho
     ctx.fillStyle = cPonta;
-    ctx.fillRect(2 + tamanho, -2.8, 3, 4.2); // boca do cano
+    ctx.fillRect(5, -5.2, 4, 2.2);
+    ctx.fillRect(8, -6.2, 7, 1.4);
+    // Luneta longa com anéis
+    ctx.fillStyle = "#11150d";
+    ctx.fillRect(-1, -7.0, 18, 3.2);
+    ctx.fillRect(1, -8.0, 3, 5.2);
+    ctx.fillRect(13, -8.0, 3, 5.2);
+    ctx.fillStyle = "#20281a";
+    ctx.fillRect(-5, -6.2, 5, 1.8);
+    // Reflexo da óptica
+    ctx.fillStyle = "#7dff8a";
+    ctx.shadowColor = "#39ff5c";
+    ctx.shadowBlur = 4;
+    ctx.fillRect(-3.2, -6.0, 2.2, 1.4);
+    ctx.shadowBlur = 0;
+    // Cano longo e pesado
+    ctx.fillStyle = cPonta;
+    ctx.fillRect(17, -2.1, tamanho - 11, 4.2);
+    ctx.fillStyle = cMeio;
+    ctx.fillRect(18, -1.0, tamanho - 10, 1.2);
+    // Freio de boca característico
+    const boca = 2 + tamanho;
     ctx.fillStyle = cFio;
     ctx.beginPath();
-    ctx.moveTo(2 + tamanho + 3, -2.8); ctx.lineTo(2 + tamanho + 9, -1.6); ctx.lineTo(2 + tamanho + 9, 1.6); ctx.lineTo(2 + tamanho + 3, 2.8);
-    ctx.closePath();
-    ctx.fill();
-    // Recuo/mira
-    ctx.fillStyle = "rgba(255,255,255,0.5)";
-    ctx.beginPath();
-    ctx.arc(2 + tamanho + 3, 0, 1.4, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.moveTo(boca - 2, -4.2); ctx.lineTo(boca + 7, -3.0); ctx.lineTo(boca + 7, 3.0);
+    ctx.lineTo(boca - 2, 4.2); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = cPonta;
+    ctx.fillRect(boca + 1, -3.2, 3, 1.3);
+    ctx.fillRect(boca + 1, 1.9, 3, 1.3);
+    // Detalhes metálicos
+    ctx.fillStyle = "rgba(190,200,180,0.55)";
+    ctx.fillRect(3, -2.8, 2, 0.9);
+    ctx.fillRect(19, -1.8, 7, 0.7);
 };

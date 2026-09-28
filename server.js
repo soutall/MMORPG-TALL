@@ -193,11 +193,24 @@ const server = http.createServer((req, res) => {
         return;
     }
     let filePath = path.join(__dirname, urlFinal);
-    // Segurança: nunca servir arquivos fora da pasta do projeto
+    // Segurança: nunca servir arquivos fora da pasta do projeto.
     const raizProjeto = __dirname + path.sep;
     if (filePath !== __dirname && filePath.indexOf(raizProjeto) !== 0) {
         res.writeHead(403, { 'Content-Type': 'text/plain; charset=utf-8' });
         res.end("Acesso negado.");
+        return;
+    }
+    // Segurança crítica: arquivos de servidor, banco, administração e persistência
+    // nunca devem ser expostos pelo servidor HTTP público.
+    const arquivosPrivados = new Set([
+        'server.js', 'database.js', 'spawns.js', 'upgrade.js',
+        'admin-cheats.js', 'admins.json', 'jogadores.json',
+        'jogadores.json.tmp', 'spawn_flags.json', 'banco_itens.json',
+        'map_vfx.json', 'map_objetos.json', 'monster_configs.json'
+    ]);
+    if (arquivosPrivados.has(path.basename(filePath).toLowerCase())) {
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+        res.end("Arquivo não encontrado.");
         return;
     }
     let extname = path.extname(filePath);
@@ -9091,8 +9104,24 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 if (podeMover && (players[playerId].ladinoDancaAtivo || players[playerId].ladinoEstrela)) {
                     podeMover = false;
                 }
-                // SNIPER: sem movimento durante a mira do Disparo Supremo e na Posição de Franco-Atirador
-                if (podeMover && (players[playerId].snAim || players[playerId].snPosicao)) {
+                // SNIPER: tentar mover cancela a Posição de Franco-Atirador.
+                // O próprio pacote de movimento que cancelou a posição pode
+                // continuar, então o jogador volta a andar imediatamente.
+                if (podeMover && players[playerId].snPosicao) {
+                    const mxTentativa = data.x !== undefined ? Number(data.x) : players[playerId].x;
+                    const myTentativa = data.y !== undefined ? Number(data.y) : players[playerId].y;
+                    if (Number.isFinite(mxTentativa) && Number.isFinite(myTentativa) &&
+                        Math.hypot(mxTentativa - players[playerId].x, myTentativa - players[playerId].y) > 0.5) {
+                        players[playerId].snPosicao = false;
+                        wss.clients.forEach((client) => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({ type: 'action_sniper_posicao', id: playerId, ativo: false, motivo: 'movimento' }));
+                            }
+                        });
+                    }
+                }
+                // Enquanto a mira do Disparo Supremo estiver ativa, movimento continua bloqueado.
+                if (podeMover && players[playerId].snAim) {
                     podeMover = false;
                 }
                 if (efeitos && podeMover) {
@@ -10041,6 +10070,16 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (pA.snAim || Date.now() - pA.snAimCooldown < 0) return;
                     // Deitado (Posição de Franco-Atirador): mira sem sair da posição
                     if (!gastarMana(ws, pA, mpSkill(pA, 'disparo_supremo', 30))) return;
+                    // Usar qualquer habilidade cancela a Posição de Franco-Atirador.
+                    // O ataque básico é a exceção: ele continua usando a posição.
+                    if (pA.snPosicao) {
+                        pA.snPosicao = false;
+                        wss.clients.forEach((client) => {
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({ type: 'action_sniper_posicao', id: playerId, ativo: false, motivo: 'habilidade' }));
+                            }
+                        });
+                    }
                     pA.snAim = { timer: 60, fired: false }; // 3s de preparação
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {

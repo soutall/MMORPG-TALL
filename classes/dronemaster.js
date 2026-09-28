@@ -364,116 +364,128 @@ window.desenharDroneExposta = function(ctx, armaVisualCustom) {
 // Forma Titã: robô de guerra (maior, olhos vermelhos, núcleo pulsante)
 window.desenharTitaForm = function(x, y, isMoving, angulo, hp, maxHp) {
     if (!window.ctx) return;
-    let ctx = window.ctx;
-    let t = Date.now() / 120;
+    const ctx = window.ctx;
+    const t = Date.now() / 130;
 
     ctx.save();
     ctx.translate(x, y);
 
-    // Aura contínua da transformação: energia azul, campo no chão e microfaíscas.
+    // Plataforma de energia da transformação — discreta para não esconder o sprite.
+    const pulse = 0.82 + Math.sin(t * 1.7) * 0.18;
+    dmLuzChao(ctx, 12, 40, 54 * pulse, 'rgba(0,220,255,ALPHA)', 0.48, 0.18);
+
+    // Silhueta de um mecha de combate: cabeça, torso, ombros, braços, juntas e pernas.
     ctx.save();
-    const auraPulse = 0.78 + Math.sin(t * 1.8) * 0.22;
-    ctx.globalCompositeOperation = 'lighter';
-    dmLuzChao(ctx, 12, 32, 58 * auraPulse, 'rgba(0,225,255,ALPHA)', 0.58, 0.20);
-    ctx.strokeStyle = 'rgba(0,230,255,' + (0.36 + auraPulse * 0.25).toFixed(3) + ')';
-    ctx.shadowColor = '#00e5ff'; ctx.shadowBlur = 12; ctx.lineWidth = 1.6;
-    ctx.beginPath(); ctx.ellipse(12, 36, 34 * auraPulse, 10 * auraPulse, 0, 0, Math.PI * 2); ctx.stroke();
-    for (let k = 0; k < 6; k++) {
-        const aa = t * 0.7 + k * (Math.PI / 3);
-        const sx = 12 + Math.cos(aa) * (15 + Math.sin(t + k) * 3);
-        const sy = 14 + Math.sin(aa * 1.3) * 10;
-        ctx.fillStyle = k % 2 ? '#8ff3ff' : '#ffffff';
-        ctx.beginPath(); ctx.arc(sx, sy, 1.2 + (k % 2) * 0.8, 0, Math.PI * 2); ctx.fill();
+    ctx.translate(12, 16);
+    const dano = (window.danoFlashTimer || 0) > 0;
+    const metal = dano ? '#b94a4a' : '#465a6d';
+    const metalEscuro = '#1c2730';
+    const metalMedio = '#607687';
+    const metalLuz = '#93a6b3';
+    const emissao = '#00e6ff';
+    const passo = isMoving ? Math.sin(window.walkCycle || 0) * 3.5 : 0;
+
+    // Pernas mecânicas com joelhos e pistões.
+    ctx.fillStyle = metalEscuro;
+    ctx.beginPath(); camadaRoundRect(ctx, -10, 15 + passo, 8, 18, 2); ctx.fill();
+    ctx.beginPath(); camadaRoundRect(ctx, 2, 15 - passo, 8, 18, 2); ctx.fill();
+    ctx.fillStyle = metalMedio;
+    ctx.fillRect(-8, 17 + passo, 4, 11);
+    ctx.fillRect(4, 17 - passo, 4, 11);
+    ctx.fillStyle = '#172027';
+    ctx.beginPath(); ctx.arc(-6, 14 + passo, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(6, 14 - passo, 3, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = metalEscuro;
+    camadaRoundRect(ctx, -11, 31 + passo, 10, 4, 2); ctx.fill();
+    camadaRoundRect(ctx, 1, 31 - passo, 10, 4, 2); ctx.fill();
+
+    // Quadril blindado e tronco com placas sobrepostas.
+    ctx.fillStyle = metalEscuro;
+    camadaRoundRect(ctx, -12, 9, 24, 12, 3); ctx.fill();
+    ctx.fillStyle = metal;
+    ctx.beginPath();
+    ctx.moveTo(-13, -8); ctx.lineTo(13, -8); ctx.lineTo(11, 12); ctx.lineTo(-11, 12); ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#9fb0bb'; ctx.lineWidth = 1.1; ctx.stroke();
+    ctx.fillStyle = metalMedio;
+    camadaRoundRect(ctx, -8, -5, 16, 5, 1.5); ctx.fill();
+    camadaRoundRect(ctx, -9, 3, 18, 4, 1.5); ctx.fill();
+    // Reforços centrais e parafusos.
+    ctx.fillStyle = metalLuz;
+    ctx.fillRect(-1, -5, 2, 15);
+    ctx.fillStyle = '#18232b';
+    for (let k = 0; k < 4; k++) {
+        ctx.beginPath(); ctx.arc(k < 2 ? -6 : 6, k % 2 ? 5 : -2, 0.9, 0, Math.PI * 2); ctx.fill();
     }
-    ctx.restore();
 
-    // Sombra maior
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
-    ctx.beginPath();
-    ctx.ellipse(12, 40, 20, 5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    ctx.save();
-    ctx.translate(12, 18);
-    let legOffset = isMoving ? Math.sin(window.walkCycle || 0) * 4 : 0;
-
-    // Pernas reforçadas
-    ctx.fillStyle = "#2c3e50";
-    ctx.fillRect(-8, 16, 7, 15 + legOffset);
-    ctx.fillRect(1, 16, 7, 15 - legOffset);
-    ctx.fillStyle = "#1a252f";
-    ctx.beginPath();
-    camadaRoundRect(ctx,-9, 31 + legOffset, 9, 4, 2);
-    ctx.fill();
-    ctx.beginPath();
-    camadaRoundRect(ctx,0, 31 - legOffset, 9, 4, 2);
-    ctx.fill();
-
-    // Tronco blindado
-    let corRobo = (window.danoFlashTimer || 0) > 0 ? "#e74c3c" : "#3a5068";
-    ctx.fillStyle = corRobo;
-    ctx.beginPath();
-    ctx.moveTo(-10, -8);
-    ctx.lineTo(10, -8);
-    ctx.lineTo(13, 18);
-    ctx.lineTo(-13, 18);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = "#7f8c8d";
-    ctx.lineWidth = 1.5;
-    ctx.stroke();
-    // Placas
-    ctx.fillStyle = "#526079";
-    ctx.fillRect(-7, -4, 14, 4);
-    ctx.fillRect(-8, 6, 16, 4);
-    // Núcleo de energia pulsante
-    let pulso = 1 + Math.sin(t * 2) * 0.2;
-    ctx.shadowColor = "#00ffff";
-    ctx.shadowBlur = 18 * pulso;
-    ctx.fillStyle = "#00e5ff";
-    ctx.beginPath();
-    ctx.arc(0, 3, 3.5 * pulso, 0, Math.PI * 2);
-    ctx.fill();
+    // Núcleo no peito com aro mecânico.
+    ctx.strokeStyle = '#213844'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.arc(0, 3, 5.2, 0, Math.PI * 2); ctx.stroke();
+    ctx.fillStyle = emissao; ctx.shadowColor = emissao; ctx.shadowBlur = 14 * pulse;
+    ctx.beginPath(); ctx.arc(0, 3, 2.8 * pulse, 0, Math.PI * 2); ctx.fill();
     ctx.shadowBlur = 0;
 
-    // Cabo-breve + viseira Titã (máquina de guerra)
-    ctx.fillStyle = "#22303c";
-    ctx.beginPath();
-    camadaRoundRect(ctx,-8, -18, 16, 12, 3);
-    ctx.fill();
-    ctx.fillStyle = "#ff4d4d";
-    ctx.shadowColor = "#ff1744";
-    ctx.shadowBlur = 12;
-    ctx.fillRect(-5, -14, 10, 3);
-    ctx.fillRect(-3, -9, 6, 1.6);
-    ctx.shadowBlur = 0;
+    // Ombros largos e braços com articulações.
+    ctx.fillStyle = metalMedio;
+    camadaRoundRect(ctx, -18, -7, 8, 11, 2); ctx.fill();
+    camadaRoundRect(ctx, 10, -7, 8, 11, 2); ctx.fill();
+    ctx.fillStyle = metalEscuro;
+    camadaRoundRect(ctx, -19, 3, 7, 14, 2); ctx.fill();
+    camadaRoundRect(ctx, 12, 3, 7, 14, 2); ctx.fill();
 
-    // Braço canhoneiro (segue a mira)
+    // Braço/canhão acompanha a direção da mira.
     ctx.save();
     ctx.rotate(angulo || 0);
-    ctx.translate(10, 4);
-    ctx.fillStyle = "#34495e";
-    ctx.beginPath();
-    camadaRoundRect(ctx,0, -4, 20, 8, 3);
-    ctx.fill();
-    ctx.fillStyle = "#00e5ff";
-    ctx.shadowColor = "#00ffff";
-    ctx.shadowBlur = 14;
-    ctx.beginPath();
-    ctx.arc(20, 0, 3, 0, Math.PI * 2);
-    ctx.fill();
+    ctx.translate(13, 1);
+    ctx.fillStyle = metal;
+    camadaRoundRect(ctx, 0, -4, 17, 8, 2); ctx.fill();
+    ctx.fillStyle = '#273943';
+    camadaRoundRect(ctx, 12, -3, 11, 6, 1.5); ctx.fill();
+    ctx.fillStyle = emissao; ctx.shadowColor = emissao; ctx.shadowBlur = 9;
+    ctx.beginPath(); ctx.arc(22, 0, 2.3, 0, Math.PI * 2); ctx.fill();
     ctx.shadowBlur = 0;
-    ctx.fillStyle = "#85929e";
-    ctx.beginPath();
-    ctx.moveTo(20, 0); ctx.lineTo(30, -3); ctx.lineTo(30, 3); ctx.closePath();
-    ctx.fill();
+    ctx.fillStyle = '#9fb0bb';
+    ctx.fillRect(23, -2, 7, 4);
+    ctx.fillStyle = '#152028';
+    ctx.fillRect(27, -3, 2, 6);
     ctx.restore();
 
+    // Cabeça pesada com pescoço blindado e visor vermelho.
+    ctx.fillStyle = '#25343f';
+    camadaRoundRect(ctx, -8, -20, 16, 12, 3); ctx.fill();
+    ctx.fillStyle = '#3e5261';
+    ctx.fillRect(-6, -18, 12, 3);
+    ctx.fillStyle = '#111a20';
+    camadaRoundRect(ctx, -7, -15, 14, 5, 1.5); ctx.fill();
+    ctx.fillStyle = '#ff3b3b'; ctx.shadowColor = '#ff1744'; ctx.shadowBlur = 10;
+    ctx.fillRect(-5, -14, 10, 2.5);
+    ctx.shadowBlur = 0;
+    // Antena/sensor lateral.
+    ctx.strokeStyle = metalLuz; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(7, -17); ctx.lineTo(11, -21); ctx.stroke();
+    ctx.fillStyle = '#ff5b4d'; ctx.beginPath(); ctx.arc(11, -22, 1.4, 0, Math.PI * 2); ctx.fill();
+
+    // Cabos, pistões e detalhes laterais.
+    ctx.strokeStyle = '#0f171c'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); ctx.moveTo(-11, 8); ctx.lineTo(-15, 16); ctx.moveTo(11, 8); ctx.lineTo(15, 16); ctx.stroke();
+    ctx.fillStyle = '#aab8c0';
+    ctx.fillRect(-14, 15, 2, 5); ctx.fillRect(12, 15, 2, 5);
+
+    ctx.restore();
+
+    // Faíscas pequenas e controladas ao redor do núcleo.
+    ctx.save();
+    ctx.globalCompositeOperation = 'lighter';
+    for (let k = 0; k < 4; k++) {
+        const a = t * 0.55 + k * Math.PI / 2;
+        const rr = 17 + Math.sin(t + k) * 2;
+        ctx.fillStyle = k % 2 ? '#9af7ff' : '#ffffff';
+        ctx.beginPath(); ctx.arc(12 + Math.cos(a) * rr, 5 + Math.sin(a) * rr, 0.8, 0, Math.PI * 2); ctx.fill();
+    }
     ctx.restore();
     ctx.restore();
 
     if (typeof window.desenharBarraHp === "function") {
-        window.desenharBarraHp(x - 3, y - 8, hp, maxHp);
+        window.desenharBarraHp(x - 3, y - 9, hp, maxHp);
     }
 };
 

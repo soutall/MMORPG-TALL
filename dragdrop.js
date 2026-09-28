@@ -276,6 +276,9 @@
     function guardarPosicion(win) {
         var id = win.id;
         if (!id || !win.getBoundingClientRect) return;
+        // Convites e busca por Nick são modais de sistema no mobile: não persistir
+        // coordenadas manuais, pois o teclado altera a viewport visual.
+        if (dispositivo() === "mobile" && (id === "party-invite-modal" || id === "social-modal")) return;
         var r = win.getBoundingClientRect();
         try {
             localStorage.setItem(chaveJanela(id), JSON.stringify({ x: Math.round(r.left), y: Math.round(r.top) }));
@@ -285,6 +288,12 @@
     function restaurarPosicion(win) {
         var id = win.id;
         if (!id) return;
+        if (dispositivo() === "mobile" && (id === "party-invite-modal" || id === "social-modal")) {
+            win.style.left = "50vw";
+            win.style.top = "50vh";
+            win.style.transform = "translate(-50%, -50%)";
+            return;
+        }
         try {
             var s = localStorage.getItem(chaveJanela(id));
             if (!s) {

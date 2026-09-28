@@ -35,3 +35,7 @@ _arquivos_inuteis/
 # Dados de runtime gerados pelo servidor (nao sobem para o repo)
 Char deletados/
 $null
+
+# Banco de jogadores local (nao subir para o GitHub)
+jogadores.json
+jogadores.json.tmp

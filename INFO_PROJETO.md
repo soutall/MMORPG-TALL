@@ -1,4 +1,10 @@
-# 📱 INFO DO PROJETO — MMORPG Mobile
+# INFO DO PROJETO - MMORPG Mobile
+
+## Registro v1.60.1 - Auditoria GPT e correcoes criticas
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.60.1 | 28/09/2026 | Auditoria estrutural; GDD; auditoria de seguranca; bloqueio de arquivos privados no HTTP; refinamento visual do Titã/Dronemaster e Sniper; point-to-click mobile; correcao da posicao de franco-atirador; correcao dos modais mobile com visualViewport; validacao sintatica. | server.js, classes/dronemaster.js, classes/sniper.js, dragdrop.js, index.html, GDD.md, auditoria_GPT.md |
 
 > Documento oficial de referência do projeto. Atualizado em 24/09/2026.
 

@@ -76,7 +76,7 @@
             <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" />
             <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
         </div>
-        <div class="game-version-display">v1.60.0</div>
+        <div class="game-version-display">v1.60.1</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -125,7 +125,7 @@
 
     <div id="status" data-ui="status">Desconectado</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
-    <div id="hud-version" class="game-version-display">v1.60.0</div>
+    <div id="hud-version" class="game-version-display">v1.60.1</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -251,7 +251,7 @@
     <div id="level-up-popup">⬆️ LEVEL UP! ⬆️</div>
     <div id="drop-popup">✨ LENDÁRIO!</div>
     
-    <div id="party-invite-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(0,0,0,0.9); border:2px solid #f1c40f; padding:20px; border-radius:10px; z-index:9999; text-align:center; color:#fff; min-width:250px;">
+    <div id="party-invite-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(0,0,0,0.9); border:2px solid #f1c40f; padding:20px; border-radius:10px; z-index:9999; text-align:center; color:#fff; min-width:250px; max-width:calc(100vw - 20px);">
         <h2 style="margin-top:0; color:#f1c40f; font-size:18px;">Convite de Grupo</h2>
         <p id="party-invite-text">Jogador te convidou.</p>
         <div style="display:flex; justify-content:space-around; margin-top:20px;">
@@ -260,7 +260,7 @@
         </div>
     </div>
     
-    <div id="social-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(0,0,0,0.95); border:2px solid #9b59b6; padding:20px; border-radius:10px; z-index:9999; text-align:center; color:#fff; min-width:300px;">
+    <div id="social-modal" style="display:none; position:fixed; top:50%; left:50%; transform:translate(-50%, -50%); background:rgba(0,0,0,0.95); border:2px solid #9b59b6; padding:20px; border-radius:10px; z-index:9999; text-align:center; color:#fff; min-width:300px; max-width:calc(100vw - 20px);">
         <h2 style="margin-top:0; color:#9b59b6; font-size:18px;">Social (Pesquisar Jogador)</h2>
         <input type="text" id="social-player-name" placeholder="Nick do jogador" style="width:100%; padding:10px; margin-bottom:15px; border-radius:5px; border:1px solid #ccc; color:#000; font-weight:bold; box-sizing:border-box;">
         <div style="display:flex; flex-direction:column; gap:10px;">
@@ -410,7 +410,7 @@
         <button id="btn-arcano-cascata" class="btn-action btn-arcano-cascata" ontouchstart="usarCascataEstelar(); event.stopPropagation();" onclick="usarCascataEstelar();" title="Cascata Estelar (3)">🌌<span class="key-badge">3</span></button>
         
         <!-- BOTOES DO SNIPER -->
-        <button id="btn-sniper-apontar" class="btn-action btn-sniper-apontar" ontouchstart="ativarSniperTiroSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarSniperTiroSmartCast();" title="Disparo Supremo (1)">💥<span class="key-badge">1</span></button>
+        <button id="btn-sniper-apontar" class="btn-action btn-sniper-apontar" onclick="ativarSniperTiroSmartCast();" title="Disparo Supremo (1)">💥<span class="key-badge">1</span></button>
         <button id="btn-sniper-rede" class="btn-action btn-sniper-rede" ontouchstart="iniciarDragSkill(event,'rede'); event.preventDefault(); event.stopPropagation();" onclick="ativarRedeSmartCast();" title="Arame Prendedor (2)">🕸️<span class="key-badge">2</span></button>
         <button id="btn-sniper-posicao" class="btn-action btn-sniper-posicao" ontouchstart="usarPosicaoSniper(); event.stopPropagation();" onclick="usarPosicaoSniper();" title="Posição de Franco-Atirador (3)">🎯<span class="key-badge">3</span></button>
         <button id="btn-sniper-camuflagem" class="btn-action btn-sniper-camuflagem" ontouchstart="usarCamuflagemSniper(); event.stopPropagation();" onclick="usarCamuflagemSniper();" title="Camuflagem Natural (4)">🌿<span class="key-badge">4</span></button>
@@ -891,7 +891,7 @@
     <script src="personagens-historias.js?v=1"></script>
     <script src="personagem-select.js?v=4"></script>
     <script>
-        const GAME_VERSION = 'v1.60.0';
+        const GAME_VERSION = 'v1.60.1';
         window.GAME_VERSION = GAME_VERSION;
         const WORLD_WIDTH = 84200;
         const WORLD_HEIGHT = 36000;
@@ -2102,7 +2102,6 @@ function usarCanticoCelestial() {
             window.ultimoSkillEnviado = { skill: 'arqueiro_cometas', ts: Date.now() };
             setTimeout(() => { window.arcanoCometasCooldown = false; btnArcanoCometas.classList.remove("cooldown"); btnArcanoCometas.dataset.cdUntil = ''; }, 7000);
             if (typeof window.criarFlechaArcanoVoo === 'function') window.criarFlechaArcanoVoo(window.meuX + 12, window.meuY + 16, tx, ty, '#fff6c2');
-            if (window.tocarSonoro) window.tocarSonoro('astral_skill1');
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'arqueiro_cometas', targetX: tx, targetY: ty })); }
         }
 
@@ -2130,7 +2129,6 @@ function usarCanticoCelestial() {
             window.ultimoSkillEnviado = { skill: 'arqueiro_orbe', ts: Date.now() };
             setTimeout(() => { window.arcanoOrbeCooldown = false; btnArcanoOrbe.classList.remove("cooldown"); btnArcanoOrbe.dataset.cdUntil = ''; }, 8000);
             if (typeof window.criarFlechaArcanoVoo === 'function') window.criarFlechaArcanoVoo(window.meuX + 12, window.meuY + 16, tx, ty, '#c39bff');
-            if (window.tocarSonoro) window.tocarSonoro('astral_skill2');
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'arqueiro_orbe', targetX: tx, targetY: ty })); }
         }
 
@@ -2157,13 +2155,15 @@ function usarCanticoCelestial() {
             window.arcanoCascataCooldown = true; btnArcanoCascata.classList.add("cooldown"); registrarCooldownBotao(btnArcanoCascata, 8000);
             window.ultimoSkillEnviado = { skill: 'arqueiro_cascata', ts: Date.now() };
             setTimeout(() => { window.arcanoCascataCooldown = false; btnArcanoCascata.classList.remove("cooldown"); btnArcanoCascata.dataset.cdUntil = ''; }, 8000);
-            if (window.tocarSonoro) window.tocarSonoro('astral_skill3');
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'arqueiro_cascata', angulo: window.meuAngulo || 0 })); }
         }
 
         // ===== SNIPER (v1.31): Disparo Supremo, Arame, Posição e Camuflagem =====
         window.sniperAimCooldown = false; window.sniperRedeCooldown = false; window.sniperPosicaoCooldown = false;
         window.snAimAtivo = false; window.snPosicaoAtivo = false; window.snCamufladoAtivo = false;
+        // Mobile: Skill 1 usa point-to-click. O primeiro toque após ativar a
+        // skill é consumido como alvo do disparo, não como movimento.
+        window.sniperMobilePointAim = false;
         // v1.50.0: ROUPA DE CAMUFLAGEM (vestida pelo DASH). Timestamp de expiração
         // absoluto; 0 = corpo normal. É o que libera a skill 4.
         window.snRoupaCamoAte = 0;
@@ -2179,6 +2179,7 @@ function usarCanticoCelestial() {
         function terminarMiraSniper(porFogo) {
             if (tSniperAimTimer) { clearTimeout(tSniperAimTimer); tSniperAimTimer = null; }
             window.snAimAtivo = false;
+            window.sniperMobilePointAim = false;
             btnSniperApontar.classList.remove("aiming");
             aplicarCooldownDisparoSupremo();
         }
@@ -2192,6 +2193,9 @@ function usarCanticoCelestial() {
             cancelarTodasMiras();
             window.ultimoSkillEnviado = { skill: 'sniper_apontar', ts: Date.now() };
             window.snAimAtivo = true;
+            // Em telas touch, depois do botão da Skill 1 o próximo toque no
+            // mundo será o ponto exato do disparo.
+            window.sniperMobilePointAim = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
             btnSniperApontar.classList.add("aiming");
             iniciarTemporizadorMiraSniper();
             statusText.innerText = "💥 APONTANDO — mova até o alvo e CLIQUE para DISPARAR! (ESC cancela, 3s)";
@@ -2276,10 +2280,9 @@ function usarCanticoCelestial() {
             limparCdBotao(btnSniperApontar);
             btnSniperPosicao.classList.add("active");
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'sniper_posicao' })); }
-            // Deitou na Posição de Franco-Atirador → ativa automaticamente a mira do Disparo Supremo (skill 1)
-            if (checarSkill('disparo_supremo', 30)) {
-                iniciarMiraSniper();
-            }
+            // A Posição de Franco-Atirador NÃO inicia automaticamente a Skill 1.
+            // Enquanto deitado, o ataque básico continua livre. A Skill 1 pode
+            // ser acionada manualmente pelo botão quando o jogador quiser.
         }
 
         function usarCamuflagemSniper() {
@@ -2900,8 +2903,9 @@ function usarCanticoCelestial() {
                         let text = document.getElementById("party-invite-text");
                         if (modal && text) {
                             text.innerText = dados.fromName + " está te convidando para um grupo. Aceitar?";
-                            modal.style.display = "block";
                             window.partyInviteFromId = dados.fromId;
+                            modal.style.display = "block";
+                            if (typeof window.posicionarModalSistemaMobile === "function") window.posicionarModalSistemaMobile(modal);
                         }
                     }
                     if (dados.type === 'trade_invite_received') {
@@ -3809,6 +3813,7 @@ function usarCanticoCelestial() {
                         window.impactosCometas.push({ x: cx, y: cy, tempo: 16, tempoMax: 16, tipo: 'impacto' });
                         window.floatingTexts.push({ x: cx, y: cy - 24, text: "☄️ Chuva de Cometas!", color: "#c39bff", alpha: 1.0 });
                         let donoCometa = dados.ownerId !== undefined ? dados.ownerId : dados.id;
+                        if (donoCometa === window.meuId && window.tocarSonoro) window.tocarSonoro('astral_skill1');
                         if (donoCometa !== window.meuId && window.tocarSonoroProximidade) {
                             window.tocarSonoroProximidade('astral_skill1', cx, cy);
                         }
@@ -3830,6 +3835,7 @@ function usarCanticoCelestial() {
                         let ox = dados.targetX || dados.x || 0, oy = dados.targetY || dados.y || 0;
                         window.orbeConstelacoes.push({ id: idOrbe, x: ox, y: oy, raio: dados.raio || 100, tempo: 40, duracao: 40, dono: dados.ownerId !== undefined ? dados.ownerId : dados.id });
                         let donoOrbe = dados.ownerId !== undefined ? dados.ownerId : dados.id;
+                        if (donoOrbe === window.meuId && window.tocarSonoro) window.tocarSonoro('astral_skill2');
                         if (donoOrbe !== window.meuId && window.tocarSonoroProximidade) {
                             window.tocarSonoroProximidade('astral_skill2', ox, oy);
                         }
@@ -3851,6 +3857,7 @@ function usarCanticoCelestial() {
                         let oy = pjV ? pjV.y + 16 : ((dados.y || window.meuY + 16));
                         if (!window.cascatasEstelar) window.cascatasEstelar = [];
                         window.cascatasEstelar.push({ x: ox, y: oy, angulo: dados.ang || dados.angulo || (pjV ? pjV.angulo || 0 : window.meuAngulo || 0), tempo: 40, raio: 280, dono: dados.id });
+                        if (dados.id === window.meuId && window.tocarSonoro) window.tocarSonoro('astral_skill3');
                         if (dados.id !== window.meuId && window.tocarSonoroProximidade) {
                             window.tocarSonoroProximidade('astral_skill3', ox, oy);
                         }
@@ -3863,7 +3870,16 @@ function usarCanticoCelestial() {
                         if (typeof window.criarTiroSniper === "function") window.criarTiroSniper(sx, sy, dx, dy, dados.type === 'action_sniper_super_tiro');
                     }
                     if (dados.type === 'action_sniper_aim') {
-                        if (dados.id === window.meuId && dados.ativo) { window.snAimAtivo = true; btnSniperApontar.classList.add("aiming"); if (typeof iniciarTemporizadorMiraSniper === 'function') iniciarTemporizadorMiraSniper(); }
+                        if (dados.id === window.meuId) {
+                            window.snAimAtivo = !!dados.ativo;
+                            if (dados.ativo) {
+                                btnSniperApontar.classList.add("aiming");
+                                if (typeof iniciarTemporizadorMiraSniper === 'function') iniciarTemporizadorMiraSniper();
+                            } else {
+                                window.sniperMobilePointAim = false;
+                                btnSniperApontar.classList.remove("aiming");
+                            }
+                        }
                     }
                     if (dados.type === 'action_sniper_rede' || dados.type === 'action_sniper_rede_acerto') {
                         if (!window.redesSniper) window.redesSniper = [];
@@ -5542,7 +5558,9 @@ function usarCanticoCelestial() {
             if (window.meuStunTimer > 0 || trava || window.roqueiroBateriaLigada || window.arqueiroRajadaLigada || window.spawnAdminAberto || window.teleporteAberto || window.ferreiroAberto || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) { autoAlvo = null; return; }
             // v1.30.2: ataque básico bloqueado durante Estrela da Morte / Dança das Adagas / Giro Descontrolado / Animações de Skill do Pikeman
             if (window.ladinoEstrelaAtivo || window.ladinoDancaAtivo || window.giroDescontroladoLigado || (window.minhaClasse === 'pikeman' && typeof window.pikemanEmAnimacaoSkill === 'function' && window.pikemanEmAnimacaoSkill(window.meuId)) || (window.pikemanEstadoLocal && window.pikemanEstadoLocal.execucaoAtiva) || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) { autoAlvo = null; return; }
-            if (window.snAimAtivo || window.snPosicaoAtivo) { autoAlvo = null; return; }
+            // Enquanto está deitado, o Sniper continua usando ataque básico.
+            // A única coisa que interrompe o auto-ataque é a mira ativa da Skill 1.
+            if (window.snAimAtivo) { autoAlvo = null; return; }
             // SNIPER camuflado na moita: NÃO ataca automaticamente; só volta a atacar ao usar uma skill
             if (window.minhaClasse === 'sniper' && window.snCamufladoAtivo) { autoAlvo = null; return; }
             // DASH v2: Guerreiro com o escudo erguido NÃO dá ataque básico.
@@ -6240,23 +6258,62 @@ function usarCanticoCelestial() {
                 try { a.blur(); } catch (e) { }
             }
         };
+        window.posicionarModalSistemaMobile = function(modal) {
+            if (!modal) return;
+            var mobile = false;
+            try { mobile = /Android|iPhone|iPad|iPod|Windows Phone|Opera Mini|Mobile/i.test(navigator.userAgent || ""); } catch (e) {}
+            if (!mobile && window.innerWidth >= 830) {
+                modal.style.left = "50%";
+                modal.style.top = "50%";
+                modal.style.transform = "translate(-50%, -50%)";
+                return;
+            }
+            var vv = window.visualViewport;
+            var vw = vv ? vv.width : window.innerWidth;
+            var vh = vv ? vv.height : window.innerHeight;
+            var ox = vv ? vv.offsetLeft : 0;
+            var oy = vv ? vv.offsetTop : 0;
+            var r = modal.getBoundingClientRect();
+            var margem = 10;
+            var cx = ox + vw / 2;
+            var cy = oy + vh / 2;
+            var halfW = Math.min((vw - margem * 2) / 2, Math.max(0, r.width / 2));
+            var halfH = Math.min((vh - margem * 2) / 2, Math.max(0, r.height / 2));
+            modal.style.left = Math.max(margem + halfW, Math.min(cx, ox + vw - margem - halfW)) + "px";
+            modal.style.top = Math.max(margem + halfH, Math.min(cy, oy + vh - margem - halfH)) + "px";
+            modal.style.transform = "translate(-50%, -50%)";
+        };
         window.abrirSocialModal = function() {
             var modal = document.getElementById("social-modal");
             if (!modal) return;
-            // v1.34.1: SEMPRE abre CENTRALIZADO. O dragdrop salvava left/top + transform:none
-            // (posição arrastada/salva) e anulava o translate(-50%,-50%) → modal abria fora da tela.
             modal.style.left = "50%";
             modal.style.top = "50%";
             modal.style.transform = "translate(-50%, -50%)";
             modal.style.display = "block";
             var inp = document.getElementById("social-player-name");
             if (inp) inp.value = "";
+            requestAnimationFrame(function() { window.posicionarModalSistemaMobile(modal); });
         };
         window.fecharSocialModal = function() {
             var modal = document.getElementById("social-modal");
             if (modal) modal.style.display = "none";
             window.soltarFoco();
         };
+        (function instalarCorrecaoViewportModais() {
+            var vv = window.visualViewport;
+            if (!vv) return;
+            var reposicionar = function() {
+                requestAnimationFrame(function() {
+                    ["party-invite-modal", "social-modal"].forEach(function(id) {
+                        var el = document.getElementById(id);
+                        if (el && getComputedStyle(el).display !== "none") window.posicionarModalSistemaMobile(el);
+                    });
+                });
+            };
+            vv.addEventListener("resize", reposicionar);
+            vv.addEventListener("scroll", reposicionar);
+            window.addEventListener("orientationchange", reposicionar);
+        })();
         window.socialConvidarGrupo = function() {
             let nome = document.getElementById("social-player-name").value.trim();
             if (ws && ws.readyState === WebSocket.OPEN && nome !== "") {
@@ -6511,11 +6568,25 @@ function usarCanticoCelestial() {
         };
 
         function atualizarMovimentoTeclado() {
-            // Sniper fica imóvel enquanto aponta o Disparo Supremo ou está na Posição
-            if (window.snAimAtivo || window.snPosicaoAtivo) {
+            // A mira da Skill 1 trava o movimento.
+            if (window.snAimAtivo) {
                 moveX = 0;
                 moveY = 0;
                 return;
+            }
+            // Tentar andar cancela imediatamente a Posição de Franco-Atirador.
+            if (window.snPosicaoAtivo) {
+                const tentouAndar = teclasMovimento.KeyW || teclasMovimento.KeyA ||
+                    teclasMovimento.KeyS || teclasMovimento.KeyD ||
+                    teclasMovimento.ArrowUp || teclasMovimento.ArrowLeft ||
+                    teclasMovimento.ArrowDown || teclasMovimento.ArrowRight;
+                if (tentouAndar && typeof usarPosicaoSniper === 'function') {
+                    usarPosicaoSniper();
+                } else {
+                    moveX = 0;
+                    moveY = 0;
+                    return;
+                }
             }
             if (window.arqueiroSaltoNoAlto) {
                 moveX = 0;
@@ -6858,6 +6929,24 @@ function usarCanticoCelestial() {
                     }
                 }
             }
+            // SNIPER — MOBILE POINT-TO-CLICK:
+            // Skill 1 ativa no botão; o PRÓXIMO toque no mundo vira o ponto
+            // exato do disparo, inclusive no lado esquerdo da tela.
+            if (window.sniperMobilePointAim && window.snAimAtivo && window.minhaClasse === 'sniper') {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    let touch = e.changedTouches[i];
+                    let camX = window.camX || 0, camY = window.camY || 0;
+                    let mx = Math.max(0, Math.min(WORLD_WIDTH, (touch.clientX / window.innerWidth * window.canvas.width) / (window.cameraZoomAtual || ZOOM_CAMERA) + camX));
+                    let my = Math.max(0, Math.min(WORLD_HEIGHT, (touch.clientY / window.innerHeight * window.canvas.height) / (window.cameraZoomAtual || ZOOM_CAMERA) + camY));
+                    window.mouseWorldX = mx;
+                    window.mouseWorldY = my;
+                    window.mouseJaMoveu = true;
+                    if (e.cancelable) e.preventDefault();
+                    window.ativarSniperTiroSmartCast();
+                    return;
+                }
+            }
+
             // JOYSTICK: prioridade máxima na metade esquerda (resolve bug quando itens estão no lado do joystick)
             for (let i = 0; i < e.changedTouches.length; i++) {
                 let touch = e.changedTouches[i];
@@ -6920,6 +7009,11 @@ function usarCanticoCelestial() {
                     if (dist > 5) {
                         moveX = (dx / Math.hypot(dx, dy)) * 2;
                         moveY = (dy / Math.hypot(dx, dy)) * 2;
+                        // No mobile, o primeiro movimento enquanto deitado
+                        // cancela a posição e libera a movimentação.
+                        if (window.snPosicaoAtivo && typeof usarPosicaoSniper === 'function') {
+                            usarPosicaoSniper();
+                        }
                         if (window.roqueiroBateriaLigada) {
                             cancelarBateriaRoqueiro();
                         }
