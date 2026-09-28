@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Oswald:wght@500;600;700&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=245">
-    <link rel="stylesheet" href="inventario.css?v=135">
+    <link rel="stylesheet" href="inventario.css?v=160">
     <link rel="stylesheet" href="skills.css?v=144">
     <link rel="stylesheet" href="config.css?v=150">
     <link rel="stylesheet" href="atributos.css?v=5">
@@ -76,7 +76,7 @@
             <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" />
             <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
         </div>
-        <div class="game-version-display">v1.59.0</div>
+        <div class="game-version-display">v1.60.0</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -125,7 +125,7 @@
 
     <div id="status" data-ui="status">Desconectado</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
-    <div id="hud-version" class="game-version-display">v1.59.0</div>
+    <div id="hud-version" class="game-version-display">v1.60.0</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -511,36 +511,63 @@
 
     <div id="inventory-screen">
         <div id="inv-window">
-            <div id="inv-title"> INVENT&#193;RIO </div>
+            <div id="inv-title">🎒 INVENTÁRIO</div>
             <button id="btn-inv-fechar" onclick="fecharInventario()" title="Fechar (I)">✕</button>
-            <div id="equip-body">
-                <div class="inv-slot slot-capacete" data-slot="capacete"><span class="slot-ico">🪖</span><span class="slot-label">CAPACETE</span></div>
-                <div class="inv-slot slot-colar" data-slot="colar"><span class="slot-ico">📿</span><span class="slot-label">COLAR</span></div>
-                <div class="inv-slot slot-peitoral" data-slot="peitoral"><span class="slot-ico">🛡️</span><span class="slot-label">PEITORAL</span></div>
-                <div class="inv-slot slot-capa" data-slot="capa"><span class="slot-ico">🧥</span><span class="slot-label">CAPA</span></div>
-                <div class="inv-slot slot-arma" data-slot="arma"><span class="slot-ico">⚔️</span><span class="slot-label">ARMA</span></div>
-                <div class="inv-slot slot-arma-sec" data-slot="armaSecundaria"><span class="slot-ico">🔪</span><span class="slot-label">ARMA SEC</span></div>
-                <div class="inv-slot slot-luva" data-slot="luva"><span class="slot-ico">🧤</span><span class="slot-label">LUVA</span></div>
-                <div class="inv-slot slot-anel" data-slot="anel"><span class="slot-ico">💍</span><span class="slot-label">ANEL</span></div>
-                <div class="inv-slot slot-bota" data-slot="bota"><span class="slot-ico">🥾</span><span class="slot-label">BOTA</span></div>
-            </div>
-            <div id="inv-separador">— MOCHILA —</div>
-            <div id="mochila-abas">
-                <button class="mochila-aba ativa" data-aba="todos">TODOS</button>
-                <button class="mochila-aba" data-aba="consumiveis">🍶 CONS.</button>
-                <button class="mochila-aba" data-aba="itens">🧰 ITENS</button>
-                <button class="mochila-aba" data-aba="equipamentos">⚔️ EQUIP.</button>
-                <button class="mochila-aba" data-aba="pedras">💠 PEDRAS</button>
-            </div>
-            <div id="mochila-grade"></div>
-            <div id="inv-info">Toque em um slot para inspecionar.</div>
-            <div id="inv-botoes">
-                <button id="btn-inv-organizar" class="btn-inv-acao" onclick="organizarMochila()" title="Organizar">🗂️</button>
-                <button id="btn-inv-destruir" class="btn-inv-acao btn-inv-vermelho" style="display:none;" onclick="destruirItemSelecionado()" title="Destruir">🗑️</button>
-                <button id="btn-inv-bloquear" class="btn-inv-acao btn-inv-bloquear" style="display:none;" onclick="alternarBloqueioItemSelecionado()" title="Bloquear">🔒</button>
+
+            <div id="inv-layout-duplo">
+                <!-- COLUNA DA ESQUERDA: SLOTS EQUIPADOS + PAINEL DE INSPEÇÃO E COMPARAÇÃO -->
+                <div id="inv-col-esquerda">
+                    <div class="inv-col-cabecalho">🛡️ EQUIPADOS</div>
+                    <div id="equip-body">
+                        <div class="inv-slot slot-capacete" data-slot="capacete"><span class="slot-ico">🪖</span><span class="slot-label">CAPACETE</span></div>
+                        <div class="inv-slot slot-colar" data-slot="colar"><span class="slot-ico">📿</span><span class="slot-label">COLAR</span></div>
+                        <div class="inv-slot slot-capa" data-slot="capa"><span class="slot-ico">🧥</span><span class="slot-label">CAPA</span></div>
+                        <div class="inv-slot slot-arma" data-slot="arma"><span class="slot-ico">⚔️</span><span class="slot-label">ARMA</span></div>
+                        <div class="inv-slot slot-peitoral" data-slot="peitoral"><span class="slot-ico">🛡️</span><span class="slot-label">PEITORAL</span></div>
+                        <div class="inv-slot slot-arma-sec" data-slot="armaSecundaria"><span class="slot-ico">🔪</span><span class="slot-label">ARMA SEC</span></div>
+                        <div class="inv-slot slot-luva" data-slot="luva"><span class="slot-ico">🧤</span><span class="slot-label">LUVA</span></div>
+                        <div class="inv-slot slot-anel" data-slot="anel"><span class="slot-ico">💍</span><span class="slot-label">ANEL</span></div>
+                        <div class="inv-slot slot-bota" data-slot="bota"><span class="slot-ico">🥾</span><span class="slot-label">BOTA</span></div>
+                    </div>
+
+                    <!-- EMBAIXO DOS SLOTS EQUIPADOS: INSPEÇÃO / COMPARAÇÃO DENTRO DO INVENTÁRIO -->
+                    <div id="inv-painel-inspecao">
+                        <div id="inv-info"><div class="slot-vazio-info"><span class="slot-vazio-desc">Toque em um item para inspecionar.</span></div></div>
+                        <div id="inv-comparacao" style="display:none;"></div>
+                    </div>
+                </div>
+
+                <!-- DIVISOR VERTICAL CENTRAL -->
+                <div id="inv-divisor-vertical"></div>
+
+                <!-- COLUNA DA DIREITA: ABAS NA VERTICAL + MOCHILA + AÇÕES -->
+                <div id="inv-col-direita">
+                    <div class="inv-col-cabecalho">🎒 MOCHILA</div>
+                    <div id="inv-mochila-linha">
+                        <!-- ABAS NA VERTICAL -->
+                        <div id="mochila-abas">
+                            <button class="mochila-aba ativa" data-aba="todos" title="Todos os itens"><span class="aba-ico">🎒</span><span class="aba-rotulo">TODOS</span></button>
+                            <button class="mochila-aba" data-aba="consumiveis" title="Consumíveis"><span class="aba-ico">🍶</span><span class="aba-rotulo">CONS.</span></button>
+                            <button class="mochila-aba" data-aba="itens" title="Itens diversos"><span class="aba-ico">🧰</span><span class="aba-rotulo">ITENS</span></button>
+                            <button class="mochila-aba" data-aba="equipamentos" title="Equipamentos"><span class="aba-ico">⚔️</span><span class="aba-rotulo">EQUIP.</span></button>
+                            <button class="mochila-aba" data-aba="pedras" title="Pedras de upgrade"><span class="aba-ico">💠</span><span class="aba-rotulo">PEDRAS</span></button>
+                        </div>
+
+                        <!-- GRADE DE ITENS DA MOCHILA -->
+                        <div id="mochila-grade-container">
+                            <div id="mochila-grade"></div>
+                        </div>
+                    </div>
+
+                    <!-- BOTÕES DE AÇÃO INFERIORES -->
+                    <div id="inv-botoes">
+                        <button id="btn-inv-organizar" class="btn-inv-acao" onclick="organizarMochila()" title="Organizar Mochila">🗂️</button>
+                        <button id="btn-inv-destruir" class="btn-inv-acao btn-inv-vermelho" style="display:none;" onclick="destruirItemSelecionado()" title="Destruir Item">🗑️</button>
+                        <button id="btn-inv-bloquear" class="btn-inv-acao btn-inv-bloquear" style="display:none;" onclick="alternarBloqueioItemSelecionado()" title="Bloquear / Desbloquear Item">🔒</button>
+                    </div>
+                </div>
             </div>
         </div>
-        <div id="inv-comparacao"></div>
     </div>
 
     <!-- ==================== FERREIRO — FORJA DE EQUIPAMENTOS ==================== -->
@@ -843,7 +870,7 @@
     <script src="debuffs.js?v=1500"></script>
     <script src="efeitos/boss_golem.js?v=230"></script>
     <script src="monstros.js?v=2007"></script>
-    <script src="inventario.js?v=133"></script>
+    <script src="inventario.js?v=160"></script>
     <script src="skills.js?v=146"></script>
     <script src="config.js?v=145"></script>
     <script src="atributos.js?v=3"></script>
@@ -864,7 +891,7 @@
     <script src="personagens-historias.js?v=1"></script>
     <script src="personagem-select.js?v=4"></script>
     <script>
-        const GAME_VERSION = 'v1.59.0';
+        const GAME_VERSION = 'v1.60.0';
         window.GAME_VERSION = GAME_VERSION;
         const WORLD_WIDTH = 84200;
         const WORLD_HEIGHT = 36000;

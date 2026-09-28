@@ -717,7 +717,7 @@
                     grad.addColorStop(0.5, '#2f88a4');
                     grad.addColorStop(1, '#1b647d');
                     ctx.fillStyle = grad;
-                    ctx.fillRect(px, py, TILE, TILE);
+                    ctx.fillRect(px, py, TILE + 1, TILE + 1);
 
                     // Fissuras de gelo brancas translúcidas
                     if ((c + r * 7) % 5 === 0) {
@@ -732,26 +732,26 @@
                 } else if (tipo === 1) {
                     // NEVE COMPACTA (Batida pelo Vento)
                     ctx.fillStyle = '#dcebf5';
-                    ctx.fillRect(px, py, TILE, TILE);
+                    ctx.fillRect(px, py, TILE + 1, TILE + 1);
                     ctx.fillStyle = 'rgba(180, 205, 225, 0.3)';
                     ctx.fillRect(px + 2, py + 2, TILE - 4, 3);
                 } else if (tipo === 3) {
                     // PERMAFROST (Solo escuro com líquens violetas)
                     ctx.fillStyle = '#445669';
-                    ctx.fillRect(px, py, TILE, TILE);
+                    ctx.fillRect(px, py, TILE + 1, TILE + 1);
                     ctx.fillStyle = '#5c486e';
                     ctx.fillRect(px + 6, py + 12, 10, 8);
                 } else if (tipo === 4) {
                     // ROCHA DE BORDA / PENHASCO GLACIAL
                     ctx.fillStyle = '#263440';
-                    ctx.fillRect(px, py, TILE, TILE);
+                    ctx.fillRect(px, py, TILE + 1, TILE + 1);
                     // Calota de neve no topo
                     ctx.fillStyle = '#eef6fc';
                     ctx.fillRect(px, py, TILE, 8);
                 } else {
                     // NEVE FOFA (Padrão claro azulado)
                     ctx.fillStyle = '#edf5fa';
-                    ctx.fillRect(px, py, TILE, TILE);
+                    ctx.fillRect(px, py, TILE + 1, TILE + 1);
                     // Granulações suaves
                     if ((c + r * 3) % 4 === 0) {
                         ctx.fillStyle = 'rgba(210, 230, 245, 0.5)';

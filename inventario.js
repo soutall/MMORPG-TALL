@@ -27,6 +27,43 @@ const SLOTS_INFO = {
     luva:           { nome: "🧤 LUVA",            desc: "Firmeza no punho." }
 };
 
+const NOMES_ATRIBUTOS = {
+    forca: 'Força',
+    agilidade: 'Agilidade',
+    destreza: 'Destreza',
+    inteligencia: 'Inteligência',
+    vida: 'Vida',
+    mana: 'Mana',
+    defesa: 'Defesa',
+    ataque: 'Ataque',
+    profanidade: 'Profanidade',
+    divindade: 'Divindade',
+    afinidade: 'Afinidade',
+    velocidadeAtaque: 'Vel. de Ataque'
+};
+
+function formatarNomeAtributo(k) {
+    if (NOMES_ATRIBUTOS[k]) return NOMES_ATRIBUTOS[k];
+    return k.charAt(0).toUpperCase() + k.slice(1);
+}
+
+function formatarStatsVertical(status) {
+    if (!status) return '';
+    let chaves = Object.keys(status).filter(k => status[k] !== undefined && status[k] !== null && status[k] !== 0);
+    if (!chaves.length) return '';
+    let html = '<div class="inv-stats-vertical">';
+    chaves.forEach(k => {
+        let v = status[k];
+        let vStr = (typeof v === 'number' && v > 0) ? ('+' + v) : String(v);
+        html += '<div class="stat-linha">'
+            + '<span class="stat-nome">' + formatarNomeAtributo(k) + ' :</span>'
+            + '<span class="stat-val">' + vStr + '</span>'
+            + '</div>';
+    });
+    html += '</div>';
+    return html;
+}
+
 function abrirInventario() {
     if (window.estaMorto) return;
     if (charSelectScreen && charSelectScreen.style.display === "flex") return;
@@ -34,12 +71,17 @@ function abrirInventario() {
     inventoryScreen.style.display = "flex";
     renderizarInventario();
     renderizarMochila();
-    invInfo.innerText = "Toque em um slot para inspecionar.";
+    let infoEl = document.getElementById("inv-info");
+    if (infoEl) infoEl.innerHTML = '<div class="slot-vazio-info"><span class="slot-vazio-desc">Toque em um item para inspecionar.</span></div>';
+    let cmp = document.getElementById('inv-comparacao');
+    if (cmp) { cmp.style.display = 'none'; cmp.innerHTML = ''; }
 }
 
 function fecharInventario() {
     window.inventarioAberto = false;
     inventoryScreen.style.display = "none";
+    let cmp = document.getElementById('inv-comparacao');
+    if (cmp) { cmp.style.display = 'none'; cmp.innerHTML = ''; }
 }
 
 function toggleInventario() {
@@ -111,25 +153,56 @@ function selecionarSlot(chave) {
     window._slotEquipadoSelecionado = null;
     let info = SLOTS_INFO[chave] || { nome: chave, desc: "" };
     let item = window.inventario[chave];
+    let el = document.getElementById("inv-info");
+    let cmp = document.getElementById('inv-comparacao');
+    if (cmp) { cmp.style.display = 'none'; cmp.innerHTML = ''; }
+
     if (item && item.tipo === 'equipamento') {
-        let bonus = [];
-        if (item.status) for (let k in item.status) { if (item.status[k]) bonus.push(k.substring(0,3).toUpperCase() + " +" + item.status[k]); }
-        invInfo.innerText = (item.icon || info.nome) + " " + info.nome + " ⮞ " + (item.nome || item.tipo)
-            + (bonus.length ? "\n" + (item.raridadeNome || '') + " | " + bonus.join(', ') : "");
         window._slotEquipadoSelecionado = chave;
+        let cor = item.cor || (item.raridade === 'lendario' ? '#ff7a00' : (item.raridade === 'epico' ? '#a855f7' : (item.raridade === 'raro' ? '#4da6ff' : '#ffffff')));
+        let nivelUp = Math.max(0, item.upgrade || 0);
+
+        let html = '<div class="item-card-detalhes">';
+        html += '<div class="item-card-topo">';
+        html +=   '<span class="item-card-ico">' + (item.icon || '🛡️') + '</span>';
+        html +=   '<div class="item-card-titulos">';
+        html +=     '<div class="item-card-nome" style="color:' + cor + '">' + (item.nome || info.nome) + (nivelUp > 0 ? ' <span class="upg-badge">+' + nivelUp + '</span>' : '') + '</div>';
+        html +=     '<div class="item-card-tags">';
+        html +=       '<span class="tag-tipo">EQUIPADO</span>';
+        if (item.raridadeNome) html += ' <span class="tag-rar" style="color:' + cor + '">' + item.raridadeNome + '</span>';
+        if (item.locked) html += ' <span class="tag-lock">🔒</span>';
+        html +=     '</div>';
+        html +=   '</div>';
+        html += '</div>';
+
+        if (item.desc) html += '<div class="item-card-desc">' + item.desc + '</div>';
+        if (item.status) html += formatarStatsVertical(item.status);
+        html += '</div>';
+
+        if (el) el.innerHTML = html;
     } else if (item) {
-        invInfo.innerText = info.nome + " ⮞ " + (item.nome || item.tipo) + (item.desc ? " — " + item.desc : "");
+        let html = '<div class="item-card-detalhes">';
+        html += '<div class="item-card-topo">';
+        html +=   '<span class="item-card-ico">' + (item.icon || '🎒') + '</span>';
+        html +=   '<div class="item-card-titulos">';
+        html +=     '<div class="item-card-nome">' + (item.nome || info.nome) + '</div>';
+        html +=   '</div>';
+        html += '</div>';
+        if (item.desc) html += '<div class="item-card-desc">' + item.desc + '</div>';
+        html += '</div>';
+        if (el) el.innerHTML = html;
     } else {
-        invInfo.innerText = info.nome + ": VAZIO. " + info.desc;
+        if (el) {
+            el.innerHTML = '<div class="slot-vazio-info"><span class="slot-vazio-ico">' + (info.nome.slice(0, 2)) + '</span><span class="slot-vazio-nome">' + info.nome + ': VAZIO</span><span class="slot-vazio-desc">' + info.desc + '</span></div>';
+        }
     }
+
     let btnEq = document.getElementById('btn-inv-equipar');
     if (btnEq) btnEq.style.display = 'none';
     let btnDeq = document.getElementById('btn-inv-desequipar');
     if (btnDeq) btnDeq.style.display = 'none';
     let btnDest = document.getElementById('btn-inv-destruir');
     if (btnDest) btnDest.style.display = 'none';
-    let cmp = document.getElementById('inv-comparacao');
-    if (cmp) cmp.style.display = 'none';
 }
 
 document.querySelectorAll(".inv-slot").forEach(slotEl => {
@@ -282,7 +355,7 @@ function renderizarMochila() {
         });
         grade.appendChild(div);
     });
-    let resto = 12 - itens.length;
+    let resto = Math.max(0, 16 - itens.length);
     for (let i = 0; i < resto; i++) {
         let vazio = document.createElement("div");
         vazio.className = "mochila-slot-vazio";
@@ -290,49 +363,80 @@ function renderizarMochila() {
     }
 }
 
-// Comparação EQUIPADO vs INVENTÁRIO (verde = melhor, vermelho = pior)
+// Comparação EQUIPADO vs INVENTÁRIO (dentro do inventário, embaixo dos slots equipados)
 function renderizarComparacao(item) {
     let el = document.getElementById('inv-comparacao');
     if (!el) return;
-    if (!item || item.tipo !== 'equipamento' || !item.status) { el.style.display = 'none'; return; }
+    if (!item || item.tipo !== 'equipamento' || !item.status) { el.style.display = 'none'; el.innerHTML = ''; return; }
     let equipado = window.inventario[item.slot];
-    if (!equipado || !equipado.status) { el.style.display = 'none'; return; }
-    let nomeMap = { forca: 'Força', inteligencia: 'Inteligência', agilidade: 'Agilidade', destreza: 'Destreza', vida: 'Vida', profanidade: 'Profanidade', divindade: 'Divindade', afinidade: 'Afinidade', velocidadeAtaque: '⚡ Vel. Ataque' };
+    if (!equipado || !equipado.status) { el.style.display = 'none'; el.innerHTML = ''; return; }
+
     let chaves = Object.keys(Object.assign({}, equipado.status || {}, item.status || {}));
-    let html = '<div class="cmp-titulo">COMPARAÇÃO</div><div class="cmp-cols">';
-    html += '<div class="cmp-col"><div class="cmp-linha cmp-nome">' + (equipado.icon || '') + ' EQUIPADO</div>';
+    if (!chaves.length) { el.style.display = 'none'; el.innerHTML = ''; return; }
+
+    let corEq = equipado.cor || (equipado.raridade === 'lendario' ? '#ff7a00' : (equipado.raridade === 'epico' ? '#a855f7' : (equipado.raridade === 'raro' ? '#4da6ff' : '#ffffff')));
+    let corItem = item.cor || (item.raridade === 'lendario' ? '#ff7a00' : (item.raridade === 'epico' ? '#a855f7' : (item.raridade === 'raro' ? '#4da6ff' : '#ffffff')));
+
+    let html = '<div class="cmp-bloco">';
+    html += '<div class="cmp-titulo">⚔️ COMPARAÇÃO</div>';
+    html += '<div class="cmp-cabecalho-itens">';
+    html +=   '<div class="cmp-item-col"><span class="cmp-sub">EQUIPADO</span><span class="cmp-nome-item" style="color:' + corEq + '">' + (equipado.icon || '🛡️') + ' ' + (equipado.nome || 'Atual') + '</span></div>';
+    html +=   '<div class="cmp-vs-badge">VS</div>';
+    html +=   '<div class="cmp-item-col"><span class="cmp-sub">MOCHILA</span><span class="cmp-nome-item" style="color:' + corItem + '">' + (item.icon || '🎒') + ' ' + (item.nome || 'Novo') + '</span></div>';
+    html += '</div>';
+
+    html += '<div class="cmp-stats-linhas">';
     chaves.forEach(k => {
-        let a = (equipado.status[k] || 0), b = (item.status[k] || 0);
-        let cl = (b > a) ? 'cmp-pior' : (b < a) ? 'cmp-melhor' : 'cmp-igual';
-        html += '<div class="cmp-linha ' + cl + '">' + (nomeMap[k] || k) + ': ' + a + '</div>';
-    });
-    html += '</div><div class="cmp-col"><div class="cmp-linha cmp-nome">' + (item.icon || '') + ' INVENTÁRIO</div>';
-    chaves.forEach(k => {
-        let a = (equipado.status[k] || 0), b = (item.status[k] || 0);
-        let cl = (b > a) ? 'cmp-melhor' : (b < a) ? 'cmp-pior' : 'cmp-igual';
-        html += '<div class="cmp-linha ' + cl + '">' + (nomeMap[k] || k) + ': ' + b + '</div>';
+        let a = Number(equipado.status[k]) || 0;
+        let b = Number(item.status[k]) || 0;
+        let diff = b - a;
+        let cl = (diff > 0) ? 'cmp-melhor' : (diff < 0) ? 'cmp-pior' : 'cmp-igual';
+        let diffStr = (diff > 0) ? (' (+' + diff + ')') : (diff < 0) ? (' (' + diff + ')') : '';
+
+        html += '<div class="cmp-linha-dupla">';
+        html +=   '<span class="stat-nome">' + formatarNomeAtributo(k) + ' :</span>';
+        html +=   '<span class="cmp-valores">';
+        html +=     '<span class="stat-val-equip">' + (a > 0 ? '+' + a : a) + '</span>';
+        html +=     '<span class="cmp-seta">➔</span>';
+        html +=     '<span class="stat-val-novo ' + cl + '">' + (b > 0 ? '+' + b : b) + '<span class="cmp-diff">' + diffStr + '</span></span>';
+        html +=   '</span>';
+        html += '</div>';
     });
     html += '</div></div>';
+
     el.innerHTML = html;
     el.style.display = 'block';
 }
 
 function selecionarItemMochila(item) {
     window._mochilaItemSelecionado = item;
-    let info = item.icon + " " + (item.nome || "Item") + " x" + (item.quantidade || 1)
-        + " [" + item.tipo.toUpperCase() + "]" + (item.desc ? " — " + item.desc : "");
+    let cor = item.cor || (item.raridade === 'lendario' ? '#ff7a00' : (item.raridade === 'epico' ? '#a855f7' : (item.raridade === 'raro' ? '#4da6ff' : '#ffffff')));
+    let nivelUp = Math.max(0, item.upgrade || 0);
+    let podeEq = classePodeUsarItemNoCliente(item);
+
+    let html = '<div class="item-card-detalhes">';
+    html += '<div class="item-card-topo">';
+    html +=   '<span class="item-card-ico">' + (item.icon || '🎒') + '</span>';
+    html +=   '<div class="item-card-titulos">';
+    html +=     '<div class="item-card-nome" style="color:' + cor + '">' + (item.nome || 'Item') + (nivelUp > 0 ? ' <span class="upg-badge">+' + nivelUp + '</span>' : '') + (item.quantidade > 1 ? ' <span class="qtd-badge">x' + item.quantidade + '</span>' : '') + '</div>';
+    html +=     '<div class="item-card-tags">';
+    html +=       '<span class="tag-tipo">' + (item.tipo || '').toUpperCase() + '</span>';
+    if (item.raridadeNome) html += ' <span class="tag-rar" style="color:' + cor + '">' + item.raridadeNome + '</span>';
+    if (item.classe) html += ' <span class="tag-classe ' + (podeEq ? '' : 'tag-classe-invalida') + '">' + item.classe.toUpperCase() + (podeEq ? '' : ' ⚠️') + '</span>';
+    if (item.locked) html += ' <span class="tag-lock">🔒 BLOQUEADO</span>';
+    html +=     '</div>';
+    html +=   '</div>';
+    html += '</div>';
+
+    if (item.desc) html += '<div class="item-card-desc">' + item.desc + '</div>';
     if (item.tipo === 'equipamento' && item.status) {
-        let bonus = [];
-        for (let k in item.status) { if (item.status[k]) bonus.push(k.substring(0,3).toUpperCase() + " +" + item.status[k]); }
-        info += "\n" + (item.raridadeNome || '') + " | " + bonus.join(', ');
-        if (item.classe) info += " [" + item.classe.toUpperCase() + "]";
-        if (item.classe && item.classe !== window.minhaClasse) info += " ⚠️ CLASSE ERRADA";
-        // Upgrade: nível atual + status principal
-        let nivelUp = Math.max(0, item.upgrade || 0);
-        if (nivelUp > 0) info += "\n🔨 UPGRADE +" + nivelUp;
-        if (item.locked) info += "\n🔒 BLOQUEADO (não vende/destrói/troca/melhora)";
+        html += formatarStatsVertical(item.status);
     }
-    invInfo.innerText = info;
+    html += '</div>';
+
+    let el = document.getElementById("inv-info");
+    if (el) el.innerHTML = html;
+
     let btnDest = document.getElementById('btn-inv-destruir');
     if (btnDest) btnDest.style.display = '';
     let btnBloq = document.getElementById('btn-inv-bloquear');
@@ -349,13 +453,20 @@ function selecionarItemMochila(item) {
 }
 
 // Bloqueia/desbloqueia o item selecionado na mochila (o SERVIDOR valida e persiste)
+function mostrarMensagemInv(texto, cor) {
+    let el = document.getElementById("inv-info");
+    if (el) el.innerHTML = '<div class="slot-vazio-info"><span class="slot-vazio-desc"' + (cor ? ' style="color:' + cor + '"' : '') + '>' + texto + '</span></div>';
+    let cmp = document.getElementById('inv-comparacao');
+    if (cmp) { cmp.style.display = 'none'; cmp.innerHTML = ''; }
+}
+
 window.alternarBloqueioItemSelecionado = function() {
     let item = window._mochilaItemSelecionado;
     if (!item || item.tipo !== 'equipamento') return;
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ action: item.locked ? 'desbloquear_item' : 'bloquear_item', id: item.id, uid: item.uid || null }));
     }
-    invInfo.innerText = item.locked ? "🔓 Desbloqueando..." : "🔒 Bloqueando...";
+    mostrarMensagemInv(item.locked ? "🔓 Desbloqueando..." : "🔒 Bloqueando...");
 };
 
 let _mochilaItemSelecionado = null;
@@ -363,14 +474,17 @@ window._mochilaItemSelecionado = null;
 window._slotEquipadoSelecionado = null;
 
 document.querySelectorAll(".mochila-aba").forEach(el => {
-    el.addEventListener("click", function() { setAbaMochila(this.getAttribute("data-aba")); });
+    el.addEventListener("click", function() {
+        let aba = this.getAttribute("data-aba") || (this.closest('.mochila-aba') && this.closest('.mochila-aba').getAttribute('data-aba'));
+        if (aba) setAbaMochila(aba);
+    });
 });
 
 window.equiparItemSelecionado = function(item) {
     if (!item) item = window._mochilaItemSelecionado;
     if (!item || item.tipo !== 'equipamento') return;
     if (!classePodeUsarItemNoCliente(item)) {
-        invInfo.innerText = "⚠️ " + (item.nome || "Item") + " — sua classe não pode usar!";
+        mostrarMensagemInv("⚠️ " + (item.nome || "Item") + " — sua classe não pode usar!", "#e74c3c");
         return;
     }
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -379,7 +493,7 @@ window.equiparItemSelecionado = function(item) {
     let btnEq = document.getElementById('btn-inv-equipar');
     if (btnEq) btnEq.style.display = 'none';
     window._mochilaItemSelecionado = null;
-    invInfo.innerText = "Equipando...";
+    mostrarMensagemInv("⚔️ Equipando...");
 };
 
 window.desequiparSlotSelecionado = function(slot) {
@@ -389,13 +503,13 @@ window.desequiparSlotSelecionado = function(slot) {
         ws.send(JSON.stringify({ action: 'desequipar_item', slot: slot }));
     }
     window._slotEquipadoSelecionado = null;
-    invInfo.innerText = "Desequipando...";
+    mostrarMensagemInv("↩️ Desequipando...");
 };
 
 window.destruirItemConfirm = function(item) {
     if (!item) return;
     if (item.locked) {
-        invInfo.innerText = "🔒 Item bloqueado — desbloqueie antes de destruir.";
+        mostrarMensagemInv("🔒 Item bloqueado — desbloqueie antes de destruir.", "#f39c12");
         if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 30, text: "🔒 Bloqueado", color: "#f39c12", alpha: 1.0 });
         return;
     }
@@ -420,16 +534,14 @@ function destruirItem(item) {
     window._mochilaItemSelecionado = null;
     let btnDest = document.getElementById('btn-inv-destruir');
     if (btnDest) btnDest.style.display = 'none';
-    let cmp = document.getElementById('inv-comparacao');
-    if (cmp) cmp.style.display = 'none';
-    invInfo.innerText = "🗑️ Destruindo...";
+    mostrarMensagemInv("🗑️ Destruindo...");
 }
 
 window.organizarMochila = function() {
     if (ws && ws.readyState === WebSocket.OPEN) {
         ws.send(JSON.stringify({ action: 'organizar_mochila' }));
     }
-    invInfo.innerText = "🗂️ Organizando mochila...";
+    mostrarMensagemInv("🗂️ Organizando mochila...");
 };
 
 // ======= DESENHAR DROP NO CHÃO (efeito + partículas por raridade) =======

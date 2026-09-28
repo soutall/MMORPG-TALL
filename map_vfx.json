@@ -39,7 +39,7 @@
     "y": 415,
     "tipo": "lampada",
     "escala": 0.5,
-    "intensidade": 1,
+    "intensidade": 0.5,
     "raio": 80,
     "cor": "#ffd166"
   },
@@ -116,7 +116,7 @@
     "y": 287,
     "tipo": "lampada",
     "escala": 0.5,
-    "intensidade": 1,
+    "intensidade": 0.5,
     "raio": 80,
     "cor": "#ffd166"
   },
@@ -138,7 +138,7 @@
     "y": 472,
     "tipo": "lampada",
     "escala": 0.4,
-    "intensidade": 1,
+    "intensidade": 0.5,
     "raio": 80,
     "cor": "#ffd166"
   },
@@ -237,7 +237,7 @@
     "y": 656,
     "tipo": "lampada",
     "escala": 0.6,
-    "intensidade": 1,
+    "intensidade": 0.4,
     "raio": 80,
     "cor": "#ffd166"
   },

@@ -8519,12 +8519,12 @@
   },
   "admin": {
     "level": 10,
-    "xp": 1720,
+    "xp": 2350,
     "classe": "roqueiro",
-    "hp": 0,
-    "x": 50174,
-    "y": 1642,
-    "ultimoLogin": 1790390858459,
+    "hp": 116,
+    "x": 60596,
+    "y": 442,
+    "ultimoLogin": 1790564582047,
     "atributos": {
       "forca": 1,
       "inteligencia": 4,
@@ -8745,34 +8745,6 @@
           "cor": "#ff7a00",
           "classe": null,
           "armaChave": null
-        },
-        {
-          "id": "drop_1790377335471_24",
-          "uid": "muhkftf3-3vp5ekobn",
-          "tipo": "consumivel",
-          "subtipo": "pocao_hp",
-          "nivel": 3,
-          "nome": "🧪 Poção de Vida III",
-          "icon": "❣️",
-          "cor": "#ff4d4d",
-          "pctCura": 1,
-          "quantidade": 5,
-          "autocoleta": true,
-          "stackavel": false
-        },
-        {
-          "id": "drop_1790389152769_41",
-          "uid": "muhrh3pd-1fe1tpblt",
-          "tipo": "consumivel",
-          "subtipo": "pocao_hp",
-          "nivel": 1,
-          "nome": "🧪 Poção de Vida I",
-          "icon": "🧪",
-          "cor": "#e74c3c",
-          "pctCura": 0.2,
-          "quantidade": 1,
-          "autocoleta": true,
-          "stackavel": false
         },
         {
           "id": "drop_1790390112473_69",
@@ -10132,5 +10104,48 @@
     "criadoEm": 1790526684948,
     "ultimoLogin": 1790529842185,
     "mana": 80
+  },
+  "Dronemasterr": {
+    "level": 1,
+    "xp": 0,
+    "classe": "sniper",
+    "hp": 100,
+    "x": 60474,
+    "y": 640,
+    "personagemId": "p_Dronemasterr_b7m8bs",
+    "owner": "admin",
+    "atributos": {
+      "forca": 1,
+      "inteligencia": 1,
+      "agilidade": 1,
+      "destreza": 1,
+      "vida": 1,
+      "profanidade": 1,
+      "divindade": 1,
+      "afinidade": 1
+    },
+    "pontosDisponiveis": 3,
+    "pontosHabilidade": 0,
+    "skills": {},
+    "inventario": {
+      "slots": {
+        "capacete": null,
+        "peitoral": null,
+        "arma": null,
+        "armaSecundaria": null,
+        "colar": null,
+        "anel": null,
+        "capa": null,
+        "bota": null,
+        "luva": null
+      },
+      "mochila": []
+    },
+    "uiLayout": {
+      "pc": {},
+      "mobile": {}
+    },
+    "criadoEm": 1790562278073,
+    "ultimoLogin": 1790562278095
   }
 }

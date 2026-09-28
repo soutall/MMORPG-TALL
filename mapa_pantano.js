@@ -754,31 +754,8 @@
     }
 
     function desenharChaoLodoTurfa(ctx, x, y, c, l, tipo) {
-        if (tipo === 'turfa') {
-            ctx.fillStyle = COR_TURFA;
-            ctx.fillRect(x, y, TILE + 1, TILE + 1);
-            ctx.fillStyle = 'rgba(70, 95, 45, 0.25)';
-            const h = hash2(c, l);
-            ctx.beginPath();
-            ctx.ellipse(x + 10 + h * 20, y + 10 + h * 15, 12, 6, 0, 0, Math.PI * 2);
-            ctx.fill();
-        } else if (tipo === 'lama_movedica') {
-            ctx.fillStyle = COR_LAMA_MOVEDICA;
-            ctx.fillRect(x, y, TILE + 1, TILE + 1);
-            ctx.fillStyle = 'rgba(10, 15, 8, 0.45)';
-            ctx.beginPath();
-            ctx.arc(x + 20, y + 20, 14, 0, Math.PI * 2);
-            ctx.fill();
-        } else {
-            // Lodo com textura de musgo e pequenas poças
-            ctx.fillStyle = COR_LODO;
-            ctx.fillRect(x, y, TILE + 1, TILE + 1);
-            const h = hash2(c, l);
-            if (h > 0.6) {
-                ctx.fillStyle = 'rgba(45, 65, 30, 0.35)';
-                ctx.fillRect(x + 4, y + 4, 12, 8);
-            }
-        }
+        ctx.fillStyle = COR_LODO;
+        ctx.fillRect(x, y, TILE + 1, TILE + 1);
     }
 
     function desenharAguaVeneno(ctx, x, y, c, l, t) {
