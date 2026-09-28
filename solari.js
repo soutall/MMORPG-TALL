@@ -1,7 +1,7 @@
 // ============================================================================
 // solari.js — ARENA DE SOLARI (cliente)
 // Portal ROXO na Cidade de Davahl (60488,236) → partida em grupo (máx 4) com
-// 10 rounds, Elite no R5 e leilão final com dados 1-100 (+20 classe do item).
+// 9 rounds, Elite no R5/R9 e leilão por round com dados 1-100 (+20 classe do item).
 // Integra-se ao index.html via: window.desenharPortalSolari, tocarPortalSolari,
 // receberSolariMensagem, solariMudouMapa.
 // ============================================================================
@@ -10,6 +10,7 @@
     if (typeof window === 'undefined') return;
 
     var PORTAL = { x: 60488, y: 236, r: 38 };
+    var ROUNDS_TOTAL = 9;
 
     var CLASSE_LABEL = {
         guerreiro: '⚔️ Guerreiro', barbaro: '🪓 Bárbaro', roqueiro: '🛡️ Roqueiro',
@@ -409,7 +410,7 @@
         if (hudRound) hudRound.remove();
         hudRound = document.createElement('div');
         hudRound.className = 'solari-round-hud';
-        hudRound.textContent = '🔮 ROUND ' + r + '/' + 10 + (total ? ' · Monstros: ' + total : '');
+        hudRound.textContent = '🔮 ROUND ' + r + '/' + ROUNDS_TOTAL + (total ? ' · Monstros: ' + total : '');
         document.body.appendChild(hudRound);
     }
     function mostrarBanner(texto, cor, fim) {
@@ -461,7 +462,7 @@
         } else {
             html += '<div class="solari-item-nome" style="color:' + (item && item.cor ? item.cor : '#fff') + ';">' + (item ? (item.icon ? item.icon + ' ' : '') + item.nome : '(item)') + '</div>';
             var bonusTexto = '';
-            if (dados.classeBonus && item && item.classe) bonusTexto = '<div class="solari-item-detalhe">🎲 Role 1–100 · quem tirar o MAIOR leva!<br>+20% de chance para a classe: <b>' + classeLabel(item.classe) + '</b></div>';
+            if (dados.classeBonus && item && item.classe) bonusTexto = '<div class="solari-item-detalhe">🎲 Role 1–100 · quem tirar o MAIOR leva!<br>+20 no resultado para a classe: <b>' + classeLabel(item.classe) + '</b></div>';
             else bonusTexto = '<div class="solari-item-detalhe">🎲 Role 1–100 · quem tirar o MAIOR leva!</div>';
             html += bonusTexto;
             html += '<button class="solari-dado" id="solari-botao-dado" ' + (jaRolei ? 'disabled' : '') + '>🎲 ROLAR DADO (1-100)' + (jaRolei ? ' — já rolado!' : '') + '</button>';

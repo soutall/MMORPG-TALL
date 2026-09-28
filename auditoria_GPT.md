@@ -1,5 +1,5 @@
 # AUDITORIA GPT — MMORPG-TALL
-Versão auditada: v1.60.1
+Versão auditada: v1.60.2
 Data: 28/09/2026
 Escopo: estrutura do projeto, cliente, servidor, persistência, UI PC/Mobile,
 classes, mapas, inventário, rede, administração, segurança e roadmap.
@@ -185,7 +185,24 @@ toque define o alvo.
 
 Validação sintática realizada após as alterações.
 
-## 15. Testes executados
+## 15. Arena de Solari — correções desta auditoria
+A Solari foi normalizada para **9 rounds** como regra única no servidor e no cliente.
+
+Correções aplicadas:
+- coordenadas de chegada da Solari agora usam a fonte de verdade de `mapa_arena.js`;
+- limites X/Y da Arena são derivados do módulo do mapa quando disponível;
+- Solari e Arena normal continuam compartilhando a geometria física, mas têm instância lógica separada;
+- PvP é bloqueado dentro da Solari;
+- monstros Solari só adquirem membros da própria sessão;
+- monstros normais não adquirem jogadores da Solari;
+- ataques básicos, skills especiais e projéteis respeitam a separação da instância;
+- projéteis e impactos visuais de monstros Solari são enviados somente aos membros da sessão;
+- saída voluntária, portal, respawn e timeout não deixam jogador preso fisicamente na Arena;
+- convite exige líder vivo e próximo do portal;
+- START exige todos os membros online, vivos e com OK;
+- o servidor verifica que a quantidade configurada de rounds corresponde ao total oficial.
+
+## 16. Testes executados
 - node --check classes/dronemaster.js: OK.
 - node --check server.js: OK.
 - scripts inline do index.html: OK.
@@ -201,7 +218,7 @@ Testes ainda recomendados:
 - teste de duplicação de item/upgrade/troca;
 - teste de reconnect e queda durante gravação.
 
-## 16. Bugs/risco técnico para monitorar
+## 17. Bugs/risco técnico para monitorar
 - Persistência JSON sob carga.
 - Reconexão e estado duplicado de jogador.
 - Muitos VFX/monstros simultâneos no Mobile.
@@ -209,7 +226,7 @@ Testes ainda recomendados:
 - Sons de proximidade em mapas populosos.
 - Janelas arrastáveis em mudanças de orientação.
 - Estado client-side divergente após rejeição server-side.
-# 17. Melhorias de segurança recomendadas por ordem
+# 18. Melhorias de segurança recomendadas por ordem
 P0 — antes de produção pública:
 1. Autenticação real.
 2. Admin com credencial forte fora do Git.
@@ -233,7 +250,7 @@ P2 — endurecimento:
 16. Ferramentas admin isoladas em rota privada.
 17. Teste de carga.
 
-## 18. Checklist para cada atualização
+## 19. Checklist para cada atualização
 [ ] PC validado.
 [ ] Mobile validado.
 [ ] Cliente não decide valores competitivos.
@@ -247,7 +264,7 @@ P2 — endurecimento:
 [ ] Versão incrementada.
 [ ] Git diff revisado.
 
-## 19. Conclusão técnica
+## 20. Conclusão técnica
 O projeto está em estágio avançado de protótipo jogável e possui várias proteções
 server-authoritative já implementadas. O próximo salto de qualidade não é adicionar
 mais código de combate imediatamente: é fortalecer conta, administração, persistência,

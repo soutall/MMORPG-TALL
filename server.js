@@ -508,8 +508,8 @@ const LARGURA_CAVERNA = 58000; // Fase 4 (caverna / DG) - começa aqui
 const FIM_CAVERNA = 59800;
 const LARGURA_CIDADE = 59800; // Fase 5 (cidade separada)
 const FIM_CIDADE = 61174;
-const LARGURA_ARENA = 63800; // Fase 6 (arena, apos a cidade)
-const FIM_ARENA = 65040;
+const LARGURA_ARENA = mapaArena ? mapaArena.ARENA_X0 : 63800; // Fase 6
+const FIM_ARENA = mapaArena ? mapaArena.ARENA_X1 : 65040;
 const LARGURA_CIDADE_PERDIDA = 65040; // Fase 7 (cidade perdida, apos a arena)
 const FIM_CIDADE_PERDIDA = 71920;
 const LARGURA_TESTE_VISUAL = 72000; // Arena Visual (teste gráfico)
@@ -518,7 +518,7 @@ const LARGURA_ZONA_ZERO = 74000; // Fase Glacial «Zona Zero» (8.000 × 9.000 p
 const FIM_ZONA_ZERO = 82000;
 const LARGURA_CASTELO = 82000; // Dungeon «Castelo Anda 1» (2.200 × 1.800 px)
 const FIM_CASTELO = 84200;
-const ALTO_VERDE = 5400, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 1145, ALTO_ARENA = 1240, ALTO_CIDADE_PERDIDA = 3920, ALTO_TESTE_VISUAL = 960, ALTO_ZONA_ZERO = 9000, ALTO_CASTELO = 1800;
+const ALTO_VERDE = 5400, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 1145, ALTO_ARENA = mapaArena ? mapaArena.ARENA_Y1 : 1240, ALTO_CIDADE_PERDIDA = 3920, ALTO_TESTE_VISUAL = 960, ALTO_ZONA_ZERO = 9000, ALTO_CASTELO = 1800;
 const CIDADE_SPAWN_X = 60474, CIDADE_SPAWN_Y = 640;
 // ATENCAO: cada ponto precisa ficar FORA do raio do portal de retorno do mapa,
 // senao o cliente detecta o portal e dispara transicao falsa (tela preta).
@@ -527,7 +527,7 @@ const CIDADE_SPAWN_X = 60474, CIDADE_SPAWN_Y = 640;
 // testevisual: 72480/480 = PONTO_CHEGADA de mapa_teste_visual.js (portal em 72160/480, r=55).
 // zonazero: 74200/1000 = PONTO_SPAWN de mapa_zona_zero.js (portal fica em 74160/1000, r=56).
 // castelo: 82200/900 = SPAWN_CASTELO de mapa_castelo.js (portal de saída em 82060/900, r=52).
-const PONTOS_TELEPORTE = { green: { x: 5000, y: 1200 }, desert: { x: 18500, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, arena: { x: 64180, y: 460 }, cidadeperdida: { x: 65360, y: 460 }, testevisual: { x: 72480, y: 480 }, zonazero: { x: 74200, y: 1000 }, castelo: { x: 82200, y: 900 } };
+const PONTOS_TELEPORTE = { green: { x: 5000, y: 1200 }, desert: { x: 18500, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, arena: mapaArena && mapaArena.PONTO_CHEGADA ? mapaArena.PONTO_CHEGADA : { x: 64180, y: 460 }, cidadeperdida: { x: 65360, y: 460 }, testevisual: { x: 72480, y: 480 }, zonazero: { x: 74200, y: 1000 }, castelo: { x: 82200, y: 900 } };
 
 // ============================================================================
 // CONFIGURAÇÃO MULTI-MAPA DE COLISÕES E CAMADAS (Admin Editor v1.46.0 / v1.47.0)
@@ -673,12 +673,22 @@ function colideObstaculosCustomizados(mapa, cx, cy, raio) {
 }
 
 
-// ============ ARENA DE SOLARI (v1.32) ============
-// Portal ROXO na Cidade de Davahl (60488,236) → partida em grupo de até 4
-// jogadores com 10 rounds. Usa a MESMA geometria da Arena de Davahl (faixa
-// leste: x em [63800,65040), y em [0,1240)) mas como mapa próprio 'solari'.
-// Recompensas: leilão final com dado 1-100 (bônus +20 para a classe do item).
-const PORTAL_ROXO_SOLARI = { x: 60488, y: 236, r: 42 };
+// ============ ARENA DE SOLARI ============
+// Solari é uma instância virtual da Arena de Davahl: usa a mesma geometria
+// física, mas NÃO compartilha a instância lógica com jogadores da Arena normal.
+// 9 rounds oficiais; as coordenadas abaixo são a única fonte de verdade do
+// portal e do ponto de chegada da instância.
+const SOLARI_COORDS = {
+    portalCidade: { x: 60488, y: 236, r: 42 },
+    arena: {
+        x0: mapaArena ? mapaArena.ARENA_X0 : 63800,
+        x1: mapaArena ? mapaArena.ARENA_X1 : 65040,
+        y1: mapaArena ? mapaArena.ARENA_Y1 : 1240,
+        chegada: mapaArena && mapaArena.PONTO_CHEGADA ? mapaArena.PONTO_CHEGADA : { x: 64180, y: 460 }
+    },
+    rounds: 9
+};
+const PORTAL_ROXO_SOLARI = SOLARI_COORDS.portalCidade;
 const SOLARI_MAX_MEMBROS = 4;
 const SOLARI_ROUNDS = [
     { round: 1,  danoMult: 1.00, hpMult: 1.00, total: 30  },
@@ -689,8 +699,11 @@ const SOLARI_ROUNDS = [
     { round: 6,  danoMult: 1.45, hpMult: 1.50, total: 180 },
     { round: 7,  danoMult: 1.55, hpMult: 1.60, total: 200 },
     { round: 8,  danoMult: 2.25, hpMult: 2.50, total: 220 },
-    { round: 9,  danoMult: 3.55, hpMult: 5.00, total: 320, elite: true } // Último round oficial (v1.59.0)
+    { round: 9,  danoMult: 3.55, hpMult: 5.00, total: 320, elite: true } // Último round oficial
 ];
+if (SOLARI_ROUNDS.length !== SOLARI_COORDS.rounds) {
+    throw new Error('[SOLARI] Configuração inválida: quantidade de rounds não corresponde ao total oficial.');
+}
 // Tipos usados na arena (sem clamp de bioma, sem projéteis invisíveis e com
 // dano escalável): melee, zumbi, caveira_melee, escorpiao, assassino, ogro,
 // gargula, mamute. 2 tipos aleatórios por round.
@@ -1025,7 +1038,9 @@ function pvpPodeAtacar(atkId, defId) {
     if (atkId === defId) return false;
     if (p1.hp <= 0 || p2.hp <= 0) return false;
     if (!p1.pvpAtivo || !p2.pvpAtivo) return false;
-    if (mapaPorCoordenada(p1.x + PLAYER_OFFSET_X) !== mapaPorCoordenada(p2.x + PLAYER_OFFSET_X)) return false;
+    // Solari é PvE e é uma instância isolada: PvP nunca atravessa sua fronteira.
+    if (solariEmSessao(atkId) || solariEmSessao(defId)) return false;
+    if (mapaDoJogador(atkId) !== mapaDoJogador(defId)) return false;
     return true;
 }
 
@@ -1058,7 +1073,9 @@ function validarAtaqueBasicoAlvo(playerId, p, alvoTipo, alvoId) {
     if (!alvo) return null;
     let px = p.x + PLAYER_OFFSET_X;
     let py = p.y + PLAYER_OFFSET_Y;
-    if (mapaPorCoordenada(px) !== mapaPorCoordenada(alvo.x)) return null;
+    // Ataque básico respeita a instância Solari, não apenas a coordenada física.
+    if (entidadeEhSolari(p) !== entidadeEhSolari(alvo)) return null;
+    if (mapaDoJogador(playerId) !== (entidadeEhSolari(alvo) ? 'solari' : mapaPorCoordenada(alvo.x))) return null;
     // PvP: o cliente não pode forjar alvo em jogador com PvP desligado.
     if (alvoTipo === 'player' && !pvpPodeAtacar(playerId, alvoId)) return null;
     let alc = alcanceAtaqueBasicoClasse(p);
@@ -2110,7 +2127,8 @@ function mapaPorCoordenada(x) {
 
 function entidadeNoMapa(entidade, mapa) {
     if (!entidade) return false;
-    // Monstros/entidades da Arena de Solari: só aparecem para membros da sessão.
+    // Entidades da Arena de Solari são uma instância isolada. Isso inclui
+    // monstros e projéteis marcados pelo servidor, que nunca aparecem na Arena normal.
     if (entidade.solari === true) return mapa === 'solari';
     const mp = mapaPorCoordenada(entidade.x);
     // Cliente da Solari enxerga tudo que está na faixa da arena (x [63800,65040)).
@@ -2190,11 +2208,25 @@ function moverInimigoParaOrigem(inimigo, fatorLentidao) {
     return true;
 }
 
+function entidadeEhSolari(entidade) {
+    if (!entidade) return false;
+    if (entidade.solari === true) return true;
+    if (entidade.id && solariEmSessao(entidade.id)) return true;
+    return false;
+}
+
 function podeEntidadeAtacarAlvo(entidade, alvo, alcance) {
     if (!entidade || !alvo || alvo.hp <= 0) return false;
+    // Solari é uma instância lógica separada da Arena física. Um monstro Solari
+    // nunca pode adquirir/atingir um jogador da Arena normal e vice-versa.
+    if (entidadeEhSolari(entidade) !== entidadeEhSolari(alvo)) return false;
     // LADINO invisível (Camuflagem Sombria): inimigos não o enxergam —
     // não miram nele (agro) nem acertam ataques normais/projéteis.
     if (efeitos && efeitos.temEfeito(alvo, 'invisivel')) return false;
+    if (entidadeEhSolari(entidade)) {
+        if (!entidade.id || !entidade.solari) return false;
+        if (alvo.id && !solariEmSessao(alvo.id)) return false;
+    }
     if (mapaPorCoordenada(entidade.x) !== mapaPorCoordenada(alvo.x)) return false;
     if (!Number.isFinite(alcance)) return false;
     return distanciaEntidadesQuadrada(entidade, alvo) <= alcance * alcance;
@@ -2441,11 +2473,14 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
     }
     if (danoFinal > 0 && slime.block > 0 && Math.random() * 100 < Math.min(90, slime.block)) {
         danoFinal = 0;
-        wss.clients.forEach((client) => {
-            if (client.readyState === WebSocket.OPEN) {
-                client.send(JSON.stringify({ type: 'mob_block', x: Math.round(slime.x), y: Math.round(slime.y - 8), autorId: autorId || null }));
-            }
-        });
+        const bloco = { x: Math.round(slime.x), y: Math.round(slime.y - 8), autorId: autorId || null };
+        if (slime.solari) {
+            solariBroadcast('mob_block', bloco);
+        } else {
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'mob_block', ...bloco }));
+            });
+        }
     }
 
     if (!slime.tabelaDano) slime.tabelaDano = {};
@@ -2951,6 +2986,7 @@ function solariEstado() {
     return {
         fase: s.fase,
         round: s.round,
+        roundsTotal: SOLARI_COORDS.rounds,
         liderId: s.liderId,
         membros: s.membros.map(function (m) {
             const p = players[m.id];
@@ -3016,6 +3052,10 @@ function solariConvidar(dePid, alvoPid) {
     if (!s || s.fase !== 'recrutando') return false;
     if (s.liderId !== dePid) return false;
     if (s.membros.length >= SOLARI_MAX_MEMBROS) return false;
+    const lider = players[dePid];
+    if (!lider || lider.hp <= 0) return false;
+    const lx = lider.x + PLAYER_OFFSET_X, ly = lider.y + PLAYER_OFFSET_Y;
+    if (Math.hypot(lx - PORTAL_ROXO_SOLARI.x, ly - PORTAL_ROXO_SOLARI.y) > 460) return false;
     if (solariEmSessao(alvoPid)) return false;
     const alvo = players[alvoPid];
     if (!alvo) return false;
@@ -3057,7 +3097,8 @@ function solariRecusar(pid, deId) {
 function solariDarOk(pid) {
     const s = solariSessao;
     const m = s ? solariEmSessao(pid) : null;
-    if (!s || !m || s.fase !== 'recrutando') return;
+    const p = players[pid];
+    if (!s || !m || s.fase !== 'recrutando' || !p || p.hp <= 0) return;
     m.ok = !m.ok;
     s.ultimaAtividade = Date.now();
     solariEnviarEstado();
@@ -3066,9 +3107,10 @@ function solariDarOk(pid) {
 function solariTeleportarParaArena(pid) {
     const p = players[pid];
     if (!p) return;
-    const destino = encontrarPosicaoJogadorSegura(p, 64180 + (Math.random() * 40 - 20), 460 + (Math.random() * 40 - 20));
-    p.x = destino ? destino.x : 64180;
-    p.y = destino ? destino.y : 460;
+    const base = SOLARI_COORDS.arena.chegada;
+    const destino = encontrarPosicaoJogadorSegura(p, base.x + (Math.random() * 40 - 20), base.y + (Math.random() * 40 - 20));
+    p.x = destino ? destino.x : base.x;
+    p.y = destino ? destino.y : base.y;
     p.mapaTransicaoAte = Date.now() + 500;
     solariEnviarA(pid, 'teleporte_confirmado', { mapa: 'solari', x: p.x, y: p.y });
 }
@@ -3078,7 +3120,7 @@ function solariIniciar(pid) {
     if (!s || s.fase !== 'recrutando') return false;
     if (s.liderId !== pid) return false;
     if (s.membros.length < 1) return false;
-    const todosOk = s.membros.every(function (m) { return m.ok; });
+    const todosOk = s.membros.every(function (m) { return m.ok && players[m.id] && players[m.id].hp > 0; });
     if (!todosOk) return false;
     s.fase = 'contagem';
     s.contagemFimEm = Date.now() + 12000; // 12 segundos sincronizados com o áudio oficial
@@ -3189,7 +3231,7 @@ function solariLimparMonstros() {
 // Cada round sorteia 5 itens entre os membros APÓS a finalização do combate daquele round.
 function solariIniciarSorteio() {
     const s = solariSessao;
-    if (!s) return;
+    if (!s || s.fase !== 'rodando') return;
     const classes = s.membros.map(function (m) { const p = players[m.id]; return p ? p.classe : 'guerreiro'; });
     const itens = [];
     for (let i = 0; i < 5; i++) {
@@ -3209,7 +3251,7 @@ function solariIniciarSorteio() {
     if (!conf) { solariEncerrarSessao(); return; }
     s.fase = 'leilao';
     s.leilao = { itens: itens, indice: 0, rolagens: {}, ultimaRolagemEm: 0, itemAbertoEm: Date.now(), estado: 'aberto', vencedorId: undefined };
-    solariBroadcast('solari_leilao', { fase: 'abrir', indice: 1, total: itens.length, item: itens[0], classeBonus: true, round: s.round, roundsTotal: 9 });
+    solariBroadcast('solari_leilao', { fase: 'abrir', indice: 1, total: itens.length, item: itens[0], classeBonus: true, round: s.round, roundsTotal: SOLARI_COORDS.rounds });
     solariBroadcast('solari_banner', { texto: '🎲 SORTEIO DA RODADA ' + s.round, cor: '#ffd700', fim: false });
     console.log('[SOLARI] round=' + s.round + ' sorteio pós-combate=' + itens.length + ' itens');
     solariEnviarEstado();
@@ -3257,6 +3299,23 @@ function solariRemoverMembro(pid, motivo) {
     s.membros.splice(idx, 1);
     if (s.convites && s.convites[pid]) delete s.convites[pid];
     if (s.liderId === pid) s.liderId = s.membros.length ? s.membros[0].id : null;
+
+    // Saída voluntária/respawn/timeout devolve o jogador para Davahl. Não deixa
+    // um jogador sem sessão preso fisicamente dentro da faixa da Arena.
+    const p = players[pid];
+    if (p && motivo !== 'pvp' && motivo !== 'desconexao') {
+        p.hp = p.maxHp;
+        p.mana = p.maxMp;
+        p.estamina = 100;
+        const dest = encontrarPosicaoJogadorSegura(p, CIDADE_SPAWN_X, CIDADE_SPAWN_Y);
+        p.x = dest ? dest.x : CIDADE_SPAWN_X;
+        p.y = dest ? dest.y : CIDADE_SPAWN_Y;
+        const ws = playerSockets[pid];
+        if (ws && ws.readyState === WebSocket.OPEN) {
+            ws.send(JSON.stringify({ type: 'respawn_confirmado', mapa: 'cidade', x: p.x, y: p.y }));
+        }
+    }
+
     if (!s.membros.length) {
         solariEncerrarSessao();
         return true;
@@ -3369,7 +3428,7 @@ function atualizarSolari() {
             s.vivos = vivosReais;
             const roundCompleto = s.spawned >= conf.total && vivosReais <= 0;
             // Tempo máximo por round: se estourar, os monstros restantes morrem e o
-            // round é dado como limpo (a partida segue nos 10 rounds).
+            // round é dado como limpo e a partida segue até o round 9.
             const estourouTempo = tempoRodando >= 120000;
             if (roundCompleto || estourouTempo) {
                 solariLimparMonstros();
@@ -3400,7 +3459,7 @@ function atualizarSolari() {
         const L = s.leilao;
         const itemAtual = L.itens[L.indice];
         if (!itemAtual) {
-            if (s.round >= 9) {
+            if (s.round >= SOLARI_COORDS.rounds) {
                 s.fase = 'fim';
                 s.fimEm = agora + 6000;
                 solariBroadcast('solari_banner', { texto: '🏆 ARENA DE SOLARI CONCLUÍDA!', cor: '#ffd700', fim: true });
@@ -3450,7 +3509,7 @@ function atualizarSolari() {
                     vencedorNick: nick,
                     doado: !!L.doado,
                     round: s.round,
-                    roundsTotal: 10
+                    roundsTotal: SOLARI_COORDS.rounds
                 });
             }
         } else if (L.estado === 'resultado') {
@@ -3458,7 +3517,7 @@ function atualizarSolari() {
                 L.indice++;
                 if (L.indice >= L.itens.length) {
                     // Sorteio pós-round finalizado!
-                    if (s.round >= 10) {
+                    if (s.round >= SOLARI_COORDS.rounds) {
                         s.fase = 'fim';
                         s.fimEm = agora + 6000;
                         solariBroadcast('solari_banner', { texto: '🏆 ARENA DE SOLARI CONCLUÍDA!', cor: '#ffd700', fim: true });
@@ -3476,7 +3535,7 @@ function atualizarSolari() {
                     L.ultimaRolagemEm = 0;
                     L.itemAbertoEm = agora;
                     L.vencedorId = undefined;
-                    solariBroadcast('solari_leilao', { fase: 'abrir', indice: L.indice + 1, total: L.itens.length, item: L.itens[L.indice], classeBonus: true, round: s.round, roundsTotal: 10 });
+                    solariBroadcast('solari_leilao', { fase: 'abrir', indice: L.indice + 1, total: L.itens.length, item: L.itens[L.indice], classeBonus: true, round: s.round, roundsTotal: SOLARI_COORDS.rounds });
                 }
             }
         }
@@ -4293,6 +4352,7 @@ function dispararProjetilMonstro(slime, alvo, tipo, dano, velocidade, vida) {
         vy: (dy / distancia) * velocidade,
         vida: vida || 80,
         mapa: mapaPorCoordenada(slime.x),
+        solari: !!slime.solari,
         tipo: tipo,
         raio: tipo === 'void_laser' ? 7 : 8,
         dano: dano,
@@ -4318,7 +4378,11 @@ function resolverSkillEspecial(slime, alvo) {
         const raio = slime.skillKind === 'meteor' ? 105 : 95;
         for (let pid in players) {
             const player = players[pid];
-            if (player.hp <= 0 || mapaPorCoordenada(player.x) !== mapaPorCoordenada(slime.x)) continue;
+            if (player.hp <= 0) continue;
+            // Skills especiais de monstros Solari só afetam membros da instância.
+            if (slime.solari && !solariEmSessao(pid)) continue;
+            if (!slime.solari && solariEmSessao(pid)) continue;
+            if (mapaPorCoordenada(player.x) !== mapaPorCoordenada(slime.x)) continue;
             if (Math.hypot(player.x + 12 - tx, player.y + 16 - ty) > raio) continue;
             if (slime.skillKind === 'web') {
                 aplicarDanoJogador(pid, tx, ty, slime.dano);
@@ -4331,11 +4395,15 @@ function resolverSkillEspecial(slime, alvo) {
             aplicarContatoMonstro(slime, player);
         }
     }
-    wss.clients.forEach(client => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ type: 'monster_skill_impact', id: slime.id, skill: slime.skillKind, x: tx, y: ty, mapa: mapaPorCoordenada(slime.x) }));
-        }
-    });
+    if (slime.solari) {
+        solariBroadcast('monster_skill_impact', { id: slime.id, skill: slime.skillKind, x: tx, y: ty, mapa: 'solari' });
+    } else {
+        wss.clients.forEach(client => {
+            if (client.readyState === WebSocket.OPEN) {
+                client.send(JSON.stringify({ type: 'monster_skill_impact', id: slime.id, skill: slime.skillKind, x: tx, y: ty, mapa: mapaPorCoordenada(slime.x) }));
+            }
+        });
+    }
     slime.skillCharging = false;
     slime.skillAim = null;
     slime.skillCooldown = slime.skillCooldownMax || 200;
@@ -6377,6 +6445,9 @@ setInterval(() => {
             for (let pid in players) {
                 let p = players[pid];
                 if (p.hp <= 0) continue;
+                // Monstros Solari só podem adquirir jogadores da própria sessão.
+                if (slime.solari && !solariEmSessao(pid)) continue;
+                if (!slime.solari && solariEmSessao(pid)) continue;
                 // LADINO invisível / SNIPER camuflado: não são vistos pelo agro de proximidade
                 if (efeitos && (efeitos.temEfeito(p, 'invisivel') || efeitos.temEfeito(p, 'camuflagem'))) {
                     if (p.classe === 'sniper' && (p.snCamuflado || p.snRoupaCamo)) {
@@ -6479,6 +6550,7 @@ setInterval(() => {
                         vy: Math.sin(ang) * velProj,
                         vida: 70,
                         mapa: mapaPorCoordenada(slime.x),
+                        solari: !!slime.solari,
                         dano: slime.dano || 10,
                         ownerMonstro: slime.id,
                         petAlvo: (slime.tauntTimer > 0 && slime.tauntId && lacaios[slime.tauntId]) ? slime.tauntId : null
@@ -6619,6 +6691,7 @@ setInterval(() => {
                             vy: Math.sin(ang) * 40.5,
                             vida: 90,
                             mapa: mapaPorCoordenada(slime.x),
+                            solari: !!slime.solari,
                             dano: slime.dano || 14,
                             tipo: 'besouro',
                             raio: 7,
@@ -11269,14 +11342,14 @@ if (data.action === 'dash') {
             }
 
             if (data.action === 'teleporte_mapa') {
-                // Arena de Solari: sair pelo portal de retorno = deixar a partida
-                if (data.mapa === 'cidade' && solariEmSessao(playerId)) solariRemoverMembro(playerId, 'portal');
                 let destino = PONTOS_TELEPORTE[data.mapa];
                 if (!destino || !playerId || !players[playerId]) return;
                 if (!jogadorPodeUsarPortalMapa(players[playerId], data.mapa)) {
                     ws.send(JSON.stringify({ type: 'teleporte_recusado', mapa: data.mapa }));
                     return;
                 }
+                // Só encerra a sessão depois de validar o portal de retorno.
+                if (data.mapa === 'cidade' && solariEmSessao(playerId)) solariRemoverMembro(playerId, 'portal');
                 const destinoSolicitadoX = destino.x + (Math.random() * 20 - 10);
                 const destinoSolicitadoY = destino.y + (Math.random() * 20 - 10);
                 const destinoSeguro = encontrarPosicaoJogadorSegura(players[playerId], destinoSolicitadoX, destinoSolicitadoY);

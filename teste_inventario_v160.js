@@ -2,16 +2,16 @@ const fs = require('fs');
 const path = require('path');
 const assert = require('assert');
 
-console.log("=== INICIANDO TESTE DO NOVO INVENTÁRIO (v1.60.1) ===");
+console.log("=== INICIANDO TESTE DO NOVO INVENTÁRIO (v1.60.2) ===");
 
 // 1. Ler index.html
 const html = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf-8');
 
-// Validar versão v1.60.1 nos 3 lugares
-assert(html.includes('<div class="game-version-display">v1.60.1</div>'), "Versão v1.60.1 deve estar na tela de login");
-assert(html.includes('<div id="hud-version" class="game-version-display">v1.60.1</div>'), "Versão v1.60.1 deve estar no HUD");
-assert(html.includes("const GAME_VERSION = 'v1.60.1';"), "GAME_VERSION deve ser v1.60.1 no script");
-console.log("✔ Versão v1.60.1 validada nos 3 pontos visuais e de código");
+// Validar versão v1.60.2 nos 3 lugares
+assert(html.includes('<div class="game-version-display">v1.60.2</div>'), "Versão v1.60.2 deve estar na tela de login");
+assert(html.includes('<div id="hud-version" class="game-version-display">v1.60.2</div>'), "Versão v1.60.2 deve estar no HUD");
+assert(html.includes("const GAME_VERSION = 'v1.60.2';"), "GAME_VERSION deve ser v1.60.2 no script");
+console.log("✔ Versão v1.60.2 validada nos 3 pontos visuais e de código");
 
 // Validar tags de cache-bust
 assert(html.includes('inventario.css?v=160'), "inventario.css deve ter cache-bust v=160");

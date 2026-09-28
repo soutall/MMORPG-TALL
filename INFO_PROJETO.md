@@ -1,9 +1,10 @@
 # INFO DO PROJETO - MMORPG Mobile
 
-## Registro v1.60.1 - Auditoria GPT e correcoes criticas
+## Registro v1.60.2 - Correcoes completas da Arena de Solari
 
 | Versao | Data | O que foi feito | Arquivos |
 |---|---|---|---|
+| v1.60.2 | 28/09/2026 | Correcoes completas da Arena de Solari: 9 rounds como regra unica; coordenadas do portal e chegada centralizadas com mapa_arena.js; isolamento logico entre Solari e Arena normal em PvP, agro, ataques, skills especiais e projeteis; saida voluntaria/portal/respawn retorna corretamente a cidade; validacao de lider, membros vivos, convite e portal; correcao de referencias de round; testes de sintaxe e integridade aprovados. | server.js, solari.js, mapa_arena.js, index.html, CHANGELOG.md, INFO_PROJETO.md, REGRAS_IA.md |
 | v1.60.1 | 28/09/2026 | Auditoria estrutural; GDD; auditoria de seguranca; bloqueio de arquivos privados no HTTP; refinamento visual do Titã/Dronemaster e Sniper; point-to-click mobile; correcao da posicao de franco-atirador; correcao dos modais mobile com visualViewport; validacao sintatica. | server.js, classes/dronemaster.js, classes/sniper.js, dragdrop.js, index.html, GDD.md, auditoria_GPT.md |
 
 > Documento oficial de referência do projeto. Atualizado em 24/09/2026.
