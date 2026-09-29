@@ -377,3 +377,27 @@ Estado atual:
 - A Solari continua com suas instâncias `instanceId` independentes (`solari_1`, `solari_2`, etc.).
 - A entrada deve continuar sendo feita pelo portal/fluxo Solari; não há teleporte genérico para a instância.
 - `spawn_flags.json` estava modificado antes desta etapa pelo usuário/trabalho anterior e NÃO foi incluído nas alterações desta versão.
+
+
+## V1.4.1 — Contexto global de combate por mapa/instância (2026-09-29)
+
+Problema diagnosticado: o sistema de mapas/instâncias já separava jogadores e monstros, porém várias skills ainda operavam com coleções e broadcasts globais. Isso fazia efeitos visuais/danos funcionarem de forma diferente conforme o mapa e era especialmente problemático na Solari, onde múltiplas instâncias ocupam a mesma coordenada física.
+
+Correção estrutural em server.js:
+- Criado contexto único de combate com mapaId + instanciaId + instanciaTipo + ownerId.
+- Criadas funções centrais contextoCombateDoJogador, contextoCombateDaEntidade, aplicarContextoCombate, entidadeNoContextoCombate, contextoClienteCompativel e contextoDeEventoCombate.
+- Criado AsyncLocalStorage para preservar o contexto da skill através de callbacks, timers e setTimeout, evitando depender de uma variável global entre jogadores simultâneos.
+- WebSocket.prototype.send agora filtra eventos de combate/skills pelo contexto lógico do proprietário; eventos com ownerId, autorId, playerId, pid, ID de efeito/monstro ou contexto assíncrono são roteados somente para clientes compatíveis.
+- Coleções persistentes de skills/efeitos passaram a usar colecaoCombate(...), que carimba automaticamente mapaId, instanciaId e, na Solari, solariInstanceId quando o efeito é criado por um jogador.
+- Coleções cobertas incluem projéteis, blizzards/nevasca, vulcões, chuva de flechas, Florim, Meteor Fires, escudos, bolas elementais, buracos negros, cantos celestiais, gases, caixas, chuva de cometas, orbe de constelação e redes de sniper.
+- sincronizarEntidadesInstanciadas() ganhou uma segunda camada de segurança para carimbar efeitos legados que tenham sido criados sem contexto explícito.
+- instanciaCompativel() agora prioriza o contexto lógico e exige igualdade de mapaId e instanciaId quando houver instância.
+- danoEmBosses() agora ignora bosses fora do contexto da skill.
+- Evento da Nevasca passou a carregar ownerId explicitamente.
+
+Validação:
+- node --check server.js -> PASS.
+- /health -> OK após reinício do servidor.
+- Teste real de duas conexões: skill nevasca disparada dentro da Solari foi recebida pelo jogador da própria sessão e NÃO foi recebida por outro jogador fora da Solari.
+- Commit: 42f8500 refactor globaliza contexto de combate por mapa e instancia, enviado para origin/main.
+- spawn_flags.json permaneceu fora do commit por já estar modificado pelo usuário.
