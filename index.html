@@ -505,7 +505,6 @@
                 <button class="btn-teleportare" data-mapa="desert" onclick="selecionarMapa('desert')">🏜️ Deserto com Oásis</button>
                 <button class="btn-teleportare" data-mapa="pantano" onclick="selecionarMapa('pantano')">🌿 Pântano Realista</button>
                 <button class="btn-teleportare" data-mapa="caverna" onclick="selecionarMapa('caverna')">🕳️ Caverna Sombria (DG)</button>
-                <button class="btn-teleportare" data-mapa="arena" onclick="selecionarMapa('arena')">⚔️ Arena de Davahl</button>
                 <button class="btn-teleportare" data-mapa="cidadeperdida" onclick="selecionarMapa('cidadeperdida')">🏛️ Cidade Perdida</button>
                 <button class="btn-teleportare" data-mapa="testevisual" onclick="selecionarMapa('testevisual')">🌿 Arena Visual (Pântano Realista)</button>
                 <button class="btn-teleportare" data-mapa="zonazero" onclick="selecionarMapa('zonazero')">❄️ Zona Zero (Bioma de Gelo)</button>
@@ -822,7 +821,7 @@
     <script src="https://unpkg.com/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
     <script src="mapa_cidade.js?v=8"></script>
     <!-- <script src="mapa_cidade_three.js?v=1"></script> -->
-    <script src="mapa_arena.js?v=6"></script>
+    <script src="mapa_solari.js?v=6"></script>
     <script src="mapa_cidade_perdida.js?v=3"></script>
     <script src="mapa_teste_visual.js?v=3"></script>
     <script src="mapa_zona_zero.js?v=1"></script>
@@ -921,9 +920,9 @@
         window.LARGURA_CIDADE = 59800;
         window.FIM_CIDADE = 61174;
         window.ALTO_CIDADE = 1145;
-        window.LARGURA_ARENA = 63800;
-        window.FIM_ARENA = 65040;
-        window.ALTO_ARENA = 1240;
+        window.LARGURA_SOLARI = 63800;
+        window.FIM_SOLARI = 65040;
+        window.ALTO_SOLARI = 1240;
         window.LARGURA_CIDADE_PERDIDA = 65040;
         window.FIM_CIDADE_PERDIDA = 71920;
         window.ALTO_CIDADE_PERDIDA = 3920;
@@ -946,7 +945,7 @@
         // Pré-jogo: tela de login / seleção de personagem é independente do mundo.
         // Só vira true quando o jogador realmente entra (selecionarClasse).
         window.jogoIniciado = false;
-        window.solariAtivo = false; // TRUE dentro da Arena de Solari
+        window.solariAtivo = false; // TRUE dentro da Solari
         window.instanciaAtualId = null; // identidade lógica do espaço instanciado
         window.transicaoMapaAtiva = false;
         window.portalMapaBloqueado = null;
@@ -1621,7 +1620,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
         }
 
         // Limites do mapa ATIVO (espelho do maxYMapa do loop principal).
-        // FIX v1.34.2 (tela verde na Arena/Solari): a mira das skills não pode
+        // FIX v1.34.2 (tela verde na Solari): a mira das skills não pode
         // ultrapassar o mapa atual — antes caia até x=71880 e o jogador saía da
         // Arena para dentro da Cidade Perdida (fundo verde #1c2a1d).
         function mapaConfigCliente(id) {
@@ -1639,13 +1638,13 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
 
         function limitesMapaClienteAtivo() {
             const m = window.currentMap;
-            const cfgId = (m === 'solari') ? 'arena' : m;
+            const cfgId = (m === 'solari') ? 'solari' : m;
             const cfg = mapaConfigCliente(cfgId);
             if (cfg) return { minX: cfg.x0 + 20, maxX: cfg.x0 + cfg.w - 40, minY: cfg.y0 + 20, maxY: cfg.y0 + cfg.h - 40 };
             if (m === 'castelo') return { minX: (window.LARGURA_CASTELO || 82000) + 20, maxX: (window.FIM_CASTELO || 84200) - 40, minY: 20, maxY: 1760 };
             if (m === 'zonazero') return { minX: (window.LARGURA_ZONA_ZERO || 74000) + 20, maxX: (window.FIM_ZONA_ZERO || 82000) - 40, minY: 20, maxY: 8960 };
             if (m === 'testevisual') return { minX: (window.LARGURA_TESTE_VISUAL || 72000) + 20, maxX: (window.FIM_TESTE_VISUAL || 73280) - 40, minY: 20, maxY: 920 };
-            if (m === 'arena' || m === 'solari') return { minX: window.LARGURA_ARENA + 20, maxX: window.FIM_ARENA - 40, minY: 20, maxY: 1200 };
+            if (m === 'solari') return { minX: window.LARGURA_SOLARI + 20, maxX: window.FIM_SOLARI - 40, minY: 20, maxY: 1200 };
             if (m === 'cidadeperdida') return { minX: window.LARGURA_CIDADE_PERDIDA + 20, maxX: window.FIM_CIDADE_PERDIDA - 40, minY: 20, maxY: 3880 };
             if (m === 'cidade') return { minX: window.LARGURA_CIDADE + 20, maxX: window.FIM_CIDADE - 40, minY: 20, maxY: 1105 };
             if (m === 'caverna') return { minX: window.LARGURA_PANTANO + 20, maxX: window.FIM_CAVERNA - 40, minY: 20, maxY: 1760 };
@@ -3413,7 +3412,6 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                             // ou em qualquer bioma que não seja a cidade). Sem isso, a 1ª frame renderiza
                             // a cidade e o clamp puxa o char para o canto (X = FIM_CIDADE - 42).
                             window.currentMap = mapaPorCoordenadaCliente(window.meuX) || 'cidade';
-            if (window.currentMap === 'arena' && window.solariAtivo) window.currentMap = 'solari';
                         }
                         if (dados.level !== undefined) meuLevel = dados.level;
                         if (dados.xp !== undefined) meuXp = dados.xp;
@@ -3471,7 +3469,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                         autoAlvo = null; proximoAutoAtaqueEm = 0; // muda de mapa: cancela alvo/ataque
                         if (typeof dados.x === 'number' && typeof dados.y === 'number') {
                             let mapaDestino = dados.mapa;
-                            // Arena de Solari: entra (ou sai) do modo Solari
+                            // Solari: entra (ou sai) do modo Solari
                             window.solariAtivo = (mapaDestino === 'solari');
                             window.instanciaAtualId = window.solariAtivo ? (dados.instanciaId || null) : null;
                             if (typeof window.solariMudouMapa === 'function') window.solariMudouMapa(mapaDestino === 'solari');
@@ -6895,7 +6893,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             if (!bigMapCtx || !bigMapCanvas) return;
             const bw = bigMapCanvas.width = bigMapCanvas.clientWidth || 800;
             const bh = bigMapCanvas.height = bigMapCanvas.clientHeight || 380;
-            const arena = (window.mapaArena && typeof window.mapaArena.grid === 'function') ? window.mapaArena.grid() : null;
+            const solariGrid = (window.mapaSolari && typeof window.mapaSolari.grid === 'function') ? window.mapaSolari.grid() : null;
             const W = 1240, H = 1240;
             const escala = Math.min((bw - 30) / W, (bh - 55) / H);
             const ox = (bw - W * escala) / 2;
@@ -6906,16 +6904,16 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             bigMapCtx.fillStyle = '#e9d5ff';
             bigMapCtx.font = 'bold 15px Arial';
             bigMapCtx.textAlign = 'center';
-            bigMapCtx.fillText('ARENA DE SOLARI — MAPA DA INSTÂNCIA', bw / 2, 18);
+            bigMapCtx.fillText('SOLARI — MAPA DA INSTÂNCIA', bw / 2, 18);
             bigMapCtx.font = '9px Arial';
             bigMapCtx.fillStyle = '#bda7d6';
             bigMapCtx.fillText('Instância: ' + (window.instanciaAtualId || 'não identificada'), bw / 2, 31);
-            if (arena) {
-                const rows = arena.length, cols = rows ? arena[0].length : 31;
+            if (solariGrid) {
+                const rows = solariGrid.length, cols = rows ? solariGrid[0].length : 31;
                 const tw = W / cols, th = H / rows;
                 for (let y = 0; y < rows; y++) {
                     for (let x = 0; x < cols; x++) {
-                        const parede = arena[y] && arena[y][x] && arena[y][x].alt >= 2;
+                        const parede = solariGrid[y] && solariGrid[y][x] && solariGrid[y][x].alt >= 2;
                         bigMapCtx.fillStyle = parede ? '#21182b' : '#392b48';
                         bigMapCtx.fillRect(ox + x * tw * escala, oy + y * th * escala, tw * escala + 0.5, th * escala + 0.5);
                     }
@@ -6952,7 +6950,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             if (!bigMapCtx || !bigMapCanvas) return;
             if (window.solariAtivo) {
                 const titulo = document.getElementById('big-map-title');
-                if (titulo) titulo.textContent = '🗺️ MAPA DA INSTÂNCIA — ARENA DE SOLARI';
+                if (titulo) titulo.textContent = '🗺️ MAPA DA INSTÂNCIA — SOLARI';
                 desenharMapaMundiInstanciaSolari();
                 return;
             }
@@ -6971,7 +6969,6 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 { nome: "🪷 PÂNTANO LODOSO", nivel: "Nv. 25-40 (Tóxico)", x: 50000, w: 8000, cor: "#223114", borda: "#27ae60" },
                 { nome: "🕳️ CAVERNA DG", nivel: "Nv. 40+", x: 58000, w: 1800, cor: "#2a1515", borda: "#c0392b" },
                 { nome: "🏰 CIDADE DE DAVAHL", nivel: "Safe Hub", x: 59800, w: 1374, cor: "#152a3b", borda: "#3498db" },
-                { nome: "⚔️ ARENA DE DAVAHL", nivel: "PvP / Duelos", x: 63800, w: 1240, cor: "#2b1c11", borda: "#e67e22" },
                 { nome: "🏛️ CIDADE PERDIDA", nivel: "Ruínas distantes", x: 65040, w: 6880, cor: "#1c2a1d", borda: "#00e5ff" }
             ];
 
@@ -7012,21 +7009,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             bigMapCtx.shadowBlur = 4;
             bigMapCtx.fillText("🌀 PORTAL DAVAHL", pxPortal, pyPortal - 14);
 
-            // Portal de Retorno da Arena (63980, 460)
-            let pxPortalArena = 63980 * sx, pyPortalArena = 460 * sy;
-            bigMapCtx.strokeStyle = "#ff9800";
-            bigMapCtx.lineWidth = 2;
-            bigMapCtx.beginPath();
-            bigMapCtx.arc(pxPortalArena, pyPortalArena, 7 + Math.sin(tempoP) * 1.5, 0, Math.PI * 2);
-            bigMapCtx.stroke();
-            bigMapCtx.fillStyle = "#ffb74d";
-            bigMapCtx.beginPath();
-            bigMapCtx.arc(pxPortalArena, pyPortalArena, 4, 0, Math.PI * 2);
-            bigMapCtx.fill();
-            bigMapCtx.fillStyle = "#ff9800";
-            bigMapCtx.font = "bold 9px Arial";
-            bigMapCtx.fillText("🌀 PORTAL ARENA", pxPortalArena, pyPortalArena - 11);
-            bigMapCtx.restore();
+                        bigMapCtx.restore();
 
             // Portal de Retorno da Cidade Perdida (65140, 460)
             let pxPortalCPD = 65140 * sx, pyPortalCPD = 460 * sy;
@@ -7737,7 +7720,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 abrirTeleporteMapas();
                 return;
             }
-            // PORTAL ROXO DA ARENA DE SOLARI (cidade x=60488, y=236)
+            // PORTAL ROXO DA SOLARI (cidade x=60488, y=236)
             if (window.currentMap === 'cidade' && typeof window.tocarPortalSolari === 'function' && window.tocarPortalSolari(mx, my)) {
                 return;
             }
@@ -8050,14 +8033,13 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             if (window.meuY < 10) window.meuY = 10;
             // CORREÇÃO (canto preso): derivar o mapa ATUAL da posição ANTES do clamp de limites.
             // Antes, o clamp usava o currentMap da frame ANTERIOR (padrão 'cidade'); um personagem
-            // salvo em outro mapa (ex.: Arena X=63800+) era puxado para FIM_CIDADE-42 (=X 61132)
+            // salvo em outro mapa (ex.: Solari X=63800+) era puxado para FIM_CIDADE-42 (=X 61132)
             // e ficava travado no canto, sem conseguir andar nem teleportar.
             window.currentMap = mapaPorCoordenadaCliente(window.meuX) || 'cidade';
-            if (window.currentMap === 'arena' && window.solariAtivo) window.currentMap = 'solari';
-            const mapaConfigLoop = mapaConfigCliente(window.currentMap === 'solari' ? 'arena' : window.currentMap) || mapaConfigCliente('green');
+            const mapaConfigLoop = mapaConfigCliente(window.currentMap === 'solari' ? 'solari' : window.currentMap) || mapaConfigCliente('green');
             let maxYMapa = mapaConfigLoop.y0 + mapaConfigLoop.h;
             if (window.meuY > maxYMapa - 40) window.meuY = maxYMapa - 40;
-            const cfgLimiteLoop = mapaConfigCliente(window.currentMap === 'solari' ? 'arena' : window.currentMap);
+            const cfgLimiteLoop = mapaConfigCliente(window.currentMap === 'solari' ? 'solari' : window.currentMap);
             const limitesMapaAtual = cfgLimiteLoop ? [cfgLimiteLoop.x0, cfgLimiteLoop.x0 + cfgLimiteLoop.w] : null;
             if (limitesMapaAtual) {
                 window.meuX = Math.max(limitesMapaAtual[0] + 10, Math.min(limitesMapaAtual[1] - 42, window.meuX));
@@ -8110,7 +8092,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
 
             ctx.setTransform(1, 0, 0, 0, 0, 0);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.fillStyle = (window.currentMap === 'ruinas_01') ? "#151522" : ((window.currentMap === 'castelo') ? "#0d0a07" : ((window.currentMap === 'zonazero') ? "#0a1622" : ((window.currentMap === 'testevisual') ? "#1c2817" : ((window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'solari') ? "#150f24" : ((window.currentMap === 'pantano') ? "#24301a" : ((window.currentMap === 'desert') ? "#d9b45c" : ((window.currentMap === 'caverna') ? "#1a0f0f" : ((window.currentMap === 'cidade') ? "#2c2a27" : ((window.currentMap === 'cidadeperdida') ? "#1c2a1d" : "#163f18"))))))))));
+            ctx.fillStyle = ({ ruinas_01: "#151522", castelo: "#0d0a07", zonazero: "#0a1622", testevisual: "#1c2817", solari: "#150f24", pantano: "#24301a", desert: "#d9b45c", caverna: "#1a0f0f", cidade: "#2c2a27", cidadeperdida: "#1c2a1d" })[window.currentMap] || "#163f18";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             ctx.save(); ctx.scale((window.cameraZoomAtual || ZOOM_CAMERA), (window.cameraZoomAtual || ZOOM_CAMERA)); ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
 
@@ -8137,10 +8119,10 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 ctx.fillStyle = "#1c2817";
                 ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
                 if (typeof window.desenharCenarioTesteVisual === "function") window.desenharCenarioTesteVisual(tempoAnimacao);
-            } else if (window.currentMap === 'arena' || window.currentMap === 'solari') {
+            } else if (window.currentMap === 'solari') {
                 ctx.fillStyle = (window.currentMap === 'solari') ? "#150f24" : "#141210";
                 ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenarioArena === "function") window.desenharCenarioArena(tempoAnimacao);
+                if (typeof window.desenharCenarioSolari === "function") window.desenharCenarioSolari(tempoAnimacao);
             } else if (window.currentMap === 'cidadeperdida') {
                 ctx.fillStyle = "#1c2a1d"; // cor de fundo da Cidade Perdida
                 ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -8253,7 +8235,7 @@ if (typeof window.desenharEfeitosFlorim === "function") window.desenharEfeitosFl
             if (typeof window.desenharImpactosPedra === "function") window.desenharImpactosPedra();
 
             // ===== MOITAS DE MATO (Sniper — Camuflagem) decoração de chão =====
-            if (window.moitas && window.moitas.length && window.currentMap !== 'cidade' && window.currentMap !== 'arena' && window.currentMap !== 'solari' && window.currentMap !== 'cidadeperdida') {
+            if (window.moitas && window.moitas.length && window.currentMap !== 'cidade' && window.currentMap !== 'solari' && window.currentMap !== 'cidadeperdida') {
                 for (let i = window.moitas.length - 1; i >= 0; i--) {
                     let m = window.moitas[i];
                     if (!m) continue;
@@ -8299,7 +8281,7 @@ if (typeof window.desenharEfeitosFlorim === "function") window.desenharEfeitosFl
             let spritesSort = [];
             if (window.currentMap === 'zonazero' && typeof window.coletarZonaZeroSortables === "function") window.coletarZonaZeroSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'testevisual' && typeof window.coletarTestevisualSortables === "function") window.coletarTestevisualSortables(tempoAnimacao, spritesSort);
-            if ((window.currentMap === 'arena' || window.currentMap === 'solari') && typeof window.coletarArenaSortables === "function") window.coletarArenaSortables(tempoAnimacao, spritesSort);
+            if ((window.currentMap === 'solari') && typeof window.coletarSolariSortables === "function") window.coletarSolariSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'desert' && typeof window.coletarDesertSortables === "function") window.coletarDesertSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'pantano' && typeof window.coletarPantanoSortables === "function") window.coletarPantanoSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'caverna' && typeof window.coletarCavernaSortables === "function") window.coletarCavernaSortables(tempoAnimacao, spritesSort);
@@ -8778,7 +8760,7 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
 
                 // Header do minimapa: bioma e coordenadas
                 if (minimapBioma) {
-                    let biomaLabel = (window.currentMap === 'ruinas_01') ? "🏚️ Ruínas de Âmbar" : (window.currentMap === 'bemvindo') ? "🏝️ Ilha BemVindo" : (window.currentMap === 'castelo') ? "🏯 Castelo Anda 1 (DG)" : ((window.currentMap === 'zonazero') ? "❄️ Zona Zero (Gelo)" : ((window.currentMap === 'testevisual') ? "🌿 Arena Visual (Pântano)" : ((window.currentMap === 'arena') ? "⚔️ Arena" : ((window.currentMap === 'solari') ? "🔮 Arena de Solari" : ((window.currentMap === 'cidade') ? "🏰 Davahl" : ((window.currentMap === 'cidadeperdida') ? "🏛️ Cidade Perdida" : ((window.currentMap === 'caverna') ? "🕳️ Caverna" : ((window.currentMap === 'pantano') ? "🪷 Pântano" : ((window.currentMap === 'desert') ? "🏜️ Deserto" : "🌿 Verde")))))))));
+                    let biomaLabel = (window.currentMap === 'ruinas_01') ? "🏚️ Ruínas de Âmbar" : (window.currentMap === 'bemvindo') ? "🏝️ Ilha BemVindo" : (window.currentMap === 'castelo') ? "🏯 Castelo Anda 1 (DG)" : ((window.currentMap === 'zonazero') ? "❄️ Zona Zero (Gelo)" : ((window.currentMap === 'testevisual') ? "🌿 Arena Visual (Pântano)" : ((window.currentMap === 'solari') ? "🔮 Solari" : ((window.currentMap === 'solari') ? "🔮 Solari" : ((window.currentMap === 'cidade') ? "🏰 Davahl" : ((window.currentMap === 'cidadeperdida') ? "🏛️ Cidade Perdida" : ((window.currentMap === 'caverna') ? "🕳️ Caverna" : ((window.currentMap === 'pantano') ? "🪷 Pântano" : ((window.currentMap === 'desert') ? "🏜️ Deserto" : "🌿 Verde")))))))));
                     minimapBioma.innerText = biomaLabel;
                 }
                 if (minimapCoords) {
@@ -8799,7 +8781,7 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
                     }
 
                     // Fundo temático do bioma ativo
-                    let corFundoBioma = (window.currentMap === 'castelo') ? "#140e0a" : ((window.currentMap === 'zonazero') ? "#0c1f2e" : ((window.currentMap === 'testevisual') ? "#141f10" : ((window.currentMap === 'arena') ? "#141210" : ((window.currentMap === 'solari') ? "#201430" : ((window.currentMap === 'cidade') ? "#132333" : ((window.currentMap === 'cidadeperdida') ? "#1c2a1d" : ((window.currentMap === 'caverna') ? "#241315" : ((window.currentMap === 'pantano') ? "#1a2714" : ((window.currentMap === 'desert') ? "#4a3915" : "#163a1c")))))))));
+                    let corFundoBioma = (window.currentMap === 'castelo') ? "#140e0a" : ((window.currentMap === 'zonazero') ? "#0c1f2e" : ((window.currentMap === 'testevisual') ? "#141f10" : ((window.currentMap === 'solari') ? "#141210" : ((window.currentMap === 'solari') ? "#201430" : ((window.currentMap === 'cidade') ? "#132333" : ((window.currentMap === 'cidadeperdida') ? "#1c2a1d" : ((window.currentMap === 'caverna') ? "#241315" : ((window.currentMap === 'pantano') ? "#1a2714" : ((window.currentMap === 'desert') ? "#4a3915" : "#163a1c")))))))));
                     mmCtx.fillStyle = corFundoBioma;
                     mmCtx.fillRect(0, 0, mw, mh);
 
@@ -8819,7 +8801,6 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
                     let portais = [
                         { nome: "CIDADE", x: 60487, y: 460, cor: "#00e5ff" },
                         { nome: "VERDE", x: 5000, y: 1200, cor: "#2ecc71" },
-                        { nome: "ARENA", x: 63980, y: 460, cor: "#ff9800" }
                     ];
                     portais.forEach(p => {
                         let pos = toRadar(p.x, p.y);
@@ -8959,31 +8940,7 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
                     let vpx = 5000 * sx, vpy = 1200 * sy;
                     mmCtx.fillStyle = "#2ecc71";
                     mmCtx.beginPath(); mmCtx.arc(vpx, vpy, 2, 0, Math.PI * 2); mmCtx.fill();
-                    // Portal Arena de Davahl (63980, 460)
-                    let apx = 63980 * sx, apy = 460 * sy;
-                    mmCtx.fillStyle = "#ff9800";
-                    mmCtx.beginPath(); mmCtx.arc(apx, apy, 2, 0, Math.PI * 2); mmCtx.fill();
 
-                    // 3. Drops
-                    if (window.listaDrops && window.listaDrops.length) {
-                        window.listaDrops.forEach(function (d) {
-                            if (!d || !d.item) return;
-                            mmCtx.fillStyle = (d.item.raridade === "lendario") ? "#ff7a00" : ((d.item.raridade === "epico") ? "#a855f7" : ((d.item.raridade === "raro") ? "#4da6ff" : "#ffffff"));
-                            mmCtx.fillRect(d.x * sx - 1, d.y * sy - 1, 2.5, 2.5);
-                        });
-                    }
-
-                    // 4. Monstros vivos no mapa
-                    if (window.listaSlimes && window.listaSlimes.length) {
-                        window.listaSlimes.forEach(function (s) {
-                            if (s.hp <= 0) return;
-                            let mx = s.x * sx, my = s.y * sy;
-                            if (s.tipo === 'golem_pedra') {
-                                mmCtx.save();
-                                mmCtx.fillStyle = "#ff1744";
-                                mmCtx.beginPath();
-                                mmCtx.arc(mx, my, 4, 0, Math.PI * 2);
-                                mmCtx.fill();
                                 mmCtx.strokeStyle = "#f1c40f";
                                 mmCtx.lineWidth = 1;
                                 mmCtx.stroke();

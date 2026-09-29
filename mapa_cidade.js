@@ -369,7 +369,7 @@
     function colideMapaAtivo(x, y, raio) {
         const m = global.currentMap;
         if (m === 'cidade') return !isCidade(x, y) || colideCidade(x, y, raio);
-        if (m === 'arena') return (global.colideArena ? global.colideArena(x, y, raio) : false);
+        if (m === 'solari') return (global.colideSolari ? global.colideSolari(x, y, raio) : false);
         if (m === 'caverna') return (global.colideCaverna ? global.colideCaverna(x, y, raio) : false);
         if (m === 'pantano') return (global.colidePantano ? global.colidePantano(x, y, raio) : false);
         if (m === 'desert') return (global.colideDeserto ? global.colideDeserto(x, y, raio) : false);

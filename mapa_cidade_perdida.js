@@ -4,7 +4,7 @@
 // assim o mesmo grid de colisão vale para os dois lados.
 //
 //   • Posição: x em [65040, 71920) × y em [0, 3920) — logo após a Arena
-//     (FIM_ARENA = 65040). Tile = 40px → COLS=172, ROWS=98.
+//     (início da Solari = 65040). Tile = 40px → COLS=172, ROWS=98.
 //   • ARTE REAL: gerada de sprites/mapas/mapanovo.json (TileMakerDOT) — chão por
 //     GID (200px → 40px = 0.2) + objetos por posição, ordenados por camada
 //     (#B → normal → #A) e profundidade (baseY). PNGs em sprites/tilemaker/.
@@ -94,15 +94,15 @@
     // ------------------------------------------------------------------
     // Colisão ativa por mapa (substitui o dispatcher da Arena p/ incluir fase 7)
     // ------------------------------------------------------------------
-    function foraArena(x, y) {
+    function foraSolari(x, y) {
         return !(x >= 63800 && x < 65040 && y >= 0 && y < 1240);
     }
 
     function colideMapaAtivo(x, y, raio) {
         const m = global.currentMap;
         if (m === 'cidadeperdida') return !isCidadePerdida(x, y) || colideCidadePerdida(x, y, raio);
-        if (m === 'arena' || m === 'solari') {
-            return foraArena(x, y) || (global.colideArena ? global.colideArena(x, y, raio) : false);
+        if (m === 'solari') {
+            return foraSolari(x, y) || (global.colideSolari ? global.colideSolari(x, y, raio) : false);
         }
         if (m === 'cidade') return (global.colideCidade ? global.colideCidade(x, y, raio) : false);
         if (m === 'caverna') return (global.colideCaverna ? global.colideCaverna(x, y, raio) : false);
@@ -114,8 +114,8 @@
     function colideProjetilMapaAtivo(x, y) {
         const m = global.currentMap;
         if (m === 'cidadeperdida') return !isCidadePerdida(x, y) || colideProjetilCidadePerdida(x, y);
-        if (m === 'arena' || m === 'solari') {
-            return foraArena(x, y) || (global.colideProjetilArena ? global.colideProjetilArena(x, y) : false);
+        if (m === 'solari') {
+            return foraSolari(x, y) || (global.colideProjetilSolari ? global.colideProjetilSolari(x, y) : false);
         }
         if (m === 'cidade') return (global.colideProjetilCidade ? global.colideProjetilCidade(x, y) : false);
         if (m === 'caverna') return (global.colideProjetilCaverna ? global.colideProjetilCaverna(x, y) : false);

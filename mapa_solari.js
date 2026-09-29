@@ -1,23 +1,23 @@
-// mapa_arena.js — FASE 6: "Arena de Davahl" (chao baseado em sprites/arena.png)
+// mapa_solari.js — FASE 6: "Solari de Davahl" (chao baseado em sprites/solari.png)
 // Modulo top-down: navegador (window) e servidor (module.exports).
-// Arena: x em [63800, 65040) x y em [0, 1240), tile=40 -> 31x31 tiles.
+// Solari: x em [63800, 65040) x y em [0, 1240), tile=40 -> 31x31 tiles.
 //
 // ACESSO: somente pelo Portal de Viagem da Cidade de Davahl (PORTAL_MAPAS da
-// cidade -> opcao "Arena de Davahl" na janela de teleporte). A muralha leste da
-// cidade fecha o lado oeste da arena, logo nao existe caminhada cidade->arena.
+// cidade -> opcao "Solari de Davahl" na janela de teleporte). A muralha leste da
+// cidade fecha o lado oeste da solari, logo nao existe caminhada cidade->solari.
 //   • chegada  -> PONTO_CHEGADA (64180,460): corredor oeste (row 11, todo livre).
-//   • retorno  -> PORTAL_ARENA_RETORNO (63980,460), no portao oeste da arena,
+//   • retorno  -> PORTAL_SOLARI_RETORNO (63980,460), no portao oeste da solari,
 //                 leva para a cidade em (63740,620).
-// A arena e' SELADA: qualquer ponto fora do retangulo colide, assim o jogador
+// A solari e' SELADA: qualquer ponto fora do retangulo colide, assim o jogador
 // nao escapa para o vazio nem para dentro da muralha da cidade.
 // ============================================================================
 (function (global) {
     'use strict';
 
     const TILE = 40;
-    const ARENA_X0 = 63800;
-    const ARENA_X1 = 65040;
-    const ARENA_Y1 = 1240;
+    const SOLARI_X0 = 63800;
+    const SOLARI_X1 = 65040;
+    const SOLARI_Y1 = 1240;
     const COLS = 31;
     const ROWS = 31;
 
@@ -28,10 +28,10 @@
     const OFF_X = 7;
     const OFF_Y = 7;
 
-    // Portal de retorno no portao OESTE (e nao no centro da arena, para nao
+    // Portal de retorno no portao OESTE (e nao no centro da solari, para nao
     // expulsar o jogador que estiver lutando no medalhao central).
-    const PORTAL_ARENA_RETORNO = { x: 63980, y: 460, r: 62, alvo: { x: 60487, y: 660 } };
-    // Ponto de chegada usado pelo teleporte do servidor (PONTOS_TELEPORTE.arena).
+    const PORTAL_SOLARI_RETORNO = { x: 63980, y: 460, r: 62, alvo: { x: 60487, y: 660 } };
+    // Ponto de chegada usado pelo teleporte do servidor (PONTOS_TELEPORTE.solari).
     // Row 11 da grade e' um corredor 100% livre: 200px a leste do portal, ou seja
     // bem fora do raio 62 (com a folga de ±10 do servidor a distancia minima e' 190).
     const PONTO_CHEGADA = { x: 64180, y: 460 };
@@ -41,11 +41,11 @@
     let grid = null;
     let sortables = [];
     let decor = [];
-    let _imgArena = null;
-    let _overlayArena = null;
-    let arenaChainAnterior = null;
+    let _imgSolari = null;
+    let _overlaySolari = null;
+    let solariChainAnterior = null;
 
-    function gerarArena() {
+    function gerarSolari() {
         if (grid) return grid;
         grid = [];
         for (let l = 0; l < ROWS; l++) {
@@ -59,19 +59,19 @@
         return grid;
     }
 
-    function isArena(x, y) { return x >= ARENA_X0 && x < ARENA_X1 && y >= 0 && y < ARENA_Y1; }
+    function isSolari(x, y) { return x >= SOLARI_X0 && x < SOLARI_X1 && y >= 0 && y < SOLARI_Y1; }
 
-    function colideArena(x, y, raio) {
-        if (!grid || !isArena(x, y)) return false;
-        let c = Math.floor((x - ARENA_X0) / TILE);
+    function colideSolari(x, y, raio) {
+        if (!grid || !isSolari(x, y)) return false;
+        let c = Math.floor((x - SOLARI_X0) / TILE);
         let l = Math.floor(y / TILE);
         if (c < 0 || c >= COLS || l < 0 || l >= ROWS) return true;
         return grid[l][c].alt >= ALT_MEDIA;
     }
 
-    function colideProjetilArena(x, y) {
-        if (!grid || !isArena(x, y)) return false;
-        let c = Math.floor((x - ARENA_X0) / TILE);
+    function colideProjetilSolari(x, y) {
+        if (!grid || !isSolari(x, y)) return false;
+        let c = Math.floor((x - SOLARI_X0) / TILE);
         let l = Math.floor(y / TILE);
         if (c < 0 || c >= COLS || l < 0 || l >= ROWS) return true;
         return grid[l][c].alt >= ALT_MEDIA;
@@ -79,8 +79,8 @@
 
     function colideMapaAtivo(x, y, raio) {
         const m = global.currentMap;
-        // 'solari' compartilha EXATAMENTE a geometria da Arena (faixa leste)
-        if (m === 'arena' || m === 'solari') return !isArena(x, y) || colideArena(x, y, raio);
+        // 'solari' compartilha EXATAMENTE a geometria da Solari (faixa leste)
+        if (m === 'solari') return !isSolari(x, y) || colideSolari(x, y, raio);
         if (m === 'cidade') return (global.colideCidade ? global.colideCidade(x, y, raio) : false);
         if (m === 'caverna') return (global.colideCaverna ? global.colideCaverna(x, y, raio) : false);
         if (m === 'pantano') return (global.colidePantano ? global.colidePantano(x, y, raio) : false);
@@ -90,7 +90,7 @@
 
     function colideProjetilMapaAtivo(x, y) {
         const m = global.currentMap;
-        if (m === 'arena' || m === 'solari') return !isArena(x, y) || colideProjetilArena(x, y);
+        if (m === 'solari') return !isSolari(x, y) || colideProjetilSolari(x, y);
         if (m === 'cidade') return (global.colideProjetilCidade ? global.colideProjetilCidade(x, y) : false);
         if (m === 'caverna') return (global.colideProjetilCaverna ? global.colideProjetilCaverna(x, y) : false);
         if (m === 'pantano') return (global.colideProjetilPantano ? global.colideProjetilPantano(x, y) : false);
@@ -99,44 +99,44 @@
     }
 
     function depositarPosicaoSegura(x0, y0) {
-        if (!colideArena(x0, y0, 10)) return { x: x0, y: y0 };
+        if (!colideSolari(x0, y0, 10)) return { x: x0, y: y0 };
         for (let r = 1; r <= 4; r++) {
             for (let a = 0; a < 8; a++) {
                 let ang = (a / 8) * Math.PI * 2;
                 let x = x0 + Math.cos(ang) * r * TILE;
                 let y = y0 + Math.sin(ang) * r * TILE;
-                if (!colideArena(x, y, 10)) return { x: x, y: y };
+                if (!colideSolari(x, y, 10)) return { x: x, y: y };
             }
         }
         return { x: PONTO_CHEGADA.x, y: PONTO_CHEGADA.y };
     }
 
-    function resetarArena() { grid = null; sortables = []; decor = []; _imgArena = null; }
+    function resetarSolari() { grid = null; sortables = []; decor = []; _imgSolari = null; }
 
 
     function garantirImagem() {
-        if (_imgArena) return _imgArena;
+        if (_imgSolari) return _imgSolari;
         if (typeof document === 'undefined') return null;
-        _imgArena = new Image();
-        _imgArena.src = 'sprites/arena.png';
-        return _imgArena;
+        _imgSolari = new Image();
+        _imgSolari.src = 'sprites/solari.png';
+        return _imgSolari;
     }
 
-    function desenharCenarioArena(t) {
+    function desenharCenarioSolari(t) {
         const ctx = global.ctx;
         if (!ctx) return;
-        if (!grid) gerarArena();
+        if (!grid) gerarSolari();
         const camX = global.camX || 0, camY = global.camY || 0;
         const cw = ((global.canvas && global.canvas.width) || 900) / (global.ZOOM_CAMERA || 1);
         const ch = ((global.canvas && global.canvas.height) || 600) / (global.ZOOM_CAMERA || 1);
-        const c0 = Math.max(0, Math.floor((camX - ARENA_X0 - 240) / TILE));
-        const c1 = Math.min(COLS - 1, Math.ceil((camX - ARENA_X0 + cw + 240) / TILE));
+        const c0 = Math.max(0, Math.floor((camX - SOLARI_X0 - 240) / TILE));
+        const c1 = Math.min(COLS - 1, Math.ceil((camX - SOLARI_X0 + cw + 240) / TILE));
         const l0 = Math.max(0, Math.floor((camY - 240) / TILE));
         const l1 = Math.min(ROWS - 1, Math.ceil((camY + ch + 240) / TILE));
         const img = garantirImagem();
         for (let l = l0; l <= l1; l++) {
             for (let c = c0; c <= c1; c++) {
-                const x = ARENA_X0 + c * TILE;
+                const x = SOLARI_X0 + c * TILE;
                 const y = l * TILE;
                 if (img && img.complete && img.naturalWidth) {
                     ctx.drawImage(img, OFF_X + c * TILE, OFF_Y + l * TILE, TILE, TILE, x, y, TILE, TILE);
@@ -146,11 +146,11 @@
                 }
             }
         }
-        desenharPortalArenaRetorno(ctx, t, camX, camY, cw, ch);
-        // Arena de Solari: leve brilho roxo no cenário para diferenciar da Arena normal
+        desenharPortalSolariRetorno(ctx, t, camX, camY, cw, ch);
+        // Solari de Solari: leve brilho roxo no cenário para diferenciar da Solari normal
         if (global.currentMap === 'solari') {
-            const gx0 = Math.max(ARENA_X0, camX - 80), gy0 = Math.max(0, camY - 80);
-            const gx1 = Math.min(ARENA_X1, camX + cw + 80), gy1 = Math.min(ARENA_Y1, camY + ch + 80);
+            const gx0 = Math.max(SOLARI_X0, camX - 80), gy0 = Math.max(0, camY - 80);
+            const gx1 = Math.min(SOLARI_X1, camX + cw + 80), gy1 = Math.min(SOLARI_Y1, camY + ch + 80);
             if (gx1 > gx0 && gy1 > gy0) {
                 const tg = ctx.createLinearGradient(gx0, gy0, gx1, gy1);
                 tg.addColorStop(0, 'rgba(124, 58, 237, 0.10)');
@@ -162,7 +162,7 @@
         }
     }
 
-    // Paletas do Portal Vortex (vermelho = Solari / ciano = Arena normal)
+    // Paletas do Portal Vortex (vermelho = Solari / ciano = Solari normal)
     const PALETA_PORTAL_CYAN = {
         halo0: 'rgba(0,200,255,0.14)', halo1: 'rgba(30,90,240,0.08)', halo2: 'rgba(30,60,160,0)',
         solo0: 'rgba(0,229,255,0.85)', solo1: 'rgba(64,120,255,0.55)', solo2: 'rgba(0,60,180,0.85)',
@@ -174,7 +174,7 @@
         runa: 'rgba(170,235,255,0.95)', runaSombra: '#00e5ff',
         raio: 'rgba(160,235,255,0.28)',
         sombra: '#00ccff', lab1: '#ffffff', lab2: '#80d8ff',
-        rotulo1: 'PORTAL DA ARENA', rotulo2: 'Voltar a Davahl'
+        rotulo1: 'PORTAL DA SOLARI', rotulo2: 'Voltar a Davahl'
     };
     const PALETA_PORTAL_RED = {
         halo0: 'rgba(255,70,60,0.16)', halo1: 'rgba(180,30,40,0.08)', halo2: 'rgba(120,10,20,0)',
@@ -190,8 +190,8 @@
         rotulo1: 'PORTAL DA SOLARI', rotulo2: 'Selo Arcano'
     };
 
-    function desenharPortalArenaRetorno(ctx, t, camX, camY, cw, ch) {
-        const p = PORTAL_ARENA_RETORNO;
+    function desenharPortalSolariRetorno(ctx, t, camX, camY, cw, ch) {
+        const p = PORTAL_SOLARI_RETORNO;
         if (p.x + p.r + 120 < camX || p.x - p.r - 120 > camX + cw || p.y + p.r + 120 < camY || p.y - p.r - 120 > camY + ch) return;
         // FIX v1.33.4 mantido: o portal da Solari é DECORATIVO (não teleporta) —
         // a saída da partida continua pelo painel da Solari / Renascer.
@@ -381,42 +381,42 @@
         ctx.restore();
     }
 
-    function coletarArenaSortables(t, arr) {}
+    function coletarSolariSortables(t, arr) {}
 
 
-    function infoPortalArena(x, y) {
+    function infoPortalSolari(x, y) {
         // FIX v1.33.4: sem portal de retorno dentro da Solari — não dispara
         // teleporte pra cidade no meio da partida.
         if (global.currentMap === 'solari') return null;
-        if (x >= ARENA_X0) {
-            if (Math.hypot(x - PORTAL_ARENA_RETORNO.x, y - PORTAL_ARENA_RETORNO.y) < PORTAL_ARENA_RETORNO.r) {
-                return { via: 'portal', mapa: 'cidade', alvo: PORTAL_ARENA_RETORNO.alvo };
+        if (x >= SOLARI_X0) {
+            if (Math.hypot(x - PORTAL_SOLARI_RETORNO.x, y - PORTAL_SOLARI_RETORNO.y) < PORTAL_SOLARI_RETORNO.r) {
+                return { via: 'portal', mapa: 'cidade', alvo: PORTAL_SOLARI_RETORNO.alvo };
             }
             return null;
         }
         return null;
     }
 
-    function obterOverlayArena() {
-        if (_overlayArena) return _overlayArena;
+    function obterOverlaySolari() {
+        if (_overlaySolari) return _overlaySolari;
         if (typeof document === 'undefined') return null;
-        _overlayArena = document.createElement('div');
-        _overlayArena.id = 'overlay-mapa-arena';
-        _overlayArena.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;background:#000;z-index:99999;opacity:0;pointer-events:none;transition:opacity .35s ease;';
-        document.body.appendChild(_overlayArena);
-        return _overlayArena;
+        _overlaySolari = document.createElement('div');
+        _overlaySolari.id = 'overlay-mapa-solari';
+        _overlaySolari.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;background:#000;z-index:99999;opacity:0;pointer-events:none;transition:opacity .35s ease;';
+        document.body.appendChild(_overlaySolari);
+        return _overlaySolari;
     }
 
-    function transicaoArenaFade(cb) {
+    function transicaoSolariFade(cb) {
         if (typeof document === 'undefined' || !document.body) { cb(); return; }
-        const ov = obterOverlayArena();
+        const ov = obterOverlaySolari();
         ov.style.opacity = '1';
         setTimeout(function () { cb(); ov.style.opacity = '0'; }, 380);
     }
 
-    function determinarMapaArena(x) {
-        const LW = global.LARGURA_VERDE || 18000, LD = global.LARGURA_DESERTO || 50000, LP = global.LARGURA_PANTANO || 58000, LC = global.LARGURA_CIDADE || 59800, LA = global.LARGURA_ARENA || ARENA_X0;
-        if (x >= LA) return 'arena';
+    function determinarMapaSolari(x) {
+        const LW = global.LARGURA_VERDE || 18000, LD = global.LARGURA_DESERTO || 50000, LP = global.LARGURA_PANTANO || 58000, LC = global.LARGURA_CIDADE || 59800, LA = global.LARGURA_SOLARI || SOLARI_X0;
+        if (x >= LA) return 'solari';
         if (x >= LC) return 'cidade';
         if (x >= LP) return 'caverna';
         if (x >= LD) return 'pantano';
@@ -428,67 +428,67 @@
         if (global.estaMorto) return;
         if (typeof global.portalMapaPodeDisparar === 'function' && !global.portalMapaPodeDisparar(x, y)) return;
         let info = null;
-        if (x >= ARENA_X0) {
-            info = infoPortalArena(x, y);
-        } else if (arenaChainAnterior && typeof arenaChainAnterior.onUpdatePosicao === 'function') {
-            arenaChainAnterior.onUpdatePosicao(x, y);
+        if (x >= SOLARI_X0) {
+            info = infoPortalSolari(x, y);
+        } else if (solariChainAnterior && typeof solariChainAnterior.onUpdatePosicao === 'function') {
+            solariChainAnterior.onUpdatePosicao(x, y);
             return;
         }
         if (!info) return;
         if (typeof global.solicitarTeleporteMapa === 'function') {
-            global.solicitarTeleporteMapa(info.mapa, 'arena_' + info.mapa);
+            global.solicitarTeleporteMapa(info.mapa, 'solari_' + info.mapa);
             return;
         }
         transicaoAtiva = true;
-        transicaoArenaFade(function () {
+        transicaoSolariFade(function () {
             global.meuX = info.alvo.x;
             global.meuY = info.alvo.y;
-            global.currentMap = determinarMapaArena(info.alvo.x);
+            global.currentMap = determinarMapaSolari(info.alvo.x);
         });
     }
 
 
     const api = {
         TILE: TILE,
-        ARENA_X0: ARENA_X0, ARENA_X1: ARENA_X1, ARENA_Y1: ARENA_Y1,
+        SOLARI_X0: SOLARI_X0, SOLARI_X1: SOLARI_X1, SOLARI_Y1: SOLARI_Y1,
         COLS: COLS, ROWS: ROWS,
         ALT_LIVRE: ALT_LIVRE, ALT_MEDIA: ALT_MEDIA, ALT_ALTA: ALT_ALTA,
-        PORTAL_ARENA_RETORNO: PORTAL_ARENA_RETORNO,
+        PORTAL_SOLARI_RETORNO: PORTAL_SOLARI_RETORNO,
         PONTO_CHEGADA: PONTO_CHEGADA,
-        LARGURA_ARENA: ARENA_X0,
-        FIM_ARENA: ARENA_X1,
-        ALTO_ARENA: ARENA_Y1,
-        gerarArena: gerarArena,
-        resetarArena: resetarArena,
+        LARGURA_SOLARI: SOLARI_X0,
+        FIM_SOLARI: SOLARI_X1,
+        ALTO_SOLARI: SOLARI_Y1,
+        gerarSolari: gerarSolari,
+        resetarSolari: resetarSolari,
         grid: function () { return grid; },
-        isArena: isArena,
-        colideArena: colideArena,
-        colideProjetilArena: colideProjetilArena,
-        infoPortalArena: infoPortalArena,
+        isSolari: isSolari,
+        colideSolari: colideSolari,
+        colideProjetilSolari: colideProjetilSolari,
+        infoPortalSolari: infoPortalSolari,
         depositarPosicaoSegura: depositarPosicaoSegura,
-        desenharCenarioArena: desenharCenarioArena,
-        coletarArenaSortables: coletarArenaSortables,
+        desenharCenarioSolari: desenharCenarioSolari,
+        coletarSolariSortables: coletarSolariSortables,
         colideMapaAtivo: colideMapaAtivo,
         colideProjetilMapaAtivo: colideProjetilMapaAtivo,
         onUpdatePosicao: onUpdatePosicao
     };
 
     if (typeof window !== 'undefined') {
-        gerarArena();
-        arenaChainAnterior = global.chainMapas;
+        gerarSolari();
+        solariChainAnterior = global.chainMapas;
         global.chainMapas = { onUpdatePosicao: onUpdatePosicao };
-        global.desenharCenarioArena = desenharCenarioArena;
-        global.coletarArenaSortables = coletarArenaSortables;
-        global.colideArena = colideArena;
-        global.colideProjetilArena = colideProjetilArena;
-        global.infoPortalArena = infoPortalArena;
+        global.desenharCenarioSolari = desenharCenarioSolari;
+        global.coletarSolariSortables = coletarSolariSortables;
+        global.colideSolari = colideSolari;
+        global.colideProjetilSolari = colideProjetilSolari;
+        global.infoPortalSolari = infoPortalSolari;
         global.colideMapaAtivo = colideMapaAtivo;
         global.colideProjetilMapaAtivo = colideProjetilMapaAtivo;
-        global.mapaArena = api;
+        global.mapaSolari = api;
     }
 
     if (typeof module !== 'undefined' && module.exports) {
-        if (!grid) gerarArena();
+        if (!grid) gerarSolari();
         module.exports = api;
     }
 

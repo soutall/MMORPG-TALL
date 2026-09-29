@@ -339,3 +339,41 @@ Estado para o próximo teste:
 - Convite continua sendo o mecanismo para colocar B na mesma sala de A.
 
 Não alterar a arquitetura Solari por causa desse aviso antes de repetir o teste com o servidor atual; primeiro confirmar o comportamento no processo atualizado.
+## MAPAS — VERSÃO 1.4.0 — 2026-09-29 — ARENA REMOVIDA / SOLARI ASSUME O MAPA
+
+Solicitação do usuário: remover a Arena de Davahl por completo e deixar somente a Solari ocupando a região física que anteriormente pertencia à Arena.
+
+Alterações realizadas:
+- `mapas-registry.js`: removido o registro `arena`; a região x=63800..65040 agora pertence ao mapa `solari`.
+- `mapa_arena.js`: removido do projeto.
+- `sprites/arena.png`: removido; criada `sprites/solari.png` a partir do mesmo asset visual para manter a aparência atual da Solari.
+- Criado `mapa_solari.js` como módulo oficial do mapa Solari, substituindo o antigo módulo da Arena.
+- `server.js`: passou a carregar `mapa_solari.js`, usar `LARGURA_SOLARI`, `FIM_SOLARI`, `ALTO_SOLARI`, colisão Solari e coordenadas `SOLARI_COORDS.solari`.
+- `PONTOS_TELEPORTE` deixou de oferecer a Arena/Solari como teleporte genérico; a entrada da Solari continua sendo controlada pelo portal e pela sessão/instância.
+- Funções auxiliares que ainda usavam nomes da Arena foram renomeadas para Solari (`solariTeleportarParaSolari`, `colideSolari`, `colideProjetilSolari`, etc.).
+- `mapa_cidade.js`, `mapa_cidade_perdida.js`, `audio-manager.js` e `colisao-editor.js` foram atualizados para o ID `solari`.
+- `index.html`: removido o botão/representação pública da antiga Arena; o mapa-múndi geral não mostra mais a Arena naquele ponto; dentro da Solari permanece o mapa-múndi exclusivo da instância.
+- O código do cliente passou a desenhar/carregar o mapa Solari diretamente.
+
+Validações:
+- `node --check server.js` → PASS.
+- `node --check mapa_solari.js` → PASS.
+- `node --check mapas-registry.js` → PASS.
+- `node --check mapa_cidade.js` → PASS.
+- `node --check mapa_cidade_perdida.js` → PASS.
+- `node --check audio-manager.js` → PASS.
+- `node --check colisao-editor.js` → PASS.
+- Scripts inline do `index.html` → `INLINE_SCRIPTS_OK=3`.
+- Registro validado: `REGISTRY_SOLARI=true`, `REGISTRY_ARENA=false`.
+- Arquivo `mapa_arena.js` validado como inexistente.
+- Asset `sprites/arena.png` validado como inexistente.
+- `sprites/solari.png` existe.
+- Servidor reiniciado na porta 8080 e carregou: Fase 6 'Solari' (31x31 tiles), sem carregar a Arena antiga.
+- `/health` retornou `OK`.
+
+Estado atual:
+- Não existe mais um mapa `arena` no registry.
+- A região que antes era Arena agora é `mapId='solari'`.
+- A Solari continua com suas instâncias `instanceId` independentes (`solari_1`, `solari_2`, etc.).
+- A entrada deve continuar sendo feita pelo portal/fluxo Solari; não há teleporte genérico para a instância.
+- `spawn_flags.json` estava modificado antes desta etapa pelo usuário/trabalho anterior e NÃO foi incluído nas alterações desta versão.

@@ -52,12 +52,12 @@ try {
     console.log("Aviso: mapa_cidade.js não carregado: " + e.message);
 }
 
-let mapaArena = null;
+let mapaSolari = null;
 try {
-    mapaArena = require('./mapa_arena.js');
-    console.log("Fase 6 'Arena' carregada (" + mapaArena.COLS + "x" + mapaArena.ROWS + " tiles).");
+    mapaSolari = require('./mapa_solari.js');
+    console.log("Fase 6 'Solari' carregada (" + mapaSolari.COLS + "x" + mapaSolari.ROWS + " tiles).");
 } catch (e) {
-    console.log("Aviso: mapa_arena.js não carregado: " + e.message);
+    console.log("Aviso: mapa_solari.js não carregado: " + e.message);
 }
 
 let mapaCidadePerdida = null;
@@ -621,8 +621,8 @@ const LARGURA_CAVERNA = 58000; // Fase 4 (caverna / DG) - começa aqui
 const FIM_CAVERNA = 59800;
 const LARGURA_CIDADE = 59800; // Fase 5 (cidade separada)
 const FIM_CIDADE = 61174;
-const LARGURA_ARENA = mapaArena ? mapaArena.ARENA_X0 : 63800; // Fase 6
-const FIM_ARENA = mapaArena ? mapaArena.ARENA_X1 : 65040;
+const LARGURA_SOLARI = mapaSolari ? mapaSolari.SOLARI_X0 : 63800; // Fase 6
+const FIM_SOLARI = mapaSolari ? mapaSolari.SOLARI_X1 : 65040;
 const LARGURA_CIDADE_PERDIDA = 65040; // Fase 7 (cidade perdida, apos a arena)
 const FIM_CIDADE_PERDIDA = 71920;
 const LARGURA_TESTE_VISUAL = 72000; // Arena Visual (teste gráfico)
@@ -637,18 +637,18 @@ const ALTO_BEMVINDO = mapaBemVindo ? mapaBemVindo.BEMVINDO_Y1 : 1800;
 const RUINAS_01_X0 = MAPAS_REGISTRY.ruinas_01.x0;
 const RUINAS_01_X1 = MAPAS_REGISTRY.ruinas_01.x0 + MAPAS_REGISTRY.ruinas_01.w;
 const ALTO_RUINAS_01 = MAPAS_REGISTRY.ruinas_01.h;
-const ALTO_VERDE = 5400, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 1145, ALTO_ARENA = mapaArena ? mapaArena.ARENA_Y1 : 1240, ALTO_CIDADE_PERDIDA = 3920, ALTO_TESTE_VISUAL = 960, ALTO_ZONA_ZERO = 9000, ALTO_CASTELO = 1800;
+const ALTO_VERDE = 5400, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 1145, ALTO_SOLARI = mapaSolari ? mapaSolari.SOLARI_Y1 : 1240, ALTO_CIDADE_PERDIDA = 3920, ALTO_TESTE_VISUAL = 960, ALTO_ZONA_ZERO = 9000, ALTO_CASTELO = 1800;
 const CIDADE_SPAWN_X = 60474, CIDADE_SPAWN_Y = 640;
 const BEMVINDO_SPAWN_X = mapaBemVindo && mapaBemVindo.PONTO_SPAWN ? mapaBemVindo.PONTO_SPAWN.x : 85720;
 const BEMVINDO_SPAWN_Y = mapaBemVindo && mapaBemVindo.PONTO_SPAWN ? mapaBemVindo.PONTO_SPAWN.y : 930;
 // ATENCAO: cada ponto precisa ficar FORA do raio do portal de retorno do mapa,
 // senao o cliente detecta o portal e dispara transicao falsa (tela preta).
-// arena: 64180/460 = PONTO_CHEGADA de mapa_arena.js (portal fica em 63980/460, r=62).
+// solari: 64180/460 = PONTO_CHEGADA de mapa_solari.js (portal fica em 63980/460, r=62).
 // cidadeperdida: 65360/460 = PONTO_CHEGADA de mapa_cidade_perdida.js (portal em 65140/460, r=62).
 // testevisual: 72480/480 = PONTO_CHEGADA de mapa_teste_visual.js (portal em 72160/480, r=55).
 // zonazero: 74200/1000 = PONTO_SPAWN de mapa_zona_zero.js (portal fica em 74160/1000, r=56).
 // castelo: 82200/900 = SPAWN_CASTELO de mapa_castelo.js (portal de saída em 82060/900, r=52).
-const PONTOS_TELEPORTE = { green: { x: 5000, y: 1200 }, desert: { x: 18500, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, arena: mapaArena && mapaArena.PONTO_CHEGADA ? mapaArena.PONTO_CHEGADA : { x: 64180, y: 460 }, cidadeperdida: { x: 65360, y: 460 }, testevisual: { x: 72480, y: 480 }, zonazero: { x: 74200, y: 1000 }, castelo: { x: 82200, y: 900 }, bemvindo: { x: BEMVINDO_SPAWN_X, y: BEMVINDO_SPAWN_Y }, ruinas_01: { x: RUINAS_01_X0 + 1300, y: 950 } };
+const PONTOS_TELEPORTE = { green: { x: 5000, y: 1200 }, desert: { x: 18500, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, arena: mapaSolari && mapaSolari.PONTO_CHEGADA ? mapaSolari.PONTO_CHEGADA : { x: 64180, y: 460 }, cidadeperdida: { x: 65360, y: 460 }, testevisual: { x: 72480, y: 480 }, zonazero: { x: 74200, y: 1000 }, castelo: { x: 82200, y: 900 }, bemvindo: { x: BEMVINDO_SPAWN_X, y: BEMVINDO_SPAWN_Y }, ruinas_01: { x: RUINAS_01_X0 + 1300, y: 950 } };
 
 // ============================================================================
 // CONFIGURAÇÃO MULTI-MAPA DE COLISÕES E CAMADAS (Admin Editor v1.46.0 / v1.47.0)
@@ -784,17 +784,17 @@ function colideObstaculosCustomizados(mapa, cx, cy, raio) {
 
 
 // ============ ARENA DE SOLARI ============
-// Solari é uma instância virtual da Arena de Davahl: usa a mesma geometria
+// Solari é uma instância independente e usa a geometria própria do mapa Solari:
 // física, mas NÃO compartilha a instância lógica com jogadores da Arena normal.
 // 9 rounds oficiais; as coordenadas abaixo são a única fonte de verdade do
 // portal e do ponto de chegada da instância.
 const SOLARI_COORDS = {
     portalCidade: { x: 60488, y: 236, r: 42 },
     arena: {
-        x0: mapaArena ? mapaArena.ARENA_X0 : 63800,
-        x1: mapaArena ? mapaArena.ARENA_X1 : 65040,
-        y1: mapaArena ? mapaArena.ARENA_Y1 : 1240,
-        chegada: mapaArena && mapaArena.PONTO_CHEGADA ? mapaArena.PONTO_CHEGADA : { x: 64180, y: 460 }
+        x0: mapaSolari ? mapaSolari.SOLARI_X0 : 63800,
+        x1: mapaSolari ? mapaSolari.SOLARI_X1 : 65040,
+        y1: mapaSolari ? mapaSolari.SOLARI_Y1 : 1240,
+        chegada: mapaSolari && mapaSolari.PONTO_CHEGADA ? mapaSolari.PONTO_CHEGADA : { x: 64180, y: 460 }
     },
     rounds: 9
 };
@@ -2111,12 +2111,12 @@ function podeAndar(x, y) {
         if (mapaCidade && mapaCidade.colideCidade(x, y)) return false;
         return true;
     }
-    if (x < LARGURA_ARENA) {
+    if (x < LARGURA_SOLARI) {
         return false;
     }
-    if (x < FIM_ARENA) {
-        if (y >= ALTO_ARENA) return false;
-        if (mapaArena && mapaArena.colideArena(x, y)) return false;
+    if (x < FIM_SOLARI) {
+        if (y >= ALTO_SOLARI) return false;
+        if (mapaSolari && mapaSolari.colideSolari(x, y)) return false;
         return true;
     }
     if (x < FIM_CIDADE_PERDIDA) {
@@ -2390,7 +2390,7 @@ function entidadeNoMapa(entidade, mapa, instanciaId) {
     if (entidade.solari === true) return mapa === 'solari' && (!instanciaId || (entidade.solariInstanceId || entidade.instanciaId) === instanciaId);
     const mp = mapaPorCoordenada(entidade.x);
     // Cliente da Solari enxerga tudo que está na faixa da arena (x [63800,65040)).
-    if (mapa === 'solari') return mp === 'arena' && (!instanciaId || entidade.instanciaId === instanciaId);
+    if (mapa === 'solari') return mp === 'solari' && (!instanciaId || entidade.instanciaId === instanciaId);
     if (mp !== mapa) return false;
     if (mapaEhInstanciado(mapa) && instanciaId) return entidade.instanciaId === instanciaId;
     return true;
@@ -2416,7 +2416,7 @@ function jogadorPodeUsarPortalMapa(player, destino) {
             (mapaAtual === 'green' && perto(17080, 4500));
     }
     if (destino === 'ruinas_01') return (mapaAtual === 'cidade' && perto(60474, 640)) || (mapaAtual === 'bemvindo' && perto(86780, 950));
-    if (destino === 'pantano' || destino === 'caverna' || destino === 'arena' || destino === 'cidadeperdida' || destino === 'testevisual' || destino === 'zonazero' || destino === 'castelo') {
+    if (destino === 'pantano' || destino === 'caverna' || destino === 'cidadeperdida' || destino === 'testevisual' || destino === 'zonazero' || destino === 'castelo') {
         return mapaAtual === 'cidade' && perto(60474, 640);
     }
     if (destino === 'cidade') return true; // Permitir retorno livre para a cidade pelo mapa mundial
@@ -2514,7 +2514,7 @@ function limitesMapaJogador(cx, cy) {
     if (cx < LARGURA_PANTANO) return { minX: LARGURA_DESERTO, maxX: LARGURA_PANTANO, maxY: ALTO_PANTANO };
     if (cx < FIM_CAVERNA) return { minX: LARGURA_CAVERNA, maxX: FIM_CAVERNA, maxY: ALTO_CAVERNA };
     if (cx < FIM_CIDADE) return { minX: LARGURA_CIDADE, maxX: FIM_CIDADE, maxY: ALTO_CIDADE };
-    if (cx >= LARGURA_ARENA && cx < FIM_ARENA) return { minX: LARGURA_ARENA, maxX: FIM_ARENA, maxY: ALTO_ARENA };
+    if (cx >= LARGURA_SOLARI && cx < FIM_SOLARI) return { minX: LARGURA_SOLARI, maxX: FIM_SOLARI, maxY: ALTO_SOLARI };
     if (cx >= LARGURA_CIDADE_PERDIDA && cx < FIM_CIDADE_PERDIDA) return { minX: LARGURA_CIDADE_PERDIDA, maxX: FIM_CIDADE_PERDIDA, maxY: ALTO_CIDADE_PERDIDA };
     if (cx >= LARGURA_TESTE_VISUAL && cx < FIM_TESTE_VISUAL) return { minX: LARGURA_TESTE_VISUAL, maxX: FIM_TESTE_VISUAL, maxY: ALTO_TESTE_VISUAL };
     if (cx >= LARGURA_ZONA_ZERO && cx < FIM_ZONA_ZERO) return { minX: LARGURA_ZONA_ZERO, maxX: FIM_ZONA_ZERO, maxY: ALTO_ZONA_ZERO };
@@ -2549,10 +2549,10 @@ function colideMapaJogador(cx, cy) {
         if (colisaoObjetosDoMapa('cidade', cx, cy)) return true;
         return colideObstaculosCustomizados('cidade', cx, cy, PLAYER_COLLISION_RADIUS);
     }
-    if (cx >= LARGURA_ARENA && cx < FIM_ARENA) {
-        if (mapaArena && mapaArena.colideArena(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
-        if (colisaoObjetosDoMapa('arena', cx, cy)) return true;
-        return colideObstaculosCustomizados('arena', cx, cy, PLAYER_COLLISION_RADIUS);
+    if (cx >= LARGURA_SOLARI && cx < FIM_SOLARI) {
+        if (mapaSolari && mapaSolari.colideSolari(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
+        if (colisaoObjetosDoMapa('solari', cx, cy)) return true;
+        return colideObstaculosCustomizados('solari', cx, cy, PLAYER_COLLISION_RADIUS);
     }
     if (cx >= LARGURA_CIDADE_PERDIDA && cx < FIM_CIDADE_PERDIDA) {
         if (mapaCidadePerdida && mapaCidadePerdida.colideCidadePerdida(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
@@ -3416,10 +3416,10 @@ function solariDarOk(pid) {
     solariEnviarEstado(s);
 }
 
-function solariTeleportarParaArena(pid, s) {
+function solariTeleportarParaSolari(pid, s) {
     const p = players[pid];
     if (!p || !s) return;
-    const base = SOLARI_COORDS.arena.chegada;
+    const base = SOLARI_COORDS.solari.chegada;
     const destino = encontrarPosicaoJogadorSegura(p, base.x + (Math.random() * 40 - 20), base.y + (Math.random() * 40 - 20));
     p.x = destino ? destino.x : base.x;
     p.y = destino ? destino.y : base.y;
@@ -3438,7 +3438,7 @@ function solariIniciar(pid) {
     s.fase = 'contagem';
     s.contagemFimEm = Date.now() + 12000; // 12 segundos sincronizados com o áudio oficial
     s.contagemUltimoSeg = -1;
-    s.membros.forEach(function (m) { if (players[m.id]) solariTeleportarParaArena(m.id, s); });
+    s.membros.forEach(function (m) { if (players[m.id]) solariTeleportarParaSolari(m.id, s); });
     solariEnviarEstado(s);
     solariBroadcast(s, 'solari_contagem', { seg: 10, mensagem: '' });
     solariBroadcast(s, 'solari_banner', { texto: 'ARENA DE SOLARI', cor: '#c77dff', fim: false });
@@ -3460,7 +3460,7 @@ function solariPosAleatoria() {
         else if (quad === 1) { x = 64860 - Math.random() * 460; y = 160 + Math.random() * 320; }
         else if (quad === 2) { x = 63960 + Math.random() * 460; y = 1120 - Math.random() * 320; }
         else { x = 64860 - Math.random() * 460; y = 1120 - Math.random() * 320; }
-        if (!mapaArena.colideArena(x, y, 12)) return { x: Math.round(x), y: Math.round(y) };
+        if (!mapaSolari.colideSolari(x, y, 12)) return { x: Math.round(x), y: Math.round(y) };
     }
     return { x: 64400, y: 620 };
 }
@@ -4600,11 +4600,11 @@ function posicaoPetValida(ox, oy) {
         if (colisaoObjetosDoMapa('cidade', ox, oy)) return false;
         return !colideObstaculosCustomizados('cidade', ox, oy, PET_COLLISION_RADIUS);
     }
-    if (ox >= LARGURA_ARENA && ox < FIM_ARENA) {
-        if (oy >= ALTO_ARENA) return false;
-        if (mapaArena && mapaArena.colideArena(ox, oy, PET_COLLISION_RADIUS)) return false;
-        if (colisaoObjetosDoMapa('arena', ox, oy)) return false;
-        return !colideObstaculosCustomizados('arena', ox, oy, PET_COLLISION_RADIUS);
+    if (ox >= LARGURA_SOLARI && ox < FIM_SOLARI) {
+        if (oy >= ALTO_SOLARI) return false;
+        if (mapaSolari && mapaSolari.colideSolari(ox, oy, PET_COLLISION_RADIUS)) return false;
+        if (colisaoObjetosDoMapa('solari', ox, oy)) return false;
+        return !colideObstaculosCustomizados('solari', ox, oy, PET_COLLISION_RADIUS);
     }
     if (ox >= LARGURA_CIDADE_PERDIDA && ox < FIM_CIDADE_PERDIDA) {
         if (oy >= ALTO_CIDADE_PERDIDA) return false;
@@ -8516,12 +8516,12 @@ aaCometasCooldown: 0,
                         userId, '| level=' + players[playerId].level, 'xp=' + players[playerId].xp);
                 }
                 // CORREÇÃO (canto preso): se a posição salva caiu na "zona morta" entre o fim
-                // da cidade (FIM_CIDADE) e o início da arena (LARGURA_ARENA) — onde NÃO existe
+                // da cidade (FIM_CIDADE) e o início da Solari (LARGURA_SOLARI) — onde NÃO existe
                 // mapa — o char não consegue andar nem teleportar. Nesse caso, devolve para a
                 // cidade de Davahl no login.
                 let posXLogin = players[playerId].x;
                 let posYLogin = players[playerId].y;
-                if (posXLogin >= FIM_CIDADE && posXLogin < LARGURA_ARENA) {
+                if (posXLogin >= FIM_CIDADE && posXLogin < LARGURA_SOLARI) {
                     posXLogin = CIDADE_SPAWN_X;
                     posYLogin = CIDADE_SPAWN_Y;
                 }

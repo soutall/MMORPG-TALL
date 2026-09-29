@@ -260,7 +260,7 @@
                             '<option value="desert">🏜️ Deserto com Oásis</option>' +
                             '<option value="pantano">🌿 Pântano Realista</option>' +
                             '<option value="caverna">🕳️ Caverna Sombria</option>' +
-                            '<option value="arena">⚔️ Arena de Davahl</option>' +
+                            '<option value="solari">⚔️ Arena de Solari</option>' +
                             '<option value="cidadeperdida">🏛️ Cidade Perdida</option>' +
                             '<option value="testevisual">🌿 Arena Visual Teste</option>' +
                             '<option value="bemvindo">Ilha BemVindo</option>' +
