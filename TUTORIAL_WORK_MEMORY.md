@@ -314,3 +314,28 @@ Próxima etapa — VERSÃO 1.4.0:
 - revisar todas as rotinas de combate/efeitos Solari para garantir que qualquer broadcast antigo e qualquer busca de alvo usem `solariInstanceId`;
 - testar duas salas simultâneas com jogadores reais/conexões WebSocket, incluindo rounds, monstros, leilão e saída;
 - depois usar Solari como padrão de referência para migrar dungeons/mapas fechados para `mapId + instanceId`.
+
+## TESTE SOLARI — 2026-09-29 — DIAGNÓSTICO DO PORTAL
+
+O usuário testou duas contas simultaneamente. Uma conta entrou em uma sala Solari; ao aproximar a segunda conta do portal, apareceu o aviso visual: “A Arena de Solari já está em andamento. Volte depois!”.
+
+Diagnóstico realizado diretamente no código atual:
+- `solari.js` mostra esse aviso quando recebe `solari_painel` com `bloqueado: true`.
+- A versão atual de `server.js` NÃO envia mais `bloqueado: true` em `solariAbrir()`.
+- `solariAbrir(pid)` atual cria uma nova sessão independente para cada entrada que ainda não pertence a uma sessão: `solariCriarSessao(pid)`.
+- Portanto, o comportamento observado não corresponde ao `server.js` atual; era evidência de que o teste estava conectado a um processo/instância antiga do servidor.
+
+Verificação dos processos:
+- A página atual usa WebSocket padrão em `ws://localhost:8080`.
+- Antes do diagnóstico havia um `node server.js` ocupando a porta 8080 (PID 12724), além de processos em 8081/8082.
+- O processo da porta 8080 foi encerrado para eliminar a versão antiga.
+- `node --check server.js` → PASS.
+- O `server.js` atual foi iniciado a partir de `E:\MMORPG-TALL` na porta 8080 e carregou todos os mapas/sistemas normalmente.
+
+Estado para o próximo teste:
+- Porta 8080 agora está executando o `server.js` atual.
+- O teste correto deve abrir duas contas/conexões novas e aproximar ambas do portal Solari.
+- Esperado: conta A cria `solari_1`; conta B, sem convite e sem sessão própria, cria outra sala (`solari_2`) em vez de receber “já está em andamento”.
+- Convite continua sendo o mecanismo para colocar B na mesma sala de A.
+
+Não alterar a arquitetura Solari por causa desse aviso antes de repetir o teste com o servidor atual; primeiro confirmar o comportamento no processo atualizado.
