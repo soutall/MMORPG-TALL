@@ -269,10 +269,20 @@ let tradeCounter = 1;
 let parties = {}; // { partyId: [playerId1, playerId2, ...] }
 let partyCounter = 1;
 
-// ===== ARENA DE SOLARI — estado global da sessão (1 instância por vez) =====
-// membros: [{ id, ok, mortoEm, morreuX, morreuY }]; liderId controla convite e START.
-let solariSessao = null;
+// ===== ARENA DE SOLARI — sessões independentes por instanciaId =====
+// Cada entrada cria sua própria sala. Cada sala possui estado, monstros, timers e leilão isolados.
+const solariSessoes = new Map();
 let solariCounter = 1;
+function solariSessaoDoJogador(pid) {
+    if (!pid) return null;
+    for (const s of solariSessoes.values()) {
+        if (s.membros.some(function (m) { return m.id === pid; })) return s;
+    }
+    return null;
+}
+function solariSessaoPorInstancia(instanciaId) {
+    return instanciaId ? (solariSessoes.get(instanciaId) || null) : null;
+}
 let slimes = [];
 // ===== TUTORIAL INICIAL — somente personagens novos =====
 // Etapa 1: status/pontos | Etapa 2: abrir/ler uma skill | Etapa 3: demônio ativo.
@@ -2318,6 +2328,12 @@ function removerJogadorDaInstanciaMapa(playerId) {
 function sincronizarInstanciaMapaJogador(playerId) {
     const p = players[playerId];
     if (!p) return;
+    const sessaoSolari = solariSessaoDoJogador(playerId);
+    if (sessaoSolari) {
+        p.instanciaId = sessaoSolari.instanciaId;
+        p.instanciaTipo = 'solari';
+        return;
+    }
     const mapa = mapaPorCoordenada(p.x + PLAYER_OFFSET_X);
     if (mapaEhInstanciado(mapa)) {
         garantirInstanciaMapaParaJogador(playerId, mapa);
@@ -2333,7 +2349,10 @@ function sincronizarEntidadesInstanciadas() {
         if (!Array.isArray(lista)) return;
         lista.forEach(function (ent) {
             if (!ent || ent.instanciaId) return;
-            if (ent.ownerId && players[ent.ownerId]) ent.instanciaId = players[ent.ownerId].instanciaId || null;
+            if (ent.ownerId && players[ent.ownerId]) {
+                ent.instanciaId = players[ent.ownerId].instanciaId || null;
+                if (ent.solari) ent.solariInstanceId = players[ent.ownerId].instanciaId || null;
+            }
             else if (ent.autorId && players[ent.autorId]) ent.instanciaId = players[ent.autorId].instanciaId || null;
         });
     });
@@ -2359,6 +2378,7 @@ function instanciaCompativel(a, b) {
     const mapaA = mapaPorCoordenada(a.x);
     const mapaB = mapaPorCoordenada(b.x);
     if (mapaA !== mapaB) return false;
+    if (a.solari || b.solari) return !!a.instanciaId && !!b.instanciaId && a.instanciaId === b.instanciaId;
     if (!mapaEhInstanciado(mapaA)) return true;
     return !!a.instanciaId && a.instanciaId === b.instanciaId;
 }
@@ -2367,10 +2387,10 @@ function entidadeNoMapa(entidade, mapa, instanciaId) {
     if (!entidade) return false;
     // Entidades da Arena de Solari são uma instância isolada. Isso inclui
     // monstros e projéteis marcados pelo servidor, que nunca aparecem na Arena normal.
-    if (entidade.solari === true) return mapa === 'solari';
+    if (entidade.solari === true) return mapa === 'solari' && (!instanciaId || (entidade.solariInstanceId || entidade.instanciaId) === instanciaId);
     const mp = mapaPorCoordenada(entidade.x);
     // Cliente da Solari enxerga tudo que está na faixa da arena (x [63800,65040)).
-    if (mapa === 'solari') return mp === 'arena';
+    if (mapa === 'solari') return mp === 'arena' && (!instanciaId || entidade.instanciaId === instanciaId);
     if (mp !== mapa) return false;
     if (mapaEhInstanciado(mapa) && instanciaId) return entidade.instanciaId === instanciaId;
     return true;
@@ -2723,7 +2743,7 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
         if (diffFonte <= Math.PI / 3) {
             danoFinal = 0;
             const bloco = { id: slime.id, x: Math.round(slime.x), y: Math.round(slime.y - 8), autorId: autorId || null };
-            if (slime.solari) solariBroadcast('monster_lanceiro_block_hit', bloco);
+            if (slime.solari) solariBroadcastParaEntidade(slime, 'monster_lanceiro_block_hit', bloco);
             else wss.clients.forEach((client) => { if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'monster_lanceiro_block_hit', ...bloco })); });
         }
     }
@@ -2773,7 +2793,8 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
         slime.hp = 0;
         if (slime.solari) {
             // Monstros da Arena de Solari: NÃO dropam item (recompensa só no leilão final).
-            if (solariSessao && solariSessao.vivos > 0) solariSessao.vivos--;
+            const sessaoSolari = solariSessaoPorInstancia(slime.solariInstanceId);
+            if (sessaoSolari && sessaoSolari.vivos > 0) sessaoSolari.vivos--;
         } else {
             gerarDropNoChao(slime.x, slime.y, slime.tabelaDano, slime.baseHp || slime.maxHp || 0, false);
             gerarDropsAuxiliares(slime.x, slime.y, slime.baseHp || slime.maxHp || 0, false);
@@ -3214,9 +3235,10 @@ function adicionarPedra(pid, pedra, qtd) {
 // ARENA DE SOLARI — partida em grupo (recrutamento → rounds → leilão)
 // ============================================================================
 function solariEmSessao(pid) {
-    if (!solariSessao || !pid) return null;
-    const mi = solariSessao.membros.findIndex(function (m) { return m.id === pid; });
-    return mi === -1 ? null : solariSessao.membros[mi];
+    const s = solariSessaoDoJogador(pid);
+    if (!s || !pid) return null;
+    const mi = s.membros.findIndex(function (m) { return m.id === pid; });
+    return mi === -1 ? null : s.membros[mi];
 }
 
 function solariEnviarA(pid, tipo, dados) {
@@ -3224,16 +3246,32 @@ function solariEnviarA(pid, tipo, dados) {
     if (wsS && wsS.readyState === WebSocket.OPEN) wsS.send(JSON.stringify(Object.assign({ type: tipo }, dados || {})));
 }
 
-function solariBroadcast(tipo, dados) {
-    if (!solariSessao) return;
-    solariSessao.membros.forEach(function (m) { solariEnviarA(m.id, tipo, dados); });
+function solariBroadcast(s, tipo, dados) {
+    // Compatibilidade temporária para emissores antigos que ainda chamam
+    // solariBroadcast(tipo, dados). O alvo é resolvido pela instanciaId.
+    if (typeof s === 'string') {
+        const legadoTipo = s;
+        const legadoDados = tipo || {};
+        const entidade = legadoDados.id ? slimes.find(function (x) { return x && x.id === legadoDados.id && x.solari; }) : null;
+        s = entidade ? solariSessaoPorInstancia(entidade.solariInstanceId) : null;
+        tipo = legadoTipo;
+        dados = legadoDados;
+    }
+    if (!s) return;
+    s.membros.forEach(function (m) { solariEnviarA(m.id, tipo, dados); });
+}
+
+function solariBroadcastParaEntidade(entidade, tipo, dados) {
+    if (!entidade || !entidade.solari) return;
+    const s = solariSessaoPorInstancia(entidade.solariInstanceId);
+    if (s) solariBroadcast(s, tipo, dados);
 }
 
 // Mapa efetivo de um jogador (leva em conta a sessão Solari).
 function mapaDoJogador(pid) {
     const p = players && players[pid];
     if (!p) return null;
-    if (solariSessao && solariEmSessao(pid)) return 'solari';
+    if (solariSessaoDoJogador(pid)) return 'solari';
     return mapaPorCoordenada(p.x + PLAYER_OFFSET_X);
 }
 
@@ -3247,14 +3285,14 @@ function enviarParaMapaDoJogador(pid, tipo, dados) {
     wss.clients.forEach((client) => {
         if (client.readyState !== WebSocket.OPEN) return;
         const jogadorCliente = client._playerId ? players[client._playerId] : null;
-        const clienteEmSolari = !!(client._playerId && solariSessao && solariEmSessao(client._playerId));
+        const sessaoClienteSolari = client._playerId ? solariSessaoDoJogador(client._playerId) : null;
+        const clienteEmSolari = !!sessaoClienteSolari;
         const mapaCliente = clienteEmSolari ? 'solari' : (jogadorCliente ? mapaPorCoordenada(jogadorCliente.x + PLAYER_OFFSET_X) : null);
         if (mapaCliente === mapaDono) client.send(payload);
     });
 }
 
-function solariEstado() {
-    const s = solariSessao;
+function solariEstado(s) {
     if (!s) return null;
     return {
         fase: s.fase,
@@ -3271,11 +3309,12 @@ function solariEstado() {
     };
 }
 
-function solariEnviarEstado() { solariBroadcast('solari_estado', solariEstado()); }
+function solariEnviarEstado(s) { solariBroadcast(s, 'solari_estado', solariEstado(s)); }
 
 function solariCriarSessao(pid) {
-    solariSessao = {
-        instanciaId: INSTANCIAS.criarId('solari'),
+    const instanciaId = INSTANCIAS.criarId('solari');
+    const s = {
+        instanciaId: instanciaId,
         instanciaTipo: 'solari',
         mapaInstanciaId: 'solari',
         liderId: pid,
@@ -3298,36 +3337,30 @@ function solariCriarSessao(pid) {
         fimEm: 0,
         leilao: null
     };
+    solariSessoes.set(s.instanciaId, s);
+    return s;
 }
 
 function solariAbrir(pid) {
     const p = players[pid];
     if (!p) return;
-    // Sessão órfã (líder deslogou/saiu): descarta para um novo grupo poder nascer
-    if (solariSessao && solariSessao.fase === 'recrutando' && solariSessao.liderId !== pid && !players[solariSessao.liderId]) {
-        solariEncerrarSessao();
-    }
-    console.log('[SOLARI] abrir por ' + p.nome + ' (' + pid + ') sessao=' + (solariSessao ? solariSessao.liderId : 'nenhuma'));
-    if (solariEmSessao(pid)) { solariSessao.ultimaAtividade = Date.now(); solariEnviarA(pid, 'solari_painel', solariEstado()); return; }
-    if (solariSessao && solariSessao.fase !== 'recrutando') {
-        solariEnviarA(pid, 'solari_painel', { bloqueado: true, mensagem: 'A Arena de Solari já está em andamento. Volte depois!' });
+    const existente = solariSessaoDoJogador(pid);
+    if (existente) {
+        existente.ultimaAtividade = Date.now();
+        solariEnviarA(pid, 'solari_painel', solariEstado(existente));
         return;
     }
-    if (!solariSessao) {
-        solariCriarSessao(pid);
-    } else {
-        if (solariSessao.membros.length >= SOLARI_MAX_MEMBROS) {
-            solariEnviarA(pid, 'solari_painel', { bloqueado: true, mensagem: 'O grupo da Arena está lotado (máx 5).' });
-            return;
-        }
-    }
-    solariSessao.ultimaAtividade = Date.now();
-    solariEnviarA(pid, 'solari_painel', solariEstado());
-    solariEnviarEstado();
+    // Regra da nova arquitetura: uma entrada independente sempre cria uma nova sala.
+    // Convites são o único caminho para ingressar na sala de outro jogador.
+    const s = solariCriarSessao(pid);
+    s.ultimaAtividade = Date.now();
+    console.log('[SOLARI] abrir por ' + p.nome + ' (' + pid + ') nova sala=' + s.instanciaId);
+    solariEnviarA(pid, 'solari_painel', solariEstado(s));
+    solariEnviarEstado(s);
 }
 
 function solariConvidar(dePid, alvoPid) {
-    const s = solariSessao;
+    const s = solariSessaoDoJogador(dePid);
     if (!s || s.fase !== 'recrutando') return false;
     if (s.liderId !== dePid) return false;
     if (s.membros.length >= SOLARI_MAX_MEMBROS) return false;
@@ -3351,7 +3384,7 @@ function solariConvidar(dePid, alvoPid) {
 }
 
 function solariAceitar(pid, deId) {
-    const s = solariSessao;
+    const s = solariSessaoDoJogador(deId);
     if (!s || s.fase !== 'recrutando') return false;
     if (solariEmSessao(pid)) return false;
     const convite = s.convites && s.convites[pid];
@@ -3360,13 +3393,13 @@ function solariAceitar(pid, deId) {
     delete s.convites[pid];
     s.membros.push({ id: pid, ok: false });
     s.ultimaAtividade = Date.now();
-    solariEnviarA(pid, 'solari_painel', solariEstado());
-    solariEnviarEstado();
+    solariEnviarA(pid, 'solari_painel', solariEstado(s));
+    solariEnviarEstado(s);
     return true;
 }
 
 function solariRecusar(pid, deId) {
-    const s = solariSessao;
+    const s = solariSessaoDoJogador(deId);
     if (!s || !s.convites) return false;
     const convite = s.convites[pid];
     if (convite && convite.deId === deId) delete s.convites[pid];
@@ -3374,29 +3407,29 @@ function solariRecusar(pid, deId) {
 }
 
 function solariDarOk(pid) {
-    const s = solariSessao;
+    const s = solariSessaoDoJogador(pid);
     const m = s ? solariEmSessao(pid) : null;
     const p = players[pid];
     if (!s || !m || s.fase !== 'recrutando' || !p || p.hp <= 0) return;
     m.ok = !m.ok;
     s.ultimaAtividade = Date.now();
-    solariEnviarEstado();
+    solariEnviarEstado(s);
 }
 
-function solariTeleportarParaArena(pid) {
+function solariTeleportarParaArena(pid, s) {
     const p = players[pid];
-    if (!p) return;
+    if (!p || !s) return;
     const base = SOLARI_COORDS.arena.chegada;
     const destino = encontrarPosicaoJogadorSegura(p, base.x + (Math.random() * 40 - 20), base.y + (Math.random() * 40 - 20));
     p.x = destino ? destino.x : base.x;
     p.y = destino ? destino.y : base.y;
     p.mapaTransicaoAte = Date.now() + 500;
-    p.instanciaId = solariSessao ? solariSessao.instanciaId : null;
+    p.instanciaId = s.instanciaId;
     solariEnviarA(pid, 'teleporte_confirmado', { mapa: 'solari', x: p.x, y: p.y, instanciaId: p.instanciaId, instanciaTipo: 'solari' });
 }
 
 function solariIniciar(pid) {
-    const s = solariSessao;
+    const s = solariSessaoDoJogador(pid);
     if (!s || s.fase !== 'recrutando') return false;
     if (s.liderId !== pid) return false;
     if (s.membros.length < 1) return false;
@@ -3405,10 +3438,10 @@ function solariIniciar(pid) {
     s.fase = 'contagem';
     s.contagemFimEm = Date.now() + 12000; // 12 segundos sincronizados com o áudio oficial
     s.contagemUltimoSeg = -1;
-    s.membros.forEach(function (m) { if (players[m.id]) solariTeleportarParaArena(m.id); });
-    solariEnviarEstado();
-    solariBroadcast('solari_contagem', { seg: 10, mensagem: '' });
-    solariBroadcast('solari_banner', { texto: 'ARENA DE SOLARI', cor: '#c77dff', fim: false });
+    s.membros.forEach(function (m) { if (players[m.id]) solariTeleportarParaArena(m.id, s); });
+    solariEnviarEstado(s);
+    solariBroadcast(s, 'solari_contagem', { seg: 10, mensagem: '' });
+    solariBroadcast(s, 'solari_banner', { texto: 'ARENA DE SOLARI', cor: '#c77dff', fim: false });
     return true;
 }
 
@@ -3450,6 +3483,8 @@ function solariSpawnarUm(s, conf) {
         id: 'solari_' + (solariCounter++) + '_' + Date.now(),
         tipo: tipo,
         solari: true,
+        solariInstanceId: s.instanciaId,
+        instanciaId: s.instanciaId,
         elite: elite,
         escala: elite ? 1.5 : 1,
         x: pos.x, y: pos.y,
@@ -3500,17 +3535,16 @@ function solariSpawnarUm(s, conf) {
     s.vivos++;
 }
 
-function solariLimparMonstros() {
+function solariLimparMonstros(s) {
+    if (!s) return;
     for (let i = slimes.length - 1; i >= 0; i--) {
-        if (slimes[i] && slimes[i].solari) slimes.splice(i, 1);
+        if (slimes[i] && slimes[i].solari && slimes[i].solariInstanceId === s.instanciaId) slimes.splice(i, 1);
     }
-    const s = solariSessao;
-    if (s) s.vivos = 0;
+    s.vivos = 0;
 }
 
 // Cada round sorteia 5 itens entre os membros APÓS a finalização do combate daquele round.
-function solariIniciarSorteio() {
-    const s = solariSessao;
+function solariIniciarSorteio(s) {
     if (!s || s.fase !== 'rodando') return;
     const classes = s.membros.map(function (m) { const p = players[m.id]; return p ? p.classe : 'guerreiro'; });
     const itens = [];
@@ -3528,18 +3562,17 @@ function solariIniciarSorteio() {
         }
     }
     const conf = SOLARI_ROUNDS[s.round - 1];
-    if (!conf) { solariEncerrarSessao(); return; }
+    if (!conf) { solariEncerrarSessao(s); return; }
     s.fase = 'leilao';
     s.leilao = { itens: itens, indice: 0, rolagens: {}, ultimaRolagemEm: 0, itemAbertoEm: Date.now(), estado: 'aberto', vencedorId: undefined };
-    solariBroadcast('solari_leilao', { fase: 'abrir', indice: 1, total: itens.length, item: itens[0], classeBonus: true, round: s.round, roundsTotal: SOLARI_COORDS.rounds });
-    solariBroadcast('solari_banner', { texto: '🎲 SORTEIO DA RODADA ' + s.round, cor: '#ffd700', fim: false });
+    solariBroadcast(s, 'solari_leilao', { fase: 'abrir', indice: 1, total: itens.length, item: itens[0], classeBonus: true, round: s.round, roundsTotal: SOLARI_COORDS.rounds });
+    solariBroadcast(s, 'solari_banner', { texto: '🎲 SORTEIO DA RODADA ' + s.round, cor: '#ffd700', fim: false });
     console.log('[SOLARI] round=' + s.round + ' sorteio pós-combate=' + itens.length + ' itens');
-    solariEnviarEstado();
+    solariEnviarEstado(s);
 }
 
 // Combate da rodada (inicia diretamente na entrada do round)
-function solariComecarCombate() {
-    const s = solariSessao;
+function solariComecarCombate(s) {
     if (!s) return;
     const conf = SOLARI_ROUNDS[s.round - 1];
     s.tiposRound = solariEscolherDoisTipos();
@@ -3549,10 +3582,10 @@ function solariComecarCombate() {
     s.rodandoInicio = Date.now();
     s.proximoSpawnEm = Date.now() + 800;
     s.fase = 'rodando';
-    solariBroadcast('solari_round', { round: s.round, total: conf ? conf.total : 0, elite: !!(conf && conf.elite) });
-    solariBroadcast('solari_banner', { texto: '⚔️ ROUND ' + s.round + ' — OS MONSTROS ESTÃO CHEGANDO!', cor: '#ff7b00', fim: false });
+    solariBroadcast(s, 'solari_round', { round: s.round, total: conf ? conf.total : 0, elite: !!(conf && conf.elite) });
+    solariBroadcast(s, 'solari_banner', { texto: '⚔️ ROUND ' + s.round + ' — OS MONSTROS ESTÃO CHEGANDO!', cor: '#ff7b00', fim: false });
     console.log('[SOLARI] round=' + s.round + ' combate iniciado (' + (conf ? conf.total : 0) + ' monstros)');
-    solariEnviarEstado();
+    solariEnviarEstado(s);
 }
 
 function solariMarcaMorte(pid) {
@@ -3572,7 +3605,7 @@ function solariReviveNoLocal(pid) {
 }
 
 function solariRemoverMembro(pid, motivo) {
-    const s = solariSessao;
+    const s = solariSessaoDoJogador(pid);
     if (!s) return false;
     const idx = s.membros.findIndex(function (m) { return m.id === pid; });
     if (idx === -1) return false;
@@ -3598,21 +3631,20 @@ function solariRemoverMembro(pid, motivo) {
     }
 
     if (!s.membros.length) {
-        solariEncerrarSessao();
+        solariEncerrarSessao(s);
         return true;
     }
-    solariEnviarEstado();
+    solariEnviarEstado(s);
     return true;
 }
 
-function solariEncerrarSessao() {
-    const s = solariSessao;
+function solariEncerrarSessao(s) {
     if (!s) return;
     s.membros.forEach(function (m) { if (players[m.id]) players[m.id].instanciaId = null; });
     for (let i = slimes.length - 1; i >= 0; i--) {
-        if (slimes[i] && slimes[i].solari) slimes.splice(i, 1);
+        if (slimes[i] && slimes[i].solari && slimes[i].solariInstanceId === s.instanciaId) slimes.splice(i, 1);
     }
-    solariSessao = null;
+    solariSessoes.delete(s.instanciaId);
 }
 
 function solariVoltarCidade(pid) {
@@ -3647,9 +3679,11 @@ function solariVoltarCidade(pid) {
 
 // Lógica da partida rodada a cada tick do servidor (50ms)
 function atualizarSolari() {
-    const s = solariSessao;
-    if (!s) return;
     const agora = Date.now();
+    for (const s of Array.from(solariSessoes.values())) atualizarSolariSessao(s, agora);
+}
+
+function atualizarSolariSessao(s, agora) {
 
     if (s.convites) {
         for (const cid in s.convites) {
@@ -3670,7 +3704,7 @@ function atualizarSolari() {
                 }
             }
         }
-        if (!solariSessao) return;
+        if (!solariSessoes.has(s.instanciaId)) return;
     }
 
     // Contagem regressiva de entrada (12s) → START (ROUND 1 direto no combate).
@@ -3679,12 +3713,12 @@ function atualizarSolari() {
         const restante = Math.max(0, Math.min(10, 11 - Math.floor(decorrido / 1000)));
         if (restante !== s.contagemUltimoSeg) {
             s.contagemUltimoSeg = restante;
-            solariBroadcast('solari_contagem', { seg: restante, mensagem: '' });
+            solariBroadcast(s, 'solari_contagem', { seg: restante, mensagem: '' });
         }
         if (agora >= s.contagemFimEm) {
             s.round = 1;
-            solariBroadcast('solari_contagem', { seg: 0, mensagem: '' });
-            solariComecarCombate();
+            solariBroadcast(s, 'solari_contagem', { seg: 0, mensagem: '' });
+            solariComecarCombate(s);
         }
         return;
     }
@@ -3705,7 +3739,7 @@ function atualizarSolari() {
             // dado como limpo quando NÃO resta nenhum (não depende só do contador).
             let vivosReais = 0;
             for (let i = 0; i < slimes.length; i++) {
-                if (slimes[i] && slimes[i].solari && slimes[i].hp > 0) vivosReais++;
+                if (slimes[i] && slimes[i].solari && slimes[i].solariInstanceId === s.instanciaId && slimes[i].hp > 0) vivosReais++;
             }
             s.vivos = vivosReais;
             const roundCompleto = s.spawned >= conf.total && vivosReais <= 0;
@@ -3713,9 +3747,9 @@ function atualizarSolari() {
             // round é dado como limpo e a partida segue até o round 9.
             const estourouTempo = tempoRodando >= 120000;
             if (roundCompleto || estourouTempo) {
-                solariLimparMonstros();
+                solariLimparMonstros(s);
                 // Premiação só acontece APÓS a finalização de cada round
-                solariIniciarSorteio();
+                solariIniciarSorteio(s);
             }
         }
         return;
@@ -3726,11 +3760,11 @@ function atualizarSolari() {
         const restante = Math.max(0, Math.ceil((s.transicaoFimEm - agora) / 1000));
         if (restante !== s.transicaoUltimoSeg) {
             s.transicaoUltimoSeg = restante;
-            solariBroadcast('solari_contagem', { seg: restante, mensagem: 'PARABÉNS! BORA PRO PRÓXIMO ROUND!' });
+            solariBroadcast(s, 'solari_contagem', { seg: restante, mensagem: 'PARABÉNS! BORA PRO PRÓXIMO ROUND!' });
         }
         if (agora >= s.transicaoFimEm) {
             s.round++;
-            solariComecarCombate();
+            solariComecarCombate(s);
         }
         return;
     }
@@ -3744,14 +3778,14 @@ function atualizarSolari() {
             if (s.round >= SOLARI_COORDS.rounds) {
                 s.fase = 'fim';
                 s.fimEm = agora + 6000;
-                solariBroadcast('solari_banner', { texto: '🏆 ARENA DE SOLARI CONCLUÍDA!', cor: '#ffd700', fim: true });
-                solariEnviarEstado();
+                solariBroadcast(s, 'solari_banner', { texto: '🏆 ARENA DE SOLARI CONCLUÍDA!', cor: '#ffd700', fim: true });
+                solariEnviarEstado(s);
             } else {
                 s.fase = 'transicao';
                 s.transicaoFimEm = agora + 10000;
                 s.transicaoUltimoSeg = -1;
-                solariBroadcast('solari_contagem', { seg: 10, mensagem: 'PARABÉNS! BORA PRO PRÓXIMO ROUND!' });
-                solariEnviarEstado();
+                solariBroadcast(s, 'solari_contagem', { seg: 10, mensagem: 'PARABÉNS! BORA PRO PRÓXIMO ROUND!' });
+                solariEnviarEstado(s);
             }
             return;
         }
@@ -3781,7 +3815,7 @@ function atualizarSolari() {
                 const nick = vencedor && players[vencedor] ? players[vencedor].nome : '?';
                 L.estado = 'resultado';
                 L.estadoEm = agora;
-                solariBroadcast('solari_leilao', {
+                solariBroadcast(s, 'solari_leilao', {
                     fase: 'resultado',
                     indice: L.indice + 1,
                     total: L.itens.length,
@@ -3802,14 +3836,14 @@ function atualizarSolari() {
                     if (s.round >= SOLARI_COORDS.rounds) {
                         s.fase = 'fim';
                         s.fimEm = agora + 6000;
-                        solariBroadcast('solari_banner', { texto: '🏆 ARENA DE SOLARI CONCLUÍDA!', cor: '#ffd700', fim: true });
-                        solariEnviarEstado();
+                        solariBroadcast(s, 'solari_banner', { texto: '🏆 ARENA DE SOLARI CONCLUÍDA!', cor: '#ffd700', fim: true });
+                        solariEnviarEstado(s);
                     } else {
                         s.fase = 'transicao';
                         s.transicaoFimEm = agora + 10000;
                         s.transicaoUltimoSeg = -1;
-                        solariBroadcast('solari_contagem', { seg: 10, mensagem: 'PARABÉNS! BORA PRO PRÓXIMO ROUND!' });
-                        solariEnviarEstado();
+                        solariBroadcast(s, 'solari_contagem', { seg: 10, mensagem: 'PARABÉNS! BORA PRO PRÓXIMO ROUND!' });
+                        solariEnviarEstado(s);
                     }
                 } else {
                     L.estado = 'aberto';
@@ -3817,7 +3851,7 @@ function atualizarSolari() {
                     L.ultimaRolagemEm = 0;
                     L.itemAbertoEm = agora;
                     L.vencedorId = undefined;
-                    solariBroadcast('solari_leilao', { fase: 'abrir', indice: L.indice + 1, total: L.itens.length, item: L.itens[L.indice], classeBonus: true, round: s.round, roundsTotal: SOLARI_COORDS.rounds });
+                    solariBroadcast(s, 'solari_leilao', { fase: 'abrir', indice: L.indice + 1, total: L.itens.length, item: L.itens[L.indice], classeBonus: true, round: s.round, roundsTotal: SOLARI_COORDS.rounds });
                 }
             }
         }
@@ -3828,14 +3862,14 @@ function atualizarSolari() {
     if (s.fase === 'fim') {
         if (agora >= s.fimEm) {
             s.membros.forEach(function (m) { solariVoltarCidade(m.id); });
-            solariEncerrarSessao();
+            solariEncerrarSessao(s);
         }
         return;
     }
 
     // Recrutando: sessão ociosa encerra após 3 minutos.
     if (s.fase === 'recrutando' && agora - s.ultimaAtividade > 180000) {
-        solariEncerrarSessao();
+        solariEncerrarSessao(s);
     }
 }
 
@@ -4720,7 +4754,7 @@ function resolverSkillEspecial(slime, alvo) {
         slime.skillAim = null;
         slime.skillCooldown = slime.skillCooldownMax || 180;
         const msg = { type: 'monster_lanceiro_dash', id: slime.id, x: Math.round(slime.x), y: Math.round(slime.y), targetX: Math.round(tx), targetY: Math.round(ty), duracao: slime.lanceiroDashFrames * 50 };
-        if (slime.solari) solariBroadcast('monster_lanceiro_dash', msg); else wss.clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(JSON.stringify(msg)); });
+        if (slime.solari) solariBroadcastParaEntidade(slime, 'monster_lanceiro_dash', msg); else wss.clients.forEach(c => { if (c.readyState === WebSocket.OPEN) c.send(JSON.stringify(msg)); });
         return;
     }
     if (slime.skillKind === 'void_laser') {
@@ -8005,16 +8039,18 @@ if (g.hp <= 0) {
     wss.clients.forEach((client) => {
         if (client.readyState !== WebSocket.OPEN) return;
         const jogadorCliente = client._playerId ? players[client._playerId] : null;
-        const clienteEmSolari = !!(client._playerId && solariSessao && solariEmSessao(client._playerId));
+        const sessaoClienteSolari = client._playerId ? solariSessaoDoJogador(client._playerId) : null;
+        const clienteEmSolari = !!sessaoClienteSolari;
         const mapaCliente = clienteEmSolari ? 'solari' : (jogadorCliente ? mapaPorCoordenada(jogadorCliente.x + PLAYER_OFFSET_X) : null);
-        const instanciaCliente = clienteEmSolari && solariSessao ? solariSessao.instanciaId : (jogadorCliente && mapaEhInstanciado(mapaCliente) ? jogadorCliente.instanciaId : null);
+        const instanciaCliente = clienteEmSolari ? sessaoClienteSolari.instanciaId : (jogadorCliente && mapaEhInstanciado(mapaCliente) ? jogadorCliente.instanciaId : null);
         const instanciaTipoCliente = clienteEmSolari ? 'solari' : (mapaEhInstanciado(mapaCliente) ? mapaCliente : null);
         const jogadoresDoMapa = {};
         if (mapaCliente) {
             for (const pid in playersVisivel) {
                 if (clienteEmSolari) {
                     // Durante a Solari: só enxerga os colegas da partida
-                    if (solariEmSessao(pid)) jogadoresDoMapa[pid] = playersVisivel[pid];
+                    const sessaoAlvo = solariSessaoDoJogador(pid);
+                    if (sessaoAlvo && sessaoAlvo.instanciaId === instanciaCliente) jogadoresDoMapa[pid] = playersVisivel[pid];
                 } else {
                     if (solariEmSessao(pid)) continue;
                     if (entidadeNoMapa(playersVisivel[pid], mapaCliente, instanciaCliente)) jogadoresDoMapa[pid] = playersVisivel[pid];
@@ -10252,7 +10288,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     let ang = (data.angulo !== undefined) ? data.angulo : players[playerId].angulo;
                     if (alvoAuto) ang = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX); // mira o alvo validado
 
-                    const ownerInSolari = !!(solariSessao && solariEmSessao(playerId));
+                    const ownerInSolari = !!solariSessaoDoJogador(playerId);
                     playerProjeteis.push({
                         ownerId: playerId,
                         x: pX,
@@ -11884,7 +11920,7 @@ if (data.action === 'dash') {
                                    (data.action === 'ataque_summoner') ? 'orbe' :
                                    (data.action === 'ataque_arqueiro') ? 'flecha' : 'sagrado';
 
-                    const ownerInSolari = !!(solariSessao && solariEmSessao(playerId));
+                    const ownerInSolari = !!solariSessaoDoJogador(playerId);
                     playerProjeteis.push({
                         ownerId: playerId,
                         x: pX,
@@ -12002,7 +12038,7 @@ if (data.action === 'dash') {
                     let ang = (data.angulo !== undefined) ? data.angulo : players[playerId].angulo;
                     let vel = 18.0;
 
-                    const ownerInSolari = !!(solariSessao && solariEmSessao(playerId));
+                    const ownerInSolari = !!solariSessaoDoJogador(playerId);
                     playerProjeteis.push({
                         ownerId: playerId,
                         x: pX,
@@ -12283,13 +12319,13 @@ if (data.action === 'dash') {
                 return;
             }
             if (data.action === 'solari_rolar_dado') {
-                const sSol = solariSessao;
+                const sSol = solariSessaoDoJogador(playerId);
                 const mSol = solariEmSessao(playerId);
                 if (sSol && mSol && sSol.fase === 'leilao' && sSol.leilao && sSol.leilao.estado === 'aberto' && sSol.leilao.rolagens[playerId] === undefined) {
                     const dado = 1 + Math.floor(Math.random() * 100);
                     sSol.leilao.rolagens[playerId] = dado;
                     sSol.leilao.ultimaRolagemEm = Date.now();
-                    solariBroadcast('solari_leilao', { fase: 'rolagem', dado: dado, quem: playerId, rolagens: sSol.leilao.rolagens, nick: players[playerId] ? players[playerId].nome : '' });
+                    solariBroadcast(sSol, 'solari_leilao', { fase: 'rolagem', dado: dado, quem: playerId, rolagens: sSol.leilao.rolagens, nick: players[playerId] ? players[playerId].nome : '' });
                 }
                 return;
             }

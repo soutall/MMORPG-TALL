@@ -278,3 +278,39 @@ Próxima etapa — VERSÃO 1.3.0:
 - monstros, rounds, timers e leilão devem pertencer exclusivamente à sessão;
 - world_update e filtros devem considerar instanciaId da Solari;
 - somente depois validar duas salas Solari simultâneas.
+
+
+## MAPAS — VERSÃO 1.3.0 — 2026-09-29
+
+Solari migrado de sessão global única para múltiplas salas independentes.
+
+Arquitetura aplicada:
+- `solariSessoes` é um Map indexado por `instanciaId`.
+- `solariSessaoDoJogador(pid)` localiza a sala específica do jogador.
+- `solariSessaoPorInstancia(instanciaId)` resolve diretamente a sala.
+- Cada nova entrada independente em `solariAbrir()` cria uma nova sessão/instanciaId.
+- Convites continuam sendo o mecanismo para um jogador entrar na sala de outro jogador.
+- `solariAceitar`, `solariConvidar`, `solariDarOk`, `solariIniciar`, remoção e encerramento agora operam sobre a sala correta.
+- `atualizarSolari()` percorre todas as sessões e chama `atualizarSolariSessao(s, agora)` separadamente.
+- Round, spawn, vivos, contagem, transição, leilão e fim são mantidos dentro de cada sessão.
+- Monstros Solari agora carregam `solariInstanceId` e `instanciaId`; limpeza de monstros remove somente os monstros da sala correspondente.
+- O contador de monstros vivos de um round considera somente `solariInstanceId` da sala atual.
+- `entidadeNoMapa()` e `instanciaCompativel()` passaram a respeitar a instância Solari, impedindo visualização e interação entre salas.
+- `sincronizarInstanciaMapaJogador()` reconhece Solari antes da lógica de mapas públicos e não apaga o `instanciaId` de um jogador Solari por causa da coordenada física compartilhada da Arena.
+- `world_update` agora identifica a sessão Solari do cliente e envia somente jogadores da mesma `instanciaId`.
+- Projéteis/entidades ligadas a jogadores Solari herdam a instância do dono.
+- Foi adicionada compatibilidade temporária em `solariBroadcast()` para chamadas antigas que ainda usam a assinatura `solariBroadcast(tipo, dados)`; quando o payload possui `id`, a entidade Solari é usada para resolver a sala.
+- A rolagem do leilão usa a sessão do próprio jogador, sem depender de estado global.
+
+Validação executada:
+- `node --check server.js` → PASS.
+- Servidor de teste iniciou todos os mapas/sistemas corretamente. As portas 8080 e 8081 já estavam ocupadas pelos processos existentes; o teste abriu 8082 e foi encerrado após a inicialização.
+- Teste isolado do gerenciador: `nova_por_entrada` criou `solari_1` e `solari_2` simultaneamente, confirmando IDs diferentes e duas instâncias independentes.
+
+Observação importante:
+- As salas Solari ainda compartilham fisicamente as mesmas coordenadas da Arena no mundo do servidor. A separação agora é lógica por `instanciaId`, com filtragem e interação isoladas. A remoção da dependência das coordenadas físicas será uma etapa posterior da migração geral dos mapas.
+
+Próxima etapa — VERSÃO 1.4.0:
+- revisar todas as rotinas de combate/efeitos Solari para garantir que qualquer broadcast antigo e qualquer busca de alvo usem `solariInstanceId`;
+- testar duas salas simultâneas com jogadores reais/conexões WebSocket, incluindo rounds, monstros, leilão e saída;
+- depois usar Solari como padrão de referência para migrar dungeons/mapas fechados para `mapId + instanceId`.
