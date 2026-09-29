@@ -201,3 +201,41 @@ Teste automatizado executado no projeto: 9/9 PASS.
 - servidor cria etapa 3 após leitura da Skill
 
 Arquivo temporário de teste removido após a validação.
+
+
+## MAPAS — VERSÃO 1.1.0 — 2026-09-29
+
+Início formal da migração arquitetural de mapas/instâncias.
+
+Ponto de partida confirmado:
+- Git estava limpo no commit 6bc6ec9.
+- Tag de segurança criada: mapa-migracao-v1.0.0.
+- O servidor atual ainda usa mapa por coordenada X como verdade principal.
+- Solari ainda usa uma única solariSessao global.
+- green já possui instâncias, mas reutiliza salas disponíveis.
+
+Alteração desta etapa:
+- instancias.js evoluiu de versão 1.0.0 para 1.1.0.
+- A API antiga criarId/criar foi preservada para não quebrar o servidor atual.
+- Foi criado criarGerenciador(), uma camada genérica de gerenciamento de salas.
+- O gerenciador mantém mapaId estável e instanciaId único.
+- Foi adicionada a política "nova_por_entrada", necessária para Solari futuro.
+- O gerenciador controla criação, consulta, listagem, remoção, capacidade e membros.
+- Nenhum mapa existente foi migrado ainda.
+- Nenhum comportamento de gameplay foi alterado nesta etapa.
+
+Validação concluída:
+- node --check instancias.js: PASS.
+- Teste funcional do gerenciador: INSTANCIAS_V1_1_TEST_OK.
+- git diff --check: PASS.
+
+Próxima etapa obrigatória — VERSÃO 1.2.0:
+- integrar o novo gerenciador ao server.js sem trocar ainda o comportamento dos mapas públicos;
+- criar uma camada única para consultar instanciaId/mapaId;
+- preparar a migração de Solari para múltiplas salas independentes;
+- antes de alterar Solari, mapear todas as funções solari* e seus timers/entidades para não deixar estado global compartilhado.
+
+Regra de continuidade:
+- Sempre iniciar a próxima sessão lendo esta memória.
+- Não avançar de versão sem validar sintaxe e fluxo afetado.
+- Atualizar esta memória ao final de cada etapa antes de considerar a etapa concluída.
