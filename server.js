@@ -9424,7 +9424,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     let etapaAntes = Number(pNpc.tutorialEtapa || 0);
 
                     // O tutorial avança SOMENTE quando o jogador volta a falar com o Guia.
-                    // Concluir Status ou Skills não troca a etapa automaticamente.
+                    // Antes de concluir a etapa atual, uma nova interação com o Guia não é permitida.
+                    if (etapaAntes === 1 && !pNpc.tutorialStatusConcluido) return;
+                    if (etapaAntes === 2 && !pNpc.tutorialSkillConcluida) return;
                     if (etapaAntes === 0) {
                         pNpc.tutorialEtapa = 1;
                         pNpc.tutorialStatusAberto = false;
@@ -9472,12 +9474,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         }
                     }
 
-                    const eventoInicio = etapaAntes === 0 ? 'tutorial_iniciado_npc' : null;
-                    ws.send(JSON.stringify({
-                        type: 'tutorial_estado',
-                        tutorial: tutorialEstadoParaPlayer(pNpc),
-                        eventoTutorial: eventoInicio
-                    }));
+                    const eventoInicio = etapaAntes === 0 ? 'tutorial_iniciado_npc' : (etapaAntes === 1 ? 'tutorial_etapa_2' : null);
+                    // O NPC continua abrindo sua caixa de diálogo normalmente.
+                    // A instrução do passo aparece separadamente no centro da tela.
                     ws.send(JSON.stringify({
                         type: 'npc_dialogo',
                         npc: {
@@ -9485,13 +9484,18 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                             tutorial: true,
                             etapa: pNpc.tutorialEtapa,
                             dialogo: pNpc.tutorialEtapa === 1
-                                ? 'Olá, aventureiro! Bem-vindo ao mundo de MMORP-Tall. Vamos começar pelo Status. Feche esta conversa e abra a tela de Status pelo MENU ou pela tecla C. Depois distribua seus 3 pontos iniciais.'
+                                ? 'Olá, aventureiro, vejo que está perdido aqui nesta ilha. Vou te ajudar com umas dicas.'
                                 : pNpc.tutorialEtapa === 2
-                                    ? 'Muito bem! Agora vamos conhecer suas Skills. Feche esta conversa e abra a janela de Skills pelo MENU ou pela tecla K. Leia a descrição de uma Skill para continuar.'
+                                    ? 'Muito bem! Vamos continuar seu treinamento. Agora vamos conhecer suas Skills.'
                                     : pNpc.tutorialEtapa === 3
                                         ? 'Eita! Perigo à vista! Prepare-se. Um Demônio do Tutorial apareceu. Derrote-o para concluir seu treinamento!'
                                         : npc.dialogo
                         }
+                    }));
+                    ws.send(JSON.stringify({
+                        type: 'tutorial_estado',
+                        tutorial: tutorialEstadoParaPlayer(pNpc),
+                        eventoTutorial: eventoInicio
                     }));
                     return;
                 }
@@ -9507,6 +9511,19 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     ws.send(JSON.stringify({
                         type: 'tutorial_estado',
                         tutorial: tutorialEstadoParaPlayer(pTut)
+                    }));
+                }
+                return;
+            }
+            if (data.action === 'tutorial_status_closed') {
+                const pTut = players[playerId];
+                if (pTut && pTut.tutorialEtapa === 1 && pTut.tutorialStatusAberto) {
+                    pTut.tutorialStatusAberto = false;
+                    const incompleto = !pTut.tutorialStatusConcluido || (pTut.pontosDisponiveis || 0) > 0;
+                    ws.send(JSON.stringify({
+                        type: 'tutorial_estado',
+                        tutorial: tutorialEstadoParaPlayer(pTut),
+                        eventoTutorial: incompleto ? 'tutorial_status_fechado_incompleto' : 'pontos_concluidos'
                     }));
                 }
                 return;
@@ -9536,16 +9553,29 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
             }
             if (data.action === 'tutorial_skill_closed') {
                 const pTut = players[playerId];
-                if (pTut && pTut.tutorialEtapa === 2 && pTut.tutorialSkillAberta && pTut.tutorialSkillLida) {
-                    // Ler a Skill conclui apenas esta tarefa. O avanço para o perigo
-                    // acontece quando o jogador volta a interagir com o Guia.
+                if (pTut && pTut.tutorialEtapa === 2 && pTut.tutorialSkillAberta) {
+                    const concluida = !!pTut.tutorialSkillLida;
                     pTut.tutorialSkillAberta = false;
-                    pTut.tutorialSkillConcluida = true;
-                    tutorialSalvar(pTut);
-                    ws.send(JSON.stringify({
-                        type: 'tutorial_estado',
-                        tutorial: tutorialEstadoParaPlayer(pTut)
-                    }));
+                    if (concluida) {
+                        // A leitura de uma Skill encerra a etapa 2 imediatamente.
+                        // O monstro final começa sem exigir nova conversa com o Guia.
+                        pTut.tutorialSkillConcluida = true;
+                        pTut.tutorialEtapa = 3;
+                        tutorialCriarDemonio(pTut);
+                        tutorialSalvar(pTut);
+                        ws.send(JSON.stringify({
+                            type: 'tutorial_estado',
+                            tutorial: tutorialEstadoParaPlayer(pTut),
+                            eventoTutorial: 'tutorial_concluido_skill'
+                        }));
+                    } else {
+                        tutorialSalvar(pTut);
+                        ws.send(JSON.stringify({
+                            type: 'tutorial_estado',
+                            tutorial: tutorialEstadoParaPlayer(pTut),
+                            eventoTutorial: 'tutorial_skill_fechada_incompleta'
+                        }));
+                    }
                 }
                 return;
             }

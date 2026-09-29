@@ -1,1 +1,89 @@
-[]
+[
+  {
+    "id": "col_mumycixk_zlbi",
+    "tipo": "rect",
+    "nome": "Caixa 1",
+    "x": 906,
+    "y": 346,
+    "w": 49,
+    "h": 39,
+    "baseY": 438,
+    "ordem": 0
+  },
+  {
+    "id": "col_mumydegt_cd9u",
+    "tipo": "rect",
+    "nome": "Caixa 2",
+    "x": 821,
+    "y": 1428,
+    "w": 63,
+    "h": 29,
+    "baseY": 1457,
+    "ordem": 0
+  },
+  {
+    "id": "col_mumydkwu_ncit",
+    "tipo": "rect",
+    "nome": "Caixa 3",
+    "x": 1286,
+    "y": 1445,
+    "w": 73,
+    "h": 34,
+    "baseY": 1479,
+    "ordem": 0
+  },
+  {
+    "id": "col_mumydrfq_bupl",
+    "tipo": "rect",
+    "nome": "Caixa 4",
+    "x": 1801,
+    "y": 1322,
+    "w": 78,
+    "h": 39,
+    "baseY": 1361,
+    "ordem": 0
+  },
+  {
+    "id": "col_mumyehf6_i1jw",
+    "tipo": "circle",
+    "nome": "Círculo 5",
+    "cx": 1704,
+    "cy": 941,
+    "r": 33
+  },
+  {
+    "id": "col_mumyez9w_t2ri",
+    "tipo": "circle",
+    "nome": "Círculo 6",
+    "cx": 1773,
+    "cy": 914,
+    "r": 37
+  },
+  {
+    "id": "col_mumyfao6_2j01",
+    "tipo": "circle",
+    "nome": "Círculo 7",
+    "cx": 1804,
+    "cy": 917,
+    "r": 26
+  },
+  {
+    "id": "col_mumyfffz_tr4i",
+    "tipo": "circle",
+    "nome": "Círculo 8",
+    "cx": 1739,
+    "cy": 940,
+    "r": 35
+  },
+  {
+    "id": "col_mumyfts8_ozhx",
+    "tipo": "rect",
+    "nome": "Caixa 9",
+    "x": 1773,
+    "y": 1157,
+    "w": 175,
+    "h": 51,
+    "baseY": 1210,
+    "ordem": 0
+  }
+]

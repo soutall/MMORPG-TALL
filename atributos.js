@@ -42,8 +42,12 @@ function abrirAtributos() {
 }
 
 function fecharAtributos() {
+    const estavaAberta = !!window.atributosAberto;
     window.atributosAberto = false;
     ATRIBUTOS_SCREEN.style.display = "none";
+    if (estavaAberta && window.tutorialState && window.tutorialState.etapa === 1 && typeof ws !== 'undefined' && ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({ action: 'tutorial_status_closed' }));
+    }
     if (_intervaloAtributos) {
         clearInterval(_intervaloAtributos);
         _intervaloAtributos = null;

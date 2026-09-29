@@ -50,7 +50,7 @@
     "y": 542,
     "tipo": "lampada",
     "escala": 0.6,
-    "intensidade": 0.4,
+    "intensidade": 0.1,
     "raio": 80,
     "cor": "#ffd166"
   },
@@ -83,7 +83,7 @@
     "y": 135,
     "tipo": "lampada",
     "escala": 0.4,
-    "intensidade": 1,
+    "intensidade": 0.1,
     "raio": 80,
     "cor": "#ffd166"
   },
@@ -105,7 +105,7 @@
     "y": 486,
     "tipo": "lampada",
     "escala": 0.6,
-    "intensidade": 0.5,
+    "intensidade": 0.1,
     "raio": 80,
     "cor": "#ffd166"
   },
@@ -193,7 +193,7 @@
     "y": 324,
     "tipo": "lampada",
     "escala": 0.5,
-    "intensidade": 1,
+    "intensidade": 0.1,
     "raio": 80,
     "cor": "#ffd166"
   },
@@ -204,7 +204,7 @@
     "y": 185,
     "tipo": "lampada",
     "escala": 0.5,
-    "intensidade": 1,
+    "intensidade": 0.1,
     "raio": 80,
     "cor": "#ffd166"
   },
@@ -226,7 +226,7 @@
     "y": 133,
     "tipo": "lampada",
     "escala": 0.3,
-    "intensidade": 1,
+    "intensidade": 0.1,
     "raio": 80,
     "cor": "#ffd166"
   },
@@ -283,17 +283,6 @@
     "escala": 0.4,
     "intensidade": 0.6,
     "raio": 80,
-    "cor": "#ffd166"
-  },
-  {
-    "id": "vfx_mul4f3gc",
-    "mapa": "bemvindo",
-    "x": 86730,
-    "y": 1270,
-    "tipo": "lampada",
-    "escala": 3.9,
-    "intensidade": 1,
-    "raio": 235,
     "cor": "#ffd166"
   }
 ]

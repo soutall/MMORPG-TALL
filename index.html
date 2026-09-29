@@ -2398,7 +2398,16 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
         function tutorialEsconderSuave() {
             const box = tutorialCriarUI();
             clearTimeout(window.tutorialFadeTimer);
-            box.classList.remove('tutorial-visivel');
+            box.classList.remove('tutorial-visivel', 'tutorial-final', 'tutorial-lateral', 'tutorial-mobile', 'tutorial-com-alvo');
+            box.innerHTML = '';
+            box.style.left = '';
+            box.style.right = '';
+            box.style.top = '';
+            box.style.width = '';
+            box.style.maxWidth = '';
+            box.style.transform = '';
+            box.style.zIndex = '';
+            box.style.opacity = '';
             window.tutorialMensagemAtiva = false;
             return box;
         }
@@ -2406,26 +2415,25 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
 
         function tutorialMostrarMensagem(texto, duracao) {
             clearTimeout(window.tutorialFadeTimer);
-            // O tutorial agora acontece dentro da janela do NPC Guia.
-            // Isso mantém a mesma experiência no PC e no mobile, sem criar
-            // uma segunda caixa flutuante sobre as janelas de Status/Skills.
-            if (window.tutorialIniciadoPorNPC && window.npcDialogoAberto) {
-                abrirDialogoNPC({
-                    id: 'tutorial_guia',
-                    nome: 'Guia',
-                    dialogo: texto,
-                    tutorial: true,
-                    etapa: window.tutorialState ? window.tutorialState.etapa : 1
-                });
-                return;
-            }
+            // As instruções das etapas ficam em uma mensagem central independente
+            // da janela de diálogo do NPC.
             const box = tutorialCriarUI();
+            box.classList.remove('tutorial-final', 'tutorial-mobile', 'tutorial-com-alvo');
+            box.classList.add('tutorial-lateral');
             box.classList.remove('tutorial-visivel');
+            // Posicionamento inline intencional: sobrescreve o posicionamento base
+            // da UI e garante que a instrução fique acima das janelas do jogo.
+            box.style.left = 'auto';
+            box.style.right = '34px';
+            box.style.top = '50%';
+            box.style.width = 'min(500px, 32vw)';
+            box.style.maxWidth = 'calc(100vw - 68px)';
+            box.style.transform = 'translateY(-50%)';
+            box.style.zIndex = '400000';
+            box.style.opacity = '1';
             window.tutorialMensagemAtiva = true;
-            setTimeout(() => {
-                box.innerHTML = '<div class="tutorial-moldura tutorial-mensagem"><div class="tutorial-texto">' + texto + '</div></div>';
-                tutorialAnimarEntrada(box);
-            }, 260);
+            box.innerHTML = '<div class="tutorial-moldura tutorial-mensagem"><div class="tutorial-texto">' + texto + '</div></div>';
+            tutorialAnimarEntrada(box);
             if (duracao > 0) {
                 window.tutorialFadeTimer = setTimeout(() => tutorialEsconderSuave(), 260 + duracao);
             }
@@ -2435,15 +2443,22 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
         function tutorialMostrarParabens() {
             const box = tutorialCriarUI();
             clearTimeout(window.tutorialFadeTimer);
+            box.classList.remove('tutorial-lateral', 'tutorial-mobile', 'tutorial-com-alvo', 'tutorial-visivel');
+            box.classList.add('tutorial-final');
+            box.style.left = '50%';
+            box.style.right = 'auto';
+            box.style.top = '50%';
+            box.style.width = 'min(520px, calc(100vw - 36px))';
+            box.style.maxWidth = 'calc(100vw - 36px)';
+            box.style.transform = 'translate(-50%, -50%)';
+            box.style.zIndex = '400000';
+            box.style.opacity = '1';
             window.tutorialMensagemAtiva = true;
             window.tutorialUiKey = 'finalizado';
-            box.classList.remove('tutorial-visivel');
-            setTimeout(() => {
-                box.classList.add('tutorial-final');
-                box.innerHTML = '<div class="tutorial-moldura tutorial-final-moldura"><div class="tutorial-parabens">PARABÉNS!</div><div class="tutorial-final-texto">Você concluiu o tutorial. Agora o mundo de MMORP-Tall está aberto para você.</div></div>';
-                tutorialAnimarEntrada(box);
-            }, 260);
-            window.tutorialFadeTimer = setTimeout(() => tutorialEsconderSuave(), 5260);
+            box.innerHTML = '<div class="tutorial-moldura tutorial-final-moldura"><div class="tutorial-parabens">PARABÉNS!</div><div class="tutorial-final-texto">Você concluiu o tutorial. Agora o mundo de MMORP-Tall está aberto para você.</div></div>';
+            tutorialAnimarEntrada(box);
+            // A mensagem final permanece no máximo 3 segundos e então some sozinha.
+            window.tutorialFadeTimer = setTimeout(() => tutorialEsconderSuave(), 3000);
         }
         window.tutorialMostrarParabens = tutorialMostrarParabens;
 
@@ -2517,8 +2532,11 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             s.id = 'tutorial-style';
             s.textContent = [
                 '#tutorial-guia-ui{transition:opacity .28s ease,top .18s ease,left .18s ease,transform .28s ease;}',
+                '#tutorial-guia-ui.tutorial-lateral{left:auto;right:34px;top:50%;transform:translateY(-50%);width:min(500px,32vw);max-width:calc(100vw - 68px);}',
                 '#tutorial-guia-ui:not(.tutorial-visivel){transform:translateX(-50%) translateY(7px);}',
+                '#tutorial-guia-ui.tutorial-lateral:not(.tutorial-visivel){transform:translateY(calc(-50% + 7px));}',
                 '#tutorial-guia-ui.tutorial-visivel{opacity:1;transform:translateX(-50%) translateY(0);}',
+                '#tutorial-guia-ui.tutorial-lateral.tutorial-visivel{transform:translateY(-50%);}',
                 '.tutorial-moldura{position:relative;background:rgba(10,16,22,.95);border:1.5px solid rgba(79,195,247,.72);border-radius:6px;padding:13px 18px;color:#eaf8ff;box-shadow:0 4px 14px rgba(0,0,0,.72),0 0 12px rgba(79,195,247,.18);}',
                 '.tutorial-texto{font-family:"Rajdhani","Segoe UI",sans-serif;font-size:18px;font-weight:600;line-height:1.28;letter-spacing:.2px;text-shadow:0 1px 3px rgba(0,0,0,.95);}',
                 '.tutorial-final{top:50%!important;width:min(520px,calc(100vw - 36px))!important;max-width:calc(100vw - 36px)!important;}',
@@ -2531,7 +2549,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 '.tutorial-seta-direita::before{content:"";position:absolute;right:100%;top:50%;width:calc(var(--tutorial-arrow-distance,54px) - 10px);height:1.5px;background:rgba(158,232,255,.82);box-shadow:0 0 5px rgba(79,195,247,.45);transform:translateY(-50%);}',
                 '.tutorial-seta-baixo{left:50%;bottom:-48px;transform:translateX(-50%);font-size:36px;line-height:1;}',
                 '@keyframes tutBounce{from{margin-left:0}to{margin-left:8px}}',
-                '@media(max-width:900px){#tutorial-guia-ui{top:50%;width:min(420px,calc(100vw - 36px));max-width:calc(100vw - 36px);}.tutorial-guia-ui{}#tutorial-guia-ui.tutorial-mobile.tutorial-visivel{transform:translate(-50%,-50%);}.tutorial-moldura{padding:14px 18px;}.tutorial-texto{font-size:19px;line-height:1.3;}.tutorial-seta-direita{font-size:36px;}.tutorial-final-moldura{padding:22px 20px;}.tutorial-parabens{font-size:30px;}.tutorial-final-texto{font-size:19px;line-height:1.35;margin-top:8px;}}'
+                '@media(max-width:900px){#tutorial-guia-ui{top:50%;width:min(420px,calc(100vw - 36px));max-width:calc(100vw - 36px);}.tutorial-guia-ui{}#tutorial-guia-ui.tutorial-lateral{left:50%;top:50%;width:min(420px,calc(100vw - 36px));max-width:calc(100vw - 36px);}.tutorial-lateral:not(.tutorial-visivel){transform:translate(-50%,-50%) translateY(7px)!important;}#tutorial-guia-ui.tutorial-mobile.tutorial-visivel{transform:translate(-50%,-50%);}.tutorial-moldura{padding:14px 18px;}.tutorial-texto{font-size:19px;line-height:1.3;}.tutorial-seta-direita{font-size:36px;}.tutorial-final-moldura{padding:22px 20px;}.tutorial-parabens{font-size:30px;}.tutorial-final-texto{font-size:19px;line-height:1.35;margin-top:8px;}}'
             ].join('');
             document.head.appendChild(s);
         }
@@ -2557,15 +2575,30 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             box.querySelector('.npc-dialogo-nome').textContent = npc.nome || 'NPC';
             box.querySelector('.npc-dialogo-texto').textContent = npc.dialogo || 'Olá, aventureiro!';
             const btn = box.querySelector('.npc-dialogo-fechar');
-            btn.textContent = tutorial ? 'CONTINUAR' : 'FECHAR';
+            btn.textContent = tutorial ? 'CONFIRMAR' : 'FECHAR';
             btn.onclick = function () {
                 box.classList.remove('ativo');
                 box.classList.remove('tutorial-dialogo');
                 window.npcDialogoAberto = false;
-                if (tutorial) {
-                    // A própria janela do Guia já apresentou a instrução.
-                    // Ao fechar, o jogador executa o passo e depois volta a falar com ele.
-                    window.tutorialMensagemAtiva = false;
+                if (!tutorial) return;
+
+                const etapaGuia = Number(npc.etapa || (window.tutorialState && window.tutorialState.etapa) || 0);
+                window.tutorialMensagemAtiva = false;
+
+                if (etapaGuia === 1) {
+                    // CONFIRMAR inicia o passo de Status imediatamente.
+                    if (typeof abrirAtributos === 'function') abrirAtributos();
+                    setTimeout(() => tutorialMostrarMensagem(
+                        'Agora veja a tela de Status do game no atalho "C". Aqui você distribui e monta sua build. DISTRIBUA 3 Pontos Agora',
+                        0
+                    ), 80);
+                } else if (etapaGuia === 2) {
+                    // CONFIRMAR inicia o passo de Skills imediatamente.
+                    if (typeof abrirSkills === 'function') abrirSkills();
+                    setTimeout(() => tutorialMostrarMensagem(
+                        'Agora veja a tela de Skills no atalho "K". Leia as informações de 1 Skill.',
+                        0
+                    ), 80);
                 }
             };
             box.classList.add('ativo');
@@ -2628,14 +2661,36 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 return;
             }
 
-            if (eventoTutorial === 'tutorial_iniciado_npc') {
+            if (eventoTutorial === 'tutorial_iniciado_npc' || eventoTutorial === 'tutorial_etapa_2') {
+                // A primeira tela do passo é a caixa de diálogo do Guia.
+                // Só depois de CONFIRMAR abrimos Status/Skills automaticamente.
                 window.tutorialUiKey = '';
                 window.tutorialMensagemAtiva = false;
+            } else if (eventoTutorial === 'tutorial_status_fechado_incompleto') {
+                window.tutorialUiKey = '';
+                tutorialMostrarMensagem('Ainda faltam pontos. Distribua os 3 Pontos para continuar.', 0);
+            } else if (eventoTutorial === 'tutorial_skill_fechada_incompleta') {
+                window.tutorialUiKey = '';
+                tutorialMostrarMensagem('Leia uma Skill antes de continuar.', 0);
             } else if (eventoTutorial === 'pontos_concluidos') {
-                // Status foi concluído. O Guia só continuará quando o jogador
-                // voltar fisicamente e interagir com ele.
+                // Os 3 pontos foram distribuídos: mensagem e Status encerram juntos.
                 window.tutorialUiKey = '';
-                window.tutorialMensagemAtiva = false;
+                tutorialEsconderSuave();
+                if (typeof fecharAtributos === 'function' && window.atributosAberto) {
+                    fecharAtributos();
+                }
+            } else if (eventoTutorial === 'tutorial_concluido_skill') {
+                // A Skill foi lida: mensagem e Skills encerram juntos.
+                window.tutorialUiKey = '';
+                tutorialEsconderSuave();
+                if (typeof fecharSkills === 'function' && window.skillsAberto) {
+                    fecharSkills();
+                }
+                setTimeout(() => {
+                    if (window.tutorialState && window.tutorialState.etapa === 3) {
+                        tutorialMostrarMensagem('Eita! Perigo à vista! Derrote o monstro para concluir seu treinamento!', 0);
+                    }
+                }, 650);
             } else if (eventoTutorial === 'tutorial_concluido') {
                 const modal = document.getElementById('npc-dialogo-modal');
                 if (modal) modal.classList.remove('ativo');
@@ -2645,12 +2700,36 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 const modal = document.getElementById('npc-dialogo-modal');
                 if (modal) modal.classList.remove('ativo');
                 window.npcDialogoAberto = false;
-                window.tutorialMensagemAtiva = false;
+                // O servidor confirma a abertura do Status. Reforça a mensagem
+                // aqui também para que nenhum retorno WebSocket consiga apagá-la.
+                if (!window.tutorialMensagemAtiva) {
+                    tutorialMostrarMensagem(
+                        'Agora veja a tela de Status do game no atalho "C". Aqui você distribui e monta sua build. DISTRIBUA 3 Pontos Agora',
+                        0
+                    );
+                }
+            } else if (t && t.etapa === 2 && t.skillAberta && t.skillLida) {
+                const modal = document.getElementById('npc-dialogo-modal');
+                if (modal) modal.classList.remove('ativo');
+                window.npcDialogoAberto = false;
+                // Assim que uma Skill for realmente lida, fecha automaticamente.
+                if (typeof fecharSkills === 'function' && window.skillsAberto) {
+                    setTimeout(() => {
+                        if (window.skillsAberto) fecharSkills();
+                    }, 800);
+                }
             } else if (t && t.etapa === 2 && t.skillAberta) {
                 const modal = document.getElementById('npc-dialogo-modal');
                 if (modal) modal.classList.remove('ativo');
                 window.npcDialogoAberto = false;
-                window.tutorialMensagemAtiva = false;
+                // O servidor confirma a abertura de Skills. Reforça a instrução
+                // se algum evento intermediário a tiver escondido.
+                if (!window.tutorialMensagemAtiva) {
+                    tutorialMostrarMensagem(
+                        'Agora veja a tela de Skills no atalho "K". Leia as informações de 1 Skill.',
+                        0
+                    );
+                }
             } else if (mensagem && t && t.etapa === 3) {
                 // A mensagem de perigo só é enviada junto da interação com o Guia.
                 // Não abrir/reabrir a janela em world_update.
@@ -7217,8 +7296,28 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             let key = (e.key || '').toLowerCase();
 
             if (window.tutorialBloqueado) {
-                const permitido = (window.tutorialState && window.tutorialState.etapa === 1 && key === 'c') ||
-                    (window.tutorialState && window.tutorialState.etapa === 2 && key === 'k') || code === 'Escape';
+                const etapaTutorial = window.tutorialState && window.tutorialState.etapa;
+                const apertouC = key === 'c' || code === 'KeyC';
+                const apertouK = key === 'k' || code === 'KeyK';
+
+                // Durante as etapas 1 e 2, C/K sao atalhos exclusivos do tutorial.
+                // Usamos e.code como reforco para teclados/layouts onde e.key pode variar.
+                if (etapaTutorial === 1 && apertouC) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (typeof window.tutorialEsconderSuave === 'function') window.tutorialEsconderSuave();
+                    if (typeof abrirAtributos === 'function') abrirAtributos();
+                    return;
+                }
+                if (etapaTutorial === 2 && apertouK) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    if (typeof window.tutorialEsconderSuave === 'function') window.tutorialEsconderSuave();
+                    if (typeof abrirSkills === 'function') abrirSkills();
+                    return;
+                }
+
+                const permitido = code === 'Escape';
                 if (!permitido) { e.preventDefault(); return; }
             }
 

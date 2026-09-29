@@ -145,6 +145,11 @@
 .ps-skill-desc { font-size: 12.5px; color: #9aa7b1; margin-top: 2px; line-height: 1.35; }
 
 .ps-acoes { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 14px; width: 100%; }
+
+/* --- criação no PC: mantém o retrato totalmente visível, sem cortar o topo --- */
+@media (min-width: 861px) {
+    .ps-criacao .ps-palco { padding-top: 18px; }
+}
 .ps-botao {
     font-family: 'Cinzel', serif;
     font-size: 14px;

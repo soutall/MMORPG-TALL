@@ -549,9 +549,9 @@ function abrirSkills() {
     let screen = skillScreenEl();
     if (screen) screen.style.display = "flex";
     renderizarSkills();
-    // Tutorial: a etapa só avança quando a janela de Skills for FECHADA.
+    // No tutorial, a mensagem lateral deve permanecer visível enquanto Skills está aberta.
+    // Apenas registra que a janela foi aberta; a leitura da Skill será o próximo passo.
     if (window.tutorialState && window.tutorialState.etapa === 2 && typeof ws !== 'undefined' && ws && ws.readyState === WebSocket.OPEN) {
-        if (typeof window.tutorialEsconderSuave === 'function') window.tutorialEsconderSuave();
         ws.send(JSON.stringify({ action: 'tutorial_skill_opened' }));
     }
 }
