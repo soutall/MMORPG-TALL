@@ -8941,17 +8941,6 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
                     mmCtx.fillStyle = "#2ecc71";
                     mmCtx.beginPath(); mmCtx.arc(vpx, vpy, 2, 0, Math.PI * 2); mmCtx.fill();
 
-                                mmCtx.strokeStyle = "#f1c40f";
-                                mmCtx.lineWidth = 1;
-                                mmCtx.stroke();
-                                mmCtx.restore();
-                            } else {
-                                mmCtx.fillStyle = (s.tipo === 'zumbi') ? "#00e676" : ((s.tipo === 'besouro_negro') ? "#ff9100" : ((s.tipo === 'morcego') ? "#d500f9" : "#ff3344"));
-                                mmCtx.fillRect(mx - 1.5, my - 1.5, 3, 3);
-                            }
-                        });
-                    }
-
                     // 5. Outros jogadores
                     if (window.todosJogadores) {
                         for (let pid in window.todosJogadores) {

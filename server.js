@@ -648,7 +648,7 @@ const BEMVINDO_SPAWN_Y = mapaBemVindo && mapaBemVindo.PONTO_SPAWN ? mapaBemVindo
 // testevisual: 72480/480 = PONTO_CHEGADA de mapa_teste_visual.js (portal em 72160/480, r=55).
 // zonazero: 74200/1000 = PONTO_SPAWN de mapa_zona_zero.js (portal fica em 74160/1000, r=56).
 // castelo: 82200/900 = SPAWN_CASTELO de mapa_castelo.js (portal de saída em 82060/900, r=52).
-const PONTOS_TELEPORTE = { green: { x: 5000, y: 1200 }, desert: { x: 18500, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, arena: mapaSolari && mapaSolari.PONTO_CHEGADA ? mapaSolari.PONTO_CHEGADA : { x: 64180, y: 460 }, cidadeperdida: { x: 65360, y: 460 }, testevisual: { x: 72480, y: 480 }, zonazero: { x: 74200, y: 1000 }, castelo: { x: 82200, y: 900 }, bemvindo: { x: BEMVINDO_SPAWN_X, y: BEMVINDO_SPAWN_Y }, ruinas_01: { x: RUINAS_01_X0 + 1300, y: 950 } };
+const PONTOS_TELEPORTE = { green: { x: 5000, y: 1200 }, desert: { x: 18500, y: 4500 }, pantano: { x: 50200, y: 1000 }, caverna: { x: 58080, y: 900 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, cidadeperdida: { x: 65360, y: 460 }, testevisual: { x: 72480, y: 480 }, zonazero: { x: 74200, y: 1000 }, castelo: { x: 82200, y: 900 }, bemvindo: { x: BEMVINDO_SPAWN_X, y: BEMVINDO_SPAWN_Y }, ruinas_01: { x: RUINAS_01_X0 + 1300, y: 950 } };
 
 // ============================================================================
 // CONFIGURAÇÃO MULTI-MAPA DE COLISÕES E CAMADAS (Admin Editor v1.46.0 / v1.47.0)
@@ -790,7 +790,7 @@ function colideObstaculosCustomizados(mapa, cx, cy, raio) {
 // portal e do ponto de chegada da instância.
 const SOLARI_COORDS = {
     portalCidade: { x: 60488, y: 236, r: 42 },
-    arena: {
+    solari: {
         x0: mapaSolari ? mapaSolari.SOLARI_X0 : 63800,
         x1: mapaSolari ? mapaSolari.SOLARI_X1 : 65040,
         y1: mapaSolari ? mapaSolari.SOLARI_Y1 : 1240,
