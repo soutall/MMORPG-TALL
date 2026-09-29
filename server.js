@@ -4,6 +4,8 @@ const path = require('path');
 const MAPAS_REGISTRY = require('./mapas-registry.js');
 const INSTANCIAS = require('./instancias.js');
 const WebSocket = require('ws');
+const { AsyncLocalStorage } = require('async_hooks');
+const combateContextStorage = new AsyncLocalStorage();
 
 process.on('uncaughtException', (err) => {
     console.error('[ERRO NÃO TRATADO]', err && err.stack ? err.stack : err);
@@ -262,6 +264,30 @@ const wss = new WebSocket.Server({ server, maxPayload: 64 * 1024 });
 wss.on('error', (err) => {
     console.error('[WSS ERRO]', err && err.message ? err.message : err);
 });
+
+// CONTEXTO DE BROADCAST: qualquer broadcast síncrono iniciado por uma ação
+// usa automaticamente mapaId + instanciaId do jogador que originou a ação.
+// Isso protege inclusive código legado que ainda usa wss.clients.forEach().
+let contextoBroadcastAtual = null;
+
+// FILTRO GLOBAL DE COMBATE: nenhum evento de skill pode atravessar mapa/instância.
+// Eventos com ownerId/autorId usam o contexto persistente do dono; eventos legados
+// sem dono usam o contexto da ação síncrona atual.
+const webSocketSendOriginal = WebSocket.prototype.send;
+WebSocket.prototype.send = function (payload) {
+    let dados = null;
+    try { dados = typeof payload === 'string' ? JSON.parse(payload) : null; } catch (e) {}
+    const ehEventoCombate = !!(dados && (
+        (typeof dados.type === 'string' && (dados.type.indexOf('action_') === 0 || dados.type.indexOf('skill_') === 0)) ||
+        dados.type === 'monster_lanceiro_block_hit' || dados.type === 'mob_block' ||
+        dados.type === 'boss_golem_reflexo'
+    ));
+    if (ehEventoCombate) {
+        const contexto = contextoDeEventoCombate(dados) || combateContextStorage.getStore() || contextoBroadcastAtual;
+        if (contexto && !contextoClienteCompativel(this, contexto)) return;
+    }
+    return webSocketSendOriginal.apply(this, arguments);
+};
 let players = {};
 let playerSockets = {};
 let trades = {}; // { tradeId: { p1: id1, p2: id2, items1: [], items2: [], conf1: false, conf2: false } }
@@ -365,11 +391,142 @@ function tutorialEstadoParaPlayer(p) {
     };
 }
 
-let projeteis = [];
-let playerProjeteis = [];
-let blizzards = [];
-let vulcoes = [];
-let chuvasServidor = [];
+// ============================================================================
+// CONTEXTO GLOBAL DE COMBATE — MAPA + INSTÂNCIA
+// Toda skill, zona, projétil e efeito persistente criado por um jogador deve
+// carregar este contexto. Isso elimina dependência de coordenada física.
+// ============================================================================
+
+function contextoCombateDoJogador(playerId) {
+    const p = players && players[playerId];
+    if (!p) return null;
+    const sessao = typeof solariSessaoDoJogador === 'function' ? solariSessaoDoJogador(playerId) : null;
+    return {
+        mapaId: sessao ? 'solari' : mapaPorCoordenada(p.x + PLAYER_OFFSET_X),
+        instanciaId: sessao ? sessao.instanciaId : (p.instanciaId || null),
+        instanciaTipo: sessao ? 'solari' : (p.instanciaTipo || null),
+        ownerId: playerId
+    };
+}
+
+function contextoCombateDaEntidade(entidade) {
+    if (!entidade) return null;
+    if (entidade.mapaId || entidade.instanciaId || entidade.solariInstanceId) {
+        return {
+            mapaId: entidade.mapaId || (entidade.solari ? 'solari' : mapaPorCoordenada(entidade.x)),
+            instanciaId: entidade.instanciaId || entidade.solariInstanceId || null,
+            instanciaTipo: entidade.instanciaTipo || (entidade.solari ? 'solari' : null),
+            ownerId: entidade.ownerId || entidade.autorId || null
+        };
+    }
+    const ownerId = entidade.ownerId || entidade.autorId || entidade.playerId || entidade.pid;
+    return ownerId ? contextoCombateDoJogador(ownerId) : null;
+}
+
+function aplicarContextoCombate(entidade, contexto) {
+    if (!entidade || !contexto) return entidade;
+    entidade.mapaId = contexto.mapaId || null;
+    entidade.instanciaId = contexto.instanciaId || null;
+    entidade.instanciaTipo = contexto.instanciaTipo || null;
+    if (contexto.mapaId === 'solari') {
+        entidade.solari = true;
+        entidade.solariInstanceId = contexto.instanciaId || null;
+    }
+    return entidade;
+}
+
+function entidadeNoContextoCombate(entidade, contexto) {
+    if (!entidade || !contexto) return false;
+    const ec = contextoCombateDaEntidade(entidade);
+    if (!ec) return false;
+    if (ec.mapaId !== contexto.mapaId) return false;
+    if (contexto.instanciaId || ec.instanciaId) return !!contexto.instanciaId && !!ec.instanciaId && contexto.instanciaId === ec.instanciaId;
+    return true;
+}
+
+function contextoClienteCompativel(client, contexto) {
+    if (!client || !contexto || !client._playerId) return false;
+    const cc = contextoCombateDoJogador(client._playerId);
+    return !!cc && cc.mapaId === contexto.mapaId &&
+        ((!contexto.instanciaId && !cc.instanciaId) || (!!contexto.instanciaId && contexto.instanciaId === cc.instanciaId));
+}
+
+function broadcastContextoCombate(contexto, payload) {
+    if (!contexto) return;
+    const msg = JSON.stringify(payload || {});
+    wss.clients.forEach(client => {
+        if (client.readyState === WebSocket.OPEN && contextoClienteCompativel(client, contexto)) client.send(msg);
+    });
+}
+
+function filtrarContextoCombate(lista, contexto) {
+    return Array.isArray(lista) ? lista.filter(e => entidadeNoContextoCombate(e, contexto)) : [];
+}
+
+function contextoDeEventoCombate(dados) {
+    if (!dados) return null;
+    const ownerId = dados.ownerId || dados.autorId || dados.playerId || dados.pid ||
+        (dados.id && players[dados.id] ? dados.id : null);
+    if (ownerId) return contextoCombateDoJogador(ownerId);
+
+    const colecoes = [
+        projeteis, playerProjeteis, blizzards, vulcoes, chuvasServidor,
+        florimSementes, florimCorrentes, florimAneis, florimDebuffs,
+        meteorFires, escudosLancados, bolasElementais, buracosNegros,
+        chuvasFlechaNova, canticosCelestiais, gasesVeneno, caixasFerramentas,
+        chuvasCometas, orbeConstelacoes, redesSniper
+    ];
+    if (dados.id != null) {
+        for (const lista of colecoes) {
+            if (!Array.isArray(lista)) continue;
+            const ent = lista.find(e => e && e.id === dados.id);
+            if (ent) return contextoCombateDaEntidade(ent);
+        }
+    }
+    const mobId = dados.mobId || dados.monstroId || dados.bossId;
+    if (mobId != null) {
+        const alvo = (typeof slimes !== 'undefined' && slimes.find(e => e && e.id === mobId)) ||
+            (typeof bosses !== 'undefined' && bosses.find(e => e && e.id === mobId));
+        if (alvo) return contextoCombateDaEntidade(alvo);
+    }
+    if (dados.x != null && dados.y != null && typeof lacaios !== 'undefined') {
+        for (const pid of Object.keys(lacaios)) {
+            const pet = lacaios[pid];
+            if (pet && Math.hypot((pet.x || 0) - dados.x, (pet.y || 0) - dados.y) < 4) {
+                return contextoCombateDoJogador(pid);
+            }
+        }
+    }
+    return null;
+}
+
+function colecaoCombate(nome) {
+    const arr = [];
+    return new Proxy(arr, {
+        get(target, prop, receiver) {
+            if (prop === 'push') {
+                return function () {
+                    for (const item of arguments) {
+                        if (item && typeof item === 'object') {
+                            const ownerId = item.ownerId || item.autorId || item.playerId || item.pid;
+                            const contexto = ownerId ? contextoCombateDoJogador(ownerId) : null;
+                            if (contexto) aplicarContextoCombate(item, contexto);
+                        }
+                    }
+                    return Array.prototype.push.apply(target, arguments);
+                };
+            }
+            return Reflect.get(target, prop, receiver);
+        }
+    });
+}
+
+// Coleções persistentes de skills/efeitos passam a nascer com contexto automaticamente.
+let projeteis = colecaoCombate('projeteis');
+let playerProjeteis = colecaoCombate('playerProjeteis');
+let blizzards = colecaoCombate('blizzards');
+let vulcoes = colecaoCombate('vulcoes');
+let chuvasServidor = colecaoCombate('chuvasServidor');
 let lacaios = {};
 let petRespawnTimer = {};
 let bandas = {};
@@ -378,20 +535,20 @@ let rajadaCanal = {};
 // ===== PIKEMAN: canalização da Execução da Morte (3s → 3 golpes) =====
 // canal = { startX, startY, alvoTipo, alvoId, timer (ticks 50ms), total, angulo }
 let pikemanCanais = {};
-let florimSementes = [];
-let florimCorrentes = [];
-let florimAneis = [];
-let florimDebuffs = [];
+let florimSementes = colecaoCombate('florimSementes');
+let florimCorrentes = colecaoCombate('florimCorrentes');
+let florimAneis = colecaoCombate('florimAneis');
+let florimDebuffs = colecaoCombate('florimDebuffs');
 let aurasSagradas = {};
 
 // ======= NOVAS SKILLS (GLOBALS) =======
-let meteorFires = [];
-let escudosLancados = [];
-let bolasElementais = [];
+let meteorFires = colecaoCombate('meteorFires');
+let escudosLancados = colecaoCombate('escudosLancados');
+let bolasElementais = colecaoCombate('bolasElementais');
 let vinculosBerserker = {};
-let buracosNegros = [];
-let chuvasFlechaNova = [];
-let canticosCelestiais = [];
+let buracosNegros = colecaoCombate('buracosNegros');
+let chuvasFlechaNova = colecaoCombate('chuvasFlechaNova');
+let canticosCelestiais = colecaoCombate('canticosCelestiais');
 let golemsSismicos = {};
 
 
@@ -480,16 +637,16 @@ let cooldownRessurreicao = {};
 let dropsChao = [];
 // ===== LADINO: zonas de gás venenoso (Névoa Venenosa) =====
 // zona = { id, x, y, mapa, raio, tempo (ticks restantes), duracao (ticks), ownerId, danoBase }
-let gasesVeneno = [];
+let gasesVeneno = colecaoCombate('gasesVeneno');
 let gasVenenoSeq = 0;
 
 // ===== NOVAS CLASSES (v1.31): zonas de chão persistentes =====
 // caixa de ferramentas (DroneMaster), chamas/poças/tornados/poços (Arqueiro Arcano),
 // redes de arame (Sniper). Cada zona segue o MESMO padrão das gasesVeneno.
-let caixasFerramentas = [];
-let chuvasCometas = [];        // ARQUEIRO ASTRAL: chuva de cometas (4s DoT)
-let orbeConstelacoes = [];     // ARQUEIRO ASTRAL: orbe de constelação (cativeiro 2s + implosão)
-let redesSniper = [];
+let caixasFerramentas = colecaoCombate('caixasFerramentas');
+let chuvasCometas = colecaoCombate('chuvasCometas');        // ARQUEIRO ASTRAL: chuva de cometas (4s DoT)
+let orbeConstelacoes = colecaoCombate('orbeConstelacoes');     // ARQUEIRO ASTRAL: orbe de constelação (cativeiro 2s + implosão)
+let redesSniper = colecaoCombate('redesSniper');
 let seqZonaNova = 0;
 
 // ===== MOITAS DE MATO (Sniper — Camuflagem Natural) =====
@@ -2343,6 +2500,24 @@ function sincronizarInstanciaMapaJogador(playerId) {
 }
 
 function sincronizarEntidadesInstanciadas() {
+    // Reforço global: qualquer entidade persistente criada por skill recebe
+    // mapaId/instanciaId mesmo que tenha sido criada por código legado.
+    const colecoes = [
+        projeteis, playerProjeteis, blizzards, vulcoes, chuvasServidor,
+        florimSementes, florimCorrentes, florimAneis, florimDebuffs,
+        meteorFires, escudosLancados, bolasElementais, buracosNegros,
+        chuvasFlechaNova, canticosCelestiais, gasesVeneno, caixasFerramentas,
+        chuvasCometas, orbeConstelacoes, redesSniper
+    ];
+    colecoes.forEach(function (lista) {
+        if (!Array.isArray(lista)) return;
+        lista.forEach(function (ent) {
+            if (!ent || ent.mapaId) return;
+            const ownerId = ent.ownerId || ent.autorId || ent.playerId || ent.pid;
+            if (ownerId && players[ownerId]) aplicarContextoCombate(ent, contextoCombateDoJogador(ownerId));
+        });
+    });
+
     // Projéteis/zonas ligados a jogador herdam a instância do dono.
     const listas = [playerProjeteis, dropsChao, gasesVeneno, florimSementes, florimCorrentes, florimAneis, florimDebuffs];
     listas.forEach(function (lista) {
@@ -2375,6 +2550,13 @@ function sincronizarEntidadesInstanciadas() {
 
 function instanciaCompativel(a, b) {
     if (!a || !b) return false;
+    const ca = contextoCombateDaEntidade(a);
+    const cb = contextoCombateDaEntidade(b);
+    if (ca && cb) {
+        if (ca.mapaId !== cb.mapaId) return false;
+        if (ca.instanciaId || cb.instanciaId) return !!ca.instanciaId && !!cb.instanciaId && ca.instanciaId === cb.instanciaId;
+        return true;
+    }
     const mapaA = mapaPorCoordenada(a.x);
     const mapaB = mapaPorCoordenada(b.x);
     if (mapaA !== mapaB) return false;
@@ -3100,8 +3282,10 @@ function refletirDanoBoss(boss, autorId, quantidade) {
 // (a área contra bosses continua 360°, como sempre foi).
 function danoEmBosses(x, y, raio, autorId, quantidade, tipo, tipoOrigem, ang, meiaAbertura) {
     danoEmPlayers(x, y, raio, autorId, quantidade, tipo, null, ang, meiaAbertura);
+    const contexto = contextoCombateDoJogador(autorId);
     let ret = null;
     for (let bb of bosses) {
+        if (contexto && !entidadeNoContextoCombate(bb, contexto)) continue;
         if (bb.hp > 0 && Math.hypot(bb.x - x, bb.y - y) < raio) {
             let r = registrarDanoBoss(bb, autorId, quantidade, tipo || 'skill', tipoOrigem);
             if (r && r.dano > 0 && (!ret || r.dano > ret.dano)) {
@@ -8210,6 +8394,11 @@ wss.on('connection', (ws) => {
             let data = JSON.parse(message);
             let agora = Date.now();
 
+            // Cada mensagem entra em seu próprio contexto assíncrono. Timers,
+            // setTimeouts e callbacks disparados pela skill herdam o mesmo mapa/instância.
+            contextoBroadcastAtual = playerId ? contextoCombateDoJogador(playerId) : null;
+            combateContextStorage.enterWith(contextoBroadcastAtual);
+
             // Nenhuma ação de jogo antes de o personagem ser selecionado/criado.
             if (!ws._charSelecionado && ACOES_ANTES_DA_SELECAO.indexOf(data.action) === -1) return;
 
@@ -12117,7 +12306,7 @@ if (data.action === 'dash') {
                     blizzards.push({ ownerId: playerId, x: data.targetX, y: data.targetY, radius: 115, duracao: Math.ceil(duracaoNevascaMs / 50), expiresAt: Date.now() + duracaoNevascaMs, soundId: soundIdNevasca, danoNevasca: dmgSkill(players[playerId], 'nevasca', 6) });
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_nevasca', targetX: data.targetX, targetY: data.targetY, radius: 115, duracaoMs: duracaoNevascaMs, soundId: soundIdNevasca }));
+                            client.send(JSON.stringify({ type: 'action_nevasca', ownerId: playerId, targetX: data.targetX, targetY: data.targetY, radius: 115, duracaoMs: duracaoNevascaMs, soundId: soundIdNevasca }));
                         }
                     });
                 }
