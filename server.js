@@ -2238,6 +2238,9 @@ function mapaPorCoordenada(x) {
 // intervalo de coordenadas; a separação passa a ser lógica pelo instanciaId.
 const MAPAS_INSTANCIADOS = new Set(['green']);
 const LIMITE_JOGADORES_INSTANCIA = { green: 50 };
+// V1.2: gerenciador genérico passa a ser a fonte de criação/remoção das instâncias,
+// mantendo instanciasMapa como compatibilidade temporária durante a migração.
+const GERENCIADOR_INSTANCIAS = INSTANCIAS.criarGerenciador({ limitePadrao: 50 });
 let instanciasMapa = {};
 
 function mapaEhInstanciado(mapa) {
@@ -2246,9 +2249,9 @@ function mapaEhInstanciado(mapa) {
 
 function criarInstanciaMapa(mapa) {
     if (!mapaEhInstanciado(mapa)) return null;
-    const instancia = INSTANCIAS.criar(mapa, mapa, { maxMembros: LIMITE_JOGADORES_INSTANCIA[mapa] || 50 });
-    instanciasMapa[instancia.id] = { id: instancia.id, tipo: mapa, mapaId: mapa, membros: new Set(), criadaEm: instancia.criadaEm };
-    return instanciasMapa[instancia.id];
+    const instancia = GERENCIADOR_INSTANCIAS.criar(mapa, mapa, { maxMembros: LIMITE_JOGADORES_INSTANCIA[mapa] || 50 });
+    instanciasMapa[instancia.id] = instancia;
+    return instancia;
 }
 
 function instanciaMapaDoJogador(playerId) {
@@ -2262,10 +2265,9 @@ function garantirInstanciaMapaParaJogador(playerId, mapa) {
     const atual = instanciaMapaDoJogador(playerId);
     if (atual && atual.mapaId === mapa) return atual;
 
-    let destino = Object.values(instanciasMapa).find(function (inst) {
-        return inst.mapaId === mapa && inst.membros.size < (LIMITE_JOGADORES_INSTANCIA[mapa] || 50);
-    });
+    let destino = GERENCIADOR_INSTANCIAS.encontrarDisponivel(mapa, LIMITE_JOGADORES_INSTANCIA[mapa] || 50);
     if (!destino) destino = criarInstanciaMapa(mapa);
+    if (destino && !instanciasMapa[destino.id]) instanciasMapa[destino.id] = destino;
     if (!destino) return null;
 
     if (atual) atual.membros.delete(playerId);
@@ -2305,6 +2307,7 @@ function removerJogadorDaInstanciaMapa(playerId) {
         instancia.membros.delete(playerId);
         if (instancia.membros.size === 0) {
             limparEntidadesInstancia(instancia.id);
+            GERENCIADOR_INSTANCIAS.remover(instancia.id);
             delete instanciasMapa[instancia.id];
         }
     }

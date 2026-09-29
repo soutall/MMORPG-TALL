@@ -239,3 +239,42 @@ Regra de continuidade:
 - Sempre iniciar a próxima sessão lendo esta memória.
 - Não avançar de versão sem validar sintaxe e fluxo afetado.
 - Atualizar esta memória ao final de cada etapa antes de considerar a etapa concluída.
+
+
+## MAPAS — VERSÃO 1.2.0 — 2026-09-29
+
+Integração inicial do gerenciador genérico no servidor concluída.
+
+Alterações:
+- server.js agora instancia GERENCIADOR_INSTANCIAS a partir de INSTANCIAS.criarGerenciador().
+- A criação das instâncias de mapas já existentes passou a usar GERENCIADOR_INSTANCIAS.criar().
+- A procura de uma instância disponível passou a usar GERENCIADOR_INSTANCIAS.encontrarDisponivel().
+- A remoção de uma instância vazia passou a chamar GERENCIADOR_INSTANCIAS.remover().
+- instanciasMapa permanece temporariamente como camada de compatibilidade para o restante do servidor.
+- O comportamento atual do Campo Verde foi preservado: ele continua reutilizando uma instância disponível, com limite de 50 jogadores.
+- Solari ainda NÃO foi convertido para múltiplas salas nesta etapa.
+- Nenhuma mudança foi feita na regra de coordenadas dos mapas públicos.
+
+Mapeamento de Solari realizado nesta etapa:
+- Estado global atual: solariSessao.
+- Fluxo: recrutando -> contagem -> rodando -> leilao/transicao -> fim.
+- Estado por sessão inclui membros, convites, round, spawn/vivos, tiposRound, timers de contagem/spawn/transição/fim e leilão.
+- Monstros Solari atualmente usam apenas a marca solari=true e ficam na lista global slimes.
+- AtualizarSolari() opera sobre uma única sessão global.
+- Funções solari* principais identificadas: solariEmSessao, solariEnviarA, solariBroadcast, solariEstado, solariEnviarEstado, solariCriarSessao, solariAbrir, solariConvidar, solariAceitar, solariRecusar, solariDarOk, solariTeleportarParaArena, solariIniciar, solariEscolherDoisTipos, solariPosAleatoria, solariSpawnarUm, solariLimparMonstros, solariIniciarSorteio, solariComecarCombate, solariMarcaMorte, solariReviveNoLocal, solariRemoverMembro, solariEncerrarSessao, solariVoltarCidade e atualizarSolari.
+- Há referências adicionais a solariSessao fora desse bloco, inclusive em filtragem de world_update, resolução de mapa do jogador e skills/efeitos. Essas referências serão migradas junto com a sessão, não isoladamente.
+
+Validação:
+- node --check server.js: PASS.
+- node --check instancias.js: PASS.
+- Servidor iniciou corretamente e carregou todos os mapas/sistemas.
+- A porta 8080 já estava ocupada pelo servidor existente; o teste abriu temporariamente em 8081 e foi encerrado imediatamente. Nenhum segundo servidor ficou ativo.
+- git diff --check reportou avisos de trailing whitespace causados pelas terminações CRLF do server.js; não houve erro de sintaxe.
+
+Próxima etapa — VERSÃO 1.3.0:
+- migrar Solari de solariSessao única para coleção de sessões indexadas por instanciaId;
+- cada nova entrada sem sessão existente deve gerar nova sala Solari;
+- convites/aceites devem permanecer vinculados à sala correta;
+- monstros, rounds, timers e leilão devem pertencer exclusivamente à sessão;
+- world_update e filtros devem considerar instanciaId da Solari;
+- somente depois validar duas salas Solari simultâneas.
