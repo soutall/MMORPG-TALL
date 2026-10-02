@@ -65,19 +65,6 @@
     "timerRespawn": 25
   },
   {
-    "id": "flag_pantano_zumbi_2",
-    "criadoEm": 1789338680137,
-    "tipo": "zumbi",
-    "maxQtd": 14,
-    "comportamento": "agressivo",
-    "hpBase": 460,
-    "respawnSeg": 5,
-    "x": 54000,
-    "y": 4500,
-    "temPosicao": true,
-    "timerRespawn": 25
-  },
-  {
     "id": "flag_pantano_zumbi_3",
     "criadoEm": 1789338680138,
     "tipo": "zumbi",
@@ -130,19 +117,6 @@
     "timerRespawn": 20
   },
   {
-    "id": "flag_muiss7gu_cduj4",
-    "criadoEm": 1790451816654,
-    "tipo": "melee",
-    "maxQtd": 1,
-    "comportamento": "agressivo",
-    "hpBase": 5000,
-    "respawnSeg": 1,
-    "x": 64425,
-    "y": 594,
-    "temPosicao": true,
-    "timerRespawn": 20
-  },
-  {
     "id": "flag_muisukd3_khk18",
     "criadoEm": 1790451926679,
     "tipo": "melee",
@@ -191,6 +165,32 @@
     "respawnSeg": 5,
     "x": 6008,
     "y": 1390,
+    "temPosicao": true,
+    "timerRespawn": 100
+  },
+  {
+    "id": "flag_muq97yiy_okfoz",
+    "criadoEm": 1790902688650,
+    "tipo": "melee",
+    "maxQtd": 3,
+    "comportamento": "agressivo",
+    "hpBase": 50,
+    "respawnSeg": 5,
+    "x": 99739,
+    "y": 2491,
+    "temPosicao": true,
+    "timerRespawn": 100
+  },
+  {
+    "id": "flag_muqe7xlz_0pb6q",
+    "criadoEm": 1790911085543,
+    "tipo": "ogro",
+    "maxQtd": 1,
+    "comportamento": "agressivo",
+    "hpBase": 26000,
+    "respawnSeg": 5,
+    "x": 8934,
+    "y": 2500,
     "temPosicao": true,
     "timerRespawn": 100
   }

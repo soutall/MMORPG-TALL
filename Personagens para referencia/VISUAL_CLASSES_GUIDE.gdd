@@ -1,0 +1,161 @@
+# ==============================================================================
+# GDD MASTER: GUIA DE ARQUITETURA VISUAL, RENDERIZAÇÃO E DESIGN DE CLASSES
+# Projeto: MMORPG Idle Canvas 2D
+# Documento: VISUAL_CLASSES_GUIDE.gdd
+# ==============================================================================
+
+[METADATA]
+Autor: DeepMind Antigravity Pair-Programming
+Versão: 2.5
+Tipo: Game Design Document (GDD) - Visual & Technical Rendering Engine
+Objetivo: Servir como base e referência completa para exportação para outros projetos
+          e padronização de criação de novas classes.
+
+---
+
+## 1. FILOSOFIA VISUAL E DIRETRIZ ARTÍSTICA
+
+O visual deste MMORPG é desenvolvido inteiramente através da API **HTML5 Canvas 2D**, 
+sem depender de spritesheets estáticos pré-renderizados. Cada classe é tratada como
+uma escultura vetorial procedural com iluminação dinâmica, animações orgânicas 
+matemáticas e efeitos visuais (VFX) renderizados em tempo real a 60 FPS.
+
+### Pilares Fundamentais:
+1. **Identidade Silhuética Marcante**:
+   - Cada classe possui uma silhueta inconfundível mesmo a longa distância ou em tela reduzida:
+     * Guerreiro: Grande montante colossal flutuando ao lado.
+     * Mago: 3 orbes elementais coloridos em órbita contínua ao redor da cintura/ombros.
+     * Clérigo: Escudo torre prateado com cruz e lanterna sagrada oscilando em corrente física.
+     * Arqueiro: Capuz florestal pontiagudo e linha de mira laser vermelha neon contínua.
+     * SuperTank: Duplo escudo de cerco (dual-wield) massivo com postura impenetrável.
+     * Invocadora: Grimório flutuante aberto com feixe rúnico contínuo conectado a um Golem colossal.
+
+2. **Dinamismo em 3 Estados Orgânicos**:
+   - **Respiração / Idle**: Nenhum personagem fica estático. O tronco sobe e desce, capas balançam, auras pulsam e armas flutuantes oscilam via funções trigonométricas periódicas (`Math.sin(time)`).
+   - **Movimento com Inércia (Walk Cycle)**: Inclinação sutil do corpo na direção do vetor de velocidade, passadas alternadas, rastro de poeira/partículas e espadas/lanternas que reagem com arrasto físico (drag).
+   - **Ataque e Conjuração com Antecipação e Impacto**: Habilidades e ataques básicos possuem tempos de antecipação (wind-up), liberação explosiva com flashes luminosos e recuperação suave (follow-through).
+
+---
+
+## 2. PIPELINE DE RENDERIZAÇÃO CANVAS 2D (SISTEMA DE CAMADAS)
+
+A renderização de cada personagem no Canvas 2D segue rigorosamente esta ordem de camadas (Back-to-Front) para garantir a ilusão tridimensional de profundidade:
+
+```
+[CAMADA 1] Efeito de Solo / Sombra de Projeção / Círculo Rúnico
+      │
+[CAMADA 2] Elementos Posteriores (Armas atrás, capas traseiras, orbes em órbita traseira)
+      │
+[CAMADA 3] Membros Traseiros (Perna esquerda, braço de suporte)
+      │
+[CAMADA 4] Tronco, Vestimenta Principal e Placas de Armadura
+      │
+[CAMADA 5] Cabeça, Cabelo, Elmo e Olhos Iluminados
+      │
+[CAMADA 6] Membros Frontais (Perna dianteira, braço condutor)
+      │
+[CAMADA 7] Armas Empunhadas e Equipamentos Frontais
+      │
+[CAMADA 8] Elementos Orbitantes Frontais (Orbes em órbita dianteira com iluminação)
+      │
+[CAMADA 9] Efeitos Visuais Aditivos, Flashes de Magia, Partículas e Rastreios
+      │
+[CAMADA 10] Indicadores de Status (Barra de Vida, Nível, Nome, Balão de Atordoamento)
+```
+
+---
+
+## 3. MOTOR MATEMÁTICO DE ANIMAÇÃO PROCEDURAL
+
+Para implementar essa estética em qualquer motor JavaScript / Canvas 2D, as seguintes fórmulas fundamentais são empregadas:
+
+### 3.1. Respiração Orgânica (Bobbing)
+```javascript
+// Onde breathTime acumula deltaTime a cada frame (ex: breathTime += dt * 2.5)
+const breathOffset = Math.sin(state.breathTime) * 1.8; // Oscilação em Y (-1.8px a +1.8px)
+const chestExpansion = 1.0 + Math.sin(state.breathTime) * 0.04; // Expansão peitoral de 4%
+```
+
+### 3.2. Passadas e Inclinação de Movimento (Inércia)
+```javascript
+// Onde walkCycle acumula a distância percorrida pelo personagem
+const legSwing = Math.sin(state.walkCycle) * 7.0; // Deslocamento das pernas
+const bodyTilt = state.isMoving ? (state.facingRight ? 0.08 : -0.08) : 0; // Inclinação do torso
+const footStepBob = state.isMoving ? Math.abs(Math.sin(state.walkCycle * 2)) * 2.5 : 0;
+```
+
+### 3.3. Armas Flutuantes e Telecinese (Lag Física / LERP)
+Armas que flutuam ao lado do herói (como o Montante do Guerreiro ou o Grimório da Invocadora) não ficam coladas rigidamente. Elas usam interpolação linear (LERP) para seguir a entidade com inércia:
+```javascript
+const targetWeaponX = entity.x + (state.facingRight ? 26 : -26);
+const targetWeaponY = entity.y - 10 + Math.sin(state.breathTime * 1.2) * 4.0;
+
+// Interpolação suave a cada frame
+state.weaponX += (targetWeaponX - state.weaponX) * (dt * 7.5);
+state.weaponY += (targetWeaponY - state.weaponY) * (dt * 7.5);
+
+// Inclinação reativa à velocidade
+const velocityX = entity.x - state.prevX;
+state.weaponAngle = -0.3 + (velocityX * -0.02) + Math.cos(state.breathTime) * 0.05;
+```
+
+### 3.4. Órbitas 3D Falsas (Pseudo-3D Orbit)
+Usado para os Orbes do Mago e Escudos de Barreira:
+```javascript
+// angle varia de 0 a 2*PI continuamente
+const radiusX = 28; // Raio horizontal
+const radiusY = 12; // Raio vertical achatado gerando perspectiva isométrica
+const orbX = Math.cos(angle) * radiusX;
+const orbY = Math.sin(angle) * radiusY - 14;
+
+// Profundidade (Z-Index relativo)
+const isBehindBody = Math.sin(angle) < 0; 
+// Se isBehindBody for true, desenha ANTES do corpo; se false, desenha DEPOIS!
+```
+
+---
+
+## 4. ILUMINAÇÃO DINÂMICA E PALETA DE CORES (VFX)
+
+A iluminação em Canvas 2D é produzida através de combinações de:
+1. **Gradientes Radiais (`createRadialGradient`)**: Criam coroas de luz difusa e halos sem pesar a CPU.
+2. **Sombras Luminosas (`ctx.shadowBlur` e `ctx.shadowColor`)**: Dão o aspecto incandescente / neon em bordas de lâminas, orbes e lasers.
+3. **Modos de Composição (`ctx.globalCompositeOperation`)**:
+   - `source-over`: Modo padrão para sólidos e armaduras.
+   - `lighter` ou `screen`: Modo aditivo para rajadas mágicas, feixes de luz celestial, raios e impactos vulcânicos.
+
+---
+
+## 5. PROTOCOLO PADRÃO PARA CRIAR UMA NOVA CLASSE
+
+Quando uma nova classe for solicitada ou criada para este ou outro projeto, siga este checklist rigoroso:
+
+1. **Definir Arquétipo e Silhueta Central**:
+   - Qual elemento visual desacoplado ela possui? (Ex: adagas orbitantes, cajado flutuante, tentáculos sombrios, escudo gravitacional).
+2. **Definir Paleta de Cores Primária e Secundária**:
+   - 1 cor de metal/armadura (ex: aço escuro, ouro, latão, prata).
+   - 1 cor de energia mágica/aura com versão translúcida e incandescente (ex: ciano rúnico, fogo solar, púrpura abissal).
+3. **Definir Efeito de Solo**:
+   - Toda classe precisa de um rastro ou círculo no chão sob seus pés (cratera, runa, auréola de luz, folhagens, fenda de poeira).
+4. **Implementar a Estrutura do Renderer**:
+   - Construtor com mapa de `animStates`.
+   - Método `getAnimState(id, entity)`.
+   - Método `triggerAttack(id, targetX, targetY)`.
+   - Método `update(dt, entity, state, now)`.
+   - Método `render(ctx, entity, state, camera)`.
+5. **Implementar as 3 Animações Obrigatórias**:
+   - `renderIdle`: tronco respirando, capa oscilando, arma flutuando.
+   - `renderMove`: ciclo de passadas, rastro de partículas no solo, corpo inclinado.
+   - `renderAttack`: transição em arco com interpolação de ângulo e impacto luminoso.
+
+---
+
+## 6. ÍNDICE DE ARQUIVOS DESTA PASTA
+
+Os detalhes completos de modelagem visual de cada classe individual estão documentados em seus respectivos arquivos técnicos:
+- `GUERREIRO_KALEDRON.gdd`  -> Cavaleiro de Magma & Montante Flutuante Telecinético.
+- `MAGO_VAKUS.gdd`          -> Mestre Arcano Tri-Elemental & Órbita de 3 Elementos.
+- `CLERIGO_CLERICSOURCE.gdd`-> Templário Sagrado, Escudo da Cruz & Lanterna Pendular.
+- `ARQUEIRO_NEGROLAS.gdd`   -> Patrulheiro das Sombras, Arco de Osso & Mira Laser Neon.
+- `SUPERTANK_CLUSTER.gdd`   -> Colosso de Aço, Dual-Wield de Escudos & Choque Sísmico.
+- `INVOCADORA_SUM_GOLEM.gdd`-> Marionetista Rúnica, Grimório Aberto & Lacaio Golem Colossal.

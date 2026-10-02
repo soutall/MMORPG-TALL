@@ -1,0 +1,87 @@
+# ==============================================================================
+# FICHA DE DESIGN VISUAL E RENDERIZAÇÃO: SUPERTANK (CLUSTER)
+# Arquivo: SUPERTANK_CLUSTER.gdd
+# ==============================================================================
+
+[IDENTIDADE DA CLASSE]
+Nome do Campeão: Cluster
+Título: O Bastião de Ferro (The Iron Bastion)
+Arquétipo: Super Tanque Puro / Absorção / Espinhos (Thorns)
+Papel Tático: LINHA DE FRENTE ABSOLUTA (FRONT ROW)
+Cor Temática: Ferro Fundido, Rebites de Chumbo e Olhos Âmbar Incandescentes (#718093 / #2f3542 / #e67e22)
+
+---
+
+## 1. CONCEITO VISUAL E ARQUITETURA DE DESIGN
+
+Cluster é o ápice da fortificação móvel: uma muralha viva de ferro maciço forjada 
+em placas pesadas rebitadas. Em sua cabeça, um elmo de cerco impenetrável oculta todo o
+rosto, exibindo apenas uma estreita fenda horizontal onde brilham dois **OLHOS VERMELHOS /
+ÂMBAR INCANDESCENTES**. Ele não empunha armas afiadas: suas mãos empunham **DOIS GRANDES
+ESCUDOS TORRE MACIÇOS (DUAL-WIELD TOWER SHIELDS)**, um em cada braço, transformando-o
+em uma fortaleza inamovível capaz de esmagar oponentes como uma prensa hidráulica.
+
+### 1.1. Paleta de Cores Hexadecimal:
+- **Placas de Blindagem de Ferro**: `#2f3542`, `#57606f`, reflexos em `#747d8c`
+- **Rebites e Ferragens Reforçadas**: `#a4b0be` e `#2f3542`
+- **Olhos do Elmo**: Âmbar flamejante `#e67e22` / Carmesim `#ff4757`
+- **Escudo Direito (Espelho de Cerco)**: Chapa de aço polido espelhada com chanfros angulares
+- **Escudo Esquerdo (Aríete de Espinho)**: Chapa de ferro bruto com enorme cone / espigão central
+- **Fendas e Poeira Sísmica**: Partículas cinzentas e marrons `#8c7b75`
+- **Aura de Fortificação**: `rgba(113, 128, 147, 0.45)`
+
+---
+
+## 2. ANATOMIA DE RENDERIZAÇÃO PROCEDURAL (CANVAS 2D)
+
+### 2.1. Efeito de Solo (Tremores Sísmicos e Crateras de Peso)
+- Sombra massiva elíptica espessa no solo (`ctx.ellipse(x, y + 15, 34, 13)`).
+- A cada passada da marcha pesada, pequenas ondas de choque elípticas se propagam do solo e fragmentos rochosos saltam (`dustParticles`).
+
+### 2.2. O Corpo Blindado
+- **Ombros e Peitoral de Cerco**: Peitoral de ferro duplo com duas fileiras de rebites circulares nas bordas. Ombreiras massivas em formato de degraus de fortaleza.
+- **Elmo com Fenda Ocular**: Elmo quadrado de aríete. No centro, uma fenda preta estreita onde dois círculos âmbar (`#e67e22`) brilham com `shadowBlur = 10`, olhando fixamente para a vanguarda.
+
+### 2.3. A Empunhadura Dupla de Escudos Torre (Dual-Wield Tower Shields)
+A marca registrada visual de Cluster:
+- **Escudo 1 (Mão Direita - Postura de Espelho)**:
+  - Dimensões: 18px de largura por 36px de altura.
+  - Placa de metal chanfrada com acabamento espelhado liso.
+  - Utilizado para refletir projéteis e feitiços inimigos em 100%.
+- **Escudo 2 (Mão Esquerda - Prensa & Aríete)**:
+  - Dimensões: 18px de largura por 36px de altura.
+  - No centro, há um enorme espinho cônico de aço endurecido apontado para frente.
+  - Utilizado para investir contra grupos e cravar monstros nas paredes.
+
+---
+
+## 3. MÁQUINA DE ESTADOS DE ANIMAÇÃO
+
+### 3.1. Estado IDLE (Postura de Fortaleza Inamovível)
+- Cluster fica firmemente plantado no chão.
+- Respiração lenta, profunda e imponente (`breathTime += dt * 1.8`).
+- Os dois escudos torre cobrem quase 80% da sua silhueta frontal, com pequenas faíscas metálicas entre eles.
+
+### 3.2. Estado MOVIMENTO (Marcha de Cerco)
+- Passadas pesadas e cadenciadas (velocidade de movimento reduzida, sensação de peso maciço).
+- O chão estremece levemente a cada passo, levantando nuvens de terra aos pés.
+
+### 3.3. Estado ATAQUE (O Choque Duplo de Escudos - Double Shield Clash)
+- Duração: 420 milissegundos.
+- **Abertura (0% a 35%)**: Cluster afasta os dois grandes escudos lateralmente para trás, expondo momentaneamente seu peitoral de ferro enquanto prepara o golpe.
+- **O Esmagamento (35% a 55%)**: Bate violentamente os dois escudos torre um contra o outro bem na frente do corpo (`x + 16px`).
+- **Onda de Choque Sísmica**: No instante da colisão dos escudos, irrompe uma explosão de faíscas metálicas brancas e douradas (`ctx.shadowBlur = 25`) e uma onda de choque sísmica cônica que atordoa o monstro atingido por 1.0s.
+- **Recuperação (55% a 100%)**: Os escudos voltam à postura defensiva frontal entreaberta.
+
+---
+
+## 4. HABILIDADES ASSOCIADAS
+
+1. **Prensa Trituradora (`cluster_crush`)**:
+   - Bate os dois escudos violentamente esmagando o alvo com 52 de dano físico e atordoando-o por 1s.
+2. **Postura do Espelho (`cluster_mirror`)**:
+   - Canaliza por 400ms firmando os pés e erguendo o escudo reflexivo: reflete 100% dos projéteis inimigos de volta aos atacantes durante a postura.
+3. **Aríete Vivo (`cluster_ram`)**:
+   - Dispara em investida retilínea empurrando inimigos; se prensar monstros contra paredes ou obstáculos do mapa, causa atordoamento de 2s e dano massivo.
+4. **Estrondo Desafiador (`cluster_taunt`)**:
+   - Bate os dois escudos no chão com impacto estrondoso forçando todos os monstros em um raio de 150px a atacá-lo (Taunt de 2.5s) e elevando seu dano de retaliação farpada (thorns) em +40%.

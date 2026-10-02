@@ -5,7 +5,7 @@
     const CFG = (global.MAPAS_REGISTRY || {})[MAPA_ID];
     if (!CFG) return;
     const X0 = CFG.x0, X1 = CFG.x0 + CFG.w, Y1 = CFG.h;
-    const SPAWN = { x: X0 + 1300, y: 950 };
+    const SPAWN = { x: X0 + CFG.w / 2, y: CFG.h / 2 };
     let cache = null;
 
     function dentro(x, y) { return x >= X0 && x < X1 && y >= 0 && y < Y1; }

@@ -26,10 +26,10 @@
     const ALT_LIVRE = 0, ALT_PEQUENA = 1, ALT_MEDIA = 2, ALT_ALTA = 3;
 
     // Portal de retorno na entrada OESTE (chegada fica 220px a leste, fora do raio)
-    const PORTAL_CPD_RETORNO = { x: CPD_X0 + 100, y: 460, r: 62, alvo: { x: 60487, y: 660 } };
+    const PORTAL_CPD_RETORNO = null; // Portal de retorno para a cidade desativado no design atual.
     // Ponto de chegada usado pelo teleporte do servidor (PONTOS_TELEPORTE.cidadeperdida).
     // Fica na grama da entrada, longe do portal (distancia 220 > r 62 + folga).
-    const PONTO_CHEGADA = { x: CPD_X0 + 320, y: 460 };
+    const PONTO_CHEGADA = { x: CPD_X0 + 3440, y: 1960 };
 
     // ------------------------------------------------------------------
     // DADOS EMBUTIDOS (gerados de sprites/mapas/mapanovo.json)
@@ -213,6 +213,7 @@
 
     function desenharPortalRetorno(ctx, camX, camY, cw, ch) {
         const p = PORTAL_CPD_RETORNO;
+        if (!p) return null;
         if (p.x + p.r + 60 < camX || p.x - p.r - 60 > camX + cw || p.y + p.r + 60 < camY || p.y - p.r - 60 > camY + ch) return;
         const t = (typeof performance !== 'undefined' && performance.now) ? performance.now() / 1000 : 0;
         const pulsar = 1 + Math.sin(t * 3.2) * 0.14;
@@ -261,7 +262,7 @@
 
     function infoPortalCidadePerdida(x, y) {
         if (x < CPD_X0) return null;
-        if (Math.hypot(x - PORTAL_CPD_RETORNO.x, y - PORTAL_CPD_RETORNO.y) < PORTAL_CPD_RETORNO.r) {
+        if (PORTAL_CPD_RETORNO && Math.hypot(x - PORTAL_CPD_RETORNO.x, y - PORTAL_CPD_RETORNO.y) < PORTAL_CPD_RETORNO.r) {
             return { via: 'portal', mapa: 'cidade', alvo: PORTAL_CPD_RETORNO.alvo };
         }
         return null;

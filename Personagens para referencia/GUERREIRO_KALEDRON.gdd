@@ -1,0 +1,85 @@
+# ==============================================================================
+# FICHA DE DESIGN VISUAL E RENDERIZAÇÃO: GUERREIRO (KALEDRON)
+# Arquivo: GUERREIRO_KALEDRON.gdd
+# ==============================================================================
+
+[IDENTIDADE DA CLASSE]
+Nome do Campeão: Kaledron
+Título: Cavaleiro da Lâmina Flutuante (Magma Knight)
+Arquétipo: Tanque / Brawler Corpo-a-Corpo
+Papel Tático: LINHA DE FRENTE (FRONT ROW)
+Cor Temática: Azul Safira & Laranja Magma Incandescente (#3498db / #e67e22)
+
+---
+
+## 1. CONCEITO VISUAL E ARQUITETURA DE DESIGN
+
+Kaledron é um guerreiro colossal forjado nas forjas vulcânicas de Solari. Ele não
+segura sua arma com as mãos o tempo todo: um imenso **MONTANTE COLOSSAL** flutua 
+telecineticamente ao seu lado direito, banhado em runas de fogo e com sombra própria
+projetada no solo. Suas mãos permanecem livres, cobertas por manoplas de pura rocha
+vulcânica incandescente que exalam fumaça e brasas contínuas.
+
+### 1.1. Paleta de Cores Hexadecimal:
+- **Placas de Armadura de Aço Negro**: `#1a1a24`, `#2d3436`, bordas em `#636e72`
+- **Fissuras de Magma e Lava**: `#e17055`, `#d63031`, brilho em `#ff7675`
+- **Chamas do Montante**: `#fdcb6e`, `#e67e22`, núcleo em `#ffffff`
+- **Elmo e Visor**: Aço temperado escuro com fenda horizontal de luz em `#ff4757`
+- **Aura de Impacto**: `rgba(230, 126, 34, 0.45)`
+
+---
+
+## 2. ANATOMIA DE RENDERIZAÇÃO PROCEDURAL (CANVAS 2D)
+
+### 2.1. Efeito de Solo (Cratera Vulcânica)
+- Sob os pés do guerreiro, há uma elipse de solo rachado (`ctx.ellipse(x, y + 14, 26, 10)`).
+- Gradiente radial de calor que pulsa com `Math.sin(breathTime * 1.5)`.
+- Fissuras em zigue-zague desenhadas com `ctx.lineTo`, preenchidas com cor de lava (`#ff5722`).
+- Pequenas partículas de cinzas e brasas (`emberParticles`) sobem verticalmente com `vy < 0` e vida decrescente.
+
+### 2.2. Corpo e Armadura
+- **Pernas e Grevas**: Duas colunas reforçadas com placas dobráveis sobre as articulações dos joelhos. Durante o movimento, oscilam alternadamente com `Math.sin(walkCycle) * 6px`.
+- **Peitoral de Placas Segmentadas**: Desenvolvido com cantos chanfrados. No centro do peito, há uma fenda em forma de "V" por onde brilha o núcleo vulcânico interior.
+- **Ombreiras Massivas**: Duas placas angulares espessas (`width: 14px, height: 18px`) levantadas com pontas que sobem ligeiramente na respiração.
+- **Elmo Fechado**: Elmo de cavaleiro medieval fechado com visor estreito. Do topo do elmo saem partículas suaves de fumaça cinzenta translúcida (`rgba(80, 80, 80, 0.35)`).
+
+### 2.3. O Grande Montante Flutuante (Floating Greatsword)
+- **Posicionamento**: Flutua a `x + 24px` e `y - 12px` do centro do guerreiro.
+- **Sombra Própria**: No solo, exatamente abaixo da espada (`x + 24, y + 14`), é desenhada uma elipse preta com `globalAlpha = 0.35` que encolhe e expande conforme a espada oscila em altura, dando realismo à flutuação!
+- **Lâmina**: Comprimento de 48px, largura de 10px. Ponta chanfrada em diamante. No centro da lâmina corre uma canaleta esculpida (fuller) preenchida com gradiente de magma incandescente.
+- **Guarda e Pomo**: Guarda cruzada pesada em ferro batido com pedras rúnicas nas extremidades.
+- **Animação de Flutuação**: A espada sobe e desce em senoide defasada do guerreiro (`Math.sin(breathTime * 1.2) * 5px`), inclinando-se suavemente para frente quando o guerreiro anda.
+
+---
+
+## 3. MÁQUINA DE ESTADOS DE ANIMAÇÃO
+
+### 3.1. Estado IDLE (Respiração e Prontidão)
+- O guerreiro tem uma respiração firme e pesada (`breathTime += dt * 2.6`).
+- O torso sobe 2px enquanto as ombreiras sobem 2.5px.
+- A espada flutua suavemente para cima e para baixo. Brasas incandescentes se desprendem de sua lâmina.
+
+### 3.2. Estado MOVIMENTO (Passos Pesados com Inércia)
+- O guerreiro se inclina cerca de 5 graus na direção da marcha (`facingRight ? +0.08 rad : -0.08 rad`).
+- Passadas firmes com impacto: a cada meio ciclo da passada, uma partícula de poeira e faísca é expelida no solo.
+- A espada flutuante é arrastada para trás com inércia física, aumentando seu ângulo de inclinação.
+
+### 3.3. Estado ATAQUE (O Grande Corte Ígneo em Arco)
+- Duração: 420 milissegundos.
+- **Fase 1 (Wind-up, 0% a 30%)**: A espada flutuante recua bruscamente para trás da cabeça de Kaledron, acumulando energia com brilho alaranjado intenso (`ctx.shadowBlur = 20`).
+- **Fase 2 (Strike, 30% a 60%)**: A espada corta o ar violentamente descrevendo um semicírculo de 180 graus na direção do alvo.
+- **VFX de Rastro em Arco**: Desenha uma fatia em forma de crescente de fogo (`ctx.arc`) com gradiente de amarelo brilhante para vermelho lava translúcido, deixando chamas no trajeto.
+- **Fase 3 (Recovery, 60% a 100%)**: A espada desacelera e retorna suavemente à sua posição de flutuação de repouso via interpolação senoidal.
+
+---
+
+## 4. HABILIDADES ASSOCIADAS
+
+1. **Golpe Fulminante (`slash_strike`)**:
+   - Corte direto com o montante causando 160% de dano físico.
+2. **Impacto Terrestre (`ground_slam`)**:
+   - Salto e golpe violento com o montante contra o chão, rachando o solo em raio de 110px e atordoando inimigos por 1.5s.
+3. **Redemoinho de Aço (`whirlwind`)**:
+   - Kaledron comanda o montante a orbitar em alta velocidade ao redor de si mesmo em 360 graus, desferindo golpes contínuos em múltiplos alvos.
+4. **Brado de Guerra (`battle_cry`)**:
+   - Ergue as duas manoplas aos céus liberando um pilar de fumaça e fogo que concede bônus de ataque a todo o esquadrão.

@@ -18,7 +18,7 @@
     const LARGURA = 2400;
     const ALTURA = 1800;
 
-    const PONTO_SPAWN = { x: 85720, y: 930 };
+    const PONTO_SPAWN = { x: 86200, y: 900 };
 
     const SPRITE_FILES = {
         sand: 'sprites/bemvindo/sand.png',

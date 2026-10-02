@@ -83,6 +83,10 @@
         pikeman: {
             tipo: 'arranque', distancia: 200, duracaoMs: 1000, stamina: 25, cooldownMs: 6000,
             velocidade: 1.8, invisivelMs: 1000, vfx: 'pikeman_fantasma'
+        },
+        guerreiro_kaledron: {
+            tipo: 'investida', distancia: 320, duracaoMs: 420, stamina: 35, cooldownMs: 5000,
+            dano: 40, danoBossMult: 0.35, raioLateral: 55, empurraoPx: 75, vfx: 'kaledron_investida'
         }
     };
 

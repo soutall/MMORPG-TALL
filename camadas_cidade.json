@@ -757,5 +757,16 @@
     "h": 100,
     "baseY": 1424,
     "ordem": 0
+  },
+  {
+    "id": "camada_muq5dya6_ttrn",
+    "tipo": "rect",
+    "nome": "Foreground 22",
+    "x": 40957,
+    "y": 2348,
+    "w": 22,
+    "h": 56,
+    "baseY": 2404,
+    "ordem": 0
   }
 ]

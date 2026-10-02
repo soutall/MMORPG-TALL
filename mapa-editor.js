@@ -116,6 +116,37 @@
         ['barril', 'Barril', '🛢️', 26, 34, true, 'meio', 'decor'],
         ['carroca', 'Carroça', '🛒', 64, 44, true, 'meio', 'decor'],
         ['placa', 'Placa', '🪧', 24, 44, false, 'meio', 'decor'],
+        // ----- Floresta dos Sussurros (árvores animadas) -----
+        ['arvore_florestal', 'Árvore da Floresta', '🌳', 48, 68, true, 'meio', 'floresta'],
+        ['arvore_gigante_f', 'Árvore Gigante', '🌳', 70, 96, true, 'meio', 'floresta'],
+        ['pinheiro_silvestre', 'Pinheiro Silvestre', '🌲', 44, 88, true, 'meio', 'floresta'],
+        ['salgueiro', 'Salgueiro Chorão', '🌳', 60, 66, true, 'meio', 'floresta'],
+        ['arvore_morta', 'Árvore Morta', '🪾', 42, 62, true, 'meio', 'floresta'],
+        ['tronco_musgo', 'Tronco com Musgo', '🪵', 50, 24, true, 'meio', 'floresta'],
+        // ----- Cabanas / Construções de Floresta -----
+        ['cabana_grande', 'Cabana Grande', '🏡', 112, 90, true, 'meio', 'floresta'],
+        ['cabana_media', 'Cabana Média', '🏠', 88, 72, true, 'meio', 'floresta'],
+        ['cabana_palha', 'Cabana de Palha', '🛖', 84, 70, true, 'meio', 'floresta'],
+        // ----- Fogueiras de Floresta -----
+        ['fogueira_pedra', 'Fogueira de Pedras', '🔥', 48, 38, false, 'chao', 'floresta'],
+        ['fogueira_grande', 'Fogueira Grande', '🔥', 62, 46, false, 'chao', 'floresta'],
+        // ----- Água de Floresta -----
+        ['lago_grande', 'Lago Grande', '🏞️', 180, 120, false, 'meio', 'floresta'],
+        ['riacho', 'Riacho', '💦', 130, 34, false, 'meio', 'floresta'],
+        // ----- Decoração de Floresta -----
+        ['colmeia', 'Colmeia', '🍯', 26, 32, true, 'meio', 'floresta'],
+        ['cogumelos_grupo', 'Grupo de Cogumelos', '🍄', 40, 26, false, 'chao', 'floresta'],
+        ['toco_musgo', 'Toco com Musgo', '🪵', 26, 20, false, 'chao', 'floresta'],
+        ['galhos', 'Galhos Caídos', '🪾', 46, 18, false, 'chao', 'floresta'],
+        ['pilha_lenha', 'Pilha de Lenha', '🪵', 40, 28, true, 'meio', 'floresta'],
+        ['torre_vigia', 'Torre de Vigia', '🗼', 70, 120, true, 'frente', 'floresta'],
+        ['barco_lago', 'Barco do Lago', '🛶', 56, 30, false, 'meio', 'floresta'],
+        ['pier_madeira', 'Píer de Madeira', '🎣', 120, 40, true, 'meio', 'floresta'],
+        ['ponte_pedra', 'Ponte de Pedra', '🌉', 130, 44, true, 'meio', 'floresta'],
+        ['secador_peles', 'Secador de Peles', '🦌', 54, 56, false, 'meio', 'floresta'],
+        ['arvore_betula', 'Bétula', '🌳', 40, 64, true, 'meio', 'floresta'],
+        ['entrada_caverna', 'Entrada de Caverna', '🕳️', 120, 80, true, 'meio', 'floresta'],
+        ['horta', 'Horta', '🥬', 90, 44, false, 'chao', 'floresta'],
         // ----- Zonas pintadas -----
         ['zona_colisao', 'Zona de Colisão (livre)', '⛔', 40, 40, true, 'meio', 'zona'],
         ['zona_frente', 'Zona de Frente (livre)', '🌿', 40, 40, false, 'frente', 'zona']
@@ -137,6 +168,7 @@
         ['vegetacao', '🌿 Vegetação'],
         ['flor', '🌹 Flores/Plantas'],
         ['agua', '💧 Água'],
+        ['floresta', '🌲 Floresta'],
         ['decor', '✨ Decoração'],
         ['zona', '🚧 Zonas (colisão/frente)']
     ];
@@ -300,6 +332,31 @@
             case 'placa': return pintarPlaca;
             case 'zona_colisao': return pintarZonaColisao;
             case 'zona_frente': return pintarZonaFrente;
+            // ----- Floresta dos Sussurros -----
+            case 'arvore_florestal': return pintarArvoreFlorestal;
+            case 'arvore_gigante_f': return pintarArvoreGiganteF;
+            case 'pinheiro_silvestre': return pintarPinheiroSilvestre;
+            case 'salgueiro': return pintarSalgueiro;
+            case 'arvore_morta': return pintarArvoreMorta;
+            case 'tronco_musgo': return pintarTroncoMusgo;
+            case 'cabana_grande': case 'cabana_media': case 'cabana_palha': return pintarCabanaF;
+            case 'fogueira_pedra': return pintarFogueiraPedra;
+            case 'fogueira_grande': return pintarFogueiraGrande;
+            case 'lago_grande': return pintarLagoGrande;
+            case 'riacho': return pintarRiacho;
+            case 'colmeia': return pintarColmeia;
+            case 'cogumelos_grupo': return pintarCogumelosGrupo;
+            case 'toco_musgo': return pintarTocoMusgo;
+            case 'galhos': return pintarGalhos;
+            case 'pilha_lenha': return pintarPilhaLenha;
+            case 'torre_vigia': return pintarTorreVigia;
+            case 'barco_lago': return pintarBarcoLago;
+            case 'pier_madeira': return pintarPierMadeira;
+            case 'ponte_pedra': return pintarPontePedraObj;
+            case 'secador_peles': return pintarSecadorPeles;
+            case 'arvore_betula': return pintarArvoreBetula;
+            case 'entrada_caverna': return pintarEntradaCaverna;
+            case 'horta': return pintarHorta;
             default: return pintarArvore;
         }
     }
@@ -390,6 +447,517 @@
         }
         circulo(ctx, topoX + 3, topoY + 4, 3, '#8d6e63');
         circulo(ctx, topoX - 3, topoY + 5, 3, '#8d6e63');
+    }
+
+    // ============================================================================
+    // PINTORES DA FLORESTA DOS SUSSURROS (animados via t; paleta e jogo)
+    // ============================================================================
+    function balancoDe(o, t, amp) {
+        var s = seedDe(o), fase = (s % 628) / 100;
+        return Math.sin(t * 1.4 + fase) * amp;
+    }
+
+    function pintarArvoreFlorestal(o, ctx, t) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        var v = o.variante || 0, sw = balancoDe(o, t, W * 0.05);
+        sombra(ctx, x + W / 2, y + H, W * 0.32, 4);
+        ret(ctx, x + W * 0.44, y + H * 0.48, W * 0.14, H * 0.52, '#5b4028');
+        ret(ctx, x + W * 0.47, y + H * 0.48, W * 0.04, H * 0.52, 'rgba(0,0,0,0.18)');
+        elipse(ctx, x + W * 0.30 + sw, y + H * 0.40, W * 0.30, H * 0.22, '#2a5c2e');
+        elipse(ctx, x + W * 0.70 + sw * 1.1, y + H * 0.42, W * 0.28, H * 0.20, '#347038');
+        elipse(ctx, x + W * 0.50 + sw * 1.2, y + H * 0.28, W * 0.34, H * 0.26, '#3f8543');
+        circulo(ctx, x + W * 0.46 + sw * 1.3, y + H * 0.20, W * 0.12, '#4e9a52');
+        if (v % 3 === 0) { circulo(ctx, x + W * 0.60 + sw, y + H * 0.32, W * 0.05, '#d94949'); }
+    }
+
+    function pintarArvoreGiganteF(o, ctx, t) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        var sw = balancoDe(o, t, W * 0.04);
+        sombra(ctx, x + W / 2, y + H, W * 0.40, 6);
+        ret(ctx, x + W * 0.42, y + H * 0.42, W * 0.16, H * 0.58, '#4a3320');
+        ret(ctx, x + W * 0.46, y + H * 0.42, W * 0.05, H * 0.58, 'rgba(0,0,0,0.2)');
+        poligono(ctx, [{ x: x + W * 0.28, y: y + H }, { x: x + W * 0.42, y: y + H * 0.78 }, { x: x + W * 0.42, y: y + H }], '#4a3320');
+        poligono(ctx, [{ x: x + W * 0.72, y: y + H }, { x: x + W * 0.58, y: y + H * 0.78 }, { x: x + W * 0.58, y: y + H }], '#4a3320');
+        var cores = ['#1e4d22', '#27632b', '#317a35', '#3f8f43'];
+        for (var k = 0; k < 4; k++) {
+            var rr = W * 0.34 - k * W * 0.07;
+            var yy = y + H * 0.32 - k * H * 0.09;
+            elipse(ctx, x + W / 2 + sw * (0.4 + k * 0.25), yy, rr, rr * 0.8, cores[k]);
+        }
+        circulo(ctx, x + W * 0.44 + sw * 1.3, y + H * 0.10, W * 0.14, '#4e9a52');
+    }
+
+    function pintarPinheiroSilvestre(o, ctx, t) {
+        var v = o.variante || 0, d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        var sw = balancoDe(o, t, W * 0.03);
+        sombra(ctx, x + W / 2, y + H, W * 0.30, 4);
+        ret(ctx, x + W * 0.44, y + H * 0.46, W * 0.14, H * 0.54, '#4e342e');
+        var cores = [v % 2 ? '#14532d' : '#1b5e20', v % 2 ? '#1e7d34' : '#2e7d32'];
+        for (var n = 0; n < 5; n++) {
+            var ly = y + H * (0.04 + n * 0.15);
+            var rw = W * (0.50 - n * 0.085) + sw * (n / 5);
+            ctx.fillStyle = cores[n % 2];
+            ctx.beginPath();
+            ctx.moveTo(x + W / 2 + sw * 0.5, ly);
+            ctx.lineTo(x + W / 2 - rw, ly + H * 0.16);
+            ctx.lineTo(x + W / 2 + rw, ly + H * 0.16);
+            ctx.closePath(); ctx.fill();
+        }
+    }
+
+    function pintarSalgueiro(o, ctx, t) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        var sw = balancoDe(o, t, W * 0.04);
+        sombra(ctx, x + W / 2, y + H, W * 0.36, 4);
+        ctx.strokeStyle = '#6d4c33'; ctx.lineWidth = W * 0.12; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x + W / 2, y + H); ctx.quadraticCurveTo(x + W * 0.46, y + H * 0.6, x + W * 0.5, y + H * 0.34); ctx.stroke();
+        ctx.lineCap = 'butt';
+        elipse(ctx, x + W / 2 + sw, y + H * 0.26, W * 0.30, H * 0.14, '#4e8f4a');
+        for (var i = 0; i < 6; i++) {
+            var fx = x + W * (0.18 + i * 0.13);
+            var len = H * (0.24 + hash2(i, seedDe(o)) * 0.14);
+            ctx.strokeStyle = i % 2 ? '#5da457' : '#4e8f4a';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(fx, y + H * 0.28);
+            ctx.quadraticCurveTo(fx + sw * 0.8, y + H * 0.28 + len * 0.6, fx + sw, y + H * 0.28 + len);
+            ctx.stroke();
+        }
+    }
+
+    function pintarArvoreMorta(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        var s = seedDe(o);
+        sombra(ctx, x + W / 2, y + H, W * 0.24, 3);
+        ret(ctx, x + W * 0.44, y + H * 0.30, W * 0.13, H * 0.70, '#6b5b4a');
+        ctx.strokeStyle = '#5d4e3f'; ctx.lineWidth = W * 0.06; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x + W * 0.5, y + H * 0.5); ctx.lineTo(x + W * (0.2 + variar(s, 5) * 0.15), y + H * 0.22); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + W * 0.5, y + H * 0.38); ctx.lineTo(x + W * (0.68 + variar(s + 3, 5) * 0.12), y + H * 0.10); ctx.stroke();
+        ctx.lineCap = 'butt';
+    }
+
+    function pintarTroncoMusgo(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H, W * 0.44, 3);
+        ret(ctx, x + W * 0.04, y + H * 0.25, W * 0.92, H * 0.5, '#5b4028');
+        elipse(ctx, x + W * 0.5, y + H * 0.25, W * 0.46, H * 0.22, '#4a3320');
+        elipse(ctx, x + W * 0.3, y + H * 0.28, W * 0.16, H * 0.14, '#4e8f4a');
+        elipse(ctx, x + W * 0.62, y + H * 0.24, W * 0.12, H * 0.12, '#3f7a3e');
+        elipse(ctx, x + W * 0.84, y + H * 0.32, W * 0.07, H * 0.10, '#4e8f4a');
+    }
+
+    // Cabana da floresta — grande / média / palha, com janelas acesas e chaminé
+    function pintarCabanaF(o, ctx, t) {
+        var tipo = o.tipo, d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        var v = o.variante || 0;
+        var ehPalha = tipo === 'cabana_palha';
+        var grande = tipo === 'cabana_grande';
+        sombra(ctx, x + W / 2, y + H, W * 0.55, 6);
+        var gP = ctx.createLinearGradient(x, y + H * 0.3, x, y + H);
+        gP.addColorStop(0, '#7c5836'); gP.addColorStop(1, '#5d3f26');
+        ctx.fillStyle = gP;
+        ctx.fillRect(x + W * 0.06, y + H * 0.38, W * 0.88, H * 0.62);
+        ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 1.2;
+        for (var yy = y + H * 0.44; yy < y + H; yy += Math.max(7, H * 0.09)) {
+            ctx.beginPath(); ctx.moveTo(x + W * 0.08, yy); ctx.lineTo(x + W * 0.92, yy); ctx.stroke();
+        }
+        ctx.fillStyle = '#4a3018';
+        ctx.fillRect(x + W * 0.06, y + H * 0.38, W * 0.05, H * 0.62);
+        ctx.fillRect(x + W * 0.89, y + H * 0.38, W * 0.05, H * 0.62);
+        var dw = W * 0.20, dh = H * 0.34;
+        ctx.fillStyle = '#3c2712';
+        ctx.fillRect(x + W / 2 - dw / 2 - 3, y + H - dh - 3, dw + 6, dh + 3);
+        var gP = ctx.createLinearGradient(x + W / 2 - dw / 2, y, x + W / 2 + dw / 2, y + H);
+        gP.addColorStop(0, '#8a6134'); gP.addColorStop(1, '#6b4826');
+        ctx.fillStyle = gP;
+        ctx.fillRect(x + W / 2 - dw / 2, y + H - dh, dw, dh);
+        ctx.fillStyle = '#d9b45c';
+        ctx.beginPath(); ctx.arc(x + W / 2 + dw / 2 - 5, y + H - dh / 2, 2.2, 0, Math.PI * 2); ctx.fill();
+        var wy = y + H * 0.52;
+        [[x + W * 0.20, wy], [x + W * 0.80, wy]].forEach(function (wpt, i) {
+            ctx.fillStyle = '#3c2712';
+            ctx.fillRect(wpt[0] - W * 0.07, wy - H * 0.09, W * 0.14, H * 0.18);
+            var pulsa = 0.72 + Math.sin(t * 2.1 + i * 2 + v) * 0.12;
+            ctx.fillStyle = 'rgba(255, 200, 110,' + pulsa.toFixed(3) + ')';
+            ctx.fillRect(wpt[0] - W * 0.055, wy - H * 0.065, W * 0.11, H * 0.13);
+            ctx.strokeStyle = 'rgba(60,39,18,0.9)'; ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.moveTo(wpt[0], wy - H * 0.065); ctx.lineTo(wpt[0], wy + H * 0.065);
+            ctx.moveTo(wpt[0] - W * 0.055, wy); ctx.lineTo(wpt[0] + W * 0.055, wy);
+            ctx.stroke();
+        });
+        var topoY = y + H * 0.10;
+        var corT = ehPalha ? '#c9a85c' : '#a8442e';
+        var corT2 = ehPalha ? '#a8873e' : '#8f3524';
+        ctx.fillStyle = corT;
+        ctx.beginPath();
+        ctx.moveTo(x - W * 0.02, y + H * 0.44);
+        ctx.lineTo(x + W / 2, topoY);
+        ctx.lineTo(x + W * 1.02, y + H * 0.44);
+        ctx.lineTo(x + W * 0.92, y + H * 0.40);
+        ctx.lineTo(x + W / 2, topoY + 8);
+        ctx.lineTo(x + W * 0.08, y + H * 0.40);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = corT2;
+        ctx.beginPath();
+        ctx.moveTo(x + W / 2, topoY);
+        ctx.lineTo(x + W * 1.02, y + H * 0.44);
+        ctx.lineTo(x + W * 0.92, y + H * 0.40);
+        ctx.lineTo(x + W / 2, topoY + 8);
+        ctx.closePath(); ctx.fill();
+        if (ehPalha) {
+            ctx.strokeStyle = 'rgba(0,0,0,0.15)'; ctx.lineWidth = 1;
+            for (var k = 1; k <= 4; k++) {
+                var yk = topoY + 6 + k * (H * 0.06);
+                var half = Math.max(0, (yk - topoY) * 0.9);
+                ctx.beginPath();
+                ctx.moveTo(x + W / 2 - Math.min(half, W * 0.5), yk);
+                ctx.lineTo(x + W / 2 + Math.min(half, W * 0.5), yk);
+                ctx.stroke();
+            }
+        }
+        if (grande || (tipo === 'cabana_media' && v % 2 === 0)) {
+            var chx = x + W * 0.78, chy = topoY + 4;
+            ctx.fillStyle = '#6d6d68'; ctx.fillRect(chx, chy - 8, W * 0.08, 16);
+            ctx.fillStyle = '#575752'; ctx.fillRect(chx - 2, chy - 11, W * 0.08 + 4, 5);
+            for (var i2 = 0; i2 < 3; i2++) {
+                var prog = (t * 0.3 + i2 / 3) % 1;
+                ctx.fillStyle = 'rgba(150,150,150,' + (Math.sin(prog * Math.PI) * 0.2).toFixed(3) + ')';
+                ctx.beginPath();
+                ctx.arc(chx + W * 0.04 + Math.sin(t * 1.4 + i2) * 5 * prog, chy - 14 - prog * 34, 3 + prog * 7, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        }
+    }
+
+    function pintarFogueiraPedra(o, ctx, t) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H, W * 0.4, 4);
+        for (var i = 0; i < 8; i++) {
+            var a = (i / 8) * Math.PI * 2;
+            circulo(ctx, x + W / 2 + Math.cos(a) * W * 0.36, y + H * 0.66 + Math.sin(a) * H * 0.2, W * 0.09, '#8d8d8d');
+        }
+        ctx.save(); ctx.translate(x + W / 2, y + H * 0.6); ctx.rotate(-0.45);
+        ret(ctx, -W * 0.3, -2.5, W * 0.6, 5, '#6d4c41'); ctx.restore();
+        ctx.save(); ctx.translate(x + W / 2, y + H * 0.6); ctx.rotate(0.45);
+        ret(ctx, -W * 0.3, -2.5, W * 0.6, 5, '#7a5230'); ctx.restore();
+        pintarFogo(ctx, x + W / 2, y + H * 0.5, W * 0.8, t || Date.now() / 1000, '#ff6b35');
+    }
+
+    function pintarFogueiraGrande(o, ctx, t) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H, W * 0.44, 5);
+        for (var row = 0; row < 3; row++) {
+            var n = 4 - row, rw = W * (0.4 - row * 0.09);
+            for (var i = 0; i < n; i++) {
+                circulo(ctx, x + W / 2 + (i - (n - 1) / 2) * rw * 0.9, y + H * 0.72 - row * H * 0.14, rw * 0.34, row % 2 ? '#7a5230' : '#6d4c41');
+            }
+        }
+        pintarFogo(ctx, x + W / 2, y + H * 0.42, W * 1.0, t || Date.now() / 1000, '#ff5722');
+        for (var s = 0; s < 5; s++) {
+            var prog = (t * 0.7 + s / 5) % 1;
+            ctx.fillStyle = 'rgba(255, 190, 60,' + (Math.sin(prog * Math.PI) * 0.8).toFixed(3) + ')';
+            ctx.beginPath();
+            ctx.arc(x + W / 2 + Math.sin(t * 4 + s * 2.6) * W * 0.18, y + H * 0.4 - prog * H * 0.6, 1.4, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    function pintarAguaFlorestal(o, ctx, t, tipo) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        elipse(ctx, x + W / 2, y + H / 2, W / 2, H / 2, '#c2b280');
+        var g = ctx.createLinearGradient(x, y, x, y + H);
+        g.addColorStop(0, '#1b5e70'); g.addColorStop(1, '#123d4c');
+        ctx.fillStyle = g;
+        ctx.beginPath();
+        ctx.ellipse(x + W / 2, y + H / 2, W * 0.44, H * 0.42, 0, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.save();
+        ctx.beginPath();
+        ctx.ellipse(x + W / 2, y + H / 2, W * 0.44, H * 0.42, 0, 0, Math.PI * 2);
+        ctx.clip();
+        for (var i = 0; i < 4; i++) {
+            var oy = y + H * (0.2 + i * 0.2) + Math.sin(t * 1.6 + i * 1.3) * H * 0.04;
+            ctx.fillStyle = 'rgba(140, 220, 235,' + (0.10 + 0.08 * Math.abs(Math.sin(t + i))).toFixed(3) + ')';
+            ctx.fillRect(x, oy, W, 3);
+        }
+        for (var s = 0; s < 5; s++) {
+            var hsh = hash2(s * 13, Math.round(W));
+            var px = x + W * (0.15 + hsh * 0.7), py = y + H * (0.2 + hash2(s, 7) * 0.6);
+            var al = 0.25 + Math.sin(t * 2.4 + s * 2.2) * 0.2;
+            if (al > 0.1) {
+                ctx.fillStyle = 'rgba(230, 250, 255,' + al.toFixed(3) + ')';
+                ctx.fillRect(px, py, 6, 1.6);
+            }
+        }
+        ctx.restore();
+    }
+
+    function pintarLagoGrande(o, ctx, t) { pintarAguaFlorestal(o, ctx, t, 'lago_grande'); }
+    function pintarRiacho(o, ctx, t) { pintarAguaFlorestal(o, ctx, t, 'riacho'); }
+
+    function pintarColmeia(o, ctx, t) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        linha(ctx, x + W * 0.5, y, x + W * 0.5, y + H * 0.18, '#5b4028', 2.5);
+        for (var k = 0; k < 3; k++) {
+            ctx.fillStyle = k % 2 ? '#d9a527' : '#c68f1c';
+            ctx.beginPath();
+            ctx.ellipse(x + W / 2, y + H * 0.55 - k * H * 0.02, W * (0.32 - k * 0.07), H * (0.3 - k * 0.06), 0, Math.PI, 0);
+            ctx.fill();
+        }
+        ctx.fillStyle = '#7a5216';
+        ctx.beginPath(); ctx.arc(x + W / 2, y + H * 0.85, W * 0.1, 0, Math.PI * 2); ctx.fill();
+        for (var i = 0; i < 3; i++) {
+            var ang = t * 2 + i * 2.1;
+            circulo(ctx, x + W / 2 + Math.cos(ang) * W * 0.55, y + H * 0.6 + Math.sin(ang) * H * 0.2, 1.6, '#3a2a08');
+        }
+    }
+
+    function pintarCogumelosGrupo(o, ctx, t) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        var v = o.variante || 0;
+        var caps = v % 2 ? '#c62828' : '#8d4e2a';
+        [[0.28, 1], [0.55, 0.7], [0.75, 0.5]].forEach(function (mst, i) {
+            var mx = x + W * mst[0], mr = W * 0.16 * mst[1], mh = H * 0.4 * mst[1];
+            var sway = Math.sin(t * 1.8 + i * 2) * 1.2;
+            ret(ctx, mx - mr * 0.25, y + H - mh, mr * 0.5, mh, '#e8dcc8');
+            ctx.fillStyle = caps;
+            ctx.beginPath();
+            ctx.ellipse(mx + sway, y + H - mh, mr, mr * 0.62, 0, Math.PI, 0);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(255,255,255,0.85)';
+            ctx.beginPath(); ctx.arc(mx + sway - mr * 0.3, y + H - mh - mr * 0.2, mr * 0.14, 0, Math.PI * 2); ctx.fill();
+            ctx.beginPath(); ctx.arc(mx + sway + mr * 0.35, y + H - mh - mr * 0.1, mr * 0.11, 0, Math.PI * 2); ctx.fill();
+        });
+    }
+
+    function pintarTocoMusgo(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H, W * 0.4, 3);
+        ret(ctx, x + W * 0.15, y + H * 0.3, W * 0.7, H * 0.7, '#5d4a32');
+        elipse(ctx, x + W / 2, y + H * 0.3, W * 0.35, H * 0.22, '#a1887f');
+        elipse(ctx, x + W / 2, y + H * 0.3, W * 0.2, H * 0.12, '#8d6e63');
+        elipse(ctx, x + W * 0.32, y + H * 0.28, W * 0.16, H * 0.10, '#4e8f4a');
+        elipse(ctx, x + W * 0.68, y + H * 0.33, W * 0.13, H * 0.08, '#3f7a3e');
+    }
+
+    function pintarGalhos(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        var s = seedDe(o);
+        ctx.strokeStyle = '#6b5138'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x + W * 0.08, y + H * 0.7); ctx.lineTo(x + W * 0.85, y + H * 0.45); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + W * 0.3, y + H * 0.75); ctx.lineTo(x + W * 0.6, y + H * 0.3); ctx.stroke();
+        ctx.strokeStyle = '#5d4630'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x + W * (0.3 + variar(s, 7) * 0.3), y + H * 0.6); ctx.lineTo(x + W * 0.5, y + H * 0.85); ctx.stroke();
+        ctx.lineCap = 'butt';
+        circulo(ctx, x + W * 0.15, y + H * 0.85, 2, '#9c7c3c');
+        circulo(ctx, x + W * 0.75, y + H * 0.8, 2.4, '#8a6c30');
+    }
+
+    function pintarPilhaLenha(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H, W * 0.44, 3);
+        for (var row = 0; row < 3; row++) {
+            var n = 4 - row, rw = W * (0.8 - row * 0.12) / n;
+            for (var i = 0; i < n; i++) {
+                var lx = x + W * 0.1 + rw * 0.5 + i * rw + row * rw * 0.5;
+                var ly = y + H * 0.8 - row * H * 0.24;
+                circulo(ctx, lx, ly, rw * 0.36, '#8a6134');
+                circulo(ctx, lx, ly, rw * 0.2, '#c9a875');
+            }
+        }
+    }
+
+    // ---- Itens da Floresta dos Nebulos (vila, lago, torre, caverna) ----
+    function pintarTorreVigia(o, ctx, t) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        var v = o.variante || 0;
+        sombra(ctx, x + W / 2, y + H, W * 0.5, 6);
+        // 4 pernas inclinadas
+        ctx.strokeStyle = '#5d4037'; ctx.lineWidth = Math.max(3, W * 0.09); ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x + W * 0.14, y + H); ctx.lineTo(x + W * 0.3, y + H * 0.5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + W * 0.86, y + H); ctx.lineTo(x + W * 0.7, y + H * 0.5); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + W * 0.3, y + H * 0.98); ctx.lineTo(x + W * 0.34, y + H * 0.52); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + W * 0.7, y + H * 0.98); ctx.lineTo(x + W * 0.66, y + H * 0.52); ctx.stroke();
+        ctx.lineCap = 'butt';
+        // travessas
+        ctx.strokeStyle = '#4e342e'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x + W * 0.2, y + H * 0.78); ctx.lineTo(x + W * 0.8, y + H * 0.78); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + W * 0.24, y + H * 0.6); ctx.lineTo(x + W * 0.76, y + H * 0.6); ctx.stroke();
+        // plataforma + cabine
+        ret(ctx, x + W * 0.16, y + H * 0.46, W * 0.68, H * 0.08, '#6d4c41');
+        ret(ctx, x + W * 0.2, y + H * 0.22, W * 0.6, H * 0.25, '#8a6134');
+        ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 1;
+        for (var yy = y + H * 0.27; yy < y + H * 0.46; yy += H * 0.05) {
+            ctx.beginPath(); ctx.moveTo(x + W * 0.22, yy); ctx.lineTo(x + W * 0.78, yy); ctx.stroke();
+        }
+        // janela acesa
+        var pulsa = 0.7 + Math.sin(t * 2 + v) * 0.15;
+        ctx.fillStyle = 'rgba(255, 200, 110,' + pulsa.toFixed(3) + ')';
+        ctx.fillRect(x + W * 0.42, y + H * 0.28, W * 0.16, H * 0.1);
+        // telhado
+        poligono(ctx, [{ x: x + W * 0.12, y: y + H * 0.24 }, { x: x + W / 2, y: y + H * 0.06 }, { x: x + W * 0.88, y: y + H * 0.24 }], '#8f3524');
+        // escada
+        ctx.strokeStyle = '#4a3018'; ctx.lineWidth = 2.5;
+        ctx.beginPath(); ctx.moveTo(x + W * 0.48, y + H); ctx.lineTo(x + W * 0.48, y + H * 0.54); ctx.stroke();
+        for (var i = 0; i < 6; i++) {
+            var ly = y + H * (0.96 - i * 0.07);
+            ctx.beginPath(); ctx.moveTo(x + W * 0.42, ly); ctx.lineTo(x + W * 0.54, ly); ctx.stroke();
+        }
+    }
+
+    function pintarBarcoLago(o, ctx, t) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        var bob = Math.sin(t * 1.5 + seedDe(o) % 7) * 2;
+        var cy = y + H / 2 + bob;
+        sombra(ctx, x + W / 2, y + H * 0.85, W * 0.4, 3, 0.2);
+        // casco
+        ctx.fillStyle = '#7a5230';
+        ctx.beginPath();
+        ctx.moveTo(x + W * 0.06, cy);
+        ctx.quadraticCurveTo(x + W * 0.2, cy + H * 0.42, x + W * 0.5, cy + H * 0.44);
+        ctx.quadraticCurveTo(x + W * 0.8, cy + H * 0.42, x + W * 0.94, cy);
+        ctx.quadraticCurveTo(x + W * 0.5, cy - H * 0.1, x + W * 0.06, cy);
+        ctx.closePath(); ctx.fill();
+        // interior
+        ctx.fillStyle = '#5d3f26';
+        ctx.beginPath();
+        ctx.moveTo(x + W * 0.14, cy - 1);
+        ctx.quadraticCurveTo(x + W * 0.5, cy + H * 0.22, x + W * 0.86, cy - 1);
+        ctx.quadraticCurveTo(x + W * 0.5, cy - H * 0.06, x + W * 0.14, cy - 1);
+        ctx.closePath(); ctx.fill();
+        // remos
+        ctx.strokeStyle = '#8a6134'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x + W * 0.3, cy + H * 0.05); ctx.lineTo(x + W * 0.2, cy - H * 0.3 + bob); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + W * 0.7, cy + H * 0.05); ctx.lineTo(x + W * 0.8, cy - H * 0.3 + bob); ctx.stroke();
+    }
+
+    function pintarPierMadeira(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        ret(ctx, x, y + H * 0.2, W, H * 0.6, '#6e4c2e');
+        ctx.fillStyle = '#82603c';
+        for (var i = 0; i < 8; i++) ctx.fillRect(x + i * W / 8 + 2, y + H * 0.2, W / 8 - 4, H * 0.6);
+        ctx.fillStyle = '#4a3018';
+        ctx.fillRect(x, y + H * 0.2, W, 3);
+        ctx.fillRect(x, y + H * 0.8 - 3, W, 3);
+        // postes
+        ctx.fillStyle = '#5d4037';
+        [0.1, 0.35, 0.65, 0.9].forEach(function (f) {
+            ctx.fillRect(x + W * f, y + H * 0.72, W * 0.045, H * 0.34);
+        });
+    }
+
+    function pintarPontePedraObj(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        // corpo da ponte
+        ret(ctx, x, y + H * 0.1, W, H * 0.66, '#8d8d86');
+        // arco (vão escuro embaixo)
+        ctx.fillStyle = '#20303a';
+        ctx.beginPath();
+        ctx.ellipse(x + W / 2, y + H * 0.78, W * 0.24, H * 0.3, 0, Math.PI, 0);
+        ctx.fill();
+        // blocos de pedra
+        ctx.strokeStyle = 'rgba(0,0,0,0.25)'; ctx.lineWidth = 1.2;
+        for (var i = 1; i < 7; i++) {
+            ctx.beginPath(); ctx.moveTo(x + i * W / 7, y + H * 0.1); ctx.lineTo(x + i * W / 7, y + H * 0.7); ctx.stroke();
+        }
+        ctx.beginPath(); ctx.moveTo(x, y + H * 0.4); ctx.lineTo(x + W, y + H * 0.4); ctx.stroke();
+        // corrimãos
+        ret(ctx, x, y, W, H * 0.14, '#a3a39a');
+        ctx.fillStyle = 'rgba(255,255,255,0.15)';
+        ctx.fillRect(x, y, W, 3);
+    }
+
+    function pintarSecadorPeles(o, ctx, t) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        var s = seedDe(o);
+        // postes em Y + travessa
+        ctx.strokeStyle = '#5d4037'; ctx.lineWidth = 3.5; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x + W * 0.12, y + H); ctx.lineTo(x + W * 0.16, y + H * 0.2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + W * 0.88, y + H); ctx.lineTo(x + W * 0.84, y + H * 0.2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + W * 0.16, y + H * 0.34); ctx.lineTo(x + W * 0.1, y + H * 0.16); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + W * 0.84, y + H * 0.34); ctx.lineTo(x + W * 0.9, y + H * 0.16); ctx.stroke();
+        ctx.lineCap = 'butt';
+        linha(ctx, x + W * 0.1, y + H * 0.2, x + W * 0.9, y + H * 0.2, '#6d4c41', 3);
+        // peles penduradas (balançam)
+        for (var i = 0; i < 3; i++) {
+            var px = x + W * (0.28 + i * 0.22);
+            var sway = Math.sin(t * 1.3 + i * 1.9 + variar(s + i, 3)) * 2.2;
+            var pw = W * 0.16, ph = H * (0.4 + variar(s + i * 3, 4) * 0.16);
+            ctx.fillStyle = i % 2 ? '#8a5a30' : '#6d4423';
+            ctx.beginPath();
+            ctx.moveTo(px - pw / 2 + sway, y + H * 0.22);
+            ctx.quadraticCurveTo(px - pw * 0.62 + sway, y + H * 0.22 + ph * 0.6, px + sway, y + H * 0.22 + ph);
+            ctx.quadraticCurveTo(px + pw * 0.62 + sway, y + H * 0.22 + ph * 0.6, px + pw / 2 + sway, y + H * 0.22);
+            ctx.closePath(); ctx.fill();
+            ctx.fillStyle = 'rgba(0,0,0,0.15)';
+            ctx.fillRect(px - 2 + sway, y + H * 0.22, 4, ph * 0.3);
+        }
+    }
+
+    function pintarArvoreBetula(o, ctx, t) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        var sw = balancoDe(o, t, W * 0.05);
+        sombra(ctx, x + W / 2, y + H, W * 0.3, 4);
+        ctx.fillStyle = '#e8e4da';
+        ctx.fillRect(x + W * 0.42, y + H * 0.34, W * 0.16, H * 0.66);
+        ctx.fillStyle = '#3a352e';
+        ctx.fillRect(x + W * 0.44, y + H * 0.62, W * 0.1, H * 0.03);
+        ctx.fillRect(x + W * 0.47, y + H * 0.48, W * 0.09, H * 0.03);
+        ctx.fillRect(x + W * 0.43, y + H * 0.78, W * 0.11, H * 0.03);
+        ctx.fillStyle = ['#9cc259', '#aad06b', '#8fb84e'][(o.variante || 0) % 3];
+        for (var k = 0; k < 3; k++) {
+            var rr = W * 0.28 - k * W * 0.06;
+            var yy = y + H * 0.3 - k * H * 0.11;
+            elipse(ctx, x + W / 2 + sw * (0.4 + k * 0.3), yy, rr, rr * 0.8, ctx.fillStyle);
+        }
+    }
+
+    function pintarEntradaCaverna(o, ctx, t) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H, W * 0.5, 6);
+        // monte de pedras
+        ctx.fillStyle = '#7b7b7b';
+        ctx.beginPath();
+        ctx.moveTo(x, y + H);
+        ctx.quadraticCurveTo(x + W * 0.05, y + H * 0.3, x + W * 0.3, y + H * 0.22);
+        ctx.quadraticCurveTo(x + W * 0.5, y + H * 0.05, x + W * 0.72, y + H * 0.24);
+        ctx.quadraticCurveTo(x + W * 0.95, y + H * 0.32, x + W, y + H);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#8d8d8d';
+        elipse(ctx, x + W * 0.22, y + H * 0.55, W * 0.16, H * 0.2, '#8d8d8d');
+        elipse(ctx, x + W * 0.78, y + H * 0.5, W * 0.14, H * 0.18, '#8d8d8d');
+        // boca escura da caverna
+        ctx.fillStyle = '#14181c';
+        ctx.beginPath();
+        ctx.ellipse(x + W / 2, y + H * 0.72, W * 0.2, H * 0.3, 0, Math.PI, 0);
+        ctx.lineTo(x + W / 2 + W * 0.2, y + H);
+        ctx.lineTo(x + W / 2 - W * 0.2, y + H);
+        ctx.closePath(); ctx.fill();
+        // trepadeiras
+        ctx.strokeStyle = '#4e8f4a'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x + W * 0.12, y + H * 0.5); ctx.quadraticCurveTo(x + W * 0.08, y + H * 0.3, x + W * 0.2, y + H * 0.18); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x + W * 0.9, y + H * 0.55); ctx.quadraticCurveTo(x + W * 0.94, y + H * 0.35, x + W * 0.84, y + H * 0.2); ctx.stroke();
+    }
+
+    function pintarHorta(o, ctx, t) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        var v = o.variante || 0;
+        ret(ctx, x, y + H * 0.1, W, H * 0.8, '#6b4f2e');
+        // sulcos de terra
+        for (var r = 0; r < 3; r++) {
+            var ry = y + H * (0.24 + r * 0.22);
+            ret(ctx, x + W * 0.05, ry, W * 0.9, H * 0.1, '#5d4224');
+            // brotos
+            for (var i = 0; i < 6; i++) {
+                var px = x + W * (0.12 + i * 0.14);
+                var sway = Math.sin(t * 1.6 + r + i) * 1.2;
+                ctx.strokeStyle = v % 2 ? '#5fae55' : '#4e9a52';
+                ctx.lineWidth = 2;
+                ctx.beginPath(); ctx.moveTo(px, ry + H * 0.05); ctx.lineTo(px + sway, ry - H * 0.04); ctx.stroke();
+                circulo(ctx, px + sway, ry - H * 0.05, 1.8, '#6fbe62');
+            }
+        }
     }
 
     function pintarPedra(o, ctx, tipo) {
@@ -1471,7 +2039,7 @@
             return false;
         };
     }
-    ['agua_quadrado', 'lagoa', 'canal'].forEach(function (tp) { CATALOGO[tp].agua = true; });
+    ['agua_quadrado', 'lagoa', 'canal', 'lago_grande', 'riacho'].forEach(function (tp) { CATALOGO[tp].agua = true; });
 
     // ============================================================================
     // RENDERIZAÇÃO: objetos entram no y-sort + camada frente depois dos jogadores

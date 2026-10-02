@@ -1,0 +1,93 @@
+# ==============================================================================
+# FICHA DE DESIGN VISUAL E RENDERIZAÇÃO: MAGO (VAKUS)
+# Arquivo: MAGO_VAKUS.gdd
+# ==============================================================================
+
+[IDENTIDADE DA CLASSE]
+Nome do Campeão: Vakus
+Título: Mestre das Convergências (Tri-Elemental Arcanist)
+Arquétipo: Mago / Ranged DPS / Glass Cannon
+Papel Tático: LINHA DE TRÁS (BACK ROW)
+Cor Temática: Violeta Arcano, Fogo Âmbar e Azul Safira (#9b59b6 / #e67e22 / #3498db)
+
+---
+
+## 1. CONCEITO VISUAL E ARQUITETURA DE DESIGN
+
+Vakus é um prodígio arcano que rejeita cajados ou grimórios físicos. Sua presença
+é marcada por **TRÊS ORBES ELEMENTAIS FLUTUANTES** (Fogo, Gelo e Trovão) que giram
+continuamente ao redor de seu corpo em uma órbita elíptica tridimensional com profundidade 
+real (passando na frente e atrás do seu corpo). Sob seus pés, um intrincado Círculo Rúnico
+Tri-Elemental gira lentamente no solo.
+
+### 1.1. Paleta de Cores Hexadecimal:
+- **Túnica Nobre**: Azul Real `#1a365d` com debruns em Dourado imperial `#f1c40f`
+- **Capa Safira Esvoaçante**: `#2980b9` com forro em `#0984e3`
+- **Cabelo Loiro Estilizado**: `#f9ca24`
+- **Orbe de Fogo**: Núcleo `#ffffff`, corpo `#ff7675`, aura `#d63031` (partículas de chamas)
+- **Orbe de Gelo**: Núcleo `#ffffff`, corpo `#74b9ff`, aura `#0984e3` (cristais cintilantes)
+- **Orbe de Trovão**: Núcleo `#ffffff`, corpo `#feca57`, aura `#ff9f43` (faíscas elétricas)
+- **Círculo Rúnico no Solo**: Três setores translúcidos a 120° com glifos arcanos.
+
+---
+
+## 2. ANATOMIA DE RENDERIZAÇÃO PROCEDURAL (CANVAS 2D)
+
+### 2.1. Círculo Rúnico Tri-Elemental no Solo
+- Desenhado sob os pés com `ctx.ellipse(x, y + 14, 32, 14, runeRotation, 0, Math.PI * 2)`.
+- O círculo possui um anel externo fino dourado e um hexagrama interno.
+- A cada 120 graus, há um ponto de convergência de cor (vermelho para fogo, ciano para gelo, amarelo para raio).
+- O círculo gira lentamente com `runeRotation += dt * 0.4 rad/s`.
+
+### 2.2. Corpo e Vestimentas Arcanas
+- **Túnica e Manto**: Formato cônico estilizado com dobra frontal e cinto com gema de mana no centro.
+- **Capa Traseira Esvoaçante**: Desenhada antes do corpo (`Camada 2`), balança para a esquerda e direita com `Math.sin(walkCycle) * 8px` ou contra o vento do movimento.
+- **Mãos de Conjuração**: Mãos abertas e elevadas à altura do abdômen, sem segurar armas, canalizando fios de energia visíveis em direção aos orbes.
+- **Cabeça**: Rosto fino e confiante, cabelo esvoaçante e olhos azul-safira com leve brilho arcano.
+
+### 2.3. O Sistema de Órbita Tri-Elemental 3D (Pseudo-3D Orbit)
+Este é o ápice técnico do visual do Mago:
+- Três orbes posicionados em ângulos de `θ`, `θ + 2π/3` e `θ + 4π/3`.
+- Raio horizontal: `rx = 30px`. Raio vertical: `ry = 12px` (achatamento em perspectiva).
+- Para cada orbe:
+  ```javascript
+  const ox = Math.cos(currentAngle) * rx;
+  const oy = Math.sin(currentAngle) * ry - 12;
+  const isBehind = Math.sin(currentAngle) < 0;
+  ```
+- **Z-Sorting Real**: 
+  - Se `isBehind == true`: o orbe é renderizado antes do tronco de Vakus, com escala menor (`0.85x`) e menor brilho.
+  - Se `isBehind == false`: o orbe é renderizado por cima do peitoral, com escala maior (`1.15x`) e `shadowBlur = 15`.
+- Cada orbe emite um rastro de partículas elementais com vida curta correspondente ao seu elemento.
+
+---
+
+## 3. MÁQUINA DE ESTADOS DE ANIMAÇÃO
+
+### 3.1. Estado IDLE (Flutuação Arcana)
+- Vakus levita levemente: seus pés quase não tocam o chão com `yOffset = Math.sin(breathTime) * 3px`.
+- Os três orbes giram ritmicamente ao redor dele a 1.8 radianos por segundo.
+- Pequenos raios e faíscas saltam esporadicamente entre os orbes e as mãos de Vakus.
+
+### 3.2. Estado MOVIMENTO (Passos Ágeis e Kiting)
+- Passadas leves e rápidas. Capa abre-se contra a direção da corrida.
+- Os orbes aumentam a velocidade orbital (`orbitSpeed = 3.6 rad/s`) e seu raio se fecha ligeiramente perto do corpo (efeito de proteção em movimento).
+
+### 3.3. Estado ATAQUE / CONJURAÇÃO (Convergência e Disparo)
+- Duração: 450 milissegundos.
+- **Convergência**: Os 3 orbes param sua rotação livre e se alinham na frente das mãos estendidas de Vakus.
+- **Canalização**: Um flash estroboscópico de luz branca e do elemento conjurado irrompe das mãos.
+- **Disparo**: O orbe do elemento correspondente pulsa intensamente e ejeta o projétil em linha reta com rastro luminoso.
+
+---
+
+## 4. HABILIDADES ASSOCIADAS
+
+1. **Esfera Volátil (`vakus_fire_orb`)**:
+   - Dispara uma esfera de puro fogo em linha reta que explode em impacto em área de 85px.
+2. **Prisão de Cristal (`vakus_ice_prison`)**:
+   - Invoca uma runa de gelo no solo alvo com 0.5s de atraso; ao congelar, prende e enraíza inimigos por 1.5s.
+3. **Trovão Voltaico (`vakus_lightning`)**:
+   - Dispara um relâmpago veloz com flash que causa dano mágico instantâneo e microstun de 0.3s com ícone sobre a cabeça do monstro.
+4. **Vento Repulsor (`vakus_repulsor_wind`)**:
+   - Lança uma rajada de vendaval lento e largo que empurra (knockback contínuo) todos os inimigos no caminho, perfeito para kiting.

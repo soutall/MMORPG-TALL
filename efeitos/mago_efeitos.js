@@ -274,18 +274,23 @@ function desenharNevascasMago(ctx) {
         ctx.ellipse(n.x, n.y + 8, n.raio * 0.78, n.raio * 0.32, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Anel de gelo giratório.
-        ctx.save();
-        ctx.translate(n.x, n.y);
-        ctx.rotate(ciclo * 0.35);
-        ctx.strokeStyle = 'rgba(160,225,255,0.50)';
-        ctx.lineWidth = 2;
-        ctx.setLineDash([12, 16]);
-        ctx.beginPath();
-        ctx.ellipse(0, 0, n.raio * 0.92, n.raio * 0.75, 0, 0, Math.PI * 2);
-        ctx.stroke();
-        ctx.setLineDash([]);
-        ctx.restore();
+        // Irregular water currents keep the spell grounded instead of forming a perfect ring.
+        for (let band = 0; band < 3; band++) {
+            ctx.beginPath();
+            for (let step = 0; step <= 48; step++) {
+                const a = (step / 48) * Math.PI * 2;
+                const base = n.raio * (0.35 + band * 0.22);
+                const ripple = Math.sin(a * 3 + ciclo * 0.8 + band) * 5 + Math.sin(a * 7 - ciclo * 0.35) * 2.2;
+                const r = base + ripple;
+                const x = n.x + Math.cos(a + ciclo * 0.025) * r;
+                const y = n.y + Math.sin(a + ciclo * 0.025) * r * 0.68;
+                if (step === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+            }
+            ctx.closePath();
+            ctx.strokeStyle = band === 1 ? 'rgba(178,235,255,0.25)' : 'rgba(105,195,235,0.18)';
+            ctx.lineWidth = band === 1 ? 2.5 : 1.5;
+            ctx.stroke();
+        }
 
         // Queda de cristais de gelo.
         for (let s = 0; s < 10; s++) {
@@ -306,32 +311,18 @@ function desenharNevascasMago(ctx) {
             ctx.restore();
         }
 
-        // TORNADOS DE FOGO NO CHÃO — dois fluxos em espiral.
-        for (let side = -1; side <= 1; side += 2) {
-            const ox = n.x + side * n.raio * 0.26;
-            const oy = n.y + 8;
-            for (let q = 0; q < 9; q++) {
-                const p = q / 8;
-                const ang = ciclo * 2.0 + q * 0.72 + side * 0.7;
-                const rr = (6 + p * 16) * (0.85 + 0.12 * Math.sin(ciclo * 3 + q));
-                const px = ox + Math.cos(ang) * rr;
-                const py = oy - p * 30 + Math.sin(ang * 1.2) * 4;
-                const sz = 1.8 + p * 2.2;
-                ctx.fillStyle = q % 2 === 0 ? 'rgba(255,145,35,0.68)' : 'rgba(220,48,18,0.52)';
-                ctx.shadowColor = '#ff5c1a';
-                ctx.shadowBlur = 7;
-                ctx.beginPath();
-                ctx.arc(px, py, sz, 0, Math.PI * 2);
-                ctx.fill();
-            }
-            ctx.shadowBlur = 0;
-            ctx.shadowColor = 'transparent';
-
-            // Pico do tornado.
-            ctx.strokeStyle = 'rgba(255,190,90,0.28)';
-            ctx.lineWidth = 2.2;
+        // Soft moving highlights and shallow splashes follow the current.
+        for (let s = 0; s < 9; s++) {
+            const a = s * 2.399 + ciclo * 0.22;
+            const rr = n.raio * (0.25 + ((s * 17) % 9) / 13);
+            const px = n.x + Math.cos(a) * rr;
+            const py = n.y + Math.sin(a) * rr * 0.65;
+            const len = 5 + (s % 3) * 2;
+            ctx.strokeStyle = s % 3 === 0 ? 'rgba(255,255,255,0.32)' : 'rgba(145,220,245,0.24)';
+            ctx.lineWidth = 1.2;
             ctx.beginPath();
-            ctx.arc(ox, oy - 8, 9 + 2 * Math.sin(ciclo), Math.PI * 0.2, Math.PI * 1.75);
+            ctx.moveTo(px - len, py);
+            ctx.quadraticCurveTo(px, py + Math.sin(ciclo + s) * 2, px + len, py - 1);
             ctx.stroke();
         }
 
@@ -581,29 +572,38 @@ function desenharVulcoes(ctx, agora) {
                 ctx.restore();
             }
 
-            for (let p = 0; p < v.pedras.length; p++) {
-                const pd = v.pedras[p];
-                if (pd.life <= 0) continue;
-                pd.x += pd.vx * 0.34;
-                pd.y += pd.vy * 0.34;
-                pd.vy += 0.17;
-                pd.life--;
+        }
 
-                ctx.fillStyle = 'rgba(111,76,50,' + (pd.life / 58) + ')';
-                ctx.beginPath();
-                ctx.rect(pd.x - pd.size / 2, pd.y - pd.size / 2, pd.size, pd.size);
-                ctx.fill();
+        if (v.timer % 8 === 0 && v.pedras.length < 48) {
+            for (let f = 0; f < 3 && v.pedras.length < 48; f++) {
+                v.pedras.push({
+                    x: (Math.random() - 0.5) * 22,
+                    y: -h + 2 + Math.random() * 8,
+                    vx: (Math.random() - 0.5) * 3.6,
+                    vy: -2.6 - Math.random() * 4.5,
+                    size: 2 + Math.random() * 4.5,
+                    life: 32 + Math.random() * 22
+                });
             }
+        }
+        for (let p = v.pedras.length - 1; p >= 0; p--) {
+            const pd = v.pedras[p];
+            pd.x += pd.vx * 0.34;
+            pd.y += pd.vy * 0.34;
+            pd.vy += 0.17;
+            pd.life--;
+            if (pd.life <= 0) {
+                v.pedras.splice(p, 1);
+                continue;
+            }
+            ctx.fillStyle = 'rgba(111,76,50,' + Math.min(1, pd.life / 28) + ')';
+            ctx.beginPath();
+            ctx.rect(pd.x - pd.size / 2, pd.y - pd.size / 2, pd.size, pd.size);
+            ctx.fill();
         }
 
         if (progEmergir > 0.15) {
             const baseW = 34 + h * 0.78;
-
-            // Sombra e base.
-            ctx.fillStyle = 'rgba(0,0,0,0.34)';
-            ctx.beginPath();
-            ctx.ellipse(0, 6, baseW + 12, 11, 0, 0, Math.PI * 2);
-            ctx.fill();
 
             // Corpo vulcânico com camadas rochosas.
             const corpo = ctx.createLinearGradient(-baseW, 0, baseW, -h);
@@ -614,12 +614,24 @@ function desenharVulcoes(ctx, agora) {
             corpo.addColorStop(1, '#201611');
             ctx.fillStyle = corpo;
             ctx.beginPath();
-            ctx.moveTo(-baseW, 3);
+            ctx.moveTo(-baseW, 9);
             ctx.quadraticCurveTo(-baseW * 0.88, -h * 0.18, -baseW * 0.48, -h * 0.44);
             ctx.quadraticCurveTo(-baseW * 0.22, -h * 0.70, -14, -h);
             ctx.quadraticCurveTo(0, -h - 4, 14, -h);
             ctx.quadraticCurveTo(baseW * 0.22, -h * 0.70, baseW * 0.48, -h * 0.44);
-            ctx.quadraticCurveTo(baseW * 0.88, -h * 0.18, baseW, 3);
+            ctx.quadraticCurveTo(baseW * 0.88, -h * 0.18, baseW, 9);
+            ctx.closePath();
+            ctx.fill();
+
+            // Soil lip overlaps the lower rock so the volcano looks half-buried.
+            ctx.fillStyle = '#2a2018';
+            ctx.beginPath();
+            ctx.moveTo(-baseW - 3, 7);
+            ctx.quadraticCurveTo(-baseW * 0.55, 2, -baseW * 0.18, 8);
+            ctx.quadraticCurveTo(0, 12, baseW * 0.22, 7);
+            ctx.quadraticCurveTo(baseW * 0.62, 3, baseW + 3, 8);
+            ctx.lineTo(baseW + 2, 13);
+            ctx.lineTo(-baseW - 2, 13);
             ctx.closePath();
             ctx.fill();
 
@@ -759,8 +771,8 @@ function desenharVulcoes(ctx, agora) {
             ctx.shadowColor = 'transparent';
 
             // Pequena erupção de lava a cada ciclo.
-            if (v.timer % 22 === 0) {
-                const burst = 5 + Math.random() * 4;
+            if (v.timer % 8 === 0) {
+                const burst = 3 + Math.random() * 3;
                 ctx.fillStyle = 'rgba(255,192,72,0.8)';
                 ctx.shadowColor = '#ff5b1a';
                 ctx.shadowBlur = 10;

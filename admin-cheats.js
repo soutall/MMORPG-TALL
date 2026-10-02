@@ -207,6 +207,48 @@
                 transform: scale(1.08);
                 box-shadow: 0 0 16px rgba(241, 196, 15, 0.8) !important;
             }
+            .ac-level-card {
+                background: linear-gradient(135deg, rgba(243, 156, 18, 0.15), rgba(0, 0, 0, 0.55)) !important;
+                border: 1px solid rgba(243, 156, 18, 0.5) !important;
+                flex-direction: column !important;
+                align-items: stretch !important;
+                gap: 8px !important;
+            }
+            .ac-lvl-row {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+            .ac-lvl-actions {
+                display: flex;
+                gap: 6px;
+                margin-top: 4px;
+            }
+            .ac-btn-lvl {
+                flex: 1;
+                padding: 8px 6px;
+                background: linear-gradient(180deg, #f39c12, #d35400);
+                border: 1px solid #ffd700;
+                color: #fff;
+                font-weight: bold;
+                font-size: 11px;
+                border-radius: 6px;
+                cursor: pointer;
+                text-align: center;
+                transition: transform 0.15s, filter 0.15s;
+                text-shadow: 0 1px 2px rgba(0,0,0,0.8);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                gap: 4px;
+            }
+            .ac-btn-lvl:hover {
+                transform: translateY(-1px);
+                filter: brightness(1.15);
+            }
+            .ac-btn-lvl:active {
+                transform: translateY(1px);
+            }
         `;
         document.head.appendChild(style);
     }
@@ -225,6 +267,20 @@
                 <button class="ac-close" onclick="window.toggleAdminCheats()">✕</button>
             </div>
             <div class="ac-body">
+                <div class="ac-card ac-level-card" id="ac-card-level">
+                    <div class="ac-lvl-row">
+                        <div class="ac-info">
+                            <div class="ac-label">⭐ Subir Nível (Level Up)</div>
+                            <div class="ac-desc">Nível Atual: <b id="ac-current-level" style="color:#ffd700;">LVL 1</b> — Ganha atributos e pontos de upgrade.</div>
+                        </div>
+                    </div>
+                    <div class="ac-lvl-actions">
+                        <button class="ac-btn-lvl" onclick="window.adminSubirNivel(1)" title="Ganha +1 Nível imediatamente">⭐ +1 NÍVEL</button>
+                        <button class="ac-btn-lvl" onclick="window.adminSubirNivel(10)" title="Ganha +10 Níveis para testar Tiers da Árvore" style="background: linear-gradient(180deg, #8e44ad, #6c3483); border-color: #bb8fce;">🌟 +10 NÍVEIS</button>
+                        <button class="ac-btn-lvl" onclick="window.adminResetarNivel()" title="Resetar para Nível 1" style="background: rgba(231, 76, 60, 0.25); border-color: #e74c3c; color: #ff7675; flex: 0.8;">🔄 LVL 1</button>
+                    </div>
+                </div>
+
                 <div class="ac-card" id="ac-card-vida">
                     <div class="ac-info">
                         <div class="ac-label">❤️ Vida Infinita</div>
@@ -266,6 +322,44 @@
         painelInjetado = true;
     }
 
+    // ---------- LEVEL UP ADMINISTRATIVO ----------
+    window.adminSubirNivel = function (qtd) {
+        if (!window.ehAdmin) return;
+        qtd = Number(qtd) || 1;
+        if (window.ws && window.ws.readyState === WebSocket.OPEN) {
+            window.ws.send(JSON.stringify({
+                action: 'admin_subir_level',
+                quantidade: qtd
+            }));
+        }
+        if (window.floatingTexts) {
+            window.floatingTexts.push({
+                x: (window.meuX || 0) + 12,
+                y: (window.meuY || 0) - 40,
+                text: `⭐ +${qtd} NÍVEL (ADMIN)`,
+                color: '#ffd700',
+                alpha: 1.0
+            });
+        }
+    };
+
+    window.adminResetarNivel = function () {
+        if (!window.ehAdmin) return;
+        if (!confirm('Tem certeza que deseja resetar seu personagem para o NÍVEL 1?')) return;
+        if (window.ws && window.ws.readyState === WebSocket.OPEN) {
+            window.ws.send(JSON.stringify({
+                action: 'admin_resetar_level'
+            }));
+        }
+    };
+
+    window.atualizarVisualAdminLevel = function () {
+        const el = document.getElementById('ac-current-level');
+        if (el) {
+            el.innerText = 'LVL ' + (window.meuLevel || 1);
+        }
+    };
+
     // ---------- ABRIR / FECHAR PAINEL ----------
     window.toggleAdminCheats = function () {
         if (!window.ehAdmin) return;
@@ -276,6 +370,7 @@
         win.style.display = estaAberto ? 'none' : 'flex';
         if (!estaAberto) {
             atualizarVisualSwitches();
+            window.atualizarVisualAdminLevel();
         }
     };
 
@@ -468,7 +563,9 @@
     window.mostrarBotaoAdminCheats = function () {
         injetarPainel();
         const btn = document.getElementById('btn-admin-cheats');
-        if (btn) btn.style.display = 'flex';
+        if (btn) btn.style.setProperty('display', 'flex', 'important');
+        const mBtn = document.getElementById('mobile-sidebar-item-admin');
+        if (mBtn) mBtn.style.setProperty('display', 'flex', 'important');
     };
 
 })();

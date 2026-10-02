@@ -26,15 +26,10 @@
 
     // Centros e Portais
     const PRACA_CENTRO = { x: CID_X0 + 687, y: 572 };
-    const PONTO_SPAWN = { x: CID_X0 + 687, y: 660 };
+    const PONTO_SPAWN = { x: CID_X0 + 687, y: 553 };
 
     // Portal no Campo Verde que leva à Cidade
-    const PORTA_CIDADE_VERDE = {
-        x: 5000,
-        y: 1200,
-        r: 58,
-        alvo: { x: PONTO_SPAWN.x, y: PONTO_SPAWN.y }
-    };
+    const PORTA_CIDADE_VERDE = null;
 
     // Portal na ponte sul de Davahl que leva de volta ao Campo Verde
     const PORTA_CIDADE_RETORNO = {
@@ -403,7 +398,7 @@
             }
             return null;
         }
-        if (x < (global.LARGURA_VERDE || 18000)) {
+        if (PORTA_CIDADE_VERDE && x < (global.LARGURA_VERDE || 18000)) {
             const dVerde = Math.hypot(x - PORTA_CIDADE_VERDE.x, y - PORTA_CIDADE_VERDE.y);
             if (dVerde < PORTA_CIDADE_VERDE.r) {
                 return { via: 'portal', mapa: 'cidade', alvo: PORTA_CIDADE_VERDE.alvo };
@@ -858,7 +853,7 @@
 
     function desenharPortalCidadeVerde(t) {
         const ctx = global.ctx;
-        if (ctx) desenharVortex(ctx, PORTA_CIDADE_VERDE.x, PORTA_CIDADE_VERDE.y, t, '#f1c40f');
+        if (PORTA_CIDADE_VERDE && ctx) desenharVortex(ctx, PORTA_CIDADE_VERDE.x, PORTA_CIDADE_VERDE.y, t, '#f1c40f');
     }
 
     function desenharPortalCidadeRetorno(t) {

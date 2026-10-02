@@ -83,6 +83,33 @@ window.criarAnimacaoGritoProvocacao = function(id, x, y) {
         });
     }
 
+    // Arcos acústicos de som estrondoso partindo do elmo (ondas sonoras em arcos concêntricos)
+    let arcosSonicos = [];
+    for (let k = 0; k < 6; k++) {
+        arcosSonicos.push({
+            raioBase: 10 + k * 16,
+            vel: 4.2 + k * 0.9,
+            largura: 3.2 - k * 0.25,
+            offsetY: -6
+        });
+    }
+
+    // Cruzes verdes de cura flutuando ao redor do Guerreiro (Grito/Cura conforme arte)
+    let cruzesCura = [];
+    for (let k = 0; k < 10; k++) {
+        let angK = (k / 10) * Math.PI * 2 + Math.random() * 0.3;
+        let distK = 12 + Math.random() * 16;
+        cruzesCura.push({
+            x: pX + Math.cos(angK) * distK,
+            y: pY + 6 + Math.sin(angK) * (distK * 0.6),
+            vy: -(1.5 + Math.random() * 1.8),
+            vx: (Math.random() - 0.5) * 0.6,
+            tam: 6 + Math.floor(Math.random() * 4),
+            vida: 1.0,
+            decaimento: 0.024 + Math.random() * 0.012
+        });
+    }
+
     window.ondasGritoProvocacao.push({
         id: id,
         x: pX,
@@ -93,7 +120,9 @@ window.criarAnimacaoGritoProvocacao = function(id, x, y) {
         pedras: particulasPedras,
         poeira: particulasPoeira,
         faiscas: faiscasChoque,
-        fendas: fendasSolo
+        fendas: fendasSolo,
+        arcos: arcosSonicos,
+        cruzes: cruzesCura
     });
 
     // Tremor de tela dramático
@@ -358,6 +387,62 @@ window.desenharEfeitosGuerreiro = function() {
                 ctx.stroke();
             } else {
                 onda.faiscas.splice(j, 1);
+            }
+        }
+
+        // 1.8 Arcos Acústicos de Som Estrondoso partindo do Great Helm
+        if (onda.arcos) {
+            for (let arc of onda.arcos) {
+                let rArc = arc.raioBase + p * arc.vel * 28;
+                let alphaArc = Math.max(0, (1 - p) * 0.85);
+                ctx.save();
+                ctx.strokeStyle = `rgba(255, 255, 255, ${alphaArc})`;
+                ctx.lineWidth = arc.largura;
+                ctx.shadowColor = '#85c1e9';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                // Arcos concêntricos acústicos expandindo em leque
+                ctx.arc(onda.x, onda.y + arc.offsetY, rArc, -Math.PI * 0.35, Math.PI * 0.35);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(onda.x, onda.y + arc.offsetY, rArc, Math.PI * 0.65, Math.PI * 1.35);
+                ctx.stroke();
+                ctx.restore();
+            }
+        }
+
+        // 1.9 Cruzes Verdes de Cura Flutuantes (+)
+        if (onda.cruzes) {
+            for (let j = onda.cruzes.length - 1; j >= 0; j--) {
+                let cr = onda.cruzes[j];
+                cr.x += cr.vx;
+                cr.y += cr.vy;
+                cr.vida -= cr.decaimento;
+
+                if (cr.vida > 0) {
+                    ctx.save();
+                    ctx.translate(cr.x, cr.y);
+                    let aCr = Math.min(1.0, cr.vida * 1.4);
+                    let s = cr.tam / 2;
+
+                    // Cruz verde esmeralda luminosa
+                    ctx.fillStyle = `rgba(46, 204, 113, ${aCr})`;
+                    ctx.shadowColor = '#2ecc71';
+                    ctx.shadowBlur = 6;
+                    // Barra vertical da cruz
+                    ctx.fillRect(-s * 0.35, -s, s * 0.7, s * 2);
+                    // Barra horizontal da cruz
+                    ctx.fillRect(-s, -s * 0.35, s * 2, s * 0.7);
+
+                    // Núcleo branco
+                    ctx.fillStyle = `rgba(255, 255, 255, ${aCr * 0.85})`;
+                    ctx.fillRect(-s * 0.18, -s * 0.7, s * 0.36, s * 1.4);
+                    ctx.fillRect(-s * 0.7, -s * 0.18, s * 1.4, s * 0.36);
+
+                    ctx.restore();
+                } else {
+                    onda.cruzes.splice(j, 1);
+                }
             }
         }
 

@@ -284,5 +284,93 @@
     "intensidade": 0.6,
     "raio": 80,
     "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_muq6kvrv",
+    "mapa": "cidadeperdida",
+    "x": 66146,
+    "y": 1581,
+    "tipo": "lampada",
+    "escala": 0.4,
+    "intensidade": 0.1,
+    "raio": 80,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_muq6lhzi",
+    "mapa": "cidadeperdida",
+    "x": 66547,
+    "y": 1340,
+    "tipo": "lampada",
+    "escala": 0.6,
+    "intensidade": 0.1,
+    "raio": 80,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_muq6ltlz",
+    "mapa": "cidadeperdida",
+    "x": 66148,
+    "y": 1342,
+    "tipo": "lampada",
+    "escala": 0.6,
+    "intensidade": 0.1,
+    "raio": 80,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_muq6m1vs",
+    "mapa": "cidadeperdida",
+    "x": 66493,
+    "y": 1099,
+    "tipo": "lampada",
+    "escala": 0.6,
+    "intensidade": 0.1,
+    "raio": 80,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_muq6mbui",
+    "mapa": "cidadeperdida",
+    "x": 66973,
+    "y": 1100,
+    "tipo": "lampada",
+    "escala": 0.6,
+    "intensidade": 0.1,
+    "raio": 80,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_muq6mmgr",
+    "mapa": "cidadeperdida",
+    "x": 66282,
+    "y": 1090,
+    "tipo": "lampada",
+    "escala": 0.3,
+    "intensidade": 0.1,
+    "raio": 25,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_muq6ppqi",
+    "mapa": "cidadeperdida",
+    "x": 66639,
+    "y": 1093,
+    "tipo": "lampada",
+    "escala": 0.5,
+    "intensidade": 0.1,
+    "raio": 45,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_muqdtwx4",
+    "mapa": "abissal",
+    "x": 112093,
+    "y": 2736,
+    "tipo": "borboletas",
+    "escala": 1,
+    "intensidade": 0.7,
+    "raio": 80,
+    "cor": "#d99cff"
   }
 ]

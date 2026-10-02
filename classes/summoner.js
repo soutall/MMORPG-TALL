@@ -31,13 +31,338 @@ const GOLEM_COR = {
 };
 
 // ---------------------------------------------------------------------------
+// Braços Colossais de Rocha (Skill 3: Golem Colossal)
+// Esculpidos com a mesma cor e textura do corpo do Golem (GOLEM_COR)
+// ---------------------------------------------------------------------------
+function desenharBracosGolemColossal(ctx, t, pulso) {
+    const bobEsq = Math.sin(t * 2.1) * 2.0;
+    const bobDir = Math.sin(t * 2.1 + 1.2) * 2.0;
+
+    // === BRAÇO ESQUERDO DE ROCHA ===
+    ctx.save();
+    ctx.translate(-24, -10 + bobEsq);
+
+    // Ombro esquerdo (bloco multifacetado maciço da mesma rocha)
+    let gOmbE = ctx.createLinearGradient(-18, -16, 6, 8);
+    gOmbE.addColorStop(0, GOLEM_COR.faceClara);
+    gOmbE.addColorStop(0.5, GOLEM_COR.faceMedia);
+    gOmbE.addColorStop(1, GOLEM_COR.faceEscura);
+    ctx.fillStyle = gOmbE;
+    ctx.strokeStyle = GOLEM_COR.faceSombra;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(4, -8);
+    ctx.lineTo(-8, -15);
+    ctx.lineTo(-18, -5);
+    ctx.lineTo(-15, 8);
+    ctx.lineTo(-2, 10);
+    ctx.lineTo(6, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Faceta iluminada superior
+    ctx.fillStyle = 'rgba(233,204,255,0.28)';
+    ctx.beginPath();
+    ctx.moveTo(4, -8);
+    ctx.lineTo(-8, -15);
+    ctx.lineTo(-12, -7);
+    ctx.lineTo(0, -3);
+    ctx.closePath();
+    ctx.fill();
+
+    // Fissura de rocha no ombro
+    ctx.strokeStyle = GOLEM_COR.rachadura;
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(-6, -10); ctx.lineTo(-9, -2); ctx.lineTo(-4, 4);
+    ctx.stroke();
+
+    // Antebraço esquerdo
+    let gAntE = ctx.createLinearGradient(-15, 6, 2, 22);
+    gAntE.addColorStop(0, GOLEM_COR.faceClara);
+    gAntE.addColorStop(0.5, GOLEM_COR.faceMedia);
+    gAntE.addColorStop(1, GOLEM_COR.faceEscura);
+    ctx.fillStyle = gAntE;
+    ctx.beginPath();
+    ctx.moveTo(-6, 6);
+    ctx.lineTo(-16, 12);
+    ctx.lineTo(-14, 22);
+    ctx.lineTo(-3, 20);
+    ctx.lineTo(1, 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Esporão de cristal no cotovelo
+    ctx.save();
+    ctx.shadowColor = GOLEM_COR.cristal;
+    ctx.shadowBlur = 8 * pulso;
+    ctx.fillStyle = GOLEM_COR.cristal;
+    ctx.beginPath();
+    ctx.moveTo(-16, 12);
+    ctx.lineTo(-23, 14);
+    ctx.lineTo(-15, 18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // Punho colossal esquerdo fechado (dedos de rocha maciça)
+    let gPunhoE = ctx.createLinearGradient(-16, 18, 4, 34);
+    gPunhoE.addColorStop(0, GOLEM_COR.faceClara);
+    gPunhoE.addColorStop(0.45, GOLEM_COR.faceMedia);
+    gPunhoE.addColorStop(1, GOLEM_COR.faceEscura);
+    ctx.fillStyle = gPunhoE;
+    ctx.beginPath();
+    ctx.moveTo(-3, 18);
+    ctx.lineTo(-16, 20);
+    ctx.lineTo(-18, 30);
+    ctx.lineTo(-12, 36);
+    ctx.lineTo(-2, 35);
+    ctx.lineTo(4, 28);
+    ctx.lineTo(2, 20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Juntas e nós dos dedos de pedra
+    ctx.strokeStyle = GOLEM_COR.rachadura;
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(-14, 26); ctx.lineTo(-2, 25);
+    ctx.moveTo(-15, 30); ctx.lineTo(-3, 29);
+    ctx.moveTo(-10, 20); ctx.lineTo(-11, 35);
+    ctx.stroke();
+
+    // Cristais luminosos cravados nos nós do punho
+    ctx.save();
+    ctx.shadowColor = GOLEM_COR.cristal;
+    ctx.shadowBlur = 6 * pulso;
+    ctx.fillStyle = GOLEM_COR.cristalClaro;
+    ctx.fillRect(-14, 31, 2.5, 2.5);
+    ctx.fillRect(-8, 30, 2.5, 2.5);
+    ctx.restore();
+
+    ctx.restore();
+
+    // === BRAÇO DIREITO DE ROCHA ===
+    ctx.save();
+    ctx.translate(24, -10 + bobDir);
+
+    // Ombro direito (bloco multifacetado maciço da mesma rocha)
+    let gOmbD = ctx.createLinearGradient(18, -16, -6, 8);
+    gOmbD.addColorStop(0, GOLEM_COR.faceClara);
+    gOmbD.addColorStop(0.5, GOLEM_COR.faceMedia);
+    gOmbD.addColorStop(1, GOLEM_COR.faceEscura);
+    ctx.fillStyle = gOmbD;
+    ctx.strokeStyle = GOLEM_COR.faceSombra;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-4, -8);
+    ctx.lineTo(8, -15);
+    ctx.lineTo(18, -5);
+    ctx.lineTo(15, 8);
+    ctx.lineTo(2, 10);
+    ctx.lineTo(-6, 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Faceta iluminada superior
+    ctx.fillStyle = 'rgba(233,204,255,0.28)';
+    ctx.beginPath();
+    ctx.moveTo(-4, -8);
+    ctx.lineTo(8, -15);
+    ctx.lineTo(12, -7);
+    ctx.lineTo(0, -3);
+    ctx.closePath();
+    ctx.fill();
+
+    // Fissura de rocha no ombro
+    ctx.strokeStyle = GOLEM_COR.rachadura;
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(6, -10); ctx.lineTo(9, -2); ctx.lineTo(4, 4);
+    ctx.stroke();
+
+    // Antebraço direito
+    let gAntD = ctx.createLinearGradient(15, 6, -2, 22);
+    gAntD.addColorStop(0, GOLEM_COR.faceClara);
+    gAntD.addColorStop(0.5, GOLEM_COR.faceMedia);
+    gAntD.addColorStop(1, GOLEM_COR.faceEscura);
+    ctx.fillStyle = gAntD;
+    ctx.beginPath();
+    ctx.moveTo(6, 6);
+    ctx.lineTo(16, 12);
+    ctx.lineTo(14, 22);
+    ctx.lineTo(3, 20);
+    ctx.lineTo(-1, 10);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Esporão de cristal no cotovelo
+    ctx.save();
+    ctx.shadowColor = GOLEM_COR.cristal;
+    ctx.shadowBlur = 8 * pulso;
+    ctx.fillStyle = GOLEM_COR.cristal;
+    ctx.beginPath();
+    ctx.moveTo(16, 12);
+    ctx.lineTo(23, 14);
+    ctx.lineTo(15, 18);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    // Punho colossal direito fechado (dedos de rocha maciça)
+    let gPunhoD = ctx.createLinearGradient(16, 18, -4, 34);
+    gPunhoD.addColorStop(0, GOLEM_COR.faceClara);
+    gPunhoD.addColorStop(0.45, GOLEM_COR.faceMedia);
+    gPunhoD.addColorStop(1, GOLEM_COR.faceEscura);
+    ctx.fillStyle = gPunhoD;
+    ctx.beginPath();
+    ctx.moveTo(3, 18);
+    ctx.lineTo(16, 20);
+    ctx.lineTo(18, 30);
+    ctx.lineTo(12, 36);
+    ctx.lineTo(2, 35);
+    ctx.lineTo(-4, 28);
+    ctx.lineTo(-2, 20);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Juntas e nós dos dedos de pedra
+    ctx.strokeStyle = GOLEM_COR.rachadura;
+    ctx.lineWidth = 1.0;
+    ctx.beginPath();
+    ctx.moveTo(14, 26); ctx.lineTo(2, 25);
+    ctx.moveTo(15, 30); ctx.lineTo(3, 29);
+    ctx.moveTo(10, 20); ctx.lineTo(11, 35);
+    ctx.stroke();
+
+    // Cristais luminosos cravados nos nós do punho
+    ctx.save();
+    ctx.shadowColor = GOLEM_COR.cristal;
+    ctx.shadowBlur = 6 * pulso;
+    ctx.fillStyle = GOLEM_COR.cristalClaro;
+    ctx.fillRect(11.5, 31, 2.5, 2.5);
+    ctx.fillRect(5.5, 30, 2.5, 2.5);
+    ctx.restore();
+
+    ctx.restore();
+}
+
+// ---------------------------------------------------------------------------
+// Efeito de Chuva de Pedras Caindo (Skill 3: Golem Colossal)
+// ---------------------------------------------------------------------------
+window._pedrasCaindoColossal = window._pedrasCaindoColossal || [];
+window._pedrasCaindoImpactos = window._pedrasCaindoImpactos || [];
+
+function desenharEfeitoPedrasCaindoColossal(ctx, gx, gy) {
+    if (!ctx) return;
+    // Spawna pedras caindo continuamente ao redor do Golem Colossal
+    if (Math.random() < 0.35 && window._pedrasCaindoColossal.length < 16) {
+        const ang = Math.random() * Math.PI * 2;
+        const dist = 14 + Math.random() * 58;
+        const tx = gx + Math.cos(ang) * dist;
+        const ty = gy + 16 + Math.sin(ang) * dist * 0.45;
+        window._pedrasCaindoColossal.push({
+            x: tx + (Math.random() - 0.5) * 16,
+            y: ty - 120 - Math.random() * 50,
+            targetX: tx,
+            targetY: ty,
+            vy: 4.5 + Math.random() * 3.5,
+            size: 3.5 + Math.random() * 4.5,
+            rot: Math.random() * Math.PI * 2,
+            rotSpeed: (Math.random() - 0.5) * 0.28,
+            cor: Math.random() > 0.45 ? GOLEM_COR.faceMedia : GOLEM_COR.faceEscura
+        });
+    }
+
+    // Renderiza e atualiza pedras caindo
+    for (let i = window._pedrasCaindoColossal.length - 1; i >= 0; i--) {
+        const p = window._pedrasCaindoColossal[i];
+        p.y += p.vy;
+        p.vy += 0.32;
+        p.rot += p.rotSpeed;
+
+        const distChao = p.targetY - p.y;
+        if (distChao > 0) {
+            const sProg = Math.max(0.1, 1 - (distChao / 150));
+            ctx.save();
+            ctx.fillStyle = 'rgba(10, 5, 20, ' + (0.35 * sProg).toFixed(3) + ')';
+            ctx.beginPath();
+            ctx.ellipse(p.targetX, p.targetY, p.size * sProg * 1.2, p.size * sProg * 0.5, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.rotate(p.rot);
+        ctx.fillStyle = p.cor;
+        ctx.strokeStyle = GOLEM_COR.faceSombra;
+        ctx.lineWidth = 0.9;
+        ctx.beginPath();
+        ctx.moveTo(-p.size, p.size * 0.4);
+        ctx.lineTo(-p.size * 0.2, -p.size);
+        ctx.lineTo(p.size, -p.size * 0.3);
+        ctx.lineTo(p.size * 0.3, p.size);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+
+        if (p.y >= p.targetY) {
+            for (let k = 0; k < 3; k++) {
+                const a = Math.random() * Math.PI * 2;
+                const sp = Math.random() * 2.5 + 1;
+                window._pedrasCaindoImpactos.push({
+                    x: p.targetX,
+                    y: p.targetY,
+                    vx: Math.cos(a) * sp,
+                    vy: Math.sin(a) * sp * 0.5 - Math.random() * 2.2,
+                    size: p.size * 0.35,
+                    life: 20,
+                    maxLife: 20,
+                    cor: p.cor
+                });
+            }
+            window._pedrasCaindoColossal.splice(i, 1);
+        }
+    }
+
+    // Detritos/cascalhos quicando no chão
+    for (let i = window._pedrasCaindoImpactos.length - 1; i >= 0; i--) {
+        const d = window._pedrasCaindoImpactos[i];
+        d.x += d.vx;
+        d.y += d.vy;
+        d.vy += 0.28;
+        d.life--;
+        const alpha = Math.max(0, d.life / d.maxLife);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = d.cor;
+        ctx.beginPath();
+        ctx.arc(d.x, d.y, d.size, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+        if (d.life <= 0) {
+            window._pedrasCaindoImpactos.splice(i, 1);
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Pedra Flutuante (pet do Summoner) — rocha roxa levitando com cristais,
 // aura de invocação e uma pedra menor orbitando ao redor (referencial local)
 // ---------------------------------------------------------------------------
-window.desenharCorpoGolem = function (x, y, escala) {
+window.desenharCorpoGolem = function (x, y, escala, isColossal) {
     const ctx = window.ctx;
     if (!ctx) return;
     const e = escala || 1;
+    const colossal = (isColossal !== undefined) ? !!isColossal : (e >= 1.25);
     const t = Date.now() / 1000;
     const flutua = Math.sin(t * 1.8) * 4.2;         // balanço de flutuação
     const pulso = 0.75 + Math.sin(t * 2.4) * 0.25;  // pulso dos cristais
@@ -47,6 +372,11 @@ window.desenharCorpoGolem = function (x, y, escala) {
     ctx.translate(x, y - flutua);
     ctx.scale(e, e);
     ctx.rotate(balanca);
+
+    // ---------- BRAÇOS COLOSSAIS (SKILL 3) — mesma cor e textura do Golem ----------
+    if (colossal) {
+        desenharBracosGolemColossal(ctx, t, pulso);
+    }
 
     // ---------- AURA roxa ao redor da pedra ----------
     const gAura = ctx.createRadialGradient(0, -12, 2, 0, -12, 46 * pulso);
@@ -277,23 +607,20 @@ function _golemHash(v) {
     return h >>> 0;
 }
 
-// Skill 1: Esmagamento Sísmico — SUPER PISÃO
+// Skill 1: Esmagamento Sísmico — SUPER PISÃO COM RACHADURAS REALISTAS
 window.criarEfeitoGolemEsmagamento = function (x, y, raio) {
-    const r = raio || 92;
-    _golemPushEffect({
-        tipo: 'esmagamento', x, y, raio: 8, maxRaio: r,
-        alpha: 1, idade: 0, vida: 850,
-        seed: _golemHash((x * 31) + ':' + (y * 17) + ':' + Date.now())
-    });
+    if (typeof window.criarAnimacaoOgroSismico === 'function') {
+        window.criarAnimacaoOgroSismico(x, y);
+    }
 };
 
-// Skill 2: Salto do Golem — impacto de aterrissagem
+// Skill 2: Salto do Golem — impacto de aterrissagem exagerado com rochas pontudas
 window.criarEfeitoGolemSalto = function (x, y) {
-    _golemPushEffect({
-        tipo: 'salto', x, y, raio: 12, maxRaio: 105,
-        alpha: 1, idade: 0, vida: 900,
-        seed: _golemHash('salto:' + x + ':' + y + ':' + Date.now())
-    });
+    if (typeof window.criarEfeitoAterrissagemSaltoGolem === 'function') {
+        window.criarEfeitoAterrissagemSaltoGolem(x, y);
+    } else if (typeof window.criarAnimacaoOgroSismico === 'function') {
+        window.criarAnimacaoOgroSismico(x, y);
+    }
 };
 
 function _desenharEfeitosGolem() {
@@ -512,8 +839,9 @@ window.desenharLacaio = function (lacaio) {
     let estaColossal = (window.lacaioColossal && lacaio.pid && window.lacaioColossal[lacaio.pid]) ? true : false;
     let escalaGolem = estaColossal ? 1.4 : 1;
 
-    // Skill 3: Golem Colossal — aura profana permanente enquanto o estado colossal estiver ativo.
+    // Skill 3: Golem Colossal — aura profana permanente e chuva de pedras caindo
     if (estaColossal) {
+        desenharEfeitoPedrasCaindoColossal(ctx, lacaio.x, lacaio.y);
         ctx.save();
         const profPulse = 0.72 + Math.sin(t * 2.6) * 0.28;
         const profR = 54 + Math.sin(t * 1.7) * 5;
@@ -558,7 +886,7 @@ window.desenharLacaio = function (lacaio) {
         ctx.restore();
     }
 
-    window.desenharCorpoGolem(lacaio.x, lacaio.y, escalaGolem);
+    window.desenharCorpoGolem(lacaio.x, lacaio.y, escalaGolem, estaColossal);
 
     // ---------- energia roxa subindo pela rocha ----------
     ctx.save();

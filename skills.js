@@ -9,33 +9,34 @@ const NIVEL_SKILL_MAX = 10;
 
 const SKILLS_INFO = {
     guerreiro: [
-        { id: 'corte', nome: 'Corte', icon: '⚔️', categoria: 'ataque',
-          desc: 'Golpe de espada em cone à frente do herói.',
+        { id: 'corte', nome: 'Estocada da Lança', icon: '🔱', categoria: 'ataque',
+          desc: 'Golpe perfurante de lança em linha à frente do herói.',
           danoBase: 12, danoUnidade: 'físico', danoNota: null,
           mp: 0, cd: 0.35, escala: 'dano',
-          area: 'Cone frontal (66px)', alcance: 'Corpo a corpo',
+          area: 'Alcance frontal (70px)', alcance: 'Corpo a corpo',
           duracao: null, duracaoBase: null, extras: [] },
-        { id: 'dash', nome: 'Dash Atingente', icon: '💨', categoria: 'mobilidade',
-          desc: 'Investida rápida de 160px que derruba inimigos no caminho.',
-          danoBase: 20, danoUnidade: 'físico', danoNota: '+ Stun 2s',
-          mp: 15, cd: 4, escala: 'dano',
-          area: 'Explosão raio 65', alcance: 'Teleporte 160px',
-          duracao: null, duracaoBase: null, extras: [] },
-        { id: 'tornado', nome: 'Tornado de Espada', icon: '🌪️', categoria: 'aoe',
-          desc: 'Gira a espada criando um redemoinho de corte ao redor.',
-          danoBase: 25, danoUnidade: 'físico', danoNota: null,
+        { id: 'postura_guardiao', nome: 'Aura do Vanguarda', icon: '🛡️', categoria: 'buff',
+          desc: 'Ergue uma aura mística de proteção em torno do guerreiro, concedendo +30% de defesa e +10% de vida máxima por 10s. Atrai monstros próximos por 2s.',
+          danoBase: null, danoUnidade: null, danoNota: '+30% defesa · +10% HP máx',
+          mp: 0, cd: 14, escala: 'nenhum', melhoravel: false,
+          area: 'Raio 300px (provocação)', alcance: 'Ao redor do Guerreiro',
+          duracao: '10s (provocação 2s)', duracaoBase: 10,
+          extras: ['+30% defesa por 10s', '+10% HP máximo por 10s', 'Atrai mobs e bosses próximos por 2s'] },
+        { id: 'tornado', nome: 'Giro do Vanguarda', icon: '🌀', categoria: 'aoe',
+          desc: 'Gira a lança em um arco devastador, atingindo inimigos próximos com 3 pulsos cortantes durante o giro.',
+          danoBase: 25, danoUnidade: 'físico', danoNota: '25 de dano total em 3 pulsos',
           mp: 20, cd: 5, escala: 'dano',
           area: 'Raio 100', alcance: 'Ao redor',
           duracao: null, duracaoBase: null, extras: [] },
-        { id: 'provocacao', nome: 'Grito de Provocação', icon: '📢', categoria: 'aoe',
-          desc: 'Grito estrondoso que força todos os monstros (10s) e Bosses (5s) em área a focarem no Guerreiro, curando instantaneamente 20% do HP Máximo.',
+        { id: 'provocacao', nome: 'Grito Estrondoso', icon: '📢', categoria: 'aoe',
+          desc: 'Grita poderosamente, tremendo o chão e provocando todos os monstros próximos para atacá-lo, enquanto cura sua própria vida em 20% do HP Máximo.',
           danoBase: 0, danoUnidade: null, danoNota: 'Cura 20% HP Máx',
           mp: 20, cd: 15, escala: 'nenhum',
           area: 'Raio 300px', alcance: 'Ao redor',
           duracao: '10s (Mobs) / 5s (Boss)', duracaoBase: null,
           extras: ['Cura instantânea de 20% da Vida Máxima', 'Força aggro de Mobs normais por 10 segundos', 'Força aggro de Bosses por 5 segundos'] },
-        { id: 'bloqueio', nome: 'Escudo (Passiva)', icon: '🛡️', categoria: 'passiva',
-          desc: 'Bloqueio frontal que anula o dano recebido.',
+        { id: 'bloqueio', nome: 'Escudo Ogival do Leão (Passiva)', icon: '🛡️', categoria: 'passiva',
+          desc: 'Bloqueio frontal com o Escudo Ogival do Leão que anula o dano recebido.',
           danoBase: 0, danoUnidade: null, danoNota: null,
           mp: 0, cd: null, escala: 'nenhum',
           area: 'Frontal', alcance: '—',
@@ -62,29 +63,35 @@ const SKILLS_INFO = {
           area: 'Projétil', alcance: 'Vel. 10',
           duracao: null, duracaoBase: null, extras: [] },
         { id: 'meteoro', nome: 'Meteoro', icon: '☄️', categoria: 'aoe',
-          desc: 'Invoca um meteoro no ponto marcado após 0.6s de atraso.',
+          desc: 'Carrega por 1s e invoca um meteoro no ponto marcado.',
           danoBase: 25, danoUnidade: 'mágico', danoNota: null,
           mp: 30, cd: 7, escala: 'dano',
           area: 'Raio 85', alcance: 'Mira 380px',
-          duracao: null, duracaoBase: null, extras: ['Atraso 0.6s'] },
+          duracao: null, duracaoBase: null, extras: ['Cast de 1s'] },
         { id: 'nevasca', nome: 'Nevasca', icon: '❄️', categoria: 'zona',
-          desc: 'Zona de gelo contínua que congela lentamente quem entra.',
+          desc: 'Carrega por 1s e cria uma corrente de água gelada que desacelera os inimigos na área.',
           danoBase: 6, danoUnidade: 'mágico', danoNota: '/s por 8s',
           mp: 35, cd: 12, escala: 'dano',
           area: 'Raio 115', alcance: 'Mira 350px',
-          duracao: '8s', duracaoBase: null, extras: ['Lentidão 50% (0.75s)'] },
+          duracao: '8s', duracaoBase: null, extras: ['Cast de 1s', 'Lentidão 50% (0.75s)'] },
         { id: 'vulcao', nome: 'Vulcão Flamejante', icon: '🌋', categoria: 'zona',
-          desc: 'Invoca uma cratera vulcânica que cospe magma e causa dano contínuo.',
+          desc: 'Carrega por 1s e faz um vulcão emergir parcialmente do terreno, lançando fragmentos e magma.',
           danoBase: 18, danoUnidade: 'mágico', danoNota: '+4 DoT/s',
           mp: 20, cd: 20, escala: 'dano',
           area: 'Raio 140', alcance: 'Mira 380px',
-          duracao: '10s', duracaoBase: null, extras: ['Erupção vulcânica', 'Queimadura em área'] },
+          duracao: '10s', duracaoBase: null, extras: ['Cast de 1s', 'Fragmentos frequentes', 'Queimadura em área'] },
         { id: 'bola_elemental', nome: 'Bola Elemental', icon: '🔮', categoria: 'ataque',
           desc: 'Lança uma BOLA GIGANTE giratória que rola pelo chão empurrando inimigos. Ao cruzar a área da NEVASCA vira GELO e congela inimigos por 2s; ao cruzar o fogo do METEORO vira FOGO e causa uma grande explosão.',
           danoBase: 60, danoUnidade: 'mágico', danoNota: '×2 no Fogo / congela no Gelo',
           mp: 30, cd: 20, escala: 'dano',
           area: 'Projétil rolante 400px / Explosão 130 / Gelo 85', alcance: '400px',
-          duracao: null, duracaoBase: null, extras: ['Normal: rola pelo chão e empurra inimigos para trás', 'Gelo (Nevasca): congela inimigos ao contato por 2s', 'Fogo (Meteoro): grande explosão em área com dano ×2', 'Fogo do Meteoro queima o chão por 5s'] }
+          duracao: null, duracaoBase: null, extras: ['Normal: rola pelo chão e empurra inimigos para trás', 'Gelo (Nevasca): congela inimigos ao contato por 2s', 'Fogo (Meteoro): grande explosão em área com dano ×2', 'Fogo do Meteoro queima o chão por 5s'] },
+        { id: 'mana_arcana', nome: 'Mana Arcana (Passiva)', icon: '💠', categoria: 'passiva',
+          desc: 'A cada 5 pontos base de Inteligência, recebe +1 Inteligência. Quanto mais Mana atual, maior o dano mágico: até +10% com a barra cheia.',
+          danoBase: 0, danoUnidade: null, danoNota: '+1 INT / 5 pontos; até +10% dano',
+          mp: 0, cd: null, escala: 'nenhum',
+          area: 'Próprio', alcance: 'Passiva',
+          duracao: 'Sempre ativa', duracaoBase: null, extras: ['Cada 5 pontos investidos em Inteligência concede +1 INT', 'Dano mágico escala com a Mana atual'] }
     ],
     summoner: [
         { id: 'orbe', nome: 'Orbe das Sombras', icon: '👁️', categoria: 'ataque',
@@ -197,11 +204,11 @@ const SKILLS_INFO = {
           duracao: 'Debuff 10s', duracaoBase: 10, extras: ['Enfraquece defesa (-20%)', 'Enfraquece ataque (-5%)', 'Atinge até 5 alvos próximos'] }
     ],
     florim: [
-        { id: 'semente', nome: 'Sementes', icon: '🌱', categoria: 'controle', desc: 'Planta uma semente no chão. Inimigos que pisarem sofrem dano; aliados são curados.', danoBase: 28, danoUnidade: 'natureza', danoNota: 'Armadilha: dano ou cura', mp: 18, cd: 6, escala: 'dano', area: 'Raio 34', alcance: 'Mira 300px', duracao: '7s', duracaoBase: 7, extras: ['Primeiro alvo ativa', 'Aliados recebem cura'] },
-        { id: 'corrente_raizes', nome: 'Corrente de Raízes', icon: '🌿', categoria: 'controle', desc: 'Uma corrente de raízes alcança o alvo, prende e imobiliza por 3 segundos.', danoBase: 18, danoUnidade: 'natureza', danoNota: '+ Paralisia 3s', mp: 22, cd: 9, escala: 'dano', area: 'Alvo único', alcance: 'Mira 300px', duracao: '3s', duracaoBase: 3, extras: ['Prende o alvo', 'Raízes surgem do chão'] },
-        { id: 'anel_espinhos', nome: 'Anel de Flores', icon: '🌸', categoria: 'aoe', desc: 'Cria um círculo de flores e espinhos que prende os inimigos no centro e aplica veneno.', danoBase: 16, danoUnidade: 'veneno', danoNota: 'Dano contínuo + prisão', mp: 30, cd: 14, escala: 'dano', area: 'Raio 85', alcance: 'Mira 320px', duracao: '5s', duracaoBase: 5, extras: ['Paralisia enquanto durar', 'Veneno a cada 0,5s', 'Espinhos orbitais'] },
-        { id: 'praga_natural', nome: 'Praga Natural', icon: '🍃', categoria: 'debuff', desc: 'Uma onda vegetal enfraquece inimigos em área, reduzindo defesa, ataque, velocidade e cura recebida.', danoBase: null, danoUnidade: null, danoNota: '-25% DEF / -25% ATK / -20% velocidade / -20% cura', mp: 28, cd: 16, escala: 'nenhum', area: 'Raio 170', alcance: 'Mira 320px', duracao: '10s', duracaoBase: 10, extras: ['Defesa reduzida', 'Ataque reduzido', 'Velocidade reduzida', 'Cura recebida reduzida'] },
-        { id: 'coracao_verde', nome: 'Coração Verde', icon: '🌳', categoria: 'passiva', desc: 'A presença vegetal do Florim melhora a sustentação natural de combate.', danoBase: null, danoUnidade: null, danoNota: 'Regeneração natural', mp: 0, cd: null, escala: 'nenhum', area: 'Próprio', alcance: '—', duracao: 'Passiva', duracaoBase: null, extras: ['Regeneração fora de combate'] }
+        { id: 'arvore', nome: 'Árvore Curativa', icon: '🌳', categoria: 'suporte', desc: 'Cria uma árvore curativa no local. Folhas caem ao redor, curando aliados na área.', danoBase: null, danoUnidade: null, danoNota: 'Cura 30 HP/s', mp: 25, cd: 15, escala: 'cura', area: 'Raio 100', alcance: 'Mira 300px', duracao: '8s', duracaoBase: 8, extras: ['Cura aliados', 'Folhas caindo', 'Duração 8s'] },
+        { id: 'semente', nome: 'Semente', icon: '🌱', categoria: 'controle', desc: 'Planta uma semente no chão. Inimigos ativam Planta Carnívora (dano em área 5s). Aliados ativam Rosa (regen MP 4s).', danoBase: 25, danoUnidade: 'natureza', danoNota: 'Carnívora ou Rosa', mp: 18, cd: 10, escala: 'dano', area: 'Raio 60', alcance: 'Mira 300px', duracao: '20s armadilha', duracaoBase: 20, extras: ['Inimigo: Planta Carnívora 5s', 'Aliado: Rosa de Mana 4s'] },
+        { id: 'espinhos', nome: 'Espinhos de Rosa', icon: '🌹', categoria: 'debuff', desc: 'Cria uma área de raízes espinhosas de rosa no chão. Reduz Defesa e Ataque de inimigos em 20%.', danoBase: null, danoUnidade: null, danoNota: '-20% DEF / -20% ATK', mp: 22, cd: 13, escala: 'nenhum', area: 'Raio 120', alcance: 'Mira 300px', duracao: '5s', duracaoBase: 5, extras: ['-20% Defesa', '-20% Ataque', 'Raízes de Rosa'] },
+        { id: 'parede', nome: 'Parede de Espinhos', icon: '🧱', categoria: 'controle', desc: 'Cria uma parede circular de espinhos com rosas que bloqueia inimigos.', danoBase: null, danoUnidade: null, danoNota: 'Bloqueio circular', mp: 20, cd: 10, escala: 'nenhum', area: 'Raio 80', alcance: 'Mira 250px', duracao: '4s', duracaoBase: 4, extras: ['Parede circular', 'Bloqueia inimigos', 'Espinhos + Rosas'] },
+        { id: 'aura_florescente', nome: 'Aura Florescente', icon: '💚', categoria: 'passiva', desc: 'Aura que regenera Mana para aliados ao redor e causa Sangramento em inimigos próximos.', danoBase: null, danoUnidade: null, danoNota: 'Mana regen + Sangramento', mp: 0, cd: null, escala: 'nenhum', area: 'Raio 120', alcance: 'Ao redor', duracao: 'Passiva', duracaoBase: null, extras: ['+5 MP/2s aliados', 'Sangramento em inimigos'] }
     ],
     barbaro: [
         { id: 'machadada', nome: 'Machadada', icon: '🪓', categoria: 'ataque',
@@ -454,6 +461,44 @@ const SKILLS_INFO = {
           mp: 35, cd: 30, escala: 'dano',
           area: '1 inimigo', alcance: 'Até 125px',
           duracao: '3s de carga', duracaoBase: 3, extras: ['Canal de 3s', '3 golpes separados', 'Tremor de tela', 'Barra de carga acima do personagem', 'Cancela ao se mover'] }
+    ],
+    guerreiro_kaledron: [
+        { id: 'kaledron_corte', nome: 'Corte Ígneo', icon: '🔥', categoria: 'ataque',
+          desc: 'Corte violento com o montante colossal flutuante banhado em runas de fogo.',
+          danoBase: 16, danoUnidade: 'físico', danoNota: null,
+          mp: 0, cd: 0.42, escala: 'dano',
+          area: 'Cone frontal (95px)', alcance: 'Corpo a corpo',
+          duracao: null, duracaoBase: null, extras: [] },
+        { id: 'slash_strike', nome: 'Golpe Fulminante', icon: '⚔️', categoria: 'ataque',
+          desc: 'Corte violento acumulando energia ígnea com projeção de onda cortante de magma (160% de dano).',
+          danoBase: 30, danoUnidade: 'físico', danoNota: '160% Dano',
+          mp: 15, cd: 4, escala: 'dano',
+          area: 'Linha/Cone (140px)', alcance: 'Até 140px',
+          duracao: null, duracaoBase: null, extras: ['Projeta onda de magma cortante', '160% multiplicador de dano'] },
+        { id: 'ground_slam', nome: 'Impacto Terrestre', icon: '💥', categoria: 'aoe',
+          desc: 'Salto e enterro do montante colossal no solo, criando cratera vulcânica de raio 110px com erupção, dano massivo e Atordoamento (Stun) de 1.5s.',
+          danoBase: 45, danoUnidade: 'físico', danoNota: 'Stun 1.5s',
+          mp: 25, cd: 10, escala: 'dano',
+          area: 'Raio 110px', alcance: 'Ao redor',
+          duracao: '1.5s Stun', duracaoBase: 1.5, extras: ['Abre cratera vulcânica', 'Atordoa inimigos por 1.5s', 'Dano massivo em área'] },
+        { id: 'whirlwind', nome: 'Redemoinho de Aço', icon: '🌪️', categoria: 'aoe',
+          desc: 'Kaledron comanda o montante a orbitar em alta velocidade por 3s, atingindo inimigos próximos com 10 golpes rápidos.',
+          danoBase: 60, danoUnidade: 'físico', danoNota: '60 de dano total em 10 hits',
+          mp: 30, cd: 12, escala: 'dano',
+          area: 'Raio 120px', alcance: 'Ao redor',
+          duracao: '3s', duracaoBase: 3, extras: ['10 hits rápidos', 'Atinge todos os inimigos ao redor', '60 de dano base total'] },
+        { id: 'battle_cry', nome: 'Brado de Guerra Vulcânico', icon: '📢', categoria: 'buff',
+          desc: 'Ergue as manoplas aos céus liberando um pilar colossal de fumaça e fogo que concede +35% dano físico e +20% vel. de ataque por 10s.',
+          danoBase: 0, danoUnidade: null, danoNota: '+35% Dano / +20% Vel Atk',
+          mp: 20, cd: 25, escala: 'nenhum',
+          area: 'Raio 240px', alcance: 'Grupo',
+          duracao: '10s', duracaoBase: 10, extras: ['+35% Dano Físico por 10s', '+20% Velocidade de Ataque', 'Afeta Kaledron e aliados próximos'] },
+        { id: 'forja_solar', nome: 'Forja Solar (Passiva)', icon: '🛡️', categoria: 'passiva',
+          desc: 'Aço temperado das forjas de Solari: reduz todo dano físico recebido em 10% e regenera vida gradualmente.',
+          danoBase: 0, danoUnidade: null, danoNota: '-10% Dano Físico',
+          mp: 0, cd: null, escala: 'nenhum',
+          area: 'Próprio', alcance: '—',
+          duracao: 'Passiva', duracaoBase: null, extras: ['-10% dano físico sofrido', 'Resistência ao fogo e calor'] }
     ]
 };
 
@@ -463,7 +508,7 @@ const NOMES_CLASSES = {
     guerreiro: 'GUERREIRO', mago: 'MAGO', summoner: 'SUMMONER', arqueiro: 'ARQUEIRO',
     curandeiro: 'CURANDEIRO', barbaro: 'BÁRBARO', roqueiro: 'ROQUEIRO', ladino: 'LADINO',
     dronemaster: 'DRONEMASTER', arqueiro_arcano: 'ARQUEIRO ASTRAL', arqueiro_astral: 'ARQUEIRO ASTRAL', sniper: 'SNIPER',
-    pikeman: 'PIKEMAN'
+    pikeman: 'PIKEMAN', guerreiro_kaledron: 'GUERREIRO KALEDRON'
 };
 
 const LABELS_CATEGORIA = {
@@ -625,15 +670,30 @@ function renderizarSkills() {
             let nivel = obterNivelSkill(classe, skill.id);
             let selecionada = (skill.id === window.skillSelecionadaId);
 
+            // Suporte visual à Árvore de Upgrades
+            let temArvore = (typeof SkillUpgradeTree !== 'undefined') && SkillUpgradeTree.obterSkillsParticipantes(classe).includes(skill.id);
+            let pipsHtml = '';
+            let diamondHtml = '';
+            if (temArvore && typeof window.obterPipsSkill === 'function') {
+                let qtdUp = window.obterQtdUpgradesSkill(skill.id);
+                let pipsClass = qtdUp === 4 ? 'skill-upgrade-pips maximo' : (qtdUp > 0 ? 'skill-upgrade-pips tem-upgrades' : 'skill-upgrade-pips');
+                pipsHtml = '<div class="' + pipsClass + '" title="' + qtdUp + '/4 Upgrades de Árvore">' + window.obterPipsSkill(skill.id) + '</div>';
+                if (typeof window.podeReceberUpgrade === 'function' && window.podeReceberUpgrade(skill.id)) {
+                    diamondHtml = '<div class="skill-upgrade-diamond" title="Upgrade de Habilidade Disponível! Clique na skill para abrir a Árvore">◆</div>';
+                }
+            }
+
             let card = document.createElement("div");
             card.className = "skill-slot-card" + (selecionada ? " selected" : "");
             card.title = skill.nome + " (Nv " + nivel + ")";
             card.onclick = function() { selecionarSkill(skill.id); };
 
             card.innerHTML = 
+                diamondHtml +
                 '<div class="skill-slot-moldura">' + skill.icon + '</div>' +
                 '<span class="skill-slot-nv">Nv ' + nivel + '</span>' +
-                '<div class="skill-slot-nome">' + skill.nome + '</div>';
+                '<div class="skill-slot-nome">' + skill.nome + '</div>' +
+                pipsHtml;
 
             grid.appendChild(card);
         });
@@ -682,7 +742,9 @@ function renderizarSkills() {
 
     // Botão de Upgrade
     let btnUpgrade;
-    if (nivel >= NIVEL_SKILL_MAX) {
+    if (skillSel.melhoravel === false) {
+        btnUpgrade = '<button class="btn-det-melhorar" disabled>EFEITO FIXO</button>';
+    } else if (nivel >= NIVEL_SKILL_MAX) {
         btnUpgrade = '<button class="btn-det-melhorar max" disabled>MÁXIMO</button>';
     } else if (pontos <= 0) {
         btnUpgrade = '<button class="btn-det-melhorar" disabled>⬆ MELHORAR</button>';
@@ -692,12 +754,15 @@ function renderizarSkills() {
 
     // Texto de Bônus por Nível
     let bonusTexto = "Dano/Cura +25% · MP +6%";
-    if (skillSel.escala === 'duracao') bonusTexto = "Duração +10% / nível · MP +6% / nível";
+    if (skillSel.melhoravel === false) bonusTexto = "Efeito fixo, sem progressão por nível.";
+    else if (skillSel.escala === 'duracao') bonusTexto = "Duração +10% / nível · MP +6% / nível";
     else if (skillSel.escala === 'nenhum' && !skillSel.danoBase) bonusTexto = "Efeito base constante · MP +6% / nível";
 
     // Prévia do Próximo Nível
     let proximoNivelHtml = "";
-    if (nivel < NIVEL_SKILL_MAX) {
+    if (skillSel.melhoravel === false) {
+        proximoNivelHtml = '<div class="skill-det-next-box"><div class="skill-det-next-max">Bônus fixos durante 10s. A provocação dura 2s.</div></div>';
+    } else if (nivel < NIVEL_SKILL_MAX) {
         let proxNivel = nivel + 1;
         let escaladoProx = valorEscalado(skillSel, proxNivel);
         let comAtrProx = valorComAtributo(skillSel, proxNivel);
@@ -727,7 +792,16 @@ function renderizarSkills() {
             '</div>';
     }
 
-    detalheEl.innerHTML = 
+        let temArvoreSel = (typeof SkillUpgradeTree !== 'undefined') && SkillUpgradeTree.obterSkillsParticipantes(classe).includes(skillSel.id);
+        let btnArvoreHtml = '';
+        if (temArvoreSel) {
+            let qtdUp = (typeof window.obterQtdUpgradesSkill === 'function') ? window.obterQtdUpgradesSkill(skillSel.id) : 0;
+            let podeUp = (typeof window.podeReceberUpgrade === 'function') ? window.podeReceberUpgrade(skillSel.id) : false;
+            let badgeNotif = podeUp ? ' has-notification' : '';
+            btnArvoreHtml = '<div style="margin-top:6px;margin-bottom:8px;text-align:center;"><button class="btn-det-upgrade-tree' + badgeNotif + '" onclick="abrirSkillTreeModal(\'' + skillSel.id + '\')">🌳 ÁRVORE DE UPGRADES (' + qtdUp + '/4)' + (podeUp ? ' ◆' : '') + '</button></div>';
+        }
+
+        detalheEl.innerHTML =
         '<div class="skill-det-titulo">DETALHES DA HABILIDADE</div>' +
         '<div class="skill-det-header">' +
             '<div class="skill-det-ico-wrap">' + skillSel.icon + '</div>' +
@@ -759,6 +833,7 @@ function renderizarSkills() {
             btnUpgrade +
             '<button class="btn-det-reset" onclick="resetarSkill(\'' + skillSel.id + '\')" title="Resetar esta habilidade">↺</button>' +
         '</div>' +
+        btnArvoreHtml +
         proximoNivelHtml;
 }
 

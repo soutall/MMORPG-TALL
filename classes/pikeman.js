@@ -664,14 +664,14 @@
             _braco(ctx, -1.3, 2.2);
         } else if (estado === 'execucao') {
             if (chanProg > 0 && chanProg < 0.995) {
-                // carregando: haste erguida, tremendo, energia acumulando
+                // carregando: foice na horizontal, tremendo, energia acumulando
                 let tremor = Math.sin(_agora() / 30) * (0.02 + chanProg * 0.05);
                 ctx.save();
-                ctx.translate(0, -20);
-                ctx.rotate(-0.5 + tremor);
-                _foice(ctx, -0.9 + Math.sin(_agora() / 120) * 0.04, chanProg, false, posX, posY);
+                ctx.translate(0, -15);
+                ctx.rotate(0.65 + tremor);
+                _foice(ctx, -0.18 + Math.sin(_agora() / 120) * 0.04, chanProg, false, posX, posY);
                 ctx.restore();
-                _braco(ctx, -1.6, 0.8);
+                _braco(ctx, 0.45, 0.8);
             } else {
                 // hits pesados (1,2,3)
                 let hit = anim.hit || 1;

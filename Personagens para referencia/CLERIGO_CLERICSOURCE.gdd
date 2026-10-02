@@ -1,0 +1,92 @@
+# ==============================================================================
+# FICHA DE DESIGN VISUAL E RENDERIZAÇÃO: CLÉRIGO (CLERICSOURCE)
+# Arquivo: CLERIGO_CLERICSOURCE.gdd
+# ==============================================================================
+
+[IDENTIDADE DA CLASSE]
+Nome do Campeão: ClericSource
+Título: Portador da Chama Guia (Holy Templar)
+Arquétipo: Suporte Sagrado / Curador / Off-Tank
+Papel Tático: LINHA DO MEIO (MID ROW)
+Cor Temática: Prata Polida, Branco Marfim e Ouro Sagrado (#f1c40f / #ecf0f1 / #2ecc71)
+
+---
+
+## 1. CONCEITO VISUAL E ARQUITETURA DE DESIGN
+
+ClericSource é um templário celestial com armadura de placas prateadas reluzentes e
+sobreveste sacerdotal branca com detalhes dourados. Seu visual é dominado por dois
+elementos icônicos inconfundíveis: um **GRANDE ESCUDO TORRE PRATEADO** com a cruz 
+sagrada em alto-relevo na mão esquerda e uma **LANTERNA SAGRADA PENDURADA EM UMA CORRENTE**
+na mão direita, que oscila organicamente com física de pêndulo em tempo real e projeta uma
+auréola divina cintilante no chão.
+
+### 1.1. Paleta de Cores Hexadecimal:
+- **Armadura de Placas Prateadas**: `#bdc3c7`, `#ecf0f1`, reflexos em `#ffffff`
+- **Sobreveste e Túnica Sacerdotal**: Branco marfim `#fdfefe` com arabescos em ouro imperial `#f39c12`
+- **Escudo Torre**: Chapa de prata polida `#95a5a6` com cruz em relevo dourado reluzente `#f1c40f`
+- **Lanterna Sagrada**: Cobre e latão nobre `#d35400` / `#f39c12` com chapa de vidro âmbar
+- **Luz Sagrada e Glória**: `rgba(241, 196, 15, 0.65)` e `rgba(255, 255, 255, 0.8)`
+- **Partículas Divinas**: Pequenas cruzes e centelhas douradas ascendentes.
+
+---
+
+## 2. ANATOMIA DE RENDERIZAÇÃO PROCEDURAL (CANVAS 2D)
+
+### 2.1. Efeito de Solo (Auréola Sagrada e Partículas Ascendentes)
+- Uma elipse dourada brilhante no solo sob os pés (`ctx.ellipse(x, y + 14, 28, 11)`).
+- Borda desenhada com traço duplo dourado e glifos sacros.
+- Partículas místicas no formato de pequenas cruzes ou estrelas douradas brotam do solo e flutuam para cima verticalmente com desvanecimento suave (`sparkles`).
+
+### 2.2. O Grande Escudo Torre (Holy Tower Shield)
+- Dimensões: 20px de largura por 34px de altura, formato de pipa / escudo torre medieval.
+- Borda chanfrada com rebites de prata.
+- No centro exato do escudo, ergue-se a Cruz Templária em relevo dourado com `shadowBlur = 8` e `shadowColor = #f1c40f`.
+- O escudo é posicionado firmemente na frente do corpo, conferindo proteção à linha de suporte.
+
+### 2.3. A Lanterna Sagrada Pendurada em Corrente (Pendular Physics)
+Este é o ápice do dinamismo mecânico do Clérigo:
+- **A Corrente**: Composta por 5 elos pequenos articulados ou uma linha dourada curva com física pendular (`Math.sin(lanternAngle)`).
+- **A Lanterna**: Um receptáculo hexagonal com domo superior pontiagudo e queima de fogo sagrado interior.
+- **Física de Balanço**:
+  ```javascript
+  // Força restauradora proporcional ao ângulo + amortecimento de atrito
+  const gravity = 12.0;
+  const damping = 0.94;
+  state.lanternAngularVel += (-gravity * Math.sin(state.lanternAngle) - state.lanternAngularVel * 0.08) * dt;
+  state.lanternAngle += state.lanternAngularVel * dt;
+  ```
+- Quando o Clérigo anda ou para subitamente, a inércia faz a lanterna balançar para frente e para trás com naturalidade espetacular!
+- A lanterna projeta uma coroa radial de iluminação cálida (`createRadialGradient`) que ilumina o herói e os aliados próximos.
+
+---
+
+## 3. MÁQUINA DE ESTADOS DE ANIMAÇÃO
+
+### 3.1. Estado IDLE (Oração e Vigília)
+- O Clérigo mantém postura ereta e nobre de guardião.
+- Respiração calma e pausada (`breathTime += dt * 2.0`).
+- A lanterna oscila suavemente ao vento sagrado enquanto a auréola aos pés pulsa luz dourada.
+
+### 3.2. Estado MOVIMENTO (Marcha dos Justos)
+- Passadas firmes e compenetradas. O escudo torre se mantém apontado para a vanguarda.
+- A corrente da lanterna sofre empuxo contra a direção do movimento e balança com vigor.
+
+### 3.3. Estado CONJURAÇÃO / CURA (Elevação da Luz Guia)
+- Duração: 450 milissegundos.
+- **Elevação**: O Clérigo ergue o braço direito erguendo a lanterna ao alto da cabeça.
+- **Pilar de Luz**: Um feixe vertical translúcido desce dos céus cobrindo o Clérigo e o aliado mais ferido.
+- **Raios Radiantes**: A lanterna explode em luz dourada (`ctx.shadowBlur = 30`), restaurando a vida dos feridos com anéis concêntricos que se expandem no solo.
+
+---
+
+## 4. HABILIDADES ASSOCIADAS
+
+1. **Raio da Aurora (`cleric_aurora_beam`)**:
+   - Dispara um feixe contínuo de luz sagrada que restaura 85 de vida a um aliado ferido e concede velocidade de movimento.
+2. **Baluarte de Luz (`cleric_bulwark`)**:
+   - Ergue o escudo torre criando uma barreira radiante frontal por 3s que reduz todo o dano recebido em 50%.
+3. **Farol de Resgate (`cleric_beacon`)**:
+   - Arremessa uma cópia etérea da lanterna sagrada sobre a cabeça do aliado com menor HP, concedendo escudo protetor de 50 HP.
+4. **Clarão Radiante (`cleric_radiant_burst`)**:
+   - Ergue a lanterna liberando uma explosão de energia celestial de 125px de raio que fere monstros e cura todos os membros da party simultaneamente.

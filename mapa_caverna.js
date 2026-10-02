@@ -21,6 +21,7 @@
     const CAV_X0 = 58000;
     const CAV_X1 = 59800;
     const CAV_Y1 = 1800;
+    const PONTO_CHEGADA = { x: 58900, y: 960 };
     const COLS = (CAV_X1 - CAV_X0) / TILE;   // 45
     const ROWS = CAV_Y1 / TILE;              // 45
 
@@ -35,8 +36,8 @@
     };
 
     // Vórtices espaciais
-    const PORTAL_VERDE_CAVERNA = { x: 1400, y: 1400, r: 58, alvo: { x: CAV_X0 + 80, y: 900 } };
-    const PORTAL_CAVERNA_SAIDA = { x: CAV_X0 + 80, y: 820, r: 58, alvo: { x: 1480, y: 1400 } };
+    const PORTAL_VERDE_CAVERNA = { x: 1400, y: 1400, r: 58, alvo: { x: PONTO_CHEGADA.x, y: PONTO_CHEGADA.y } };
+    const PORTAL_CAVERNA_SAIDA = null;
 
     let grid = null;
     let sortables = [];
@@ -242,6 +243,7 @@
     function infoPortalCaverna(x, y) {
         // Dentro da caverna: checar portal de retorno
         if (x >= CAV_X0) {
+            if (!PORTAL_CAVERNA_SAIDA) return null;
             if (Math.hypot(x - PORTAL_CAVERNA_SAIDA.x, y - PORTAL_CAVERNA_SAIDA.y) < PORTAL_CAVERNA_SAIDA.r) {
                 return { via: 'portal', mapa: 'green', alvo: PORTAL_CAVERNA_SAIDA.alvo };
             }
@@ -636,7 +638,7 @@
 
     function desenharPortalCavernaSaida(t) {
         const ctx = global.ctx;
-        if (ctx) desenharVortex(ctx, PORTAL_CAVERNA_SAIDA.x, PORTAL_CAVERNA_SAIDA.y, t, '#4a9eaf');
+        if (PORTAL_CAVERNA_SAIDA && ctx) desenharVortex(ctx, PORTAL_CAVERNA_SAIDA.x, PORTAL_CAVERNA_SAIDA.y, t, '#4a9eaf');
     }
 
     // ---------- Reset de instância ----------
@@ -657,13 +659,14 @@
                 if (!colideCaverna(x, y, 10)) return { x: x, y: y };
             }
         }
-        return { x: PORTAL_VERDE_CAVERNA.alvo.x, y: PORTAL_VERDE_CAVERNA.alvo.y };
+        return { x: PONTO_CHEGADA.x, y: PONTO_CHEGADA.y };
     }
 
     // ---------------- API ----------------
     const api = {
         TILE: TILE,
         CAV_X0: CAV_X0, CAV_X1: CAV_X1, CAV_Y1: CAV_Y1,
+        PONTO_CHEGADA: PONTO_CHEGADA,
         COLS: COLS, ROWS: ROWS,
         ALT_LIVRE: ALT_LIVRE, ALT_PEQUENA: ALT_PEQUENA, ALT_MEDIA: ALT_MEDIA, ALT_ALTA: ALT_ALTA,
         PORTAL_VERDE_CAVERNA: PORTAL_VERDE_CAVERNA,

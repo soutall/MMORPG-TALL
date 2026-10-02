@@ -62,23 +62,194 @@ window.desenharImpactosGolem = function() {
     }
 };
 
+// Gerador procedural de fraturas e rachaduras telúricas hiper-realistas
+function _gerarRachadurasRealistasSismicas(raioMax, numRamos, seedBase) {
+    const ramos = [];
+    const seed = seedBase || Math.floor(Math.random() * 99999);
+    for (let r = 0; r < numRamos; r++) {
+        const angBase = (r / numRamos) * Math.PI * 2 + ((seed + r * 37) % 100 / 100 - 0.5) * 0.45;
+        const lenTotal = raioMax * (0.75 + ((seed + r * 53) % 40) / 100);
+        let curDist = 0;
+        let curAng = angBase;
+        let cx = 0, cy = 0;
+        const pontos = [{ x: 0, y: 0, w: 5.5 }];
+        const subRamos = [];
+        
+        while (curDist < lenTotal) {
+            const step = 9 + ((seed + r * 19 + Math.floor(curDist)) % 10);
+            curDist += step;
+            const deltaAng = (Math.sin((seed + r * 31 + curDist) * 0.17)) * 0.42;
+            curAng += deltaAng;
+            cx += Math.cos(curAng) * step;
+            cy += Math.sin(curAng) * step * 0.65; // perspectiva 2.5D
+            const prog = curDist / lenTotal;
+            const w = Math.max(0.8, 5.5 * (1 - prog));
+            pontos.push({ x: cx, y: cy, w });
+            
+            // Sub-fraturas brotando das laterais
+            if (((seed + r * 23 + Math.floor(curDist)) % 10 < 4) && prog < 0.72) {
+                const subAng = curAng + (((seed + r) % 2 === 0) ? 0.68 : -0.68);
+                const subLen = 16 + ((seed + r * 13) % 22);
+                let sx = cx, sy = cy;
+                const subPts = [{ x: sx, y: sy, w: w * 0.7 }];
+                let sDist = 0;
+                while (sDist < subLen) {
+                    const sp = 7 + (sDist % 6);
+                    sDist += sp;
+                    sx += Math.cos(subAng) * sp;
+                    sy += Math.sin(subAng) * sp * 0.65;
+                    subPts.push({ x: sx, y: sy, w: Math.max(0.6, w * 0.7 * (1 - sDist / subLen)) });
+                }
+                subRamos.push(subPts);
+            }
+        }
+        ramos.push({ pontos, subRamos });
+    }
+    return ramos;
+}
+
+// Skill 1: Esmagamento Sísmico — Rachaduras Realistas no Chão
 window.criarAnimacaoOgroSismico = function(x, y) {
-    if (typeof tocarSomImpactoPesado === 'function') tocarSomImpactoPesado();
-    window.tremorTela = 18;
-    let linhasRachadura = [];
-    for (let i = 0; i < 8; i++) {
-        let ang = (i / 8) * Math.PI * 2 + (Math.random() * 0.3);
-        let compr = Math.random() * 45 + 55;
-        linhasRachadura.push({ x2: Math.cos(ang) * compr, y2: Math.sin(ang) * compr });
+    if (typeof tocarSomImpactoPesado === 'function') tocarSomImpactoPesado(x, y);
+    window.tremorTela = Math.max(window.tremorTela || 0, 18);
+    
+    const ramos = _gerarRachadurasRealistasSismicas(95, 9);
+    
+    // Placas de terra/rocha levantadas no epicentro
+    const lajes = [];
+    for (let l = 0; l < 5; l++) {
+        const la = (l / 5) * Math.PI * 2 + (Math.random() - 0.5) * 0.35;
+        const ld = 12 + Math.random() * 16;
+        lajes.push({
+            x: Math.cos(la) * ld,
+            y: Math.sin(la) * ld * 0.65,
+            w: 8 + Math.random() * 8,
+            h: 6 + Math.random() * 6,
+            ang: Math.random() * Math.PI,
+            cor: l % 2 === 0 ? '#453856' : '#2b2138'
+        });
     }
+
+    // Detritos e pedras ejetadas com física balística
     let pedras = [];
-    for (let p = 0; p < 16; p++) {
+    for (let p = 0; p < 24; p++) {
         let ang = Math.random() * Math.PI * 2;
-        let spd = Math.random() * 3.5 + 1.5;
-        pedras.push({ x: x, y: y, vx: Math.cos(ang) * spd, vy: Math.sin(ang) * spd, tamanho: Math.random() * 4 + 2, vida: 1.0 });
+        let spd = Math.random() * 4.5 + 1.8;
+        pedras.push({
+            x: x + (Math.random() - 0.5) * 12,
+            y: y + (Math.random() - 0.5) * 8,
+            vx: Math.cos(ang) * spd,
+            vy: Math.sin(ang) * spd * 0.65 - Math.random() * 3.5,
+            tamanho: Math.random() * 4.5 + 2.0,
+            vida: 1.0,
+            cor: p % 3 === 0 ? '#8e79b0' : (p % 2 === 0 ? '#5a4674' : '#2c223c')
+        });
     }
-    window.impactosSismicos.push({ x: x, y: y, raioOnda: 10, raioMax: 95, alpha: 1.0, rachaduras: linhasRachadura, pedras: pedras });
+
+    window.impactosSismicos.push({
+        x: x,
+        y: y,
+        raioOnda: 8,
+        raioMax: 100,
+        alpha: 1.0,
+        idade: 0,
+        vida: 65,
+        ramos: ramos,
+        lajes: lajes,
+        pedras: pedras
+    });
     window.floatingTexts.push({ x: x, y: y - 30, text: "💥 ESMAGAMENTO SÍSMICO! (-45)", color: "#e67e22", alpha: 1.0 });
+};
+
+// Skill 2: Aterrissagem do Salto do Golem — Trincados Exagerados e Rochas Pontudas Saindo do Chão
+window.aterrissagensSaltoGolem = window.aterrissagensSaltoGolem || [];
+
+window.criarEfeitoAterrissagemSaltoGolem = function(x, y) {
+    // Debounce anti-duplicação
+    window._ultimoImpactoSaltoGolem = window._ultimoImpactoSaltoGolem || { t: 0, x: 0, y: 0 };
+    if (Date.now() - window._ultimoImpactoSaltoGolem.t < 250 && Math.hypot(x - window._ultimoImpactoSaltoGolem.x, y - window._ultimoImpactoSaltoGolem.y) < 50) {
+        return;
+    }
+    window._ultimoImpactoSaltoGolem = { t: Date.now(), x, y };
+
+    if (typeof tocarSomImpactoPesado === 'function') tocarSomImpactoPesado(x, y);
+    if (typeof window.tocarSonoroProximidade === 'function') window.tocarSonoroProximidade('summoner_salto', x, y);
+    else if (window.tocarSonoro) window.tocarSonoro('summoner_salto');
+
+    // Tremor de tela épico exagerado
+    window.tremorTela = Math.max(window.tremorTela || 0, 25);
+
+    // 1. Rachaduras Exageradas e Hiper-Realistas (Raio de 150px com 16 ramificações e 3 anéis concêntricos)
+    const ramos = _gerarRachadurasRealistasSismicas(150, 16);
+
+    // 2. Rochas Pontudas Saindo do Chão (8 a 10 Estalagmites Telúricas)
+    const rochasPontudas = [];
+    const numSpikes = 9;
+    for (let k = 0; k < numSpikes; k++) {
+        const ang = (k / numSpikes) * Math.PI * 2 + (Math.random() - 0.5) * 0.35;
+        const dist = 38 + Math.random() * 45;
+        const sx = x + Math.cos(ang) * dist;
+        const sy = y + Math.sin(ang) * dist * 0.65;
+        rochasPontudas.push({
+            x: sx,
+            y: sy,
+            largura: 18 + Math.random() * 10,
+            alturaMax: 38 + Math.random() * 26,
+            desvioPonta: (Math.random() - 0.5) * 8,
+            inclinacao: (Math.random() - 0.5) * 0.32,
+            delay: k * 18,
+            corClara: '#9a86c9',
+            corMedia: '#6f5aa0',
+            corEscura: '#463a70',
+            corSombra: '#2a2245',
+            fendaLuz: '#efd9ff'
+        });
+    }
+
+    // 3. Placas de rocha deslocadas
+    const lajes = [];
+    for (let l = 0; l < 8; l++) {
+        const la = (l / 8) * Math.PI * 2 + (Math.random() - 0.5) * 0.4;
+        const ld = 18 + Math.random() * 28;
+        lajes.push({
+            x: Math.cos(la) * ld,
+            y: Math.sin(la) * ld * 0.65,
+            w: 12 + Math.random() * 12,
+            h: 8 + Math.random() * 8,
+            ang: Math.random() * Math.PI,
+            cor: l % 2 === 0 ? '#463a70' : '#2a2245'
+        });
+    }
+
+    // 4. Detritos e pedras ejetadas voando alto
+    const pedras = [];
+    for (let p = 0; p < 45; p++) {
+        const a = Math.random() * Math.PI * 2;
+        const sp = Math.random() * 6.5 + 2.5;
+        pedras.push({
+            x: x + (Math.random() - 0.5) * 20,
+            y: y + (Math.random() - 0.5) * 14,
+            vx: Math.cos(a) * sp,
+            vy: Math.sin(a) * sp * 0.65 - Math.random() * 5.0,
+            tamanho: Math.random() * 5.5 + 2.5,
+            vida: 1.0,
+            cor: p % 3 === 0 ? '#9a86c9' : (p % 2 === 0 ? '#6f5aa0' : '#2a2245')
+        });
+    }
+
+    window.aterrissagensSaltoGolem.push({
+        x: x,
+        y: y,
+        raioMax: 155,
+        idade: 0,
+        vida: 2200, // 2.2 segundos para as rochas pontudas permanecerem cravadas no chão
+        ramos: ramos,
+        rochasPontudas: rochasPontudas,
+        lajes: lajes,
+        pedras: pedras
+    });
+
+    window.floatingTexts.push({ x: x, y: y - 45, text: "💥 ATERRISSAGEM TELÚRICA!", color: "#e056fd", alpha: 1.0 });
 };
 
 window.criarAnimacaoSaltoOgro = function(startX, startY, targetX, targetY) {
@@ -101,6 +272,8 @@ window.criarAnimacaoRugidoOgro = function(x, y) {
             x: x, y: y,
             raioOnda: 10 + i * 14, raioMax: 120 + i * 30,
             alpha: 1.0,
+            idade: 0,
+            vida: 45,
             rachaduras: [],
             pedras: [],
             cor: "rgba(155, 89, 182,"
@@ -288,25 +461,428 @@ window.desenharEfeitosNevasca = function() {
     }
 };
 
+// Renderizador de Estalagmites / Rochas Pontudas 3D que irrompem do solo
+function _desenharRochaPontudaSalto(ctx, spike, progress, elapsedMs, alphaGeral) {
+    if (elapsedMs < spike.delay) return; // aguarda o delay da cascata
+
+    const tSpike = elapsedMs - spike.delay;
+    let alturaRatio = 1.0;
+    
+    // Fase 1: Emergência explosiva do chão (0 a 160ms)
+    if (tSpike < 160) {
+        const pEmerge = tSpike / 160;
+        // easeOutBack: erupção violenta com overshoot
+        const c1 = 1.70158;
+        const c3 = c1 + 1;
+        alturaRatio = 1 + c3 * Math.pow(pEmerge - 1, 3) + c1 * Math.pow(pEmerge - 1, 2);
+        alturaRatio = Math.max(0, Math.min(1.15, alturaRatio));
+    } 
+    // Fase 2: Cravada de pé no solo (160ms a 1600ms)
+    else if (tSpike < 1600) {
+        alturaRatio = 1.0;
+    }
+    // Fase 3: Esfarela e afunda suavemente de volta à terra (1600ms a 2200ms)
+    else {
+        const pAfunda = (tSpike - 1600) / 600;
+        alturaRatio = Math.max(0, 1.0 - Math.pow(pAfunda, 2));
+    }
+
+    if (alturaRatio <= 0.01) return;
+
+    const hAtual = spike.alturaMax * alturaRatio;
+    const wBase = spike.largura;
+
+    ctx.save();
+    ctx.translate(spike.x, spike.y);
+    ctx.rotate(spike.inclinacao);
+
+    // Sombra da rocha projetada no solo
+    ctx.save();
+    ctx.fillStyle = 'rgba(10, 6, 18, ' + (0.45 * alphaGeral).toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.ellipse(0, 4, wBase * 0.75, wBase * 0.32, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+
+    // Sombra do corpo do espigão projetada lateralmente
+    ctx.save();
+    ctx.fillStyle = 'rgba(8, 4, 15, ' + (0.35 * alphaGeral).toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.moveTo(-wBase * 0.5, 2);
+    ctx.lineTo(wBase * 0.5, 2);
+    ctx.lineTo(wBase * 0.6 + hAtual * 0.35, 6 + hAtual * 0.2);
+    ctx.lineTo(-wBase * 0.2 + hAtual * 0.35, 6 + hAtual * 0.2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
+
+    const pontaX = spike.desvioPonta || 0;
+    const pontaY = -hAtual;
+    const cristaX = pontaX * 0.5;
+    const cristaY = pontaY * 0.85;
+
+    // FACETA ESQUERDA ILUMINADA
+    let gEsq = ctx.createLinearGradient(-wBase * 0.6, 0, pontaX, pontaY);
+    gEsq.addColorStop(0, spike.corEscura);
+    gEsq.addColorStop(0.5, spike.corMedia);
+    gEsq.addColorStop(1, spike.corClara);
+    ctx.fillStyle = gEsq;
+    ctx.strokeStyle = spike.corSombra;
+    ctx.lineWidth = 1.3;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(-wBase * 0.55, 0);
+    ctx.lineTo(-wBase * 0.35, pontaY * 0.45);
+    ctx.lineTo(pontaX, pontaY);
+    ctx.lineTo(cristaX, cristaY * 0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Filete de luz na aresta iluminada esquerda
+    ctx.strokeStyle = 'rgba(235, 215, 255, ' + (0.45 * alphaGeral).toFixed(3) + ')';
+    ctx.lineWidth = 1.1;
+    ctx.beginPath();
+    ctx.moveTo(-wBase * 0.35, pontaY * 0.45);
+    ctx.lineTo(pontaX, pontaY);
+    ctx.stroke();
+
+    // FACETA DIREITA EM SOMBRA PROFUNDA
+    let gDir = ctx.createLinearGradient(0, 0, wBase * 0.6, pontaY);
+    gDir.addColorStop(0, spike.corEscura);
+    gDir.addColorStop(0.7, spike.corSombra);
+    gDir.addColorStop(1, spike.corMedia);
+    ctx.fillStyle = gDir;
+    ctx.strokeStyle = spike.corSombra;
+    ctx.lineWidth = 1.3;
+
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(wBase * 0.55, 0);
+    ctx.lineTo(wBase * 0.4, pontaY * 0.4);
+    ctx.lineTo(pontaX, pontaY);
+    ctx.lineTo(cristaX, cristaY * 0.5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    // Aresta central afiada com destaque 3D
+    ctx.strokeStyle = spike.corSombra;
+    ctx.lineWidth = 1.4;
+    ctx.beginPath();
+    ctx.moveTo(0, 0);
+    ctx.lineTo(cristaX, cristaY * 0.5);
+    ctx.lineTo(pontaX, pontaY);
+    ctx.stroke();
+
+    // Fenda rúnica de energia violeta/arcana pulsando na rocha
+    const pulsoRuna = 0.7 + Math.sin(tSpike * 0.008) * 0.3;
+    ctx.save();
+    ctx.strokeStyle = spike.fendaLuz;
+    ctx.shadowColor = spike.fendaLuz;
+    ctx.shadowBlur = 8 * pulsoRuna * alphaGeral;
+    ctx.lineWidth = 1.2;
+    ctx.beginPath();
+    ctx.moveTo(-wBase * 0.15, pontaY * 0.2);
+    ctx.lineTo(-wBase * 0.05, pontaY * 0.45);
+    ctx.lineTo(pontaX * 0.8, pontaY * 0.75);
+    ctx.stroke();
+    ctx.restore();
+
+    // Monte de terra revolvida na base
+    ctx.fillStyle = 'rgba(40, 28, 55, ' + (0.9 * alphaGeral).toFixed(3) + ')';
+    ctx.beginPath();
+    ctx.ellipse(0, 2, wBase * 0.65, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cascalhos ao redor da base
+    ctx.fillStyle = spike.corMedia;
+    ctx.fillRect(-wBase * 0.5, 0, 3, 3);
+    ctx.fillRect(wBase * 0.38, -1, 3.5, 2.5);
+    ctx.fillRect(-wBase * 0.1, 3, 2.5, 2.5);
+
+    ctx.restore();
+}
+
+// Exportações globais para efeitos de solo e espigões telúricos (compartilhados com Skill 4 do Summoner)
+window.gerarRachadurasRealistasSismicas = _gerarRachadurasRealistasSismicas;
+window.desenharRochaPontudaSalto = _desenharRochaPontudaSalto;
+
 window.desenharEfeitosSismicos = function() {
     if (!window.ctx) return;
+    const ctx = window.ctx;
+
+    // 1. SKILL 1: IMPACTOS SÍSMICOS (Rachaduras Realistas no Chão)
     for (let i = window.impactosSismicos.length - 1; i >= 0; i--) {
         let imp = window.impactosSismicos[i];
-        imp.raioOnda += 2.2; imp.alpha -= 0.025;
-        if (imp.alpha <= 0) { window.impactosSismicos.splice(i, 1); } else {
-            window.ctx.save();
-            let corOnda = imp.cor ? (imp.cor + imp.alpha + ")") : ("rgba(211, 84, 0, " + imp.alpha + ")");
-            window.ctx.strokeStyle = corOnda; window.ctx.lineWidth = 4; window.ctx.beginPath(); window.ctx.arc(imp.x, imp.y, imp.raioOnda, 0, Math.PI * 2); window.ctx.stroke();
-            window.ctx.strokeStyle = "rgba(20, 10, 5, " + (imp.alpha + 0.2) + ")"; window.ctx.lineWidth = 3; window.ctx.beginPath();
-            for (let rach of imp.rachaduras) { window.ctx.moveTo(imp.x, imp.y); window.ctx.lineTo(imp.x + rach.x2 * (imp.raioOnda / imp.raioMax), imp.y + rach.y2 * (imp.raioOnda / imp.raioMax)); }
-            window.ctx.stroke();
-            for (let ped of imp.pedras) {
-                ped.x += ped.vx; ped.y += ped.vy; ped.vida -= 0.03;
-                window.ctx.fillStyle = "rgba(100, 90, 80, " + ped.vida + ")"; window.ctx.fillRect(ped.x, ped.y, ped.tamanho, ped.tamanho);
+        imp.idade = (imp.idade || 0) + 1;
+        // Guarda de segurança: impactos sem vida válida recebem default para não expandir infinitamente
+        if (!imp.vida || imp.vida <= 0) imp.vida = 50;
+        imp.raioOnda += 2.2;
+        // Cap: não ultrapassar raioMax (evita expansão infinita visual)
+        if (imp.raioMax && imp.raioOnda > imp.raioMax * 1.5) imp.raioOnda = imp.raioMax * 1.5;
+        const prog = Math.min(1, imp.idade / imp.vida);
+        imp.alpha = Math.max(0, 1 - prog);
+
+        if (imp.alpha <= 0) {
+            window.impactosSismicos.splice(i, 1);
+            continue;
+        }
+
+        ctx.save();
+
+        // Se tiver ramos procedurais realistas:
+        if (imp.ramos && imp.ramos.length > 0) {
+            const easedExp = Math.min(1, imp.idade / 7);
+
+            // Onda de choque elíptica
+            ctx.save();
+            ctx.strokeStyle = "rgba(184, 120, 255, " + (imp.alpha * 0.75).toFixed(3) + ")";
+            ctx.lineWidth = 3.5;
+            ctx.shadowColor = "#9b4dff";
+            ctx.shadowBlur = 10 * imp.alpha;
+            ctx.beginPath();
+            ctx.ellipse(imp.x, imp.y + 8, imp.raioOnda * 1.1, imp.raioOnda * 0.65, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+
+            // Placas de solo levantadas
+            if (imp.lajes) {
+                for (let l of imp.lajes) {
+                    ctx.save();
+                    ctx.translate(imp.x + l.x, imp.y + l.y);
+                    ctx.rotate(l.ang);
+                    ctx.fillStyle = l.cor;
+                    ctx.strokeStyle = '#181224';
+                    ctx.lineWidth = 1.4;
+                    ctx.fillRect(-l.w / 2, -l.h / 2, l.w, l.h);
+                    ctx.strokeRect(-l.w / 2, -l.h / 2, l.w, l.h);
+                    ctx.restore();
+                }
             }
-            window.ctx.restore();
+
+            // Fissuras profundas realistas no solo (3 camadas de profundidade)
+            ctx.save();
+            ctx.translate(imp.x, imp.y);
+
+            // Camada 1: Trincheira funda / Sombra de solo partido
+            ctx.strokeStyle = 'rgba(12, 8, 20, ' + (0.95 * imp.alpha).toFixed(3) + ')';
+            ctx.lineWidth = 5.2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'miter';
+            ctx.beginPath();
+            for (let r of imp.ramos) {
+                const maxPts = Math.max(2, Math.floor(r.pontos.length * easedExp));
+                ctx.moveTo(r.pontos[0].x, r.pontos[0].y);
+                for (let k = 1; k < maxPts; k++) ctx.lineTo(r.pontos[k].x, r.pontos[k].y);
+                for (let sb of r.subRamos) {
+                    const maxSb = Math.max(2, Math.floor(sb.length * easedExp));
+                    ctx.moveTo(sb[0].x, sb[0].y);
+                    for (let sk = 1; sk < maxSb; sk++) ctx.lineTo(sb[sk].x, sb[sk].y);
+                }
+            }
+            ctx.stroke();
+
+            // Camada 2: Paredes rochosas internas
+            ctx.strokeStyle = 'rgba(60, 46, 78, ' + (0.85 * imp.alpha).toFixed(3) + ')';
+            ctx.lineWidth = 3.0;
+            ctx.beginPath();
+            for (let r of imp.ramos) {
+                const maxPts = Math.max(2, Math.floor(r.pontos.length * easedExp));
+                ctx.moveTo(r.pontos[0].x, r.pontos[0].y);
+                for (let k = 1; k < maxPts; k++) ctx.lineTo(r.pontos[k].x, r.pontos[k].y);
+            }
+            ctx.stroke();
+
+            // Camada 3: Veio de energia sísmica brilhante interior
+            ctx.strokeStyle = 'rgba(192, 132, 252, ' + (0.90 * imp.alpha).toFixed(3) + ')';
+            ctx.lineWidth = 1.6;
+            ctx.shadowColor = '#b878ff';
+            ctx.shadowBlur = 8 * imp.alpha;
+            ctx.beginPath();
+            for (let r of imp.ramos) {
+                const maxPts = Math.max(2, Math.floor(r.pontos.length * easedExp));
+                ctx.moveTo(r.pontos[0].x, r.pontos[0].y);
+                for (let k = 1; k < maxPts; k++) ctx.lineTo(r.pontos[k].x, r.pontos[k].y);
+            }
+            ctx.stroke();
+            ctx.restore();
+
+        } else {
+            // Fallback para impactos simples (ex: rugido)
+            let corOnda = imp.cor ? (imp.cor + imp.alpha + ")") : ("rgba(211, 84, 0, " + imp.alpha + ")");
+            ctx.strokeStyle = corOnda; ctx.lineWidth = 4; ctx.beginPath(); ctx.arc(imp.x, imp.y, imp.raioOnda, 0, Math.PI * 2); ctx.stroke();
+            if (imp.rachaduras && imp.rachaduras.length > 0) {
+                ctx.strokeStyle = "rgba(20, 10, 5, " + (imp.alpha + 0.2) + ")"; ctx.lineWidth = 3; ctx.beginPath();
+                for (let rach of imp.rachaduras) { ctx.moveTo(imp.x, imp.y); ctx.lineTo(imp.x + rach.x2 * (imp.raioOnda / imp.raioMax), imp.y + rach.y2 * (imp.raioOnda / imp.raioMax)); }
+                ctx.stroke();
+            }
+        }
+
+        // Detritos e pedregulhos ejetados com física parabólica
+        if (imp.pedras) {
+            for (let ped of imp.pedras) {
+                ped.x += ped.vx;
+                ped.y += ped.vy;
+                ped.vy += 0.24; // gravidade
+                ped.vida -= 0.024;
+                if (ped.vida > 0) {
+                    ctx.fillStyle = ped.cor || ("rgba(100, 90, 80, " + ped.vida + ")");
+                    ctx.fillRect(ped.x, ped.y, ped.tamanho, ped.tamanho);
+                }
+            }
+        }
+        ctx.restore();
+    }
+
+    // 2. SKILL 2: ATERRISSAGEM DO SALTO (Trincados Exagerados + Rochas Pontudas 3D)
+    if (window.aterrissagensSaltoGolem) {
+        for (let i = window.aterrissagensSaltoGolem.length - 1; i >= 0; i--) {
+            const aterr = window.aterrissagensSaltoGolem[i];
+            aterr.idade += 16.67;
+            const progress = Math.min(1, aterr.idade / aterr.vida);
+            const alphaGeral = Math.max(0, 1 - progress);
+
+            if (progress >= 1) {
+                window.aterrissagensSaltoGolem.splice(i, 1);
+                continue;
+            }
+
+            ctx.save();
+            const easedExp = Math.min(1, aterr.idade / 150);
+
+            // Flash inicial e onda de choque sísmica dupla
+            if (aterr.idade < 320) {
+                const pFlash = aterr.idade / 320;
+                ctx.save();
+                const gFlash = ctx.createRadialGradient(aterr.x, aterr.y + 8, 4, aterr.x, aterr.y + 8, 70 * (1 - pFlash));
+                gFlash.addColorStop(0, 'rgba(235, 200, 255, ' + (0.7 * (1 - pFlash)).toFixed(3) + ')');
+                gFlash.addColorStop(1, 'rgba(184, 120, 255, 0)');
+                ctx.fillStyle = gFlash;
+                ctx.beginPath();
+                ctx.ellipse(aterr.x, aterr.y + 8, 75 * (1 - pFlash), 45 * (1 - pFlash), 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+            }
+
+            // Anel duplo de onda de choque expansiva
+            const raioOnda1 = 15 + aterr.raioMax * Math.min(1, aterr.idade / 400);
+            ctx.save();
+            ctx.strokeStyle = 'rgba(217, 130, 250, ' + (0.85 * alphaGeral).toFixed(3) + ')';
+            ctx.lineWidth = 4.2;
+            ctx.shadowColor = '#d980fa';
+            ctx.shadowBlur = 12 * alphaGeral;
+            ctx.beginPath();
+            ctx.ellipse(aterr.x, aterr.y + 12, raioOnda1, raioOnda1 * 0.65, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Cortina de poeira e terra espessa levantada
+            ctx.strokeStyle = 'rgba(140, 115, 160, ' + (0.45 * alphaGeral).toFixed(3) + ')';
+            ctx.lineWidth = 7.5;
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.ellipse(aterr.x, aterr.y + 12, raioOnda1 * 0.88, raioOnda1 * 0.58, 0, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.restore();
+
+            // Placas gigantescas de rocha deslocadas ao redor do epicentro
+            if (aterr.lajes) {
+                for (let l of aterr.lajes) {
+                    ctx.save();
+                    ctx.translate(aterr.x + l.x, aterr.y + l.y);
+                    ctx.rotate(l.ang);
+                    ctx.fillStyle = l.cor;
+                    ctx.strokeStyle = '#181024';
+                    ctx.lineWidth = 1.8;
+                    ctx.fillRect(-l.w / 2, -l.h / 2, l.w, l.h);
+                    ctx.strokeRect(-l.w / 2, -l.h / 2, l.w, l.h);
+                    ctx.restore();
+                }
+            }
+
+            // RACHADURAS EXAGERADAS NO CHÃO (16 ramificações + 3 anéis concêntricos fraturados)
+            ctx.save();
+            ctx.translate(aterr.x, aterr.y);
+
+            // Camada 1: Trincheira colossal abissal
+            ctx.strokeStyle = 'rgba(10, 6, 18, ' + (0.98 * alphaGeral).toFixed(3) + ')';
+            ctx.lineWidth = 6.2;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'miter';
+            ctx.beginPath();
+            for (let r of aterr.ramos) {
+                const maxPts = Math.max(2, Math.floor(r.pontos.length * easedExp));
+                ctx.moveTo(r.pontos[0].x, r.pontos[0].y);
+                for (let k = 1; k < maxPts; k++) ctx.lineTo(r.pontos[k].x, r.pontos[k].y);
+                for (let sb of r.subRamos) {
+                    const maxSb = Math.max(2, Math.floor(sb.length * easedExp));
+                    ctx.moveTo(sb[0].x, sb[0].y);
+                    for (let sk = 1; sk < maxSb; sk++) ctx.lineTo(sb[sk].x, sb[sk].y);
+                }
+            }
+            // 3 anéis concêntricos de solo estilhaçado conectando as fissuras
+            for (let anelR of [35, 75, 115]) {
+                const aRaio = anelR * easedExp;
+                ctx.moveTo(aRaio, 0);
+                ctx.ellipse(0, 6, aRaio, aRaio * 0.62, 0, 0, Math.PI * 2);
+            }
+            ctx.stroke();
+
+            // Camada 2: Rocha fraturada interna
+            ctx.strokeStyle = 'rgba(65, 45, 90, ' + (0.85 * alphaGeral).toFixed(3) + ')';
+            ctx.lineWidth = 3.6;
+            ctx.beginPath();
+            for (let r of aterr.ramos) {
+                const maxPts = Math.max(2, Math.floor(r.pontos.length * easedExp));
+                ctx.moveTo(r.pontos[0].x, r.pontos[0].y);
+                for (let k = 1; k < maxPts; k++) ctx.lineTo(r.pontos[k].x, r.pontos[k].y);
+            }
+            ctx.stroke();
+
+            // Camada 3: Veio de magma arcano/sísmico luminoso incandescente
+            ctx.strokeStyle = 'rgba(224, 86, 253, ' + (0.95 * alphaGeral).toFixed(3) + ')';
+            ctx.lineWidth = 1.8;
+            ctx.shadowColor = '#d980fa';
+            ctx.shadowBlur = 12 * alphaGeral;
+            ctx.beginPath();
+            for (let r of aterr.ramos) {
+                const maxPts = Math.max(2, Math.floor(r.pontos.length * easedExp));
+                ctx.moveTo(r.pontos[0].x, r.pontos[0].y);
+                for (let k = 1; k < maxPts; k++) ctx.lineTo(r.pontos[k].x, r.pontos[k].y);
+            }
+            ctx.stroke();
+            ctx.restore();
+
+            // ROCHAS PONTUDAS SAINDO DO CHÃO (8 a 10 Estalagmites Telúricas em 3D)
+            if (aterr.rochasPontudas) {
+                for (let spike of aterr.rochasPontudas) {
+                    _desenharRochaPontudaSalto(ctx, spike, progress, aterr.idade, alphaGeral);
+                }
+            }
+
+            // Detritos de pedra voando alto e caindo
+            if (aterr.pedras) {
+                for (let ped of aterr.pedras) {
+                    ped.x += ped.vx;
+                    ped.y += ped.vy;
+                    ped.vy += 0.28;
+                    ped.vida -= 0.016;
+                    if (ped.vida > 0) {
+                        ctx.fillStyle = ped.cor;
+                        ctx.strokeStyle = '#1a1226';
+                        ctx.lineWidth = 0.8;
+                        ctx.fillRect(ped.x, ped.y, ped.tamanho, ped.tamanho);
+                        ctx.strokeRect(ped.x, ped.y, ped.tamanho, ped.tamanho);
+                    }
+                }
+            }
+
+            ctx.restore();
         }
     }
+
+    // 3. ARCO DE VOO DO SALTO DO GOLEM
     for (let i = window.saltosOgroAtivos.length - 1; i >= 0; i--) {
         let salto = window.saltosOgroAtivos[i];
         salto.progresso += salto.velocidade;
@@ -315,20 +891,21 @@ window.desenharEfeitosSismicos = function() {
         let curY = salto.startY + (salto.targetY - salto.startY) * Math.min(salto.progresso, 1.0);
         let alturaArco = Math.sin(Math.min(salto.progresso, 1.0) * Math.PI) * 75;
 
-        window.ctx.save();
-        window.ctx.fillStyle = "rgba(0,0,0,0.35)"; window.ctx.beginPath(); window.ctx.ellipse(curX, curY + 16, 13, 5, 0, 0, Math.PI * 2); window.ctx.fill();
-        window.ctx.translate(curX, curY - alturaArco);
+        ctx.save();
+        ctx.fillStyle = "rgba(0,0,0,0.35)"; ctx.beginPath(); ctx.ellipse(curX, curY + 16, 13, 5, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.translate(curX, curY - alturaArco);
         if (typeof window.desenharCorpoGolem === "function") {
             window.desenharCorpoGolem(0, 0, 1);
         } else {
-            window.ctx.fillStyle = "#784212"; window.ctx.beginPath(); window.ctx.arc(0, 0, 15, 0, Math.PI * 2); window.ctx.fill();
-            window.ctx.fillStyle = "#566573"; window.ctx.fillRect(-16, -9, 9, 6); window.ctx.fillRect(7, -9, 9, 6);
-            window.ctx.fillStyle = "#f1c40f"; window.ctx.fillRect(-4, -14, 3, 3); window.ctx.fillRect(2, -14, 3, 3);
+            ctx.fillStyle = "#784212"; ctx.beginPath(); ctx.arc(0, 0, 15, 0, Math.PI * 2); ctx.fill();
+            ctx.fillStyle = "#566573"; ctx.fillRect(-16, -9, 9, 6); ctx.fillRect(7, -9, 9, 6);
+            ctx.fillStyle = "#f1c40f"; ctx.fillRect(-4, -14, 3, 3); ctx.fillRect(2, -14, 3, 3);
         }
-        window.ctx.restore();
+        ctx.restore();
 
+        // Ao tocar o solo, dispara a aterrissagem exagerada com rochas pontudas
         if (salto.progresso >= 1.0) {
-            window.criarAnimacaoOgroSismico(salto.targetX, salto.targetY); 
+            window.criarEfeitoAterrissagemSaltoGolem(salto.targetX, salto.targetY); 
             window.saltosOgroAtivos.splice(i, 1);
         }
     }

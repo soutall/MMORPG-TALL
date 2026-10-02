@@ -433,3 +433,46 @@
     opacity: 1;
     transform: translate(-50%, -50%) scale(1);
 }
+
+@media (max-width: 1024px) and (orientation: landscape), (max-width: 900px), (pointer: coarse) {
+    #hud-party {
+        position: fixed !important;
+        top: calc(64px + env(safe-area-inset-top, 0px)) !important;
+        left: 10px !important;
+        right: auto !important;
+        bottom: auto !important;
+        width: min(136px, 38vw) !important;
+        max-height: 30vh !important;
+        overflow-y: auto !important;
+        z-index: 101 !important;
+        pointer-events: none !important;
+    }
+
+    #hud-party .party-member {
+        padding: 3px !important;
+        margin-bottom: 3px !important;
+        border-radius: 3px !important;
+        font-size: 9px !important;
+        line-height: 1.1 !important;
+        pointer-events: auto !important;
+    }
+
+    #hud-party .party-member-name {
+        overflow: hidden !important;
+        margin-bottom: 2px !important;
+        text-overflow: ellipsis !important;
+        white-space: nowrap !important;
+    }
+
+    #hud-party .party-bar-bg {
+        height: 4px !important;
+        margin-bottom: 1px !important;
+    }
+
+    #hud-party .btn-party-leave {
+        margin-top: 2px !important;
+        padding: 2px 5px !important;
+        font-size: 9px !important;
+        line-height: 1.1 !important;
+    }
+}

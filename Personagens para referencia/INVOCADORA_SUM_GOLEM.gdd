@@ -1,0 +1,90 @@
+# ==============================================================================
+# FICHA DE DESIGN VISUAL E RENDERIZAÇÃO: INVOCADORA (SUM) & GOLEM DE PEDRA
+# Arquivo: INVOCADORA_SUM_GOLEM.gdd
+# ==============================================================================
+
+[IDENTIDADE DA CLASSE]
+Nome da Campeã: Sum
+Título: A Marionetista Rúnica (The Runic Puppeteer)
+Nome do Lacaio: Golem Terreno (Ancient Stone Colossus)
+Arquétipo: Invocadora / Suporte & Controle com Lacaio Dedicado
+Papel Tático: LINHA DO MEIO (MID ROW) / O Golem atua na LINHA DE FRENTE
+Cor Temática: Azul Safira Nobre, Ouro Antigo e Ciano Rúnico Radiante (#00d2d3 / #1a365d / #f1c40f)
+
+---
+
+## 1. CONCEITO VISUAL E ARQUITETURA DE DESIGN
+
+Sum é uma maga erudita distinta que comanda o campo de batalha com elegância e maestria.
+Usa óculos finos de armação prateada, coque volumoso no cabelo escuro e trajes nobres em
+azul real debruados em fios dourados. Ao seu lado direito, um **GRIMÓRIO SAGRADO FLUTUANTE
+ABERTO** folheia páginas de pura luz arcana. Deste livro emana um **FEIXE RÚNICO CONECTOR
+CONTÍNUO** em ciano neon pulsante que se conecta diretamente ao peito de seu **LACAIO GOLEM
+DE PEDRA COLOSSAL**, que a segue lealmente para onde ela for e atua como seu executor.
+
+### 1.1. Paleta de Cores Hexadecimal:
+- **Túnica da Invocadora**: Azul Real Nobre `#1a365d`, debruns em Dourado `#f1c40f`
+- **Óculos e Cabelo**: Armação em Prata `#dcdde1`, coque e mechas em `#2d3436`
+- **Grimório Místico**: Capa de couro anil `#0c2461` com páginas luminosas em `#dff9fb`
+- **Feixe Rúnico e Conexão**: Ciano Neon `#00d2d3` com glifos em `#7efff5`
+- **Golem de Pedra**: Placas de rocha cinza granito `#57606f`, fendas em `#2f3542`
+- **Núcleo do Golem**: Cristal esférico incandescente em Ciano Rúnico `#00d2d3`
+- **Aura de Comando**: `rgba(0, 210, 211, 0.40)`
+
+---
+
+## 2. ANATOMIA DE RENDERIZAÇÃO PROCEDURAL (CANVAS 2D)
+
+### 2.1. A Invocadora (Sum)
+- **Silhueta e Rosto**: Maga de óculos com dois aros circulares finos, coque no topo da cabeça e postura refinada com braço esquerdo estendido em gesto de comando autoritário.
+- **Vestes Nobres**: Manto longo que desce até a altura dos tornozelos, com cinto de couro nobre e fivela dourada.
+
+### 2.2. O Grimório Flutuante Aberto (Floating Runic Grimoire)
+- Flutua a `x + 22px` e `y - 14px` da Invocadora.
+- Desenhado aberto em ângulo de 45°: duas páginas curvas brancas/azuis com linhas de texto rúnico cintilante.
+- Oscila no ar com senoide própria (`Math.sin(bookBobTime) * 4px`).
+- Pequenas partículas de runas brilhantes (`runes`) se desprendem das páginas e sobem girando.
+
+### 2.3. O Feixe Rúnico Conector (The Link Beam)
+- Uma linha contínua e sinuosa desenhada com curvas quadráticas (`ctx.quadraticCurveTo`) ligando o centro do livro aberto ao núcleo do Golem.
+- Desenhado com cor ciano brilhante (`#00d2d3`), espessura de 2px e `shadowBlur = 12`.
+- Ao longo da linha, 3 a 5 pontos luminosos transitam em fluxo contínuo do livro até o Golem, simulando transferência constante de mana e ordens de comando.
+
+### 2.4. O Lacaio: Golem de Pedra Colossal
+- Dimensões: Altura de 48px, largura de 36px (o maior personagem da tela).
+- **Corpo de Pedregulhos**: Talhado em 5 blocos rochosos interligados (tronco, ombro esquerdo, ombro direito, punho esquerdo e punho direito).
+- **Fissuras Rúnicas**: Por todas as frestas entre as pedras corre uma luz ciano brilhante (`#00d2d3`).
+- **Núcleo de Cristal no Peito**: No centro do torso rochoso há um cristal lapidado circular que pulsa em sincronia com o feixe do grimório.
+- **Inteligência de Acompanhamento (Follower AI)**: O Golem move-se com física de mola ao lado de Sum (`x + 36px, y + 4px`), mantendo formação fiel ao lado de sua mestra.
+
+---
+
+## 3. MÁQUINA DE ESTADOS DE ANIMAÇÃO
+
+### 3.1. Estado IDLE (Harmonia Rúnica)
+- Sum respira suavemente, admirando o campo de batalha. O livro flutua e folheia suas páginas.
+- O Golem mantém guarda imóvel como uma estátua viva; apenas seu núcleo no peito pulsa energia ciano.
+
+### 3.2. Estado MOVIMENTO (Avanço da Mestra e do Servo)
+- Sum caminha com passos elegantes.
+- O Golem acompanha com passadas pesadas e lentas de rocha, oscilando os ombros de pedra e gerando poeira no chão.
+
+### 3.3. Estado ATAQUE / COMANDO (Impacto Esmagador do Golem)
+- Duração: 500 milissegundos.
+- **O Apontar (0% a 30%)**: Sum aponta o dedo indicador para o monstro alvo. O feixe rúnico entre o livro e o Golem dobra de intensidade e emite um som agudo de sobrecarga.
+- **O Avanço do Servo (30% a 65%)**: O Golem ergue seus punhos de pedra colossais acima da cabeça, avança um passo largo em direção ao monstro e desfere um soco telúrico esmagador no solo.
+- **Impacto e Onda de Choque**: No ponto de contato do soco, o chão se racha em ciano com uma onda de choque expansiva que causa dano físico pesado e lentidão.
+- **Retorno (65% a 100%)**: O Golem se recompõe e reassume sua posição de guarda ao lado de Sum.
+
+---
+
+## 4. HABILIDADES ASSOCIADAS
+
+1. **Comando: Esmagar (`sum_smash`)**:
+   - O Golem desfere um soco de rocha colossal no solo causando 65 de dano físico e 30% de lentidão em área de 105px.
+2. **Comando: Interceptar (`sum_intercept`)**:
+   - O Golem executa um dash violento de até 220px interceptando um inimigo, causando 50 de dano e atordoando-o por 1.2s.
+3. **Comando: Provocar (`sum_taunt`)**:
+   - O Golem bate os punhos no peitoral e solta um rugido sísmico forçando monstros em raio de 140px a atacá-lo (Taunt).
+4. **Transfusão Terrena (`sum_transfusion`)**:
+   - Troca de energia vital entre Sum e seu Golem: restaura 60 de HP para o aliado mais ferido através de um elo de cura instantâneo.

@@ -40,8 +40,8 @@
     const ROWS = 225; // 9000 / 40
 
     // Portais Oficiais da Zona Zero
-    const PORTA_RETORNO = { x: 74160, y: 1000, r: 56, alvo: { x: 60474, y: 640 } }; // Volta à praça de Davahl
-    const PONTO_SPAWN   = { x: 74200, y: 1000 };
+    const PORTA_RETORNO = null; // Portal de retorno para a cidade desativado no design atual.
+    const PONTO_SPAWN   = { x: 78000, y: 4500 };
 
     // Estado Geral do Mapa
     let grid = null;
@@ -429,7 +429,7 @@
 
         // Ponto de Spawn e Portal de Retorno: 100% Protegidos contra qualquer colisão
         if (Math.hypot(wx - PONTO_SPAWN.x, wy - PONTO_SPAWN.y) < 70 ||
-            Math.hypot(wx - PORTA_RETORNO.x, wy - PORTA_RETORNO.y) < 70) {
+            (PORTA_RETORNO && Math.hypot(wx - PORTA_RETORNO.x, wy - PORTA_RETORNO.y) < 70)) {
             return false;
         }
 
@@ -1240,6 +1240,7 @@
     function desenharPortalZonaZero(tempoAnimacao) {
         const ctx = global.ctx;
         if (!ctx) return;
+        if (!PORTA_RETORNO) return;
         const t = (tempoAnimacao || Date.now()) * 0.001;
 
         ctx.save();

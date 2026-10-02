@@ -19,6 +19,7 @@ function camadaRoundRect(c, x, y, w, h, r) {
 // VFX VISUAIS DO DRONEMASTER — apenas apresentação, sem alterar mecânicas.
 // ============================================================================
 window.dmVfx = window.dmVfx || { tirosLuz: [], caixasVoo: [], transformacoes: [], particulas: [] };
+window.dmAssaltoAtaques = window.dmAssaltoAtaques || Object.create(null);
 
 function dmLuzChao(ctx, x, y, raio, corTemplate, alpha, achatamento) {
     const ry = Math.max(2, raio * (achatamento || 0.28));
@@ -36,7 +37,7 @@ function dmParticula(x, y, vx, vy, vida, cor, tam) {
     window.dmVfx.particulas.push({ x, y, vx, vy, vida, vidaMax: vida, cor, tam });
 }
 
-function desenharMiniRoboAssalto(x, y, t, angulo) {
+function desenharMiniRoboAssalto(x, y, t, angulo, ataque) {
     const ctx = window.ctx; if (!ctx) return;
     ctx.save(); ctx.translate(x, y + 4);
 
@@ -60,16 +61,70 @@ function desenharMiniRoboAssalto(x, y, t, angulo) {
     }
     dmLuzChao(ctx, 0, 4, 24, 'rgba(255,85,40,ALPHA)', 0.80 + Math.sin(t * 4) * 0.12, 0.22);
 
-    ctx.rotate((angulo || 0) * 0.15);
-    ctx.fillStyle = '#1f2b34'; ctx.fillRect(-10, 3, 20, 6);
-    ctx.fillStyle = '#52616d'; ctx.fillRect(-8, 1, 16, 7);
+    const ataqueProgresso = ataque
+        ? Math.max(0, Math.min(1, (Date.now() - ataque.inicio) / ataque.duracao))
+        : 0;
+    ctx.rotate(ataque ? ataque.angulo : (angulo || 0) * 0.15);
+    const passo = Math.sin(t * 0.35);
+
+    // Perninhas articuladas e bracos balancando enquanto o robo avanca.
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+    ctx.strokeStyle = '#263744';
+    ctx.lineWidth = 3.2;
+    for (const lado of [-1, 1]) {
+        const pernaSwing = passo * lado * 2.3;
+        ctx.beginPath();
+        ctx.moveTo(lado * 3, 3);
+        ctx.lineTo(lado * 3 + pernaSwing, 7);
+        ctx.lineTo(lado * 3 - pernaSwing * 0.45, 10);
+        ctx.stroke();
+
+        ctx.fillStyle = '#52616d';
+        ctx.beginPath();
+        ctx.ellipse(lado * 3 - pernaSwing * 0.45, 10, 2.8, 1.5, pernaSwing * 0.08, 0, Math.PI * 2);
+        ctx.fill();
+
+        const golpe = lado === 1 ? Math.sin(ataqueProgresso * Math.PI) : 0;
+        const maoX = lado * 10 - pernaSwing + golpe * 8;
+        const maoY = 4 - golpe * 4;
+        const cotoveloX = lado * 9 - pernaSwing * 0.7 + golpe * 3;
+        ctx.strokeStyle = '#34495e';
+        ctx.lineWidth = golpe > 0.15 ? 3.4 : 2.8;
+        ctx.beginPath();
+        ctx.moveTo(lado * 5, -2);
+        ctx.lineTo(cotoveloX, 1 - golpe * 2);
+        ctx.lineTo(maoX, maoY);
+        ctx.stroke();
+        ctx.fillStyle = golpe > 0.15 ? '#ffbd59' : '#7f8c8d';
+        ctx.shadowColor = golpe > 0.15 ? '#ff6b2c' : 'transparent';
+        ctx.shadowBlur = golpe > 0.15 ? 8 : 0;
+        ctx.beginPath();
+        ctx.arc(maoX, maoY, golpe > 0.15 ? 2 : 1.5, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.shadowBlur = 0;
+    }
+
+    if (ataqueProgresso > 0.08 && ataqueProgresso < 0.75) {
+        const intensidade = Math.sin(Math.PI * (ataqueProgresso - 0.08) / 0.67);
+        ctx.globalAlpha = intensidade;
+        ctx.strokeStyle = '#ffe39a';
+        ctx.lineWidth = 2;
+        ctx.shadowColor = '#ff7b36';
+        ctx.shadowBlur = 9;
+        ctx.beginPath();
+        ctx.arc(13, -1, 8, -0.95, 0.8);
+        ctx.stroke();
+        ctx.shadowBlur = 0;
+        ctx.globalAlpha = 1;
+    }
+
     ctx.fillStyle = '#7f8c8d'; ctx.fillRect(-6, -5, 12, 8);
     ctx.fillStyle = '#263744'; ctx.beginPath(); camadaRoundRect(ctx, -5, -11, 10, 7, 2); ctx.fill();
     ctx.fillStyle = '#ff9d3d'; ctx.shadowColor = '#ff5a20'; ctx.shadowBlur = 7; ctx.fillRect(-3.5, -8.5, 7, 1.8); ctx.shadowBlur = 0;
-    ctx.fillStyle = '#34495e'; ctx.fillRect(-11, -1, 4, 9); ctx.fillRect(7, -1, 4, 9);
     ctx.fillStyle = '#00e5ff'; ctx.shadowColor = '#00ffff'; ctx.shadowBlur = 6;
-    ctx.beginPath(); ctx.arc(-9, 8, 1.6, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(9, 8, 1.6, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(-3, 10, 1.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(3, 10, 1.2, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
 }
 
@@ -194,14 +249,19 @@ window.dmDroneAssaltoPasso = function(dt) {
 };
 
 // Desenha o Drone Companheiro (quadricóptero compacto).
-window.desenharDrone = function(x, y, angulo, estado) {
+window.desenharDrone = function(x, y, angulo, estado, ownerId) {
     if (!window.ctx) return;
     let ctx = window.ctx;
     let t = Date.now() / 90;
 
     if ((estado || 'normal') === 'assalto') {
         // Modo Assalto: visual de mini robô no chão, com fumaça e fogo de superaquecimento.
-        desenharMiniRoboAssalto(x, y, t, angulo);
+        let ataque = window.dmAssaltoAtaques && ownerId ? window.dmAssaltoAtaques[ownerId] : null;
+        if (ataque && Date.now() - ataque.inicio >= ataque.duracao) {
+            delete window.dmAssaltoAtaques[ownerId];
+            ataque = null;
+        }
+        desenharMiniRoboAssalto(x, y, t, angulo, ataque);
         return;
     }
 
@@ -383,21 +443,25 @@ window.desenharTitaForm = function(x, y, isMoving, angulo, hp, maxHp) {
     const metalMedio = '#607687';
     const metalLuz = '#93a6b3';
     const emissao = '#00e6ff';
-    const passo = isMoving ? Math.sin(window.walkCycle || 0) * 3.5 : 0;
-
-    // Pernas mecânicas com joelhos e pistões.
+    // Esteiras e roletes de tanque substituem as pernas na forma Titã.
     ctx.fillStyle = metalEscuro;
-    ctx.beginPath(); camadaRoundRect(ctx, -10, 15 + passo, 8, 18, 2); ctx.fill();
-    ctx.beginPath(); camadaRoundRect(ctx, 2, 15 - passo, 8, 18, 2); ctx.fill();
-    ctx.fillStyle = metalMedio;
-    ctx.fillRect(-8, 17 + passo, 4, 11);
-    ctx.fillRect(4, 17 - passo, 4, 11);
-    ctx.fillStyle = '#172027';
-    ctx.beginPath(); ctx.arc(-6, 14 + passo, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(6, 14 - passo, 3, 0, Math.PI * 2); ctx.fill();
-    ctx.fillStyle = metalEscuro;
-    camadaRoundRect(ctx, -11, 31 + passo, 10, 4, 2); ctx.fill();
-    camadaRoundRect(ctx, 1, 31 - passo, 10, 4, 2); ctx.fill();
+    ctx.beginPath(); camadaRoundRect(ctx, -20, 18, 40, 16, 7); ctx.fill();
+    ctx.strokeStyle = '#9fb0bb'; ctx.lineWidth = 1.2;
+    ctx.beginPath(); camadaRoundRect(ctx, -18, 19, 36, 14, 6); ctx.stroke();
+    for (let i = 0; i < 6; i++) {
+        const rodaX = -14 + i * 5.6;
+        const rodaY = 26 + (isMoving ? Math.sin(t + i * 0.7) * 0.35 : 0);
+        ctx.fillStyle = i % 2 ? metalMedio : '#293944';
+        ctx.beginPath(); ctx.arc(rodaX, rodaY, 3.2, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = metalLuz; ctx.lineWidth = 0.8;
+        ctx.beginPath(); ctx.arc(rodaX, rodaY, 1.5, 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.strokeStyle = '#c5d1d7'; ctx.lineWidth = 0.8;
+    for (let i = 0; i < 8; i++) {
+        const xLink = -15 + i * 4.3;
+        ctx.beginPath(); ctx.moveTo(xLink, 20); ctx.lineTo(xLink + 2, 21); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(xLink, 32); ctx.lineTo(xLink + 2, 31); ctx.stroke();
+    }
 
     // Quadril blindado e tronco com placas sobrepostas.
     ctx.fillStyle = metalEscuro;
@@ -598,36 +662,59 @@ window.desenharDronemaster = function(x, y, isMoving, angulo, hp, maxHp, extra) 
     ctx.lineTo(-6, -8);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = "#00e5ff"; // viseira ciano
-    ctx.shadowColor = "#00ffff";
-    ctx.shadowBlur = 8;
+    const visorCores = ["#168cff", "#f4fbff", "#ff3b4f"];
+    const visorCore = visorCores[Math.floor(Date.now() / 650) % visorCores.length];
+    ctx.fillStyle = visorCore;
+    ctx.shadowColor = visorCore;
+    ctx.shadowBlur = 10;
     ctx.fillRect(-3.6, -13, 7.2, 2.6);
     ctx.shadowBlur = 0;
     ctx.fillStyle = "#85929e"; // respirador
     ctx.fillRect(-3, -9.4, 6, 1.6);
 
-    // Braço + canhão de pulso (segue a mira)
-    ctx.save();
-    ctx.rotate(angulo || 0);
-    ctx.translate(6, 1);
-    ctx.fillStyle = "#4a5e70";
-    ctx.fillRect(-3, -2, 8, 4);
-    ctx.fillStyle = "#34495e";
-    ctx.fillRect(4, -2.5, 7, 5);
-    ctx.fillStyle = "#00e5ff";
-    ctx.shadowColor = "#00ffff";
-    ctx.shadowBlur = 10;
-    ctx.beginPath();
-    ctx.arc(11, 0, 2.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
+    // Bracos blindados fixos, com ombreiras, cotovelos e detalhes mecanicos.
+    for (const lado of [-1, 1]) {
+        ctx.save();
+        ctx.scale(lado, 1);
+
+        ctx.fillStyle = "#263744";
+        ctx.beginPath();
+        camadaRoundRect(ctx, 5, -5, 6, 6, 2);
+        ctx.fill();
+        ctx.fillStyle = "#718394";
+        ctx.beginPath();
+        camadaRoundRect(ctx, 6, -4, 4, 3, 1.5);
+        ctx.fill();
+
+        ctx.fillStyle = "#34495e";
+        ctx.beginPath();
+        camadaRoundRect(ctx, 8, 0, 4, 5, 1.5);
+        ctx.fill();
+        ctx.fillStyle = "#8997a3";
+        ctx.beginPath();
+        ctx.arc(10, 5, 2, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = "#4a5e70";
+        ctx.beginPath();
+        camadaRoundRect(ctx, 8, 6, 5, 5, 1.5);
+        ctx.fill();
+        ctx.fillStyle = "#00e5ff";
+        ctx.fillRect(9, 7, 1, 2.5);
+        ctx.fillStyle = "#263744";
+        ctx.beginPath();
+        camadaRoundRect(ctx, 7.5, 10, 6, 3, 1.2);
+        ctx.fill();
+
+        ctx.restore();
+    }
 
     ctx.restore();
     ctx.restore();
 
     // Drone Companheiro por cima do personagem (desenhado depois)
     if (typeof window.desenharDrone === "function") {
-        window.desenharDrone(droneX, droneY, angulo, estadoDrone);
+        window.desenharDrone(droneX, droneY, angulo, estadoDrone, (extra && extra.pid) || (ehEu ? window.meuId : (pp && (pp.id || pp.pid))));
     }
 
     if (typeof window.desenharBarraHp === "function") {

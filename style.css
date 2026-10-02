@@ -158,7 +158,7 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 .xp-value { font-size: 10px; color: #3c2f00; text-shadow: 0 1px 0 rgba(255,255,255,0.35); }
 
 /* v1.34: Slots de poção [HP] [MP] ao lado da HUD */
-#hud-pocoes { display: flex; flex-direction: column; gap: 4px; margin-left: 2px; }
+#hud-pocoes { display: flex; flex-direction: row; align-items: center; gap: 5px; margin: 0 2px 0 0; flex: 0 0 auto; }
 #hud-ouro { position: fixed; top: 60px; left: 10px; background: rgba(0,0,0,0.8); border: 2px solid #f1c40f; box-shadow: 0 0 0 1px #000, 2px 2px 0 #000; color: #f1c40f; font-weight: bold; font-size: 12px; padding: 2px 8px; z-index: 20; pointer-events: none; }
 .pocao-slot { width: 34px; height: 30px; font-size: 16px; border: 2px solid #000; background: #241f16; color: #fff; cursor: pointer; position: relative; box-shadow: inset 0 0 0 1px #5a5344, 2px 2px 0 #000; display: flex; align-items: center; justify-content: center; padding: 0; }
 .pocao-slot:hover { background: #3a3226; }
@@ -253,6 +253,7 @@ canvas { background: #133015; display: block; width: 100vw; height: 100vh; touch
 .btn-util:active { transform: scale(0.9); box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
 .btn-dash { background: #3498db; font-size: 20px; border: 2px solid #2980b9; display: none; } .btn-dash.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
 .btn-tornado { background: #8e44ad; font-size: 20px; border: 2px solid #e74c3c; display: none; } .btn-tornado.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
+.btn-guerreiro-guardiao { background: linear-gradient(135deg, #1d6b58, #2ecc71); font-size: 20px; border: 2px solid #a9f5cf; box-shadow: 0 0 10px rgba(46, 204, 113, 0.35); display: none; } .btn-guerreiro-guardiao.cooldown { background: #555; opacity: 0.6; pointer-events: none; box-shadow: none; }
 .btn-guerreiro-provocacao { background: linear-gradient(135deg, #c0392b, #d35400); font-size: 20px; border: 2px solid #f39c12; box-shadow: 0 0 10px rgba(243, 156, 18, 0.4); display: none; } .btn-guerreiro-provocacao.cooldown { background: #555; opacity: 0.6; pointer-events: none; box-shadow: none; }
 
 .btn-meteoro { background: #d35400; font-size: 22px; border: 2px solid #e67e22; display: none; } 
@@ -449,4 +450,3 @@ canvas { background: #133015; display: block; width: 100vw; height: 100vh; touch
 .btn-portal-sim:hover { background: #2ecc71; }
 .btn-portal-nao { padding: 9px 18px; background: #7f8c8d; border: none; border-radius: 6px; color: #fff; font-weight: bold; cursor: pointer; font-size: 14px; font-family: 'Rajdhani', sans-serif; letter-spacing: 1px; }
 .btn-portal-nao:hover { background: #95a5a6; }
-

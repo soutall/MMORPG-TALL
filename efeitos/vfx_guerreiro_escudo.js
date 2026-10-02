@@ -198,47 +198,83 @@ window.desenharVfxGuerreiroEscudo = function(ctx) {
         }
 
         // ==========================================
-        // 1.1 DESENHA A CORRENTE RETRÁTIL
+        // 1.1 CORDA DE ENERGIA VERDE E DOURADA (Energy Tether)
+        // Conforme arte de referência: puxando o inimigo com corda de energia esmeralda
         // ==========================================
         ctx.save();
+        let ox = ownerX + 12, oy = ownerY + 16;
+        let dx = currentX - ox, dy = currentY - oy;
+        let dist = Math.hypot(dx, dy);
+        let midChordX = (ox + currentX) / 2;
+        let midChordY = (oy + currentY) / 2 - Math.sin(now / 150) * Math.min(22, dist * 0.15);
+
+        // Brilho externo da corda de energia
         ctx.beginPath();
-        ctx.moveTo(ownerX + 12, ownerY + 16);
-        ctx.lineTo(currentX, currentY);
-        ctx.strokeStyle = (vfx.state === 'puxando') ? 'rgba(255, 215, 0, 0.75)' : 'rgba(210, 215, 225, 0.55)';
-        ctx.lineWidth = (vfx.state === 'puxando') ? 3.5 : 2.5;
-        ctx.setLineDash([7, 5]);
+        ctx.moveTo(ox, oy);
+        ctx.quadraticCurveTo(midChordX, midChordY, currentX, currentY);
+        ctx.strokeStyle = (vfx.state === 'puxando') ? 'rgba(46, 204, 113, 0.85)' : 'rgba(241, 196, 15, 0.65)';
+        ctx.lineWidth = (vfx.state === 'puxando') ? 4.5 : 3.0;
+        ctx.shadowColor = (vfx.state === 'puxando') ? '#2ecc71' : '#f1c40f';
+        ctx.shadowBlur = 12;
         ctx.stroke();
+
+        // Núcleo branco/esmeralda luminoso
+        ctx.shadowBlur = 0;
+        ctx.beginPath();
+        ctx.moveTo(ox, oy);
+        ctx.quadraticCurveTo(midChordX, midChordY, currentX, currentY);
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+
+        // Nódulos de energia correndo ao longo da corda
+        let qtdNodulos = Math.min(8, Math.max(3, Math.floor(dist / 32)));
+        for (let k = 0; k < qtdNodulos; k++) {
+            let tNod = ((now / 320) + (k / qtdNodulos)) % 1.0;
+            if (vfx.state === 'puxando') tNod = 1.0 - tNod; // corre em direção ao guerreiro no puxão
+            let nx = Math.pow(1 - tNod, 2) * ox + 2 * (1 - tNod) * tNod * midChordX + Math.pow(tNod, 2) * currentX;
+            let ny = Math.pow(1 - tNod, 2) * oy + 2 * (1 - tNod) * tNod * midChordY + Math.pow(tNod, 2) * currentY;
+            ctx.fillStyle = '#ffffff';
+            ctx.beginPath();
+            ctx.arc(nx, ny, 2.2, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.fillStyle = '#2ecc71';
+            ctx.beginPath();
+            ctx.arc(nx, ny, 3.8, 0, Math.PI * 2);
+            ctx.fill();
+        }
         ctx.restore();
 
         // ==========================================
-        // 1.2 AFTERIMAGE TRAIL (Pós-imagem Translúcida)
+        // 1.2 AFTERIMAGE TRAIL DO ESCUDO OGIVAL
         // ==========================================
         ctx.save();
         for (let j = 0; j < vfx.afterimages.length; j++) {
             let img = vfx.afterimages[j];
             let age = now - img.time;
-            let alpha = Math.max(0, (1 - age / 220) * 0.40);
+            let alpha = Math.max(0, (1 - age / 220) * 0.45);
 
             ctx.save();
             ctx.globalAlpha = alpha;
             ctx.translate(img.x, img.y);
             ctx.rotate(img.rot);
 
-            // Silhueta fantasma dourada/metálica
+            // Silhueta translúcida do Kite Shield
+            let wA = 22, hA = 32;
+            let xA = -wA / 2, yA = -hA / 2;
+            let midXA = 0;
             ctx.beginPath();
-            ctx.arc(0, 0, 17, 0, Math.PI * 2);
-            ctx.fillStyle = 'rgba(255, 215, 0, 0.35)';
-            ctx.fill();
-            ctx.lineWidth = 2;
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.6)';
-            ctx.stroke();
+            ctx.moveTo(xA, yA + hA * 0.12);
+            ctx.quadraticCurveTo(midXA, yA - 1, xA + wA, yA + hA * 0.12);
+            ctx.lineTo(xA + wA, yA + hA * 0.44);
+            ctx.quadraticCurveTo(xA + wA * 0.94, yA + hA * 0.78, midXA, yA + hA);
+            ctx.quadraticCurveTo(xA + wA * 0.06, yA + hA * 0.78, xA, yA + hA * 0.44);
+            ctx.closePath();
 
-            // Cruz central do fantasma
-            ctx.beginPath();
-            ctx.moveTo(-12, 0); ctx.lineTo(12, 0);
-            ctx.moveTo(0, -12); ctx.lineTo(0, 12);
-            ctx.strokeStyle = 'rgba(255, 215, 0, 0.7)';
-            ctx.lineWidth = 3;
+            ctx.fillStyle = 'rgba(241, 196, 15, 0.32)';
+            ctx.fill();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+            ctx.lineWidth = 1.5;
             ctx.stroke();
 
             ctx.restore();
@@ -246,59 +282,150 @@ window.desenharVfxGuerreiroEscudo = function(ctx) {
         ctx.restore();
 
         // ==========================================
-        // 1.3 ESCUDO METÁLICO PRINCIPAL GIRATÓRIO
+        // 1.3 ESCUDO OGIVAL METÁLICO PRINCIPAL GIRATÓRIO COM LEÃO DOURADO
         // ==========================================
         ctx.save();
         ctx.translate(currentX, currentY);
         ctx.rotate(rotation);
 
-        // Halo de energia externa
-        let haloGlow = ctx.createRadialGradient(0, 0, 8, 0, 0, 24);
-        haloGlow.addColorStop(0, 'rgba(255, 215, 0, 0.5)');
-        haloGlow.addColorStop(0.6, 'rgba(255, 180, 0, 0.2)');
-        haloGlow.addColorStop(1, 'rgba(255, 215, 0, 0)');
+        // Halo de energia externa dourada/esmeralda
+        let haloGlow = ctx.createRadialGradient(0, 0, 8, 0, 0, 26);
+        haloGlow.addColorStop(0, (vfx.state === 'puxando') ? 'rgba(46, 204, 113, 0.65)' : 'rgba(255, 215, 0, 0.55)');
+        haloGlow.addColorStop(0.6, (vfx.state === 'puxando') ? 'rgba(46, 204, 113, 0.25)' : 'rgba(255, 180, 0, 0.22)');
+        haloGlow.addColorStop(1, 'rgba(0, 0, 0, 0)');
         ctx.fillStyle = haloGlow;
-        ctx.beginPath(); ctx.arc(0, 0, 24, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 0, 26, 0, Math.PI * 2); ctx.fill();
 
-        // Base de Aço Maciço
-        ctx.beginPath();
-        ctx.arc(0, 0, 18, 0, Math.PI * 2);
-        let gradAco = ctx.createLinearGradient(-18, -18, 18, 18);
-        gradAco.addColorStop(0, '#EAECEE');
-        gradAco.addColorStop(0.5, '#BDC3C7');
-        gradAco.addColorStop(1, '#7F8C8D');
-        ctx.fillStyle = gradAco;
+        // Dimensões do Kite Shield em voo
+        let wS = 24, hS = 35;
+        let xS = -wS / 2, yS = -hS / 2;
+        let midS = 0;
+
+        function pathKite(c, px, py, pw, ph) {
+            c.beginPath();
+            c.moveTo(px, py + ph * 0.12);
+            c.quadraticCurveTo(px + pw / 2, py - 1.2, px + pw, py + ph * 0.12);
+            c.lineTo(px + pw, py + ph * 0.44);
+            c.quadraticCurveTo(px + pw * 0.94, py + ph * 0.78, px + pw / 2, py + ph);
+            c.quadraticCurveTo(px + pw * 0.06, py + ph * 0.78, px, py + ph * 0.44);
+            c.closePath();
+        }
+
+        // 1. Moldura Grossa Dourada Chanfrada
+        pathKite(ctx, xS, yS, wS, hS);
+        let gMold = ctx.createLinearGradient(xS, yS, xS + wS, yS + hS);
+        gMold.addColorStop(0, '#fff48d');
+        gMold.addColorStop(0.25, '#f1c40f');
+        gMold.addColorStop(0.65, '#d4ac0d');
+        gMold.addColorStop(1, '#7d6608');
+        ctx.fillStyle = gMold;
         ctx.fill();
-        ctx.lineWidth = 2.8;
-        ctx.strokeStyle = '#34495E';
+        ctx.lineWidth = 1.0;
+        ctx.strokeStyle = '#4e3d02';
         ctx.stroke();
 
-        // Aro Interno Dourado
-        ctx.beginPath();
-        ctx.arc(0, 0, 11, 0, Math.PI * 2);
-        let gradOuro = ctx.createLinearGradient(-11, -11, 11, 11);
-        gradOuro.addColorStop(0, '#FFF275');
-        gradOuro.addColorStop(0.5, '#F1C40F');
-        gradOuro.addColorStop(1, '#D68910');
-        ctx.fillStyle = gradOuro;
+        // 2. Campo Interno de Aço Temperado Azul-Metálico
+        let pIn = 2.4;
+        let xIn = xS + pIn, yIn = yS + pIn, wIn = wS - pIn * 2, hIn = hS - pIn * 2.2;
+        pathKite(ctx, xIn, yIn, wIn, hIn);
+        let gCamp = ctx.createLinearGradient(xIn, yIn, xIn + wIn, yIn + hIn);
+        gCamp.addColorStop(0, '#667d94');
+        gCamp.addColorStop(0.3, '#4a5b6c');
+        gCamp.addColorStop(0.7, '#2c3945');
+        gCamp.addColorStop(1, '#172027');
+        ctx.fillStyle = gCamp;
         ctx.fill();
-        ctx.lineWidth = 1.8;
-        ctx.strokeStyle = '#B7950B';
+        ctx.strokeStyle = 'rgba(241, 196, 15, 0.7)';
+        ctx.lineWidth = 0.8;
         ctx.stroke();
 
-        // Cruz Heráldica Branca com Relevo
+        // 3. O LEÃO RAMPANTE DOURADO NO CENTRO DO ESCUDO GIRATÓRIO
+        ctx.save();
+        ctx.translate(0, 1.0);
+        ctx.scale(1.4, 1.4);
+
+        let gLeao = ctx.createLinearGradient(-5, -7, 5, 7);
+        gLeao.addColorStop(0, '#fff9c4');
+        gLeao.addColorStop(0.35, '#f1c40f');
+        gLeao.addColorStop(0.75, '#d4ac0d');
+        gLeao.addColorStop(1, '#8f6b08');
+        ctx.fillStyle = gLeao;
+        ctx.strokeStyle = '#5c4503';
+        ctx.lineWidth = 0.5;
+
         ctx.beginPath();
-        ctx.moveTo(-14, 0); ctx.lineTo(14, 0);
-        ctx.moveTo(0, -14); ctx.lineTo(0, 14);
-        ctx.strokeStyle = '#FFFFFF';
-        ctx.lineWidth = 4;
+        ctx.moveTo(-1.6, -6.8);
+        ctx.lineTo(-3.4, -6.6); // boca rugindo
+        ctx.lineTo(-4.0, -5.8);
+        ctx.lineTo(-3.0, -5.4);
+        ctx.lineTo(-3.8, -5.0);
+        ctx.lineTo(-2.6, -4.4);
+        ctx.lineTo(-3.2, -3.4);
+        ctx.lineTo(-1.6, -3.0);
+        ctx.lineTo(-2.4, -1.8);
+        ctx.lineTo(-0.8, -1.4);
+        // Peito
+        ctx.lineTo(-1.0, 0.4);
+        ctx.lineTo(-0.4, 2.0);
+        // Pata dianteira inferior
+        ctx.lineTo(-2.0, 0.8);
+        ctx.lineTo(-3.6, 1.2);
+        ctx.lineTo(-4.0, 0.8);
+        ctx.lineTo(-3.0, 0.2);
+        ctx.lineTo(-1.4, -0.2);
+        // Pata dianteira superior
+        ctx.lineTo(-2.6, -2.4);
+        ctx.lineTo(-4.4, -3.0);
+        ctx.lineTo(-5.0, -2.4);
+        ctx.lineTo(-4.6, -1.8);
+        ctx.lineTo(-3.4, -1.6);
+        ctx.lineTo(-1.8, -1.0);
+        // Dorso e perna traseira
+        ctx.lineTo(0.6, -2.2);
+        ctx.lineTo(1.4, 0.0);
+        ctx.lineTo(2.0, 2.6);
+        ctx.lineTo(0.8, 4.2);
+        ctx.lineTo(-0.4, 5.6);
+        ctx.lineTo(-1.0, 5.4);
+        ctx.lineTo(0.2, 4.0);
+        ctx.lineTo(1.0, 2.8);
+        ctx.lineTo(1.6, 4.6);
+        ctx.lineTo(2.4, 6.2);
+        ctx.lineTo(3.0, 5.8);
+        ctx.lineTo(2.2, 4.0);
+        ctx.lineTo(1.6, 2.0);
+        // Cauda em S
+        ctx.lineTo(1.8, 0.6);
+        ctx.quadraticCurveTo(3.6, -1.4, 4.0, -4.0);
+        ctx.quadraticCurveTo(3.6, -6.2, 2.4, -6.6);
+        ctx.lineTo(3.2, -7.6);
+        ctx.lineTo(2.2, -8.0);
+        ctx.lineTo(1.6, -7.0);
+        ctx.lineTo(1.8, -6.0);
+        ctx.quadraticCurveTo(2.8, -5.6, 2.8, -3.8);
+        ctx.quadraticCurveTo(2.4, -1.6, 1.0, -0.2);
+        // Topo da cabeça
+        ctx.lineTo(0.4, -3.6);
+        ctx.lineTo(0.6, -6.0);
+        ctx.lineTo(-0.4, -7.2);
+        ctx.closePath();
+        ctx.fill();
         ctx.stroke();
 
-        // Núcleo central
-        ctx.beginPath();
-        ctx.arc(0, 0, 3.5, 0, Math.PI * 2);
-        ctx.fillStyle = '#2C3E50';
-        ctx.fill();
+        ctx.restore();
+
+        // 4. Rebites dourados nos cantos do escudo
+        ctx.fillStyle = '#fff9c4';
+        [
+            [-wS / 2 + 2.5, -hS / 2 + 3.5],
+            [0, -hS / 2 + 1.5],
+            [wS / 2 - 2.5, -hS / 2 + 3.5],
+            [-wS / 2 + 1.8, -hS / 2 + hS * 0.40],
+            [wS / 2 - 1.8, -hS / 2 + hS * 0.40],
+            [0, hS / 2 - 2.5]
+        ].forEach(function (pt) {
+            ctx.beginPath(); ctx.arc(pt[0], pt[1], 0.8, 0, Math.PI * 2); ctx.fill();
+        });
 
         ctx.restore();
     }

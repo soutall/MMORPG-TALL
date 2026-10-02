@@ -157,11 +157,19 @@ function renderizarDetalhes() {
     let temGrito = (window.meusEfeitos || []).some(function (e) {
         return e && (e.id === 'gritoDeGuerra' || e.tipo === 'gritoDeGuerra') && (e.tempo > 0 || e.duracao > 0);
     });
+    let jogadorAtual = window.todosJogadores && window.todosJogadores[window.meuId];
+    let bradoRestante = Math.max(0, Math.ceil(((Number(jogadorAtual && jogadorAtual.kaledronBradoAte) || 0) - Date.now()) / 1000));
+    let bradoAtivo = bradoRestante > 0;
 
     let maxHp = Math.round(100 + (g('vida') - 1) * 20 + (g('forca') - 1) * 4);
     if (temGrito) maxHp = Math.round(maxHp * 1.05); // +5% Vida Máxima do Grito de Guerra
 
     let maxMana = Math.round(50 + (g('inteligencia') - 1) * 10);
+    let inteligenciaBase = Math.max(1, Number(window.meusAtributos && window.meusAtributos.inteligencia) || 1);
+    let bonusIntMana = window.minhaClasse === 'mago' ? Math.floor(Math.max(0, inteligenciaBase - 1) / 5) : 0;
+    let bonusDanoMana = window.minhaClasse === 'mago'
+        ? Math.round(Math.max(0, Math.min(1, (Number(window.meuMp) || 0) / Math.max(1, Number(window.meuMaxMp) || maxMana))) * 10)
+        : 0;
 
     let critChance = (0.05 + (g('destreza') - 1) * 0.01);
     if (temGrito) critChance += 0.30; // +30% de chance de crítico do Grito de Guerra
@@ -174,6 +182,7 @@ function renderizarDetalhes() {
     critMult = Math.round(critMult * 100) / 100;
 
     let danoFisico = Math.round((g('forca') - 1) * 0.05 * 100);
+    if (bradoAtivo) danoFisico += 35;
     let danoMagico = Math.round((g('inteligencia') - 1) * 0.05 * 100);
     let curaBonus = Math.round((g('divindade') - 1) * 0.05 * 100);
     let dotBonus = Math.round((g('profanidade') - 1) * 0.05 * 100);
@@ -184,6 +193,7 @@ function renderizarDetalhes() {
     // Velocidade de ataque (mesma fórmula do servidor: buff Grito de Guerra + equipamentos)
     let multAtaqueLocal = 1;
     if (temGrito) multAtaqueLocal *= 0.90; // +10% velocidade de ataque
+    if (bradoAtivo) multAtaqueLocal *= 0.80;
     let invAtual = window.inventario || {};
     for (let ch in invAtual) {
         let it = invAtual[ch];
@@ -195,6 +205,7 @@ function renderizarDetalhes() {
     let velAtaquePct = Math.round((1 - multAtaqueLocal) * 100);
 
     let gritoBadge = temGrito ? ' <span style="color:#f1c40f;font-size:10px;" title="Buff Grito de Guerra Ativo">📣</span>' : '';
+    let bradoBadge = bradoAtivo ? ' <span style="color:#ffad42;font-size:10px;" title="Brado de Guerra Vulcânico: ' + bradoRestante + 's">📣</span>' : '';
     let sniperBadge = sniperPos ? ' <span style="color:#2ecc71;font-size:10px;" title="Posição de Franco-Atirador Ativa">🎯</span>' : '';
 
     let linhas = [
@@ -202,15 +213,19 @@ function renderizarDetalhes() {
         { nome: '🔋 Mana Máx', valor: maxMana },
         { nome: '🎯 Crít. chance' + gritoBadge + sniperBadge, valor: critChancePct + '%' },
         { nome: '💥 Dano crítico' + gritoBadge, valor: 'x' + critMult },
-        { nome: '⚔️ Dano físico' + (sniperPos ? ' (x2)' : ''), valor: '+' + danoFisico + '%' },
+        { nome: '⚔️ Dano físico' + (sniperPos ? ' (x2)' : '') + bradoBadge, valor: '+' + danoFisico + '%' },
         { nome: '🔮 Dano mágico', valor: '+' + danoMagico + '%' },
         { nome: '✨ Cura', valor: '+' + curaBonus + '%' },
         { nome: '☠️ DoT', valor: '+' + dotBonus + '%' },
         { nome: '🐾 Pet dano', valor: '+' + petDano + '%' },
         { nome: '🐾 Pet vida', valor: petVida },
         { nome: '💨 Velocidade', valor: '+' + veloc + '%' },
-        { nome: '⚡ Vel. de ataque' + gritoBadge, valor: '+' + velAtaquePct + '%' }
+        { nome: '⚡ Vel. de ataque' + gritoBadge + bradoBadge, valor: '+' + velAtaquePct + '%' }
     ];
+    if (window.minhaClasse === 'mago') {
+        linhas.push({ nome: '💠 Mana Arcana', valor: '+' + bonusIntMana + ' INT / +' + bonusDanoMana + '% dano' });
+    }
+    if (bradoAtivo) linhas.push({ nome: '📣 Brado de Guerra Vulcânico', valor: bradoRestante + 's restantes' });
 
     lista.innerHTML = "";
     linhas.forEach(function (ln) {

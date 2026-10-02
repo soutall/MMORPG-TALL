@@ -40,7 +40,7 @@
 
     // Vórtices espaciais (marcos visuais + teleporte) próximos à divisa
     const PORTA_VERDE = { x: 17080, y: 4500, r: 58, alvo: { x: 18080, y: 4500 } };
-    const PORTA_DESERTO = { x: 18090, y: 4500, r: 58, alvo: { x: 17020, y: 4500 } };
+    const PORTA_DESERTO = null;
     const BORDA_ESTE = 17980;   // verde: cruzou a leste -> deserto
     const BORDA_OESTE = 18020;  // deserto: cruzou a oeste -> verde
 
@@ -452,7 +452,7 @@
             if (Math.hypot(x - PORTA_VERDE.x, y - PORTA_VERDE.y) < PORTA_VERDE.r) {
                 return { via: 'portal', mapa: 'desert', alvo: PORTA_VERDE.alvo };
             }
-        } else {
+        } else if (PORTA_DESERTO) {
             if (Math.hypot(x - PORTA_DESERTO.x, y - PORTA_DESERTO.y) < PORTA_DESERTO.r) {
                 return { via: 'portal', mapa: 'green', alvo: PORTA_DESERTO.alvo };
             }
@@ -1489,6 +1489,7 @@
 
     function desenharPortalDeserto(t) {
         const ctx = global.ctx;
+        if (!PORTA_DESERTO) return;
         if (ctx) desenharVortex(ctx, PORTA_DESERTO.x, PORTA_DESERTO.y, t, '#f4a261');
     }
 

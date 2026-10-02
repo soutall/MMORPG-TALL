@@ -258,7 +258,7 @@
                             '<option value="cidade">🏰 Cidade de Davahl</option>' +
                             '<option value="green">🌿 Campo Verde</option>' +
                             '<option value="desert">🏜️ Deserto com Oásis</option>' +
-                            '<option value="pantano">🌿 Pântano Realista</option>' +
+                            '<option value="pantano">🌿 Pantanal</option>' +
                             '<option value="caverna">🕳️ Caverna Sombria</option>' +
                             '<option value="solari">⚔️ Arena de Solari</option>' +
                             '<option value="cidadeperdida">🏛️ Cidade Perdida</option>' +

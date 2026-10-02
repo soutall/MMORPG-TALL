@@ -15,7 +15,7 @@ function carregarAdmins() {
         const conteudo = fs.readFileSync(FILE_ADMINS, 'utf-8');
         const parsed = JSON.parse(conteudo || '{}');
         const lista = Array.isArray(parsed.admins) ? parsed.admins : [];
-        _cacheAdmins = lista.map(function (n) { return String(n).trim(); }).filter(Boolean);
+        _cacheAdmins = lista.map(function (n) { return String(n).trim().toLowerCase(); }).filter(Boolean);
     } catch (e) {
         console.error('spawns.js: Erro ao ler admins.json:', e.message);
         _cacheAdmins = [];

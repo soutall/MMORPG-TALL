@@ -1,0 +1,89 @@
+# ==============================================================================
+# FICHA DE DESIGN VISUAL E RENDERIZAÇÃO: ARQUEIRO (NEGROLAS)
+# Arquivo: ARQUEIRO_NEGROLAS.gdd
+# ==============================================================================
+
+[IDENTIDADE DA CLASSE]
+Nome do Campeão: Negrolas
+Título: Patrulheiro das Sombras (Shadow Ranger)
+Arquétipo: Atirador Físico / Sniper / Ranged DPS
+Papel Tático: LINHA DE TRÁS (BACK ROW)
+Cor Temática: Verde Florestal Profundo, Couro Batido e Laser Neon Carmesim (#1abc9c / #27ae60 / #ff4757)
+
+---
+
+## 1. CONCEITO VISUAL E ARQUITETURA DE DESIGN
+
+Negrolas é um atirador de elite letal camuflado na escuridão da mata. Veste um longo
+capuz florestal pontiagudo que sombreia completamente a parte superior de seu rosto,
+revelando apenas dois olhos penetrantes em ouro reluzente. Às suas costas repousa uma
+aljava repleta de flechas com penas brancas e verdes. Em suas mãos empunha um **MASSIVO
+ARCO RECURVO TALHADO EM OSSO E MADEIRA RÚSTICA**, de onde se projeta ininterruptamente
+uma **MIRA LASER VERMELHA NEON** que rastreia os alvos em tempo real com precisão cirúrgica.
+
+### 1.1. Paleta de Cores Hexadecimal:
+- **Capuz e Manto Florestal**: Verde Musgo `#1b4d3e`, `#2d6a4f` com forro sombreado em `#081c15`
+- **Colete e Braçadeiras**: Couro rústico curtido `#795548` e `#4e342e`
+- **Olhos no Capuz**: Ouro incandescente `#f1c40f` com `shadowBlur = 6`
+- **Arco Recurvo**: Madeira nobre com reforços de marfim/osso `#d7ccc8` / `#5d4037`
+- **Aljava e Flechas**: Aljava marrom com penas em `#2ecc71` e pontas metálicas em `#bdc3c7`
+- **Mira Laser Vermelha Neon**: Linha pulsante em `#ff4757` com ponto focal em `#ff6b81`
+- **Aura de Foco**: `rgba(26, 188, 156, 0.35)`
+
+---
+
+## 2. ANATOMIA DE RENDERIZAÇÃO PROCEDURAL (CANVAS 2D)
+
+### 2.1. Efeito de Solo (Pegadas Rápidas e Folhas Secas)
+- Pequena elipse sombreada escura e alongada sob os pés (`ctx.ellipse(x, y + 14, 22, 8)`).
+- Durante a movimentação, solta pequenas partículas triangulares marrons/verdes representando folhas secas e poeira rasteira agitadas pelo vento.
+
+### 2.2. Capuz e Feições
+- O capuz tem formato pontiagudo caindo sobre as costas.
+- A abertura frontal é preenchida com preto absoluto (`#0a0a0a`), simulando a penumbra profunda do capuz.
+- Dois pequenos traços horizontais ou círculos dourados (`#ffeb3b`) brilham intensamente lá de dentro, gerando o clássico olhar ameaçador de assassino/ranger.
+
+### 2.3. O Grande Arco Recurvo e a Aljava
+- **Aljava**: Desenhada transversalmente nas costas (Camada 2), com 3 a 4 hastes de flechas projetando-se diagonalmente para cima.
+- **Arco Recurvo**: Comprimento de 42px, desenhado com curvas de Bézier (`ctx.bezierCurveTo`) formando as curvaturas duplas características do arco tártaro/recurvo.
+- **Corda do Arco**: Linha fina de seda branca tesa esticada entre as duas extremidades do arco.
+
+### 2.4. A Mira Laser Vermelha Neon (Continuous Tactical Laser)
+A mecânica visual mais característica de Negrolas:
+- Uma linha reta projetada a partir da flecha engatada no arco em direção ao alvo ou horizonte (`range = 260px`).
+- Desenhada com traço vermelho brilhante (`#ff4757`) com espessura de 1.5px e `shadowBlur = 8` com `shadowColor = '#ff4757'`.
+- A intensidade da linha pulsa organicamente através de `Math.sin(laserPulse)`.
+- No ponto de contato com o solo ou com o monstro atingido, um ponto circular neon cintila com ondas concêntricas de choque.
+
+---
+
+## 3. MÁQUINA DE ESTADOS DE ANIMAÇÃO
+
+### 3.1. Estado IDLE (Postura de Emboscada e Rastreamento)
+- Postura levemente agachada, centro de gravidade rebaixado.
+- Respiração curta e ritmada (`breathTime += dt * 3.2`).
+- A mira laser rastreia suavemente um pequeno arco no horizonte à procura de alvos.
+
+### 3.2. Estado MOVIMENTO (Passadas Silenciosas de Guerrilha)
+- Passos rápidos e esticados (alta velocidade de movimento base).
+- O capuz e as abas da capa fluem para trás com o vento.
+- O arco é mantido abaixado paralelamente ao solo para reduzir o atrito do ar.
+
+### 3.3. Estado ATAQUE / DISPARO (Puxada Máxima e Liberação)
+- Duração: 380 milissegundos.
+- **Puxada (0% a 50%)**: Negrolas puxa a corda do arco até a maçã do rosto. A flecha é desenhada entre os dedos. A mira laser se estreita e fica mais brilhante (foco absoluto).
+- **Liberação (50%)**: A flecha é ejetada com alta velocidade. Um flash cônico de vento e folhas irrompe da ponta do arco.
+- **Projétil em Voo**: Uma flecha física viaja até o alvo, deixando um rastro de luz verde e vermelha antes de registrar a colisão física e o dano.
+
+---
+
+## 4. HABILIDADES ASSOCIADAS
+
+1. **Flecha Perfurante (`negrolas_pierce`)**:
+   - Disparo supersônico em linha reta (skillshot) de 300px que atravessa todos os inimigos enfileirados reduzindo armadura.
+2. **Armadilha de Espinhos (`negrolas_trap`)**:
+   - Planta uma armadilha no solo que se camufla após 1s; ao ser acionada, prende o monstro com raízes pontiagudas por 1.5s e causa sangramento contínuo de 3s.
+3. **Salto Evasivo (`negrolas_evasive_leap`)**:
+   - Salto acrobático mortal para trás, disparando 3 flechas em leque com efeito de lentidão aos agressores que tentarem cercá-lo.
+4. **Chuva de Flechas (`negrolas_arrow_rain`)**:
+   - Marca uma área de 110px de raio de onde caem dezenas de flechas celestiais por 3 segundos consecutivos.

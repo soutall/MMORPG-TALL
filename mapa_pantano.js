@@ -44,7 +44,7 @@
 
     // Portais visuais
     const PORTA_ENTRADA = { x: PAN_X0 + 80, y: 8300, r: 58, alvo: ALVO_RETORNO_DESERTO };
-    const PORTA_RETORNO = { x: PAN_X0 + 2000, y: 4500, r: 58, alvo: ALVO_RETORNO_CIDADE }; // x: 52000, y: 4500
+    const PORTA_RETORNO = null; // Portal de retorno para a cidade desativado no design atual.
 
     let grid = null;
     let colisoesGrid = null;
@@ -622,7 +622,7 @@
 
     function infoPortalPantano(x, y) {
         if (x < PAN_X0 || x >= PAN_X1) return null;
-        if (Math.hypot(x - PORTA_RETORNO.x, y - PORTA_RETORNO.y) < PORTA_RETORNO.r) {
+        if (PORTA_RETORNO && Math.hypot(x - PORTA_RETORNO.x, y - PORTA_RETORNO.y) < PORTA_RETORNO.r) {
             return { via: 'portal', mapa: 'cidade', alvo: PORTA_RETORNO.alvo };
         }
         return null;
@@ -1426,12 +1426,13 @@
     // --- Portais Rúnicos de Cipreste Ancestral ---
     function desenharPortalPantano(t) {
         const ctx = global.ctx;
-        if (ctx) desenharVortexPantano(ctx, PORTA_RETORNO.x, PORTA_RETORNO.y, t, '#26734d', 'Retorno a Davahl');
+        if (!PORTA_RETORNO || !ctx) return;
+        desenharVortexPantano(ctx, PORTA_RETORNO.x, PORTA_RETORNO.y, t, '#26734d', 'Retorno a Davahl');
     }
 
     function desenharPortalEntradaPantano(t) {
         const ctx = global.ctx;
-        if (ctx) desenharVortexPantano(ctx, PORTA_ENTRADA.x, PORTA_ENTRADA.y, t, '#388e3c', 'Desfiladeiro do Deserto');
+        if (PORTA_ENTRADA && ctx) desenharVortexPantano(ctx, PORTA_ENTRADA.x, PORTA_ENTRADA.y, t, '#388e3c', 'Desfiladeiro do Deserto');
     }
 
     function desenharVortexPantano(ctx, x, y, t, cor, rotulo) {

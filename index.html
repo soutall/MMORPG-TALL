@@ -7,9 +7,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Oswald:wght@500;600;700&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=245">
+    <link rel="stylesheet" href="style.css?v=246">
     <link rel="stylesheet" href="inventario.css?v=160">
-    <link rel="stylesheet" href="skills.css?v=144">
+    <link rel="stylesheet" href="skills.css?v=146">
     <link rel="stylesheet" href="config.css?v=150">
     <link rel="stylesheet" href="atributos.css?v=5">
     <link rel="stylesheet" href="spawn-admin.css?v=2">
@@ -17,7 +17,7 @@
     <link rel="stylesheet" href="dragdrop.css?v=4">
     <link rel="stylesheet" href="ferreiro.css?v=1">
     <link rel="stylesheet" href="intro.css?v=1">
-    <link rel="stylesheet" href="mobile-hud.css?v=2">
+    <link rel="stylesheet" href="mobile-hud.css?v=3">
     <link rel="stylesheet" href="item-admin.css?v=2">
     <link rel="stylesheet" href="personagem-select.css?v=2">
 </head>
@@ -76,7 +76,7 @@
             <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" />
             <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
         </div>
-        <div class="game-version-display">v1.60.2</div>
+        <div class="game-version-display">v1.69.2</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -85,7 +85,7 @@
         <h1>ESCOLHA SUA CLASSE</h1>
         <div class="class-card-container">
             <div class="class-card guerreiro" onclick="selecionarClasse('guerreiro')">
-                <div class="icon">⚔️</div><div class="title" style="color:#e74c3c;">Guerreiro</div><div class="desc">Combate físico e escudo.</div>
+                <div class="icon">🛡️</div><div class="title" style="color:#e74c3c;">Guerreiro</div><div class="desc">Vanguarda Imperial: Lança de batalha e escudo de leão.</div>
             </div>
             <div class="class-card mago" onclick="selecionarClasse('mago')">
                 <div class="icon">🔮</div><div class="title" style="color:#9b59b6;">Mago</div><div class="desc">Meteoro e Nevasca.</div>
@@ -118,10 +118,13 @@
                 <div class="icon">🎯</div><div class="title" style="color:#8f9b4a;">Sniper</div><div class="desc">Barrett perfurante, camuflagem e posição de tiro.</div>
             </div>
             <div class="class-card florim" onclick="selecionarClasse('florim')">
-                <div class="icon">🌿</div><div class="title" style="color:#69c94a;">Florim</div><div class="desc">Plantas, raízes, flores, veneno e suporte natural.</div>
+                <div class="icon">🌿</div><div class="title" style="color:#69c94a;">Florim</div><div class="desc">Suporte / Controle: Árvore curativa, sementes, espinhos e parede vegetal.</div>
             </div>
             <div class="class-card pikeman" onclick="selecionarClasse('pikeman')">
                 <div class="icon">⛓️</div><div class="title" style="color:#c0392b;">Pikeman</div><div class="desc">Foice da Morte, Geada e Execução. Burst + Controle.</div>
+            </div>
+            <div class="class-card guerreiro_kaledron" onclick="selecionarClasse('guerreiro_kaledron')">
+                <div class="icon">🔥</div><div class="title" style="color:#e67e22;">Guerreiro Kaledron</div><div class="desc">Montante Colossal Flutuante, Magma e Erupções.</div>
             </div>
         </div>
     </div>
@@ -129,7 +132,7 @@
     <div id="status" data-ui="status">Desconectado</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
     <div id="ping-counter" data-ui="ping">PING: -- ms</div>
-    <div id="hud-version" class="game-version-display">v1.60.2</div>
+    <div id="hud-version" class="game-version-display">v1.69.2</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -139,14 +142,6 @@
                 <div id="hp-bar-container" title="Vida"><div id="hp-bar-fill"></div><span class="bar-value hp-value" id="hp-bar-texto"></span></div>
                 <div id="mp-bar-container" title="Mana"><div id="mp-bar-fill"></div><span class="bar-value mp-value" id="mp-bar-texto"></span></div>
                 <div id="stamina-bar-container" title="Stamina (Dash)"><div id="stamina-bar-fill"></div></div>
-            </div>
-            <div id="hud-pocoes">
-                <div class="pocao-slot-wrap">
-                    <button id="btn-pocao-hp" class="pocao-slot" onclick="usarPocao('hp')" title="Usar Poção de Vida (Q)">🧪<span class="pocao-qtd" id="pocao-hp-qtd">0</span><span class="key-badge">Q</span></button>
-                </div>
-                <div class="pocao-slot-wrap">
-                    <button id="btn-pocao-mp" class="pocao-slot" onclick="usarPocao('mp')" title="Usar Poção de Mana (E)">🔮<span class="pocao-qtd" id="pocao-mp-qtd">0</span><span class="key-badge">E</span></button>
-                </div>
             </div>
         </div>
 
@@ -334,6 +329,9 @@
             <span class="menu-ico">☰</span> <span class="btn-label">MENU</span>
         </button>
         <div id="mobile-sidebar-dropdown">
+            <button id="mobile-sidebar-item-admin" class="mobile-sidebar-item" style="display:none; border-color: rgba(243, 156, 18, 0.8); background: rgba(243, 156, 18, 0.15); color: #f1c40f;" onclick="acionarMenuMobile(window.toggleAdminCheats)" title="Painel Admin (Cheats)">
+                <span class="item-ico">👑</span><span class="item-lbl">Admin Cheats</span>
+            </button>
             <button class="mobile-sidebar-item" onclick="acionarMenuMobile(toggleConfig)" title="Configurações">
                 <span class="item-ico">⚙️</span><span class="item-lbl">Configuração</span>
             </button>
@@ -361,11 +359,16 @@
         </div>
     </div>
 
-    <div class="actions" >
+    <div class="actions">
+        <div id="hud-pocoes">
+            <button id="btn-pocao-hp" class="pocao-slot" onclick="usarPocao('hp')" title="Usar Poção de Vida (Q)">🧪<span class="pocao-qtd" id="pocao-hp-qtd">0</span><span class="key-badge">Q</span></button>
+            <button id="btn-pocao-mp" class="pocao-slot" onclick="usarPocao('mp')" title="Usar Poção de Mana (E)">🔮<span class="pocao-qtd" id="pocao-mp-qtd">0</span><span class="key-badge">E</span></button>
+        </div>
         <button id="btn-autofarm" class="btn-action btn-autofarm" ontouchstart="alternarAutofarm(); event.stopPropagation();" onclick="alternarAutofarm();" title="Autofarm (R)">🤖<span class="key-badge">R</span></button>
         <button id="btn-dash" class="btn-action btn-dash" ontouchstart="usarDash(); event.stopPropagation();" ontouchend="soltarDash(); event.stopPropagation();" onmouseup="soltarDash();" onclick="usarDash();" title="Dash (1)">💨<span class="key-badge">1</span></button>
-        <button id="btn-tornado" class="btn-action btn-tornado" ontouchstart="usarTornado(); event.stopPropagation();" onclick="usarTornado();" title="Tornado (2)">🌪️<span class="key-badge">2</span></button>
-        <button id="btn-guerreiro-provocacao" class="btn-action btn-guerreiro-provocacao" ontouchstart="usarGritoProvocacao(); event.stopPropagation();" onclick="usarGritoProvocacao();" title="Grito de Provocação (3)">📢<span class="key-badge">3</span></button>
+        <button id="btn-guerreiro-guardiao" class="btn-action btn-guerreiro-guardiao" ontouchstart="usarPosturaGuardiao(); event.stopPropagation();" onclick="usarPosturaGuardiao();" title="Aura do Vanguarda (1)">🛡️<span class="key-badge">1</span></button>
+        <button id="btn-tornado" class="btn-action btn-tornado" ontouchstart="usarTornado(); event.stopPropagation();" onclick="usarTornado();" title="Giro do Vanguarda (2)">🌪️<span class="key-badge">2</span></button>
+        <button id="btn-guerreiro-provocacao" class="btn-action btn-guerreiro-provocacao" ontouchstart="usarGritoProvocacao(); event.stopPropagation();" onclick="usarGritoProvocacao();" title="Grito Estrondoso (3)">📢<span class="key-badge">3</span></button>
         <button id="btn-meteoro" class="btn-action btn-meteoro" ontouchstart="iniciarDragSkill(event,'meteoro'); event.preventDefault(); event.stopPropagation();" onclick="ativarMeteoroSmartCast();" title="Meteoro (1)">☄️<span class="key-badge">1</span></button>
         <button id="btn-nevasca" class="btn-action btn-nevasca" ontouchstart="iniciarDragSkill(event,'nevasca'); event.preventDefault(); event.stopPropagation();" onclick="ativarNevascaSmartCast();" title="Nevasca (2)">❄️<span class="key-badge">2</span></button>
         <button id="btn-vulcao" class="btn-action btn-vulcao" ontouchstart="iniciarDragSkill(event,'vulcao'); event.preventDefault(); event.stopPropagation();" onclick="ativarVulcaoSmartCast();" title="Vulcão (3)">🌋<span class="key-badge">3</span></button>
@@ -423,13 +426,17 @@
         <button id="btn-pikeman-giro" class="btn-action btn-pikeman-giro" ontouchstart="usarGiroPikeman(); event.stopPropagation();" onclick="usarGiroPikeman();" title="Giro da Foice (1)"><img src="imagem/HUD/skills/Slotbar/Pike/skill_01.png" class="btn-action-icon-img" alt="Giro da Foice" /><span class="key-badge">1</span></button>
         <button id="btn-pikeman-pirueta" class="btn-action btn-pikeman-pirueta" ontouchstart="usarPiruetaPikeman(); event.stopPropagation();" onclick="usarPiruetaPikeman();" title="Pirueta da Morte (2)">✴️<span class="key-badge">2</span></button>
         <button id="btn-pikeman-geada" class="btn-action btn-pikeman-geada" ontouchstart="usarGeadaPikeman(); event.stopPropagation();" onclick="usarGeadaPikeman();" title="Geada da Morte (3)">🧊<span class="key-badge">3</span></button>
-        <button id="btn-florim-semente" class="btn-action btn-florim-semente" ontouchstart="iniciarDragSkill(event,'florim_semente'); event.preventDefault(); event.stopPropagation();" onclick="usarSementeFlorim();" title="Sementes (1)">🌱<span class="key-badge">1</span></button>
-        <button id="btn-florim-corrente" class="btn-action btn-florim-corrente" ontouchstart="iniciarDragSkill(event,'florim_corrente'); event.preventDefault(); event.stopPropagation();" onclick="usarCorrenteFlorim();" title="Corrente de Raízes (2)">🌿<span class="key-badge">2</span></button>
-        <button id="btn-florim-anel" class="btn-action btn-florim-anel" ontouchstart="iniciarDragSkill(event,'florim_anel'); event.preventDefault(); event.stopPropagation();" onclick="usarAnelFlorim();" title="Anel de Flores (3)">🌸<span class="key-badge">3</span></button>
-        <button id="btn-florim-praga" class="btn-action btn-florim-praga" ontouchstart="iniciarDragSkill(event,'florim_praga'); event.preventDefault(); event.stopPropagation();" onclick="usarPragaFlorim();" title="Praga Natural (4)">🍃<span class="key-badge">4</span></button>
+        <button id="btn-florim-arvore" class="btn-action btn-florim-arvore" ontouchstart="iniciarDragSkill(event,'florim_arvore')" ontouchend="soltarDragSkill(event,'florim_arvore')" onclick="usarArvoreFlorim();" title="Árvore Curativa (1)">🌳<span class="key-badge">1</span></button>
+        <button id="btn-florim-semente" class="btn-action btn-florim-semente" ontouchstart="iniciarDragSkill(event,'florim_semente')" ontouchend="soltarDragSkill(event,'florim_semente')" onclick="usarSementeFlorim();" title="Semente (2)">🌱<span class="key-badge">2</span></button>
+        <button id="btn-florim-espinhos" class="btn-action btn-florim-espinhos" ontouchstart="iniciarDragSkill(event,'florim_espinhos')" ontouchend="soltarDragSkill(event,'florim_espinhos')" onclick="usarEspinhosFlorim();" title="Espinhos de Rosa (3)">🌹<span class="key-badge">3</span></button>
+        <button id="btn-florim-parede" class="btn-action btn-florim-parede" ontouchstart="iniciarDragSkill(event,'florim_parede')" ontouchend="soltarDragSkill(event,'florim_parede')" onclick="usarParedeFlorim();" title="Parede de Espinhos (4)">🧱<span class="key-badge">4</span></button>
         <button id="btn-pikeman-execucao" class="btn-action btn-pikeman-execucao" ontouchstart="usarExecucaoPikeman(); event.stopPropagation();" onclick="usarExecucaoPikeman();" title="Execução da Morte (4)">💀<span class="key-badge">4</span></button>
         
-        
+        <!-- BOTOES DO GUERREIRO KALEDRON -->
+        <button id="btn-kaledron-golpe" class="btn-action btn-kaledron-golpe" ontouchstart="usarGolpeFulminanteKaledron(); event.stopPropagation();" onclick="usarGolpeFulminanteKaledron();" title="Golpe Fulminante (1)">⚔️<span class="key-badge">1</span></button>
+        <button id="btn-kaledron-impacto" class="btn-action btn-kaledron-impacto" ontouchstart="usarImpactoTerrestreKaledron(); event.stopPropagation();" onclick="usarImpactoTerrestreKaledron();" title="Impacto Terrestre (2)">💥<span class="key-badge">2</span></button>
+        <button id="btn-kaledron-redemoinho" class="btn-action btn-kaledron-redemoinho" ontouchstart="usarRedemoinhoKaledron(); event.stopPropagation();" onclick="usarRedemoinhoKaledron();" title="Redemoinho de Aço (3)">🌪️<span class="key-badge">3</span></button>
+        <button id="btn-kaledron-brado" class="btn-action btn-kaledron-brado" ontouchstart="usarBradoGuerraKaledron(); event.stopPropagation();" onclick="usarBradoGuerraKaledron();" title="Brado de Guerra Vulcânico (4)">📢<span class="key-badge">4</span></button>
         <!-- NOVAS SKILLS -->
         <button id="btn-guerreiro-escudo" class="btn-action btn-guerreiro-escudo" ontouchstart="iniciarDragSkill(event,'guerreiro_escudo'); event.preventDefault(); event.stopPropagation();" onclick="ativarEscudoSmartCast();" title="Lançamento do Escudo (4)">🛡️<span class="key-badge">4</span></button>
         <button id="btn-mago-bola" class="btn-action btn-mago-bola" ontouchstart="iniciarDragSkill(event,'mago_bola'); event.preventDefault(); event.stopPropagation();" onclick="ativarBolaElementalSmartCast();" title="Bola Elemental (4)">🔮<span class="key-badge">4</span></button>
@@ -503,13 +510,16 @@
                 <button class="btn-teleportare" data-mapa="cidade" onclick="selecionarMapa('cidade')">🏰 Cidade de Davahl</button>
                 <button class="btn-teleportare" data-mapa="green" onclick="selecionarMapa('green')">🌿 Campo Verde</button>
                 <button class="btn-teleportare" data-mapa="desert" onclick="selecionarMapa('desert')">🏜️ Deserto com Oásis</button>
-                <button class="btn-teleportare" data-mapa="pantano" onclick="selecionarMapa('pantano')">🌿 Pântano Realista</button>
+                <button class="btn-teleportare" data-mapa="pantano" onclick="selecionarMapa('pantano')">🌿 Pantanal</button>
                 <button class="btn-teleportare" data-mapa="caverna" onclick="selecionarMapa('caverna')">🕳️ Caverna Sombria (DG)</button>
                 <button class="btn-teleportare" data-mapa="cidadeperdida" onclick="selecionarMapa('cidadeperdida')">🏛️ Cidade Perdida</button>
-                <button class="btn-teleportare" data-mapa="testevisual" onclick="selecionarMapa('testevisual')">🌿 Arena Visual (Pântano Realista)</button>
+                <button class="btn-teleportare" data-mapa="pantano_sombrio" onclick="selecionarMapa('pantano_sombrio')">🐊 Pântano Sombrio</button>
                 <button class="btn-teleportare" data-mapa="zonazero" onclick="selecionarMapa('zonazero')">❄️ Zona Zero (Bioma de Gelo)</button>
                 <button class="btn-teleportare" data-mapa="castelo" onclick="selecionarMapa('castelo')">🏯 Castelo Anda 1 (DG)</button>
                 <button class="btn-teleportare" data-mapa="ruinas_01" onclick="selecionarMapa('ruinas_01')">🏚️ Ruínas de Âmbar (ID)</button>
+                <button class="btn-teleportare" data-mapa="floresta" onclick="selecionarMapa('floresta')">🌲 Floresta dos Sussurros</button>
+                <button class="btn-teleportare" data-mapa="nebulos" onclick="selecionarMapa('nebulos')">🏘️ Floresta dos Nebulos</button>
+                <button class="btn-teleportare" data-mapa="abissal" onclick="selecionarMapa('abissal')">🌌 Floresta Abissal</button>
             </div>
             <button id="btn-teleportare-confirmar" style="display:none;" onclick="confirmarTeleporte()">✅ CONFIRMAR</button>
             <button id="btn-teleportare-fechar" onclick="fecharTeleporteMapas()">FECHAR</button>
@@ -823,11 +833,14 @@
     <!-- <script src="mapa_cidade_three.js?v=1"></script> -->
     <script src="mapa_solari.js?v=6"></script>
     <script src="mapa_cidade_perdida.js?v=3"></script>
-    <script src="mapa_teste_visual.js?v=3"></script>
     <script src="mapa_zona_zero.js?v=1"></script>
     <script src="mapa_castelo.js?v=1"></script>
     <script src="mapa_bemvindo.js?v=7"></script>
     <script src="mapa_ruinas_01.js?v=1"></script>
+    <script src="mapas/mapa_floresta.js?v=1"></script>
+    <script src="mapas/mapa_nebulos.js?v=1"></script>
+    <script src="mapas/mapa_abissal.js?v=1"></script>
+    <script src="mapas/mapa_pantano_sombrio.js?v=2"></script>
     <script src="instancias.js?v=1"></script>
     <script src="solari.js?v=6"></script>
     <script>
@@ -849,8 +862,8 @@
          Precisa vir antes das classes porque elas podem consultar window.DASH. -->
     <script src="dash.js?v=1500"></script>
     <script src="dash-vfx.js?v=1500"></script>
-    <script src="classes/comum.js?v=1001"></script>
-    <script src="classes/guerreiro.js?v=1500"></script>
+    <script src="classes/comum.js?v=1002"></script>
+    <script src="classes/guerreiro.js?v=1502"></script>
     <script src="classes/mago.js?v=1002"></script>
     <script src="classes/summoner.js?v=1001"></script>
     <script src="classes/arqueiro.js?v=1002"></script>
@@ -858,25 +871,27 @@
     <script src="classes/barbaro.js?v=1002"></script>
     <script src="classes/roqueiro.js?v=1002"></script>
     <script src="classes/ladino.js?v=1301"></script>
-    <script src="classes/dronemaster.js?v=1005"></script>
+    <script src="classes/dronemaster.js?v=1008"></script>
     <script src="classes/arqueiro_arcano.js?v=1002"></script>
     <script src="classes/sniper.js?v=1500"></script>
-    <script src="classes/pikeman.js?v=10"></script>
-<script src="classes/florim.js?v=2"></script>
+    <script src="classes/pikeman.js?v=11"></script>
+    <script src="classes/florim.js?v=4"></script>
+    <script src="classes/guerreiro_kaledron.js?v=1"></script>
     <script src="efeitos/arqueiro_efeitos.js?v=230"></script>
     <script src="efeitos/curandeiro_efeitos.js?v=231"></script>
     <script src="efeitos/barbaro_efeitos.js?v=231"></script>
-    <script src="efeitos/guerreiro_efeitos.js?v=235"></script>
+    <script src="efeitos/guerreiro_efeitos.js?v=236"></script>
     <script src="efeitos/mago_efeitos.js?v=1551"></script>
     <script src="efeitos/roqueiro_efeitos.js?v=231"></script>
     <script src="efeitos/ladino_efeitos.js?v=1300"></script>
     <script src="efeitos/pikeman_efeitos.js?v=2"></script>
-<script src="efeitos/florim_efeitos.js?v=1"></script>
+    <script src="efeitos/florim_efeitos.js?v=3"></script>
+    <script src="efeitos/kaledron_efeitos.js?v=1"></script>
     <script src="efeitos.js?v=235"></script>
     <script src="efeitos/vfx_master.js?v=1"></script>
-    <script src="efeitos/vfx_guerreiro_escudo.js?v=2"></script>
+    <script src="efeitos/vfx_guerreiro_escudo.js?v=3"></script>
     <script src="efeitos/vfx_mago_bola.js?v=3"></script>
-    <script src="efeitos/vfx_summoner_golem.js?v=3"></script>
+    <script src="efeitos/vfx_summoner_golem.js?v=4"></script>
     <script src="efeitos/vfx_arqueiro_salto.js?v=1"></script>
     <script src="efeitos/vfx_curandeiro_cantico.js?v=1"></script>
     <script src="efeitos/vfx_barbaro_vinculo.js?v=1"></script>
@@ -886,7 +901,9 @@
     <script src="soldado_lanceiro.js?v=1"></script>
     <script src="monstros.js?v=2009"></script>
     <script src="inventario.js?v=160"></script>
-    <script src="skills.js?v=147"></script>
+    <script src="skill_upgrade_tree.js?v=1"></script>
+    <script src="skills.js?v=150"></script>
+    <script src="skill_tree_ui.js?v=2"></script>
     <script src="config.js?v=145"></script>
     <script src="atributos.js?v=3"></script>
     <script src="spawn-admin.js?v=4"></script>
@@ -896,22 +913,25 @@
     <script src="dragdrop.js?v=6"></script>
     <script src="ferreiro.js?v=1"></script>
     <script src="colisao-editor.js?v=6"></script>
-    <script src="mapa-editor.js?v=2"></script>
+    <script src="mapa-editor.js?v=4"></script>
     <script src="audio-manager.js?v=3"></script>
     <script src="sonoro.js?v=1582"></script>
     <script src="intro.js?v=1"></script>
     <script src="mobile-hud.js?v=1"></script>
     <script src="item-admin.js?v=5"></script>
-    <script src="admin-cheats.js?v=1"></script>
-    <script src="personagens-historias.js?v=1"></script>
-    <script src="personagem-select.js?v=4"></script>
+    <script src="admin-cheats.js?v=4"></script>
+    <script src="personagens-historias.js?v=2"></script>
+    <script src="personagem-select.js?v=5"></script>
     <script>
-        const GAME_VERSION = 'v1.60.2';
+        const GAME_VERSION = 'v1.69.2';
         window.GAME_VERSION = GAME_VERSION;
-        const WORLD_WIDTH = 90000;
+        const WORLD_WIDTH = 126800; // inclui as Florestas dos Sussurros, dos Nebulos, a Floresta Abissal e o Pântano Sombrio
         const WORLD_HEIGHT = 36000;
         window.WORLD_WIDTH = WORLD_WIDTH;
         window.WORLD_HEIGHT = WORLD_HEIGHT;
+        window.LARGURA_PANTANO_SOMBRIO = 117200;
+        window.FIM_PANTANO_SOMBRIO = 126800;
+        window.ALTO_PANTANO_SOMBRIO = 5400;
         window.LARGURA_VERDE = 18000;
         window.ALTO_VERDE = 5400;
         window.LARGURA_DESERTO = 50000;
@@ -1039,6 +1059,7 @@ const xpBarFill = document.getElementById("xp-bar-fill");
         const levelUpPopup = document.getElementById("level-up-popup");
         const btnAutofarm = document.getElementById("btn-autofarm");
         const btnDash = document.getElementById("btn-dash");
+        const btnGuerreiroGuardiao = document.getElementById("btn-guerreiro-guardiao");
         const btnTornado = document.getElementById("btn-tornado");
         const btnGuerreiroProvocacao = document.getElementById("btn-guerreiro-provocacao");
         const btnMeteoro = document.getElementById("btn-meteoro");
@@ -1053,6 +1074,7 @@ const btnBarbaroVinculo = document.getElementById("btn-barbaro-vinculo");
 const btnArcanoBuraco = document.getElementById("btn-arcano-buraco");
 
 window.cdGuerreiroEscudo = false;
+window.guerreiroGuardiaoCooldownAtivo = false;
 window.cdMagoBola = false;
 window.cdSummonerGolem = false;
 window.cdArqueiroSalto = false;
@@ -1062,7 +1084,7 @@ window.cdArcanoBuraco = false;
 
 window.modoMiraEscudo = false;
 window.modoMiraBola = false;
-window.modoMiraBuraco = false; window.modoMiraFlorimSemente = false; window.modoMiraFlorimCorrente = false; window.modoMiraFlorimAnel = false; window.modoMiraFlorimPraga = false;
+window.modoMiraBuraco = false; window.modoMiraFlorimArvore = false; window.modoMiraFlorimSemente = false; window.modoMiraFlorimEspinhos = false; window.modoMiraFlorimParede = false;
 window.modoMiraVinculo = false;
 
 function ativarEscudoSmartCast() {
@@ -1276,10 +1298,14 @@ function usarCanticoCelestial() {
         const btnPikemanPirueta = document.getElementById("btn-pikeman-pirueta");
         const btnPikemanGeada = document.getElementById("btn-pikeman-geada");
         const btnPikemanExecucao = document.getElementById("btn-pikeman-execucao");
+const btnFlorimArvore = document.getElementById("btn-florim-arvore");
 const btnFlorimSemente = document.getElementById("btn-florim-semente");
-const btnFlorimCorrente = document.getElementById("btn-florim-corrente");
-const btnFlorimAnel = document.getElementById("btn-florim-anel");
-const btnFlorimPraga = document.getElementById("btn-florim-praga");
+const btnFlorimEspinhos = document.getElementById("btn-florim-espinhos");
+const btnFlorimParede = document.getElementById("btn-florim-parede");
+const btnKaledronGolpe = document.getElementById("btn-kaledron-golpe");
+const btnKaledronImpacto = document.getElementById("btn-kaledron-impacto");
+const btnKaledronRedemoinho = document.getElementById("btn-kaledron-redemoinho");
+const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         const btnAttack = document.getElementById("btn-attack");
         const dpsValorEl = null;
         const dpsTotalEl = null;
@@ -1487,7 +1513,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             window.modoMiraRede = false; btnSniperRede.classList.remove("aiming");
             window.modoMiraEscudo = false; if(typeof btnGuerreiroEscudo !== 'undefined' && btnGuerreiroEscudo) btnGuerreiroEscudo.classList.remove("aiming");
             window.modoMiraBola = false; if(typeof btnMagoBola !== 'undefined' && btnMagoBola) btnMagoBola.classList.remove("aiming");
-            window.modoMiraBuraco = false; if(typeof btnArcanoBuraco !== 'undefined' && btnArcanoBuraco) btnArcanoBuraco.classList.remove("aiming"); window.modoMiraFlorimSemente=false;window.modoMiraFlorimCorrente=false;window.modoMiraFlorimAnel=false;window.modoMiraFlorimPraga=false;btnFlorimSemente.classList.remove("aiming");btnFlorimCorrente.classList.remove("aiming");btnFlorimAnel.classList.remove("aiming");btnFlorimPraga.classList.remove("aiming");
+            window.modoMiraBuraco = false; if(typeof btnArcanoBuraco !== 'undefined' && btnArcanoBuraco) btnArcanoBuraco.classList.remove("aiming"); window.modoMiraFlorimArvore=false;window.modoMiraFlorimSemente=false;window.modoMiraFlorimEspinhos=false;window.modoMiraFlorimParede=false;btnFlorimArvore.classList.remove("aiming");btnFlorimSemente.classList.remove("aiming");btnFlorimEspinhos.classList.remove("aiming");btnFlorimParede.classList.remove("aiming");
             window.modoMiraVinculo = false; if(typeof btnBarbaroVinculo !== 'undefined' && btnBarbaroVinculo) btnBarbaroVinculo.classList.remove("aiming");
             window.modoMiraSaltoChuva = false; if(typeof btnArqueiroSalto !== 'undefined' && btnArqueiroSalto) btnArqueiroSalto.classList.remove("aiming");
 
@@ -1518,10 +1544,10 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             cometas:     { raio: 85,  alcanceMax: 300, classe: 'arqueiro_arcano', cor: '#d4af37', nome: '☄️ CHUVA DE COMETAS' },
             orbe:        { raio: 100, alcanceMax: 260, classe: 'arqueiro_arcano', cor: '#c39bff', nome: '✨ ORBE DE CONSTELAÇÃO' },
             rede:        { raio: 60,  alcanceMax: 320, classe: 'sniper',     cor: '#9f9f9f', nome: '🕸️ ARAME PRENDEDOR' },
-            florim_semente: { raio: 55, alcanceMax: 300, classe: 'florim', cor: '#6fbf45', nome: '🌱 SEMENTES' },
-            florim_corrente: { raio: 55, alcanceMax: 300, classe: 'florim', cor: '#3f8f3a', nome: '🌿 RAÍZES' },
-            florim_anel: { raio: 85, alcanceMax: 320, classe: 'florim', cor: '#d96ac7', nome: '🌸 ANEL DE FLORES' },
-            florim_praga: { raio: 170, alcanceMax: 320, classe: 'florim', cor: '#7cae3d', nome: '🍃 PRAGA NATURAL' }
+            florim_arvore: { raio: 100, alcanceMax: 300, classe: 'florim', cor: '#4d8a36', nome: '🌳 ÁRVORE CURATIVA' },
+            florim_semente: { raio: 40, alcanceMax: 300, classe: 'florim', cor: '#6fbf45', nome: '🌱 SEMENTE' },
+            florim_espinhos: { raio: 120, alcanceMax: 300, classe: 'florim', cor: '#d64070', nome: '🌹 ESPINHOS DE ROSA' },
+            florim_parede: { raio: 80, alcanceMax: 250, classe: 'florim', cor: '#8a5a3a', nome: '🧱 PAREDE DE ESPINHOS' }
         };
         window.SKILLS_DRAG = SKILLS_DRAG;
         window.dragSkill = { ativo: false, skill: null, touchId: null, x: 0, y: 0 };
@@ -1551,7 +1577,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             else if (window.modoMiraBola && window.minhaClasse === 'mago') skill = 'mago_bola';
             else if (window.modoMiraBuraco && window.minhaClasse === 'arqueiro_arcano') skill = 'astral_buraco';
             else if (window.modoMiraSaltoChuva && window.minhaClasse === 'arqueiro') skill = 'salto_chuva';
-            else if (window.modoMiraVinculo && window.minhaClasse === 'barbaro') skill = 'barbaro_vinculo'; else if (window.modoMiraFlorimSemente && window.minhaClasse === 'florim') skill = 'florim_semente'; else if (window.modoMiraFlorimCorrente && window.minhaClasse === 'florim') skill = 'florim_corrente'; else if (window.modoMiraFlorimAnel && window.minhaClasse === 'florim') skill = 'florim_anel'; else if (window.modoMiraFlorimPraga && window.minhaClasse === 'florim') skill = 'florim_praga';
+            else if (window.modoMiraVinculo && window.minhaClasse === 'barbaro') skill = 'barbaro_vinculo'; else if (window.modoMiraFlorimArvore && window.minhaClasse === 'florim') skill = 'florim_arvore'; else if (window.modoMiraFlorimSemente && window.minhaClasse === 'florim') skill = 'florim_semente'; else if (window.modoMiraFlorimEspinhos && window.minhaClasse === 'florim') skill = 'florim_espinhos'; else if (window.modoMiraFlorimParede && window.minhaClasse === 'florim') skill = 'florim_parede';
             else if (window.arqueiroSaltoNoAlto) skill = 'salto_chuva';
 
             if (!skill) return null;
@@ -1583,7 +1609,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             if (skill === 'caixa') return window.dmCaixaCooldown;
             if (skill === 'cometas') return window.arcanoCometasCooldown;
             if (skill === 'orbe') return window.arcanoOrbeCooldown;
-            if (skill === 'rede') return window.sniperRedeCooldown; if (skill === 'florim_semente') return florimSementeCooldown; if (skill === 'florim_corrente') return florimCorrenteCooldown; if (skill === 'florim_anel') return florimAnelCooldown; if (skill === 'florim_praga') return florimPragaCooldown;
+            if (skill === 'rede') return window.sniperRedeCooldown; if (skill === 'florim_arvore') return florimArvoreCooldown; if (skill === 'florim_semente') return florimSementeCooldown; if (skill === 'florim_espinhos') return florimEspinhosCooldown; if (skill === 'florim_parede') return florimParedeCooldown;
             return false;
         }
 
@@ -1727,7 +1753,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
         }
 
         // Reseta o cooldown visual de uma skill (usado quando o servidor rejeita o uso).
-        const ACOES_SKILL_CANCELAVEIS = ['meteoro', 'nevasca', 'mago_vulcao', 'arqueiro_chuva', 'arqueiro_perfurante', 'arqueiro_rajada', 'curandeiro_cura', 'curandeiro_julgamento', 'curandeiro_aura', 'barbaro_furia', 'barbaro_esmagamento', 'barbaro_giro_descontrolado', 'roqueiro_bateria', 'roqueiro_teleporte', 'roqueiro_banda', 'roqueiro_grito_guerra', 'ladino_danca', 'ladino_bomba', 'ladino_camuflagem', 'ladino_estrela', 'comando_pet_ogro', 'comando_salto_ogro', 'comando_ogro_colossal', 'dash', 'tornado', 'guerreiro_provocacao', 'dronemaster_supressao', 'dronemaster_assalto', 'dronemaster_caixa', 'dronemaster_tita', 'arqueiro_cometas', 'arqueiro_orbe', 'arqueiro_cascata', 'sniper_apontar', 'sniper_fogo', 'sniper_rede', 'sniper_posicao', 'sniper_camuflagem', 'pikeman_giro', 'pikeman_pirueta', 'pikeman_geada', 'pikeman_execucao', 'guerreiro_escudo_lancamento', 'mago_bola_elemental', 'arqueiro_salto_chuva', 'curandeiro_cantico', 'barbaro_vinculo', 'summoner_golem_sismico', 'astral_buraco_negro'];
+        const ACOES_SKILL_CANCELAVEIS = ['meteoro', 'nevasca', 'mago_vulcao', 'arqueiro_chuva', 'arqueiro_perfurante', 'arqueiro_rajada', 'curandeiro_cura', 'curandeiro_julgamento', 'curandeiro_aura', 'barbaro_furia', 'barbaro_esmagamento', 'barbaro_giro_descontrolado', 'roqueiro_bateria', 'roqueiro_teleporte', 'roqueiro_banda', 'roqueiro_grito_guerra', 'ladino_danca', 'ladino_bomba', 'ladino_camuflagem', 'ladino_estrela', 'comando_pet_ogro', 'comando_salto_ogro', 'comando_ogro_colossal', 'dash', 'tornado', 'guerreiro_provocacao', 'postura_guardiao', 'dronemaster_supressao', 'dronemaster_assalto', 'dronemaster_caixa', 'dronemaster_tita', 'arqueiro_cometas', 'arqueiro_orbe', 'arqueiro_cascata', 'sniper_apontar', 'sniper_fogo', 'sniper_rede', 'sniper_posicao', 'sniper_camuflagem', 'pikeman_giro', 'pikeman_pirueta', 'pikeman_geada', 'pikeman_execucao', 'guerreiro_escudo_lancamento', 'mago_bola_elemental', 'arqueiro_salto_chuva', 'curandeiro_cantico', 'barbaro_vinculo', 'summoner_golem_sismico', 'astral_buraco_negro'];
         function cancelarCooldownVisual(skill) {
             const mapa = {
                 meteoro:               () => { window.meteoroCooldownAtivo = false; limparCdBotao(btnMeteoro); },
@@ -1773,12 +1799,17 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 pikeman_geada:        () => { window.geadaPikemanCooldown = false; limparCdBotao(btnPikemanGeada); },
                 pikeman_execucao:     () => { window.execucaoPikemanCooldown = false; limparCdBotao(btnPikemanExecucao); },
                 guerreiro_escudo_lancamento: () => { window.cdGuerreiroEscudo = false; limparCdBotao(btnGuerreiroEscudo); },
+                postura_guardiao:      () => { window.guerreiroGuardiaoCooldownAtivo = false; limparCdBotao(btnGuerreiroGuardiao); },
                 mago_bola_elemental:        () => { window.cdMagoBola = false; limparCdBotao(btnMagoBola); },
                 arqueiro_salto_chuva:       () => { window.cdArqueiroSalto = false; limparCdBotao(btnArqueiroSalto); },
                 curandeiro_cantico:         () => { window.cdCurandeiroCantico = false; limparCdBotao(btnCurandeiroCantico); },
                 barbaro_vinculo:            () => { window.cdBarbaroVinculo = false; limparCdBotao(btnBarbaroVinculo); },
                 summoner_golem_sismico:     () => { window.cdSummonerGolem = false; limparCdBotao(btnSummonerGolem); },
-                astral_buraco_negro:        () => { window.cdArcanoBuraco = false; limparCdBotao(btnArcanoBuraco); }
+                astral_buraco_negro:        () => { window.cdArcanoBuraco = false; limparCdBotao(btnArcanoBuraco); },
+                kaledron_golpe:             () => { window.cdKaledronGolpe = false; limparCdBotao(btnKaledronGolpe); },
+                kaledron_impacto:           () => { window.cdKaledronImpacto = false; limparCdBotao(btnKaledronImpacto); },
+                kaledron_redemoinho:        () => { window.cdKaledronRedemoinho = false; limparCdBotao(btnKaledronRedemoinho); },
+                kaledron_brado:             () => { window.cdKaledronBrado = false; limparCdBotao(btnKaledronBrado); }
             };
             const fn = mapa[skill];
             if (fn) fn();
@@ -1808,6 +1839,11 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             return false;
         }
 
+        function iniciarMagoCastLocal(skill) {
+            window.magoCasts = window.magoCasts || {};
+            window.magoCasts[window.meuId] = { startAt: Date.now(), durMs: 1000, skill: skill };
+        }
+
         function dispararMeteoro(tx, ty) {
             if (window.estaMorto || window.meteoroCooldownAtivo || window.minhaClasse !== 'mago') return;
             if (!checarSkill('meteoro', 30, tx, ty, 380)) return;
@@ -1815,6 +1851,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             cancelarTodasMiras();
             window.meteoroCooldownAtivo = true; btnMeteoro.classList.add("cooldown"); registrarCooldownBotao(btnMeteoro, 7000);
             setTimeout(() => { window.meteoroCooldownAtivo = false; btnMeteoro.classList.remove("cooldown"); btnMeteoro.dataset.cdUntil = ''; }, 7000);
+            iniciarMagoCastLocal('meteoro');
             if (window.tocarSonoro) window.tocarSonoro('mago_meteoro_queda');
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'meteoro', targetX: tx, targetY: ty })); }
         }
@@ -1826,6 +1863,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             cancelarTodasMiras();
             window.nevascaCooldownAtivo = true; btnNevasca.classList.add("cooldown"); registrarCooldownBotao(btnNevasca, 12000);
             setTimeout(() => { window.nevascaCooldownAtivo = false; btnNevasca.classList.remove("cooldown"); btnNevasca.dataset.cdUntil = ''; }, 12000);
+            iniciarMagoCastLocal('nevasca');
             if (window.tocarSonoro) window.tocarSonoro('mago_nevasca');
             if (ws && ws.readyState === WebSocket.OPEN) { ws.send(JSON.stringify({ action: 'nevasca', targetX: tx, targetY: ty })); }
         }
@@ -1837,6 +1875,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             cancelarTodasMiras();
             window.vulcaoCooldownAtivo = true; btnVulcao.classList.add("cooldown"); registrarCooldownBotao(btnVulcao, 20000);
             setTimeout(() => { window.vulcaoCooldownAtivo = false; btnVulcao.classList.remove("cooldown"); btnVulcao.dataset.cdUntil = ''; }, 20000);
+            iniciarMagoCastLocal('vulcao');
             window.meuVulcao = { x: tx, y: ty, ate: Date.now() + 14000 };
             window.ultimoImpactoLava = 0;
             if (window.tocarSonoro) window.tocarSonoro('mago_lava_fervendo');
@@ -1952,7 +1991,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             else if (skill === 'cometas') dispararChuvaCometas(tx, ty);
             else if (skill === 'orbe') dispararOrbeConstelacao(tx, ty);
             else if (skill === 'rede') dispararRedeSniper(tx, ty);
-            else if (skill === 'florim_semente' || skill === 'florim_corrente' || skill === 'florim_anel' || skill === 'florim_praga') {
+            else if (skill === 'florim_arvore' || skill === 'florim_semente' || skill === 'florim_espinhos' || skill === 'florim_parede') {
                 let p = clamparAlcanceSkill(skill, tx, ty);
                 dispararFlorimSkill(skill, p.x, p.y);
             }
@@ -2807,7 +2846,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
         }
 
         const tabelaXp = {"1":100,"2":273,"3":491,"4":746,"5":1031,"6":1343,"7":1680,"8":2039,"9":2419,"10":2818,"11":3236,"12":3671,"13":4123,"14":4590,"15":5073,"16":5571,"17":6083,"18":6609,"19":7148,"20":7700,"21":8264,"22":8841,"23":9429,"24":10030,"25":10641,"26":11264,"27":11898,"28":12542,"29":13197,"30":13861,"31":14536,"32":15221,"33":15916,"34":16620,"35":17333,"36":18056,"37":18788,"38":19529,"39":20278,"40":21037,"41":21804,"42":22579,"43":23363,"44":24154,"45":24955,"46":25763,"47":26579,"48":27403,"49":28234,"50":29074,"51":29921,"52":30775,"53":31637,"54":32506,"55":33383,"56":34266,"57":35157,"58":36055,"59":36960,"60":37872};
-        function atualizarHudXp() { let xpMax = tabelaXp[meuLevel] || 100; xpBarFill.style.width = Math.min(100, (meuXp / xpMax) * 100) + "%"; levelText.innerText = `LVL ${meuLevel}`; aplicarTextoBarra(xpBarTexto, meuXp, xpMax, barrasModo().xpBar); }
+        function atualizarHudXp() { let xpMax = tabelaXp[meuLevel] || Math.floor(100 * Math.pow(Math.max(1, meuLevel || 1), 1.45)); xpBarFill.style.width = Math.min(100, (meuXp / xpMax) * 100) + "%"; levelText.innerText = `LVL ${meuLevel}`; aplicarTextoBarra(xpBarTexto, meuXp, xpMax, barrasModo().xpBar); }
         function atualizarHudEstamina() { if (!staminaBarFill) return; staminaBarFill.style.width = Math.max(0, minhaEstamina) + "%"; }
         function atualizarHudMp() { if (!mpBarFill) return; let max = window.meuMaxMp || 50; let m = window.meuMp || 0; mpBarFill.style.width = Math.max(0, Math.min(100, (m / max) * 100)) + "%"; aplicarTextoBarra(mpBarTexto, m, max, barrasModo().mpBar); }
         // v1.34: barra de VIDA (vermelho forte) na HUD
@@ -2843,29 +2882,35 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
 
             // Mapa classe -> arquivo de perfil. Os PNGs são quadrados (1254×1254).
             var _perfilMapa = {
-                guerreiro:       'Guerreiro',
-                mago:            'Mago',
-                summoner:        'Summoner',
-                arqueiro:        'Arqueira',
-                barbaro:         'Barbaro',
-                roqueiro:        'Roqueiro',
-                ladino:          'Ladino',
-                dronemaster:     'DroneMaster',
-                arqueiro_arcano: 'Arqueir_astral',
-                arqueiro_astral: 'Arqueir_astral',
-                sniper:          'sniper',
-                pikeman:         'PikeMan',
-                curandeiro:      'curandeiro'
+                guerreiro:          'Guerreiro',
+                mago:               'Mago',
+                summoner:           'Summoner',
+                arqueiro:           'Arqueira',
+                barbaro:            'Barbaro',
+                roqueiro:           'Roqueiro',
+                ladino:             'Ladino',
+                dronemaster:        'DroneMaster',
+                arqueiro_arcano:    'Arqueir_astral',
+                arqueiro_astral:    'Arqueir_astral',
+                sniper:             'sniper',
+                pikeman:            'PikeMan',
+                curandeiro:         'curandeiro',
+                guerreiro_kaledron: 'Kaledron',
+                kaledron:           'Kaledron',
+                florim:             'Frorin'
             };
             var _perfilCache = {};
             function _perfilDaClasse(classe) {
-                if (!classe || !_perfilMapa[classe]) return null;
-                if (!_perfilCache[classe]) {
+                if (!classe) return null;
+                var cNorm = String(classe).toLowerCase().trim();
+                var nome = _perfilMapa[cNorm] || _perfilMapa[classe];
+                if (!nome) return null;
+                if (!_perfilCache[nome]) {
                     var im = new Image();
-                    im.src = 'imagem/HUD/Perfil/' + _perfilMapa[classe] + '.png?v=perfil3';
-                    _perfilCache[classe] = im;
+                    im.src = 'imagem/HUD/Perfil/' + nome + '.png?v=perfil4';
+                    _perfilCache[nome] = im;
                 }
-                return _perfilCache[classe];
+                return _perfilCache[nome];
             }
 
             // ============ Primitivas ============
@@ -3021,12 +3066,16 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                     // Só o valor, no formato escolhido nas Configurações.
                     var texto = formatarBarra(sp.valor, sp.max, sp.modo);
                     if (texto) {
-                        var fs = Math.max(7, Math.round(bh * 0.62));
-                        ctx.font = '700 ' + fs + 'px Rajdhani, sans-serif';
+                        var fs = Math.max(11, Math.round(bh * 0.85));
+                        ctx.font = '700 ' + fs + 'px Arial, sans-serif';
                         ctx.textBaseline = 'middle';
-                        ctx.textAlign = 'right';
+                        ctx.textAlign = 'center';
+                        ctx.lineJoin = 'round';
+                        ctx.lineWidth = 2.5;
+                        ctx.strokeStyle = 'rgba(0,0,0,0.95)';
+                        ctx.strokeText(texto, bx + bw / 2, by + bh / 2);
                         ctx.fillStyle = '#ffffff';
-                        ctx.fillText(texto, bx + bw - (e2 + fs * 0.45), by + bh / 2);
+                        ctx.fillText(texto, bx + bw / 2, by + bh / 2);
                     }
                 }
             };
@@ -3099,6 +3148,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 else if (cls === 'dronemaster' && window.desenharDronemaster) window.desenharDronemaster(px, py, mov, ang, hpVal, maxHpVal, { eu: true, pp: null });
                 else if (cls === 'arqueiro_arcano' && window.desenharArqueiroArcano) window.desenharArqueiroArcano(px, py, mov, ang, hpVal, maxHpVal, { eu: true, pp: null });
                 else if (cls === 'sniper' && window.desenharSniper) window.desenharSniper(px, py, mov, ang, hpVal, maxHpVal, { eu: true, pp: null });
+                else if (cls === 'guerreiro_kaledron' && window.desenharKaledron) window.desenharKaledron(px, py, mov, ang, hpVal, maxHpVal, pid);
                 else if (window.desenharGuerreiro) window.desenharGuerreiro(px, py, "#c0392b", mov, ang, hpVal, maxHpVal, false, 0, pid);
             } catch (e) { /* ignorar falha de desenho do retrato */ }
             finally { window.ctx = oldCtx; }
@@ -3181,6 +3231,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 ['btn-dash', () => window.dashCooldownAtivo, 5],
                 ['btn-tornado', () => tornadoCooldownAtivo, 5],
                 ['btn-guerreiro-provocacao', () => provocacaoCooldownAtivo, 15],
+                ['btn-guerreiro-guardiao', () => window.guerreiroGuardiaoCooldownAtivo, 14],
                 ['btn-guerreiro-escudo', () => window.cdGuerreiroEscudo, 10],
                 ['btn-pikeman-giro', () => window.giroPikemanCooldown, 7],
                 ['btn-pikeman-pirueta', () => window.piruetaPikemanCooldown, 10],
@@ -3431,6 +3482,11 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                                 if (dados.skills[sid] && dados.skills[sid] > 1) window.skillsNiveis[sid] = dados.skills[sid];
                             });
                         }
+                        if (dados.skillUpgrades) {
+                            window.skillUpgrades = dados.skillUpgrades;
+                            if (typeof window.atualizarSkillTreeUi === 'function') window.atualizarSkillTreeUi();
+                            if (typeof renderizarSkills === 'function') renderizarSkills();
+                        }
                         atualizarHudXp();
                         atualizarHudMp();
                         if (window.atualizarHudHp) window.atualizarHudHp();
@@ -3441,7 +3497,11 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                         const enviarPingReal = () => { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'ping', t: Date.now() })); };
                         enviarPingReal();
                         pingIntervalo = setInterval(enviarPingReal, 1000);
-                        window.ehAdmin = !!dados.admin || (window.meuId && window.meuId.toLowerCase() === 'admin');
+                        window.ehAdmin = !!dados.admin ||
+                                         (window.meuId && (window.meuId.toLowerCase() === 'admin' || window.meuId.toLowerCase() === 'heroi_admin')) ||
+                                         (dados.nome && dados.nome.toLowerCase() === 'admin') ||
+                                         (localStorage.getItem('mmorpg_user_id') && localStorage.getItem('mmorpg_user_id').toLowerCase() === 'admin') ||
+                                         (localStorage.getItem('mmorpg_conta_id') && localStorage.getItem('mmorpg_conta_id').toLowerCase() === 'admin');
                         if (window.ehAdmin) {
                             if (typeof mostrarBotaoSpawnAdmin === "function") mostrarBotaoSpawnAdmin();
                             if (typeof window.mostrarBotaoVfxAdmin === "function") window.mostrarBotaoVfxAdmin();
@@ -3449,7 +3509,11 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                             if (typeof window.mostrarBotaoMapaEditor === "function") window.mostrarBotaoMapaEditor();
                             if (typeof window.mostrarBotaoAdminCheats === "function") window.mostrarBotaoAdminCheats();
                             let bAdmin = document.getElementById('btn-item-admin');
-                            if (bAdmin) bAdmin.style.display = 'flex';
+                            if (bAdmin) bAdmin.style.setProperty('display', 'flex', 'important');
+                            let bCheats = document.getElementById('btn-admin-cheats');
+                            if (bCheats) bCheats.style.setProperty('display', 'flex', 'important');
+                            let bMobAdmin = document.getElementById('mobile-sidebar-item-admin');
+                            if (bMobAdmin) bMobAdmin.style.setProperty('display', 'flex', 'important');
                         }
                         let autoClassePersonagem = (window.PersonagemSelect && typeof window.PersonagemSelect.autoEntrarComClasse === 'function') ? window.PersonagemSelect.autoEntrarComClasse() : false;
                         if (classePendente) {
@@ -3570,6 +3634,8 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                             mostrarEfeitoLevelUp();
                             if (typeof renderizarSkills === "function") renderizarSkills();
                             if (typeof renderizarAtributos === "function") renderizarAtributos();
+                            if (typeof window.atualizarSkillTreeUi === "function") window.atualizarSkillTreeUi();
+                            if (typeof window.atualizarVisualAdminLevel === "function") window.atualizarVisualAdminLevel();
                         }
                     }
 
@@ -3621,6 +3687,39 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                         window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 34, text: "⚠️ " + (dados.mensagem || "Erro"), color: "#e74c3c", alpha: 1.0 });
                     }
 
+                    if (dados.type === 'skill_upgrades_sync') {
+                        window.skillUpgrades = dados.skillUpgrades || {};
+                        if (typeof window.atualizarSkillTreeUi === 'function') window.atualizarSkillTreeUi();
+                        if (typeof renderizarSkills === 'function') renderizarSkills();
+                    }
+
+                    if (dados.type === 'skill_upgrade_tree_sucesso') {
+                        window.skillUpgrades = dados.skillUpgrades || (window.skillUpgrades || {});
+                        if (typeof window.atualizarSkillTreeUi === 'function') window.atualizarSkillTreeUi();
+                        if (typeof renderizarSkills === 'function') renderizarSkills();
+                        if (statusText) statusText.innerText = "✨ Upgrade adquirido: " + (dados.nome || "Novo Poder") + "!";
+                        if (window.floatingTexts && window.meuX !== undefined) {
+                            window.floatingTexts.push({ x: window.meuX, y: window.meuY - 30, text: "✨ " + (dados.nome || "Upgrade!"), color: "#f39c12", alpha: 1.0 });
+                        }
+                    }
+
+                    if (dados.type === 'skill_upgrade_tree_erro') {
+                        if (statusText) statusText.innerText = "⚠️ " + (dados.mensagem || "Erro ao adquirir upgrade.");
+                        if (window.floatingTexts && window.meuX !== undefined) {
+                            window.floatingTexts.push({ x: window.meuX, y: window.meuY - 30, text: "⚠️ " + (dados.mensagem || "Erro"), color: "#e74c3c", alpha: 1.0 });
+                        }
+                    }
+
+                    if (dados.type === 'skill_upgrades_tree_reset_sucesso') {
+                        window.skillUpgrades = dados.skillUpgrades || {};
+                        if (typeof window.atualizarSkillTreeUi === 'function') window.atualizarSkillTreeUi();
+                        if (typeof renderizarSkills === 'function') renderizarSkills();
+                        if (statusText) statusText.innerText = "↺ Árvore de Upgrades resetada! Pontos devolvidos.";
+                        if (window.floatingTexts && window.meuX !== undefined) {
+                            window.floatingTexts.push({ x: window.meuX, y: window.meuY - 30, text: "↺ Upgrades Resetados!", color: "#3498db", alpha: 1.0 });
+                        }
+                    }
+
                     if (dados.type === 'mp_sync') {
                         window.meuMp = dados.mp;
                         if (dados.maxMp) window.meuMaxMp = dados.maxMp;
@@ -3637,11 +3736,13 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                     }
 
                     if (dados.type === 'mp_insuficiente') {
+                        if (window.magoCasts) delete window.magoCasts[window.meuId];
                         if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 34, text: "💧 Sem Mana!", color: "#3498db", alpha: 1.0 });
                         if (typeof cancelarCooldownUltimaSkill === 'function') cancelarCooldownUltimaSkill();
                     }
 
                     if (dados.type === 'skill_aviso' && dados.motivo === 'fora_alcance') {
+                        if (window.magoCasts && ['meteoro', 'nevasca', 'mago_vulcao'].includes(dados.skill)) delete window.magoCasts[window.meuId];
                         if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 34, text: "🎯 Fora de alcance!", color: "#e74c3c", alpha: 1.0 });
                         if (typeof cancelarCooldownUltimaSkill === 'function') cancelarCooldownUltimaSkill();
                     }
@@ -3650,6 +3751,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                     // O cooldown do cliente NÃO é cancelado: ele já está correto.
                     // Só avisamos o jogador e o anel continua contando.
                     if (dados.type === 'skill_aviso' && dados.motivo === 'cooldown') {
+                        if (window.magoCasts && ['meteoro', 'nevasca', 'mago_vulcao'].includes(dados.skill)) delete window.magoCasts[window.meuId];
                         if (window.floatingTexts) window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 34, text: "⏳ Em recarga!", color: "#f1c40f", alpha: 1.0 });
                     }
 
@@ -3747,7 +3849,6 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                             'btn-roqueiro-grito': { id: 'grito_guerra', baseMp: 30 },
                             'btn-ogro-skill': { id: 'esmagamento', baseMp: 25 },
                             'btn-ogro-salto': { id: 'salto', baseMp: 20 },
-                            'btn-dash': { id: 'dash', baseMp: 15 },
                             'btn-tornado': { id: 'tornado', baseMp: 20 },
                             'btn-guerreiro-provocacao': { id: 'provocacao', baseMp: 20 },
                             'btn-dm-supressao': { id: 'supressao_dm', baseMp: 25 },
@@ -4219,9 +4320,27 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                         if (typeof window.criarAnimacaoRugidoOgro === 'function') window.criarAnimacaoRugidoOgro(dados.x, dados.y);
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 45, text: "🦁 RUGIDO!", color: "#9b59b6", alpha: 1.0 });
                     }
-                    if (dados.type === 'action_meteoro') { if(typeof window.criarAnimacaoMeteoro === "function") window.criarAnimacaoMeteoro(dados.targetX, dados.targetY); }
-                    if (dados.type === 'action_nevasca') { if(typeof window.criarAnimacaoNevasca === "function") window.criarAnimacaoNevasca(dados.targetX, dados.targetY, dados.radius, dados.duracaoMs); }
-                    if (dados.type === 'action_vulcao') { if(typeof window.criarAnimacaoVulcao === "function") window.criarAnimacaoVulcao(dados.targetX, dados.targetY, dados.radius, dados.duracao); }
+                    if (dados.type === 'action_mago_cast_start') {
+                        window.magoCasts = window.magoCasts || {};
+                        if (!window.magoCasts[dados.id]) {
+                            window.magoCasts[dados.id] = { startAt: Date.now(), durMs: dados.durMs || 1000, skill: dados.skill || '' };
+                        }
+                    }
+                    if (dados.type === 'action_mago_cast_end') {
+                        if (window.magoCasts) delete window.magoCasts[dados.id];
+                    }
+                    if (dados.type === 'action_meteoro') {
+                        if (window.magoCasts) delete window.magoCasts[dados.id];
+                        if (typeof window.criarAnimacaoMeteoro === 'function') window.criarAnimacaoMeteoro(dados.targetX, dados.targetY);
+                    }
+                    if (dados.type === 'action_nevasca') {
+                        if (window.magoCasts) delete window.magoCasts[dados.ownerId];
+                        if (typeof window.criarAnimacaoNevasca === 'function') window.criarAnimacaoNevasca(dados.targetX, dados.targetY, dados.radius, dados.duracaoMs);
+                    }
+                    if (dados.type === 'action_vulcao') {
+                        if (window.magoCasts) delete window.magoCasts[dados.ownerId];
+                        if (typeof window.criarAnimacaoVulcao === 'function') window.criarAnimacaoVulcao(dados.targetX, dados.targetY, dados.radius, dados.duracao);
+                    }
                     if (dados.type === 'vulcao_projetil') { if(typeof window.criarVulcaoProjetil === "function") window.criarVulcaoProjetil(dados.vx, dados.vy, dados.tx, dados.ty, dados.tipo, dados.id); }
                     if (dados.type === 'vulcao_impacto') {
                         if (typeof window.criarVulcaoImpacto === "function") window.criarVulcaoImpacto(dados.tx, dados.ty, dados.tipo, dados.id);
@@ -4250,7 +4369,16 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                         window.dmDroneX = (window.meuX || 0) + 12 + 26;
                         window.dmDroneY = (window.meuY || 0) + 16 - 16;
                     }
+                    if (dados.type === 'action_dm_assalto_fim' && window.dmAssaltoAtaques) {
+                        delete window.dmAssaltoAtaques[dados.id];
+                    }
                     if (dados.type === 'action_dm_assalto_ataque') {
+                        window.dmAssaltoAtaques = window.dmAssaltoAtaques || Object.create(null);
+                        window.dmAssaltoAtaques[dados.id] = {
+                            inicio: Date.now(),
+                            duracao: 360,
+                            angulo: Number.isFinite(dados.angulo) ? dados.angulo : 0
+                        };
                         if (dados.id === window.meuId) {
                             if (window.tocarSonoro) window.tocarSonoro('dronemaster_assalto_impacto');
                         } else if (window.tocarSonoroProximidade) {
@@ -4387,11 +4515,61 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                     if (dados.type === 'action_sniper_camuflagem_fim') {
                         if (dados.id === window.meuId) { window.snCamufladoAtivo = false; }
                     }                    // ===== AÇÕES DO FLORIM =====
-                    if (dados.type === 'action_florim_semente') { if (typeof window.criarAnimacaoSementeFlorim === 'function') window.criarAnimacaoSementeFlorim(dados.id,dados.x,dados.y,dados.raio); }
-                    if (dados.type === 'action_florim_semente_ativada') { if (typeof window.criarAnimacaoSementeFlorimAtivada === 'function') window.criarAnimacaoSementeFlorimAtivada(dados.x,dados.y,dados.aliado); }
-                    if (dados.type === 'action_florim_corrente') { if (typeof window.criarAnimacaoCorrenteFlorim === 'function') window.criarAnimacaoCorrenteFlorim(dados.id,dados.x,dados.y,dados.alvoX,dados.alvoY,dados.durMs); }
-                    if (dados.type === 'action_florim_anel') { if (typeof window.criarAnimacaoAnelFlorim === 'function') window.criarAnimacaoAnelFlorim(dados.id,dados.x,dados.y,dados.raio,dados.durMs); }
-                    if (dados.type === 'action_florim_praga') { if (typeof window.criarAnimacaoDebuffFlorim === 'function') window.criarAnimacaoDebuffFlorim(dados.x,dados.y,dados.raio,dados.durMs); }
+                    if (dados.type === 'action_florim_basic' && typeof window.criarAnimacaoAtaqueBasicoFlorim === 'function') window.criarAnimacaoAtaqueBasicoFlorim(dados.x, dados.y, dados.angulo);
+                    if (dados.type === 'action_florim_arvore' && typeof window.criarAnimacaoArvoreFlorim === 'function') window.criarAnimacaoArvoreFlorim(dados.id, dados.x, dados.y, dados.raio);
+                    if (dados.type === 'action_florim_arvore_cura') {
+                        if (typeof window.criarAnimacaoArvoreCuraFlorim === 'function') window.criarAnimacaoArvoreCuraFlorim(dados.id, dados.x, dados.y, dados.raio);
+                        let vCura = dados.valor || 30;
+                        if (Array.isArray(dados.alvos) && dados.alvos.length > 0) {
+                            dados.alvos.forEach(alvo => {
+                                if (Array.isArray(window.floatingTexts)) {
+                                    window.floatingTexts.push({
+                                        x: alvo.x,
+                                        y: alvo.y - 36,
+                                        text: '+' + (alvo.valor || vCura) + ' HP ✨',
+                                        color: '#2ecc71',
+                                        alpha: 1.0
+                                    });
+                                }
+                            });
+                        } else if (Number.isFinite(dados.x) && Number.isFinite(dados.y)) {
+                            if (Array.isArray(window.floatingTexts)) {
+                                window.floatingTexts.push({
+                                    x: dados.x,
+                                    y: dados.y - 36,
+                                    text: '+' + vCura + ' HP ✨',
+                                    color: '#2ecc71',
+                                    alpha: 1.0
+                                });
+                            }
+                        }
+                    }
+                    if (dados.type === 'action_florim_semente' && typeof window.criarAnimacaoSementeFlorim === 'function') window.criarAnimacaoSementeFlorim(dados.id, dados.x, dados.y);
+                    if (dados.type === 'action_florim_semente_ativada' && typeof window.criarAnimacaoSementeAtivadaFlorim === 'function') window.criarAnimacaoSementeAtivadaFlorim(dados.x, dados.y, dados.tipo);
+                    if (dados.type === 'action_florim_espinhos' && typeof window.criarAnimacaoEspinhosFlorim === 'function') window.criarAnimacaoEspinhosFlorim(dados.id, dados.x, dados.y, dados.raio);
+                    if (dados.type === 'action_florim_espinhos_debuff') {
+                        if (Array.isArray(dados.alvos)) {
+                            dados.alvos.forEach(alvo => {
+                                if (Array.isArray(window.floatingTexts)) {
+                                    window.floatingTexts.push({
+                                        x: alvo.x,
+                                        y: alvo.y - 34,
+                                        text: '🛡️ -20% DEF',
+                                        color: '#e74c3c',
+                                        alpha: 1.0
+                                    });
+                                    window.floatingTexts.push({
+                                        x: alvo.x,
+                                        y: alvo.y - 48,
+                                        text: '⚔️ -20% ATK',
+                                        color: '#e67e22',
+                                        alpha: 1.0
+                                    });
+                                }
+                            });
+                        }
+                    }
+                    if (dados.type === 'action_florim_parede' && typeof window.criarAnimacaoParedeFlorim === 'function') window.criarAnimacaoParedeFlorim(dados.id, dados.x, dados.y, dados.raio);
 
                     // ===== AÇÕES DO PIKEMAN =====
                     if (dados.type === 'action_pikeman_foice') {
@@ -4460,6 +4638,32 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                         if (typeof window.cancelarAnimacaoExecucaoPikeman === 'function') window.cancelarAnimacaoExecucaoPikeman(dados.id);
                         if (typeof window.pararSomPikemanCarregando === 'function') window.pararSomPikemanCarregando();
                     }
+
+                    // ===== AÇÕES DO GUERREIRO KALEDRON =====
+                    if (dados.type === 'action_kaledron_ataque') {
+                        if (typeof window.registrarKaledronAnim === 'function') window.registrarKaledronAnim(dados.id, 'ataque', 650, { angulo: dados.angulo });
+                        if (dados.id !== window.meuId && window.tocarSonoroProximidade) window.tocarSonoroProximidade('kaledron_espada', dados.x, dados.y);
+                    }
+                    if (dados.type === 'action_kaledron_golpe_fulminante') {
+                        if (typeof window.criarAnimacaoGolpeFulminanteKaledron === 'function') window.criarAnimacaoGolpeFulminanteKaledron(dados.id, dados.x, dados.y, dados.angulo);
+                        if (window.tocarSonoroProximidade) window.tocarSonoroProximidade('kaledron_corte', dados.x, dados.y);
+                    }
+                    if (dados.type === 'action_kaledron_impacto_terrestre') {
+                        if (typeof window.criarAnimacaoImpactoTerrestreKaledron === 'function') window.criarAnimacaoImpactoTerrestreKaledron(dados.id, dados.x, dados.y, dados.raio);
+                        if (window.tocarSonoroProximidade) window.tocarSonoroProximidade('kaledron_impacto', dados.x, dados.y);
+                    }
+                    if (dados.type === 'action_kaledron_redemoinho') {
+                        if (typeof window.criarAnimacaoRedemoinhoKaledron === 'function') window.criarAnimacaoRedemoinhoKaledron(dados.id, dados.x, dados.y, dados.durMs);
+                        if (window.tocarSonoroProximidade) window.tocarSonoroProximidade('kaledron_redemoinho', dados.x, dados.y);
+                    }
+                    if (dados.type === 'action_kaledron_brado_guerra') {
+                        if (dados.id !== window.meuId && typeof window.criarAnimacaoBradoGuerraKaledron === 'function') window.criarAnimacaoBradoGuerraKaledron(dados.id, dados.x, dados.y);
+                        if (dados.id === window.meuId) {
+                            if (window.tocarSonoro) window.tocarSonoro('kaledron_brado');
+                        } else if (window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('kaledron_brado', dados.x, dados.y);
+                        }
+                    }
                     if (dados.type === 'action_tornado' && window.todosJogadores[dados.id]) {
                         window.tornadoTimers[dados.id] = 30;
                         if (dados.id === window.meuId) { if (window.tocarSonoro) window.tocarSonoro('guerreiro_tornado'); else tocarSomTornado(); }
@@ -4477,6 +4681,15 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                             window.criarAnimacaoCuraGuerreiro(dados.id, dados.x, dados.y, dados.cura);
                         }
                         if (typeof window.registrarDefesaGuerreiro === 'function') window.registrarDefesaGuerreiro(dados.id);
+                    }
+                    if (dados.type === 'action_guerreiro_postura_guardiao') {
+                        if (dados.id === window.meuId) {
+                            window.guerreiroBuffAte = dados.expiraEm || (Date.now() + 10000);
+                            if (window.floatingTexts) window.floatingTexts.push({
+                                x: dados.x, y: dados.y - 42, text: '🛡️ Postura do Guardião!',
+                                color: '#74f0b4', alpha: 1.0
+                            });
+                        }
                     }
                     if (dados.type === 'action_roqueiro_grito_guerra') {
                         if (dados.id === window.meuId) {
@@ -5022,6 +5235,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             
             btnTornado.style.display = "none";
             if (btnGuerreiroProvocacao) btnGuerreiroProvocacao.style.display = "none";
+            if (btnGuerreiroGuardiao) btnGuerreiroGuardiao.style.display = "none";
             btnMeteoro.style.display = "none"; btnNevasca.style.display = "none"; btnVulcao.style.display = "none"; btnOgroColossal.style.display = "none";
             btnOgroSkill.style.display = "none"; btnOgroSalto.style.display = "none";
             btnArqueiroChuva.style.display = "none"; btnArqueiroPerfurante.style.display = "none"; btnArqueiroRajada.style.display = "none";
@@ -5037,7 +5251,8 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             btnArcanoCometas.style.display = "none"; btnArcanoOrbe.style.display = "none"; btnArcanoCascata.style.display = "none";
             btnSniperApontar.style.display = "none"; btnSniperRede.style.display = "none"; btnSniperPosicao.style.display = "none"; btnSniperCamuflagem.style.display = "none";
             btnPikemanGiro.style.display = "none"; btnPikemanPirueta.style.display = "none"; btnPikemanGeada.style.display = "none"; btnPikemanExecucao.style.display = "none";
-            btnFlorimSemente.style.display = "none"; btnFlorimCorrente.style.display = "none"; btnFlorimAnel.style.display = "none"; btnFlorimPraga.style.display = "none";
+            btnFlorimArvore.style.display = "none"; btnFlorimSemente.style.display = "none"; btnFlorimEspinhos.style.display = "none"; btnFlorimParede.style.display = "none";
+            btnKaledronGolpe.style.display = "none"; btnKaledronImpacto.style.display = "none"; btnKaledronRedemoinho.style.display = "none"; btnKaledronBrado.style.display = "none";
 
             if(btnGuerreiroEscudo) btnGuerreiroEscudo.style.display = "none";
             if(btnMagoBola) btnMagoBola.style.display = "none";
@@ -5048,7 +5263,10 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             if(btnArcanoBuraco) btnArcanoBuraco.style.display = "none";
 
 
-            btnDash.innerText = "💨"; btnDash.title = "Dash (1)";
+            btnDash.firstChild.nodeValue = "💨";
+            btnDash.title = "Dash (1)";
+            const btnDashBadge = btnDash.querySelector('.key-badge');
+            if (btnDashBadge) btnDashBadge.textContent = '1';
 
             if (window.minhaClasse === 'mago') {
                 if(btnMagoBola) btnMagoBola.style.display = "block";
@@ -5079,7 +5297,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 btnLadinoDanca.style.display = "block"; btnLadinoBomba.style.display = "block"; btnLadinoCamuflagem.style.display = "block"; btnLadinoEstrela.style.display = "block"; btnAttack.innerText = "🗡️"; btnAttack.style.background = "#8e44ad";
             } else if (window.minhaClasse === 'dronemaster') {
                 btnDmSupressao.style.display = "block"; btnDmAssalto.style.display = "block"; btnDmCaixa.style.display = "block"; btnDmTita.style.display = "block"; btnAttack.innerText = "🤖"; btnAttack.style.background = "#00b5cc";
-                btnDash.innerText = "🛡️"; btnDash.title = "Escudo de Energia — 50% da vida máx (3s, CD 10s)";
+                btnDash.firstChild.nodeValue = "🛡️"; btnDash.title = "Escudo de Energia — 50% da vida máx (3s, CD 10s)";
             } else if (window.minhaClasse === 'arqueiro_arcano') {
                 if(btnArcanoBuraco) btnArcanoBuraco.style.display = "block";
                 btnArcanoCometas.style.display = "block"; btnArcanoOrbe.style.display = "block"; btnArcanoCascata.style.display = "block"; btnAttack.innerText = "🌠"; btnAttack.style.background = "#5b4da0";
@@ -5088,13 +5306,21 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             } else if (window.minhaClasse === 'pikeman') {
                 btnPikemanGiro.style.display = "block"; btnPikemanPirueta.style.display = "block"; btnPikemanGeada.style.display = "block"; btnPikemanExecucao.style.display = "block"; btnAttack.innerText = "⚖️"; btnAttack.style.background = "#5c2d36";
             } else if (window.minhaClasse === 'florim') {
-                btnFlorimSemente.style.display = "block"; btnFlorimCorrente.style.display = "block"; btnFlorimAnel.style.display = "block"; btnFlorimPraga.style.display = "block";
+                btnFlorimArvore.style.display = "block"; btnFlorimSemente.style.display = "block"; btnFlorimEspinhos.style.display = "block"; btnFlorimParede.style.display = "block";
                 btnAttack.innerText = "🌿"; btnAttack.style.background = "#4f9d45";
-                btnDash.title = 'Dash (Espaço)'; const __db = btnDash.querySelector('.key-badge'); if (__db) __db.textContent = 'SPC';
+                btnDash.title = 'Dash (Espaço)'; if (btnDashBadge) btnDashBadge.textContent = 'SPC';
+            } else if (window.minhaClasse === 'guerreiro_kaledron') {
+                btnKaledronGolpe.style.display = "block"; btnKaledronImpacto.style.display = "block"; btnKaledronRedemoinho.style.display = "block"; btnKaledronBrado.style.display = "block";
+                btnAttack.innerText = "🔥"; btnAttack.style.background = "#d35400";
             } else {
                 if (btnGuerreiroEscudo) btnGuerreiroEscudo.style.display = "block";
                 btnTornado.style.display = "block";
                 if (btnGuerreiroProvocacao) btnGuerreiroProvocacao.style.display = "block";
+                if (window.minhaClasse === 'guerreiro' && btnGuerreiroGuardiao) {
+                    btnGuerreiroGuardiao.style.display = "block";
+                    btnDash.title = 'Escudo (Espaço)';
+                    if (btnDashBadge) btnDashBadge.textContent = 'SPC';
+                }
                 btnAttack.innerText = "⚔️"; btnAttack.style.background = "#d9534f";
             }
             btnDash.style.display = "block";
@@ -5469,20 +5695,91 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
         }
 
         // ============================================================
+        // FLORIM — funções do cliente (SmartCast PC + Mobile Drag)
         // ============================================================
-        // FLORIM — funções do cliente
-        // ============================================================
-        let florimSementeCooldown=false, florimCorrenteCooldown=false, florimAnelCooldown=false, florimPragaCooldown=false;
-        function florimMiraPonto(){const px=window.meuX+12,py=window.meuY+16;return{x:Number.isFinite(window.mouseWorldX)?window.mouseWorldX:px+Math.cos(window.meuAngulo||0)*180,y:Number.isFinite(window.mouseWorldY)?window.mouseWorldY:py+Math.sin(window.meuAngulo||0)*180};}
+        let florimArvoreCooldown=false, florimSementeCooldown=false, florimEspinhosCooldown=false, florimParedeCooldown=false;
+        function florimMiraPonto(alcanceMax){
+            const m = typeof obterInfoMiraAtiva === 'function' ? obterInfoMiraAtiva() : null;
+            if (m && Number.isFinite(m.rx) && Number.isFinite(m.ry)) return { x: m.rx, y: m.ry };
+            let pX = window.meuX + 12, pY = window.meuY + 16;
+            if (window.mouseJaMoveu && Number.isFinite(window.mouseWorldX) && Number.isFinite(window.mouseWorldY)) {
+                let dx = window.mouseWorldX - pX, dy = window.mouseWorldY - pY;
+                let dist = Math.hypot(dx, dy) || 1;
+                let maxD = alcanceMax || 300;
+                if (dist > maxD) {
+                    return { x: pX + (dx / dist) * maxD, y: pY + (dy / dist) * maxD };
+                }
+                return { x: window.mouseWorldX, y: window.mouseWorldY };
+            }
+            let ang = Number.isFinite(window.meuAngulo) ? window.meuAngulo : 0;
+            return { x: pX + Math.cos(ang) * 160, y: pY + Math.sin(ang) * 160 };
+        }
         function florimAlvoSelecionado(){const a=typeof obterAlvoNaMira==='function'?obterAlvoNaMira():null;if(!a)return null;if(a.slime)return{tipo:'slime',id:a.slime.id,x:a.x,y:a.y};if(a.boss)return{tipo:'boss',id:a.boss.id,x:a.x,y:a.y};return null;}
-        function florimMiraPonto(){const m=typeof obterInfoMiraAtiva==='function'?obterInfoMiraAtiva():null;return m?{x:m.tx,y:m.ty}:{x:window.meuX+12+Math.cos(window.meuAngulo||0)*160,y:window.meuY+16+Math.sin(window.meuAngulo||0)*160};}
         function florimAlvoNoPonto(x,y){let best=null,dist=9999;(window.listaSlimes||[]).forEach(m=>{if(m&&m.hp>0){let d=Math.hypot(m.x-x,m.y-y);if(d<70&&d<dist){dist=d;best={tipo:'slime',id:m.id};}}});(window.bosses||[]).forEach(m=>{if(m&&m.hp>0){let d=Math.hypot(m.x-x,m.y-y);if(d<90&&d<dist){dist=d;best={tipo:'boss',id:m.id};}}});return best;}
-        function florimAtivarMira(skill){if(window.estaMorto||window.minhaClasse!=='florim'||skillEmCooldown(skill))return;cancelarTodasMiras();const map={florim_semente:['modoMiraFlorimSemente',btnFlorimSemente],florim_corrente:['modoMiraFlorimCorrente',btnFlorimCorrente],florim_anel:['modoMiraFlorimAnel',btnFlorimAnel],florim_praga:['modoMiraFlorimPraga',btnFlorimPraga]};const c=map[skill];if(!c)return;window[c[0]]=true;c[1].classList.add('aiming');statusText.innerText='🎯 [PC] Mova o mouse e clique para lançar a skill (ESC cancela)';}
-        function usarSementeFlorim(){florimAtivarMira('florim_semente');}
-        function usarCorrenteFlorim(){florimAtivarMira('florim_corrente');}
-        function usarAnelFlorim(){florimAtivarMira('florim_anel');}
-        function usarPragaFlorim(){florimAtivarMira('florim_praga');}
-        function dispararFlorimSkill(skill,tx,ty){if(window.estaMorto||window.minhaClasse!=='florim')return;let alvo=skill==='florim_corrente'?florimAlvoNoPonto(tx,ty):null;if(skill==='florim_corrente'&&!alvo){statusText.innerText='🎯 Clique diretamente em um inimigo para prendê-lo.';return;}if(ws&&ws.readyState===WebSocket.OPEN){ws.send(JSON.stringify(alvo?{action:skill,alvoTipo:alvo.tipo,alvoId:alvo.id}:{action:skill,targetX:tx,targetY:ty}));}cancelarTodasMiras();}
+        function florimAtivarMira(skill){
+            if(window.estaMorto||window.minhaClasse!=='florim'||skillEmCooldown(skill))return;
+            cancelarTodasMiras();
+            const map={
+                florim_arvore:['modoMiraFlorimArvore',btnFlorimArvore,'🌳 [PC] Mova o mouse e clique ou aperte 1 para invocar a Árvore Curativa! (ESC cancela)'],
+                florim_semente:['modoMiraFlorimSemente',btnFlorimSemente,'🌱 [PC] Mova o mouse e clique ou aperte 2 para plantar a Semente! (ESC cancela)'],
+                florim_espinhos:['modoMiraFlorimEspinhos',btnFlorimEspinhos,'🌹 [PC] Mova o mouse e clique ou aperte 3 para lançar Espinhos de Rosa! (ESC cancela)'],
+                florim_parede:['modoMiraFlorimParede',btnFlorimParede,'🧱 [PC] Mova o mouse e clique ou aperte 4 para erguer a Parede de Espinhos! (ESC cancela)']
+            };
+            const c=map[skill];
+            if(!c)return;
+            window[c[0]]=true;
+            if (c[1]) c[1].classList.add('aiming');
+            if (typeof statusText !== 'undefined' && statusText) statusText.innerText = c[2];
+        }
+        function usarArvoreFlorim(){ ativarArvoreFlorimSmartCast(); }
+        function usarSementeFlorim(){ ativarSementeFlorimSmartCast(); }
+        function usarEspinhosFlorim(){ ativarEspinhosFlorimSmartCast(); }
+        function usarParedeFlorim(){ ativarParedeFlorimSmartCast(); }
+
+        function ativarArvoreFlorimSmartCast(){
+            if(window.estaMorto||window.florimArvoreCooldown||window.minhaClasse!=='florim')return;
+            if(!window.modoMiraFlorimArvore){
+                florimAtivarMira('florim_arvore');
+                return;
+            }
+            let p = florimMiraPonto(300);
+            dispararFlorimSkill('florim_arvore', p.x, p.y);
+        }
+        function ativarSementeFlorimSmartCast(){
+            if(window.estaMorto||window.florimSementeCooldown||window.minhaClasse!=='florim')return;
+            if(!window.modoMiraFlorimSemente){
+                florimAtivarMira('florim_semente');
+                return;
+            }
+            let p = florimMiraPonto(300);
+            dispararFlorimSkill('florim_semente', p.x, p.y);
+        }
+        function ativarEspinhosFlorimSmartCast(){
+            if(window.estaMorto||window.florimEspinhosCooldown||window.minhaClasse!=='florim')return;
+            if(!window.modoMiraFlorimEspinhos){
+                florimAtivarMira('florim_espinhos');
+                return;
+            }
+            let p = florimMiraPonto(300);
+            dispararFlorimSkill('florim_espinhos', p.x, p.y);
+        }
+        function ativarParedeFlorimSmartCast(){
+            if(window.estaMorto||window.florimParedeCooldown||window.minhaClasse!=='florim')return;
+            if(!window.modoMiraFlorimParede){
+                florimAtivarMira('florim_parede');
+                return;
+            }
+            let p = florimMiraPonto(250);
+            dispararFlorimSkill('florim_parede', p.x, p.y);
+        }
+
+        function dispararFlorimSkill(skill,tx,ty){
+            if(window.estaMorto||window.minhaClasse!=='florim')return;
+            if(ws&&ws.readyState===WebSocket.OPEN){
+                ws.send(JSON.stringify({action:skill,targetX:Math.round(tx),targetY:Math.round(ty)}));
+            }
+            cancelarTodasMiras();
+        }
         // PIKEMAN — funções do cliente (disparo/úteis/skills)
         // ============================================================
 
@@ -5581,6 +5878,88 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             if (typeof window.criarAnimacaoExecucaoPikeman === 'function') window.criarAnimacaoExecucaoPikeman(window.meuId, window.meuX + 12, window.meuY + 16, alvo.x, alvo.y, 3000);
             if (window.tocarSonoro) window.tocarSonoro('pikeman_skill4_carregar');
             if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'pikeman_execucao', alvoTipo: alvo.tipo, alvoId: alvo.id }));
+        }
+
+        // ============================================================
+        // GUERREIRO KALEDRON - HABILIDADES
+        // ============================================================
+        function usarGolpeFulminanteKaledron() {
+            if (window.estaMorto || window.cdKaledronGolpe) return;
+            if (window.meuStunTimer > 0) return;
+            if (typeof checarSkill === 'function' && !checarSkill('slash_strike', 15)) return;
+
+            window.cdKaledronGolpe = true;
+            btnKaledronGolpe.classList.add("cooldown");
+            if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnKaledronGolpe, 4000);
+            setTimeout(() => { window.cdKaledronGolpe = false; limparCdBotao(btnKaledronGolpe); }, 4000);
+
+            let ang = window.meuAngulo || 0;
+            if (typeof window.criarAnimacaoGolpeFulminanteKaledron === 'function') {
+                window.criarAnimacaoGolpeFulminanteKaledron(window.meuId, window.meuX + 12, window.meuY + 16, ang);
+            }
+            if (window.tocarSonoro) window.tocarSonoro('kaledron_corte');
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'kaledron_golpe_fulminante', angulo: ang }));
+            }
+        }
+
+        function usarImpactoTerrestreKaledron() {
+            if (window.estaMorto || window.cdKaledronImpacto) return;
+            if (window.meuStunTimer > 0) return;
+            if (typeof checarSkill === 'function' && !checarSkill('ground_slam', 25)) return;
+
+            window.cdKaledronImpacto = true;
+            btnKaledronImpacto.classList.add("cooldown");
+            if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnKaledronImpacto, 10000);
+            setTimeout(() => { window.cdKaledronImpacto = false; limparCdBotao(btnKaledronImpacto); }, 10000);
+
+            let px = window.meuX + 12, py = window.meuY + 16;
+            if (typeof window.criarAnimacaoImpactoTerrestreKaledron === 'function') {
+                window.criarAnimacaoImpactoTerrestreKaledron(window.meuId, px, py, 110);
+            }
+            if (window.tocarSonoro) window.tocarSonoro('kaledron_impacto');
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'kaledron_impacto_terrestre' }));
+            }
+        }
+
+        function usarRedemoinhoKaledron() {
+            if (window.estaMorto || window.cdKaledronRedemoinho) return;
+            if (window.meuStunTimer > 0) return;
+            if (typeof checarSkill === 'function' && !checarSkill('whirlwind', 30)) return;
+
+            window.cdKaledronRedemoinho = true;
+            btnKaledronRedemoinho.classList.add("cooldown");
+            if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnKaledronRedemoinho, 12000);
+            setTimeout(() => { window.cdKaledronRedemoinho = false; limparCdBotao(btnKaledronRedemoinho); }, 12000);
+
+            let px = window.meuX + 12, py = window.meuY + 16;
+            if (typeof window.criarAnimacaoRedemoinhoKaledron === 'function') {
+                window.criarAnimacaoRedemoinhoKaledron(window.meuId, px, py, 3000);
+            }
+            if (window.tocarSonoro) window.tocarSonoro('kaledron_redemoinho');
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'kaledron_redemoinho' }));
+            }
+        }
+
+        function usarBradoGuerraKaledron() {
+            if (window.estaMorto || window.cdKaledronBrado) return;
+            if (window.meuStunTimer > 0) return;
+            if (typeof checarSkill === 'function' && !checarSkill('battle_cry', 20)) return;
+
+            window.cdKaledronBrado = true;
+            btnKaledronBrado.classList.add("cooldown");
+            if (typeof registrarCooldownBotao === 'function') registrarCooldownBotao(btnKaledronBrado, 25000);
+            setTimeout(() => { window.cdKaledronBrado = false; limparCdBotao(btnKaledronBrado); }, 25000);
+
+            let px = window.meuX + 12, py = window.meuY + 16;
+            if (typeof window.criarAnimacaoBradoGuerraKaledron === 'function') {
+                window.criarAnimacaoBradoGuerraKaledron(window.meuId, px, py);
+            }
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'kaledron_brado_guerra' }));
+            }
         }
 
         // Métodos de Smart Cast das outras classes
@@ -5891,6 +6270,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             if (c === 'sniper') return 384;
             if (c === 'pikeman') return 100;
             if (c === 'florim') return 320;
+            if (c === 'guerreiro_kaledron') return 110;
             return 300;
         }
 
@@ -5944,6 +6324,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             if (c === 'arqueiro_arcano') return 500;
             if (c === 'sniper') return 936;
             if (c === 'pikeman') return 520;
+            if (c === 'guerreiro_kaledron') return 840;
             return 350; // guerreiro / fallback
         }
 
@@ -5953,6 +6334,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             let ef = window.meusEfeitos || [];
             if (ef.some(e => e && e.id === 'gritoDeGuerra' && e.tempo > 0)) mult *= 0.90;
             if (window.barbaroVinculoAtivo && window.barbaroVinculoExpires > Date.now()) mult *= 0.80;
+            if (window.kaledronEstadoLocal && window.kaledronEstadoLocal.bradoAtivo && window.kaledronEstadoLocal.bradoExpira > Date.now()) mult *= 0.80;
             let inv = window.inventario || {};
             for (let chave in inv) {
                 let it = inv[chave];
@@ -6056,7 +6438,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             else if (window.minhaClasse === 'sniper') { enviarAtaqueSniper(ang, alvoTipo, alvoId); }
             else if (window.minhaClasse === 'pikeman') { enviarAtaquePikeman(ang, alvoTipo, alvoId); }
             else if (window.minhaClasse === 'florim') { enviarAtaqueFlorim(ang, alvoTipo, alvoId); }
-            else if (window.minhaClasse === 'florim') { enviarAtaqueFlorim(ang, alvoTipo, alvoId); }
+            else if (window.minhaClasse === 'guerreiro_kaledron') { enviarAtaqueKaledron(ang, alvoTipo, alvoId); }
             else { enviarAcaoCorte(ang, alvoTipo, alvoId); }
         }
 
@@ -6066,8 +6448,8 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             let ef = window.meusEfeitos || [];
             let trava = ef.some(e => e && (e.id === 'paralisia' || e.id === 'sono') && e.tempo > 0);
             if (window.meuStunTimer > 0 || trava || window.roqueiroBateriaLigada || window.arqueiroRajadaLigada || window.spawnAdminAberto || window.teleporteAberto || window.ferreiroAberto || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) { autoAlvo = null; return; }
-            // v1.30.2: ataque básico bloqueado durante Estrela da Morte / Dança das Adagas / Giro Descontrolado / Animações de Skill do Pikeman
-            if (window.ladinoEstrelaAtivo || window.ladinoDancaAtivo || window.giroDescontroladoLigado || (window.minhaClasse === 'pikeman' && typeof window.pikemanEmAnimacaoSkill === 'function' && window.pikemanEmAnimacaoSkill(window.meuId)) || (window.pikemanEstadoLocal && window.pikemanEstadoLocal.execucaoAtiva) || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) { autoAlvo = null; return; }
+            // v1.30.2: ataque básico bloqueado durante Estrela da Morte / Dança das Adagas / Giro Descontrolado / Animações de Skill do Pikeman / Kaledron
+            if (window.ladinoEstrelaAtivo || window.ladinoDancaAtivo || window.giroDescontroladoLigado || (window.minhaClasse === 'pikeman' && typeof window.pikemanEmAnimacaoSkill === 'function' && window.pikemanEmAnimacaoSkill(window.meuId)) || (window.pikemanEstadoLocal && window.pikemanEstadoLocal.execucaoAtiva) || (window.minhaClasse === 'guerreiro_kaledron' && typeof window.kaledronEmAnimacaoSkill === 'function' && window.kaledronEmAnimacaoSkill(window.meuId)) || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) { autoAlvo = null; return; }
             // Enquanto está deitado, o Sniper continua usando ataque básico.
             // A única coisa que interrompe o auto-ataque é a mira ativa da Skill 1.
             if (window.snAimAtivo) { autoAlvo = null; return; }
@@ -6466,6 +6848,25 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
 
             if (ws && ws.readyState === WebSocket.OPEN) { 
                 ws.send(JSON.stringify({ action: 'tornado' })); 
+            }
+        }
+
+        function usarPosturaGuardiao() {
+            if (window.estaMorto || window.meuStunTimer > 0 || window.guerreiroGuardiaoCooldownAtivo || window.minhaClasse !== 'guerreiro') return;
+            if (!checarSkill('postura_guardiao', 0)) return;
+
+            window.guerreiroGuardiaoCooldownAtivo = true;
+            if (btnGuerreiroGuardiao) {
+                btnGuerreiroGuardiao.classList.add("cooldown");
+                registrarCooldownBotao(btnGuerreiroGuardiao, 14000);
+            }
+            setTimeout(() => {
+                window.guerreiroGuardiaoCooldownAtivo = false;
+                if (btnGuerreiroGuardiao) btnGuerreiroGuardiao.classList.remove("cooldown");
+            }, 14000);
+
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                ws.send(JSON.stringify({ action: 'guerreiro_postura_guardiao' }));
             }
         }
 
@@ -6875,17 +7276,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
 
         if (bigMapCanvas) {
             bigMapCanvas.addEventListener("click", function(e) {
-                if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
-                let r = bigMapCanvas.getBoundingClientRect();
-                let px = (e.clientX - r.left) / r.width;
-                let py = (e.clientY - r.top) / r.height;
-                let wx = px * WORLD_WIDTH;
-                let wy = py * WORLD_HEIGHT;
-                // Clique na cidade ou portal da cidade abre a confirmação de retorno
-                let distPortal = Math.hypot(wx - 60487, wy - 460);
-                if (distPortal < 3500 || (wx >= 59800 && wx < 61174)) {
-                    abrirConfirmacaoPortalMapa();
-                }
+                if (e) e.preventDefault();
             });
         }
 
@@ -6954,6 +7345,77 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 desenharMapaMundiInstanciaSolari();
                 return;
             }
+            const mapaAtual = (window.MAPAS_REGISTRY || {})[window.currentMap];
+            if (!mapaAtual) {
+                bigMapCtx.clearRect(0, 0, bigMapCanvas.width, bigMapCanvas.height);
+                return;
+            }
+            if (mapaAtual) {
+                const titulo = document.getElementById('big-map-title');
+                if (titulo) titulo.textContent = '🗺️ MAPA ATUAL — ' + mapaAtual.nome;
+                const bw = bigMapCanvas.width = bigMapCanvas.clientWidth || 800;
+                const bh = bigMapCanvas.height = bigMapCanvas.clientHeight || 380;
+                const padX = 28, padTop = 36, padBottom = 30;
+                const escala = Math.min((bw - padX * 2) / mapaAtual.w, (bh - padTop - padBottom) / mapaAtual.h);
+                const mapaW = mapaAtual.w * escala, mapaH = mapaAtual.h * escala;
+                const ox = (bw - mapaW) / 2, oy = padTop + (bh - padTop - padBottom - mapaH) / 2;
+                const paleta = { green: '#24492b', desert: '#66532a', pantano: '#34432b', caverna: '#392728', cidade: '#34434b', solari: '#342942', cidadeperdida: '#354739', testevisual: '#35462e', zonazero: '#2c414a', castelo: '#39332c', bemvindo: '#31545a', ruinas_01: '#40394a', floresta: '#254333', nebulos: '#3e5532', abissal: '#302943', pantano_sombrio: '#2d4934' };
+                const y0 = mapaAtual.y0 || 0;
+                bigMapCtx.clearRect(0, 0, bw, bh);
+                bigMapCtx.fillStyle = '#080c0d';
+                bigMapCtx.fillRect(0, 0, bw, bh);
+                bigMapCtx.fillStyle = paleta[window.currentMap] || '#26362a';
+                bigMapCtx.fillRect(ox, oy, mapaW, mapaH);
+                bigMapCtx.strokeStyle = 'rgba(210,220,210,0.5)';
+                bigMapCtx.lineWidth = 1;
+                bigMapCtx.strokeRect(ox, oy, mapaW, mapaH);
+                bigMapCtx.strokeStyle = 'rgba(235,245,230,0.13)';
+                for (let i = 1; i < 10; i++) {
+                    const gx = ox + mapaW * i / 10, gy = oy + mapaH * i / 10;
+                    bigMapCtx.beginPath(); bigMapCtx.moveTo(gx, oy); bigMapCtx.lineTo(gx, oy + mapaH); bigMapCtx.stroke();
+                    bigMapCtx.beginPath(); bigMapCtx.moveTo(ox, gy); bigMapCtx.lineTo(ox + mapaW, gy); bigMapCtx.stroke();
+                }
+                const toMap = function (x, y) {
+                    return { x: ox + (x - mapaAtual.x0) * escala, y: oy + (y - y0) * escala };
+                };
+                const inMap = function (x, y) {
+                    return x >= mapaAtual.x0 && x < mapaAtual.x0 + mapaAtual.w && y >= y0 && y < y0 + mapaAtual.h;
+                };
+                (window.listaDrops || []).forEach(function (drop) {
+                    if (!drop || !drop.item || !inMap(drop.x, drop.y)) return;
+                    const p = toMap(drop.x, drop.y);
+                    bigMapCtx.fillStyle = '#ffd166';
+                    bigMapCtx.fillRect(p.x - 2, p.y - 2, 4, 4);
+                });
+                (window.listaSlimes || []).forEach(function (mob) {
+                    if (!mob || mob.hp <= 0 || !inMap(mob.x, mob.y)) return;
+                    const p = toMap(mob.x, mob.y);
+                    bigMapCtx.fillStyle = mob.tipo === 'golem_pedra' ? '#ff394f' : '#ff794d';
+                    bigMapCtx.beginPath(); bigMapCtx.arc(p.x, p.y, mob.tipo === 'golem_pedra' ? 4 : 2.5, 0, Math.PI * 2); bigMapCtx.fill();
+                });
+                if (window.todosJogadores) Object.keys(window.todosJogadores).forEach(function (id) {
+                    const jogador = window.todosJogadores[id];
+                    if (!jogador || jogador.hp <= 0 || id === window.meuId || !inMap(jogador.x + 12, jogador.y + 16)) return;
+                    const p = toMap(jogador.x + 12, jogador.y + 16);
+                    bigMapCtx.fillStyle = '#79bdff';
+                    bigMapCtx.beginPath(); bigMapCtx.arc(p.x, p.y, 3.5, 0, Math.PI * 2); bigMapCtx.fill();
+                });
+                if (typeof window.meuX === 'number' && typeof window.meuY === 'number' && inMap(window.meuX + 12, window.meuY + 16)) {
+                    const p = toMap(window.meuX + 12, window.meuY + 16);
+                    bigMapCtx.save();
+                    bigMapCtx.strokeStyle = 'rgba(0,255,255,0.8)';
+                    bigMapCtx.lineWidth = 2;
+                    bigMapCtx.beginPath(); bigMapCtx.arc(p.x, p.y, 8 + Math.sin(Date.now() / 180) * 2, 0, Math.PI * 2); bigMapCtx.stroke();
+                    bigMapCtx.fillStyle = '#00ffff';
+                    bigMapCtx.beginPath(); bigMapCtx.arc(p.x, p.y, 4, 0, Math.PI * 2); bigMapCtx.fill();
+                    bigMapCtx.restore();
+                }
+                bigMapCtx.fillStyle = '#d5e1df';
+                bigMapCtx.font = 'bold 11px Arial';
+                bigMapCtx.textAlign = 'left';
+                bigMapCtx.fillText('X: ' + Math.round(window.meuX || 0) + '  Y: ' + Math.round(window.meuY || 0), 12, bh - 10);
+                return;
+            }
             const titulo = document.getElementById('big-map-title');
             if (titulo) titulo.textContent = '🗺️ MAPA MUNDIAL — Davahl & Biomas';
             let bw = bigMapCanvas.width = bigMapCanvas.clientWidth || 800;
@@ -6966,10 +7428,14 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             let zonas = [
                 { nome: "🌿 CAMPO VERDE", nivel: "Nv. 1-10", x: 0, w: 18000, cor: "#183e20", borda: "#2ecc71" },
                 { nome: "🏜️ DESERTO COM OÁSIS", nivel: "Nv. 10-25", x: 18000, w: 32000, cor: "#5a4516", borda: "#f39c12" },
-                { nome: "🪷 PÂNTANO LODOSO", nivel: "Nv. 25-40 (Tóxico)", x: 50000, w: 8000, cor: "#223114", borda: "#27ae60" },
+                { nome: "🌿 PANTANAL", nivel: "Nv. 25-40 (Tóxico)", x: 50000, w: 8000, cor: "#223114", borda: "#27ae60" },
                 { nome: "🕳️ CAVERNA DG", nivel: "Nv. 40+", x: 58000, w: 1800, cor: "#2a1515", borda: "#c0392b" },
                 { nome: "🏰 CIDADE DE DAVAHL", nivel: "Safe Hub", x: 59800, w: 1374, cor: "#152a3b", borda: "#3498db" },
-                { nome: "🏛️ CIDADE PERDIDA", nivel: "Ruínas distantes", x: 65040, w: 6880, cor: "#1c2a1d", borda: "#00e5ff" }
+                { nome: "🏛️ CIDADE PERDIDA", nivel: "Ruínas distantes", x: 65040, w: 6880, cor: "#1c2a1d", borda: "#00e5ff" },
+                { nome: "🌲 FLORESTA DOS SUSSURROS", nivel: "Bioma isolado (ID única)", x: 90000, w: 8000, cor: "#12251a", borda: "#2ecc71" },
+                { nome: "🏘️ FLORESTA DOS NEBULOS", nivel: "Vila da Floresta (ID única)", x: 98000, w: 9600, cor: "#24501f", borda: "#f1c40f" },
+                { nome: "🌌 FLORESTA ABISSAL", nivel: "Zona Sombria (ID única)", x: 107600, w: 9600, cor: "#100921", borda: "#9b59b6" },
+                { nome: "🐊 PÂNTANO SOMBRIO", nivel: "Bioma Pantanoso (ID única)", x: 117200, w: 9600, cor: "#0e180d", borda: "#27ae60" }
             ];
 
             zonas.forEach(z => {
@@ -7224,7 +7690,8 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
 
         function acionarSkillSlot1() {
             if (window.estaMorto) return;
-            if (window.minhaClasse === 'mago') ativarMeteoroSmartCast();
+            if (window.minhaClasse === 'florim') ativarArvoreFlorimSmartCast();
+            else if (window.minhaClasse === 'mago') ativarMeteoroSmartCast();
             else if (window.minhaClasse === 'summoner') usarComandoOgro();
             else if (window.minhaClasse === 'arqueiro') ativarChuvaSmartCast();
             else if (window.minhaClasse === 'curandeiro') ativarPreceSmartCast();
@@ -7232,15 +7699,18 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             else if (window.minhaClasse === 'roqueiro') usarBateriaRoqueiro();
             else if (window.minhaClasse === 'ladino') usarDancaAdagas();
             else if (window.minhaClasse === 'dronemaster') usarSupressaoDronemaster();
+            else if (window.minhaClasse === 'guerreiro') usarPosturaGuardiao();
             else if (window.minhaClasse === 'arqueiro_arcano') ativarCometasSmartCast();
             else if (window.minhaClasse === 'sniper') ativarSniperTiroSmartCast();
             else if (window.minhaClasse === 'pikeman') usarGiroPikeman();
+            else if (window.minhaClasse === 'guerreiro_kaledron') usarGolpeFulminanteKaledron();
             else usarDash();
         }
 
         function acionarSkillSlot2() {
             if (window.estaMorto) return;
-            if (window.minhaClasse === 'mago') ativarNevascaSmartCast();
+            if (window.minhaClasse === 'florim') ativarSementeFlorimSmartCast();
+            else if (window.minhaClasse === 'mago') ativarNevascaSmartCast();
             else if (window.minhaClasse === 'summoner') ativarSaltoSmartCast();
             else if (window.minhaClasse === 'arqueiro') usarDisparoPerfurante();
             else if (window.minhaClasse === 'curandeiro') ativarJulgamentoSmartCast();
@@ -7251,12 +7721,14 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             else if (window.minhaClasse === 'arqueiro_arcano') ativarOrbeSmartCast();
             else if (window.minhaClasse === 'sniper') ativarRedeSmartCast();
             else if (window.minhaClasse === 'pikeman') usarPiruetaPikeman();
+            else if (window.minhaClasse === 'guerreiro_kaledron') usarImpactoTerrestreKaledron();
             else usarTornado();
         }
 
         function acionarSkillSlot3() {
             if (window.estaMorto) return;
-            if (window.minhaClasse === 'mago') ativarVulcaoSmartCast();
+            if (window.minhaClasse === 'florim') ativarEspinhosFlorimSmartCast();
+            else if (window.minhaClasse === 'mago') ativarVulcaoSmartCast();
             else if (window.minhaClasse === 'summoner') usarOgroColossal();
             else if (window.minhaClasse === 'arqueiro') usarRajadaFlechas();
             else if (window.minhaClasse === 'curandeiro') usarAuraSagrada();
@@ -7267,6 +7739,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             else if (window.minhaClasse === 'arqueiro_arcano') usarCascataEstelar();
             else if (window.minhaClasse === 'sniper') usarPosicaoSniper();
             else if (window.minhaClasse === 'pikeman') usarGeadaPikeman();
+            else if (window.minhaClasse === 'guerreiro_kaledron') usarRedemoinhoKaledron();
             else if (!window.minhaClasse || window.minhaClasse === 'guerreiro') usarGritoProvocacao();
         }
 
@@ -7414,6 +7887,14 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 }
                 if (window.minhaClasse === 'pikeman') {
                     usarExecucaoPikeman();
+                    return;
+                }
+                if (window.minhaClasse === 'florim') {
+                    ativarParedeFlorimSmartCast();
+                    return;
+                }
+                if (window.minhaClasse === 'guerreiro_kaledron') {
+                    usarBradoGuerraKaledron();
                     return;
                 }
             }
@@ -7778,7 +8259,7 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 }
                 else if (s === 'guerreiro_escudo') { if (typeof dispararEscudo === 'function') dispararEscudo(tx, ty); }
                 else if (s === 'mago_bola') { if (typeof dispararBolaElemental === 'function') dispararBolaElemental(tx, ty); }
-                else if (s === 'astral_buraco') { if (typeof dispararBuracoNegro === 'function') dispararBuracoNegro(tx, ty); } else if (s === 'florim_semente') dispararFlorimSkill('florim_semente',tx,ty); else if (s === 'florim_corrente') dispararFlorimSkill('florim_corrente',tx,ty); else if (s === 'florim_anel') dispararFlorimSkill('florim_anel',tx,ty); else if (s === 'florim_praga') dispararFlorimSkill('florim_praga',tx,ty);
+                else if (s === 'astral_buraco') { if (typeof dispararBuracoNegro === 'function') dispararBuracoNegro(tx, ty); } else if (s === 'florim_arvore') dispararFlorimSkill('florim_arvore',tx,ty); else if (s === 'florim_semente') dispararFlorimSkill('florim_semente',tx,ty); else if (s === 'florim_espinhos') dispararFlorimSkill('florim_espinhos',tx,ty); else if (s === 'florim_parede') dispararFlorimSkill('florim_parede',tx,ty);
                 else if (s === 'barbaro_vinculo') {
                     let target = window.slimes && window.slimes.find(m => m.hp > 0 && Math.hypot(m.x - tx, m.y - ty) < 60);
                     let targetBoss = window.bosses && window.bosses.find(m => m.hp > 0 && Math.hypot(m.x - tx, m.y - ty) < 80);
@@ -8092,8 +8573,12 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
 
             ctx.setTransform(1, 0, 0, 0, 0, 0);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-            ctx.fillStyle = ({ ruinas_01: "#151522", castelo: "#0d0a07", zonazero: "#0a1622", testevisual: "#1c2817", solari: "#150f24", pantano: "#24301a", desert: "#d9b45c", caverna: "#1a0f0f", cidade: "#2c2a27", cidadeperdida: "#1c2a1d" })[window.currentMap] || "#163f18";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            if (window.currentMap === 'testevisual') {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            } else {
+                ctx.fillStyle = ({ ruinas_01: "#151522", castelo: "#0d0a07", zonazero: "#0a1622", solari: "#150f24", pantano: "#24301a", desert: "#d9b45c", caverna: "#1a0f0f", cidade: "#2c2a27", cidadeperdida: "#1c2a1d", floresta: "#12251a", nebulos: "#24501f", abissal: "#0a0714", pantano_sombrio: "#0e180d" })[window.currentMap] || "#163f18";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+            }
             ctx.save(); ctx.scale((window.cameraZoomAtual || ZOOM_CAMERA), (window.cameraZoomAtual || ZOOM_CAMERA)); ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
 
             // ===== FUNDO + CENÁRIO: cada mapa é selecionado pelo ID =====
@@ -8116,8 +8601,6 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 if (typeof window.desenharPortalZonaZero === "function") window.desenharPortalZonaZero(tempoAnimacao);
                 if (typeof window.desenharPortalCasteloEntrada === "function") window.desenharPortalCasteloEntrada(tempoAnimacao);
             } else if (window.currentMap === 'testevisual') {
-                ctx.fillStyle = "#1c2817";
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
                 if (typeof window.desenharCenarioTesteVisual === "function") window.desenharCenarioTesteVisual(tempoAnimacao);
             } else if (window.currentMap === 'solari') {
                 ctx.fillStyle = (window.currentMap === 'solari') ? "#150f24" : "#141210";
@@ -8149,6 +8632,26 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
                 if (typeof window.desenharCenarioCidade === "function") window.desenharCenarioCidade(tempoAnimacao);
                 if (typeof window.desenharPortalSolari === "function") window.desenharPortalSolari(tempoAnimacao);
                 if (typeof window.desenharFerreiroNpc === "function") window.desenharFerreiroNpc(tempoAnimacao);
+            } else if (window.currentMap === 'floresta') {
+                // 🌲 Floresta dos Sussurros — renderizador próprio (ID única, x [90000,98000))
+                ctx.fillStyle = "#12251a";
+                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+                if (typeof window.desenharCenarioFloresta === "function") window.desenharCenarioFloresta(tempoAnimacao);
+            } else if (window.currentMap === 'nebulos') {
+                // 🏘️ Floresta dos Nebulos — renderizador próprio (ID única, x [98000,107600))
+                ctx.fillStyle = "#24501f";
+                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+                if (typeof window.desenharCenarioNebulos === "function") window.desenharCenarioNebulos(tempoAnimacao);
+            } else if (window.currentMap === 'abissal') {
+                // 🌌 Floresta Abissal — renderizador próprio (ID única, x [107600,117200))
+                ctx.fillStyle = "#0a0714";
+                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+                if (typeof window.desenharCenarioAbissal === "function") window.desenharCenarioAbissal(tempoAnimacao);
+            } else if (window.currentMap === 'pantano_sombrio') {
+                // 🐊 Pântano Sombrio — renderizador próprio do zero (ID única, x [117200,126800))
+                ctx.fillStyle = "#0e180d";
+                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+                if (typeof window.desenharCenarioPantanoSombrio === "function") window.desenharCenarioPantanoSombrio(tempoAnimacao);
             } else {
                 ctx.fillStyle = "#163f18"; // cor de fundo do mapa verde (limpa o buffer)
                 ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
@@ -8228,7 +8731,8 @@ const btnFlorimPraga = document.getElementById("btn-florim-praga");
             if (typeof window.desenharEfeitosRoqueiro === "function") window.desenharEfeitosRoqueiro();
             if (typeof window.desenharEfeitosLadino === "function") window.desenharEfeitosLadino();
             if (typeof window.desenharEfeitosPikeman === "function") window.desenharEfeitosPikeman();
-if (typeof window.desenharEfeitosFlorim === "function") window.desenharEfeitosFlorim();
+            if (typeof window.desenharEfeitosFlorim === "function") window.desenharEfeitosFlorim();
+            if (typeof window.desenharEfeitosKaledron === "function") window.desenharEfeitosKaledron();
             if (typeof window.desenharMiraArcana === "function") window.desenharMiraArcana();
             if (typeof window.desenharMarcadorDrag === "function") window.desenharMarcadorDrag();
             if (typeof window.desenharMarcasBoss === "function") window.desenharMarcasBoss();
@@ -8289,6 +8793,10 @@ if (typeof window.desenharEfeitosFlorim === "function") window.desenharEfeitosFl
             if (window.currentMap === 'bemvindo' && typeof window.coletarBemVindoSortables === "function") window.coletarBemVindoSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'cidade' && typeof window.coletarCidadeSortables === "function") window.coletarCidadeSortables(tempoAnimacao, spritesSort);
             if (window.currentMap === 'green' && typeof window.coletarVerdeSortables === "function") window.coletarVerdeSortables(tempoAnimacao, spritesSort);
+            if (window.currentMap === 'floresta' && typeof window.coletarFlorestaSortables === "function") window.coletarFlorestaSortables(tempoAnimacao, spritesSort);
+            if (window.currentMap === 'nebulos' && typeof window.coletarNebulosSortables === "function") window.coletarNebulosSortables(tempoAnimacao, spritesSort);
+            if (window.currentMap === 'abissal' && typeof window.coletarAbissalSortables === "function") window.coletarAbissalSortables(tempoAnimacao, spritesSort);
+            if (window.currentMap === 'pantano_sombrio' && typeof window.coletarPantanoSombrioSortables === "function") window.coletarPantanoSombrioSortables(tempoAnimacao, spritesSort);
             if (typeof window.coletarObjetosMapa === "function") window.coletarObjetosMapa(tempoAnimacao, spritesSort);
             if (typeof window.coletarCamadasMapaAtivo === "function") window.coletarCamadasMapaAtivo(tempoAnimacao, spritesSort);
 
@@ -8400,13 +8908,39 @@ if (typeof window.desenharEfeitosFlorim === "function") window.desenharEfeitosFl
                             else if (classeJogador === 'barbaro') { if (typeof window.desenharBarbaro === "function") window.desenharBarbaro(posX, posY, mov, ang, hpVal, maxHpVal, pid); }
                             else if (classeJogador === 'roqueiro') { if (typeof window.desenharRoqueiro === "function") window.desenharRoqueiro(posX, posY, mov, ang, hpVal, maxHpVal, pid); }
                             else if (classeJogador === 'ladino') { if (typeof window.desenharLadino === "function") window.desenharLadino(posX, posY, mov, ang, hpVal, maxHpVal); }
-                            else if (classeJogador === 'dronemaster') { if (typeof window.desenharDronemaster === "function") window.desenharDronemaster(posX, posY, mov, ang, hpVal, maxHpVal, { eu: (pid === window.meuId), pp: pp }); }
+                            else if (classeJogador === 'dronemaster') { if (typeof window.desenharDronemaster === "function") window.desenharDronemaster(posX, posY, mov, ang, hpVal, maxHpVal, { eu: (pid === window.meuId), pp: pp, pid: pid }); }
                             else if (classeJogador === 'arqueiro_arcano') { if (typeof window.desenharArqueiroArcano === "function") window.desenharArqueiroArcano(posX, posY, mov, ang, hpVal, maxHpVal, { eu: (pid === window.meuId), pp: pp }); }
                             else if (classeJogador === 'sniper') { if (typeof window.desenharSniper === "function") window.desenharSniper(posX, posY, mov, ang, hpVal, maxHpVal, { eu: (pid === window.meuId), pp: pp }); }
                             else if (classeJogador === 'pikeman') { if (typeof window.desenharPikeman === "function") window.desenharPikeman(posX, posY, mov, ang, hpVal, maxHpVal, { eu: (pid === window.meuId), pp: pp }, pid); }
-else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "function") window.desenharFlorim(posX, posY, mov, ang, hpVal, maxHpVal); }
-else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "function") window.desenharFlorim(posX, posY, mov, ang, hpVal, maxHpVal); }
+                            else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "function") window.desenharFlorim(posX, posY, mov, ang, hpVal, maxHpVal); }
+                            else if (classeJogador === 'guerreiro_kaledron') { if (typeof window.desenharKaledron === "function") window.desenharKaledron(posX, posY, mov, ang, hpVal, maxHpVal, pid); }
                             else { if (typeof window.desenharGuerreiro === "function") window.desenharGuerreiro(posX, posY, (pid === window.meuId ? "#c0392b" : "#2980b9"), mov, ang, hpVal, maxHpVal, isSpinningPlayer, window.tornadoTimers[pid] || 0, pid); }
+
+                            let magoCast = window.magoCasts && window.magoCasts[pid];
+                            if (magoCast) {
+                                let progressoCast = Math.max(0, Math.min(1, (Date.now() - magoCast.startAt) / magoCast.durMs));
+                                if (progressoCast >= 1) {
+                                    delete window.magoCasts[pid];
+                                } else {
+                                    let larguraCast = 54, xCast = posX + 12 - larguraCast / 2, yCast = posY - 46;
+                                    ctx.save();
+                                    ctx.fillStyle = 'rgba(0,0,0,0.82)';
+                                    ctx.fillRect(xCast, yCast, larguraCast, 7);
+                                    ctx.fillStyle = '#68d9ff';
+                                    ctx.fillRect(xCast + 1, yCast + 1, (larguraCast - 2) * progressoCast, 5);
+                                    ctx.strokeStyle = '#d9f7ff';
+                                    ctx.lineWidth = 1;
+                                    ctx.strokeRect(xCast, yCast, larguraCast, 7);
+                                    ctx.font = "bold 8px 'Rajdhani', Arial, sans-serif";
+                                    ctx.textAlign = 'center';
+                                    ctx.lineWidth = 2;
+                                    ctx.strokeStyle = '#000';
+                                    ctx.strokeText('CARREGANDO', posX + 12, yCast - 3);
+                                    ctx.fillStyle = '#d9f7ff';
+                                    ctx.fillText('CARREGANDO', posX + 12, yCast - 3);
+                                    ctx.restore();
+                                }
+                            }
 
                             let rajadaState = pp.rajadaAtiva && pp.rajadaFase === 'carregando' ? pp : null;
                             if (rajadaState) {
@@ -8435,9 +8969,8 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
                                 ctx.textAlign = "center";
                                 ctx.lineJoin = "round";
                                 ctx.lineWidth = 3;
-                                ctx.strokeStyle = "rgba(0, 0, 0, 0.85)";
-                                // Pikeman é mais baixo (escala 0.72) → nick/HUD sobem para não invadir o capuz
-                                let nickY = (classeJogador === 'pikeman') ? -44 : -23;
+                                // Nick elevado acima da cabeça de todas as classes para não sobrepor o visual do personagem
+                                let nickY = (classeJogador === 'pikeman' || classeJogador === 'florim') ? -48 : -42;
                                 ctx.strokeText(pp.nome, posX + 12, posY + nickY);
                                 ctx.fillStyle = pp.pvpAtivo ? "#ff4d4d" : "#f1c40f";
                                 ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
@@ -8498,10 +9031,13 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
                             }
 
                             let efeitosPlayer = (pid === window.meuId) ? (window.meusEfeitos || []) : (pp.efeitos || []);
+                            let bradoRestante = Math.ceil(((Number(pp.kaledronBradoAte) || 0) - Date.now()) / 1000);
+                            if (bradoRestante > 0) efeitosPlayer = (Array.isArray(efeitosPlayer) ? efeitosPlayer : []).concat([{ id: 'kaledronBrado', tempo: bradoRestante }]);
                             if (efeitosPlayer && efeitosPlayer.length > 0) {
                                 let defEfeitos = (typeof window.EFEITOS === "object" && window.EFEITOS) ? window.EFEITOS : null;
                                 efeitosPlayer.forEach(function (ef, idx) {
                                     let def = defEfeitos ? defEfeitos[ef.id] : null;
+                                    if (!def && ef.id === 'kaledronBrado') def = { cor: '#ffad42', icon: '📣', formato: function (buff) { return buff.tempo + 's'; } };
                                     let cor = def ? def.cor : '#ffffff';
                                     let icon = def ? def.icon : '✨';
                                     let cx = posX + 12 + (idx - (efeitosPlayer.length - 1) / 2) * 20;
@@ -8690,7 +9226,39 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
                 window.desenharEscudoGuerreiro(ctx);
             }
 
-            for (let i = slashes.length - 1; i >= 0; i--) { let s = slashes[i]; s.alpha -= 0.08; s.escala += 0.1; if (s.alpha <= 0) { slashes.splice(i, 1); } else { ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(s.angulo); ctx.globalAlpha = s.alpha; ctx.strokeStyle = "#ffffff"; ctx.lineWidth = 4; ctx.shadowColor = "#3498db"; ctx.shadowBlur = 10; ctx.beginPath(); ctx.arc(20, 0, 25 * s.escala, -Math.PI / 3, Math.PI / 3); ctx.stroke(); ctx.restore(); } }
+            for (let i = slashes.length - 1; i >= 0; i--) {
+                let s = slashes[i];
+                s.alpha -= 0.08;
+                s.escala += 0.1;
+                if (s.alpha <= 0) {
+                    slashes.splice(i, 1);
+                } else {
+                    ctx.save();
+                    ctx.translate(s.x, s.y);
+                    ctx.rotate(s.angulo);
+                    ctx.globalAlpha = s.alpha;
+                    // Lança: Estocada perfurante central
+                    ctx.strokeStyle = "#ffffff";
+                    ctx.lineWidth = 3.5;
+                    ctx.shadowColor = "#f1c40f";
+                    ctx.shadowBlur = 12;
+                    ctx.beginPath();
+                    ctx.moveTo(8, 0);
+                    ctx.lineTo(8 + 36 * s.escala, 0);
+                    ctx.stroke();
+                    // Arco cortante de vento
+                    ctx.lineWidth = 2.4;
+                    ctx.beginPath();
+                    ctx.arc(20, 0, 24 * s.escala, -Math.PI / 3.4, Math.PI / 3.4);
+                    ctx.stroke();
+                    // Faíscas estelares na ponta da estocada
+                    ctx.fillStyle = "#fff48d";
+                    ctx.beginPath();
+                    ctx.arc(8 + 36 * s.escala, 0, 2.5 * s.escala, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                }
+            }
             for (let i = window.floatingTexts.length - 1; i >= 0; i--) { 
                 let ft = window.floatingTexts[i]; 
                 ft.y -= 1.0; 
@@ -8749,7 +9317,7 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
             ctx.restore();
 
             // v1.52.0: CICLO DIA/NOITE & ILUMINAÇÃO DINÂMICA (véu de escuridão com recortes de luz)
-            if (typeof window.renderizarCicloDiaNoite === 'function') {
+            if (typeof window.renderizarCicloDiaNoite === 'function' && window.currentMap !== 'testevisual') {
                 window.renderizarCicloDiaNoite(ctx, cameraX, cameraY, shakeX, shakeY, (window.cameraZoomAtual || ZOOM_CAMERA));
             }
 
@@ -8760,8 +9328,9 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
 
                 // Header do minimapa: bioma e coordenadas
                 if (minimapBioma) {
-                    let biomaLabel = (window.currentMap === 'ruinas_01') ? "🏚️ Ruínas de Âmbar" : (window.currentMap === 'bemvindo') ? "🏝️ Ilha BemVindo" : (window.currentMap === 'castelo') ? "🏯 Castelo Anda 1 (DG)" : ((window.currentMap === 'zonazero') ? "❄️ Zona Zero (Gelo)" : ((window.currentMap === 'testevisual') ? "🌿 Arena Visual (Pântano)" : ((window.currentMap === 'solari') ? "🔮 Solari" : ((window.currentMap === 'solari') ? "🔮 Solari" : ((window.currentMap === 'cidade') ? "🏰 Davahl" : ((window.currentMap === 'cidadeperdida') ? "🏛️ Cidade Perdida" : ((window.currentMap === 'caverna') ? "🕳️ Caverna" : ((window.currentMap === 'pantano') ? "🪷 Pântano" : ((window.currentMap === 'desert') ? "🏜️ Deserto" : "🌿 Verde")))))))));
+                    let biomaLabel = (window.currentMap === 'ruinas_01') ? "🏚️ Ruínas de Âmbar" : (window.currentMap === 'pantano_sombrio') ? "🐊 Pântano Sombrio" : (window.currentMap === 'abissal') ? "🌌 Floresta Abissal" : (window.currentMap === 'floresta') ? "🌲 Floresta dos Sussurros" : (window.currentMap === 'nebulos') ? "🏘️ Floresta dos Nebulos" : (window.currentMap === 'bemvindo') ? "🏝️ Ilha BemVindo" : (window.currentMap === 'castelo') ? "🏯 Castelo Anda 1 (DG)" : ((window.currentMap === 'zonazero') ? "❄️ Zona Zero (Gelo)" : ((window.currentMap === 'testevisual') ? "🌿 Arena Visual (Pântano)" : ((window.currentMap === 'solari') ? "🔮 Solari" : ((window.currentMap === 'solari') ? "🔮 Solari" : ((window.currentMap === 'cidade') ? "🏰 Davahl" : ((window.currentMap === 'cidadeperdida') ? "🏛️ Cidade Perdida" : ((window.currentMap === 'caverna') ? "🕳️ Caverna" : ((window.currentMap === 'pantano') ? "🪷 Pântano" : ((window.currentMap === 'desert') ? "🏜️ Deserto" : "🌿 Verde")))))))));
                     minimapBioma.innerText = biomaLabel;
+                    if (window.currentMap === 'pantano') minimapBioma.innerText = '🌿 Pantanal';
                 }
                 if (minimapCoords) {
                     minimapCoords.innerText = "X:" + Math.round(window.meuX) + " Y:" + Math.round(window.meuY);
@@ -8781,7 +9350,7 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
                     }
 
                     // Fundo temático do bioma ativo
-                    let corFundoBioma = (window.currentMap === 'castelo') ? "#140e0a" : ((window.currentMap === 'zonazero') ? "#0c1f2e" : ((window.currentMap === 'testevisual') ? "#141f10" : ((window.currentMap === 'solari') ? "#141210" : ((window.currentMap === 'solari') ? "#201430" : ((window.currentMap === 'cidade') ? "#132333" : ((window.currentMap === 'cidadeperdida') ? "#1c2a1d" : ((window.currentMap === 'caverna') ? "#241315" : ((window.currentMap === 'pantano') ? "#1a2714" : ((window.currentMap === 'desert') ? "#4a3915" : "#163a1c")))))))));
+                    let corFundoBioma = (window.currentMap === 'pantano_sombrio') ? "#0d1a0c" : (window.currentMap === 'castelo') ? "#140e0a" : (window.currentMap === 'zonazero') ? "#0c1f2e" : (window.currentMap === 'testevisual') ? "#141f10" : (window.currentMap === 'solari') ? "#201430" : (window.currentMap === 'cidade') ? "#132333" : (window.currentMap === 'cidadeperdida') ? "#1c2a1d" : (window.currentMap === 'caverna') ? "#241315" : (window.currentMap === 'pantano') ? "#1a2714" : (window.currentMap === 'desert') ? "#4a3915" : (window.currentMap === 'floresta') ? "#0f2415" : (window.currentMap === 'nebulos') ? "#12240e" : (window.currentMap === 'abissal') ? "#0c0817" : "#163a1c";
                     mmCtx.fillStyle = corFundoBioma;
                     mmCtx.fillRect(0, 0, mw, mh);
 
@@ -8796,27 +9365,6 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
                     mmCtx.moveTo(cx0, 0); mmCtx.lineTo(cx0, mh);
                     mmCtx.moveTo(0, cy0); mmCtx.lineTo(mw, cy0);
                     mmCtx.stroke();
-
-                    // Portais próximos
-                    let portais = [
-                        { nome: "CIDADE", x: 60487, y: 460, cor: "#00e5ff" },
-                        { nome: "VERDE", x: 5000, y: 1200, cor: "#2ecc71" },
-                    ];
-                    portais.forEach(p => {
-                        let pos = toRadar(p.x, p.y);
-                        if (pos.x >= -20 && pos.x <= mw + 20 && pos.y >= -20 && pos.y <= mh + 20) {
-                            mmCtx.save();
-                            mmCtx.strokeStyle = p.cor;
-                            mmCtx.lineWidth = 2;
-                            let pTempo = Date.now() / 250;
-                            mmCtx.beginPath();
-                            mmCtx.arc(pos.x, pos.y, 6 + Math.sin(pTempo) * 2, 0, Math.PI * 2);
-                            mmCtx.stroke();
-                            mmCtx.fillStyle = p.cor;
-                            mmCtx.beginPath(); mmCtx.arc(pos.x, pos.y, 3, 0, Math.PI * 2); mmCtx.fill();
-                            mmCtx.restore();
-                        }
-                    });
 
                     // Drops visíveis no radar
                     if (window.listaDrops && window.listaDrops.length) {
@@ -8931,16 +9479,6 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
                         mmCtx.strokeRect(zx, 0, zw, mh);
                     });
 
-                    // 2. Portais de viagem no minimapa
-                    // Portal Cidade de Davahl (60487, 460)
-                    let cpx = 60487 * sx, cpy = 460 * sy;
-                    mmCtx.fillStyle = "#4fc3f7";
-                    mmCtx.beginPath(); mmCtx.arc(cpx, cpy, 2.5, 0, Math.PI * 2); mmCtx.fill();
-                    // Portal Campo Verde (5000, 1200)
-                    let vpx = 5000 * sx, vpy = 1200 * sy;
-                    mmCtx.fillStyle = "#2ecc71";
-                    mmCtx.beginPath(); mmCtx.arc(vpx, vpy, 2, 0, Math.PI * 2); mmCtx.fill();
-
                     // 5. Outros jogadores
                     if (window.todosJogadores) {
                         for (let pid in window.todosJogadores) {
@@ -9013,6 +9551,7 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
                         <option value="summoner">Summoner</option>
                         <option value="barbaro">Bárbaro</option>
                         <option value="roqueiro">Roqueiro</option>
+                        <option value="guerreiro_kaledron">Guerreiro Kaledron</option>
                     </select>
                 </label>
                 <label>Slot do Item: 
@@ -9053,8 +9592,3 @@ else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "fun
     </div>
 </body>
 </html>
-
-
-
-
-

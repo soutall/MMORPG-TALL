@@ -35,11 +35,11 @@
     const ALT_LIVRE = 0, ALT_PEQUENA = 1, ALT_MEDIA = 2, ALT_ALTA = 3;
 
     // Portal de entrada (na Zona Zero, leste)
-    const PORTAL_ZONAZERO_ENTRADA = { x: 81900, y: 1000, r: 56, alvo: { x: CST_X0 + 200, y: 900 } };
+    const PORTAL_ZONAZERO_ENTRADA = { x: 81900, y: 1000, r: 56, alvo: { x: CST_X0 + 1100, y: 900 } };
     // Portal de saída (dentro do Castelo, câmara de entrada)
-    const PORTAL_CASTELO_SAIDA = { x: CST_X0 + 60, y: 900, r: 52, alvo: { x: 81900, y: 1060 } };
+    const PORTAL_CASTELO_SAIDA = null;
     // Spawn seguro na câmara de entrada
-    const SPAWN_CASTELO = { x: CST_X0 + 200, y: 900 };
+    const SPAWN_CASTELO = { x: CST_X0 + 1100, y: 900 };
 
     let grid = null;
     let sortables = [];
@@ -428,7 +428,7 @@
     // ---------- Portal ----------
     function infoPortalCastelo(x, y) {
         if (isCastelo(x, y)) {
-            if (Math.hypot(x - PORTAL_CASTELO_SAIDA.x, y - PORTAL_CASTELO_SAIDA.y) < PORTAL_CASTELO_SAIDA.r) {
+            if (PORTAL_CASTELO_SAIDA && Math.hypot(x - PORTAL_CASTELO_SAIDA.x, y - PORTAL_CASTELO_SAIDA.y) < PORTAL_CASTELO_SAIDA.r) {
                 return { via: 'portal', mapa: 'zonazero', alvo: PORTAL_CASTELO_SAIDA.alvo };
             }
             return null;
@@ -1055,7 +1055,7 @@
     }
     function desenharPortalCasteloSaida(t) {
         const ctx = global.ctx;
-        if (ctx) _vortexCastelo(ctx, PORTAL_CASTELO_SAIDA.x, PORTAL_CASTELO_SAIDA.y, t, '#4a9eaf', '#2255cc');
+        if (PORTAL_CASTELO_SAIDA && ctx) _vortexCastelo(ctx, PORTAL_CASTELO_SAIDA.x, PORTAL_CASTELO_SAIDA.y, t, '#4a9eaf', '#2255cc');
     }
 
     // ---------- Chain ----------
