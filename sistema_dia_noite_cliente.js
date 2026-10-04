@@ -111,10 +111,19 @@
      * Renderizador principal do ciclo dia/noite com iluminação dinâmica.
      * Chamado após a renderização do mundo do jogo e antes dos elementos fixos de HUD.
      */
+    function obterEscuridaoEficaz(tm, classe) {
+        var base = (tm && typeof tm.escuridao === 'number') ? tm.escuridao : 0;
+        var c = String(classe || global.minhaClasse || global.meuClasse || '').toLowerCase();
+        if ((c === 'ladino' || c === 'pikeman') && tm && typeof tm.horaDecimal === 'number' && tm.horaDecimal >= 0 && tm.horaDecimal < 4) {
+            base = Math.min(base, 0.90);
+        }
+        return Math.max(0, Math.min(1, base));
+    }
+
     function renderizarCicloDiaNoite(ctx, camX, camY, shakeX, shakeY, zoom) {
         var tm = global.tempoMundo;
         if (!tm) return;
-        var escuridao = tm.escuridao || 0;
+        var escuridao = obterEscuridaoEficaz(tm, global.minhaClasse || global.meuClasse || (global.meuPersonagem && global.meuPersonagem.classe));
 
         // Otimização crucial: Durante pleno dia (escuridao <= 0.005), nada é executado. 0ms overhead!
         if (escuridao <= 0.005) return;
@@ -225,10 +234,14 @@
 
         // A. Luz pessoal do Herói (lanterna pessoal que garante visibilidade ao redor do personagem)
         if (typeof global.meuX === 'number' && typeof global.meuY === 'number') {
-            var pLocal = paraTela(global.meuX + 12, global.meuY + 16);
-            // Na madrugada de breu total (00h às 04h), a lanterna pessoal fica concentrada ao redor do herói (~140px)
-            var raioHeroi = (fase === 'madrugada' || escuridao >= 0.95) ? 140 : 160;
-            cortarLuz(pLocal.x, pLocal.y, raioHeroi + pulsoFogo * 0.5, 1.0, 0.35);
+            var meusEfeitos = Array.isArray(global.meusEfeitos) ? global.meusEfeitos : [];
+            var invisivelLocal = meusEfeitos.some(function (ef) { return ef && ef.id === 'invisivel' && Number(ef.tempo) > 0; });
+            if (!invisivelLocal) {
+                var pLocal = paraTela(global.meuX + 12, global.meuY + 16);
+                // Na madrugada de breu total (00h às 04h), a lanterna pessoal fica concentrada ao redor do herói (~140px)
+                var raioHeroi = (fase === 'madrugada' || escuridao >= 0.95) ? 140 : 160;
+                cortarLuz(pLocal.x, pLocal.y, raioHeroi + pulsoFogo * 0.5, 1.0, 0.35);
+            }
         }
 
         // B. Luz de outros jogadores visíveis
@@ -237,6 +250,9 @@
                 if (pid === global.meuId) continue;
                 var pj = global.todosJogadores[pid];
                 if (!pj) continue;
+                var efeitosOutros = Array.isArray(pj.efeitos) ? pj.efeitos : [];
+                var invisivelOutro = efeitosOutros.some(function (ef) { return ef && ef.id === 'invisivel' && Number(ef.tempo) > 0; });
+                if (invisivelOutro) continue;
                 var pt = paraTela(pj.x + 12, pj.y + 16);
                 cortarLuz(pt.x, pt.y, 120 + pulsoFogo * 0.4, 0.88, 0.22);
             }

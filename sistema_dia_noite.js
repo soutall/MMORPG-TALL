@@ -17,6 +17,22 @@ const CONFIG_PADRAO = {
     totalmenteClaro: 6.0         // Pleno dia (06:00)
 };
 
+function temVisaoNoturnaAprimorada(classe) {
+    const c = String(classe || '').toLowerCase();
+    return c === 'ladino' || c === 'pikeman';
+}
+
+function aplicarEscuridaoPorClasse(tempo, classe) {
+    if (!tempo || typeof tempo !== 'object') return tempo;
+    const classeId = String(classe || '').toLowerCase();
+    const hora = Number(tempo.horaDecimal);
+    const resultado = Object.assign({}, tempo);
+    if (temVisaoNoturnaAprimorada(classeId) && Number.isFinite(hora) && hora >= 0 && hora < 4) {
+        resultado.escuridao = Math.min(Number(tempo.escuridao || 0), 0.90);
+    }
+    return resultado;
+}
+
 /**
  * Calcula o estado atual do ciclo dia/noite do servidor.
  * @param {number} agora Timestamp em milissegundos (Date.now())
@@ -109,6 +125,8 @@ function calcularTempoMundo(agora = Date.now(), config = CONFIG_PADRAO) {
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         CONFIG_PADRAO,
-        calcularTempoMundo
+        calcularTempoMundo,
+        temVisaoNoturnaAprimorada,
+        aplicarEscuridaoPorClasse
     };
 }

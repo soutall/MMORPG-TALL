@@ -787,6 +787,23 @@ function reduzirDanoPelaDefesaEquipamento(classId, equippedSlots, damage) {
     return Math.max(1, Math.round(damage - totalDefense));
 }
 
+// Compatibilidade com inventários legados: slots com classe/slot incompatíveis
+// não concedem defesa, mas também não derrubam o loop de combate ao receber dano.
+function reduzirDanoPelaDefesaEquipamentoCompativel(classId, equippedSlots, damage) {
+    if (!classesConfig.classes[classId]) throw new Error('Classe inválida para calcular defesa.');
+    if (equippedSlots !== undefined && equippedSlots !== null &&
+        (typeof equippedSlots !== 'object' || Array.isArray(equippedSlots))) {
+        throw new TypeError('Slots equipados inválidos.');
+    }
+    const slotsValidos = {};
+    Object.keys(equippedSlots || {}).forEach(function (slot) {
+        const item = equippedSlots[slot];
+        if (!item || item.schemaVersion !== 1 || item.slot !== slot) return;
+        if (validateEquipmentForClass(classId, item).valid) slotsValidos[slot] = item;
+    });
+    return reduzirDanoPelaDefesaEquipamento(classId, slotsValidos, damage);
+}
+
 module.exports = Object.freeze({
     ITEM_LEVEL_CAP: ITEM_LEVEL_CAP,
     getClass: function (classId) {
@@ -813,5 +830,6 @@ module.exports = Object.freeze({
     validateEquipmentForClass: validateEquipmentForClass,
     calcularDefesaEquipamento: calcularDefesaEquipamento,
     reduzirDanoPelaDefesaEquipamento: reduzirDanoPelaDefesaEquipamento,
+    reduzirDanoPelaDefesaEquipamentoCompativel: reduzirDanoPelaDefesaEquipamentoCompativel,
     assertUniqueInventoryOwnership: assertUniqueInventoryOwnership
 });

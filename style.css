@@ -56,7 +56,7 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 
 /* Aviso de rotação: pede para girar o celular quando estiver em modo retrato */
 #rotate-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; background: #0a0a0a; color: #f1c40f; font-family: 'Cinzel', serif; font-size: 20px; font-weight: bold; letter-spacing: 2px; text-align: center; padding: 20px; box-sizing: border-box; z-index: 900; }
-@media (orientation: portrait) { #rotate-overlay { display: flex; } }
+#rotate-overlay.ativo { display: flex; }
 
 /* Confirmação própria do jogo (evita confirm() nativo que quebra fullscreen/orientação) */
 #confirm-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; background: rgba(8, 8, 8, 0.82); display: none; flex-direction: column; justify-content: center; align-items: center; z-index: 950; }
@@ -96,6 +96,37 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
     z-index: 10;
     pointer-events: none;
     white-space: nowrap;
+}
+#elite-alert-notice {
+    position: fixed;
+    top: 14%;
+    left: 50%;
+    z-index: 1800;
+    transform: translate(-50%, -10px) scale(0.96);
+    padding: 12px 22px;
+    border: 2px solid #ffe45c;
+    border-radius: 8px;
+    background: rgba(85, 8, 12, 0.96);
+    color: #fff3a6;
+    font: 900 clamp(17px, 3vw, 26px) 'Cinzel', serif;
+    letter-spacing: 1px;
+    text-align: center;
+    text-shadow: 0 2px 5px #000;
+    box-shadow: 0 0 12px #ffb300, 0 0 34px rgba(255, 30, 30, 0.85);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity 0.12s ease, transform 0.12s ease;
+}
+#elite-alert-notice.visivel {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, 0) scale(1);
+    animation: elite-notice-pulse 0.45s ease-in-out infinite alternate;
+}
+@keyframes elite-notice-pulse {
+    from { box-shadow: 0 0 10px #ffb300, 0 0 20px rgba(255, 30, 30, 0.6); }
+    to { box-shadow: 0 0 18px #ffe45c, 0 0 42px rgba(255, 30, 30, 1); }
 }
 #fps-counter {
     position: fixed;
@@ -365,6 +396,16 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 #btn-teleportare-cidade { margin-top: 4px; padding: 10px 20px; background: #1a3a5c; border: none; border-radius: 6px; color: #ffffff; font-size: 14px; font-family: 'Rajdhani', sans-serif; font-weight: bold; cursor: pointer; width: 100%; transition: background 0.15s; letter-spacing: 1px; }
 /* NOVO MINIMAPA FUNCIONAL COM CONTROLES DE ZOOM */
 #minimap-wrapper { position: absolute; top: 8px; right: 10px; width: 141px; z-index: 25; pointer-events: auto; display: flex; flex-direction: column; align-items: flex-end; }
+#minimap-wrapper.elite-alert-active #minimap-header,
+#minimap-wrapper.elite-alert-active #minimap-canvas {
+    border-color: #ffe45c;
+    box-shadow: 0 0 10px #ffb300, 0 0 22px rgba(255, 25, 25, 0.95);
+    animation: minimap-elite-pulse 0.35s ease-in-out infinite alternate;
+}
+@keyframes minimap-elite-pulse {
+    from { filter: brightness(1); }
+    to { filter: brightness(1.8); }
+}
 /* RELÓGIO (CICLO DIA/NOITE) ACOPLADO AO LADO DO MINIMAPA */
 #minimap-relogio {
     position: absolute;

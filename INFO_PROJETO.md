@@ -1,5 +1,11 @@
 # INFO DO PROJETO - MMORPG Mobile
 
+## Registro v1.75.1 - Login, Configurações, Desempenho e Correções de Combate
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.1 | 04/10/2026 | Login Google verificado no servidor por assinatura RS256; lembrança local do último e-mail e logout; configuração de modo janela/tela cheia, captura de tela e orientação mobile após login; presets gráficos adaptativos; persistência protegida por lock recuperável e gravação atômica; passiva de visão noturna para Ladino/Pikeman; correção do indicador/transparência do arranque invisível e da exceção por equipamento incompatível, movido para a mochila sem perda do item. | config.js, dash-vfx.js, database.js, efeitos.js, engine_otimizador.js, google-auth.js, index.html, items/item-system.js, persistence-lock.js, server.js, sistema_dia_noite.js, sistema_dia_noite_cliente.js, skill_upgrade_tree.js, style.css, tests/auth/, tests/items/database-persistence.test.js, tests/items/item-system.test.js, tests/night_vision_passive.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
 ## Registro v1.73.14 - Ferramentas Admin do Mapa e Reset de Monstros por Bioma
 
 | Versao | Data | O que foi feito | Arquivos |

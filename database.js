@@ -3,45 +3,13 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 const inventoryMigration = require('./items/migrate-inventories.js');
+const fileLock = require('./persistence-lock.js');
 
 const DB_FILE = path.join(__dirname, 'jogadores.json');
 const DB_LOCK = path.join(__dirname, 'jogadores.json.lock');
 
-function adquirirLock() {
-    let fd;
-    try {
-        fd = fs.openSync(DB_LOCK, 'wx');
-        fs.writeFileSync(fd, JSON.stringify({ pid: process.pid, createdAt: Date.now() }), 'utf-8');
-        return fd;
-    } catch (e) {
-        if (fd !== undefined) {
-            fs.closeSync(fd);
-            try {
-                fs.unlinkSync(DB_LOCK);
-            } catch (cleanupError) {
-                if (!cleanupError || cleanupError.code !== 'ENOENT') {
-                    console.error("Erro ao limpar lock incompleto do banco:", cleanupError);
-                }
-            }
-        }
-        if (e && e.code === 'EEXIST') {
-            throw new Error('Banco de dados ocupado por outra gravação; operação não foi aplicada.');
-        }
-        throw e;
-    }
-}
-
-function liberarLock(fd) {
-    try {
-        if (fd !== undefined) fs.closeSync(fd);
-    } finally {
-        try {
-            fs.unlinkSync(DB_LOCK);
-        } catch (e) {
-            if (!e || e.code !== 'ENOENT') throw e;
-        }
-    }
-}
+const adquirirLock = () => fileLock.adquirirLock(DB_LOCK);
+const liberarLock = fileLock.liberarLock;
 
 // v1.30.3: reparo automático de corrupção leve — vírgula final/sobrando no objeto
 // raiz (padrão visto quando dois processos gravam o arquivo perto de uma leitura).
@@ -105,7 +73,7 @@ function salvarTodos(dados) {
 function carregarProgresso(userId) {
     if (!userId) return null;
     const banco = carregarTodos();
-    return banco[userId] || null;
+    return Object.prototype.hasOwnProperty.call(banco, userId) ? banco[userId] : null;
 }
 
 // Remove definitivamente um registro do banco (usado pela exclusão de personagem)
@@ -135,12 +103,12 @@ function salvarProgressoEmLote(atualizacoes) {
     try {
         const banco = carregarTodos();
         const now = Date.now();
-        const updated = Object.assign({}, banco);
+        const updated = Object.assign(Object.create(null), banco);
         for (const entrada of atualizacoes) {
             if (!entrada || !entrada.userId || !entrada.dados || typeof entrada.dados !== 'object') {
                 throw new TypeError('Atualização de progresso inválida.');
             }
-            const atual = updated[entrada.userId] || {
+            const atual = Object.prototype.hasOwnProperty.call(updated, entrada.userId) ? updated[entrada.userId] : {
                 level: 1,
                 xp: 0,
                 classe: 'guerreiro',

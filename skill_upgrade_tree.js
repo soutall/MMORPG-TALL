@@ -1562,6 +1562,194 @@
                     }
                 }
             }
+        },
+        ladino: {
+            visao_noturna_aprimorada: {
+                id: 'visao_noturna_aprimorada',
+                nome: 'Visão Noturna Aprimorada',
+                icon: '🌙',
+                descBase: 'Entre 00:00 e 04:00, seu foco sombrio reduz o breu total e permite enxergar contornos sem perder a agilidade.',
+                tiers: {
+                    1: {
+                        nivelRequerido: 10,
+                        A: {
+                            id: 'contornos_sombrios',
+                            nome: 'Contornos Sombrios',
+                            categoria: 'Visão de Combate',
+                            icone: '🕶️',
+                            desc: 'A escuridão da madrugada é limitada em 90% para o Ladino, permitindo perceber melhor inimigos e terreno nas sombras.',
+                            efeito: 'Noite de 00:00 a 04:00: breu máximo reduzido de 100% para 90%',
+                            valores: { maxEscuridaoPct: 0.90 }
+                        },
+                        B: {
+                            id: 'percepcao_veloz',
+                            nome: 'Percepção Veloz',
+                            categoria: 'Mobilidade / Reconhecimento',
+                            icone: '👁️',
+                            desc: 'Você reconhece contornos e bordas de movimento mesmo na neblina profunda, reduzindo o delay de percepção da sombra.',
+                            efeito: 'Recupera 6% de visão amigável em neblina profunda · Ajusta leitura de alvo em combate',
+                            valores: { bonusPercepcaoPct: 0.06 }
+                        }
+                    },
+                    2: {
+                        nivelRequerido: 20,
+                        A: {
+                            id: 'sinais_de_fuga',
+                            nome: 'Sinais de Fuga',
+                            categoria: 'Assistência / Visão',
+                            icone: '🧭',
+                            desc: 'A silhueta dos alvos em fuga fica mais clara, permitindo rastrear melhor inimigos em deslocamento rápido nas sombras.',
+                            efeito: 'Alvo em fuga recebe marca visual de sombras · mais fácil de perseguir',
+                            valores: { rastreioBonusPx: 18 }
+                        },
+                        B: {
+                            id: 'rastros_laterais',
+                            nome: 'Rastros Laterais',
+                            categoria: 'Leitura de Campo',
+                            icone: '🩶',
+                            desc: 'Você lê o eixo de movimento do rival pela névoa e consegue identificar melhor arcos de ataque e rota de saída.',
+                            efeito: 'Aumenta leitura de combate em 12% · melhora rastreio de giro ou corrida',
+                            valores: { leituraBonusPct: 0.12 }
+                        }
+                    },
+                    3: {
+                        nivelRequerido: 30,
+                        A: {
+                            id: 'escuta_do_breu',
+                            nome: 'Escuta do Breu',
+                            categoria: 'Dados do Campo',
+                            icone: '🎧',
+                            desc: 'A sombra transmite informações sutis: passos, quedas e alvos em velocidade ficam mais visíveis mesmo sem luz.',
+                            efeito: 'Detecta movimento em 15% maior alcance na madrugada',
+                            valores: { alcanceBonusPct: 0.15 }
+                        },
+                        B: {
+                            id: 'fenda_da_sombra',
+                            nome: 'Fenda da Sombra',
+                            categoria: 'Pulo / Exploração',
+                            icone: '🕳️',
+                            desc: 'Ao se misturar à penumbra, a leitura do espaço ao redor se torna precisa e permite pequenos ajustes de posicionamento.',
+                            efeito: 'Melhora a precisão de dash e desvio em sombras',
+                            valores: { precisaoBonusPct: 0.10 }
+                        }
+                    },
+                    4: {
+                        nivelRequerido: 40,
+                        A: {
+                            id: 'manto_da_madrugada',
+                            nome: 'Manto da Madrugada',
+                            categoria: 'Domínio da Sombra',
+                            icone: '🌌',
+                            desc: 'O Ladino aprende a caminhar em plena escuridão como se a noite fosse o próprio elemento, reduzindo o breu ao mínimo possível.',
+                            efeito: 'Breu máximo permanente em 90% durante 00:00 a 04:00 · visão ativa mesmo em sombras profundas',
+                            valores: { maxEscuridaoPct: 0.90 }
+                        },
+                        B: {
+                            id: 'noite_letal',
+                            nome: 'Noite Letal',
+                            categoria: 'Combate Acrobático',
+                            icone: '☠️',
+                            desc: 'Na penumbra, seus ataques ganham leitura superior e o primeiro acerto contra inimigos em breu total se torna mais preciso.',
+                            efeito: '10% de melhora de precisão e 8% de dano adicional em combate noturno',
+                            valores: { bonusPrecisaoPct: 0.10, bonusDanoPct: 0.08 }
+                        }
+                    }
+                }
+            }
+        },
+        pikeman: {
+            visao_noturna_aprimorada: {
+                id: 'visao_noturna_aprimorada',
+                nome: 'Visão Noturna Aprimorada',
+                icon: '🌙',
+                descBase: 'A guarda do Pikeman domina o breu da madrugada, permitindo manter a leitura do campo mesmo quando a noite se torna opressiva.',
+                tiers: {
+                    1: {
+                        nivelRequerido: 10,
+                        A: {
+                            id: 'olho_do_pesadelo',
+                            nome: 'Olho do Pesadelo',
+                            categoria: 'Visão de Campo',
+                            icone: '🕶️',
+                            desc: 'A escuridão da madrugada é limitada em 90%, permitindo enxergar melhor as bordas de ataque e evitar encurralamentos.',
+                            efeito: 'Noite de 00:00 a 04:00: breu máximo reduzido de 100% para 90%',
+                            valores: { maxEscuridaoPct: 0.90 }
+                        },
+                        B: {
+                            id: 'linha_de_frente',
+                            nome: 'Linha de Frente',
+                            categoria: 'Defesa / Fronteira',
+                            icone: '🛡️',
+                            desc: 'Seu olhar da guarda percebe surgimentos distantes e ajuda a posicionar a linha avançada mesmo em trevas profundas.',
+                            efeito: 'Melhora leitura de inimigos na linha de frente em 10%',
+                            valores: { leituraLinhaPct: 0.10 }
+                        }
+                    },
+                    2: {
+                        nivelRequerido: 20,
+                        A: {
+                            id: 'fenda_espectral',
+                            nome: 'Fenda Espectral',
+                            categoria: 'Detecção / Deslocamento',
+                            icone: '⚔️',
+                            desc: 'O Pikeman percebe pequenos deslocamentos ao redor, permitindo interceptar alvos que se ocultam na penumbra.',
+                            efeito: 'Aumenta percepção de movimento em 12% em noites profundas',
+                            valores: { percepcaoMovePct: 0.12 }
+                        },
+                        B: {
+                            id: 'mural_do_breu',
+                            nome: 'Mural do Breu',
+                            categoria: 'Controle / Pressão',
+                            icone: '🧱',
+                            desc: 'A sombra vira uma ferramenta tática: você mantém o foco no centro do combate mesmo sem alcançar o brilho.',
+                            efeito: 'Amplia a leitura do centro do campo e melhora a manutenção de ao redor',
+                            valores: { focoCentroPct: 0.08 }
+                        }
+                    },
+                    3: {
+                        nivelRequerido: 30,
+                        A: {
+                            id: 'olhar_de_escudo',
+                            nome: 'Olhar de Escudo',
+                            categoria: 'Defesa / Vigilância',
+                            icone: '🛡️',
+                            desc: 'Você enxerga os contornos do ataque antes que ele chegue, aumentando sua capacidade de responder no intervalo crítico.',
+                            efeito: 'Aumenta a reação defensiva em 15% durante a noite',
+                            valores: { defesaReacaoPct: 0.15 }
+                        },
+                        B: {
+                            id: 'sinal_de_guerra',
+                            nome: 'Sinal de Guerra',
+                            categoria: 'Coordenação / Pressão',
+                            icone: '📣',
+                            desc: 'A silhueta da ameaça à frente se torna mais clara, permitindo o Pico de pressão e execução sem perder a linha.',
+                            efeito: 'Reforça a leitura de alvos em combate por 10%',
+                            valores: { combateLeituraPct: 0.10 }
+                        }
+                    },
+                    4: {
+                        nivelRequerido: 40,
+                        A: {
+                            id: 'sentinela_da_madrugada',
+                            nome: 'Sentinela da Madrugada',
+                            categoria: 'Domínio da Noite',
+                            icone: '🌑',
+                            desc: 'O Pikeman aprende a conduzir a própria noite: o breu não o cega, as linhas do campo ficam vivas e sua guarda se torna implacável.',
+                            efeito: 'Breu máximo permanente em 90% durante 00:00 a 04:00 · visão de campo ativa',
+                            valores: { maxEscuridaoPct: 0.90 }
+                        },
+                        B: {
+                            id: 'pressao_da_sombra',
+                            nome: 'Pressão da Sombra',
+                            categoria: 'Explosão / Controle',
+                            icone: '💢',
+                            desc: 'Na penumbra, sua pressão se torna mais letal: a leitura do alvo e o timing do golpe ficam mais nítidos.',
+                            efeito: '8% de dano adicional e 10% de precisão em combate noturno',
+                            valores: { bonusDanoPct: 0.08, bonusPrecisaoPct: 0.10 }
+                        }
+                    }
+                }
+            }
         }
     };
 

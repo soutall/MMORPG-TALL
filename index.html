@@ -119,14 +119,17 @@
 
     <div id="login-screen">
         <h1>⚔️ ENTRAR NO MUNDO</h1>
-        <p>Digite o nome do seu Herói:</p>
-        <div id="login-box">
-            <!-- Sem autofocus: no celular o teclado subia sozinho ao abrir o jogo.
-                 Agora só abre ao tocar no campo. -->
-            <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" />
-            <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
+        <p>Entre com sua conta Google verificada:</p>
+        <div id="google-login-box" style="display:flex; flex-direction:column; align-items:center; gap:12px; min-height:48px;">
+            <div id="google-signin-button"></div>
+            <div id="login-remembered-account" style="display:none; align-items:center; gap:8px; justify-content:center; flex-wrap:wrap; max-width:360px;">
+                <span style="color:#cfe9ff; font-size:12px; opacity:0.85;">Última conta:</span>
+                <button id="login-remembered-email-button" type="button" style="padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.08); color:#fff; cursor:pointer;">conta@exemplo.com</button>
+            </div>
+            <div id="google-login-status" role="status" aria-live="polite" style="max-width:320px; color:#ffd27d; text-align:center; font:600 14px 'Rajdhani',sans-serif;">Carregando login Google…</div>
+            <button id="login-logout" type="button" onclick="window.logoutGoogleConta && window.logoutGoogleConta()" style="display:none; padding:8px 12px; border-radius:999px; background:rgba(231,76,60,0.2); border:1px solid rgba(231,76,60,0.45); color:#ffd5d5; cursor:pointer; font-weight:700;">Sair da conta</button>
         </div>
-        <div class="game-version-display">v1.73.14</div>
+        <div class="game-version-display">v1.75.1</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -180,9 +183,10 @@
     </div>
 
     <div id="status" data-ui="status">Desconectado</div>
+    <div id="elite-alert-notice" role="alert" aria-live="assertive">⚠ ATENÇÃO: ELITE ESTÁ NO MAPA</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
     <div id="ping-counter" data-ui="ping">PING: -- ms</div>
-    <div id="hud-version" class="game-version-display">v1.73.14</div>
+    <div id="hud-version" class="game-version-display">v1.75.1</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -427,16 +431,15 @@
             <button id="btn-pocao-hp" class="pocao-slot" onclick="usarPocao('hp')" title="Usar Poção de Vida (Q)">🧪<span class="pocao-qtd" id="pocao-hp-qtd">0</span><span class="key-badge">Q</span></button>
             <button id="btn-pocao-mp" class="pocao-slot" onclick="usarPocao('mp')" title="Usar Poção de Mana (E)">🔮<span class="pocao-qtd" id="pocao-mp-qtd">0</span><span class="key-badge">E</span></button>
         </div>
-        <button id="btn-autofarm" class="btn-action btn-autofarm" ontouchstart="alternarAutofarm(); event.stopPropagation();" onclick="alternarAutofarm();" title="Autofarm (R)">🤖<span class="key-badge">R</span></button>
         <button id="btn-dash" class="btn-action btn-dash" ontouchstart="usarDash(); event.stopPropagation();" ontouchend="soltarDash(); event.stopPropagation();" onmouseup="soltarDash();" onclick="usarDash();" title="Dash (1)">💨<span class="key-badge">1</span></button>
         <button id="btn-guerreiro-guardiao" class="btn-action btn-guerreiro-guardiao" ontouchstart="usarPosturaGuardiao(); event.stopPropagation();" onclick="usarPosturaGuardiao();" title="Aura do Vanguarda (1)">🛡️<span class="key-badge">1</span></button>
         <button id="btn-tornado" class="btn-action btn-tornado" ontouchstart="usarTornado(); event.stopPropagation();" onclick="usarTornado();" title="Giro do Vanguarda (2)">🌪️<span class="key-badge">2</span></button>
         <button id="btn-guerreiro-provocacao" class="btn-action btn-guerreiro-provocacao" ontouchstart="usarGritoProvocacao(); event.stopPropagation();" onclick="usarGritoProvocacao();" title="Grito Estrondoso (3)">📢<span class="key-badge">3</span></button>
-        <button id="btn-meteoro" class="btn-action btn-meteoro" ontouchstart="iniciarDragSkill(event,'meteoro'); event.preventDefault(); event.stopPropagation();" onclick="ativarMeteoroSmartCast();" title="Meteoro (1)">☄️<span class="key-badge">1</span></button>
-        <button id="btn-nevasca" class="btn-action btn-nevasca" ontouchstart="iniciarDragSkill(event,'nevasca'); event.preventDefault(); event.stopPropagation();" onclick="ativarNevascaSmartCast();" title="Nevasca (2)">❄️<span class="key-badge">2</span></button>
-        <button id="btn-vulcao" class="btn-action btn-vulcao" ontouchstart="iniciarDragSkill(event,'vulcao'); event.preventDefault(); event.stopPropagation();" onclick="ativarVulcaoSmartCast();" title="Vulcão (3)">🌋<span class="key-badge">3</span></button>
+        <button id="btn-meteoro" class="btn-action btn-meteoro" ontouchstart="ativarMeteoroSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarMeteoroSmartCast();" title="Meteoro (1)">☄️<span class="key-badge">1</span></button>
+        <button id="btn-nevasca" class="btn-action btn-nevasca" ontouchstart="ativarNevascaSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarNevascaSmartCast();" title="Nevasca (2)">❄️<span class="key-badge">2</span></button>
+        <button id="btn-vulcao" class="btn-action btn-vulcao" ontouchstart="ativarVulcaoSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarVulcaoSmartCast();" title="Vulcão (3)">🌋<span class="key-badge">3</span></button>
         <button id="btn-ogro-skill" class="btn-action btn-ogro-skill" ontouchstart="usarComandoOgro(); event.stopPropagation();" onclick="usarComandoOgro();" title="Comando Ogro (1)">💥<span class="key-badge">1</span></button>
-        <button id="btn-ogro-salto" class="btn-action btn-ogro-salto" ontouchstart="iniciarDragSkill(event,'salto'); event.preventDefault(); event.stopPropagation();" onclick="ativarSaltoSmartCast();" title="Salto do Ogro (2)">🦘<span class="key-badge">2</span></button>
+        <button id="btn-ogro-salto" class="btn-action btn-ogro-salto" ontouchstart="ativarSaltoSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarSaltoSmartCast();" title="Salto do Ogro (2)">🦘<span class="key-badge">2</span></button>
         <div id="ogro-colossal-wrap" style="position:relative; width:54px; height:54px; display:none;">
             <button id="btn-ogro-colossal" class="btn-action btn-ogro-colossal" ontouchstart="usarOgroColossal(); event.preventDefault(); event.stopPropagation();" onclick="usarOgroColossal();" title="Golem Colossal (3)">🗿<span class="key-badge">3</span></button>
             <div id="ogro-modo-ui" class="ogro-modo-ui">
@@ -444,44 +447,44 @@
                 <button class="ogro-modo-btn ogro-modo-passivo" onclick="setOgroModo('passivo'); event.stopPropagation();" title="Golem PASSIVO: fica sem atacar, apenas rodeando a Summoner">🛡️</button>
             </div>
         </div>
-        <button id="btn-arqueiro-chuva" class="btn-action btn-arqueiro-chuva" ontouchstart="iniciarDragSkill(event,'chuva'); event.preventDefault(); event.stopPropagation();" onclick="ativarChuvaSmartCast();" title="Chuva de Flechas (1)">🌧️<span class="key-badge">1</span></button>
+        <button id="btn-arqueiro-chuva" class="btn-action btn-arqueiro-chuva" ontouchstart="ativarChuvaSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarChuvaSmartCast();" title="Chuva de Flechas (1)">🌧️<span class="key-badge">1</span></button>
         <button id="btn-arqueiro-perfurante" class="btn-action btn-arqueiro-perfurante" ontouchstart="usarDisparoPerfurante(); event.stopPropagation();" onclick="usarDisparoPerfurante();" title="Disparo Perfurante (2)">🎯<span class="key-badge">2</span></button>
         <button id="btn-arqueiro-rajada" class="btn-action btn-arqueiro-rajada" ontouchstart="usarRajadaFlechas(); event.stopPropagation();" onclick="usarRajadaFlechas();" title="Rajada de Flechas (3)">🏹<span class="key-badge">3</span></button>
-        <button id="btn-curandeiro-cura" class="btn-action btn-curandeiro-cura" ontouchstart="iniciarDragSkill(event,'prece'); event.preventDefault(); event.stopPropagation();" onclick="ativarPreceSmartCast();" title="Prece / Cura (1)">✨<span class="key-badge">1</span></button>
-        <button id="btn-curandeiro-julgamento" class="btn-action btn-curandeiro-julgamento" ontouchstart="iniciarDragSkill(event,'julgamento'); event.preventDefault(); event.stopPropagation();" onclick="ativarJulgamentoSmartCast();" title="Julgamento Divino (2)">⚡<span class="key-badge">2</span></button>
+        <button id="btn-curandeiro-cura" class="btn-action btn-curandeiro-cura" ontouchstart="ativarPreceSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarPreceSmartCast();" title="Prece / Cura (1)">✨<span class="key-badge">1</span></button>
+        <button id="btn-curandeiro-julgamento" class="btn-action btn-curandeiro-julgamento" ontouchstart="ativarJulgamentoSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarJulgamentoSmartCast();" title="Julgamento Divino (2)">⚡<span class="key-badge">2</span></button>
         <button id="btn-curandeiro-aura" class="btn-action btn-curandeiro-aura" ontouchstart="event.preventDefault(); usarAuraSagrada(); event.stopPropagation();" onclick="usarAuraSagrada();" title="Aura Sagrada (3)">✝️<span class="key-badge">3</span></button>
         
         <!-- BOTOES DO BARBARO -->
         <button id="btn-barbaro-furia" class="btn-action btn-barbaro-furia" ontouchstart="usarFuriaBerserker(); event.stopPropagation();" onclick="usarFuriaBerserker();" title="Fúria (1)">🩸<span class="key-badge">1</span></button>
-        <button id="btn-barbaro-esmagamento" class="btn-action btn-barbaro-esmagamento" ontouchstart="iniciarDragSkill(event,'esmagamento'); event.preventDefault(); event.stopPropagation();" onclick="ativarEsmagamentoSmartCast();" title="Esmagamento (2)">🪓<span class="key-badge">2</span></button>
+        <button id="btn-barbaro-esmagamento" class="btn-action btn-barbaro-esmagamento" ontouchstart="ativarEsmagamentoSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarEsmagamentoSmartCast();" title="Esmagamento (2)">🪓<span class="key-badge">2</span></button>
         <button id="btn-barbaro-giro" class="btn-action btn-barbaro-giro" ontouchstart="usarGiroDescontrolado(); event.stopPropagation();" onclick="usarGiroDescontrolado();" title="Giro Descontrolado (3)">🌀<span class="key-badge">3</span></button>
         
         <!-- BOTOES DO ROQUEIRO -->
         <button id="btn-roqueiro-bateria" class="btn-action btn-roqueiro-bateria" ontouchstart="usarBateriaRoqueiro(); event.stopPropagation();" onclick="usarBateriaRoqueiro();" title="Bateria (1)">🥁<span class="key-badge">1</span></button>
-        <button id="btn-roqueiro-teleporte" class="btn-action btn-roqueiro-teleporte" ontouchstart="iniciarDragSkill(event,'teleporte'); event.preventDefault(); event.stopPropagation();" onclick="ativarTeleporteRoqueiro();" title="Teleporte (2)">🌠<span class="key-badge">2</span></button>
+        <button id="btn-roqueiro-teleporte" class="btn-action btn-roqueiro-teleporte" ontouchstart="ativarTeleporteRoqueiro(); event.preventDefault(); event.stopPropagation();" onclick="ativarTeleporteRoqueiro();" title="Teleporte (2)">🌠<span class="key-badge">2</span></button>
         <button id="btn-roqueiro-banda" class="btn-action btn-roqueiro-banda" ontouchstart="usarBandaRoqueiro(); event.stopPropagation();" onclick="usarBandaRoqueiro();" title="Banda (3)">🎸<span class="key-badge">3</span></button>
         <button id="btn-roqueiro-grito" class="btn-action btn-roqueiro-grito" ontouchstart="usarGritoDeGuerraRoqueiro(); event.stopPropagation();" onclick="usarGritoDeGuerraRoqueiro();" title="Grito de Guerra (4)">📣<span class="key-badge">4</span></button>
         
         <!-- BOTOES DO LADINO -->
         <button id="btn-ladino-danca" class="btn-action btn-ladino-danca" ontouchstart="usarDancaAdagas(); event.stopPropagation();" onclick="usarDancaAdagas();" title="Dança das Adagas (1)">💫<span class="key-badge">1</span></button>
-        <button id="btn-ladino-bomba" class="btn-action btn-ladino-bomba" ontouchstart="iniciarDragSkill(event,'bomba'); event.preventDefault(); event.stopPropagation();" onclick="ativarBombaSmartCast();" title="Névoa Venenosa (2)">🧪<span class="key-badge">2</span></button>
+        <button id="btn-ladino-bomba" class="btn-action btn-ladino-bomba" ontouchstart="ativarBombaSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarBombaSmartCast();" title="Névoa Venenosa (2)">🧪<span class="key-badge">2</span></button>
         <button id="btn-ladino-camuflagem" class="btn-action btn-ladino-camuflagem" ontouchstart="usarCamuflagemSombria(); event.stopPropagation();" onclick="usarCamuflagemSombria();" title="Camuflagem Sombria (3)">🌑<span class="key-badge">3</span></button>
-        <button id="btn-ladino-estrela" class="btn-action btn-ladino-estrela" ontouchstart="iniciarDragSkill(event,'estrela'); event.preventDefault(); event.stopPropagation();" onclick="ativarEstrelaSmartCast();" title="Estrela da Morte (4)">⭐<span class="key-badge">4</span></button>
+        <button id="btn-ladino-estrela" class="btn-action btn-ladino-estrela" ontouchstart="ativarEstrelaSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarEstrelaSmartCast();" title="Estrela da Morte (4)">⭐<span class="key-badge">4</span></button>
         
         <!-- BOTOES DO DRONEMASTER -->
         <button id="btn-dm-supressao" class="btn-action btn-dm-supressao" ontouchstart="usarSupressaoDronemaster(); event.stopPropagation();" onclick="usarSupressaoDronemaster();" title="Modo Supressão (1)">🎯<span class="key-badge">1</span></button>
         <button id="btn-dm-assalto" class="btn-action btn-dm-assalto" ontouchstart="usarAssaltoDronemaster(); event.stopPropagation();" onclick="usarAssaltoDronemaster();" title="Modo Assalto (2)">🤖<span class="key-badge">2</span></button>
-        <button id="btn-dm-caixa" class="btn-action btn-dm-caixa" ontouchstart="iniciarDragSkill(event,'caixa'); event.preventDefault(); event.stopPropagation();" onclick="ativarCaixaSmartCast();" title="Caixa de Ferramentas (3)">🧰<span class="key-badge">3</span></button>
+        <button id="btn-dm-caixa" class="btn-action btn-dm-caixa" ontouchstart="ativarCaixaSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarCaixaSmartCast();" title="Caixa de Ferramentas (3)">🧰<span class="key-badge">3</span></button>
         <button id="btn-dm-tita" class="btn-action btn-dm-tita" ontouchstart="usarTitaDronemaster(); event.stopPropagation();" onclick="usarTitaDronemaster();" title="Protocolo Titã (4)">🦾<span class="key-badge">4</span></button>
         
         <!-- BOTOES DO ARQUEIRO ARCANO -->
-        <button id="btn-arcano-cometas" class="btn-action btn-arcano-cometas" ontouchstart="iniciarDragSkill(event,'cometas'); event.preventDefault(); event.stopPropagation();" onclick="ativarCometasSmartCast();" title="Chuva de Cometas (1)">☄️<span class="key-badge">1</span></button>
-        <button id="btn-arcano-orbe" class="btn-action btn-arcano-orbe" ontouchstart="iniciarDragSkill(event,'orbe'); event.preventDefault(); event.stopPropagation();" onclick="ativarOrbeSmartCast();" title="Orbe de Constelação (2)">✨<span class="key-badge">2</span></button>
+        <button id="btn-arcano-cometas" class="btn-action btn-arcano-cometas" ontouchstart="ativarCometasSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarCometasSmartCast();" title="Chuva de Cometas (1)">☄️<span class="key-badge">1</span></button>
+        <button id="btn-arcano-orbe" class="btn-action btn-arcano-orbe" ontouchstart="ativarOrbeSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarOrbeSmartCast();" title="Orbe de Constelação (2)">✨<span class="key-badge">2</span></button>
         <button id="btn-arcano-cascata" class="btn-action btn-arcano-cascata" ontouchstart="usarCascataEstelar(); event.stopPropagation();" onclick="usarCascataEstelar();" title="Cascata Estelar (3)">🌌<span class="key-badge">3</span></button>
         
         <!-- BOTOES DO SNIPER -->
         <button id="btn-sniper-apontar" class="btn-action btn-sniper-apontar" onclick="ativarSniperTiroSmartCast();" title="Disparo Supremo (1)">💥<span class="key-badge">1</span></button>
-        <button id="btn-sniper-rede" class="btn-action btn-sniper-rede" ontouchstart="iniciarDragSkill(event,'rede'); event.preventDefault(); event.stopPropagation();" onclick="ativarRedeSmartCast();" title="Arame Prendedor (2)">🕸️<span class="key-badge">2</span></button>
+        <button id="btn-sniper-rede" class="btn-action btn-sniper-rede" ontouchstart="ativarRedeSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarRedeSmartCast();" title="Arame Prendedor (2)">🕸️<span class="key-badge">2</span></button>
         <button id="btn-sniper-posicao" class="btn-action btn-sniper-posicao" ontouchstart="usarPosicaoSniper(); event.stopPropagation();" onclick="usarPosicaoSniper();" title="Posição de Franco-Atirador (3)">🎯<span class="key-badge">3</span></button>
         <button id="btn-sniper-camuflagem" class="btn-action btn-sniper-camuflagem" ontouchstart="usarCamuflagemSniper(); event.stopPropagation();" onclick="usarCamuflagemSniper();" title="Camuflagem Natural (4)">🌿<span class="key-badge">4</span></button>
         
@@ -489,10 +492,10 @@
         <button id="btn-pikeman-giro" class="btn-action btn-pikeman-giro" ontouchstart="usarGiroPikeman(); event.stopPropagation();" onclick="usarGiroPikeman();" title="Giro da Foice (1)"><img src="imagem/HUD/skills/Slotbar/Pike/skill_01.png" class="btn-action-icon-img" alt="Giro da Foice" /><span class="key-badge">1</span></button>
         <button id="btn-pikeman-pirueta" class="btn-action btn-pikeman-pirueta" ontouchstart="usarPiruetaPikeman(); event.stopPropagation();" onclick="usarPiruetaPikeman();" title="Pirueta da Morte (2)">✴️<span class="key-badge">2</span></button>
         <button id="btn-pikeman-geada" class="btn-action btn-pikeman-geada" ontouchstart="usarGeadaPikeman(); event.stopPropagation();" onclick="usarGeadaPikeman();" title="Geada da Morte (3)">🧊<span class="key-badge">3</span></button>
-        <button id="btn-florim-arvore" class="btn-action btn-florim-arvore" ontouchstart="iniciarDragSkill(event,'florim_arvore')" ontouchend="soltarDragSkill(event,'florim_arvore')" onclick="usarArvoreFlorim();" title="Árvore Curativa (1)">🌳<span class="key-badge">1</span></button>
-        <button id="btn-florim-semente" class="btn-action btn-florim-semente" ontouchstart="iniciarDragSkill(event,'florim_semente')" ontouchend="soltarDragSkill(event,'florim_semente')" onclick="usarSementeFlorim();" title="Semente (2)">🌱<span class="key-badge">2</span></button>
-        <button id="btn-florim-espinhos" class="btn-action btn-florim-espinhos" ontouchstart="iniciarDragSkill(event,'florim_espinhos')" ontouchend="soltarDragSkill(event,'florim_espinhos')" onclick="usarEspinhosFlorim();" title="Espinhos de Rosa (3)">🌹<span class="key-badge">3</span></button>
-        <button id="btn-florim-parede" class="btn-action btn-florim-parede" ontouchstart="iniciarDragSkill(event,'florim_parede')" ontouchend="soltarDragSkill(event,'florim_parede')" onclick="usarParedeFlorim();" title="Parede de Espinhos (4)">🧱<span class="key-badge">4</span></button>
+        <button id="btn-florim-arvore" class="btn-action btn-florim-arvore" ontouchstart="usarArvoreFlorim(); event.preventDefault(); event.stopPropagation();" onclick="usarArvoreFlorim();" title="Árvore Curativa (1)">🌳<span class="key-badge">1</span></button>
+        <button id="btn-florim-semente" class="btn-action btn-florim-semente" ontouchstart="usarSementeFlorim(); event.preventDefault(); event.stopPropagation();" onclick="usarSementeFlorim();" title="Semente (2)">🌱<span class="key-badge">2</span></button>
+        <button id="btn-florim-espinhos" class="btn-action btn-florim-espinhos" ontouchstart="usarEspinhosFlorim(); event.preventDefault(); event.stopPropagation();" onclick="usarEspinhosFlorim();" title="Espinhos de Rosa (3)">🌹<span class="key-badge">3</span></button>
+        <button id="btn-florim-parede" class="btn-action btn-florim-parede" ontouchstart="usarParedeFlorim(); event.preventDefault(); event.stopPropagation();" onclick="usarParedeFlorim();" title="Parede de Espinhos (4)">🧱<span class="key-badge">4</span></button>
         <button id="btn-pikeman-execucao" class="btn-action btn-pikeman-execucao" ontouchstart="usarExecucaoPikeman(); event.stopPropagation();" onclick="usarExecucaoPikeman();" title="Execução da Morte (4)">💀<span class="key-badge">4</span></button>
         
         <!-- BOTOES DO GUERREIRO KALEDRON -->
@@ -501,13 +504,13 @@
         <button id="btn-kaledron-redemoinho" class="btn-action btn-kaledron-redemoinho" ontouchstart="usarRedemoinhoKaledron(); event.stopPropagation();" onclick="usarRedemoinhoKaledron();" title="Redemoinho de Aço (3)">🌪️<span class="key-badge">3</span></button>
         <button id="btn-kaledron-brado" class="btn-action btn-kaledron-brado" ontouchstart="usarBradoGuerraKaledron(); event.stopPropagation();" onclick="usarBradoGuerraKaledron();" title="Brado de Guerra Vulcânico (4)">📢<span class="key-badge">4</span></button>
         <!-- NOVAS SKILLS -->
-        <button id="btn-guerreiro-escudo" class="btn-action btn-guerreiro-escudo" ontouchstart="iniciarDragSkill(event,'guerreiro_escudo'); event.preventDefault(); event.stopPropagation();" onclick="ativarEscudoSmartCast();" title="Lançamento do Escudo (4)">🛡️<span class="key-badge">4</span></button>
-        <button id="btn-mago-bola" class="btn-action btn-mago-bola" ontouchstart="iniciarDragSkill(event,'mago_bola'); event.preventDefault(); event.stopPropagation();" onclick="ativarBolaElementalSmartCast();" title="Bola Elemental (4)">🔮<span class="key-badge">4</span></button>
+        <button id="btn-guerreiro-escudo" class="btn-action btn-guerreiro-escudo" ontouchstart="ativarEscudoSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarEscudoSmartCast();" title="Lançamento do Escudo (4)">🛡️<span class="key-badge">4</span></button>
+        <button id="btn-mago-bola" class="btn-action btn-mago-bola" ontouchstart="ativarBolaElementalSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarBolaElementalSmartCast();" title="Bola Elemental (4)">🔮<span class="key-badge">4</span></button>
         <button id="btn-summoner-golem" class="btn-action btn-summoner-golem" ontouchstart="usarGolemSismico(); event.stopPropagation();" onclick="usarGolemSismico();" title="Golem Sísmico (4)">⛰️<span class="key-badge">4</span></button>
         <button id="btn-arqueiro-salto" class="btn-action btn-arqueiro-salto" ontouchstart="usarSaltoArqueiro(); event.stopPropagation();" onclick="usarSaltoArqueiro();" title="Salto + Chuva (4)">🦅<span class="key-badge">4</span></button>
         <button id="btn-curandeiro-cantico" class="btn-action btn-curandeiro-cantico" ontouchstart="usarCanticoCelestial(); event.stopPropagation();" onclick="usarCanticoCelestial();" title="Cântico Celestial (4)">👼<span class="key-badge">4</span></button>
         <button id="btn-barbaro-vinculo" class="btn-action btn-barbaro-vinculo" ontouchstart="usarVinculoBerserker(); event.stopPropagation();" onclick="usarVinculoBerserker();" title="Vínculo Berserker (4)">⛓️<span class="key-badge">4</span></button>
-        <button id="btn-arcano-buraco" class="btn-action btn-arcano-buraco" ontouchstart="iniciarDragSkill(event,'astral_buraco'); event.preventDefault(); event.stopPropagation();" onclick="ativarBuracoNegroSmartCast();" title="Buraco Negro Astral (4)">🌌<span class="key-badge">4</span></button>
+        <button id="btn-arcano-buraco" class="btn-action btn-arcano-buraco" ontouchstart="ativarBuracoNegroSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarBuracoNegroSmartCast();" title="Buraco Negro Astral (4)">🌌<span class="key-badge">4</span></button>
 
         <!-- ATAQUE BÁSICO MANUAL REMOVIDO (v1.30.2): só o auto-attack fica ativo; botão oculto -->
         <button id="btn-attack" class="btn-action btn-attack" style="display:none;" title="Ataque Básico desativado (use o auto-attack)">⚔️</button>
@@ -888,6 +891,27 @@
                         <option value="off">Sem texto</option>
                     </select>
                 </div>
+                <div class="settings-linha" id="vis-tela-linha">
+                    <div class="settings-label"><span class="settings-ico">🖥️</span>MODO DE TELA</div>
+                    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap; justify-content:flex-end;">
+                        <button type="button" id="vis-tela-botao" class="settings-mini-btn" onclick="toggleModoTela()">Tela cheia</button>
+                        <button type="button" class="settings-mini-btn" onclick="tirarPrintScreen()">Print</button>
+                    </div>
+                    <select id="vis-tela-modo" class="settings-select" onchange="mudarVisualTela(this.value)">
+                        <option value="janela">Modo Janela</option>
+                        <option value="fullscreen">Modo Full Janela</option>
+                    </select>
+                    <div class="settings-dica">Ativa tela cheia ou janela no PC; no mobile usa a visualização em paisagem.</div>
+                </div>
+                <div class="settings-linha">
+                    <div class="settings-label"><span class="settings-ico">✨</span>QUALIDADE DOS GRÁFICOS</div>
+                    <select id="vis-grafica-qualidade" class="settings-select" onchange="mudarVisualQualidade(this.value)">
+                        <option value="alta">Alta</option>
+                        <option value="media">Média</option>
+                        <option value="baixa">Baixa</option>
+                    </select>
+                    <div class="settings-dica">Alta mantém partículas e brilhos completos. Média reduz efeitos; Baixa otimiza para celulares e PCs fracos.</div>
+                </div>
                 <div class="settings-linha">
                     <div class="settings-label"><span class="settings-ico">📶</span>MOSTRAR FPS / PING</div>
                     <select id="vis-fps-ping" class="settings-select" onchange="mudarVisualFpsPing(this.value)">
@@ -896,20 +920,13 @@
                     </select>
                     <div class="settings-dica">Esconde as duas etiquetas de status e FPS no topo da tela.</div>
                 </div>
-                <div class="settings-linha" id="vis-tela-linha" style="display:none;">
-                    <div class="settings-label"><span class="settings-ico">🖥️</span>MODO DE TELA (PC)</div>
-                    <select id="vis-tela-modo" class="settings-select" onchange="mudarVisualTela(this.value)">
-                        <option value="janela">Modo Janela</option>
-                        <option value="fullscreen">Modo Full Janela</option>
-                    </select>
-                    <div class="settings-dica">Escolha do modo de tela deste personagem (salva por ID).</div>
-                </div>
             </div>
             </div>
             <div id="settings-acoes">
                 <button id="btn-editar-interface" class="btn-config-acao btn-editar-ui" onclick="window.ativarEditarInterface()"><span class="btn-ico">🔧</span><span class="btn-lbl">EDITAR INTERFACE</span></button>
                 <button id="btn-trocar-char" class="btn-config-acao btn-trocar" onclick="trocarDePersonagem()"><span class="btn-ico">🔁</span><span class="btn-lbl">TROCAR CHAR</span></button>
-                <button id="btn-sair-jogo" class="btn-config-acao btn-sair" onclick="sairDoJogo()"><span class="btn-ico">🚪</span><span class="btn-lbl">SAIR DO JOGO</span></button>
+                <button id="btn-logout-conta" class="btn-config-acao btn-sair" onclick="window.logoutGoogleConta && window.logoutGoogleConta()"><span class="btn-ico">🚪</span><span class="btn-lbl">LOGOUT</span></button>
+                <button id="btn-sair-jogo" class="btn-config-acao btn-sair" onclick="sairDoJogo()"><span class="btn-ico">🚫</span><span class="btn-lbl">SAIR DO JOGO</span></button>
             </div>
             <div id="settings-roda-pe">MMORPG PC &amp; MOBILE</div>
         </div>
@@ -1005,7 +1022,7 @@
     <script src="personagens-historias.js?v=2"></script>
     <script src="personagem-select.js?v=5"></script>
     <script>
-        const GAME_VERSION = 'v1.73.14';
+        const GAME_VERSION = 'v1.75.1';
         window.GAME_VERSION = GAME_VERSION;
         const WORLD_WIDTH = 190000;
         const WORLD_HEIGHT = 28500;
@@ -1093,7 +1110,9 @@
         });
 
         const loginScreen = document.getElementById("login-screen");
-        const inputUserId = document.getElementById("input-userid");
+        const rotateOverlay = document.getElementById("rotate-overlay");
+        const googleSignInButton = document.getElementById("google-signin-button");
+        const googleLoginStatus = document.getElementById("google-login-status");
         const charSelectScreen = document.getElementById("char-select-screen");
         const statusText = document.getElementById("status");
         const fpsCounter = document.getElementById("fps-counter");
@@ -1116,7 +1135,6 @@ const xpBarFill = document.getElementById("xp-bar-fill");
         const staminaBarFill = document.getElementById("stamina-bar-fill");
         window.staminaBarFill = staminaBarFill;
         const levelUpPopup = document.getElementById("level-up-popup");
-        const btnAutofarm = document.getElementById("btn-autofarm");
         const btnDash = document.getElementById("btn-dash");
         const btnGuerreiroGuardiao = document.getElementById("btn-guerreiro-guardiao");
         const btnTornado = document.getElementById("btn-tornado");
@@ -1399,6 +1417,23 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             } catch (e) {} setTimeout(redimensionarCanvas, 250);
         }
 
+        function isMobilePortrait() {
+            try {
+                const ehMobile = /Android|iPhone|iPad|iPod|Mobile|Windows Phone/i.test(navigator.userAgent || '');
+                if (!ehMobile) return false;
+                return window.innerHeight > window.innerWidth || (screen && screen.orientation && screen.orientation.type && screen.orientation.type.includes('portrait'));
+            } catch (e) {
+                return false;
+            }
+        }
+
+        function atualizarOverlayRotacao() {
+            if (!rotateOverlay) return;
+            const ativo = !!window.googleLoginConcluido && isMobilePortrait();
+            rotateOverlay.classList.toggle('ativo', ativo);
+            rotateOverlay.style.display = ativo ? 'flex' : 'none';
+        }
+
         function tentarHorizontalAutomatico() {
             try {
                 // PC: só entra em tela cheia se o jogador escolheu "Full Janela"
@@ -1407,20 +1442,73 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 var podeFull = (typeof window.autoFullscreenPermitido !== 'function') || window.autoFullscreenPermitido();
                 if (podeFull && !document.fullscreenElement) { document.documentElement.requestFullscreen().catch(() => {}); }
                 if (screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(() => {}); }
+                setTimeout(atualizarOverlayRotacao, 150);
             } catch (e) {}
         }
         window.addEventListener("touchstart", function tentaH() { tentarHorizontalAutomatico(); window.removeEventListener("touchstart", tentaH); }, { once: true });
         window.addEventListener("click", function tentaC() { tentarHorizontalAutomatico(); window.removeEventListener("click", tentaC); }, { once: true });
+        window.addEventListener('resize', atualizarOverlayRotacao);
+        window.addEventListener('orientationchange', atualizarOverlayRotacao);
 
-        let meuLoginId = localStorage.getItem("mmorpg_user_id") || "";
-        if (meuLoginId) inputUserId.value = meuLoginId;
+        let meuLoginId = localStorage.getItem("mmorpg_google_account") || "";
+        let googleCredentialAtual = null;
+        window.googleLoginConcluido = false;
 
-        inputUserId.addEventListener("keydown", (e) => {
-            if (e.key === "Enter") fazerLogin();
-        });
+        function obterEmailGoogleDoToken(token) {
+            if (!token || typeof token !== 'string') return '';
+            try {
+                const payload = token.split('.')[1];
+                if (!payload) return '';
+                const base = payload.replace(/-/g, '+').replace(/_/g, '/');
+                const padded = base + '='.repeat((4 - (base.length % 4)) % 4);
+                const json = atob(padded);
+                const dados = JSON.parse(json);
+                return (dados && typeof dados.email === 'string') ? dados.email.trim().toLowerCase() : '';
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function atualizarUiUltimoEmailLogin() {
+            const email = localStorage.getItem('mmorpg_last_google_email') || '';
+            const bloco = document.getElementById('login-remembered-account');
+            const botao = document.getElementById('login-remembered-email-button');
+            const botoesLogout = document.getElementById('login-logout');
+            const botaoConfigLogout = document.getElementById('btn-logout-conta');
+            if (bloco) bloco.style.display = email ? 'flex' : 'none';
+            if (botao) {
+                botao.textContent = email || 'conta@exemplo.com';
+                botao.title = email || 'Última conta';
+            }
+            if (botoesLogout) botoesLogout.style.display = (googleCredentialAtual || email) ? 'inline-flex' : 'none';
+            if (botaoConfigLogout) botaoConfigLogout.style.display = (googleCredentialAtual || email) ? 'inline-flex' : 'none';
+        }
+
+        window.logoutGoogleConta = function () {
+            try {
+                if (window.ws && window.ws.readyState === WebSocket.OPEN) {
+                    window.ws.close();
+                }
+            } catch (e) {}
+            googleCredentialAtual = null;
+            window.googleLoginConcluido = false;
+            localStorage.removeItem('mmorpg_google_account');
+            localStorage.removeItem('mmorpg_user_id');
+            if (window.google && window.google.accounts && window.google.accounts.id) {
+                try { window.google.accounts.id.disableAutoSelect(); } catch (e) {}
+            }
+            const loginScreenEl = document.getElementById('login-screen');
+            const charSelectScreenEl = document.getElementById('char-select-screen');
+            const statusEl = document.getElementById('status');
+            if (loginScreenEl) loginScreenEl.style.display = 'flex';
+            if (charSelectScreenEl) charSelectScreenEl.style.display = 'none';
+            if (statusEl) statusEl.innerText = 'Status: Desconectado';
+            atualizarUiUltimoEmailLogin();
+            atualizarOverlayRotacao();
+        };
 
         window.minhaClasse = 'guerreiro'; let meuLevel = 1; window.meuLevel = 1; window.meuNivel = 1; let meuXp = 0; let minhaEstamina = 100;
-        let autofarmLigado = false; window.danoFlashTimer = 0; let tornadoCooldownAtivo = false; window.tornadoAnimTimer = 0; window.tornadoTimers = {};
+        window.danoFlashTimer = 0; let tornadoCooldownAtivo = false; window.tornadoAnimTimer = 0; window.tornadoTimers = {};
         let dashCooldownAtivo = false; let dashTrails = [];
         
         window.meteoroCooldownAtivo = false; window.modoMiraMeteoro = false; window.meteorosAtivos = []; window.chaoEmChamas = []; window.tremorTela = 0; window.meuStunTimer = 0;
@@ -1676,8 +1764,8 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
         function obterInfoMiraAtiva() {
             let pX = window.meuX + 12, pY = window.meuY + 16;
-            let mx = (typeof window.mouseWorldX === 'number') ? window.mouseWorldX : (pX + Math.cos(window.meuAngulo) * 160);
-            let my = (typeof window.mouseWorldY === 'number') ? window.mouseWorldY : (pY + Math.sin(window.meuAngulo) * 160);
+            let mx = (window.mouseJaMoveu && typeof window.mouseWorldX === 'number') ? window.mouseWorldX : (pX + Math.cos(window.meuAngulo) * 160);
+            let my = (window.mouseJaMoveu && typeof window.mouseWorldY === 'number') ? window.mouseWorldY : (pY + Math.sin(window.meuAngulo) * 160);
 
             let skill = null;
             if (window.modoMiraMeteoro && window.minhaClasse === 'mago') skill = 'meteoro';
@@ -1713,7 +1801,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             }
             tx = Math.max(20, Math.min(WORLD_WIDTH - 40, tx));
             ty = Math.max(20, Math.min(WORLD_HEIGHT - 40, ty));
-            return { skill: skill, cfg: cfg, pX: pX, pY: pY, tx: tx, ty: ty, dist: dist, rx: mx, ry: my };
+            return { skill: skill, cfg: cfg, pX: pX, pY: pY, tx: tx, ty: ty, dist: dist, rx: tx, ry: ty };
         }
         window.obterInfoMiraAtiva = obterInfoMiraAtiva;
 
@@ -3441,7 +3529,6 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         window.atualizarHudPocoes = atualizarHudPocoes;
         window.atualizarHudXp = atualizarHudXp;
         function mostrarEfeitoLevelUp() { levelUpPopup.classList.add("show-levelup"); setTimeout(() => { levelUpPopup.classList.remove("show-levelup"); }, 1500); }
-        function alternarAutofarm() { autofarmLigado = !autofarmLigado; if (autofarmLigado) { btnAutofarm.classList.add("active"); statusText.innerText = "Status: Autofarm ATIVADO 🤖"; } else { btnAutofarm.classList.remove("active"); statusText.innerText = "Status: Autofarm DESLIGADO"; } }
 
         let ws = null;
         let pingIntervalo = null;
@@ -3464,7 +3551,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         }
         window.obterURLWebSocket = obterURLWebSocket;
 
-        function conectarWebSocket(userIdDigitado) {
+        function conectarWebSocket(googleCredential) {
             const wsUrl = obterURLWebSocket();
             ws = new WebSocket(wsUrl);
             window.ws = ws;
@@ -3492,19 +3579,34 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         statusText.classList.add("conectado-oculto");
                     }
                 }, 2000);
-                ws.send(JSON.stringify({ action: 'login', userId: userIdDigitado }));
+                ws.send(JSON.stringify({ action: 'google_login', credential: googleCredential }));
             };
 
             ws.onerror = () => {
                 statusText.classList.remove("conectado-oculto");
                 statusText.innerText = "Status: Servidor offline";
                 statusText.style.color = "red";
+                if (googleLoginStatus) googleLoginStatus.innerText = "Não foi possível conectar ao servidor.";
+                if (loginScreen) loginScreen.style.display = "flex";
             };
 
             ws.onmessage = (event) => {
                 try {
                         let dados = JSON.parse(event.data);
                         window.__msgTipo = (dados && dados.type) || '?';
+                        if (dados.type === 'login_erro') {
+                            googleCredentialAtual = null;
+                            loginScreen.style.display = 'flex';
+                            googleLoginStatus.innerText = dados.mensagem || 'Falha no login Google.';
+                            return;
+                        }
+                        if (dados.type === 'personagens_lista' && dados.conta) {
+                            meuLoginId = dados.conta;
+                            localStorage.setItem('mmorpg_google_account', dados.conta);
+                            localStorage.removeItem('mmorpg_user_id');
+                            loginScreen.style.display = 'none';
+                            if (googleLoginStatus) googleLoginStatus.innerText = '';
+                        }
                         // Tela de seleção/criação de personagens (PC + mobile)
                         if (dados && window.PersonagemSelect) window.PersonagemSelect.onMessage(dados);
                         // Eventos espaciais de outro mapa nao podem produzir imagem ou som local.
@@ -3517,6 +3619,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         }
                         if (window.AudioManager && typeof window.AudioManager.handleGameEvent === 'function') window.AudioManager.handleGameEvent(dados);
                         if (typeof window.dispatchVFXEvent === 'function') window.dispatchVFXEvent(dados);
+                    if (dados.type === 'elite_spawn_alert' && typeof window.mostrarAlertaElite === 'function') {
+                        window.mostrarAlertaElite(dados);
+                    }
                     if (dados.type === 'pong') {
                         pingAtual = Math.max(0, Date.now() - (Number(dados.t) || Date.now()));
                         if (typeof window.atualizarHudPing === 'function') window.atualizarHudPing();
@@ -4485,11 +4590,11 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             if (window.meuHp <= 0 && !window.estaMorto) {
                                 if (typeof window.pararSomPikemanCarregando === 'function') window.pararSomPikemanCarregando();
                                 window.__morteExecutou = window.__morteExecutou || Date.now();
-                                window.estaMorto = true; autofarmLigado = false;
+                                window.estaMorto = true;
                                 if (window.minhaClasse === 'guerreiro' && window.tocarSonoro) window.tocarSonoro('guerreiro_morto');
                                 autoAlvo = null; proximoAutoAtaqueEm = 0; // cancela auto-ataque ao morrer
                                 cancelarTodasMiras();
-                                btnAutofarm.classList.remove("active"); deathScreen.style.display = "flex";
+                                deathScreen.style.display = "flex";
                             }
                         }
                     }
@@ -5466,6 +5571,12 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     if (dados.type === 'dash_confirmado') {
                         // Aplica o cooldown REAL (anti-exploit) e valida a predição
                         if (dados.cooldownMs) dashCdAteServidor = Date.now() + dados.cooldownMs;
+                        // O arranque do Ladino também concede invisibilidade curta.
+                        // Mantém um prazo visual local como fallback para a chegada
+                        // assíncrona de efeitos_sync, sem alterar a autoridade do servidor.
+                        if (dados.classe === 'ladino' && dados.tipo === 'arranque' && dados.soBuff) {
+                            window.ladinoAgilidadeInvisAte = Number(dados.multVelAte) || (Date.now() + 1000);
+                        }
                         if (typeof window.dashConfirmar === 'function') window.dashConfirmar(dados);
                     }
                     if (dados.type === 'dash_bloqueado') {
@@ -5639,21 +5750,71 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             };
         }
 
-        function fazerLogin() {
-            let nomeValido = inputUserId.value.replace(/[^a-zA-Z0-9_-]/g, "").trim();
-            if (!nomeValido) {
-                alert("Por favor, digite um ID para o seu herói!");
+        function tratarCredencialGoogle(resposta) {
+            if (!resposta || typeof resposta.credential !== 'string' || !resposta.credential) {
+                googleLoginStatus.innerText = 'O Google não retornou uma credencial válida.';
                 return;
             }
-            // BGM NÃO é liberado aqui: clicar em JOGAR só abre a seleção de char.
-            // A música dos mapas só começa em selecionarClasse (jogoIniciado).
-            localStorage.setItem("mmorpg_user_id", nomeValido);
-            loginScreen.style.display = "none";
-            // v1.34.1: sem foco preso no input do login, os atalhos do teclado funcionam de imediato
-            if (typeof window.soltarFoco === 'function') window.soltarFoco();
+            googleCredentialAtual = resposta.credential;
+            window.googleLoginConcluido = true;
+            const email = obterEmailGoogleDoToken(resposta.credential);
+            if (email) {
+                localStorage.setItem('mmorpg_last_google_email', email);
+            }
+            atualizarUiUltimoEmailLogin();
+            googleLoginStatus.innerText = 'Verificando sua conta Google…';
+            tentarHorizontalAutomatico();
+            setTimeout(atualizarOverlayRotacao, 200);
             iniciarAudio();
-            conectarWebSocket(nomeValido);
+            conectarWebSocket(googleCredentialAtual);
         }
+
+        async function inicializarLoginGoogle() {
+            try {
+                const configResponse = await fetch('/auth/google-config', { cache: 'no-store' });
+                if (!configResponse.ok) throw new Error('Configuração de login indisponível.');
+                const config = await configResponse.json();
+                if (!config.enabled || !config.clientId) {
+                    googleLoginStatus.innerText = 'Login Google não configurado. Defina GOOGLE_CLIENT_ID no servidor.';
+                    return;
+                }
+                const script = document.createElement('script');
+                script.src = 'https://accounts.google.com/gsi/client';
+                script.async = true;
+                script.defer = true;
+                script.onload = () => {
+                    if (!window.google || !google.accounts || !google.accounts.id) {
+                        googleLoginStatus.innerText = 'Não foi possível carregar o login seguro do Google.';
+                        return;
+                    }
+                    google.accounts.id.initialize({ client_id: config.clientId, callback: tratarCredencialGoogle });
+                    google.accounts.id.renderButton(googleSignInButton, {
+                        type: 'standard', theme: 'filled_blue', size: 'large', shape: 'pill',
+                        text: 'continue_with', locale: 'pt_BR', width: 280
+                    });
+                    const emailSalvo = localStorage.getItem('mmorpg_last_google_email');
+                    if (emailSalvo) {
+                        const botaoConta = document.getElementById('login-remembered-email-button');
+                        if (botaoConta) {
+                            botaoConta.textContent = emailSalvo;
+                            botaoConta.title = emailSalvo;
+                            botaoConta.addEventListener('click', function () {
+                                if (window.google && window.google.accounts && window.google.accounts.id) {
+                                    window.google.accounts.id.prompt();
+                                }
+                            }, { once: true });
+                        }
+                    }
+                    atualizarUiUltimoEmailLogin();
+                    googleLoginStatus.innerText = 'Sua conta e seu e-mail serão confirmados pelo Google.';
+                };
+                script.onerror = () => { googleLoginStatus.innerText = 'Falha ao carregar o serviço de login Google.'; };
+                document.head.appendChild(script);
+            } catch (erro) {
+                googleLoginStatus.innerText = erro && erro.message ? erro.message : 'Falha ao preparar login Google.';
+            }
+        }
+        inicializarLoginGoogle();
 
         function selecionarClasse(classeEscolhida) {
             iniciarAudio(); window.minhaClasse = classeEscolhida;
@@ -5665,7 +5826,12 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 classePendente = classeEscolhida;
                 charSelectScreen.style.display = "none";
                 if (typeof window.soltarFoco === 'function') window.soltarFoco();
-                conectarWebSocket(localStorage.getItem("mmorpg_user_id") || "");
+                if (!googleCredentialAtual) {
+                    loginScreen.style.display = 'flex';
+                    googleLoginStatus.innerText = 'Entre novamente com sua conta Google para reconectar.';
+                    return;
+                }
+                conectarWebSocket(googleCredentialAtual);
                 return;
             }
             charSelectScreen.style.display = "none";
@@ -6863,9 +7029,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             if (!autoAlvo || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) return;
             if (window.minhaClasse === 'pikeman' && typeof window.pikemanEmAnimacaoSkill === 'function' && window.pikemanEmAnimacaoSkill(window.meuId)) return;
             let ang = Math.atan2(autoAlvo.y - (window.meuY + 16), autoAlvo.x - (window.meuX + 12));
-            if (joystickTouchId !== null || !window.mouseJaMoveu) {
-                window.meuAngulo = ang; // orienta o personagem apenas no mobile touch ou sem mouse
-            }
+            // Ataque básico: arma/personagem sempre acompanham o inimigo atingido,
+            // independentemente da posição do mouse ou do joystick.
+            window.meuAngulo = ang;
             let alvoTipo = autoAlvo.tipo, alvoId = autoAlvo.id;
             if (window.minhaClasse === 'mago') { enviarAtaqueMago(ang, alvoTipo, alvoId); }
             else if (window.minhaClasse === 'summoner') { enviarAtaqueSummoner(ang, alvoTipo, alvoId); }
@@ -6902,6 +7068,8 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             buscarAutoAlvo();
             if (!autoAlvo) return;
             if (!autoAlvoEstaEmAlcance()) return; // fora do alcance: ataque para; movimento continua
+            // Mantém a orientação no inimigo também entre os intervalos de ataque.
+            window.meuAngulo = Math.atan2(autoAlvo.y - (window.meuY + 16), autoAlvo.x - (window.meuX + 12));
             let agora = performance.now();
             if (agora >= proximoAutoAtaqueEm) {
                 dispararAutoAtaque();
@@ -7395,6 +7563,27 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         if (mmCanvas) { mmCanvas.width = 141; mmCanvas.height = 80; }
         const minimapBioma = document.getElementById("minimap-bioma");
         const minimapCoords = document.getElementById("minimap-coords");
+        const minimapWrapper = document.getElementById("minimap-wrapper");
+        let eliteAlertTimer = null;
+        window._eliteAlertId = null;
+        window._eliteAlertUntil = 0;
+        window.mostrarAlertaElite = function (elite) {
+            const notice = document.getElementById('elite-alert-notice');
+            window._eliteAlertId = elite && elite.id ? elite.id : null;
+            window._eliteAlertUntil = Date.now() + 3000;
+            if (notice) {
+                notice.textContent = '⚠ ATENÇÃO: ELITE ESTÁ NO MAPA';
+                notice.classList.add('visivel');
+                clearTimeout(eliteAlertTimer);
+                eliteAlertTimer = setTimeout(function () { notice.classList.remove('visivel'); }, 3000);
+            }
+            if (minimapWrapper) {
+                minimapWrapper.classList.add('elite-alert-active');
+                setTimeout(function () {
+                    if (Date.now() >= window._eliteAlertUntil) minimapWrapper.classList.remove('elite-alert-active');
+                }, 3100);
+            }
+        };
         const minimapZoomLabel = document.getElementById("minimap-zoom-label");
 
         const MM_ZOOM_LEVELS = [
@@ -8324,7 +8513,6 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             }
             if (key === 'r') {
                 e.preventDefault();
-                if (typeof alternarAutofarm === 'function') alternarAutofarm();
                 return;
             }
             if (code === 'Digit1' || code === 'Numpad1') {
@@ -8502,6 +8690,25 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 }
             }
 
+            // Smart Cast no mobile: selecione a habilidade no botão e toque
+            // uma vez no mundo para lançar exatamente naquele ponto.
+            let miraSkillToque = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
+            if (miraSkillToque) {
+                let touch = e.changedTouches[0];
+                if (touch) {
+                    let camX = window.camX || 0, camY = window.camY || 0;
+                    let zoom = window.cameraZoomAtual || ZOOM_CAMERA;
+                    let tilt = window.CAMERA_25D ? (window.CAMERA_TILT_Y || 0.88) : 1.0;
+                    window.mouseWorldX = Math.max(0, Math.min(WORLD_WIDTH, (touch.clientX / window.innerWidth * window.canvas.width) / zoom + camX));
+                    window.mouseWorldY = Math.max(0, Math.min(WORLD_HEIGHT, (touch.clientY / window.innerHeight * window.canvas.height) / (zoom * tilt) + camY));
+                    window.mouseJaMoveu = true;
+                    miraSkillToque = window.obterInfoMiraAtiva();
+                    if (e.cancelable) e.preventDefault();
+                    if (miraSkillToque) executarSkillMirada(miraSkillToque.skill, miraSkillToque.tx, miraSkillToque.ty);
+                    return;
+                }
+            }
+
             // JOYSTICK: prioridade máxima na metade esquerda (resolve bug quando itens estão no lado do joystick)
             for (let i = 0; i < e.changedTouches.length; i++) {
                 let touch = e.changedTouches[i];
@@ -8644,15 +8851,18 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             window.mouseWorldX = Math.max(0, Math.min(WORLD_WIDTH, mx));
             window.mouseWorldY = Math.max(0, Math.min(WORLD_HEIGHT, my));
 
-            // No PC (quando não estiver com joystick touch de celular ativo), o item/arma segue o ponteiro do mouse
-            if (joystickTouchId === null) {
+            // Em combate, a arma permanece apontada para o alvo do auto-ataque.
+            // O ponteiro continua atualizando o ponto de mira das skills/coleta.
+            if (autoAlvo && autoAlvoEstaEmAlcance()) {
+                let pX = window.meuX + 12;
+                let pY = window.meuY + 16;
+                window.meuAngulo = Math.atan2(autoAlvo.y - pY, autoAlvo.x - pX);
+            } else if (joystickTouchId === null) {
                 let pX = window.meuX + 12;
                 let pY = window.meuY + 16;
                 let dx = window.mouseWorldX - pX;
                 let dy = window.mouseWorldY - pY;
-                if (Math.hypot(dx, dy) > 0.001) {
-                    window.meuAngulo = Math.atan2(dy, dx);
-                }
+                if (Math.hypot(dx, dy) > 0.001) window.meuAngulo = Math.atan2(dy, dx);
             }
         }
         window.atualizarMiraMouse = atualizarMiraMouse;
@@ -8669,6 +8879,44 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             e.preventDefault();
             cancelarTodasMiras();
         });
+
+        function executarSkillMirada(skill, tx, ty) {
+            cancelarTodasMiras();
+            if (statusText) statusText.innerText = "";
+            if (skill === 'meteoro') dispararMeteoro(tx, ty);
+            else if (skill === 'nevasca') dispararNevasca(tx, ty);
+            else if (skill === 'vulcao') dispararVulcao(tx, ty);
+            else if (skill === 'chuva') dispararChuva(tx, ty);
+            else if (skill === 'julgamento') dispararJulgamento(tx, ty);
+            else if (skill === 'prece') dispararPrece(tx, ty);
+            else if (skill === 'esmagamento') dispararEsmagamento(tx, ty);
+            else if (skill === 'teleporte') dispararTeleporte(tx, ty);
+            else if (skill === 'salto') dispararSaltoOgro(tx, ty);
+            else if (skill === 'bomba') dispararLadinoBomba(tx, ty);
+            else if (skill === 'estrela') dispararLadinoEstrela(tx, ty);
+            else if (skill === 'caixa') dispararCaixaDronemaster(tx, ty);
+            else if (skill === 'cometas') dispararChuvaCometas(tx, ty);
+            else if (skill === 'orbe') dispararOrbeConstelacao(tx, ty);
+            else if (skill === 'rede') dispararRedeSniper(tx, ty);
+            else if (skill === 'guerreiro_escudo') dispararEscudo(tx, ty);
+            else if (skill === 'mago_bola') dispararBolaElemental(tx, ty);
+            else if (skill === 'astral_buraco') dispararBuracoNegro(tx, ty);
+            else if (skill === 'salto_chuva' && window.arqueiroSaltoNoAlto) {
+                window.modoMiraSaltoChuva = false;
+                let btn = document.getElementById("btn-arqueiro-salto");
+                if (btn) btn.classList.remove("aiming");
+                if (ws && ws.readyState === 1) ws.send(JSON.stringify({ action: 'arqueiro_salto_chuva_shoot', targetX: tx, targetY: ty }));
+            } else if (skill === 'florim_arvore' || skill === 'florim_semente' || skill === 'florim_espinhos' || skill === 'florim_parede') {
+                let p = clamparAlcanceSkill(skill, tx, ty);
+                dispararFlorimSkill(skill, p.x, p.y);
+            } else if (skill === 'barbaro_vinculo') {
+                let target = window.slimes && window.slimes.find(m => m.hp > 0 && Math.hypot(m.x - tx, m.y - ty) < 60);
+                let targetBoss = window.bosses && window.bosses.find(m => m.hp > 0 && Math.hypot(m.x - tx, m.y - ty) < 80);
+                let tid = target ? target.id : (targetBoss ? targetBoss.id : null);
+                if (tid && typeof dispararVinculo === 'function') dispararVinculo(tid);
+                else if (statusText) statusText.innerText = "⚠️ Nenhum alvo na mira!";
+            }
+        }
 
         window.canvas.addEventListener("click", function (e) {
             if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
@@ -8716,44 +8964,12 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             }
 
             // Smart cast exclusivo com clique do mouse no PC (checagem de alcance real ANTES do clamp)
+            window.mouseWorldX = mx;
+            window.mouseWorldY = my;
+            window.mouseJaMoveu = true;
             let mira = (typeof window.obterInfoMiraAtiva === 'function') ? window.obterInfoMiraAtiva() : null;
             if (mira) {
-                let tx = mira.rx, ty = mira.ry;
-                let s = mira.skill;
-                cancelarTodasMiras();
-                if (s === 'meteoro') dispararMeteoro(tx, ty);
-                else if (s === 'nevasca') dispararNevasca(tx, ty);
-                else if (s === 'vulcao') dispararVulcao(tx, ty);
-                else if (s === 'chuva') dispararChuva(tx, ty);
-                else if (s === 'julgamento') dispararJulgamento(tx, ty);
-                else if (s === 'prece') dispararPrece(tx, ty);
-                else if (s === 'esmagamento') dispararEsmagamento(tx, ty);
-                else if (s === 'teleporte') dispararTeleporte(tx, ty);
-                else if (s === 'salto') dispararSaltoOgro(tx, ty);
-                else if (s === 'bomba') dispararLadinoBomba(tx, ty);
-                else if (s === 'estrela') dispararLadinoEstrela(tx, ty);
-                else if (s === 'caixa') dispararCaixaDronemaster(tx, ty);
-                else if (s === 'cometas') dispararChuvaCometas(tx, ty);
-                else if (s === 'orbe') dispararOrbeConstelacao(tx, ty);
-                else if (s === 'rede') dispararSniperRede(tx, ty);
-                else if (s === 'salto_chuva') {
-                    if (window.arqueiroSaltoNoAlto) {
-                        window.modoMiraSaltoChuva = false;
-                        let btn = document.getElementById("btn-arqueiro-salto");
-                        if (btn) btn.classList.remove("aiming");
-                        if (ws && ws.readyState === 1) ws.send(JSON.stringify({ action: 'arqueiro_salto_chuva_shoot', targetX: tx, targetY: ty }));
-                    }
-                }
-                else if (s === 'guerreiro_escudo') { if (typeof dispararEscudo === 'function') dispararEscudo(tx, ty); }
-                else if (s === 'mago_bola') { if (typeof dispararBolaElemental === 'function') dispararBolaElemental(tx, ty); }
-                else if (s === 'astral_buraco') { if (typeof dispararBuracoNegro === 'function') dispararBuracoNegro(tx, ty); } else if (s === 'florim_arvore') dispararFlorimSkill('florim_arvore',tx,ty); else if (s === 'florim_semente') dispararFlorimSkill('florim_semente',tx,ty); else if (s === 'florim_espinhos') dispararFlorimSkill('florim_espinhos',tx,ty); else if (s === 'florim_parede') dispararFlorimSkill('florim_parede',tx,ty);
-                else if (s === 'barbaro_vinculo') {
-                    let target = window.slimes && window.slimes.find(m => m.hp > 0 && Math.hypot(m.x - tx, m.y - ty) < 60);
-                    let targetBoss = window.bosses && window.bosses.find(m => m.hp > 0 && Math.hypot(m.x - tx, m.y - ty) < 80);
-                    let tid = target ? target.id : (targetBoss ? targetBoss.id : null);
-                    if (tid && typeof dispararVinculo === 'function') dispararVinculo(tid);
-                    else { if (typeof statusText !== 'undefined' && statusText) statusText.innerText = "⚠️ Nenhum alvo na mira!"; }
-                }
+                executarSkillMirada(mira.skill, mira.tx, mira.ty);
                 return;
             }
 
@@ -8922,23 +9138,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                            (window.currentMap === 'mundo' && window.mapaMundo && typeof window.mapaMundo.ehBiomaGelo === 'function' && window.mapaMundo.ehBiomaGelo(window.meuX + 12, window.meuY + 16));
             let movendoEntrada = (moveX !== 0 || moveY !== 0);
 
-            if (autofarmLigado && !controleInvertido && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo) {
-                // Autofarm só cuida do DESLOCAMENTO até o inimigo; o ataque em si é o auto-attack (atualizarAutoAtaque abaixo).
-                let alvoMaisProximo = null; let menorDistancia = Infinity;
-                window.listaSlimes.forEach(slime => { if (slime.hp > 0) { let dist = Math.hypot(slime.x - window.meuX, slime.y - window.meuY); if (dist < menorDistancia) { menorDistancia = dist; alvoMaisProximo = slime; } } });
-                if (alvoMaisProximo && !autoAlvoEstaEmAlcance()) {
-                    let dx = alvoMaisProximo.x - window.meuX; let dy = alvoMaisProximo.y - window.meuY; let dist = menorDistancia; window.meuAngulo = Math.atan2(dy, dx);
-                    let distAtaqueIdeal = (window.minhaClasse === 'mago' || window.minhaClasse === 'summoner' || window.minhaClasse === 'arqueiro' || window.minhaClasse === 'curandeiro') ? 140 : 32;
-                    if (dist > distAtaqueIdeal) {
-                        let novoX = window.meuX + (dx / dist) * velocidadeAtual * window.dt;
-                        let novoY = window.meuY + (dy / dist) * velocidadeAtual * window.dt;
-                        if (typeof window.colideMapaAtivo !== "function" || !window.colideMapaAtivo(novoX + 12, novoY + 16, 12)) {
-                            window.meuX = novoX; window.meuY = novoY;
-                            isMoving = true; window.walkCycle += 0.1;
-                        }
-                    }
-                }
-            } else if (!window.transicaoMapaAtiva && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo && !window.snAimAtivo && !window.snPosicaoAtivo && ((moveX !== 0 || moveY !== 0) || (noGelo && (Math.abs(window.inerciaGeloX) > 0.08 || Math.abs(window.inerciaGeloY) > 0.08)))) {
+            if (!window.transicaoMapaAtiva && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo && !window.snAimAtivo && !window.snPosicaoAtivo && ((moveX !== 0 || moveY !== 0) || (noGelo && (Math.abs(window.inerciaGeloX) > 0.08 || Math.abs(window.inerciaGeloY) > 0.08)))) {
                 let entradaMoveX = controleInvertido ? -moveX : moveX;
                 let entradaMoveY = controleInvertido ? -moveY : moveY;
                 movendoEntrada = (entradaMoveX !== 0 || entradaMoveY !== 0);
@@ -9299,8 +9499,13 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             let hpVal = (pid === window.meuId) ? window.meuHp : pp.hp; let maxHpVal = pp.maxHp || 100;
 
                             // LADINO — CAMUFLAGEM SOMBRIA: silhueta semi-transparente
-                            let efeitosInvis = (pid === window.meuId) ? (window.meusEfeitos || []) : ((pp.efeitos || []));
-                            window.personagemInvisivelAtual = efeitosInvis.some(function (e) { return e && e.id === 'invisivel' && e.tempo > 0; });
+                            let efeitosInvis = (pid === window.meuId) ? window.meusEfeitos : pp.efeitos;
+                            if (!Array.isArray(efeitosInvis)) efeitosInvis = [];
+                            let invisPorEfeito = efeitosInvis.some(function (e) { return e && e.id === 'invisivel' && e.tempo > 0; });
+                            let invisAgilidadeLocal = pid === window.meuId && classeJogador === 'ladino' &&
+                                Number(window.ladinoAgilidadeInvisAte) > Date.now();
+                            window.personagemInvisivelAtual = invisPorEfeito || invisAgilidadeLocal ||
+                                (pid === window.meuId && classeJogador === 'ladino' && !!window.ladinoInvisivelAtivo);
 
                             if (classeJogador === 'mago') { if (typeof window.desenharMago === "function") window.desenharMago(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'summoner') { if (typeof window.desenharSummoner === "function") window.desenharSummoner(posX, posY, mov, ang, hpVal, maxHpVal); }
@@ -9455,7 +9660,24 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                 ctx.restore();
                             }
 
-                            let efeitosPlayer = (pid === window.meuId) ? (window.meusEfeitos || []) : (pp.efeitos || []);
+                            let efeitosPlayer = (pid === window.meuId) ? window.meusEfeitos : pp.efeitos;
+                            if (!Array.isArray(efeitosPlayer)) efeitosPlayer = [];
+                            // Garante o ícone/contador da invisibilidade do arranque
+                            // mesmo quando efeitos_sync ainda não atualizou o HUD.
+                            if (pid === window.meuId && classeJogador === 'ladino' && invisAgilidadeLocal) {
+                                let ticksRestantes = Math.max(1, Math.ceil((window.ladinoAgilidadeInvisAte - Date.now()) / 50));
+                                let invisAtualizado = {
+                                    id: 'invisivel', nome: 'Camuflagem Sombria', icon: '🌑', cor: '#9b59b6',
+                                    tempo: ticksRestantes, formatado: Math.ceil(ticksRestantes / 20) + 's'
+                                };
+                                let idxInvis = efeitosPlayer.findIndex(function (ef) { return ef && ef.id === 'invisivel'; });
+                                if (idxInvis >= 0) {
+                                    efeitosPlayer = efeitosPlayer.slice();
+                                    efeitosPlayer[idxInvis] = Object.assign({}, efeitosPlayer[idxInvis], invisAtualizado);
+                                } else {
+                                    efeitosPlayer = efeitosPlayer.concat([invisAtualizado]);
+                                }
+                            }
                             let bradoRestante = Math.ceil(((Number(pp.kaledronBradoAte) || 0) - Date.now()) / 1000);
                             if (bradoRestante > 0) efeitosPlayer = (Array.isArray(efeitosPlayer) ? efeitosPlayer : []).concat([{ id: 'kaledronBrado', tempo: bradoRestante }]);
                             if (efeitosPlayer && efeitosPlayer.length > 0) {
@@ -9808,16 +10030,12 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         return { x: cx0 + (wx - window.meuX) * escala, y: cy0 + (wy - window.meuY) * escala };
                     }
 
-                    // Fundo temático do bioma ativo via Sistema Universal de Cartografia
-                    if (window.CartografiaUniversal && typeof window.CartografiaUniversal.desenharMinimapaUniversal === 'function') {
-                        window.CartografiaUniversal.desenharMinimapaUniversal(mmCtx, mw, mh, window.meuX, window.meuY, escala, window.currentMap, cx0, cy0);
-                    } else if (window.currentMap === 'mundo' && window.mapaMundo && typeof window.mapaMundo.desenharMinimapaMundo === 'function') {
-                        window.mapaMundo.desenharMinimapaMundo(mmCtx, mw, mh, window.meuX, window.meuY, escala, cx0, cy0);
-                    } else {
-                        let corFundoBioma = (window.currentMap === 'tileteste') ? "#1e3820" : (window.currentMap === 'pantano_sombrio') ? "#0d1a0c" : (window.currentMap === 'castelo') ? "#140e0a" : (window.currentMap === 'zonazero') ? "#0c1f2e" : (window.currentMap === 'testevisual') ? "#141f10" : (window.currentMap === 'solari') ? "#201430" : (window.currentMap === 'cidade') ? "#132333" : (window.currentMap === 'cidadeperdida') ? "#1c2a1d" : (window.currentMap === 'caverna') ? "#241315" : (window.currentMap === 'pantano') ? "#1a2714" : (window.currentMap === 'desert') ? "#8c7241" : (window.currentMap === 'floresta') ? "#0f2415" : (window.currentMap === 'nebulos') ? "#12240e" : (window.currentMap === 'abissal') ? "#0c0817" : "#163a1c";
-                        mmCtx.fillStyle = corFundoBioma;
-                        mmCtx.fillRect(0, 0, mw, mh);
-                    }
+                    // Fundo estático: o terreno detalhado fica apenas no mapa-múndi.
+                    mmCtx.fillStyle = '#101922';
+                    mmCtx.fillRect(0, 0, mw, mh);
+                    mmCtx.fillStyle = 'rgba(55, 83, 101, 0.12)';
+                    for (let gx = 12; gx < mw; gx += 24) mmCtx.fillRect(gx, 0, 1, mh);
+                    for (let gy = 12; gy < mh; gy += 24) mmCtx.fillRect(0, gy, mw, 1);
 
                     // Anéis e linhas de radar sutis
                     mmCtx.strokeStyle = "rgba(255, 255, 255, 0.08)";
@@ -9830,18 +10048,6 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     mmCtx.moveTo(cx0, 0); mmCtx.lineTo(cx0, mh);
                     mmCtx.moveTo(0, cy0); mmCtx.lineTo(mw, cy0);
                     mmCtx.stroke();
-
-                    // Drops visíveis no radar
-                    if (window.listaDrops && window.listaDrops.length) {
-                        window.listaDrops.forEach(function (d) {
-                            if (!d || !d.item) return;
-                            let pos = toRadar(d.x, d.y);
-                            if (pos.x >= 0 && pos.x <= mw && pos.y >= 0 && pos.y <= mh) {
-                                mmCtx.fillStyle = (d.item.raridade === "lendario") ? "#ff7a00" : ((d.item.raridade === "epico") ? "#a855f7" : ((d.item.raridade === "raro") ? "#4da6ff" : "#ffffff"));
-                                mmCtx.fillRect(pos.x - 2, pos.y - 2, 4, 4);
-                            }
-                        });
-                    }
 
                     // Monstros visíveis no radar
                     let bossVisivel = false;
@@ -9864,16 +10070,35 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                     mmCtx.stroke();
                                     mmCtx.restore();
                                 }
-                            } else if ((s.elite || (Array.isArray(s.tags) && s.tags.indexOf('elite') !== -1)) &&
-                                pos.x >= -9 && pos.x <= mw + 9 && pos.y >= -9 && pos.y <= mh + 9) {
+                            } else if ((s.elite || (Array.isArray(s.tags) && s.tags.indexOf('elite') !== -1))) {
                                 mmCtx.save();
-                                var pulsoElite = 0.75 + Math.sin(Date.now() / 180) * 0.25;
+                                var alertaAtivo = s.id === window._eliteAlertId && Date.now() < window._eliteAlertUntil;
+                                var pulsoElite = 0.75 + Math.sin(Date.now() / (alertaAtivo ? 90 : 180)) * 0.25;
+                                var eliteForaRadar = pos.x < 7 || pos.x > mw - 7 || pos.y < 7 || pos.y > mh - 7;
+                                if (eliteForaRadar) {
+                                    var anguloBorda = Math.atan2(pos.y - cy0, pos.x - cx0);
+                                    var limiteX = Math.max(8, Math.min(mw - 8, pos.x));
+                                    var limiteY = Math.max(8, Math.min(mh - 8, pos.y));
+                                    mmCtx.translate(limiteX, limiteY);
+                                    mmCtx.rotate(anguloBorda);
+                                    mmCtx.fillStyle = '#ffe45c';
+                                    mmCtx.shadowColor = '#ff2020';
+                                    mmCtx.shadowBlur = alertaAtivo ? 18 : 9;
+                                    mmCtx.beginPath();
+                                    mmCtx.moveTo(7, 0);
+                                    mmCtx.lineTo(-5, -5);
+                                    mmCtx.lineTo(-5, 5);
+                                    mmCtx.closePath();
+                                    mmCtx.fill();
+                                    mmCtx.restore();
+                                    return;
+                                }
                                 mmCtx.shadowColor = '#ffe45c';
-                                mmCtx.shadowBlur = 8 * pulsoElite;
+                                mmCtx.shadowBlur = (alertaAtivo ? 18 : 8) * pulsoElite;
                                 mmCtx.strokeStyle = 'rgba(255,255,220,' + (0.75 + pulsoElite * 0.25) + ')';
-                                mmCtx.lineWidth = 1.3;
+                                mmCtx.lineWidth = alertaAtivo ? 2.5 : 1.3;
                                 mmCtx.beginPath();
-                                mmCtx.arc(pos.x, pos.y, 6.5 + pulsoElite, 0, Math.PI * 2);
+                                mmCtx.arc(pos.x, pos.y, (alertaAtivo ? 9 : 6.5) + pulsoElite, 0, Math.PI * 2);
                                 mmCtx.stroke();
                                 mmCtx.fillStyle = '#ffd54f';
                                 mmCtx.beginPath();
@@ -9899,19 +10124,6 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                 mmCtx.fill();
                             }
                         });
-                    }
-
-                    // Outros players no radar
-                    if (window.todosJogadores) {
-                        for (let pid in window.todosJogadores) {
-                            let pj = window.todosJogadores[pid];
-                            if (!pj || pj.id === window.meuId || pj.hp <= 0) continue;
-                            let pos = toRadar(pj.x, pj.y);
-                            if (pos.x >= 0 && pos.x <= mw && pos.y >= 0 && pos.y <= mh) {
-                                mmCtx.fillStyle = "#3498db";
-                                mmCtx.beginPath(); mmCtx.arc(pos.x, pos.y, 3.2, 0, Math.PI * 2); mmCtx.fill();
-                            }
-                        }
                     }
 
                     // Jogador no centro exato do radar

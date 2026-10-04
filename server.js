@@ -5,6 +5,9 @@ const MAPAS_REGISTRY = require('./mapas-registry.js');
 const INSTANCIAS = require('./instancias.js');
 const WebSocket = require('ws');
 const itemSystem = require('./items/item-system.js');
+const { verificarGoogleCredential } = require('./google-auth.js');
+const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || '683484909196-v0a7ed8fthbh7imsk61le98jf17gaksu.apps.googleusercontent.com').trim();
+const SERVER_VERSION = 'v1.75.1';
 const { AsyncLocalStorage } = require('async_hooks');
 const combateContextStorage = new AsyncLocalStorage();
 
@@ -134,6 +137,11 @@ const server = http.createServer((req, res) => {
     let urlSemQuery = req.url.split('?')[0];
     try { urlSemQuery = decodeURIComponent(urlSemQuery); } catch (e) { /* mantém original */ }
     let urlFinal = urlSemQuery === '/' ? '/index.html' : urlSemQuery;
+    if (urlFinal === '/auth/google-config') {
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+        res.end(JSON.stringify({ enabled: !!GOOGLE_CLIENT_ID, clientId: GOOGLE_CLIENT_ID }));
+        return;
+    }
     // Health check (Render usa GET /health para validar o Web Service).
     // Rota fixa, sem tocar no resto do servidor de arquivos.
     if (urlFinal === '/health') {
@@ -149,12 +157,18 @@ const server = http.createServer((req, res) => {
         res.end("Acesso negado.");
         return;
     }
+    const segmentosUrl = urlFinal.split(/[\\/]+/).filter(Boolean);
+    if (segmentosUrl.some(segmento => segmento === '.git' || segmento.startsWith('.git/') || segmento.startsWith('.') || segmento.toLowerCase() === 'char deletados' || /\.(?:lock|tmp)$/i.test(segmento))) {
+        res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+        res.end('Arquivo não encontrado.');
+        return;
+    }
     // Segurança crítica: arquivos de servidor, banco, administração e persistência
     // nunca devem ser expostos pelo servidor HTTP público.
     const arquivosPrivados = new Set([
         'server.js', 'database.js', 'spawns.js', 'upgrade.js',
         'admins.json', 'jogadores.json',
-        'jogadores.json.tmp', 'spawn_flags.json', 'banco_itens.json',
+        'jogadores.json.lock', 'jogadores.json.tmp', 'spawn_flags.json', 'banco_itens.json',
         'map_vfx.json', 'map_objetos.json', 'monster_configs.json'
     ]);
     if (arquivosPrivados.has(path.basename(filePath).toLowerCase())) {
@@ -176,7 +190,14 @@ const server = http.createServer((req, res) => {
     if (extname === '.glb') contentType = 'model/gltf-binary';
     if (extname === '.gltf') contentType = 'model/gltf+json';
 
-    fs.readFile(filePath, (err, data) => {
+    fs.realpath(filePath, (realpathErr, resolvedPath) => {
+        const relativoReal = realpathErr ? '' : path.relative(__dirname, resolvedPath);
+        if (realpathErr || relativoReal === '..' || relativoReal.startsWith('..' + path.sep) || path.isAbsolute(relativoReal)) {
+            res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' });
+            res.end('Arquivo não encontrado.');
+            return;
+        }
+        fs.readFile(resolvedPath, (err, data) => {
         if (err) {
             res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
             res.end("Arquivo não encontrado.");
@@ -187,6 +208,7 @@ const server = http.createServer((req, res) => {
             'Cache-Control': 'no-store, no-cache, must-revalidate'
         });
         res.end(data);
+        });
     });
 });
 
@@ -226,6 +248,29 @@ let trades = {}; // { tradeId: { p1: id1, p2: id2, items1: [], items2: [], conf1
 let tradeCounter = 1;
 let parties = {}; // { partyId: [playerId1, playerId2, ...] }
 let partyCounter = 1;
+
+function entidadeEhElite(entidade) {
+    return !!(entidade && (entidade.elite || (Array.isArray(entidade.tags) && entidade.tags.indexOf('elite') !== -1)));
+}
+
+function calcularHpElite(hpBase, ehElite) {
+    const hp = Math.max(10, Math.floor(Number(hpBase) || 10));
+    return ehElite ? Math.floor(hp * 1.8) : hp;
+}
+
+function notificarSpawnElite(elite) {
+    if (!entidadeEhElite(elite)) return;
+    const mapaElite = mapaPorCoordenada(elite.x);
+    if (!mapaElite) return;
+    const alerta = JSON.stringify({ type: 'elite_spawn_alert', id: elite.id, nome: elite.nome || 'Elite', x: elite.x, y: elite.y, mapa: mapaElite });
+    for (const pid of Object.keys(players)) {
+        const jogador = players[pid];
+        const socket = playerSockets[pid];
+        if (!jogador || !socket || socket.readyState !== WebSocket.OPEN) continue;
+        if (mapaPorCoordenada(jogador.x + PLAYER_OFFSET_X) !== mapaElite || !instanciaCompativel(jogador, elite)) continue;
+        try { socket.send(alerta); } catch (e) {}
+    }
+}
 
 // ===== ARENA DE SOLARI — sessões independentes por instanciaId =====
 // Cada entrada cria sua própria sala. Cada sala possui estado, monstros, timers e leilão isolados.
@@ -1005,6 +1050,36 @@ function ataqueEquipado(player) {
     }, 0);
 }
 
+function normalizarEquipamentosPorClasse(inventario, classe) {
+    if (!inventario || typeof inventario !== 'object') return false;
+    if (!inventario.slots || typeof inventario.slots !== 'object' || Array.isArray(inventario.slots)) inventario.slots = {};
+    if (!Array.isArray(inventario.mochila)) inventario.mochila = [];
+    let alterado = false;
+    Object.keys(inventario.slots).forEach(function (slot) {
+        const item = inventario.slots[slot];
+        if (!item || item.tipo === 'vazio') return;
+        const valido = item.schemaVersion === 1 && item.slot === slot &&
+            itemSystem.validateEquipmentForClass(classe, item).valid;
+        if (valido) return;
+        inventario.slots[slot] = null;
+        const itemId = item.itemInstanceId || item.uid || item.id;
+        const jaNaMochila = itemId && inventario.mochila.some(function (outro) {
+            return outro && (outro.itemInstanceId || outro.uid || outro.id) === itemId;
+        });
+        if (!jaNaMochila) inventario.mochila.push(item);
+        alterado = true;
+    });
+    return alterado;
+}
+
+// Dados antigos podem manter um item equipado depois de uma troca de classe.
+// Não deixa esse estado inválido lançar uma exceção em todo tick de dano:
+// itens incompatíveis são ignorados, sem receber bônus defensivo.
+function calcularDefesaEquipamentoJogador(player, dano) {
+    const slots = player && player.inventario && player.inventario.slots || {};
+    return itemSystem.reduzirDanoPelaDefesaEquipamentoCompativel(player.classe, slots, dano);
+}
+
 function inventarioPadrao() {
     return {
         slots: {
@@ -1194,6 +1269,7 @@ function calcularMaxMp(player) {
 
 // ===== SISTEMA DE SKILLS (níveis persistidos por jogador) =====
 const NIVEL_SKILL_MAX = 10;
+const DANO_BASE_ATAQUE_BASICO = Object.freeze({ melee: 5, physicalRanged: 3, magic: 4 });
 
 function obterNivelSkill(p, skillId) {
     return (p && p.skills && p.skills[skillId]) ? p.skills[skillId] : 1;
@@ -1344,6 +1420,23 @@ function validarAtaqueBasicoAlvo(playerId, p, alvoTipo, alvoId) {
     let dy = alvo.y - py;
     if (dx * dx + dy * dy > alc * alc) return null;
     return alvo;
+}
+
+// Ataques básicos são sempre de alvo único. A validação de alvo/acesso ocorre
+// antes de chamar este helper; ele nunca procura inimigos vizinhos nem cria AoE.
+function aplicarDanoAtaqueBasicoAlvo(playerId, alvoTipo, alvoId, dano, tipoPvP) {
+    const alvo = obterAlvoAtaqueServidor(alvoTipo, alvoId);
+    if (!alvo) return false;
+    if (alvoTipo === 'player') {
+        if (!pvpPodeAtacar(playerId, alvoId)) return false;
+        const danoCalculado = calcularDanoJogador(playerId, dano, 'player', alvo).dano;
+        aplicarDanoPvP(playerId, alvoId, danoCalculado, tipoPvP || 'físico');
+        return true;
+    }
+    if (alvoTipo === 'boss') {
+        return registrarDanoBoss(alvo, playerId, dano, 'basico', 'player').dano > 0;
+    }
+    return registrarDanoMonstro(alvo, playerId, dano, 'player').dano > 0;
 }
 
 function atualizarBonusMaxHpGritoGuerra(p) {
@@ -1533,9 +1626,12 @@ function darEscudoAbsorvente(p, quantidade, duracaoMs) {
 // ícones de buff/debuff e barra de escudo aparecem para o dono E para os aliados)
 function sincronizarEfeitos(pid, p) {
     if (!efeitos || !p || !pid || !wss) return;
+    const listaEfeitos = efeitos.exporEfeitos(p);
+    const efeitosPublicos = listaEfeitos.filter((efeito) => efeito && efeito.id !== 'invisivel' && efeito.id !== 'camuflagem');
     wss.clients.forEach((client) => {
         if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ type: 'efeitos_sync', id: pid, efeitos: efeitos.exporEfeitos(p) }));
+            const ehDono = client._playerId === pid;
+            client.send(JSON.stringify({ type: 'efeitos_sync', id: pid, efeitos: ehDono ? listaEfeitos : efeitosPublicos }));
         }
     });
 }
@@ -1563,6 +1659,13 @@ function removerEfeitoAoVivo(pid, efeitoId) {
 function dashEnviar(tipo, dados) {
     const msg = JSON.stringify(Object.assign({ type: tipo }, dados || {}));
     wss.clients.forEach(c => { if (c.readyState === 1) c.send(msg); });
+}
+
+function dashEnviarAoJogador(pid, tipo, dados) {
+    const socket = playerSockets[pid];
+    if (socket && socket.readyState === WebSocket.OPEN) {
+        socket.send(JSON.stringify(Object.assign({ type: tipo }, dados || {})));
+    }
 }
 
 function dashNoCd(p) {
@@ -1710,8 +1813,8 @@ function dashCamuflagemSniper(pid, p, duracaoMs) {
         p.snPosicao = false;
         dashEnviar('action_sniper_posicao', { id: pid, ativo: false });
     }
-    dashEnviar('action_sniper_camuflagem', { id: pid, ativo: true });
-    dashEnviar('action_sniper_roupa_camo', {
+    dashEnviarAoJogador(pid, 'action_sniper_camuflagem', { id: pid, ativo: true });
+    dashEnviarAoJogador(pid, 'action_sniper_roupa_camo', {
         id: pid, x: p.x, y: p.y, duracaoMs: dur, expiraEm: p.snRoupaCamoAte
     });
     return p.snRoupaCamoAte;
@@ -1964,8 +2067,8 @@ function slimesNoRaio(x, y, raio, mapa, instanciaId) {
 }
 
 // ==== DRONEMASTER ====
-function danoBasicoDrone(p) { return dmgSkill(p, 'drone_dm', 13); }
-function danoBasicoRobo(p) { return dmgSkill(p, 'tita_dm', 15); }
+function danoBasicoDrone(p) { return dmgSkill(p, 'drone_dm', DANO_BASE_ATAQUE_BASICO.physicalRanged); }
+function danoBasicoRobo(p) { return dmgSkill(p, 'tita_dm', DANO_BASE_ATAQUE_BASICO.physicalRanged); }
 
 function posicaoDrone(p) {
     // Posição orbital do Drone relativa ao dono (server-authoritative para snapshot)
@@ -1986,11 +2089,7 @@ function finalizarCamuflagemSniper(p, pid, motivo) {
     p.snCamuflado = false;
     p.snCamofladoAte = 0;
     if (efeitos) efeitos.removerEfeito(p, 'camuflagem');
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ type: 'action_sniper_camuflagem_fim', id: pid, motivo: motivo || 'ataque' }));
-        }
-    });
+    dashEnviarAoJogador(pid, 'action_sniper_camuflagem_fim', { id: pid, motivo: motivo || 'ataque' });
     sincronizarEfeitos(pid, p);
 }
 
@@ -2006,26 +2105,28 @@ function congelarCooldownsSniper(p, ticks) {
 
 // congelar inimigos numa zona (slimes/bosses/players PvP)
 function congelarNaZona(z, tempoTicks, danoBase, ownerId) {
+    const dono = players[ownerId];
+    if (!dono || dono.hp <= 0) return;
     slimes.forEach(s => {
-        if (s.hp > 0 && mapaPorCoordenada(s.x) === z.mapa && Math.hypot(s.x - z.x, s.y - z.y) <= z.raio) {
+        if (s.hp > 0 && instanciaCompativel(dono, s) && mapaPorCoordenada(s.x) === z.mapa && Math.hypot(s.x - z.x, s.y - z.y) <= z.raio) {
             s.stunTimer = Math.max(s.stunTimer || 0, tempoTicks);
             efeitos.aplicarEfeito(s, 'congelado', tempoTicks, 1);
         }
     });
     bosses.forEach(b => {
-        if (b.hp > 0 && mapaPorCoordenada(b.x) === z.mapa && Math.hypot(b.x - z.x, b.y - z.y) <= z.raio) {
+        if (b.hp > 0 && instanciaCompativel(dono, b) && mapaPorCoordenada(b.x) === z.mapa && Math.hypot(b.x - z.x, b.y - z.y) <= z.raio) {
             b.stunTimer = Math.max(b.stunTimer || 0, tempoTicks);
             efeitos.aplicarEfeito(b, 'congelado', tempoTicks, 1);
         }
     });
     // PvP: paralisia (não pode se mover)
     (function () {
-        const dono = players[ownerId];
-        if (!dono || !dono.pvpAtivo) return;
+        if (!dono.pvpAtivo) return;
         for (let pId in players) {
             if (pId === ownerId) continue;
             const p2 = players[pId];
-            if (p2.pvpAtivo && p2.hp > 0 && mapaPorCoordenada(p2.x) === z.mapa && Math.hypot(p2.x - z.x, p2.y - z.y) <= z.raio) {
+            if (pvpPodeAtacar(ownerId, pId) && instanciaCompativel(dono, p2) && mapaPorCoordenada(p2.x + PLAYER_OFFSET_X) === z.mapa &&
+                Math.hypot((p2.x + PLAYER_OFFSET_X) - z.x, (p2.y + PLAYER_OFFSET_Y) - z.y) <= z.raio) {
                 efeitos.aplicarEfeito(p2, 'paralisia', tempoTicks, 1);
             }
         }
@@ -2151,11 +2252,7 @@ function finalizarInvisibilidadeLadino(player, pid) {
         }, 10000);
     }
     if (efeitos) efeitos.removerEfeito(player, 'invisivel');
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ type: 'action_ladino_invisivel', id: pid, ativo: false }));
-        }
-    });
+    dashEnviarAoJogador(pid, 'action_ladino_invisivel', { id: pid, ativo: false });
     sincronizarEfeitos(pid, player);
 }
 
@@ -2616,6 +2713,14 @@ function instanciaCompativel(a, b) {
     return !!a.instanciaId && a.instanciaId === b.instanciaId;
 }
 
+function jogadoresPodemTrocar(idA, idB) {
+    const a = players[idA], b = players[idB];
+    if (!a || !b || a.hp <= 0 || b.hp <= 0 || idA === idB) return false;
+    if (mapaPorCoordenada(a.x + PLAYER_OFFSET_X) !== mapaPorCoordenada(b.x + PLAYER_OFFSET_X)) return false;
+    if (!instanciaCompativel(a, b)) return false;
+    return Math.hypot((a.x + PLAYER_OFFSET_X) - (b.x + PLAYER_OFFSET_X), (a.y + PLAYER_OFFSET_Y) - (b.y + PLAYER_OFFSET_Y)) <= 150;
+}
+
 function entidadeNoMapa(entidade, mapa, instanciaId) {
     if (!entidade) return false;
     // Entidades da Arena de Solari são uma instância isolada. Isso inclui
@@ -3039,6 +3144,50 @@ function validarMovimentoJogador(player, targetX, targetY, opcoes) {
     return { aceito: true, bloqueado: false, parcial: false, x: ultimoX, y: ultimoY };
 }
 
+function velocidadeMaximaMovimentoJogador(player) {
+    if (!player) return 216;
+    const agilidade = Math.max(1, Math.min(100, getAtr(player, 'agilidade') || 1));
+    let mult = 1 + (agilidade - 1) * 0.03;
+    if (player.classe === 'barbaro' && player.furiaTimer > 0) mult *= 1.3;
+    if (efeitos && efeitos.temEfeito(player, 'lentidao')) mult *= 0.5;
+    if (efeitos && efeitos.temEfeito(player, 'deserto_lentidao')) {
+        const slow = efeitos.pegarEfeito(player, 'deserto_lentidao');
+        mult *= 1 - Math.min(0.9, Math.max(0, Number(slow && slow.intensidade) || 0.3));
+    }
+    if (efeitos && efeitos.temEfeito(player, 'velocidade')) {
+        const haste = efeitos.pegarEfeito(player, 'velocidade');
+        mult *= 1 + Math.min(1, Math.max(0, Number(haste && haste.intensidade) || 0.5));
+    }
+    if (player.dashVelocidadeAte > Date.now()) {
+        mult *= Math.max(1, Math.min(3, Number(player.dashVelocidadeMult) || 1));
+    }
+    if (player.classe === 'mago' && player.formaIgneaAte > Date.now()) mult *= 2;
+    // Client uses at most √2 diagonal speed; extra margin covers frame clamping,
+    // water/terrain differences and small serialization/rounding drift.
+    return Math.max(216, Math.min(1800, 3.6 * 60 * mult * Math.SQRT2 * 1.15));
+}
+
+function limitarMovimentoRecebido(player, targetX, targetY, agora) {
+    const velocidade = velocidadeMaximaMovimentoJogador(player);
+    if (!Number.isFinite(player.movimentoBudget) || !Number.isFinite(player.movimentoBudgetAt)) {
+        player.movimentoBudget = velocidade * 0.05;
+        player.movimentoBudgetAt = agora;
+    } else {
+        const dt = Math.max(0, Math.min(0.12, (agora - player.movimentoBudgetAt) / 1000));
+        player.movimentoBudget = Math.min(velocidade * 0.12, player.movimentoBudget + velocidade * dt);
+        player.movimentoBudgetAt = agora;
+    }
+    const dx = targetX - player.x;
+    const dy = targetY - player.y;
+    const distancia = Math.hypot(dx, dy);
+    const permitido = Math.min(player.movimentoBudget, velocidade * 0.12);
+    if (distancia <= permitido || distancia === 0) {
+        return { x: targetX, y: targetY, permitido, distancia };
+    }
+    const fator = permitido / distancia;
+    return { x: player.x + dx * fator, y: player.y + dy * fator, permitido, distancia: permitido };
+}
+
 function validarDestinoJogador(targetX, targetY, mapaOrigem) {
     if (!posicaoJogadorValida(targetX, targetY)) {
         return { aceito: false, bloqueado: true, x: targetX, y: targetY };
@@ -3152,7 +3301,8 @@ function gerarPosicaoNaturalBioma(bioma, origem, raio) {
 function criarSlimeNatural(x, y, grupoId, tipo) {
     tipo = tipo || 'slime';
     const conf = spawnsAdmin.getMonstroConfig(tipo);
-    const hp = Math.max(10, Math.floor(conf.baseHp));
+    const ehElite = Array.isArray(conf.tags) && conf.tags.indexOf('elite') !== -1;
+    const hp = calcularHpElite(conf.baseHp, ehElite);
     const agora = Date.now();
     const hora = sistemaDiaNoite ? sistemaDiaNoite.calcularTempoMundo(agora).horaDecimal : 12;
     const dormindo = hora < 6 || hora >= 23;
@@ -3163,7 +3313,7 @@ function criarSlimeNatural(x, y, grupoId, tipo) {
         asset: spawnsAdmin.TIPOS_MONSTROS[tipo].asset,
         nivel: conf.nivel || 1,
         tags: conf.tags.slice(),
-        elite: conf.tags.indexOf('elite') !== -1,
+        elite: ehElite,
         aiManaged: true,
         bioma: conf.bioma || SANTUARIO_SLIME_BIOMA,
         raioColisao: spawnsAdmin.TIPOS_MONSTROS[tipo].radius || MONSTER_COLLISION_RADIUS,
@@ -3171,7 +3321,7 @@ function criarSlimeNatural(x, y, grupoId, tipo) {
         y: y,
         hp: hp,
         maxHp: hp,
-        baseHp: hp,
+        baseHp: Math.max(10, Math.floor(conf.baseHp)),
         dano: conf.dano,
         xpBase: conf.xpBase,
         aggroRange: conf.aggroRange,
@@ -3406,6 +3556,7 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
         slime.aiDormindo = dormePorHorario;
         slime.aiEstado = slime.aiDormindo ? 'sleep' : 'idle';
         slime.aiEstadoTimer = 0;
+        notificarSpawnElite(slime);
     }
     const noite = horaDecimal >= 23 || horaDecimal < 6;
     if (slime._velocidadeBase == null) slime._velocidadeBase = slime.velocidade || 1.4;
@@ -3586,7 +3737,7 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
         Math.hypot(slime.aiPatrolX - slime.x, slime.aiPatrolY - slime.y) < 20 ||
         (slime.aiBloqueadoTicks || 0) > 20) {
         let patrulha = null;
-        const raioPatrulha = slime.spawnGrupoId ? 220 : 700;
+        const raioPatrulha = entidadeEhElite(slime) ? 9000 : (slime.spawnGrupoId ? 220 : 700);
         if (slime.bioma === SANTUARIO_SLIME_BIOMA) {
             patrulha = gerarPosicaoSantuarioSlime({ x: slime.origemX, y: slime.origemY }, raioPatrulha);
         } else if (slime.bioma === 'Deserto Escaldante') {
@@ -4185,11 +4336,7 @@ function aplicarDanoJogador(pid, origemX, origemY, dano) {
     }
     if (aliadoNaAura(pid)) dano = Math.round(dano * 0.9);
     if (dano < 0) dano = 0;
-    dano = itemSystem.reduzirDanoPelaDefesaEquipamento(
-        jogador.classe,
-        jogador.inventario && jogador.inventario.slots || {},
-        dano
-    );
+    dano = calcularDefesaEquipamentoJogador(jogador, dano);
 
     if (jogador.escudoAbsoluto > 0) {
         let absorvido = Math.min(jogador.escudoAbsoluto, dano);
@@ -5366,6 +5513,7 @@ function spawnMonstroBandeira(flag, instanciaId) {
     if (configMonstro && configMonstro.bioma &&
         !entidadeEmBiomaValido({ bioma: configMonstro.bioma, raioColisao: configMonstro.radius }, flag.x, flag.y)) return;
     let ehBoss = spawnsAdmin.TIPOS_MONSTROS[flag.tipo] && spawnsAdmin.TIPOS_MONSTROS[flag.tipo].boss;
+    const ehElite = !!(configMonstro && Array.isArray(configMonstro.tags) && configMonstro.tags.indexOf('elite') !== -1);
     let passivo = flag.comportamento !== 'agressivo';
     let agressivo = !passivo;
 
@@ -5403,8 +5551,8 @@ function spawnMonstroBandeira(flag, instanciaId) {
     let mob = slimes.find(s => s.flagId === flag.id && s.hp <= 0 && (!mapaEhInstanciado(mapaPorCoordenada(flag.x)) || s.instanciaId === instanciaId));
     if (mob) {
         let pos = posicaoBandeiraValida(flag, 60);
-        mob.hp = flag.hpBase;
-        mob.maxHp = flag.hpBase;
+        mob.hp = calcularHpElite(flag.hpBase || (configMonstro && configMonstro.baseHp), ehElite);
+        mob.maxHp = mob.hp;
         mob.x = pos.x;
         mob.y = pos.y;
         mob.targetId = null;
@@ -5439,10 +5587,16 @@ function spawnMonstroBandeira(flag, instanciaId) {
             mob.lanceiroBlockTimer = 0;
             mob.lanceiroBlockCooldown = 90;
         }
+        notificarSpawnElite(mob);
     } else {
         let novoMob = spawnsAdmin.criarMonstroBandeira(flag);
+        if (entidadeEhElite(novoMob)) {
+            novoMob.maxHp = calcularHpElite(novoMob.maxHp, true);
+            novoMob.hp = novoMob.maxHp;
+        }
         if (mapaEhInstanciado(mapaPorCoordenada(flag.x))) novoMob.instanciaId = instanciaId || null;
         slimes.push(novoMob);
+        notificarSpawnElite(novoMob);
     }
 }
 
@@ -7258,11 +7412,7 @@ setInterval(() => {
                     player.ladinoInvisivelTimer = 200; // 10s = 200 ticks
                     player.ladinoInvisivelBonus = true;
                     efeitos.aplicarEfeito(player, 'invisivel', 200, 1);
-                    wss.clients.forEach((client) => {
-                        if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_ladino_invisivel', id: pid, ativo: true }));
-                        }
-                    });
+                    dashEnviarAoJogador(pid, 'action_ladino_invisivel', { id: pid, ativo: true });
                     sincronizarEfeitos(pid, player);
                 }
             }
@@ -7540,11 +7690,10 @@ setInterval(() => {
                     }
                 }
                 if (detectou) {
-                    wss.clients.forEach((client) => {
-                        if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_sniper_deteccao', id: pid, x: detectou.x, y: detectou.y, alvoId: detectou.id }));
-                        }
-                    });
+                    const socketDetector = playerSockets[pid];
+                    if (socketDetector && socketDetector.readyState === WebSocket.OPEN) {
+                        socketDetector.send(JSON.stringify({ type: 'action_sniper_deteccao', id: pid, x: detectou.x, y: detectou.y, alvoId: detectou.id }));
+                    }
                 }
             }
             if (player.hp <= 0) {
@@ -9333,6 +9482,7 @@ setInterval(() => {
             removido = true;
         }
         if (!removido) for (let s of slimes) {
+            if (pp.origemBasica && pp.alvoId && (pp.alvoTipo !== 'slime' || String(s.id) !== String(pp.alvoId))) continue;
             if (s.hp > 0 && Math.hypot(s.x - pp.x, s.y - pp.y) < 30) {
                 registrarDanoMonstro(s, pp.ownerId, pp.dano);
                 if (pp.tipo === 'magia_gelo') {
@@ -9353,6 +9503,7 @@ setInterval(() => {
         }
         if (!removido) {
             for (let bb of bosses) {
+                if (pp.origemBasica && pp.alvoId && (pp.alvoTipo !== 'boss' || String(bb.id) !== String(pp.alvoId))) continue;
                 if (bb.hp > 0 && Math.hypot(bb.x - pp.x, bb.y - pp.y) < 82) {
                     registrarDanoBoss(bb, pp.ownerId, pp.dano, pp.origemBasica ? 'basico' : 'skill');
                     if (pp.tipo === 'magia_gelo') {
@@ -9376,6 +9527,7 @@ setInterval(() => {
             let p1 = players[pp.ownerId];
             if (p1 && p1.pvpAtivo) {
                 for (let pd in players) {
+                    if (pp.origemBasica && pp.alvoId && (pp.alvoTipo !== 'player' || String(pd) !== String(pp.alvoId))) continue;
                     if (pd === pp.ownerId) continue;
                     let p2 = players[pd];
                     if (p2.pvpAtivo && p2.hp > 0 && Math.hypot(p2.x - pp.x, p2.y - pp.y) < 30) {
@@ -10579,7 +10731,7 @@ if (g.hp <= 0) {
         let armaSlot = p.inventario && p.inventario.slots && p.inventario.slots.arma;
         playersVisivel[pid].armaVisual = armaSlot ? { nome: armaSlot.nome, raridade: armaSlot.raridade, customVisual: armaSlot.customVisual || null } : null;
         playersVisivel[pid].atributosTotais = atributosTotais(p);
-        playersVisivel[pid].efeitos = (efeitos ? efeitos.exporEfeitos(p) : []);
+        playersVisivel[pid].efeitos = (efeitos ? efeitos.exporEfeitos(p).filter((efeito) => efeito && efeito.id !== 'invisivel' && efeito.id !== 'camuflagem') : []);
         playersVisivel[pid].kaledronBradoAte = p.kaledronBradoAte || 0;
         playersVisivel[pid].ressurreicaoCooldownRestante = Math.max(0, (cooldownRessurreicao[pid] || 0) - Date.now());
         playersVisivel[pid].auraSagradaAliado = !!aliadoNaAura(pid);
@@ -10628,6 +10780,12 @@ if (g.hp <= 0) {
         const jogadoresDoMapa = {};
         if (mapaCliente) {
             for (const pid in playersVisivel) {
+                const jogadorAlvo = players[pid];
+                const oculto = jogadorAlvo && efeitos && (efeitos.temEfeito(jogadorAlvo, 'invisivel') || efeitos.temEfeito(jogadorAlvo, 'camuflagem'));
+                const detectadoPeloSniper = oculto && jogadorCliente && jogadorCliente.classe === 'sniper' && jogadorCliente.snPosicao &&
+                    efeitos.temEfeito(jogadorAlvo, 'invisivel') && mapaPorCoordenada(jogadorAlvo.x) === mapaPorCoordenada(jogadorCliente.x) &&
+                    Math.hypot(jogadorAlvo.x - (jogadorCliente.x + PLAYER_OFFSET_X), jogadorAlvo.y - (jogadorCliente.y + PLAYER_OFFSET_Y)) <= SNIPER_DETECTION_RADIUS;
+                if (pid !== client._playerId && oculto && !detectadoPeloSniper) continue;
                 if (clienteEmSolari) {
                     // Durante a Solari: só enxerga os colegas da partida
                     const sessaoAlvo = solariSessaoDoJogador(pid);
@@ -10638,9 +10796,12 @@ if (g.hp <= 0) {
                 }
             }
         }
+        const tempoMundoCliente = jogadorCliente && sistemaDiaNoite && typeof sistemaDiaNoite.aplicarEscuridaoPorClasse === 'function'
+            ? sistemaDiaNoite.aplicarEscuridaoPorClasse(tempoMundoAtual, jogadorCliente.classe)
+            : tempoMundoAtual;
         client.send(JSON.stringify({
             type: 'world_update',
-            tempoMundo: tempoMundoAtual,
+            tempoMundo: tempoMundoCliente,
             instanciaId: instanciaCliente,
             instanciaTipo: instanciaTipoCliente,
             players: jogadoresDoMapa,
@@ -10682,7 +10843,7 @@ const PALAVRAS_PROIBIDAS_NOME = ['admin', 'administrator', 'moderador', 'moderat
 // Ações aceitas enquanto o jogador ainda não escolheu um personagem.
 // Qualquer outra ação é descartada: nada de gameplay antes da confirmação.
 const ACOES_ANTES_DA_SELECAO = [
-    'login', 'personagem_listar', 'personagem_verificar_nome',
+    'login', 'google_login', 'personagem_listar', 'personagem_verificar_nome',
     'personagem_criar', 'personagem_deletar', 'personagem_selecionar',
     'ping', 'client_error', 'client_estado'
 ];
@@ -10738,6 +10899,21 @@ function listarPersonagensDaConta(contaId) {
     return lista;
 }
 
+function vincularPersonagensGoogle(accountId, emailVerificado) {
+    const banco = dbCarregarTodos() || {};
+    const email = String(emailVerificado || '').trim().toLowerCase();
+    const atualizacoes = [];
+    for (const nome of Object.keys(banco)) {
+        const registro = banco[nome];
+        if (!registro || typeof registro !== 'object') continue;
+        const owner = contaDoRegistro(registro, nome);
+        if (owner.toLowerCase() === email && owner !== accountId) {
+            atualizacoes.push({ userId: nome, dados: { owner: accountId, googleEmail: email } });
+        }
+    }
+    if (atualizacoes.length) salvarProgressoEmLote(atualizacoes);
+}
+
 function gerarIdPersonagem(nome) {
     const sufixo = Math.random().toString(36).slice(2, 8);
     return 'p_' + nome + '_' + sufixo;
@@ -10786,11 +10962,16 @@ wss.on('connection', (ws) => {
         return { pc: dados, mobile: {} };
     }
 
-    ws.on('message', (message) => {
+    ws.on('message', async (message) => {
         let data = null;
         try {
             data = JSON.parse(message);
             let agora = Date.now();
+
+            if (playerId && playerSockets[playerId] && playerSockets[playerId] !== ws) {
+                try { ws.close(4001, 'Sessão substituída por uma conexão mais recente.'); } catch (e) {}
+                return;
+            }
 
             // Cada mensagem entra em seu próprio contexto assíncrono. Timers,
             // setTimeouts e callbacks disparados pela skill herdam o mesmo mapa/instância.
@@ -10800,34 +10981,51 @@ wss.on('connection', (ws) => {
             // Nenhuma ação de jogo antes de o personagem ser selecionado/criado.
             if (!ws._charSelecionado && ACOES_ANTES_DA_SELECAO.indexOf(data.action) === -1) return;
 
-            // ============ CONTA (login) — não cria nem spawna personagem ============
+            // Login legado por nome foi desativado: nomes enviados pelo cliente não provam identidade.
             if (data.action === 'login') {
-                const contaId = String(data.userId || data.id || '').trim();
-                if (!contaId) {
-                    ws.send(JSON.stringify({ type: 'login_erro', mensagem: 'Nome de conta inválido.' }));
+                ws.send(JSON.stringify({ type: 'login_erro', mensagem: 'Entre usando sua conta Google verificada.' }));
+                return;
+            }
+
+            if (data.action === 'google_login') {
+                if (ws._charSelecionado || ws._googleAuthenticating) return;
+                if (!GOOGLE_CLIENT_ID) {
+                    ws.send(JSON.stringify({ type: 'login_erro', mensagem: 'Login Google ainda não configurado neste servidor.' }));
                     return;
                 }
-                ws._contaId = contaId;
-                ws._charSelecionado = false;
-                userId = null;
-                playerId = null;
-                ws._playerId = null;
-                ws.ehAdminContaGlobal = (contaId.toLowerCase() === 'admin') || (spawnsAdmin ? spawnsAdmin.ehAdmin(contaId) : false);
-                ws.ehAdminCliente = ws.ehAdminContaGlobal;
-                ws.send(JSON.stringify({
-                    type: 'personagens_lista',
-                    conta: contaId,
-                    maximo: MAX_PERSONAGENS_POR_CONTA,
-                    personagens: listarPersonagensDaConta(contaId)
-                }));
+                ws._googleAuthenticating = true;
+                try {
+                    const identidade = await verificarGoogleCredential(data.credential, GOOGLE_CLIENT_ID);
+                    const contaId = 'google:' + identidade.sub;
+                    vincularPersonagensGoogle(contaId, identidade.email);
+                    ws._googleAuthenticated = true;
+                    ws._googleSubject = identidade.sub;
+                    ws._googleEmail = identidade.email;
+                    ws._contaId = contaId;
+                    ws.ehAdminContaGlobal = !!(spawnsAdmin && (spawnsAdmin.ehAdmin(identidade.email) || spawnsAdmin.ehAdmin(contaId)));
+                    ws.ehAdminCliente = ws.ehAdminContaGlobal;
+                    ws.send(JSON.stringify({
+                        type: 'personagens_lista',
+                        conta: contaId,
+                        email: identidade.email,
+                        maximo: MAX_PERSONAGENS_POR_CONTA,
+                        personagens: listarPersonagensDaConta(contaId)
+                    }));
+                } catch (authError) {
+                    console.warn('[LOGIN GOOGLE] autenticação rejeitada:', authError && authError.message ? authError.message : 'erro');
+                    ws.send(JSON.stringify({ type: 'login_erro', mensagem: 'Não foi possível confirmar sua conta Google. Tente novamente.' }));
+                } finally {
+                    ws._googleAuthenticating = false;
+                }
                 return;
             }
 
             if (data.action === 'personagem_listar') {
-                if (!ws._contaId) return;
+                if (!ws._googleAuthenticated || !ws._contaId) return;
                 ws.send(JSON.stringify({
                     type: 'personagens_lista',
                     conta: ws._contaId,
+                    email: ws._googleEmail,
                     maximo: MAX_PERSONAGENS_POR_CONTA,
                     personagens: listarPersonagensDaConta(ws._contaId)
                 }));
@@ -10835,7 +11033,7 @@ wss.on('connection', (ws) => {
             }
 
             if (data.action === 'personagem_verificar_nome') {
-                if (!ws._contaId) return;
+                if (!ws._googleAuthenticated || !ws._contaId) return;
                 const entrada = typeof data.personagem === 'string' ? data.personagem : '';
                 const verificado = validarNomePersonagem(entrada);
                 if (!verificado.ok) {
@@ -10853,7 +11051,7 @@ wss.on('connection', (ws) => {
             }
 
             if (data.action === 'personagem_criar') {
-                if (!ws._contaId) return;
+                if (!ws._googleAuthenticated || !ws._contaId) return;
                 const contaId = ws._contaId;
                 const atuais = listarPersonagensDaConta(contaId);
                 if (atuais.length >= MAX_PERSONAGENS_POR_CONTA) {
@@ -10909,7 +11107,7 @@ wss.on('connection', (ws) => {
             }
 
             if (data.action === 'personagem_deletar') {
-                if (!ws._contaId) return;
+                if (!ws._googleAuthenticated || !ws._contaId) return;
                 const contaId = ws._contaId;
                 const nomeDel = String(data.personagem || '').trim();
                 if (!nomeDel || !personagemPertenceAConta(nomeDel, contaId)) {
@@ -10966,7 +11164,7 @@ wss.on('connection', (ws) => {
             if (data.action === 'personagem_selecionar') {
                 const contaId = ws._contaId || '';
                 const nomeSel = String(data.personagem || '').trim();
-                if (!contaId || !nomeSel || !personagemPertenceAConta(nomeSel, contaId)) {
+                if (!ws._googleAuthenticated || !contaId || !nomeSel || !personagemPertenceAConta(nomeSel, contaId)) {
                     ws.send(JSON.stringify({ type: 'personagem_selecionar_erro', mensagem: 'Personagem inválido.' }));
                     return;
                 }
@@ -10978,17 +11176,19 @@ wss.on('connection', (ws) => {
 
                 userId = nomeSel;
                 playerId = "heroi_" + userId;
+                const socketAnterior = playerSockets[playerId];
+                if (socketAnterior && socketAnterior !== ws) {
+                    cancelarTrade(playerId);
+                    socketAnterior._superseded = true;
+                    try { socketAnterior.close(4001, 'Personagem conectado em outra sessão.'); } catch (e) {}
+                }
                 ws._playerId = playerId;
                 playerSockets[playerId] = ws;
                 ws._charSelecionado = true;
 
                 let dadosSalvos = carregarProgresso(userId);
 
-                let ehAdminConta = (ws.ehAdminContaGlobal === true) ||
-                                   (contaId && contaId.toLowerCase() === 'admin') ||
-                                   (userId && userId.toLowerCase() === 'admin') ||
-                                   (dadosSalvos && dadosSalvos.owner && dadosSalvos.owner.toLowerCase() === 'admin') ||
-                                   (spawnsAdmin ? (spawnsAdmin.ehAdmin(userId) || spawnsAdmin.ehAdmin(contaId) || (dadosSalvos && spawnsAdmin.ehAdmin(dadosSalvos.owner))) : false);
+                let ehAdminConta = ws._googleAuthenticated === true && ws.ehAdminContaGlobal === true;
                 ws.ehAdminCliente = ehAdminConta;
 
                 let pontosInit = 0;
@@ -11112,6 +11312,10 @@ aaCometasCooldown: 0,
                     console.warn('[ANTI-HACK] level/xp inválido corrigido ao carregar:',
                         userId, '| level=' + players[playerId].level, 'xp=' + players[playerId].xp);
                 }
+                if (normalizarEquipamentosPorClasse(players[playerId].inventario, players[playerId].classe)) {
+                    salvarProgresso(userId, { inventario: players[playerId].inventario });
+                    console.warn('[INVENTÁRIO] equipamento incompatível movido para a mochila:', userId);
+                }
                 // CORREÇÃO (canto preso): se a posição salva caiu na "zona morta" entre o fim
                 // da cidade (FIM_CIDADE) e o início da Solari (LARGURA_SOLARI) — onde NÃO existe
                 // mapa — o char não consegue andar nem teleportar. Nesse caso, devolve para a
@@ -11194,6 +11398,19 @@ aaCometasCooldown: 0,
                     if (temPC || temMob) {
                         ws.send(JSON.stringify({ type: 'ui_layout', layout: { pc: ul.pc || {}, mobile: ul.mobile || {} } }));
                     }
+                }
+                const mapaEntrada = mapaPorCoordenada(players[playerId].x + PLAYER_OFFSET_X);
+                const elitePresente = slimes
+                    .filter(function (mob) {
+                        return mob && mob.hp > 0 && entidadeEhElite(mob) &&
+                            mapaPorCoordenada(mob.x) === mapaEntrada && instanciaCompativel(players[playerId], mob);
+                    })
+                    .sort(function (a, b) {
+                        return Math.hypot(a.x - players[playerId].x, a.y - players[playerId].y) -
+                            Math.hypot(b.x - players[playerId].x, b.y - players[playerId].y);
+                    })[0];
+                if (elitePresente) {
+                    ws.send(JSON.stringify({ type: 'elite_spawn_alert', id: elitePresente.id, nome: elitePresente.nome || 'Elite', x: elitePresente.x, y: elitePresente.y, mapa: mapaEntrada }));
                 }
                 return;
             }
@@ -11278,10 +11495,11 @@ aaCometasCooldown: 0,
             }
 
             if (data.action === 'trade_invite') {
-                let targetName = data.targetName;
+                let targetName = typeof data.targetName === 'string' ? data.targetName.trim().toLowerCase() : '';
+                if (!targetName || targetName.length > TAMANHO_MAX_NOME) return;
                 let targetId = null;
                 for (let tid in players) {
-                    if (players[tid].nome.toLowerCase() === targetName.toLowerCase()) {
+                    if (players[tid].nome.toLowerCase() === targetName) {
                         targetId = tid;
                         break;
                     }
@@ -11292,12 +11510,12 @@ aaCometasCooldown: 0,
                 }
                 let p1 = players[playerId];
                 let p2 = players[targetId];
-                if (p1.mapa !== p2.mapa || Math.hypot(p1.x - p2.x, p1.y - p2.y) > 150) {
+                if (!jogadoresPodemTrocar(playerId, targetId) || p1.tradeId || p2.tradeId) {
                     ws.send(JSON.stringify({ type: 'skill_erro', mensagem: "Jogador muito longe para troca!" }));
                     return;
                 }
                 if (players[targetId] && playerSockets[targetId]) {
-                    players[targetId].tradeInviter = playerId;
+                    players[targetId].tradeInvite = { playerId: playerId, expiresAt: Date.now() + 30000 };
                     playerSockets[targetId].send(JSON.stringify({
                         type: 'trade_invite_received',
                         fromId: playerId,
@@ -11309,8 +11527,12 @@ aaCometasCooldown: 0,
 
             if (data.action === 'trade_accept') {
                 let p2 = players[playerId];
-                let inviterId = p2.tradeInviter;
-                if (inviterId && players[inviterId] && playerSockets[inviterId]) {
+                let invite = p2 && p2.tradeInvite;
+                let inviterId = invite && invite.playerId;
+                if (invite) delete p2.tradeInvite;
+                if (inviterId && invite.expiresAt > Date.now() && players[inviterId] && playerSockets[inviterId] &&
+                    playerSockets[inviterId].readyState === WebSocket.OPEN && !p2.tradeId && !players[inviterId].tradeId &&
+                    jogadoresPodemTrocar(inviterId, playerId)) {
                     let tid = "trade_" + tradeCounter++;
                     trades[tid] = {
                         p1: inviterId,
@@ -11399,6 +11621,13 @@ aaCometasCooldown: 0,
                 }
                 if (trade && (trade.p1 === playerId || trade.p2 === playerId) &&
                     players[playerId] && players[playerId].tradeId === tid) {
+                    if (!jogadoresPodemTrocar(trade.p1, trade.p2) ||
+                        !playerSockets[trade.p1] || playerSockets[trade.p1].readyState !== WebSocket.OPEN ||
+                        !playerSockets[trade.p2] || playerSockets[trade.p2].readyState !== WebSocket.OPEN) {
+                        cancelarTrade(playerId);
+                        ws.send(JSON.stringify({ type: 'trade_erro', mensagem: 'Troca cancelada: jogadores desconectados, distantes ou em instâncias diferentes.' }));
+                        return;
+                    }
                     if (trade.p1 === playerId) trade.conf1 = true;
                     if (trade.p2 === playerId) trade.conf2 = true;
 
@@ -11995,7 +12224,7 @@ aaCometasCooldown: 0,
             // ===== FERREIRO (ADMIN): gerar pedras para teste =====
             if (data.action === 'ferreiro_admin_pedra') {
                 let pa = players[playerId];
-                let ehAdmin = (pa && pa.isAdmin) || (ws && ws.ehAdminCliente) || (typeof userId === 'string' && userId.toLowerCase() === 'admin');
+                let ehAdmin = (pa && pa.isAdmin) || (ws && ws.ehAdminCliente);
                 if (!ehAdmin) {
                     ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Apenas ADMINS podem gerar pedras.' }));
                     return;
@@ -12091,6 +12320,10 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 if (!classeValida(data.classe)) return;
                 if (aurasSagradas[playerId]) desativarAuraSagrada(playerId, 'classe_alterada');
                 players[playerId].classe = data.classe;
+                if (normalizarEquipamentosPorClasse(players[playerId].inventario, data.classe)) {
+                    salvarProgresso(userId, { inventario: players[playerId].inventario });
+                    ws.send(JSON.stringify({ type: 'inventario_sync', inventario: players[playerId].inventario }));
+                }
                 salvarProgresso(userId, { 
                     level: players[playerId].level, 
                     xp: players[playerId].xp, 
@@ -12195,7 +12428,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
             // ===== ADMIN: SUBIR DE NÍVEL (LEVEL UP RÁPIDO PARA TESTES) =====
             if (data.action === 'admin_subir_level') {
                 let p = players[playerId];
-                let ehAdmin = (p && p.isAdmin) || (ws && ws.ehAdminCliente) || (p && p.nome && p.nome.toLowerCase() === 'admin');
+                let ehAdmin = (p && p.isAdmin) || (ws && ws.ehAdminCliente);
                 if (!ehAdmin || !p) {
                     console.warn('[ADMIN LEVEL] Tentativa não autorizada rejeitada para:', playerId);
                     return;
@@ -12262,7 +12495,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
             // ===== ADMIN: RESETAR NÍVEL (VOLTA AO NÍVEL 1 PARA REINICIAR TESTES) =====
             if (data.action === 'admin_resetar_level') {
                 let p = players[playerId];
-                let ehAdmin = (p && p.isAdmin) || (ws && ws.ehAdminCliente) || (p && p.nome && p.nome.toLowerCase() === 'admin');
+                let ehAdmin = (p && p.isAdmin) || (ws && ws.ehAdminCliente);
                 if (!ehAdmin || !p) {
                     console.warn('[ADMIN LEVEL RESET] Tentativa não autorizada rejeitada para:', playerId);
                     return;
@@ -12638,7 +12871,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
             // ===== ADMIN: EDITOR DE MAPA (objetos persistentes: criar/editar/excluir/limpar) =====
             if (data.action === 'admin_map_objetos' || data.action === 'admin_map_objetos_excluir' || data.action === 'admin_map_objetos_limpar' || data.action === 'admin_map_objetos_sync') {
                 let p = players[playerId];
-                let ehAdmin = (p && p.isAdmin) || (ws && ws.ehAdminCliente) || (p && p.nome && p.nome.toLowerCase() === 'admin');
+                let ehAdmin = (p && p.isAdmin) || (ws && ws.ehAdminCliente);
                 if (!ehAdmin) {
                     console.warn('[SEGURANÇA] Tentativa não autorizada de editar mapa por: ' + (p ? p.nome : 'desconhecido'));
                     return;
@@ -12707,7 +12940,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
             // ===== ADMIN: EDITOR DE COLISÕES (validação estrita de cargo) =====
             if (data.action === 'admin_salvar_colisoes') {
                 let p = players[playerId];
-                let ehAdmin = (p && p.isAdmin) || (ws && ws.ehAdminCliente) || (p && p.nome && p.nome.toLowerCase() === 'admin');
+                let ehAdmin = (p && p.isAdmin) || (ws && ws.ehAdminCliente);
                 if (!ehAdmin) {
                     console.warn('[SEGURANÇA] Tentativa não autorizada de salvar colisões por: ' + (p ? p.nome : 'desconhecido'));
                     return;
@@ -13128,13 +13361,17 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 if (podeMover) {
                     const targetX = data.x !== undefined ? Number(data.x) : players[playerId].x;
                     const targetY = data.y !== undefined ? Number(data.y) : players[playerId].y;
+                    const movimentoLimitado = limitarMovimentoRecebido(players[playerId], targetX, targetY, agora);
                     // GUARDA DO DASH: pacote que apontou para a posição antiga
                     // durante um dash autorizado é descartado. Todo o resto do
                     // caminho (validarMovimentoJogador, colisão, `moving`) fica
                     // exatamente como estava.
-                    if (!dashMovimentoObsoleto(players[playerId], targetX, targetY)) {
-                        const movimento = validarMovimentoJogador(players[playerId], targetX, targetY);
+                    if (!dashMovimentoObsoleto(players[playerId], movimentoLimitado.x, movimentoLimitado.y)) {
+                        const movimento = validarMovimentoJogador(players[playerId], movimentoLimitado.x, movimentoLimitado.y, { maxDistance: movimentoLimitado.permitido });
                         if (movimento.aceito || movimento.parcial) {
+                            const dxAceito = movimento.x - players[playerId].x;
+                            const dyAceito = movimento.y - players[playerId].y;
+                            players[playerId].movimentoBudget = Math.max(0, players[playerId].movimentoBudget - Math.hypot(dxAceito, dyAceito));
                             players[playerId].x = movimento.x;
                             players[playerId].y = movimento.y;
                         }
@@ -13256,13 +13493,11 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, players[playerId], data.alvoTipo, data.alvoId);
-                    if (data.alvoTipo || data.alvoId) {
-                        if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
-                    }
+                    if (!alvoAuto) return; // ataque básico exige exatamente um alvo válido
 
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
-                    let anguloMachado = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : players[playerId].angulo;
+                    let anguloMachado = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX);
 
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
@@ -13270,37 +13505,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         }
                     });
 
-                    let danoMachado = dmgSkill(players[playerId], 'machadada', 20);
-                    slimes.forEach(slime => {
-                        if (slime.hp > 0) {
-                            let dist = Math.hypot(pX - slime.x, pY - slime.y);
-                            if (dist < 100) {
-                                let anguloAteSlime = Math.atan2(slime.y - pY, slime.x - pX);
-                                let diff = Math.atan2(Math.sin(anguloMachado - anguloAteSlime), Math.cos(anguloMachado - anguloAteSlime));
-
-                                if (Math.abs(diff) < 1.1) {
-                                    registrarDanoMonstro(slime, playerId, danoMachado);
-
-                                    // Lifesteal em Fúria: Recupera 8 de vida por golpe
-                                    if (players[playerId].furiaTimer > 0) {
-                                        aplicarCuraAoJogador(playerId, 8);
-                                    }
-                                }
-                            }
-                        }
-                    });
-                    danoEmBosses(pX, pY, 100, playerId, danoMachado, 'basico', null, anguloMachado, 1.1);
-                    if (players[playerId].furiaTimer > 0) {
-                        let acertouMonstro = bosses.some(bb => bb.hp > 0 && Math.hypot(pX - bb.x, pY - bb.y) < 95);
-                        if (!acertouMonstro && players[playerId].pvpAtivo) {
-                            for (let outro in players) {
-                                if (outro === playerId) continue;
-                                let p2 = players[outro];
-                                if (p2.pvpAtivo && p2.hp > 0 && Math.hypot(p2.x - pX, p2.y - pY) < 95) { acertouMonstro = true; break; }
-                            }
-                        }
-                        if (acertouMonstro) aplicarCuraAoJogador(playerId, 8);
-                    }
+                    let danoMachado = dmgSkill(players[playerId], 'machadada', DANO_BASE_ATAQUE_BASICO.melee);
+                    const acertouAlvo = aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, danoMachado, 'físico');
+                    if (acertouAlvo && players[playerId].furiaTimer > 0) aplicarCuraAoJogador(playerId, 8);
                 }
 
                 // HABILIDADE 1 DO BÁRBARO: FÚRIA BERSERKER (6s de buff de vampirismo, CD 15s)
@@ -13372,13 +13579,10 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 // ROQUEIRO: RIFF DE GUITARRA (Ataque básico)
                 if (data.action === 'ataque_roqueiro') {
                     if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], tempoBaseAtaqueBasico(players[playerId]))) return;
-                    players[playerId].lastBasicAttack = agora;
-
                     // Auto-ataque com alvo informado exige validação completa no servidor
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, players[playerId], data.alvoTipo, data.alvoId);
-                    if (data.alvoTipo || data.alvoId) {
-                        if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
-                    }
+                    if (!alvoAuto) return;
+                    players[playerId].lastBasicAttack = agora;
 
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
@@ -13392,11 +13596,13 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         y: pY,
                         vx: Math.cos(ang) * 12.0,
                         vy: Math.sin(ang) * 12.0,
-                        dano: dmgSkill(players[playerId], 'riff', 15),
+                        dano: dmgSkill(players[playerId], 'riff', DANO_BASE_ATAQUE_BASICO.magic),
                         vida: 55,
                         perfurante: false,
                         tipo: 'riff',
                         origemBasica: true,
+                        alvoTipo: data.alvoTipo,
+                        alvoId: data.alvoId,
                         solari: ownerInSolari
                     });
 
@@ -13527,9 +13733,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, pA, data.alvoTipo, data.alvoId);
-                    if (data.alvoTipo || data.alvoId) {
-                        if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
-                    }
+                    if (!alvoAuto) return;
 
                     let pX = pA.x + 12;
                     let pY = pA.y + 16;
@@ -13541,20 +13745,8 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         }
                     });
 
-                    let danoAdaga = dmgSkill(pA, 'adaga', 12);
-                    const alcanceAdaga = alcanceAtaqueBasicoClasse(pA); // 110
-                    slimes.forEach(slime => {
-                        if (slime.hp <= 0) return;
-                        let dist = Math.hypot(pX - slime.x, pY - slime.y);
-                        if (dist < alcanceAdaga) {
-                            let anguloAteSlime = Math.atan2(slime.y - pY, slime.x - pX);
-                            let diff = Math.atan2(Math.sin(anguloAdaga - anguloAteSlime), Math.cos(anguloAdaga - anguloAteSlime));
-                            if (Math.abs(diff) < 1.05) {
-                                registrarDanoMonstro(slime, playerId, danoAdaga, 'player');
-                            }
-                        }
-                    });
-                    danoEmBosses(pX, pY, alcanceAdaga, playerId, danoAdaga, 'basico', 'player', anguloAdaga, 1.05);
+                    let danoAdaga = dmgSkill(pA, 'adaga', DANO_BASE_ATAQUE_BASICO.melee);
+                    aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, danoAdaga, 'físico');
                 }
 
                 // ===== LADINO SKILL 1: DANÇA DAS ADAGAS (5 teleportes/hits + retorno + imune) =====
@@ -13722,58 +13914,33 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         if (Date.now() - pD.lastBasicAttack < tempoAtaqueBasico(pD, 416)) return;
                         pD.lastBasicAttack = Date.now();
                         let alvoAutoR = validarAtaqueBasicoAlvo(playerId, pD, data.alvoTipo, data.alvoId);
-                        if (data.alvoTipo || data.alvoId) { if (!alvoAutoR) return; }
+                        if (!alvoAutoR) return;
                         let pXR = pD.x + PLAYER_OFFSET_X, pYR = pD.y + PLAYER_OFFSET_Y;
-                        let angR = alvoAutoR ? Math.atan2(alvoAutoR.y - pYR, alvoAutoR.x - pXR) : ((data.angulo !== undefined) ? data.angulo : pD.angulo);
+                        let angR = Math.atan2(alvoAutoR.y - pYR, alvoAutoR.x - pXR);
                         let danoR = danoBasicoRobo(pD);
-                        // projétil de laser: primeira entidade na linha (range 480)
-                        let atingiuR = null;
-                        for (let s of slimes) {
-                            if (s.hp <= 0 || mapaPorCoordenada(s.x) !== mapaPorCoordenada(pD.x)) continue;
-                            let ddx = s.x - pXR, ddy = s.y - pYR;
-                            let distR = Math.hypot(ddx, ddy);
-                            if (distR > 242) continue; // Tita: alcance +15% (210 → 242)
-                            let angS = Math.atan2(ddy, ddx);
-                            if (mesmosLados(angS, angR, 0.35)) {
-                                // primeiro alvo no caminho (o mais próximo)
-                                if (!atingiuR || distR < atingiuR.dist) { atingiuR = { s: s, dist: distR }; }
-                            }
-                        }
                         wss.clients.forEach((client) => {
                             if (client.readyState === WebSocket.OPEN) {
-                                client.send(JSON.stringify({ type: 'action_dm_tiro_tita', id: playerId, x: pD.x + PLAYER_OFFSET_X, y: pD.y + PLAYER_OFFSET_Y, ang: angR, alvoX: atingiuR ? atingiuR.s.x : pXR + Math.cos(angR) * 300, alvoY: atingiuR ? atingiuR.s.y : pYR + Math.sin(angR) * 300 }));
+                                client.send(JSON.stringify({ type: 'action_dm_tiro_tita', id: playerId, x: pD.x + PLAYER_OFFSET_X, y: pD.y + PLAYER_OFFSET_Y, ang: angR, alvoX: alvoAutoR.x, alvoY: alvoAutoR.y }));
                             }
                         });
-                        if (atingiuR) registrarDanoMonstro(atingiuR.s, playerId, danoR, 'player');
-                        danoEmBosses(pXR, pYR, 242, playerId, danoR, 'basico', 'player');
+                        aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, danoR, 'físico');
                         return;
                     }
                     // Drone normal: tiro à distância do Drone (range 90)
                     if (Date.now() - pD.lastBasicAttack < tempoAtaqueBasico(pD, 560)) return;
                     pD.lastBasicAttack = Date.now();
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, pD, data.alvoTipo, data.alvoId);
-                    if (data.alvoTipo || data.alvoId) { if (!alvoAuto) return; }
+                    if (!alvoAuto) return;
                     let pX = pD.dmDroneX !== undefined ? pD.dmDroneX : (pD.x + PLAYER_OFFSET_X + 30);
                     let pY = pD.dmDroneY !== undefined ? pD.dmDroneY : (pD.y + PLAYER_OFFSET_Y - 14);
-                    let angulo = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : ((data.angulo !== undefined) ? data.angulo : pD.angulo);
+                    let angulo = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX);
                     let danoDrone = danoBasicoDrone(pD);
-                    let alvoTiro = null;
-                    for (let s of slimes) {
-                        if (s.hp <= 0 || mapaPorCoordenada(s.x) !== mapaPorCoordenada(pD.x)) continue;
-                        let ddx = s.x - pX, ddy = s.y - pY;
-                        let distD = Math.hypot(ddx, ddy);
-                        if (distD > 124) continue; // v1.32: range do Drone +15% (108 → 124)
-                        if (mesmosLados(Math.atan2(ddy, ddx), angulo, 0.5)) {
-                            if (!alvoTiro || distD < alvoTiro.dist) alvoTiro = { s: s, dist: distD };
-                        }
-                    }
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_dm_tiro', id: playerId, droneX: pD.dmDroneX, droneY: pD.dmDroneY, x: pD.x + PLAYER_OFFSET_X, y: pD.y + PLAYER_OFFSET_Y, ang: angulo, alvoX: alvoTiro ? alvoTiro.s.x : pX + Math.cos(angulo) * 200, alvoY: alvoTiro ? alvoTiro.s.y : pY + Math.sin(angulo) * 200 }));
+                            client.send(JSON.stringify({ type: 'action_dm_tiro', id: playerId, droneX: pD.dmDroneX, droneY: pD.dmDroneY, x: pD.x + PLAYER_OFFSET_X, y: pD.y + PLAYER_OFFSET_Y, ang: angulo, alvoX: alvoAuto.x, alvoY: alvoAuto.y }));
                         }
                     });
-                    if (alvoTiro) registrarDanoMonstro(alvoTiro.s, playerId, danoDrone, 'player');
-                    danoEmBosses(pX, pY, 124, playerId, danoDrone, 'basico', 'player');
+                    aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, danoDrone, 'físico');
                 }
 
                 // ---- DRONEMASTER SKILL 1: MODO SUPRESSÃO (até 3 alvos) ----
@@ -13874,27 +14041,16 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (Date.now() - pA.lastBasicAttack < tempoAtaqueBasico(pA, 500)) return;
                     pA.lastBasicAttack = Date.now();
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, pA, data.alvoTipo, data.alvoId);
-                    if (data.alvoTipo || data.alvoId) { if (!alvoAuto) return; }
+                    if (!alvoAuto) return;
                     let pX = pA.x + PLAYER_OFFSET_X, pY = pA.y + PLAYER_OFFSET_Y;
-                    let angulo = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : ((data.angulo !== undefined) ? data.angulo : pA.angulo);
-                    let danoFlecha = dmgSkill(pA, 'flecha_arcana', 16);
-                    let alvoTiro = null;
-                    for (let s of slimes) {
-                        if (s.hp <= 0 || mapaPorCoordenada(s.x) !== mapaPorCoordenada(pA.x)) continue;
-                        let dx = s.x - pX, dy = s.y - pY;
-                        let dist = Math.hypot(dx, dy);
-                        if (dist > 260) continue;
-                        if (mesmosLados(Math.atan2(dy, dx), angulo, 0.5)) {
-                            if (!alvoTiro || dist < alvoTiro.dist) alvoTiro = { s: s, dist: dist };
-                        }
-                    }
+                    let angulo = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX);
+                    let danoFlecha = dmgSkill(pA, 'flecha_arcana', DANO_BASE_ATAQUE_BASICO.magic);
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_arcano_flecha', id: playerId, x: pX, y: pY, ang: angulo, alvoX: alvoTiro ? alvoTiro.s.x : pX + Math.cos(angulo) * 180, alvoY: alvoTiro ? alvoTiro.s.y : pY + Math.sin(angulo) * 180 }));
+                            client.send(JSON.stringify({ type: 'action_arcano_flecha', id: playerId, x: pX, y: pY, ang: angulo, alvoX: alvoAuto.x, alvoY: alvoAuto.y }));
                         }
                     });
-                    if (alvoTiro) registrarDanoMonstro(alvoTiro.s, playerId, danoFlecha, 'player');
-                    danoEmBosses(pX, pY, 260, playerId, danoFlecha, 'basico', 'player');
+                    aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, danoFlecha, 'mágico');
                 }
 
                 // ---- ARQUEIRO ASTRAAL SKILL 1: CHUVA DE COMETAS (impacto + chuva 4s) ----
@@ -14026,29 +14182,16 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (Date.now() - pS.lastBasicAttack < tempoAtaqueBasico(pS, 936)) return;
                     pS.lastBasicAttack = Date.now();
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, pS, data.alvoTipo, data.alvoId);
-                    if (data.alvoTipo || data.alvoId) { if (!alvoAuto) return; }
+                    if (!alvoAuto) return;
                     let pX = pS.x + PLAYER_OFFSET_X, pY = pS.y + PLAYER_OFFSET_Y;
-                    let angulo = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : ((data.angulo !== undefined) ? data.angulo : pS.angulo);
-                    let danoBarrett = dmgSkill(pS, 'tiro_barrett', 30);
-                    // perfurante: acerta TODOS na linha (range 384, -20%)
-                    let alvosLinha = [];
-                    for (let s of slimes) {
-                        if (s.hp <= 0 || mapaPorCoordenada(s.x) !== mapaPorCoordenada(pS.x)) continue;
-                        let dx = s.x - pX, dy = s.y - pY;
-                        let dist = Math.hypot(dx, dy);
-                        if (dist > 384) continue;
-                        let lateral = Math.abs(Math.sin(angulo) * dx - Math.cos(angulo) * dy);
-                        if (lateral <= 14) alvosLinha.push({ s: s, dist: dist });
-                    }
-                    alvosLinha.sort((a, b) => a.dist - b.dist);
-                    let alvoFinal = alvosLinha.length ? alvosLinha[0] : null;
+                    let angulo = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX);
+                    let danoBarrett = dmgSkill(pS, 'tiro_barrett', DANO_BASE_ATAQUE_BASICO.physicalRanged);
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_sniper_tiro', id: playerId, x: pX, y: pY, ang: angulo, alvoX: alvoFinal ? alvoFinal.s.x : pX + Math.cos(angulo) * 260, alvoY: alvoFinal ? alvoFinal.s.y : pY + Math.sin(angulo) * 260, noMato: pS.snCamuflado }));
+                            client.send(JSON.stringify({ type: 'action_sniper_tiro', id: playerId, x: pX, y: pY, ang: angulo, alvoX: alvoAuto.x, alvoY: alvoAuto.y, noMato: pS.snCamuflado }));
                         }
                     });
-                    alvosLinha.forEach(ent => registrarDanoMonstro(ent.s, playerId, danoBarrett, 'player'));
-                    danoEmBosses(pX, pY, 384, playerId, danoBarrett, 'basico', 'player');
+                    aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, danoBarrett, 'físico');
                 }
 
                 // ---- SNIPER SKILL 1: DISPARO SUPREMO — APONTAR (estado AIMING, 3s) ----
@@ -14179,11 +14322,11 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     redesSniper.push(redeZona);
                     let alvoRede = null;
                     for (let s of slimes) {
-                        if (!alvoRede && s.hp > 0 && Math.hypot(s.x - rx, s.y - ry) <= 60) { alvoRede = { tipo: 'slime', ent: s }; }
+                        if (!alvoRede && s.hp > 0 && instanciaCompativel(pR, s) && Math.hypot(s.x - rx, s.y - ry) <= 60) { alvoRede = { tipo: 'slime', ent: s }; }
                     }
                     if (!alvoRede) {
                         for (let b of bosses) {
-                            if (!alvoRede && b.hp > 0 && Math.hypot(b.x - rx, b.y - ry) <= 60) { alvoRede = { tipo: 'boss', ent: b }; }
+                            if (!alvoRede && b.hp > 0 && instanciaCompativel(pR, b) && Math.hypot(b.x - rx, b.y - ry) <= 60) { alvoRede = { tipo: 'boss', ent: b }; }
                         }
                     }
                     // PvP: rede também prende jogadores
@@ -14192,7 +14335,8 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         for (let pId in players) {
                             if (pId === playerId) continue;
                             let p2 = players[pId];
-                            if (p2.pvpAtivo && p2.hp > 0 && Math.hypot(p2.x - rx, p2.y - ry) <= 60) { alvoJogadorRede = p2; break; }
+                            if (pvpPodeAtacar(playerId, pId) && instanciaCompativel(pR, p2) &&
+                                Math.hypot((p2.x + PLAYER_OFFSET_X) - rx, (p2.y + PLAYER_OFFSET_Y) - ry) <= 60) { alvoJogadorRede = p2; break; }
                         }
                     }
                     if (alvoRede) {
@@ -14699,12 +14843,9 @@ if (data.action === 'dash') {
                     if (!cdSkillExpirado(ws, p, 'lastFlorimBasic', 550, 'ataque_florim')) return;
                     marcarSkillUsada(p, 'lastFlorimBasic');
                     let alvo = validarAtaqueBasicoAlvo(playerId, p, data.alvoTipo, data.alvoId);
-                    if (alvo) {
-                        const dano = 12;
-                        if (data.alvoTipo === 'player') aplicarDanoPvP(playerId, data.alvoId, dano, 'natureza');
-                        else if (data.alvoTipo === 'boss') registrarDanoBoss(alvo, playerId, dano, 'basico', 'player');
-                        else registrarDanoMonstro(alvo, playerId, dano, 'player');
-                    }
+                    if (!alvo) return;
+                    const dano = dmgSkill(p, 'ataque_florim', DANO_BASE_ATAQUE_BASICO.magic);
+                    aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, dano, 'natureza');
                     florimBroadcast({ type: 'action_florim_basic', id: playerId, x: p.x + PLAYER_OFFSET_X, y: p.y + PLAYER_OFFSET_Y, angulo: Number(data.angulo) || p.angulo }, p);
                     return;
                 }
@@ -15193,9 +15334,7 @@ if (data.action === 'dash') {
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, players[playerId], data.alvoTipo, data.alvoId);
-                    if (data.alvoTipo || data.alvoId) {
-                        if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
-                    }
+                    if (!alvoAuto) return;
 
                     wss.clients.forEach((client) => {
                         if (client !== ws && client.readyState === WebSocket.OPEN) {
@@ -15205,22 +15344,9 @@ if (data.action === 'dash') {
 
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
-                    let anguloFoice = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : players[playerId].angulo;
-                    let danoFoice = dmgSkill(players[playerId], 'foicada', 13);
-
-                    slimes.forEach(slime => {
-                        if (slime.hp > 0) {
-                            let dist = Math.hypot(pX - slime.x, pY - slime.y);
-                            if (dist < 100) {
-                                let anguloAteSlime = Math.atan2(slime.y - pY, slime.x - pX);
-                                let diff = Math.atan2(Math.sin(anguloFoice - anguloAteSlime), Math.cos(anguloFoice - anguloAteSlime));
-                                if (Math.abs(diff) < Math.PI / 2.2) {
-                                    registrarDanoMonstro(slime, playerId, danoFoice, 'player');
-                                }
-                            }
-                        }
-                    });
-                    danoEmBosses(pX, pY, 100, playerId, danoFoice, 'basico', 'player', anguloFoice, Math.PI / 2.2);
+                    let anguloFoice = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX);
+                    let danoFoice = dmgSkill(players[playerId], 'foicada', DANO_BASE_ATAQUE_BASICO.melee);
+                    aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, danoFoice, 'físico');
                 }
 
                 // ============================================================
@@ -15384,16 +15510,13 @@ if (data.action === 'dash') {
                     pk.lastBasicAttack = agora;
 
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, pk, data.alvoTipo, data.alvoId);
-                    if (data.alvoTipo || data.alvoId) {
-                        if (!alvoAuto) return;
-                    }
+                    if (!alvoAuto) return;
 
                     let pX = pk.x + 12;
                     let pY = pk.y + 16;
-                    let anguloCorte = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : pk.angulo;
-                    if (!alvoAuto && Number.isFinite(Number(data.angulo))) anguloCorte = Number(data.angulo);
+                    let anguloCorte = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX);
                     anguloCorte = Math.atan2(Math.sin(anguloCorte), Math.cos(anguloCorte));
-                    let danoCorte = dmgSkill(pk, 'kaledron_corte', 16);
+                    let danoCorte = dmgSkill(pk, 'kaledron_corte', DANO_BASE_ATAQUE_BASICO.melee);
 
                     wss.clients.forEach((client) => {
                         if (client !== ws && client.readyState === WebSocket.OPEN) {
@@ -15401,21 +15524,7 @@ if (data.action === 'dash') {
                         }
                     });
 
-                    slimes.forEach(slime => {
-                        if (slime.hp > 0) {
-                            let dist = Math.hypot(pX - slime.x, pY - slime.y);
-                            if (dist < 110) {
-                                let anguloAteSlime = Math.atan2(slime.y - pY, slime.x - pX);
-                                let diff = Math.atan2(Math.sin(anguloCorte - anguloAteSlime), Math.cos(anguloCorte - anguloAteSlime));
-                                if (Math.abs(diff) < 1.1) {
-                                    registrarDanoMonstro(slime, playerId, danoCorte, 'player');
-                                }
-                            }
-                        }
-                    });
-
-                    danoEmBosses(pX, pY, 110, playerId, danoCorte, 'fisico', 'player');
-                    danoEmPlayers(pX, pY, 110, playerId, danoCorte, 'fisico', null, anguloCorte, 1.1);
+                    aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, danoCorte, 'físico');
                 }
 
                 // ============================================================
@@ -15587,9 +15696,7 @@ if (data.action === 'dash') {
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, players[playerId], data.alvoTipo, data.alvoId);
-                    if (data.alvoTipo || data.alvoId) {
-                        if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
-                    }
+                    if (!alvoAuto) return;
 
                     wss.clients.forEach((client) => {
                         if (client !== ws && client.readyState === WebSocket.OPEN) {
@@ -15599,35 +15706,17 @@ if (data.action === 'dash') {
 
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
-                    let anguloCorte = alvoAuto ? Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX) : players[playerId].angulo;
-                    let danoCorte = dmgSkill(players[playerId], 'corte', 12);
-
-                    slimes.forEach(slime => {
-                        if (slime.hp > 0) {
-                            let dist = Math.hypot(pX - slime.x, pY - slime.y);
-
-                            if (dist < 100) { // TESTE: dano real do guerreiro = 100 (era 66)
-                                let anguloAteSlime = Math.atan2(slime.y - pY, slime.x - pX);
-                                let diff = Math.atan2(Math.sin(anguloCorte - anguloAteSlime), Math.cos(anguloCorte - anguloAteSlime));
-
-                                if (Math.abs(diff) < 1.0) {
-                                    registrarDanoMonstro(slime, playerId, danoCorte);
-                                }
-                            }
-                        }
-                    });
-                    danoEmBosses(pX, pY, 100, playerId, danoCorte, 'basico', null, anguloCorte, 1.0); // TESTE: dano real do guerreiro em boss = 100 (era 110)
+                    let danoCorte = dmgSkill(players[playerId], 'corte', DANO_BASE_ATAQUE_BASICO.melee);
+                    aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, danoCorte, 'físico');
                 }
 
                 if (data.action === 'ataque_mago' || data.action === 'ataque_summoner' || data.action === 'ataque_arqueiro' || data.action === 'ataque_curandeiro') {
                     if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], tempoBaseAtaqueBasico(players[playerId]))) return;
-                    players[playerId].lastBasicAttack = agora;
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, players[playerId], data.alvoTipo, data.alvoId);
-                    if (data.alvoTipo || data.alvoId) {
-                        if (!alvoAuto) return; // alvo inválido/morto/outro mapa/fora do alcance → rejeita
-                    }
+                    if (!alvoAuto) return;
+                    players[playerId].lastBasicAttack = agora;
 
                     if (data.action === 'ataque_summoner' && lacaios[playerId]) {
                         if (data.alvoTipo === 'slime' && data.alvoId) {
@@ -15641,13 +15730,12 @@ if (data.action === 'dash') {
 
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
-                    let ang = (data.angulo !== undefined) ? data.angulo : players[playerId].angulo;
-                    if (alvoAuto) ang = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX); // mira o alvo validado
+                    let ang = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX);
 
-                    let danoProj = dmgSkill(players[playerId], 'magia', 15);
-                    if (data.action === 'ataque_summoner') danoProj = dmgSkill(players[playerId], 'orbe', 6);
-                    if (data.action === 'ataque_arqueiro') danoProj = dmgSkill(players[playerId], 'flecha', 18);
-                    if (data.action === 'ataque_curandeiro') danoProj = dmgSkill(players[playerId], 'sagrado', 12);
+                    let danoProj = dmgSkill(players[playerId], 'magia', DANO_BASE_ATAQUE_BASICO.magic);
+                    if (data.action === 'ataque_summoner') danoProj = dmgSkill(players[playerId], 'orbe', DANO_BASE_ATAQUE_BASICO.magic);
+                    if (data.action === 'ataque_arqueiro') danoProj = dmgSkill(players[playerId], 'flecha', DANO_BASE_ATAQUE_BASICO.physicalRanged);
+                    if (data.action === 'ataque_curandeiro') danoProj = dmgSkill(players[playerId], 'sagrado', DANO_BASE_ATAQUE_BASICO.magic);
 
                     let velocidadeProj = 10.0;
                     if (data.action === 'ataque_arqueiro') velocidadeProj = 14.0;
@@ -15681,6 +15769,8 @@ if (data.action === 'dash') {
                         perfurante: false,
                         tipo: tipoProj,
                         origemBasica: true,
+                        alvoTipo: data.alvoTipo,
+                        alvoId: data.alvoId,
                         solari: ownerInSolari
                     });
 
@@ -16662,7 +16752,7 @@ if (data.action === 'dash') {
     });
 
     ws.on('close', () => {
-        if (playerId && players[playerId] && userId) {
+        if (playerId && playerSockets[playerId] === ws && players[playerId] && userId) {
             // Arena de Solari: saiu da partida → volta pra cidade ao reconectar
             if (solariEmSessao(playerId)) {
                 players[playerId].x = CIDADE_SPAWN_X;
@@ -16714,25 +16804,13 @@ if (data.action === 'dash') {
     });
 });
 
-// Render injeta PORT. Localmente o fallback 8080 mantem o endereco de sempre.
-let PORT = Number(process.env.PORT) || 8080;
-// O Render sobe UM servico: se ele mandou PORT, nunca trocamos de porta
-// (a troca em EADDRINUSE so vale para desenvolvimento local).
-const PORT_DO_AMBIENTE = !!process.env.PORT;
+// Forçar sempre a porta de produção do Google Login: 8080.
+// Não há fallback para 8081 neste ambiente.
+const PORT = Number(process.env.PORT) || 8080;
 
 server.on('error', (err) => {
-    if (err.code === 'EADDRINUSE' && !PORT_DO_AMBIENTE) {
-        console.warn(`[AVISO] Porta ${PORT} em uso. Tentando porta alternativa ${PORT + 1}...`);
-        PORT = PORT + 1;
-        setTimeout(() => {
-            try { server.close(); } catch (_) {}
-            server.listen(PORT, '0.0.0.0', () => {
-                console.log("Servidor rodando na porta " + PORT);
-            });
-        }, 500);
-    } else {
-        console.error('[ERRO SERVIDOR HTTP]', err);
-    }
+    console.error('[ERRO SERVIDOR HTTP]', err);
+    process.exit(1);
 });
 
 if (!migrarIdentidadesItens) {
@@ -16744,27 +16822,19 @@ itemSystem.assertUniqueInventoryOwnership(savedItemRecords);
 for (const ownerId of Object.keys(savedItemRecords)) {
     const savedCharacter = savedItemRecords[ownerId] || {};
     const inventory = savedCharacter.inventario || {};
-    const equipment = [];
-    if (inventory.slots && typeof inventory.slots === 'object') {
-        Object.keys(inventory.slots).forEach(function (slot) {
-            const item = inventory.slots[slot];
-            if (item && item.schemaVersion === 1) {
-                if (item.slot !== slot) throw new Error('Slot salvo incompatível para item ' + item.itemInstanceId);
-                equipment.push(item);
-            }
-        });
+    if (normalizarEquipamentosPorClasse(inventory, savedCharacter.classe || 'guerreiro')) {
+        salvarProgresso(ownerId, { inventario: inventory });
+        console.warn('[INVENTÁRIO] equipamento incompatível movido para a mochila:', ownerId);
     }
     if (Array.isArray(inventory.mochila)) {
         inventory.mochila.forEach(function (item) {
-            if (item && item.schemaVersion === 1) equipment.push(item);
+            if (!item || item.schemaVersion !== 1) return;
+            const validacao = itemSystem.validateDefinitionAndInstance(item);
+            if (!validacao.valid) {
+                throw new Error('Item salvo inválido (' + validacao.reason + ') no personagem ' + ownerId);
+            }
         });
     }
-    equipment.forEach(function (item) {
-        const validation = itemSystem.validateEquipmentForClass(savedCharacter.classe || 'guerreiro', item);
-        if (!validation.valid) {
-            throw new Error('Item salvo inválido (' + validation.reason + ') no personagem ' + ownerId);
-        }
-    });
 }
 console.log('[LOOT] migração de identidade concluída:', itemMigrationStats);
 

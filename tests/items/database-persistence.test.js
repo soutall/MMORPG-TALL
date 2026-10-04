@@ -11,6 +11,7 @@ test('serializes inventory migration and persists multi-character updates atomic
     try {
         fs.mkdirSync(path.join(tempDir, 'items'));
         fs.copyFileSync(path.join(__dirname, '..', '..', 'database.js'), path.join(tempDir, 'database.js'));
+        fs.copyFileSync(path.join(__dirname, '..', '..', 'persistence-lock.js'), path.join(tempDir, 'persistence-lock.js'));
         fs.copyFileSync(
             path.join(__dirname, '..', '..', 'items', 'migrate-inventories.js'),
             path.join(tempDir, 'items', 'migrate-inventories.js')
@@ -54,7 +55,7 @@ test('serializes inventory migration and persists multi-character updates atomic
         assert.equal(updated.playerB.ouro, 9);
 
         const stableContents = fs.readFileSync(savePath, 'utf8');
-        fs.writeFileSync(path.join(tempDir, 'jogadores.json.lock'), '{"pid":-1}', 'utf8');
+        fs.writeFileSync(path.join(tempDir, 'jogadores.json.lock'), JSON.stringify({ pid: process.pid }), 'utf8');
         assert.throws(function () {
             db.salvarProgressoEmLote([
                 { userId: 'playerA', dados: { ouro: 99 } },

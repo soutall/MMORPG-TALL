@@ -16,12 +16,26 @@
 
     const vfx = [];        // efeitos transitórios
 
+    function limiteVfxDash() {
+        let fator = 1;
+        if (typeof window !== 'undefined') {
+            if (typeof window.getFatorQualidadeGrafica === 'function') {
+                fator = window.getFatorQualidadeGrafica('particulas', 1);
+            } else if (typeof window.obterFatorParticulasGrafica === 'function') {
+                fator = window.obterFatorParticulasGrafica();
+            } else if (window.EngineOtimizador && typeof window.EngineOtimizador.getFatorQualidade === 'function') {
+                fator = window.EngineOtimizador.getFatorQualidade('fatorParticulas', 1);
+            }
+        }
+        return Math.max(12, Math.round(60 * fator));
+    }
+
     // ------------------------------------------------------------------
     // API: called pelo index.html
     // ------------------------------------------------------------------
     window.dashAdicionarVfxReal = function (tipo, x, y, ang, extra) {
         vfx.push(Object.assign({ tipo: tipo, x: x, y: y, ang: ang || 0, t: 0, dur: 520 }, extra || {}));
-        if (vfx.length > 60) vfx.shift();   // teto de segurança
+        if (vfx.length > limiteVfxDash()) vfx.shift();   // teto de segurança adaptativo
     };
 
     // Evento vindo do SERVIDOR (action_dash / action_dash_fim / etc).

@@ -124,11 +124,70 @@ function chaveVisual() {
     return VISUAL_PREF + uid;
 }
 
+window.GRAFICOS_PRESETS = {
+    alta:   { nome: 'Alta',    particulas: 1.00, brilho: 1.00, sombra: 1.00, culling: 1.00, dpr: 1.50, vfx: 1.00, tremor: 1.00 },
+    media:  { nome: 'Média',  particulas: 0.75, brilho: 0.85, sombra: 0.75, culling: 1.20, dpr: 1.20, vfx: 0.70, tremor: 0.75 },
+    baixa:  { nome: 'Baixa',  particulas: 0.25, brilho: 0.45, sombra: 0.30, culling: 1.90, dpr: 1.00, vfx: 0.40, tremor: 0.45 }
+};
+
+window.obterQualidadeGraficaAtual = function () {
+    var cfg = window.configVisual || {};
+    var nivel = (cfg.qualidadeGrafica || 'alta');
+    if (!window.GRAFICOS_PRESETS[nivel]) nivel = 'alta';
+    return nivel;
+};
+
+window.obterPresetGraficoAtual = function () {
+    var nivel = window.obterQualidadeGraficaAtual();
+    return window.GRAFICOS_PRESETS[nivel] || window.GRAFICOS_PRESETS.alta;
+};
+
+window.obterFatorParticulasGrafica = function () {
+    var preset = window.obterPresetGraficoAtual();
+    return preset.particulas || 1;
+};
+
+window.getFatorQualidadeGrafica = function (tipo, fallback) {
+    var preset = window.obterPresetGraficoAtual();
+    var valor = preset && tipo ? preset[tipo] : undefined;
+    if (valor === undefined || valor === null) {
+        return fallback !== undefined ? fallback : 1;
+    }
+    return Number(valor) || fallback || 1;
+};
+
+Object.defineProperty(window, 'tremorTela', {
+    configurable: true,
+    enumerable: true,
+    get: function () {
+        var valor = this.__tremorTelaBruto || 0;
+        return Number(valor) * window.getFatorQualidadeGrafica('tremor', 1);
+    },
+    set: function (valor) {
+        this.__tremorTelaBruto = Number(valor) || 0;
+    }
+});
+
+window.aplicarQualidadeGrafica = function (nivel, persistir) {
+    var nome = String(nivel || 'alta').toLowerCase();
+    if (!window.GRAFICOS_PRESETS[nome]) nome = 'alta';
+    window.configVisual = window.configVisual || {};
+    window.configVisual.qualidadeGrafica = nome;
+    window.graficosQualidade = nome;
+    window.qualidadeGraficaAtiva = nome;
+    if (window.EngineOtimizador && typeof window.EngineOtimizador.setQualidade === 'function') {
+        window.EngineOtimizador.setQualidade(nome);
+    }
+    if (persistir !== false) salvarConfigVisual();
+    var sel = document.getElementById('vis-grafica-qualidade');
+    if (sel) sel.value = nome;
+};
+
 function carregarConfigVisual() {
     // Padrão: as barras mostram PORCENTAGEM. 'max' mostra valor/máximo e
     // 'off' some com o texto. mostrarFpsPing = false esconde as etiquetas de
-    // status e FPS no topo.
-    var padrao = { hpBar: 'pct', mpBar: 'pct', staminaBar: 'pct', xpBar: 'pct', mostrarFpsPing: true, tela: 'fullscreen' };
+    // status e FPS no topo. qualidadeGrafica: administra a densidade de VFX.
+    var padrao = { hpBar: 'pct', mpBar: 'pct', staminaBar: 'pct', xpBar: 'pct', mostrarFpsPing: true, tela: 'fullscreen', qualidadeGrafica: 'alta' };
     window.configVisual = padrao;
     try {
         var s = localStorage.getItem(chaveVisual());
@@ -139,6 +198,10 @@ function carregarConfigVisual() {
             }
         }
     } catch (e) {}
+    window.graficosQualidade = window.obterQualidadeGraficaAtual();
+    if (window.EngineOtimizador && typeof window.EngineOtimizador.setQualidade === 'function') {
+        window.EngineOtimizador.setQualidade(window.graficosQualidade);
+    }
 }
 
 function salvarConfigVisual() {
@@ -198,6 +261,10 @@ window.mudarVisualFpsPing = function (val) {
     window.configVisual.mostrarFpsPing = (val === 'sim' || val === true);
     salvarConfigVisual();
     if (typeof window.aplicarVisibilidadeFpsPing === 'function') window.aplicarVisibilidadeFpsPing();
+};
+
+window.mudarVisualQualidade = function (val) {
+    window.aplicarQualidadeGrafica(val, true);
 };
 
 // Aplica a opção de FPS/PING no DOM. Usa display:none (e não só opacity) para
@@ -285,13 +352,37 @@ function atualizarSeletorTela() {
     var linha = document.getElementById("vis-tela-linha");
     if (linha) linha.style.display = plataformaEhPC() ? "" : "none";
     var sel = document.getElementById("vis-tela-modo");
-    if (sel) sel.value = telaPreferida();
+    var botao = document.getElementById("vis-tela-botao");
+    var modo = telaPreferida();
+    if (sel) sel.value = modo;
+    if (botao) botao.textContent = (modo === 'janela') ? 'Tela cheia' : 'Modo janela';
 }
+
+window.toggleModoTela = function () {
+    var modoAtual = telaPreferida();
+    var novoModo = (modoAtual === 'janela') ? 'fullscreen' : 'janela';
+    window.mudarVisualTela(novoModo);
+};
+
+window.tirarPrintScreen = function () {
+    try {
+        if (typeof window.print === 'function') {
+            window.print();
+            return;
+        }
+    } catch (e) {}
+    try {
+        if (navigator && navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText('Print do jogo');
+        }
+    } catch (e) {}
+};
 
 window.mudarVisualTela = function (val) {
     var modo = (val === 'janela') ? 'janela' : 'fullscreen';
     salvarTelaPreferida(modo);
     aplicarModoTela(modo);
+    atualizarSeletorTela();
 };
 
 // O auto-fullscreen do 1º clique (index.html) consulta isto: no PC ele só
@@ -326,6 +417,8 @@ function preencherAbaVisual() {
     if (sx) sx.value = cfg.xpBar || 'pct';
     var sf = document.getElementById("vis-fps-ping");
     if (sf) sf.value = (cfg.mostrarFpsPing === false) ? 'nao' : 'sim';
+    var sq = document.getElementById("vis-grafica-qualidade");
+    if (sq) sq.value = window.obterQualidadeGraficaAtual();
     atualizarSeletorTela();
 }
 
@@ -345,8 +438,6 @@ function trocarDePersonagem() {
     if (typeof fecharInventario === 'function') fecharInventario();
     if (typeof fecharSkills === 'function') fecharSkills();
     if (typeof cancelarTodasMiras === 'function') cancelarTodasMiras();
-    autofarmLigado = false;
-    if (btnAutofarm) btnAutofarm.classList.remove("active");
     if (statusText) statusText.innerText = "Status: Escolha a nova classe para logar";
     if (window.estaMorto) { window.estaMorto = false; if (deathScreen) deathScreen.style.display = "none"; }
     window.meuStunTimer = 0;

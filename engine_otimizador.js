@@ -7,12 +7,19 @@
 (function (global) {
     'use strict';
 
+    const QUALIDADE_PRESETS = {
+        alta:   { maxShadowBlurMobile: 4, maxShadowBlurDesktop: 12, cullingMargem: 140, limiteDPR: 1.5, fatorParticulas: 1.00 },
+        media:  { maxShadowBlurMobile: 3, maxShadowBlurDesktop: 8,  cullingMargem: 170, limiteDPR: 1.2, fatorParticulas: 0.75 },
+        baixa:  { maxShadowBlurMobile: 1, maxShadowBlurDesktop: 3,  cullingMargem: 240, limiteDPR: 1.0, fatorParticulas: 0.25 }
+    };
+
     const CONFIG = {
         maxShadowBlurMobile: 4,
         maxShadowBlurDesktop: 12,
         cullingMargem: 140,
         limiteDPR: 1.5,
-        fpsAlvo: 60
+        fpsAlvo: 60,
+        fatorParticulas: 1.0
     };
 
     // Detecção de aparelho mobile / fraco
@@ -27,6 +34,35 @@
     let _ultimoFrameTime = (typeof performance !== 'undefined') ? performance.now() : Date.now();
     let _fpsMedio = 60;
     let _modoUltraLeveAtivo = isMobile;
+    let _qualidadeAtual = 'alta';
+
+    function obterPresetQualidade() {
+        const nome = _qualidadeAtual && QUALIDADE_PRESETS[_qualidadeAtual] ? _qualidadeAtual : 'alta';
+        return QUALIDADE_PRESETS[nome] || QUALIDADE_PRESETS.alta;
+    }
+
+    function getFatorQualidade(tipo, fallback) {
+        const preset = obterPresetQualidade();
+        const valor = tipo ? preset[tipo] : undefined;
+        if (valor === undefined || valor === null) {
+            return (fallback !== undefined) ? fallback : 1;
+        }
+        return Number(valor) || fallback || 1;
+    }
+
+    function setQualidade(nivel) {
+        const nome = (nivel || 'alta').toLowerCase();
+        if (!QUALIDADE_PRESETS[nome]) return false;
+        _qualidadeAtual = nome;
+        const preset = obterPresetQualidade();
+        CONFIG.maxShadowBlurMobile = preset.maxShadowBlurMobile;
+        CONFIG.maxShadowBlurDesktop = preset.maxShadowBlurDesktop;
+        CONFIG.cullingMargem = preset.cullingMargem;
+        CONFIG.limiteDPR = preset.limiteDPR;
+        CONFIG.fatorParticulas = preset.fatorParticulas;
+        if (global && global.window) global.window.graficosQualidade = nome;
+        return true;
+    }
 
     // Monitoramento contínuo de FPS
     function registrarFrame() {
@@ -161,7 +197,11 @@
         aplicarInterceptorContexto: aplicarInterceptorContexto,
         ajustarResolucaoCanvas: ajustarResolucaoCanvas,
         obterFpsMedio: function () { return Math.round(_fpsMedio); },
-        isModoLeve: function () { return _modoUltraLeveAtivo; }
+        isModoLeve: function () { return _modoUltraLeveAtivo; },
+        setQualidade: setQualidade,
+        getQualidade: function () { return _qualidadeAtual; },
+        getFatorParticulas: function () { return CONFIG.fatorParticulas || 1; },
+        getFatorQualidade: getFatorQualidade
     };
 
     global.EngineOtimizador = api;

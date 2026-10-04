@@ -227,6 +227,14 @@ test('subtrai a defesa equipada do dano e mantém o mínimo de 1 por acerto', fu
     }, /Item equipado inválido/);
 });
 
+test('ignora equipamento legado incompatível sem interromper o dano recebido', function () {
+    const weaponGuerreiro = criarItem({ classId: 'guerreiro', definitionId: 'espada_de_pedra' });
+    const dano = items.reduzirDanoPelaDefesaEquipamentoCompativel('ladino', {
+        arma: weaponGuerreiro
+    }, 100);
+    assert.equal(dano, 100);
+});
+
 test('migra identidades sem rerrolar nem alterar dados de itens', function () {
     let uuid = 0;
     const original = {

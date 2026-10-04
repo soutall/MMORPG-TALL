@@ -2,9 +2,28 @@
 
 window.impactosGolem = [];
 
+function obterFatorParticulasGrafica() {
+    if (typeof window !== 'undefined') {
+        if (typeof window.getFatorQualidadeGrafica === 'function') {
+            return window.getFatorQualidadeGrafica('particulas', 1);
+        }
+        if (typeof window.obterFatorParticulasGrafica === 'function') {
+            return window.obterFatorParticulasGrafica();
+        }
+    }
+    return 1;
+}
+
+function limitarParticulas(base, multiplicador) {
+    const fator = obterFatorParticulasGrafica();
+    const escala = multiplicador || 1;
+    return Math.max(0, Math.round((base || 0) * fator * escala));
+}
+
 window.criarAnimacaoImpactoGolem = function(x, y) {
     let particulas = [];
-    for (let i = 0; i < 8; i++) {
+    const fator = obterFatorParticulasGrafica();
+    for (let i = 0; i < limitarParticulas(8, 1); i++) {
         let ang = Math.random() * Math.PI * 2;
         let vel = Math.random() * 3 + 1;
         particulas.push({
@@ -112,8 +131,9 @@ function _gerarRachadurasRealistasSismicas(raioMax, numRamos, seedBase) {
 window.criarAnimacaoOgroSismico = function(x, y) {
     if (typeof tocarSomImpactoPesado === 'function') tocarSomImpactoPesado(x, y);
     window.tremorTela = Math.max(window.tremorTela || 0, 18);
+    const fator = obterFatorParticulasGrafica();
     
-    const ramos = _gerarRachadurasRealistasSismicas(95, 9);
+    const ramos = _gerarRachadurasRealistasSismicas(95, limitarParticulas(9, 1));
     
     // Placas de terra/rocha levantadas no epicentro
     const lajes = [];
@@ -132,7 +152,7 @@ window.criarAnimacaoOgroSismico = function(x, y) {
 
     // Detritos e pedras ejetadas com física balística
     let pedras = [];
-    for (let p = 0; p < 24; p++) {
+    for (let p = 0; p < limitarParticulas(24, 1); p++) {
         let ang = Math.random() * Math.PI * 2;
         let spd = Math.random() * 4.5 + 1.8;
         pedras.push({
@@ -183,8 +203,9 @@ window.criarEfeitoAterrissagemSaltoGolem = function(x, y) {
     const ramos = _gerarRachadurasRealistasSismicas(150, 16);
 
     // 2. Rochas Pontudas Saindo do Chão (8 a 10 Estalagmites Telúricas)
+    const fator = obterFatorParticulasGrafica();
     const rochasPontudas = [];
-    const numSpikes = 9;
+    const numSpikes = Math.max(5, Math.round(9 * fator));
     for (let k = 0; k < numSpikes; k++) {
         const ang = (k / numSpikes) * Math.PI * 2 + (Math.random() - 0.5) * 0.35;
         const dist = 38 + Math.random() * 45;
@@ -223,7 +244,7 @@ window.criarEfeitoAterrissagemSaltoGolem = function(x, y) {
 
     // 4. Detritos e pedras ejetadas voando alto
     const pedras = [];
-    for (let p = 0; p < 45; p++) {
+    for (let p = 0; p < limitarParticulas(45, 1); p++) {
         const a = Math.random() * Math.PI * 2;
         const sp = Math.random() * 6.5 + 2.5;
         pedras.push({
