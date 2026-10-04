@@ -1,0 +1,56 @@
+{
+  "schemaVersion": 1,
+  "balanceStatus": "provisional",
+  "rarities": [
+    {
+      "id": "comum",
+      "name": "COMUM",
+      "color": "#ffffff",
+      "weight": 50,
+      "minAffixes": 0,
+      "maxAffixes": 1,
+      "valueRange": [1, 3],
+      "itemPowerBonus": 0
+    },
+    {
+      "id": "incomum",
+      "name": "INCOMUM",
+      "color": "#2ecc71",
+      "weight": 25,
+      "minAffixes": 1,
+      "maxAffixes": 2,
+      "valueRange": [2, 4],
+      "itemPowerBonus": 5
+    },
+    {
+      "id": "raro",
+      "name": "RARO",
+      "color": "#4da6ff",
+      "weight": 17,
+      "minAffixes": 2,
+      "maxAffixes": 3,
+      "valueRange": [2, 6],
+      "itemPowerBonus": 12
+    },
+    {
+      "id": "epico",
+      "name": "ÉPICO",
+      "color": "#a855f7",
+      "weight": 6.5,
+      "minAffixes": 3,
+      "maxAffixes": 4,
+      "valueRange": [4, 9],
+      "itemPowerBonus": 25
+    },
+    {
+      "id": "lendario",
+      "name": "LENDÁRIO",
+      "color": "#ff7a00",
+      "weight": 1.5,
+      "minAffixes": 4,
+      "maxAffixes": 5,
+      "valueRange": [6, 12],
+      "itemPowerBonus": 45
+    }
+  ]
+}

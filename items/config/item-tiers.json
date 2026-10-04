@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "itemLevelCap": 100,
+  "tiers": [
+    { "id": "t1", "itemLevelMin": 1, "itemLevelMax": 10 },
+    { "id": "t2", "itemLevelMin": 8, "itemLevelMax": 20 },
+    { "id": "t3", "itemLevelMin": 15, "itemLevelMax": 30 },
+    { "id": "t4", "itemLevelMin": 25, "itemLevelMax": 40 },
+    { "id": "t5", "itemLevelMin": 35, "itemLevelMax": 55 },
+    { "id": "t6", "itemLevelMin": 45, "itemLevelMax": 65 },
+    { "id": "t7", "itemLevelMin": 55, "itemLevelMax": 75 },
+    { "id": "t8", "itemLevelMin": 65, "itemLevelMax": 85 },
+    { "id": "t9", "itemLevelMin": 75, "itemLevelMax": 95 },
+    { "id": "t10", "itemLevelMin": 85, "itemLevelMax": 100 }
+  ]
+}

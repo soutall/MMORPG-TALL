@@ -34,6 +34,16 @@
         boss_attack: { category: CATEGORY.BOSS, volume: 0.9, maxDistance: 200, rolloff: 1.0, priority: 8 },
            boss_impact: { category: CATEGORY.BOSS, volume: 0.9, maxDistance: 200, rolloff: 1.0, priority: 8 },
            boss_death: { category: CATEGORY.IMPORTANT, volume: 1, maxDistance: 2400, rolloff: 0.9, priority: 10 },
+           slime_elite_hit: { category: CATEGORY.BOSS, volume: 0.75, maxDistance: 700, rolloff: 1.1, priority: 6, src: 'Sonoro/SOM%20GERAL/liq_slime_splash_01.ogg' },
+           // "Walking through Mud" by Breviceps, CC0 1.0: https://freesound.org/people/Breviceps/sounds/508179
+           slime_elite_move: { category: CATEGORY.MONSTER, volume: 0.14, maxDistance: 320, rolloff: 1.3, priority: 2, src: 'Sonoro/Slime/slime_elite_walk_cc0.mp3' },
+           jungle_monster_move: { category: CATEGORY.MONSTER, volume: 0.12, maxDistance: 280, rolloff: 1.3, priority: 2, loop: true, src: 'Sonoro/Monstros/passos_selva_cc0.ogg' },
+           jungle_monster_hit: { category: CATEGORY.MONSTER, volume: 0.38, maxDistance: 430, rolloff: 1.2, priority: 3, src: 'Sonoro/Monstros/impacto_selva_cc0.ogg' },
+           jungle_mushroom_attack: { category: CATEGORY.MONSTER, volume: 0.38, maxDistance: 480, rolloff: 1.2, priority: 4, src: 'Sonoro/Monstros/ataque_cogumelo_cc0.ogg' },
+           jungle_snake_attack: { category: CATEGORY.MONSTER, volume: 0.42, maxDistance: 460, rolloff: 1.2, priority: 4, src: 'Sonoro/Monstros/ataque_serpente_cc0.ogg' },
+           jungle_mantis_attack: { category: CATEGORY.MONSTER, volume: 0.4, maxDistance: 480, rolloff: 1.2, priority: 4, src: 'Sonoro/Monstros/ataque_louva_cc0.ogg' },
+           jungle_mushroom_skill: { category: CATEGORY.SKILL, volume: 0.48, maxDistance: 520, rolloff: 1.1, priority: 5, src: 'Sonoro/Monstros/ataque_cogumelo_cc0.ogg' },
+           jungle_mantis_skill: { category: CATEGORY.SKILL, volume: 0.42, maxDistance: 500, rolloff: 1.1, priority: 5, src: 'Sonoro/Monstros/ataque_louva_cc0.ogg' },
            monster_attack: { category: CATEGORY.MONSTER, volume: 0.55, maxDistance: 500, rolloff: 1.2, priority: 3 },
            player_attack: { category: CATEGORY.PLAYER, volume: 0.45, maxDistance: 500, rolloff: 1.2, priority: 3 },
            impact: { category: CATEGORY.SKILL, volume: 0.7, maxDistance: 500, rolloff: 1.1, priority: 5 }
@@ -220,6 +230,14 @@
         loops.delete(key);
     }
 
+    function updateSpatialLoop(key, options) {
+        const loop = loops.get(key);
+        if (!loop) return false;
+        Object.assign(loop.options, options || {});
+        updateLoop(loop);
+        return true;
+    }
+
     function update() {
         const now = Date.now();
         if (now - lastUpdate < 80) return;
@@ -331,6 +349,7 @@
         playGlobalSound: playGlobal,
         startSpatialLoop: startLoop,
         stopSpatialLoop: stopLoop,
+        updateSpatialLoop,
         updateListener: update,
         updateSpatialSounds: update,
         handleGameEvent,

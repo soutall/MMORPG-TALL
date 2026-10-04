@@ -195,10 +195,53 @@
     #minimap-wrapper {
         position: fixed !important;
         top: 8px !important;
-        right: 10px !important;
+        right: 8px !important;
         left: auto !important;
         bottom: auto !important;
         transform: none !important;
+        width: 135px !important;
+    }
+    #minimap-header {
+        padding: 2px 4px !important;
+    }
+    #minimap-bioma {
+        font-size: 10px !important;
+        max-width: 82px !important;
+    }
+    #minimap-coords {
+        font-size: 8.5px !important;
+    }
+    #minimap-canvas {
+        width: 135px !important;
+        height: 76px !important;
+    }
+
+    /* BigMap em tela cheia no Mobile */
+    #big-map-screen {
+        z-index: 99990 !important;
+    }
+    #big-map-window {
+        padding: 4px 6px !important;
+        gap: 4px !important;
+    }
+    #big-map-title {
+        font-size: 15px !important;
+    }
+    #btn-big-map-fechar {
+        font-size: 12px !important;
+        padding: 4px 10px !important;
+    }
+    #big-map-footer {
+        font-size: 11px !important;
+        gap: 4px !important;
+    }
+    .big-map-legend {
+        font-size: 11px !important;
+        gap: 8px !important;
+    }
+    #btn-portal-cidade-mapa {
+        font-size: 12px !important;
+        padding: 6px 12px !important;
     }
 
     /* Status do personagem fixado no topo esquerdo sem transforms que afetem position: fixed dos filhos */
@@ -211,6 +254,15 @@
         transform: none !important;
         filter: none !important;
         perspective: none !important;
+    }
+
+    #hud-boss {
+        position: fixed !important;
+        top: calc(76px + env(safe-area-inset-top, 0px)) !important;
+        left: 50% !important;
+        right: auto !important;
+        width: min(480px, calc(100vw - 24px)) !important;
+        transform: translateX(-50%) !important;
     }
 
     #hud-status-main {
@@ -435,23 +487,144 @@
 }
 
 @media (max-width: 1024px) and (orientation: landscape), (max-width: 900px), (pointer: coarse) {
+    /* =========================================================================
+       GRUPO (PARTY) COMPACTO NO MOBILE:
+       Ícone pequeno no canto da tela (longe do direcional) que se expande ao tocar.
+       ========================================================================= */
     #hud-party {
         position: fixed !important;
-        top: calc(64px + env(safe-area-inset-top, 0px)) !important;
+        top: calc(56px + env(safe-area-inset-top, 0px)) !important;
         left: 10px !important;
         right: auto !important;
         bottom: auto !important;
-        width: min(136px, 38vw) !important;
-        max-height: 30vh !important;
-        overflow-y: auto !important;
-        z-index: 101 !important;
+        width: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        z-index: 120 !important;
         pointer-events: none !important;
     }
 
-    #hud-party .party-member {
-        padding: 3px !important;
-        margin-bottom: 3px !important;
+    /* Ícone compacto de Grupo */
+    .hud-party-toggle-btn {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        gap: 3px !important;
+        min-width: 36px !important;
+        height: 26px !important;
+        padding: 0 6px !important;
+        background: linear-gradient(135deg, rgba(16, 28, 42, 0.95), rgba(8, 14, 22, 0.95)) !important;
+        border: 1.5px solid #3498db !important;
+        border-radius: 6px !important;
+        box-shadow: 0 3px 10px rgba(0, 0, 0, 0.75), 0 0 8px rgba(52, 152, 219, 0.35) !important;
+        cursor: pointer !important;
+        pointer-events: auto !important;
+        user-select: none !important;
+        touch-action: manipulation !important;
+        transition: transform 0.1s, border-color 0.15s, box-shadow 0.15s !important;
+        box-sizing: border-box !important;
+    }
+    .hud-party-toggle-btn:active {
+        transform: scale(0.92) !important;
+    }
+    .hud-party-toggle-btn.ativo {
+        border-color: #ffd700 !important;
+        box-shadow: 0 0 10px rgba(255, 215, 0, 0.6) !important;
+        background: linear-gradient(135deg, rgba(30, 25, 10, 0.95), rgba(18, 14, 5, 0.95)) !important;
+    }
+    .party-toggle-icon {
+        font-size: 13px !important;
+        line-height: 1 !important;
+    }
+    .party-toggle-count {
+        font-family: 'Rajdhani', sans-serif !important;
+        font-size: 11px !important;
+        font-weight: bold !important;
+        color: #5dade2 !important;
+        line-height: 1 !important;
+    }
+    .hud-party-toggle-btn.ativo .party-toggle-count {
+        color: #ffd700 !important;
+    }
+
+    /* Conteúdo recolhido por padrão no Mobile */
+    .hud-party-content {
+        display: none !important;
+    }
+
+    /* Conteúdo expandido ao tocar no ícone */
+    .hud-party-content.expandido {
+        display: flex !important;
+        flex-direction: column !important;
+        position: fixed !important;
+        top: calc(56px + env(safe-area-inset-top, 0px)) !important;
+        left: 54px !important;
+        width: min(150px, 44vw) !important;
+        max-height: calc(100vh - 120px) !important;
+        background: rgba(10, 16, 24, 0.96) !important;
+        border: 1.5px solid #3498db !important;
+        border-radius: 8px !important;
+        padding: 5px !important;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85), 0 0 12px rgba(52, 152, 219, 0.35) !important;
+        z-index: 121 !important;
+        pointer-events: auto !important;
+        overflow-y: auto !important;
+        backdrop-filter: blur(6px) !important;
+        animation: fadeInPartyMobile 0.15s ease-out !important;
+    }
+
+    @keyframes fadeInPartyMobile {
+        from { opacity: 0; transform: translateX(-6px); }
+        to { opacity: 1; transform: translateX(0); }
+    }
+
+    .hud-party-header-mobile {
+        display: flex !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        margin-bottom: 4px !important;
+        padding-bottom: 3px !important;
+        border-bottom: 1px solid rgba(52, 152, 219, 0.3) !important;
+        font-family: 'Rajdhani', sans-serif !important;
+        font-size: 10px !important;
+        font-weight: bold !important;
+        color: #5dade2 !important;
+        letter-spacing: 0.5px !important;
+    }
+
+    .btn-party-close-mobile {
+        background: #c0392b !important;
+        color: #ffffff !important;
+        border: none !important;
         border-radius: 3px !important;
+        width: 16px !important;
+        height: 16px !important;
+        font-size: 9px !important;
+        font-weight: bold !important;
+        line-height: 1 !important;
+        cursor: pointer !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        padding: 0 !important;
+    }
+    .btn-party-close-mobile:active {
+        background: #e74c3c !important;
+        transform: scale(0.9) !important;
+    }
+
+    .hud-party-members-list {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 3px !important;
+    }
+
+    #hud-party .party-member {
+        background: rgba(255, 255, 255, 0.05) !important;
+        border: 1px solid rgba(52, 152, 219, 0.3) !important;
+        padding: 3px !important;
+        margin-bottom: 2px !important;
+        border-radius: 4px !important;
         font-size: 9px !important;
         line-height: 1.1 !important;
         pointer-events: auto !important;
@@ -462,17 +635,78 @@
         margin-bottom: 2px !important;
         text-overflow: ellipsis !important;
         white-space: nowrap !important;
+        font-size: 9px !important;
+        color: #eaf2f8 !important;
     }
 
     #hud-party .party-bar-bg {
         height: 4px !important;
-        margin-bottom: 1px !important;
+        margin-bottom: 2px !important;
+        border-radius: 2px !important;
     }
 
     #hud-party .btn-party-leave {
-        margin-top: 2px !important;
-        padding: 2px 5px !important;
+        margin-top: 3px !important;
+        padding: 2px 6px !important;
         font-size: 9px !important;
         line-height: 1.1 !important;
+        width: 100% !important;
+        text-align: center !important;
+    }
+
+    /* =========================================================================
+       STATUS E PING NO MOBILE: Posições dedicadas e sem sobreposição
+       ========================================================================= */
+    #status {
+        position: fixed !important;
+        top: calc(4px + env(safe-area-inset-top, 0px)) !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        font-size: 10px !important;
+        background: rgba(0, 0, 0, 0.75) !important;
+        color: #2ecc71 !important;
+        padding: 2px 8px !important;
+        border-radius: 6px !important;
+        z-index: 90 !important;
+        pointer-events: none !important;
+        white-space: nowrap !important;
+    }
+
+    #status.conectado-oculto {
+        display: none !important;
+    }
+
+    #fps-counter {
+        position: fixed !important;
+        top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+        right: 165px !important;
+        left: auto !important;
+        transform: none !important;
+        font-size: 10px !important;
+        background: rgba(0, 0, 0, 0.65) !important;
+        color: #2ecc71 !important;
+        padding: 2px 6px !important;
+        border-radius: 4px !important;
+        z-index: 90 !important;
+        pointer-events: none !important;
+        font-weight: bold !important;
+        white-space: nowrap !important;
+    }
+
+    #ping-counter {
+        position: fixed !important;
+        top: calc(8px + env(safe-area-inset-top, 0px)) !important;
+        right: 228px !important;
+        left: auto !important;
+        transform: none !important;
+        font-size: 10px !important;
+        background: rgba(0, 0, 0, 0.65) !important;
+        color: #5dade2 !important;
+        padding: 2px 6px !important;
+        border-radius: 4px !important;
+        z-index: 90 !important;
+        pointer-events: none !important;
+        font-weight: bold !important;
+        white-space: nowrap !important;
     }
 }

@@ -46,6 +46,15 @@
         r: 45
     };
 
+    const PORTAL_MUNDO = { x: 60380, y: 640, r: 28 };
+
+    // Portal Direto para o mapa procedural TileTeste
+    const PORTAL_TILETESTE = {
+        x: 60570,
+        y: 640,
+        r: 28
+    };
+
     // ============================================================================
     // OBSTÁCULOS GEOMÉTRICOS PADRÃO
     // ============================================================================
@@ -385,6 +394,12 @@
         return dist <= (PORTAL_MAPAS.r + 18);
     }
 
+    function tocarPortalTileTeste(mx, my) {
+        if (mx === undefined || my === undefined) return false;
+        const dist = Math.hypot(mx - PORTAL_TILETESTE.x, my - PORTAL_TILETESTE.y);
+        return dist <= (PORTAL_TILETESTE.r + 15);
+    }
+
     // ============================================================================
     // TRANSIÇÃO DE MAPA E PORTAIS
     // ============================================================================
@@ -395,6 +410,13 @@
             const dRetorno = Math.hypot(x - PORTA_CIDADE_RETORNO.x, y - PORTA_CIDADE_RETORNO.y);
             if (dRetorno < PORTA_CIDADE_RETORNO.r) {
                 return { via: 'portal', mapa: 'green', alvo: PORTA_CIDADE_RETORNO.alvo };
+            }
+            if (Math.hypot(x - PORTAL_MUNDO.x, y - PORTAL_MUNDO.y) < PORTAL_MUNDO.r) {
+                return { via: 'portal', mapa: 'mundo', alvo: { x: 137090, y: 7070 } };
+            }
+            const dTileTeste = Math.hypot(x - PORTAL_TILETESTE.x, y - PORTAL_TILETESTE.y);
+            if (dTileTeste < PORTAL_TILETESTE.r) {
+                return { via: 'portal', mapa: 'tileteste', alvo: { x: 128100, y: 426 } };
             }
             return null;
         }
@@ -459,7 +481,79 @@
         }
 
         desenharPortalViagem(ctx, t, camX, camY, cw, ch);
+        desenharPortalTileTeste(ctx, t, camX, camY, cw, ch);
+        desenharPortalMundo(ctx, t);
         desenharPortalRetorno(ctx, t, camX, camY, cw, ch);
+    }
+
+    function desenharPortalMundo(ctx, t) {
+        const px = PORTAL_MUNDO.x, py = PORTAL_MUNDO.y, R = PORTAL_MUNDO.r * (1 + Math.sin(t * 3) * 0.08);
+        ctx.save();
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.beginPath(); ctx.ellipse(px, py + 6, R * 1.15, R * 0.52, 0, 0, Math.PI * 2); ctx.fill();
+        const g = ctx.createRadialGradient(px, py, 2, px, py, R * 1.6);
+        g.addColorStop(0, 'rgba(255,230,140,0.95)'); g.addColorStop(0.45, 'rgba(255,150,40,0.6)'); g.addColorStop(1, 'rgba(255,100,20,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.ellipse(px, py, R * 1.6, R * 0.85, 0, 0, Math.PI * 2); ctx.fill();
+        ctx.strokeStyle = '#ffe0a0'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.ellipse(px, py, R * 0.8, R * 0.4, -t * 1.6, 0, Math.PI * 2); ctx.stroke();
+        ctx.font = "bold 8px 'Rajdhani', Arial, sans-serif"; ctx.textAlign = 'center';
+        ctx.fillStyle = '#ffe9b0'; ctx.shadowColor = '#000'; ctx.shadowBlur = 4;
+        ctx.fillText('🌍 Continente de Gaia', px, py - R * 0.6 - 8);
+        ctx.restore();
+    }
+
+    function desenharPortalTileTeste(ctx, t, camX, camY, cw, ch) {
+        const px = PORTAL_TILETESTE.x, py = PORTAL_TILETESTE.y, r = PORTAL_TILETESTE.r;
+        if (px + r + 80 < camX || px - r - 80 > camX + cw || py + r + 80 < camY || py - r - 80 > camY + ch) return;
+
+        const pulsar = 1 + Math.sin(t * 3.0) * 0.08;
+        const R = r * pulsar;
+
+        ctx.save();
+        // Sombra no chão
+        ctx.fillStyle = 'rgba(0,0,0,0.45)';
+        ctx.beginPath();
+        ctx.ellipse(px, py + 6, R * 1.15, R * 0.52, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Aura esmeralda/natureza pulsante
+        const haloR = R * 1.8;
+        const gHalo = ctx.createRadialGradient(px, py, R * 0.3, px, py, haloR);
+        gHalo.addColorStop(0, 'rgba(46, 204, 113, 0.45)');
+        gHalo.addColorStop(0.5, 'rgba(39, 174, 96, 0.2)');
+        gHalo.addColorStop(1, 'rgba(46, 204, 113, 0)');
+        ctx.fillStyle = gHalo;
+        ctx.beginPath();
+        ctx.ellipse(px, py, haloR, haloR * 0.55, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Disco de energia
+        const gVortex = ctx.createRadialGradient(px, py, 2, px, py, R);
+        gVortex.addColorStop(0, 'rgba(238, 255, 204, 0.95)');
+        gVortex.addColorStop(0.4, 'rgba(46, 204, 113, 0.85)');
+        gVortex.addColorStop(0.85, 'rgba(30, 130, 76, 0.7)');
+        gVortex.addColorStop(1, 'rgba(20, 90, 50, 0)');
+        ctx.fillStyle = gVortex;
+        ctx.beginPath();
+        ctx.ellipse(px, py, R, R * 0.5, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Anel de runas giratório
+        ctx.strokeStyle = '#a3f7b5';
+        ctx.lineWidth = 1.5;
+        ctx.beginPath();
+        ctx.ellipse(px, py, R * 0.75, R * 0.38, t * 1.8, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Rótulo
+        ctx.font = "bold 8px 'Rajdhani', Arial, sans-serif";
+        ctx.textAlign = 'center';
+        ctx.fillStyle = '#a8ffb2';
+        ctx.shadowColor = '#000';
+        ctx.shadowBlur = 4;
+        ctx.fillText("🗺️ TileTeste", px, py - R * 0.5 - 6);
+        ctx.restore();
     }
 
     function desenharPortalViagem(ctx, t, camX, camY, cw, ch) {
@@ -873,6 +967,7 @@
         PORTA_CIDADE_VERDE: PORTA_CIDADE_VERDE,
         PORTA_CIDADE_RETORNO: PORTA_CIDADE_RETORNO,
         PORTAL_MAPAS: PORTAL_MAPAS,
+        PORTAL_TILETESTE: PORTAL_TILETESTE,
         PONTO_SPAWN: PONTO_SPAWN,
         gerarCidade: gerarCidade,
         grid: function () { return grid || gerarCidade(); },
@@ -884,10 +979,12 @@
         onUpdatePosicao: onUpdatePosicao,
         depositarPosicaoSegura: depositarPosicaoSegura,
         desenharCenarioCidade: desenharCenarioCidade,
+        desenharPortalTileTeste: desenharPortalTileTeste,
         coletarCidadeSortables: coletarCidadeSortables,
         desenharPortalCidadeVerde: desenharPortalCidadeVerde,
         desenharPortalCidadeRetorno: desenharPortalCidadeRetorno,
         tocarPortalViagem: tocarPortalViagem,
+        tocarPortalTileTeste: tocarPortalTileTeste,
         carregarObstaculos: carregarObstaculos,
         obterObstaculos: obterObstaculos,
         carregarCamadas: carregarCamadas,
@@ -900,6 +997,7 @@
         global.chainMapas = { onUpdatePosicao: onUpdatePosicao };
 
         global.desenharCenarioCidade = desenharCenarioCidade;
+        global.desenharPortalTileTeste = desenharPortalTileTeste;
         global.coletarCidadeSortables = coletarCidadeSortables;
         global.colideCidade = colideCidade;
         global.colideProjetilCidade = colideProjetilCidade;
@@ -907,6 +1005,7 @@
         global.desenharPortalCidadeVerde = desenharPortalCidadeVerde;
         global.desenharPortalCidadeRetorno = desenharPortalCidadeRetorno;
         global.tocarPortalViagem = tocarPortalViagem;
+        global.tocarPortalTileTeste = tocarPortalTileTeste;
         global.mapaCidade = api;
     }
 

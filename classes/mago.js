@@ -18,6 +18,9 @@
 // ============================================================================
 window.desenharMago = function (x, y, isMoving, angulo, hp, maxHp) {
     if (hp <= 0 || !window.ctx) return;
+    if (window.vfxMagoFormaIgnea && window.vfxMagoFormaIgnea.ativo && Date.now() < window.vfxMagoFormaIgnea.expiraEm) {
+        if (Math.hypot((window.meuX || 0) - x, (window.meuY || 0) - y) < 15) return;
+    }
     const ctx = window.ctx;
 
     // ---------- tempo / animação ----------

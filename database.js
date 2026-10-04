@@ -1,9 +1,47 @@
 // database.js - Gerenciador persistente de progresso individual por ID
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
+const inventoryMigration = require('./items/migrate-inventories.js');
 
 const DB_FILE = path.join(__dirname, 'jogadores.json');
-const DB_TMP = path.join(__dirname, 'jogadores.json.tmp');
+const DB_LOCK = path.join(__dirname, 'jogadores.json.lock');
+
+function adquirirLock() {
+    let fd;
+    try {
+        fd = fs.openSync(DB_LOCK, 'wx');
+        fs.writeFileSync(fd, JSON.stringify({ pid: process.pid, createdAt: Date.now() }), 'utf-8');
+        return fd;
+    } catch (e) {
+        if (fd !== undefined) {
+            fs.closeSync(fd);
+            try {
+                fs.unlinkSync(DB_LOCK);
+            } catch (cleanupError) {
+                if (!cleanupError || cleanupError.code !== 'ENOENT') {
+                    console.error("Erro ao limpar lock incompleto do banco:", cleanupError);
+                }
+            }
+        }
+        if (e && e.code === 'EEXIST') {
+            throw new Error('Banco de dados ocupado por outra gravação; operação não foi aplicada.');
+        }
+        throw e;
+    }
+}
+
+function liberarLock(fd) {
+    try {
+        if (fd !== undefined) fs.closeSync(fd);
+    } finally {
+        try {
+            fs.unlinkSync(DB_LOCK);
+        } catch (e) {
+            if (!e || e.code !== 'ENOENT') throw e;
+        }
+    }
+}
 
 // v1.30.3: reparo automático de corrupção leve — vírgula final/sobrando no objeto
 // raiz (padrão visto quando dois processos gravam o arquivo perto de uma leitura).
@@ -18,7 +56,6 @@ function repararJsonFragil(texto) {
 function carregarTodos() {
     try {
         if (!fs.existsSync(DB_FILE)) {
-            fs.writeFileSync(DB_FILE, JSON.stringify({}, null, 2), 'utf-8');
             return {};
         }
         const conteudo = fs.readFileSync(DB_FILE, 'utf-8');
@@ -29,26 +66,38 @@ function carregarTodos() {
             const reparado = repararJsonFragil(conteudo || '{}');
             const banco = JSON.parse(reparado); // se falhar de novo, sobe o erro do try externo
             console.log("Reparo leve aplicado (vírgula residual). Jogadores: " + Object.keys(banco).length);
-            salvarTodos(banco);
             return banco;
         }
     } catch (e) {
         console.error("Erro ao ler banco de dados JSON:", e);
-        return {};
+        throw e;
     }
 }
 
 // Salva o registro completo no arquivo JSON
 function salvarTodos(dados) {
+    const tmpFile = DB_FILE + '.' + process.pid + '.' + crypto.randomUUID() + '.tmp';
     try {
         const payload = JSON.stringify(dados, null, 2);
-        // v1.30.3: gravação ATÔMICA (tmp + rename) — evita corrupção quando dois
-        // processos gravam o arquivo ao mesmo tempo (ex.: teste E2E + save do jogo):
-        // o rename substitui o arquivo inteiro de uma vez (vencedor leva tudo).
-        fs.writeFileSync(DB_TMP, payload, 'utf-8');
-        fs.renameSync(DB_TMP, DB_FILE);
+        const fd = fs.openSync(tmpFile, 'wx');
+        try {
+            fs.writeFileSync(fd, payload, 'utf-8');
+            fs.fsyncSync(fd);
+        } finally {
+            fs.closeSync(fd);
+        }
+        fs.renameSync(tmpFile, DB_FILE);
+        return true;
     } catch (e) {
         console.error("Erro ao gravar banco de dados JSON:", e);
+        try {
+            fs.unlinkSync(tmpFile);
+        } catch (cleanupError) {
+            if (!cleanupError || cleanupError.code !== 'ENOENT') {
+                console.error("Erro ao limpar gravação temporária do banco:", cleanupError);
+            }
+        }
+        throw e;
     }
 }
 
@@ -62,38 +111,69 @@ function carregarProgresso(userId) {
 // Remove definitivamente um registro do banco (usado pela exclusão de personagem)
 function removerProgresso(userId) {
     if (!userId) return false;
-    const banco = carregarTodos();
-    if (!Object.prototype.hasOwnProperty.call(banco, userId)) return false;
-    delete banco[userId];
-    salvarTodos(banco);
-    return true;
+    const lock = adquirirLock();
+    try {
+        const banco = carregarTodos();
+        if (!Object.prototype.hasOwnProperty.call(banco, userId)) return false;
+        delete banco[userId];
+        salvarTodos(banco);
+        return true;
+    } finally {
+        liberarLock(lock);
+    }
 }
 
 // Salva/Atualiza o progresso individual de um ID específico
 function salvarProgresso(userId, novosDados) {
     if (!userId) return;
-    const banco = carregarTodos();
-    const atual = banco[userId] || {
-        level: 1,
-        xp: 0,
-        classe: 'guerreiro',
-        hp: 100,
-        x: 61800,
-        y: 2000
-    };
+    salvarProgressoEmLote([{ userId: userId, dados: novosDados }]);
+}
 
-    banco[userId] = {
-        ...atual,
-        ...novosDados,
-        ultimoLogin: Date.now()
-    };
+function salvarProgressoEmLote(atualizacoes) {
+    if (!Array.isArray(atualizacoes) || !atualizacoes.length) return true;
+    const lock = adquirirLock();
+    try {
+        const banco = carregarTodos();
+        const now = Date.now();
+        const updated = Object.assign({}, banco);
+        for (const entrada of atualizacoes) {
+            if (!entrada || !entrada.userId || !entrada.dados || typeof entrada.dados !== 'object') {
+                throw new TypeError('Atualização de progresso inválida.');
+            }
+            const atual = updated[entrada.userId] || {
+                level: 1,
+                xp: 0,
+                classe: 'guerreiro',
+                hp: 100,
+                x: 61800,
+                y: 2000
+            };
+            updated[entrada.userId] = Object.assign({}, atual, entrada.dados, { ultimoLogin: now });
+        }
+        salvarTodos(updated);
+        return true;
+    } finally {
+        liberarLock(lock);
+    }
+}
 
-    salvarTodos(banco);
+function migrarIdentidadesItens() {
+    const lock = adquirirLock();
+    try {
+        const banco = carregarTodos();
+        const result = inventoryMigration.migrateInventories(banco);
+        if (result.stats.migrated > 0) salvarTodos(result.records);
+        return result.stats;
+    } finally {
+        liberarLock(lock);
+    }
 }
 
 module.exports = {
     carregarProgresso,
     salvarProgresso,
+    salvarProgressoEmLote,
     carregarTodos,
-    removerProgresso
+    removerProgresso,
+    migrarIdentidadesItens
 };

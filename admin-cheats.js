@@ -312,6 +312,14 @@
                     </div>
                     <div class="ac-toggle" id="ac-toggle-cooldown" onclick="window.toggleAdminCheat('semCooldown')"></div>
                 </div>
+
+                <div class="ac-card" style="flex-direction:column; align-items:stretch; gap:10px;">
+                    <div class="ac-info">
+                        <div class="ac-label">🗺️ Fog of War</div>
+                        <div class="ac-desc">Revela e salva todo o mapa mundial nesta conta e neste navegador.</div>
+                    </div>
+                    <button class="ac-btn ac-btn-on" style="width:100%;" onclick="window.adminLiberarFogMapa()">🔓 Revelar mapa inteiro</button>
+                </div>
             </div>
             <div class="ac-footer">
                 <button class="ac-btn ac-btn-on" onclick="window.setTodosAdminCheats(true)">⚡ Ativar Todos</button>
@@ -326,6 +334,12 @@
     window.adminSubirNivel = function (qtd) {
         if (!window.ehAdmin) return;
         qtd = Number(qtd) || 1;
+        const curLvl = (typeof window.meuLevel === 'number') ? window.meuLevel : ((typeof window.meuNivel === 'number') ? window.meuNivel : 1);
+        const novoLvl = Math.min(100, curLvl + qtd);
+        window.meuLevel = novoLvl;
+        window.meuNivel = novoLvl;
+        if (typeof window.atualizarVisualAdminLevel === 'function') window.atualizarVisualAdminLevel();
+        if (typeof window.atualizarSkillTreeUi === 'function') window.atualizarSkillTreeUi();
         if (window.ws && window.ws.readyState === WebSocket.OPEN) {
             window.ws.send(JSON.stringify({
                 action: 'admin_subir_level',
@@ -346,10 +360,43 @@
     window.adminResetarNivel = function () {
         if (!window.ehAdmin) return;
         if (!confirm('Tem certeza que deseja resetar seu personagem para o NÍVEL 1?')) return;
+        window.meuLevel = 1;
+        window.meuNivel = 1;
+        if (typeof window.atualizarVisualAdminLevel === 'function') window.atualizarVisualAdminLevel();
+        if (typeof window.atualizarSkillTreeUi === 'function') window.atualizarSkillTreeUi();
         if (window.ws && window.ws.readyState === WebSocket.OPEN) {
             window.ws.send(JSON.stringify({
                 action: 'admin_resetar_level'
             }));
+        }
+    };
+
+    window.adminLiberarFogMapa = function () {
+        if (!window.ehAdmin) return;
+        if (typeof window.revelarTodoFogMapaMundo !== 'function') {
+            console.error('A função para liberar o Fog of War do mapa mundial não está disponível.');
+            return;
+        }
+        if (!window.revelarTodoFogMapaMundo()) {
+            if (window.floatingTexts) {
+                window.floatingTexts.push({
+                    x: (window.meuX || 0) + 12,
+                    y: (window.meuY || 0) - 40,
+                    text: '⚠️ FALHA AO SALVAR O MAPA REVELADO',
+                    color: '#e74c3c',
+                    alpha: 1.0
+                });
+            }
+            return;
+        }
+        if (window.floatingTexts) {
+            window.floatingTexts.push({
+                x: (window.meuX || 0) + 12,
+                y: (window.meuY || 0) - 40,
+                text: '🗺️ MAPA MUNDIAL REVELADO!',
+                color: '#2ecc71',
+                alpha: 1.0
+            });
         }
     };
 

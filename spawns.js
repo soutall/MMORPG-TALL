@@ -7,6 +7,23 @@ const path = require('path');
 const FILE_BANDEIRAS = path.join(__dirname, 'spawn_flags.json');
 const FILE_ADMINS = path.join(__dirname, 'admins.json');
 
+const TAGS_MONSTRO = Object.freeze({
+    tank: { nome: 'Tank', descricao: 'Monstro resistente, com muita vida.' },
+    dps: { nome: 'DPS', descricao: 'Especializado em causar dano.' },
+    arqueiros: { nome: 'Arqueiros', descricao: 'Causa dano físico à distância.' },
+    magos: { nome: 'Magos', descricao: 'Ataca à distância com dano mágico.' },
+    assassinos: { nome: 'Assassinos', descricao: 'Rápido; prioriza curandeiros e atacantes à distância.' },
+    noturno: { nome: 'Noturno', descricao: 'Ativo durante a madrugada; descansa durante o dia.' },
+    diurno: { nome: 'Diurno', descricao: 'Ativo durante o dia; descansa entre 23:00 e 06:00.' },
+    invenciveis: { nome: 'Invencíveis', descricao: 'Não recebe dano e não pode ser derrotado.' },
+    hibridos: { nome: 'Híbridos', descricao: 'Combina ataques físicos, mágicos, corpo a corpo ou à distância.' },
+    healers: { nome: 'Healers', descricao: 'Cura outros monstros.' },
+    buffers: { nome: 'Buffers', descricao: 'Aplica benefícios a outros monstros.' },
+    debuffers: { nome: 'Debuffers', descricao: 'Aplica efeitos negativos aos jogadores.' },
+    elite: { nome: 'Elite', descricao: 'Exibe a barra de vida de elite na interface.' },
+    boss: { nome: 'Boss', descricao: 'Exibe a barra de vida de boss na interface.' }
+});
+
 // ============ CARGOS / PERMISSÃO DE ADMIN ============
 let _cacheAdmins = null;
 function carregarAdmins() {
@@ -29,25 +46,212 @@ function ehAdmin(nome) {
 
 // ============ REGISTRO DE MONSTROS E BOSSES ============
 const TIPOS_MONSTROS = {
-    melee: { nome: 'Slime Melee', emoji: '🟢', baseHp: 50, boss: false, aggroRange: 280, attackRange: 55, dano: 12, cor: '#76d7c4' },
-    ranged: { nome: 'Slime Arqueiro', emoji: '🔵', baseHp: 40, boss: false, aggroRange: 380, attackRange: 9999, dano: 10, cor: '#5dade2' },
-    zumbi: { nome: 'Zumbi', emoji: '🧟', baseHp: 120, boss: false, aggroRange: 320, attackRange: 50, dano: 18, cor: '#58d68d' },
-    besouro_negro: { nome: 'Besouro Negro', emoji: '🪲', baseHp: 300, boss: false, aggroRange: 420, attackRange: 340, dano: 14, cor: '#17202a' },
-    morcego: { nome: 'Morcego', emoji: '🦇', baseHp: 90, boss: false, aggroRange: 340, attackRange: 45, dano: 16, cor: '#5b2c6f' },
-    golem_pedra: { nome: 'GOLEM DE PEDRA', emoji: '🗿', baseHp: 6000, boss: true, aggroRange: 520, attackRange: 90, dano: 45, cor: '#e74c3c' },
-    caveira_arqueira: { nome: 'Caveira Arqueira', emoji: '🏹', baseHp: 420, nivelMinimo: 40, arquetipo: 'ranged', aggroRange: 680, attackRange: 520, dano: 34, cor: '#d6c9a5', distanciaPreferida: 340 },
-    caveira_melee: { nome: 'Caveira Melee', emoji: '💀', baseHp: 560, nivelMinimo: 40, arquetipo: 'melee', aggroRange: 460, attackRange: 62, dano: 48, cor: '#b9aa87', velocidade: 2.4 },
-    aranha_negra: { nome: 'Aranha Negra', emoji: '🕷', baseHp: 480, nivelMinimo: 40, arquetipo: 'web', aggroRange: 560, attackRange: 70, dano: 28, cor: '#24152f', velocidade: 2.8, skillRange: 420, skillCooldown: 180 },
-    aranha_dark: { nome: 'ARANHA DARK', emoji: '🕷', baseHp: 480, nivelMinimo: 1, arquetipo: 'web', aggroRange: 560, attackRange: 70, dano: 28, cor: '#17131d', velocidade: 2.8, skillRange: 420, skillCooldown: 180 },
-    escorpiao: { nome: 'Escorpião', emoji: '🦂', baseHp: 260, nivelMinimo: 15, arquetipo: 'poison_melee', aggroRange: 520, attackRange: 65, dano: 24, cor: '#3d5535', velocidade: 4.6, poisonDuration: 400 },
-    goblin: { nome: 'Goblin', emoji: '👺', baseHp: 220, nivelMinimo: 10, arquetipo: 'goblin', aggroRange: 600, attackRange: 330, dano: 20, cor: '#3c7138', velocidade: 2.6, fleeDistance: 150, distanciaPreferida: 260 },
-    mago_arcano: { nome: 'Mago Arcano', emoji: '🧙', baseHp: 300, nivelMinimo: 10, arquetipo: 'meteor', aggroRange: 720, attackRange: 520, dano: 30, cor: '#3153a4', distanciaPreferida: 380, skillRange: 620, skillCooldown: 240 },
-    assassino: { nome: 'Assassino', emoji: '🥷', baseHp: 340, nivelMinimo: 10, arquetipo: 'assassin', aggroRange: 520, attackRange: 58, dano: 52, cor: '#15151e', velocidade: 3.8, revealDistance: 250 },
-    void_master: { nome: 'Void Master', emoji: '◉', baseHp: 900, nivelMinimo: 20, arquetipo: 'void_laser', aggroRange: 850, attackRange: 680, dano: 44, cor: '#6c35a8', distanciaPreferida: 480, skillRange: 720, skillCooldown: 260 },
-    ogro: { nome: 'Ogro', emoji: '👹', baseHp: 2600, nivelMinimo: 30, arquetipo: 'tank_melee', aggroRange: 500, attackRange: 90, dano: 72, cor: '#68734b', velocidade: 1.25, maxQtd: 1, resistenciaControle: 0.65 },
-    gargula: { nome: 'Gárgula', emoji: '🦇', baseHp: 1100, nivelMinimo: 20, arquetipo: 'gargoyle', aggroRange: 620, attackRange: 75, dano: 42, cor: '#59616c', velocidade: 2.7, ignoreMapCollision: true, imuneControle: true },
-    mamute: { nome: 'Mamute', emoji: '🐘', baseHp: 3200, nivelMinimo: 30, arquetipo: 'tank_melee', aggroRange: 500, attackRange: 100, dano: 78, cor: '#6e6254', velocidade: 1.05, resistenciaControle: 0.8 },
-    soldado_lanceiro: { nome: 'Soldado Lanceiro', emoji: '🛡️', baseHp: 1400, nivelMinimo: 20, arquetipo: 'lanceiro', aggroRange: 620, attackRange: 70, dano: 58, cor: '#8b1e2d', velocidade: 2.45, skillRange: 360, skillCooldown: 180 }
+    slime: {
+        nome: 'Slime',
+        emoji: '🟢',
+        nivel: 1,
+        baseHp: 80,
+        dano: 8,
+        boss: false,
+        ehMelee: true,
+        aggroRange: 320,
+        attackRange: 48,
+        velocidade: 1.4,
+        cadenciaAtk: 45,
+        xpBase: 35,
+        cor: '#7fcf45',
+        bioma: 'Planície das Plantas (Santuário)',
+        asset: 'slime',
+        aiManaged: true,
+        radius: 14,
+        tags: ['diurno']
+    },
+    slime_elite: {
+        nome: 'Slime Elite',
+        emoji: '👑',
+        nivel: 1,
+        baseHp: 8000,
+        dano: 48,
+        boss: false,
+        maxQtd: 1,
+        ehMelee: true,
+        aggroRange: 460,
+        attackRange: 48,
+        velocidade: 1.4,
+        cadenciaAtk: 45,
+        xpBase: 210,
+        cor: '#b6ff55',
+        bioma: 'Planície das Plantas (Santuário)',
+        asset: 'slime_elite_729c5814',
+        aiManaged: true,
+        escala: 2.16,
+        radius: 25,
+        tags: ['elite']
+    },
+    besouro_dourado: {
+        nome: 'Besouro Dourado',
+        emoji: '🪲',
+        nivel: 10,
+        baseHp: 1800,
+        dano: 42,
+        boss: false,
+        ehMelee: true,
+        aggroRange: 380,
+        attackRange: 48,
+        velocidade: 1.5,
+        cadenciaAtk: 50,
+        xpBase: 110,
+        cor: '#d6ad35',
+        bioma: 'Deserto Escaldante',
+        asset: 'besouro dourado_f71ed54d',
+        aiManaged: true,
+        radius: 18,
+        tags: ['tank', 'diurno', 'debuffers']
+    },
+    escorpiao_escaldante: {
+        nome: 'Escorpião Escaldante',
+        emoji: '🦂',
+        nivel: 12,
+        baseHp: 2200,
+        dano: 56,
+        boss: false,
+        ehMelee: true,
+        aggroRange: 500,
+        attackRange: 48,
+        velocidade: 1.7,
+        cadenciaAtk: 50,
+        xpBase: 145,
+        cor: '#b87545',
+        bioma: 'Deserto Escaldante',
+        asset: 'escorpiao patas marrom_c0792507',
+        aiManaged: true,
+        radius: 25,
+        tags: ['dps', 'hibridos', 'buffers', 'noturno']
+    },
+    formiga_sauva: {
+        nome: 'Formiga Saúva',
+        emoji: '🐜',
+        nivel: 10,
+        baseHp: 1100,
+        dano: 32,
+        boss: false,
+        ehMelee: true,
+        aggroRange: 360,
+        attackRange: 42,
+        velocidade: 2.1,
+        cadenciaAtk: 38,
+        xpBase: 100,
+        cor: '#815033',
+        bioma: 'Deserto Escaldante',
+        asset: 'formiga a_4f74a16a',
+        aiManaged: true,
+        radius: 16,
+        tags: ['assassinos', 'diurno', 'buffers']
+    },
+    besouro_negro_deserto: {
+        nome: 'Besouro Negro',
+        emoji: '🪲',
+        nivel: 25,
+        baseHp: 30000,
+        dano: 115,
+        boss: false,
+        maxQtd: 1,
+        ehMelee: true,
+        aggroRange: 600,
+        attackRange: 58,
+        velocidade: 1.5,
+        cadenciaAtk: 48,
+        xpBase: 2500,
+        cor: '#282a2d',
+        bioma: 'Deserto Escaldante',
+        asset: 'rolabosta_e5b819e6',
+        aiManaged: true,
+        escala: 2.7,
+        radius: 28,
+        tags: ['elite', 'debuffers', 'noturno', 'tank']
+    },
+    cogumelo_proibido: {
+        nome: 'Cogumelo Proibido',
+        emoji: '🍄',
+        nivel: 14,
+        baseHp: 1600,
+        dano: 48,
+        boss: false,
+        ehMelee: false,
+        aggroRange: 520,
+        attackRange: 420,
+        distanciaPreferida: 280,
+        velocidade: 1.35,
+        cadenciaAtk: 65,
+        xpBase: 180,
+        cor: '#ba59d1',
+        bioma: 'Selva Proibida',
+        asset: 'cogumelo_50cc70dc',
+        aiManaged: true,
+        radius: 20,
+        tags: ['magos', 'diurno', 'healers', 'buffers']
+    },
+    anaconda_selvagem: {
+        nome: 'Anaconda Selvagem',
+        emoji: '🐍',
+        nivel: 15,
+        baseHp: 2600,
+        dano: 64,
+        boss: false,
+        ehMelee: true,
+        aggroRange: 440,
+        attackRange: 58,
+        velocidade: 3.6,
+        cadenciaAtk: 38,
+        xpBase: 190,
+        cor: '#4c9b45',
+        bioma: 'Selva Proibida',
+        asset: 'anaconda_b42dd2b8',
+        aiManaged: true,
+        radius: 22,
+        tags: ['assassinos', 'diurno']
+    },
+    jararaca: {
+        nome: 'Jararaca',
+        emoji: '🐍',
+        nivel: 13,
+        baseHp: 1900,
+        dano: 52,
+        boss: false,
+        ehMelee: true,
+        aggroRange: 420,
+        attackRange: 52,
+        velocidade: 3.0,
+        cadenciaAtk: 27,
+        xpBase: 155,
+        cor: '#a36b3f',
+        bioma: 'Selva Proibida',
+        asset: 'anaconda_marrom_53b6e531',
+        aiManaged: true,
+        radius: 19,
+        tags: ['assassinos', 'diurno']
+    },
+    louvadermi: {
+        nome: 'Louvadermi',
+        emoji: '🦗',
+        nivel: 16,
+        baseHp: 2100,
+        dano: 58,
+        boss: false,
+        ehMelee: false,
+        aggroRange: 480,
+        attackRange: 390,
+        distanciaPreferida: 280,
+        velocidade: 1.9,
+        cadenciaAtk: 42,
+        xpBase: 205,
+        cor: '#76a63b',
+        bioma: 'Selva Proibida',
+        asset: 'louva deus_dd5845ad',
+        aiManaged: true,
+        radius: 20,
+        tags: ['arqueiros', 'noturno', 'debuffers']
+    }
 };
 
 // Bioma do Besouro Negro: vive APENAS no deserto (x ∈ [1800, 3400), y ∈ [0, 1800))
@@ -60,31 +264,15 @@ const DESERTO_Y_MAX = 1800;
 // `getMonstroConfig(tipo)` mescla o base fixo (TIPOS_MONSTROS) com as edições.
 const FILE_MONSTROS = path.join(__dirname, 'monster_configs.json');
 
-const CADENCIA_POR_TIPO = {
-    melee: 45, ranged: 60, zumbi: 50, besouro_negro: 42, morcego: 50,
-    golem_pedra: 65, caveira_arqueira: 55, caveira_melee: 42,
-    aranha_negra: 42, aranha_dark: 42, escorpiao: 42, goblin: 55,
-    mago_arcano: 55, assassino: 42, void_master: 55,
-    ogro: 65, gargula: 42, mamute: 65, soldado_lanceiro: 50
-};
+const CADENCIA_POR_TIPO = {};
 
-const VELOCIDADE_POR_TIPO = { zumbi: 3.8, besouro_negro: 3.4, morcego: 4.2 };
+const VELOCIDADE_POR_TIPO = {};
 
-const EHEMELLE_POR_TIPO = {
-    melee: true, ranged: false, zumbi: true, besouro_negro: true, morcego: true,
-    golem_pedra: true, caveira_arqueira: false, caveira_melee: true,
-    aranha_negra: true, aranha_dark: true, escorpiao: true, goblin: false,
-    mago_arcano: false, assassino: true, void_master: false,
-    ogro: true, gargula: true, mamute: true, soldado_lanceiro: true
-};
+const EHEMELLE_POR_TIPO = {};
 
-const DEBUFFS_INICIAIS = {
-    escorpiao: [{ id: 'veneno', tempo: 400, intensidade: 2 }]
-};
+const DEBUFFS_INICIAIS = {};
 
-const IMUNES_INICIAIS = {
-    gargula: ['stun', 'lentidao', 'paralisia', 'sono', 'gelo', 'congelado', 'rede']
-};
+const IMUNES_INICIAIS = {};
 
 function montarBaseEditavel() {
     var base = {};
@@ -94,6 +282,7 @@ function montarBaseEditavel() {
         base[tipo] = {
             nome: c.nome,
             emoji: c.emoji || '👾',
+            nivel: c.nivel || 1,
             baseHp: c.baseHp || 50,
             dano: c.dano || 12,
             defesa: 0,                       // % de redução de dano recebido (0-90)
@@ -105,7 +294,9 @@ function montarBaseEditavel() {
             velAtk: 1,                       // multiplicador da animação/lunge de ataque
             velProjetil: 11,
             ehMelee: EHEMELLE_POR_TIPO[tipo] !== false,
-            xpBase: (tipo === 'golem_pedra') ? 1500 : 35,
+            xpBase: c.xpBase || ((tipo === 'golem_pedra') ? 1500 : 35),
+            tags: Array.isArray(c.tags) ? c.tags.slice() : [],
+            aiManaged: !!c.aiManaged,
             escala: 1,                       // tamanho visual (0.2 a 6)
             cor: c.cor || '#ffffff',
             imuneDebuffs: (IMUNES_INICIAIS[tipo] || []).slice(),
@@ -114,7 +305,8 @@ function montarBaseEditavel() {
             efeitoVisual: 'none',
             vfxCor: c.cor || '#ffffff',
             vfxIntensidade: 1,
-            drops: []                        // [{ item: 'ouro', chance: 50 }, ...]
+            drops: [],                       // [{ item: 'ouro', chance: 50 }, ...]
+            escala: c.escala || 1
         };
     }
     return base;
@@ -157,13 +349,17 @@ function resetarMonstroConfig(tipo) {
 }
 
 function getMonstroConfig(tipo) {
-    var base = TIPOS_MONSTROS[tipo] || TIPOS_MONSTROS.melee;
+    var base = TIPOS_MONSTROS[tipo];
+    if (!base) throw new Error('Tipo de monstro não cadastrado: ' + tipo);
     var edit = MONSTROS_EDITAVEIS[tipo] || {};
     var conf = {};
     for (var a in base) conf[a] = base[a];
     for (var b in edit) conf[b] = edit[b];
     conf.tipo = tipo;
     conf.boss = !!base.boss;
+    conf.tags = Array.isArray(conf.tags)
+        ? conf.tags.filter(function (tag) { return Object.prototype.hasOwnProperty.call(TAGS_MONSTRO, tag); })
+        : [];
     return conf;
 }
 
@@ -179,7 +375,10 @@ function carregarBandeiras() {
         if (!fs.existsSync(FILE_BANDEIRAS)) return [];
         const conteudo = fs.readFileSync(FILE_BANDEIRAS, 'utf-8');
         const dados = JSON.parse(conteudo || '[]');
-        return Array.isArray(dados) ? dados : [];
+        if (!Array.isArray(dados)) return [];
+        const validas = dados.filter(function (flag) { return flag && TIPOS_MONSTROS[flag.tipo]; });
+        if (validas.length !== dados.length) salvarBandeiras(validas);
+        return validas;
     } catch (e) {
         console.error('spawns.js: Erro ao ler spawn_flags.json:', e.message);
         return [];
@@ -202,8 +401,19 @@ function criarMonstroBandeira(flag) {
     var mob = {
         id: 'band_' + flag.id + '_' + Math.random().toString(36).slice(2, 10),
         tipo: flag.tipo,
+        nome: conf.nome,
+        cor: conf.cor || '#ffffff',
+        nivel: conf.nivel || 1,
+        tags: conf.tags.slice(),
+        asset: TIPOS_MONSTROS[flag.tipo].asset || null,
+        aiManaged: !!conf.aiManaged,
+        elite: conf.tags.indexOf('elite') !== -1,
+        bioma: TIPOS_MONSTROS[flag.tipo].bioma || null,
+        raioColisao: TIPOS_MONSTROS[flag.tipo].radius || 12,
         x: flag.x,
         y: flag.y,
+        origemX: flag.x,
+        origemY: flag.y,
         hp: hp,
         maxHp: hp,
         targetId: null,
@@ -214,6 +424,13 @@ function criarMonstroBandeira(flag) {
         dx: (Math.random() - 0.5) * 0.7,
         dy: (Math.random() - 0.5) * 0.7,
         patrolTimer: 0,
+        aiEstado: 'idle',
+        aiDormindo: false,
+        aiEstadoTimer: 0,
+        aiPatrolX: flag.x,
+        aiPatrolY: flag.y,
+        aiIsNight: false,
+        _velocidadeBase: conf.velocidade || 2.2,
         tabelaDano: {},
         aggroRange: conf.aggroRange,
         attackRange: conf.attackRange,
@@ -281,15 +498,17 @@ function criarMonstroBandeira(flag) {
         mob.x = Math.max(DESERTO_X_MIN, Math.min(DESERTO_X_MAX - 10, mob.x));
         mob.y = Math.max(0, Math.min(DESERTO_Y_MAX - 10, mob.y));
     }
-    if (flag.tipo === 'morcego') {
+    if (flag.tipo === 'morcego' || flag.tipo === 'morcegote') {
         mob.velocidade = conf.velocidade || 4.2;
-        mob.goldDrop = 6;
+        mob.goldDrop = flag.tipo === 'morcegote' ? 10 : 6;
         mob.respawnTick = 240;
         mob.voando = true;
         mob.alturaVoo = 0;
         mob.ziguezague = 0;
-        mob.x = Math.max(5000, Math.min(6790, mob.x));
-        mob.y = Math.max(0, Math.min(1790, mob.y));
+        if (flag.tipo === 'morcego') {
+            mob.x = Math.max(5000, Math.min(6790, mob.x));
+            mob.y = Math.max(0, Math.min(1790, mob.y));
+        }
     }
     if (flag.tipo === 'soldado_lanceiro') {
         mob.skillCooldown = Math.floor(70 + Math.random() * 80);
@@ -367,6 +586,7 @@ function criarBossBandeira(flag) {
 }
 
 module.exports = {
+    TAGS_MONSTRO: TAGS_MONSTRO,
     TIPOS_MONSTROS: TIPOS_MONSTROS,
     MONSTROS_EDITAVEIS: MONSTROS_EDITAVEIS,
     resetarMonstroConfig: resetarMonstroConfig,

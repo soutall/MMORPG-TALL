@@ -288,15 +288,65 @@ window.criarAnimacaoMeteoro = function(tx, ty) {
     window.meteorosAtivos.push({ startX: tx - 240, startY: ty - 420, targetX: tx, targetY: ty, progresso: 0, velocidade: 0.032, rastro: [] });
 };
 
-window.criarAnimacaoNevasca = function(tx, ty, raio, duracaoMs) {
-    if (typeof tocarSomNevasca === 'function') tocarSomNevasca();
-    const duracaoVisualMs = Number.isFinite(duracaoMs) ? duracaoMs : Math.round(480 * (1000 / 60));
-    let particulasGelo = [];
-    for (let i = 0; i < 45; i++) {
-        particulasGelo.push({ dist: Math.random() * raio, angle: Math.random() * Math.PI * 2, speed: Math.random() * 0.06 + 0.04, size: Math.random() * 4 + 2, color: Math.random() > 0.4 ? "#00ffff" : "#ffffff", alpha: Math.random() });
+window.criarAnimacaoNevasca = function(tx, ty, raio, duracaoMs, isFogo) {
+    const isChamas = !!isFogo;
+    if (isChamas) {
+        if (typeof window.tocarSonoroProximidade === 'function') window.tocarSonoroProximidade('mago_lava_impacto', tx, ty);
+        else if (typeof window.tocarSonoro === 'function') window.tocarSonoro('mago_lava_impacto');
+        else if (typeof tocarSomNevasca === 'function') tocarSomNevasca();
+    } else {
+        if (typeof tocarSomNevasca === 'function') tocarSomNevasca();
     }
-    window.nevascasAtivas.push({ x: tx, y: ty, radius: raio, duracao: 480, startTime: Date.now(), duracaoMs: duracaoVisualMs, rotacao: 0, particulas: particulasGelo });
-    window.floatingTexts.push({ x: tx, y: ty - 40, text: "❄️ NEVASCA (LENTIDÃO 50%)", color: "#00ffff", alpha: 1.0 });
+
+    const duracaoVisualMs = Number.isFinite(duracaoMs) ? duracaoMs : Math.round(480 * (1000 / 60));
+    const particulas = [];
+    const qtd = 50;
+
+    for (let i = 0; i < qtd; i++) {
+        if (isChamas) {
+            const coresFogo = ['#ffffff', '#fff3b0', '#ffd166', '#f97316', '#ef4444', '#b91c1c'];
+            particulas.push({
+                dist: Math.random() * (raio * 0.95),
+                angle: Math.random() * Math.PI * 2,
+                speed: Math.random() * 0.05 + 0.03,
+                size: Math.random() * 4.5 + 2.0,
+                color: coresFogo[Math.floor(Math.random() * coresFogo.length)],
+                alpha: Math.random() * 0.7 + 0.3,
+                driftY: Math.random() * 0.8 + 0.2
+            });
+        } else {
+            const coresGelo = ['#ffffff', '#f0f9ff', '#e0f2fe', '#bae6fd', '#38bdf8', '#0284c7'];
+            particulas.push({
+                dist: Math.random() * (raio * 0.95),
+                angle: Math.random() * Math.PI * 2,
+                speed: Math.random() * 0.045 + 0.025,
+                size: Math.random() * 4.0 + 1.8,
+                color: coresGelo[Math.floor(Math.random() * coresGelo.length)],
+                alpha: Math.random() * 0.75 + 0.25,
+                isSnowflake: Math.random() > 0.45
+            });
+        }
+    }
+
+    window.nevascasAtivas.push({
+        x: tx,
+        y: ty,
+        radius: raio || 115,
+        duracao: 480,
+        startTime: Date.now(),
+        duracaoMs: duracaoVisualMs,
+        rotacao: 0,
+        isFogo: isChamas,
+        particulas: particulas
+    });
+
+    if (window.floatingTexts) {
+        if (isChamas) {
+            window.floatingTexts.push({ x: tx, y: ty - 40, text: "🔥 NEVASCA DE FOGO (QUEIMADURA)", color: "#f97316", alpha: 1.0 });
+        } else {
+            window.floatingTexts.push({ x: tx, y: ty - 40, text: "❄️ NEVASCA GLACIAL (CONGELAMENTO)", color: "#38bdf8", alpha: 1.0 });
+        }
+    }
 };
 
 window.desenharEfeitosMeteoro = function() {
@@ -427,37 +477,198 @@ window.desenharEfeitosMeteoro = function() {
 };
 
 window.desenharEfeitosNevasca = function() {
-    if (!window.ctx) return;
+    const ctx = window.ctx;
+    if (!ctx) return;
+    const agora = Date.now();
+
     for (let i = window.nevascasAtivas.length - 1; i >= 0; i--) {
         let n = window.nevascasAtivas[i];
-        n.duracao--; n.rotacao += 0.05;
-        if (n.startTime && Date.now() - n.startTime >= n.duracaoMs) {
+        n.duracao--;
+        n.rotacao += 0.04;
+
+        const decorrido = agora - (n.startTime || agora);
+        if (decorrido >= (n.duracaoMs || 8000)) {
             window.nevascasAtivas.splice(i, 1);
             continue;
         }
-        if (n.duracao % 60 === 0) {
-            window.listaSlimes.forEach(slime => {
-                if (slime.hp > 0 && Math.hypot(slime.x - n.x, slime.y - n.y) < n.radius) {
-                    if (typeof registrarDanoCausado === 'function') registrarDanoCausado(6);
-                    window.floatingTexts.push({ x: slime.x, y: slime.y - 15, text: "-6", color: "#00ffff", alpha: 1.0 });
-                }
-            });
+
+        // Suave fade in (400ms) e fade out nos últimos 1500ms
+        const tempoRestante = (n.duracaoMs || 8000) - decorrido;
+        const alphaFade = Math.min(1.0, decorrido / 400) * Math.min(1.0, tempoRestante / 1500);
+
+        if (n.duracao <= 0) {
+            window.nevascasAtivas.splice(i, 1);
+            continue;
         }
-        if (n.duracao <= 0) { window.nevascasAtivas.splice(i, 1); } else {
-            window.ctx.save();
-            window.ctx.fillStyle = "rgba(23, 105, 170, 0.25)"; window.ctx.beginPath(); window.ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2); window.ctx.fill();
-            window.ctx.strokeStyle = "rgba(0, 255, 255, 0.4)"; window.ctx.lineWidth = 3; window.ctx.beginPath(); window.ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2); window.ctx.stroke();
+
+        ctx.save();
+        ctx.globalAlpha = alphaFade;
+
+        if (n.isFogo) {
+            // =================================================================
+            // NEVASCA DE FOGO (B1) — VÓRTICE MAGMÁTICO E CHÃO EM BRASAS
+            // =================================================================
+            const pulsoFogo = Math.sin(agora * 0.007) * 0.12 + 0.88;
+
+            // 1. Iluminação térmica no solo (radial gradient incandescente)
+            const gradCalor = ctx.createRadialGradient(n.x, n.y, 4, n.x, n.y, n.radius);
+            gradCalor.addColorStop(0, `rgba(255, 245, 180, ${0.48 * pulsoFogo})`);
+            gradCalor.addColorStop(0.35, `rgba(249, 115, 22, ${0.32 * pulsoFogo})`);
+            gradCalor.addColorStop(0.70, `rgba(185, 28, 28, ${0.16 * pulsoFogo})`);
+            gradCalor.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = gradCalor;
+            ctx.beginPath();
+            ctx.ellipse(n.x, n.y, n.radius, n.radius * 0.72, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 2. Anel de chamas ondulantes no perímetro
+            ctx.save();
+            ctx.translate(n.x, n.y);
+            ctx.beginPath();
+            for (let st = 0; st <= 48; st++) {
+                const ang = (st / 48) * Math.PI * 2;
+                const onda = Math.sin(ang * 6 + n.rotacao * 2) * 5 + Math.sin(ang * 12 - n.rotacao) * 2;
+                const r = (n.radius * 0.95) + onda;
+                const px = Math.cos(ang) * r;
+                const py = Math.sin(ang) * (r * 0.72);
+                if (st === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.strokeStyle = `rgba(249, 115, 22, ${0.65 * pulsoFogo})`;
+            ctx.lineWidth = 3.5;
+            ctx.shadowColor = '#f97316';
+            ctx.shadowBlur = 14;
+            ctx.stroke();
+
+            // 3. Faixas espirais de fogo giratório
             for (let s = 0; s < 3; s++) {
-                let offsetAng = n.rotacao + (s * (Math.PI * 2 / 3));
-                window.ctx.strokeStyle = "rgba(255, 255, 255, 0.35)"; window.ctx.lineWidth = 2.5; window.ctx.beginPath(); window.ctx.arc(n.x, n.y, n.radius * 0.7, offsetAng, offsetAng + 1.2); window.ctx.stroke();
+                const offAng = n.rotacao + (s * (Math.PI * 2 / 3));
+                ctx.beginPath();
+                ctx.ellipse(0, 0, n.radius * 0.65, n.radius * 0.45, offAng, 0, 1.4);
+                ctx.strokeStyle = `rgba(254, 240, 138, ${0.65 * pulsoFogo})`;
+                ctx.lineWidth = 3;
+                ctx.shadowColor = '#fbbf24';
+                ctx.shadowBlur = 10;
+                ctx.stroke();
             }
+            ctx.restore();
+
+            // 4. Partículas de fogo e brasas incandescentes
             for (let p of n.particulas) {
-                p.angle += p.speed; p.dist += Math.sin(p.angle * 3) * 0.4; if (p.dist > n.radius) p.dist = 10;
-                let px = n.x + Math.cos(p.angle) * p.dist; let py = n.y + Math.sin(p.angle) * p.dist;
-                window.ctx.fillStyle = p.color; window.ctx.shadowColor = "#00ffff"; window.ctx.shadowBlur = 6; window.ctx.beginPath(); window.ctx.arc(px, py, p.size, 0, Math.PI * 2); window.ctx.fill();
+                p.angle += p.speed;
+                p.dist += Math.sin(p.angle * 3) * 0.45;
+                if (p.dist > n.radius * 0.95) p.dist = 12;
+
+                const px = n.x + Math.cos(p.angle) * p.dist;
+                const py = n.y + Math.sin(p.angle) * (p.dist * 0.72) - (p.driftY || 0.5) * 8;
+
+                ctx.fillStyle = p.color;
+                ctx.shadowColor = '#f97316';
+                ctx.shadowBlur = 8;
+                ctx.beginPath();
+                ctx.arc(px, py, p.size * (0.8 + Math.sin(agora * 0.01 + p.angle) * 0.2), 0, Math.PI * 2);
+                ctx.fill();
             }
-            window.ctx.restore();
+        } else {
+            // =================================================================
+            // NEVASCA GLACIAL (SIDE A) — BLIZZARD DE GELO CRISTALINO & RUNAS
+            // =================================================================
+            const pulsoGelo = Math.sin(agora * 0.005) * 0.10 + 0.90;
+
+            // 1. Campo térmico gélido (glaze radial)
+            const gradGelo = ctx.createRadialGradient(n.x, n.y, 4, n.x, n.y, n.radius);
+            gradGelo.addColorStop(0, `rgba(240, 249, 255, ${0.40 * pulsoGelo})`);
+            gradGelo.addColorStop(0.35, `rgba(56, 189, 248, ${0.25 * pulsoGelo})`);
+            gradGelo.addColorStop(0.75, `rgba(2, 132, 199, ${0.12 * pulsoGelo})`);
+            gradGelo.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = gradGelo;
+            ctx.beginPath();
+            ctx.ellipse(n.x, n.y, n.radius, n.radius * 0.72, 0, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 2. Anel de geada com espículas de gelo no perímetro
+            ctx.save();
+            ctx.translate(n.x, n.y);
+            ctx.beginPath();
+            for (let st = 0; st <= 48; st++) {
+                const ang = (st / 48) * Math.PI * 2;
+                const espicula = (st % 4 === 0) ? 6 : (st % 2 === 0 ? -3 : 0);
+                const r = (n.radius * 0.95) + espicula;
+                const px = Math.cos(ang) * r;
+                const py = Math.sin(ang) * (r * 0.72);
+                if (st === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+            }
+            ctx.closePath();
+            ctx.strokeStyle = `rgba(186, 230, 253, ${0.60 * pulsoGelo})`;
+            ctx.lineWidth = 2.5;
+            ctx.shadowColor = '#38bdf8';
+            ctx.shadowBlur = 12;
+            ctx.stroke();
+
+            // 3. Arcos de vento glacial concêntricos girando
+            for (let s = 0; s < 3; s++) {
+                const offAng = n.rotacao + (s * (Math.PI * 2 / 3));
+                ctx.beginPath();
+                ctx.ellipse(0, 0, n.radius * 0.68, n.radius * 0.48, offAng, 0, 1.5);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${0.55 * pulsoGelo})`;
+                ctx.lineWidth = 2.2;
+                ctx.shadowColor = '#bae6fd';
+                ctx.shadowBlur = 8;
+                ctx.stroke();
+            }
+
+            // 4. Cristais de gelo nos eixos cardinais (Runas glaciais)
+            for (let k = 0; k < 4; k++) {
+                const rAng = n.rotacao * 0.5 + (Math.PI / 2) * k;
+                const rx = Math.cos(rAng) * (n.radius * 0.82);
+                const ry = Math.sin(rAng) * (n.radius * 0.58);
+
+                ctx.save();
+                ctx.translate(rx, ry);
+                ctx.rotate(rAng);
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
+                ctx.moveTo(-5, 0); ctx.lineTo(5, 0);
+                ctx.moveTo(0, -5); ctx.lineTo(0, 5);
+                ctx.stroke();
+                ctx.restore();
+            }
+            ctx.restore();
+
+            // 5. Flocos de neve cristalinos e poeira glacial
+            for (let p of n.particulas) {
+                p.angle += p.speed;
+                p.dist += Math.sin(p.angle * 3) * 0.4;
+                if (p.dist > n.radius * 0.95) p.dist = 10;
+
+                const px = n.x + Math.cos(p.angle) * p.dist;
+                const py = n.y + Math.sin(p.angle) * (p.dist * 0.72);
+
+                if (p.isSnowflake) {
+                    // Floco de neve estrelado
+                    ctx.save();
+                    ctx.translate(px, py);
+                    ctx.rotate(p.angle * 2);
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 1.2;
+                    ctx.beginPath();
+                    ctx.moveTo(-p.size, 0); ctx.lineTo(p.size, 0);
+                    ctx.moveTo(0, -p.size); ctx.lineTo(0, p.size);
+                    ctx.stroke();
+                    ctx.restore();
+                } else {
+                    ctx.fillStyle = p.color;
+                    ctx.shadowColor = '#38bdf8';
+                    ctx.shadowBlur = 6;
+                    ctx.beginPath();
+                    ctx.arc(px, py, p.size, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            }
         }
+
+        ctx.restore();
     }
 };
 

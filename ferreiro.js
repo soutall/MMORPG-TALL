@@ -10,6 +10,11 @@
    ferreiroReceberMensagem / desenharAurasEquipamentos.
    ============================================================================ */
 (function () {
+    function formatarValorStatus(valor) {
+        if (!Number.isFinite(Number(valor))) return String(valor);
+        return String(Number(Number(valor).toFixed(2)));
+    }
+
     'use strict';
 
     var NPC = { x: 60800, y: 400, r: 52 };
@@ -258,13 +263,13 @@
 
         var linhasStatus = [];
         if (item.status) for (var k2 in item.status) {
-            if (item.status[k2] !== undefined && item.status[k2] !== null) linhasStatus.push((NOMES_STATUS[k2] || k2) + ' +' + item.status[k2]);
+            if (item.status[k2] !== undefined && item.status[k2] !== null) linhasStatus.push((NOMES_STATUS[k2] || k2) + ' +' + formatarValorStatus(item.status[k2]));
         }
 
         var extrasTexto = '';
         if (nivel >= 5 && item.upgradeExtras && item.upgradeExtras.length) {
             extrasTexto = '<div class="fi-status">✨ Extras: ' + item.upgradeExtras.map(function (e) {
-                return (NOMES_STATUS[e.chave] || e.chave) + ' +' + e.valor;
+                return (NOMES_STATUS[e.chave] || e.chave) + ' +' + formatarValorStatus(e.valor);
             }).join(' · ') + '</div>';
         }
 
@@ -308,7 +313,7 @@
             card.style.borderColor = item.cor || '#5a5344';
             var stLinha = [];
             if (item.status) for (var k in item.status) {
-                stLinha.push((NOMES_STATUS[k] || k) + ' +' + item.status[k]);
+                stLinha.push((NOMES_STATUS[k] || k) + ' +' + formatarValorStatus(item.status[k]));
             }
             card.innerHTML = '<span class="fc-ico">' + (item.icon || '🎒') + '</span>' +
                 '<span class="fc-info"><span class="fc-nome">' + (item.nome || '') + '</span>' +
@@ -512,7 +517,7 @@
             var inf = dados.infoUpgrade;
             var linhas = [];
             if (inf.principalChave) linhas.push((NOMES_STATUS[inf.principalChave] || inf.principalChave) + ' ' + inf.principalAntes + ' → ' + inf.principalDepois);
-            if (inf.extras && inf.extras.length) linhas.push('Novo atributo: ' + inf.extras.map(function (e) { return (NOMES_STATUS[e.chave] || e.chave) + ' +' + e.valor; }).join(', '));
+            if (inf.extras && inf.extras.length) linhas.push('Novo atributo: ' + inf.extras.map(function (e) { return (NOMES_STATUS[e.chave] || e.chave) + ' +' + formatarValorStatus(e.valor); }).join(', '));
             if (inf.reforco) linhas.push('REFORÇO +10% aplicado em TODOS os status!');
             sucessoExtra = linhas.join(' · ');
         }

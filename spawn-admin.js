@@ -8,30 +8,21 @@ window.spawnAdminEditando = null;
 window.ehAdmin = false;
 
 var SPAWN_TIPOS = [
-    { key: 'melee', nome: '🟢 Slime Melee', baseHp: 50, boss: false, cor: '#76d7c4' },
-    { key: 'ranged', nome: '🔵 Slime Arqueiro', baseHp: 40, boss: false, cor: '#5dade2' },
-    { key: 'zumbi', nome: '🧟 Zumbi', baseHp: 120, boss: false, cor: '#58d68d' },
-    { key: 'besouro_negro', nome: '🪲 Besouro Negro (deserto)', baseHp: 300, boss: false, cor: '#17202a' },
-    { key: 'morcego', nome: '🦇 Morcego (caverna)', baseHp: 90, boss: false, cor: '#5b2c6f' },
-    { key: 'golem_pedra', nome: '🗿 GOLEM DE PEDRA', baseHp: 6000, boss: true, cor: '#e74c3c' },
-    { key: 'caveira_arqueira', nome: '🏹 Caveira Arqueira (40+)', baseHp: 420, boss: false, cor: '#d6c9a5' },
-    { key: 'caveira_melee', nome: '💀 Caveira Melee (40+)', baseHp: 560, boss: false, cor: '#b9aa87' },
-    { key: 'aranha_negra', nome: '🕷 Aranha Negra (40+)', baseHp: 480, boss: false, cor: '#24152f' },
-    { key: 'aranha_dark', nome: '🕷 ARANHA DARK', baseHp: 480, boss: false, cor: '#17131d' },
-    { key: 'escorpiao', nome: '🦂 Escorpião (15+)', baseHp: 260, boss: false, cor: '#3d5535' },
-    { key: 'goblin', nome: '👺 Goblin (10+)', baseHp: 220, boss: false, cor: '#3c7138' },
-    { key: 'mago_arcano', nome: '🧙 Mago Arcano (10+)', baseHp: 300, boss: false, cor: '#3153a4' },
-    { key: 'assassino', nome: '🥷 Assassino (10+)', baseHp: 340, boss: false, cor: '#15151e' },
-    { key: 'void_master', nome: '◉ Void Master (20+)', baseHp: 900, boss: false, cor: '#6c35a8' },
-    { key: 'ogro', nome: '👹 Ogro (30+ · 1)', baseHp: 2600, boss: false, cor: '#68734b' },
-    { key: 'gargula', nome: '🦇 Gárgula (20+)', baseHp: 1100, boss: false, cor: '#59616c' },
-    { key: 'mamute', nome: '🐘 Mamute (30+)', baseHp: 3200, boss: false, cor: '#6e6254' },
-    { key: 'soldado_lanceiro', nome: '🛡️ Soldado Lanceiro (20+)', baseHp: 1400, boss: false, cor: '#8b1e2d' }
+    { key: 'slime', nome: '🟢 Slime (Nível 1 · Planície das Plantas)', baseHp: 80, boss: false, cor: '#7fcf45' },
+    { key: 'slime_elite', nome: '👑 Slime Elite (Planície das Plantas)', baseHp: 8000, boss: false, cor: '#b6ff55' },
+    { key: 'besouro_dourado', nome: '🪲 Besouro Dourado (Deserto Escaldante)', baseHp: 1800, boss: false, cor: '#d6ad35' },
+    { key: 'escorpiao_escaldante', nome: '🦂 Escorpião Escaldante (Deserto Escaldante)', baseHp: 2200, boss: false, cor: '#b87545' },
+    { key: 'formiga_sauva', nome: '🐜 Formiga Saúva (Deserto Escaldante)', baseHp: 1100, boss: false, cor: '#815033' },
+    { key: 'besouro_negro_deserto', nome: '👑 Besouro Negro Elite (Deserto Escaldante)', baseHp: 30000, boss: false, cor: '#282a2d' },
+    { key: 'cogumelo_proibido', nome: '🍄 Cogumelo Proibido (Selva Proibida)', baseHp: 1600, boss: false, cor: '#ba59d1' },
+    { key: 'anaconda_selvagem', nome: '🐍 Anaconda Selvagem (Selva Proibida)', baseHp: 2600, boss: false, cor: '#4c9b45' },
+    { key: 'jararaca', nome: '🐍 Jararaca (Selva Proibida)', baseHp: 1900, boss: false, cor: '#a36b3f' },
+    { key: 'louvadermi', nome: '🦗 Louvadermi (Selva Proibida)', baseHp: 2100, boss: false, cor: '#76a63b' }
 ];
 
 function spawnTipoInfo(key) {
     for (var i = 0; i < SPAWN_TIPOS.length; i++) if (SPAWN_TIPOS[i].key === key) return SPAWN_TIPOS[i];
-    return SPAWN_TIPOS[0];
+    return null;
 }
 
 (function montarSpawnAdminUI() {
@@ -108,6 +99,16 @@ var SPAWN_STATUS = document.getElementById('spawn-status');
 var SPAWN_BTN_EXCLUIR = document.getElementById('spawn-btn-excluir');
 
 (function preencherSelectTipos() {
+    if (!SPAWN_TIPOS.length) {
+        var vazio = document.createElement('option');
+        vazio.value = '';
+        vazio.textContent = '— Nenhum monstro cadastrado —';
+        vazio.disabled = true;
+        vazio.selected = true;
+        SPAWN_TIPO.appendChild(vazio);
+        SPAWN_TIPO.disabled = true;
+        return;
+    }
     for (var i = 0; i < SPAWN_TIPOS.length; i++) {
         var op = document.createElement('option');
         op.value = SPAWN_TIPOS[i].key;
@@ -131,6 +132,15 @@ function mostrarBotaoSpawnAdmin() {
 function preencherPainelSpawnAdmin() {
     var editando = window.spawnAdminEditando;
     SPAWN_STATUS.textContent = '';
+    var btnAplicar = document.getElementById('spawn-btn-aplicar');
+    if (!SPAWN_TIPOS.length) {
+        if (btnAplicar) btnAplicar.disabled = true;
+        SPAWN_STATUS.textContent = 'Nenhum monstro cadastrado. Envie os arquivos para integrar.';
+        SPAWN_POS.textContent = 'Sem monstros disponíveis';
+        SPAWN_BTN_EXCLUIR.style.display = 'none';
+        return;
+    }
+    if (btnAplicar) btnAplicar.disabled = false;
 
     if (editando) {
         var info = spawnTipoInfo(editando.tipo);
@@ -143,13 +153,14 @@ function preencherPainelSpawnAdmin() {
         SPAWN_POS.textContent = '📍 Bandeira em X: ' + Math.round(editando.x) + ' · Y: ' + Math.round(editando.y);
         SPAWN_BTN_EXCLUIR.style.display = 'block';
     } else {
-        SPAWN_TIPO.value = 'melee';
+        var primeiroTipo = SPAWN_TIPOS[0];
+        SPAWN_TIPO.value = primeiroTipo.key;
         SPAWN_QTD.value = 3;
         SPAWN_COMP.value = 'agressivo';
-        SPAWN_HP.value = spawnTipoInfo('melee').baseHp;
+        SPAWN_HP.value = primeiroTipo.baseHp;
         SPAWN_RESPAWN.value = 5;
         SPAWN_RESPAWN_LABEL.textContent = '5s';
-        var px = Math.round((window.meuX || 61800) + 12), py = Math.round((window.meuY || 2000) + 16);
+        var px = Math.round((window.meuX || 144000) + 12), py = Math.round((window.meuY || 14018) + 16);
         SPAWN_POS.textContent = '🏁 Planta na sua posição: X: ' + px + ' · Y: ' + py;
         SPAWN_BTN_EXCLUIR.style.display = 'none';
     }
@@ -193,6 +204,10 @@ window.atualizarPainelSpawnAdmin = function () {
 };
 
 window.aplicarSpawnAdmin = function () {
+    if (!SPAWN_TIPOS.length) {
+        SPAWN_STATUS.textContent = 'Nenhum monstro cadastrado para invocar.';
+        return;
+    }
     if (typeof ws === 'undefined' || !ws || ws.readyState !== 1) { SPAWN_STATUS.textContent = 'Sem conexão com o servidor.'; return; }
     var editando = window.spawnAdminEditando;
     var qtd = Math.max(1, Math.min(50, Math.floor(Number(SPAWN_QTD.value) || 1)));
@@ -210,14 +225,21 @@ window.aplicarSpawnAdmin = function () {
         respawnSeg: respawn
     };
     if (!editando) {
-        payload.x = Math.round((window.meuX || 61800) + 12);
-        payload.y = Math.round((window.meuY || 2000) + 16);
+        payload.x = Math.round((window.meuX || 144000) + 12);
+        payload.y = Math.round((window.meuY || 14018) + 16);
     }
     try {
         ws.send(JSON.stringify(payload));
     } catch (e) { return; }
 
-    SPAWN_STATUS.textContent = editando ? '✅ Bandeira atualizada!' : '✅ Bandeira plantada!';
+    SPAWN_STATUS.textContent = 'Enviando solicitação...';
+};
+
+window.receberResultadoSpawnAdmin = function (dados) {
+    if (!dados || !SPAWN_STATUS) return;
+    SPAWN_STATUS.textContent = dados.message || (dados.success ? 'Solicitação concluída.' : 'Não foi possível criar a bandeira.');
+    SPAWN_STATUS.style.color = dados.success ? '#2ecc71' : '#ff7675';
+    if (!dados.success) return;
     window.spawnAdminEditando = null;
     SPAWN_BTN_EXCLUIR.style.display = 'none';
     window._confirmaExclusaoSpawn = false;
@@ -278,6 +300,7 @@ window.desenharBandeirasSpawn = function () {
         var b = window.listaBandeiras[i];
         if (Math.abs(b.x - camX) > raioVis || Math.abs(b.y - camY) > raioVis) continue;
         var conf = spawnTipoInfo(b.tipo);
+        if (!conf) continue;
         var ehBoss = conf.boss;
         var cor = conf.cor;
 

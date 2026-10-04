@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "equipment": [
+    { "id": "armor_helmet", "name": "Capacete", "slot": "capacete", "allowedAttributes": { "forca": 3, "divindade": 4, "vida": 3, "inteligencia": 2, "agilidade": 1, "destreza": 1 }, "baseDefense": [2, 5], "defensePerLevel": [0.4, 0.6] },
+    { "id": "armor_chest", "name": "Peitoral", "slot": "peitoral", "allowedAttributes": { "vida": 6, "forca": 4, "divindade": 3, "inteligencia": 2, "agilidade": 1, "destreza": 1 }, "baseDefense": [5, 9], "defensePerLevel": [0.8, 1.1] },
+    { "id": "armor_cloak", "name": "Capa", "slot": "capa", "allowedAttributes": { "agilidade": 4, "vida": 3, "inteligencia": 3, "destreza": 2, "divindade": 1 }, "baseDefense": [2, 5], "defensePerLevel": [0.4, 0.6] },
+    { "id": "armor_gloves", "name": "Luvas", "slot": "luva", "allowedAttributes": { "destreza": 5, "forca": 3, "agilidade": 3, "vida": 1, "inteligencia": 1, "velocidadeAtaque": 4 }, "baseDefense": [1, 4], "defensePerLevel": [0.3, 0.5] },
+    { "id": "armor_boots", "name": "Botas", "slot": "bota", "allowedAttributes": { "agilidade": 5, "destreza": 3, "vida": 2, "forca": 1, "divindade": 1 }, "baseDefense": [1, 4], "defensePerLevel": [0.3, 0.5] },
+    { "id": "accessory_ring", "name": "Anel", "slot": "anel", "allowedAttributes": { "afinidade": 8, "destreza": 3, "inteligencia": 3, "forca": 2, "vida": 2, "divindade": 1 }, "baseDefense": [0, 2], "defensePerLevel": [0.1, 0.2] },
+    { "id": "accessory_necklace", "name": "Colar", "slot": "colar", "allowedAttributes": { "divindade": 5, "inteligencia": 4, "vida": 3, "afinidade": 2, "forca": 1 }, "baseDefense": [0, 2], "defensePerLevel": [0.1, 0.2] }
+  ]
+}

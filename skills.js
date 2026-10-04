@@ -124,7 +124,7 @@ const SKILLS_INFO = {
           mp: 40, cd: 45, escala: 'dano',
           area: 'Ao redor do golem', alcance: 'Via pet',
           duracao: '20s', duracaoBase: null, extras: ['+50% de vida do pet', 'Aumento de alcance e dano em área'] },
-        { id: 'sismico', nome: 'Golem Sísmico', icon: '🗿', categoria: 'aoe',
+        { id: 'sismico', nome: 'Golem Sísmico', icon: '⛰️', categoria: 'aoe',
           desc: 'Golem trava no lugar e libera ondas sísmicas por 8s: dano em área crescente (raio 260), lentidão 50% e tremores cada vez mais rápidos.',
           danoBase: 55, danoUnidade: 'físico', danoNota: 'pulso crescente',
           mp: 40, cd: 30, escala: 'dano',
@@ -503,6 +503,8 @@ const SKILLS_INFO = {
 };
 
 SKILLS_INFO.arqueiro_astral = SKILLS_INFO.arqueiro_arcano;
+if (typeof window !== 'undefined') window.SKILLS_INFO = SKILLS_INFO;
+if (typeof module !== 'undefined' && module.exports) module.exports = { SKILLS_INFO };
 
 const NOMES_CLASSES = {
     guerreiro: 'GUERREIRO', mago: 'MAGO', summoner: 'SUMMONER', arqueiro: 'ARQUEIRO',
@@ -564,6 +566,10 @@ function valorComAtributo(skill, nivel) {
 function classificarGrupoSkill(skill) {
     if (skill.categoria === 'passiva' || (skill.id && skill.id.includes('passiva')) || (skill.nome && skill.nome.toLowerCase().includes('(passiva)'))) {
         return 'passivas';
+    }
+    // Todas as 4 habilidades ativas do Summoner devem ser listadas juntas nas Ativas da Action Bar
+    if (['esmagamento', 'salto', 'colossal', 'sismico', 'orbe'].indexOf(skill.id) !== -1) {
+        return 'ativas';
     }
     if (['cura', 'buff', 'mobilidade', 'invocacao'].indexOf(skill.categoria) !== -1) {
         return 'suporte';
@@ -679,7 +685,7 @@ function renderizarSkills() {
                 let pipsClass = qtdUp === 4 ? 'skill-upgrade-pips maximo' : (qtdUp > 0 ? 'skill-upgrade-pips tem-upgrades' : 'skill-upgrade-pips');
                 pipsHtml = '<div class="' + pipsClass + '" title="' + qtdUp + '/4 Upgrades de Árvore">' + window.obterPipsSkill(skill.id) + '</div>';
                 if (typeof window.podeReceberUpgrade === 'function' && window.podeReceberUpgrade(skill.id)) {
-                    diamondHtml = '<div class="skill-upgrade-diamond" title="Upgrade de Habilidade Disponível! Clique na skill para abrir a Árvore">◆</div>';
+                    diamondHtml = '<div class="skill-upgrade-diamond" onclick="event.stopPropagation(); abrirSkillTreeModal(\'' + skill.id + '\');" title="Upgrade de Habilidade Disponível! Clique para abrir a Árvore de Upgrades">◆</div>';
                 }
             }
 

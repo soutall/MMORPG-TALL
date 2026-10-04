@@ -9,6 +9,16 @@
     window.skillTreeAbertaId = null;
 
     /**
+     * Retorna o nível do jogador com fallback robusto
+     */
+    function obterNivelJogador() {
+        if (typeof window.meuNivel === 'number' && window.meuNivel > 0) return window.meuNivel;
+        if (typeof window.meuLevel === 'number' && window.meuLevel > 0) return window.meuLevel;
+        if (typeof window.playerLevel === 'number' && window.playerLevel > 0) return window.playerLevel;
+        return 1;
+    }
+
+    /**
      * Retorna a quantidade de pontos de upgrade gastos pelo jogador
      */
     function obterPontosGastos() {
@@ -23,7 +33,7 @@
      */
     function obterPontosDisponiveis() {
         if (typeof SkillUpgradeTree !== 'undefined' && SkillUpgradeTree.calcularPontosUpgradeDisponiveis) {
-            const lvl = (typeof window.meuNivel === 'number') ? window.meuNivel : 1;
+            const lvl = obterNivelJogador();
             return SkillUpgradeTree.calcularPontosUpgradeDisponiveis(lvl, window.skillUpgrades);
         }
         return 0;
@@ -53,10 +63,21 @@
     }
 
     /**
+     * Retorna a classe do jogador com múltiplos fallbacks
+     */
+    function obterClasseJogador() {
+        if (window.minhaClasse) return window.minhaClasse;
+        if (window.todosJogadores && window.meuId && window.todosJogadores[window.meuId] && window.todosJogadores[window.meuId].classe) {
+            return window.todosJogadores[window.meuId].classe;
+        }
+        return 'mago';
+    }
+
+    /**
      * Verifica se a skill pode receber um upgrade agora (tem ponto disponível + nível suficiente pro próximo tier)
      */
     function podeReceberUpgrade(skillId) {
-        const classe = window.minhaClasse || 'summoner';
+        const classe = obterClasseJogador();
         if (typeof SkillUpgradeTree === 'undefined') return false;
         const participantes = SkillUpgradeTree.obterSkillsParticipantes(classe);
         if (!participantes.includes(skillId)) return false;
@@ -69,7 +90,7 @@
 
         const proxTier = qtd + 1;
         const lvlReq = SkillUpgradeTree.TIER_LEVEL_REQUIREMENTS[proxTier] || (proxTier * 10);
-        const lvlChar = (typeof window.meuNivel === 'number') ? window.meuNivel : 1;
+        const lvlChar = obterNivelJogador();
 
         return lvlChar >= lvlReq;
     }
@@ -159,8 +180,8 @@
         if (!skillId) skillId = window.skillTreeAbertaId;
         if (!skillId) return;
 
-        const classe = window.minhaClasse || 'summoner';
-        const lvl = (typeof window.meuNivel === 'number') ? window.meuNivel : 1;
+        const classe = obterClasseJogador();
+        const lvl = obterNivelJogador();
 
         if (typeof SkillUpgradeTree === 'undefined') return;
         const visao = SkillUpgradeTree.gerarVisaoCliente(classe, skillId, lvl, window.skillUpgrades);

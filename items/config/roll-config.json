@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "balanceStatus": "provisional",
+  "rollBands": [
+    { "id": "ruim", "minPercent": 0, "maxPercent": 49, "weight": 35 },
+    { "id": "abaixo_media", "minPercent": 50, "maxPercent": 64, "weight": 20 },
+    { "id": "comum", "minPercent": 65, "maxPercent": 74, "weight": 18 },
+    { "id": "bom", "minPercent": 75, "maxPercent": 84, "weight": 14 },
+    { "id": "excelente", "minPercent": 85, "maxPercent": 94, "weight": 8 },
+    { "id": "superior", "minPercent": 95, "maxPercent": 99, "weight": 4 },
+    { "id": "perfeito", "minPercent": 100, "maxPercent": 100, "weight": 1 }
+  ],
+  "perfection": {
+    "definition": "A instância é perfeita somente se todos os valores rolados e relevantes forem máximos.",
+    "allRelevantRollsMustBeMax": true
+  },
+  "itemPower": {
+    "levelWeight": 2,
+    "attackWeight": 1,
+    "defenseWeight": 1,
+    "affixCountWeight": 10,
+    "affixValueWeight": 1,
+    "qualityPercentWeight": 0.1
+  },
+  "itemLevelCap": 100
+}

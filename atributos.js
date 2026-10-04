@@ -20,6 +20,11 @@ window.meuMaxHp = window.meuMaxHp || 100;
 
 let _intervaloAtributos = null;
 
+function formatarNumeroAtributo(valor) {
+    if (!Number.isFinite(Number(valor))) return String(valor);
+    return String(Number(Number(valor).toFixed(2)));
+}
+
 function abrirAtributos() {
     if (window.estaMorto) return;
     if (charSelectScreen && charSelectScreen.style.display === "flex") return;
@@ -96,7 +101,7 @@ function renderizarAtributos() {
             }
             let elValor = linha.querySelector(".atributo-valor");
             if (elValor) {
-                elValor.innerHTML = valor + (bonus > 0 ? ' <b class="atributo-bonus-equip">+' + bonus + '</b>' : '');
+                elValor.innerHTML = valor + (bonus > 0 ? ' <b class="atributo-bonus-equip">+' + formatarNumeroAtributo(bonus) + '</b>' : '');
             }
         });
     } else {
@@ -125,7 +130,7 @@ function renderizarAtributos() {
                 '<div class="atributo-icone">' + attr.icone + '</div>' +
                 '<div class="atributo-texto">' +
                     '<div class="atributo-nome">' + attr.nome + ' <span class="atributo-valor">' + valor
-                        + (bonus > 0 ? ' <b class="atributo-bonus-equip">+' + bonus + '</b>' : '') + '</span></div>' +
+                        + (bonus > 0 ? ' <b class="atributo-bonus-equip">+' + formatarNumeroAtributo(bonus) + '</b>' : '') + '</span></div>' +
                     '<div class="atributo-bonus">' + attr.bonus + '</div>' +
                 '</div>';
 

@@ -904,8 +904,118 @@ window.desenharLacaio = function (lacaio) {
     }
     ctx.restore();
 
-    if (typeof window.desenharBarraHp === "function") {
-        window.desenharBarraHp(lacaio.x - 18, lacaio.y - 44, lacaio.hp, lacaio.maxHp);
+    // =========================================================================
+    // MARTELO DO COLOSSO (Esmagamento 4B) — Punho carregado com tremor telúrico
+    // =========================================================================
+    const marteloAtivo = lacaio.marteloColossoAtivo || (window.golemMarteloColossoAtivo && lacaio.pid && window.golemMarteloColossoAtivo[lacaio.pid]);
+    if (marteloAtivo) {
+        ctx.save();
+        const fistX = lacaio.x + 22 * escalaGolem;
+        const fistY = lacaio.y + 2 * escalaGolem;
+        const pulsoM = 0.8 + Math.sin(t * 8) * 0.2;
+
+        // Aura dourada/âmbar explosiva no punho
+        const gFist = ctx.createRadialGradient(fistX, fistY, 2, fistX, fistY, 18 * escalaGolem * pulsoM);
+        gFist.addColorStop(0, '#ffffff');
+        gFist.addColorStop(0.3, '#fde047');
+        gFist.addColorStop(0.7, '#f59e0b');
+        gFist.addColorStop(1, 'rgba(245, 158, 11, 0)');
+        ctx.fillStyle = gFist;
+        ctx.beginPath();
+        ctx.arc(fistX, fistY, 18 * escalaGolem * pulsoM, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Faíscas e estilhaços orbitando o punho
+        ctx.fillStyle = '#fef08a';
+        for (let j = 0; j < 4; j++) {
+            const aj = t * 6 + j * (Math.PI / 2);
+            const rj = 12 * escalaGolem;
+            ctx.beginPath();
+            ctx.arc(fistX + Math.cos(aj) * rj, fistY + Math.sin(aj) * (rj * 0.6), 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    // =========================================================================
+    // BARRA DE HP DO GOLEM (COR ROXA) & BARRINHA DE CARREGAMENTO INVERTIDO (SKILL 3)
+    // =========================================================================
+    if (lacaio.hp > 0 && lacaio.maxHp > 0) {
+        ctx.save();
+        const baseBarW = estaColossal ? 54 : 44;
+        const baseBarH = 5.5;
+        const barX = lacaio.x - baseBarW / 2;
+        const barY = lacaio.y - (estaColossal ? 66 : 48);
+
+        // 1. Barrinha de Carregamento Invertido (Tempo Restante da Skill 3 Golem Colossal)
+        if (estaColossal) {
+            let tempoRestante = 20.0;
+            if (window.lacaioColossalTimers && lacaio.pid && window.lacaioColossalTimers[lacaio.pid]) {
+                tempoRestante = Math.max(0, (window.lacaioColossalTimers[lacaio.pid] - Date.now()) / 1000);
+            } else if (lacaio.colossalTimer !== undefined) {
+                tempoRestante = Math.max(0, lacaio.colossalTimer * 0.05);
+            }
+            const pctColossal = Math.max(0, Math.min(1, tempoRestante / 20.0));
+            const timerBarY = barY - 13;
+            const timerBarH = 4.5;
+
+            // Fundo da barra do timer
+            ctx.fillStyle = 'rgba(15, 6, 2, 0.85)';
+            ctx.beginPath();
+            ctx.roundRect ? ctx.roundRect(barX, timerBarY, baseBarW, timerBarH, 2) : ctx.rect(barX, timerBarY, baseBarW, timerBarH);
+            ctx.fill();
+
+            // Preenchimento com contagem regressiva invertida (esvazia com o tempo)
+            const gTimer = ctx.createLinearGradient(barX, timerBarY, barX + baseBarW * pctColossal, timerBarY);
+            gTimer.addColorStop(0, '#f59e0b');
+            gTimer.addColorStop(0.6, '#ef4444');
+            gTimer.addColorStop(1, '#b91c1c');
+            ctx.fillStyle = gTimer;
+            ctx.beginPath();
+            ctx.roundRect ? ctx.roundRect(barX, timerBarY, baseBarW * pctColossal, timerBarH, 2) : ctx.rect(barX, timerBarY, baseBarW * pctColossal, timerBarH);
+            ctx.fill();
+
+            // Borda dourada/âmbar
+            ctx.strokeStyle = '#d97706';
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+
+            // Texto com o tempo restante exato
+            ctx.font = "bold 9px 'Rajdhani', Arial, sans-serif";
+            ctx.fillStyle = '#fef08a';
+            ctx.textAlign = 'center';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.9)';
+            ctx.shadowBlur = 4;
+            ctx.fillText('⏳ ' + tempoRestante.toFixed(1) + 's', lacaio.x, timerBarY - 2.5);
+            ctx.shadowBlur = 0;
+        }
+
+        // 2. Barra de HP do Golem na cor Roxa (#a855f7 / #c084fc)
+        const pctHp = Math.max(0, Math.min(1, lacaio.hp / lacaio.maxHp));
+
+        // Fundo da barra de vida
+        ctx.fillStyle = 'rgba(16, 4, 28, 0.85)';
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(barX - 1.5, barY - 1.5, baseBarW + 3, baseBarH + 3, 2.5) : ctx.rect(barX - 1.5, barY - 1.5, baseBarW + 3, baseBarH + 3);
+        ctx.fill();
+
+        // Preenchimento gradiente Roxo Nobre / Ametista
+        const gHp = ctx.createLinearGradient(barX, barY, barX, barY + baseBarH);
+        gHp.addColorStop(0, '#d8b4fe');
+        gHp.addColorStop(0.35, '#a855f7');
+        gHp.addColorStop(0.8, '#7e22ce');
+        gHp.addColorStop(1, '#581c87');
+        ctx.fillStyle = gHp;
+        ctx.beginPath();
+        ctx.roundRect ? ctx.roundRect(barX, barY, baseBarW * pctHp, baseBarH, 2) : ctx.rect(barX, barY, baseBarW * pctHp, baseBarH);
+        ctx.fill();
+
+        // Borda roxa escura
+        ctx.strokeStyle = '#4a044e';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.restore();
     }
 };
 

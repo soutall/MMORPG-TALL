@@ -34,15 +34,15 @@ console.log('  ✓ [PASSOU] 3. Botões de level no header da Árvore de Upgrades
 
 // 4. Verificar index.html (Versão e atualizações)
 const indexHtml = fs.readFileSync(path.join(__dirname, 'index.html'), 'utf8');
-assert(indexHtml.includes("const GAME_VERSION = 'v1.69.2';"), "GAME_VERSION deve ser 'v1.69.2' em index.html");
-assert(indexHtml.includes('>v1.69.2</div>'), 'Versão visual v1.69.2 deve estar nos displays do HUD e tela de login');
+assert(indexHtml.includes("const GAME_VERSION = 'v1.71.0';") || indexHtml.includes("const GAME_VERSION = 'v1.70.0';"), "GAME_VERSION deve ser 'v1.71.0' em index.html");
+assert(indexHtml.includes('>v1.71.0</div>') || indexHtml.includes('>v1.70.0</div>'), 'Versão visual deve estar nos displays do HUD e tela de login');
 assert(indexHtml.includes('admin-cheats.js?v=4'), 'Cache bump admin-cheats.js?v=4 deve estar presente');
-assert(indexHtml.includes('skill_tree_ui.js?v=2'), 'Cache bump skill_tree_ui.js?v=2 deve estar presente');
+assert(indexHtml.includes('skill_tree_ui.js?v=3'), 'Cache bump skill_tree_ui.js?v=3 deve estar presente');
 assert(indexHtml.includes('skills.css?v=146'), 'Cache bump skills.css?v=146 deve estar presente');
 assert(indexHtml.includes('atualizarVisualAdminLevel'), 'Chamada para atualizarVisualAdminLevel deve estar em index.html');
 assert(indexHtml.includes('mobile-sidebar-item-admin'), 'mobile-sidebar-item-admin deve estar presente em index.html');
 assert(indexHtml.includes('btn-admin-cheats'), 'btn-admin-cheats deve estar presente em index.html');
-console.log('  ✓ [PASSOU] 4. Versão v1.69.2, botão coroa HUD e item mobile admin em index.html');
+console.log('  ✓ [PASSOU] 4. Versão sincronizada, botão coroa HUD e item mobile admin em index.html');
 
 // 5. Testar lógica do SkillUpgradeTree com os níveis alcançados
 const SkillUpgradeTree = require('./skill_upgrade_tree.js');

@@ -1,0 +1,10 @@
+{
+  "schemaVersion": 1,
+  "balanceStatus": "provisional",
+  "tables": {
+    "gaia_low": { "itemLevel": [1, 34], "equipmentChance": 0.35, "weaponChance": 0.30, "rarityWeights": { "comum": 50, "incomum": 25, "raro": 17, "epico": 6.5, "lendario": 1.5 } },
+    "gaia_mid": { "itemLevel": [8, 60], "equipmentChance": 0.40, "weaponChance": 0.32, "rarityWeights": { "comum": 45, "incomum": 25, "raro": 20, "epico": 8, "lendario": 2 } },
+    "gaia_high": { "itemLevel": [28, 88], "equipmentChance": 0.45, "weaponChance": 0.34, "rarityWeights": { "comum": 40, "incomum": 25, "raro": 22, "epico": 10, "lendario": 3 } },
+    "gaia_endgame": { "itemLevel": [45, 100], "equipmentChance": 0.50, "weaponChance": 0.36, "rarityWeights": { "comum": 35, "incomum": 24, "raro": 25, "epico": 12, "lendario": 4 } }
+  }
+}

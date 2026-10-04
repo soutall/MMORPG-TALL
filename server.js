@@ -4,6 +4,7 @@ const path = require('path');
 const MAPAS_REGISTRY = require('./mapas-registry.js');
 const INSTANCIAS = require('./instancias.js');
 const WebSocket = require('ws');
+const itemSystem = require('./items/item-system.js');
 const { AsyncLocalStorage } = require('async_hooks');
 const combateContextStorage = new AsyncLocalStorage();
 
@@ -14,135 +15,18 @@ process.on('unhandledRejection', (reason) => {
     console.error('[PROMISE NÃO TRATADA]', reason);
 });
 
-let mapaVerde = null;
-try {
-    mapaVerde = require('./mapas.js');
-    console.log("Fase 1 'Campo Verde' carregada (" + mapaVerde.COLS + "x" + mapaVerde.ROWS + " tiles).");
-} catch (e) {
-    console.log("Aviso: mapas.js não carregado: " + e.message);
-}
+let mapaVerde = null, mapaDeserto = null, mapaPantano = null, mapaCaverna = null,
+    mapaCidade = null, mapaSolari = null, mapaCidadePerdida = null, mapaTesteVisual = null,
+    mapaZonaZero = null, mapaBemVindo = null, mapaRuinas01 = null, mapaCastelo = null,
+    mapaFloresta = null, mapaNebulos = null, mapaAbissal = null, mapaPantanoSombrio = null,
+    mapaTileTeste = null;
 
-let mapaDeserto = null;
+let mapaMundo = null;
 try {
-    mapaDeserto = require('./mapa_deserto.js');
-    console.log("Fase 2 'Deserto com Oásis' carregada (" + mapaDeserto.COLS + "x" + mapaDeserto.ROWS + " tiles).");
+    mapaMundo = require('./mapas/mapa_mundo.js');
+    console.log("Continente de Gaia carregado como MAPA ÚNICO (" + mapaMundo.W + "x" + mapaMundo.H + " px).");
 } catch (e) {
-    console.log("Aviso: mapa_deserto.js não carregado: " + e.message);
-}
-
-let mapaPantano = null;
-try {
-    mapaPantano = require('./mapa_pantano.js');
-    console.log("Fase 3 'Pantanal' carregada (" + mapaPantano.COLS + "x" + mapaPantano.ROWS + " tiles).");
-} catch (e) {
-    console.log("Aviso: mapa_pantano.js não carregado: " + e.message);
-}
-
-let mapaCaverna = null;
-try {
-    mapaCaverna = require('./mapa_caverna.js');
-    console.log("Fase 4 'Caverna Sombria (DG)' carregada (" + mapaCaverna.COLS + "x" + mapaCaverna.ROWS + " tiles).");
-} catch (e) {
-    console.log("Aviso: mapa_caverna.js não carregado: " + e.message);
-}
-
-let mapaCidade = null;
-try {
-    mapaCidade = require('./mapa_cidade.js');
-    console.log("Fase 5 'Cidade de Davahl' carregada (" + mapaCidade.COLS + "x" + mapaCidade.ROWS + " tiles).");
-} catch (e) {
-    console.log("Aviso: mapa_cidade.js não carregado: " + e.message);
-}
-
-let mapaSolari = null;
-try {
-    mapaSolari = require('./mapa_solari.js');
-    console.log("Fase 6 'Solari' carregada (" + mapaSolari.COLS + "x" + mapaSolari.ROWS + " tiles).");
-} catch (e) {
-    console.log("Aviso: mapa_solari.js não carregado: " + e.message);
-}
-
-let mapaCidadePerdida = null;
-try {
-    mapaCidadePerdida = require('./mapa_cidade_perdida.js');
-    console.log("Fase 7 'Cidade Perdida' carregada (" + mapaCidadePerdida.COLS + "x" + mapaCidadePerdida.ROWS + " tiles).");
-} catch (e) {
-    console.log("Aviso: mapa_cidade_perdida.js não carregado: " + e.message);
-}
-
-let mapaTesteVisual = null;
-try {
-    mapaTesteVisual = require('./mapa_teste_visual.js');
-    console.log("Arena Visual 'Teste Gráfico' carregada (" + mapaTesteVisual.COLS + "x" + mapaTesteVisual.ROWS + " tiles).");
-} catch (e) {
-    console.log("Aviso: mapa_teste_visual.js não carregado: " + e.message);
-}
-
-let mapaZonaZero = null;
-try {
-    mapaZonaZero = require('./mapa_zona_zero.js');
-    console.log("Fase Glacial 'Zona Zero' carregada (" + mapaZonaZero.COLS + "x" + mapaZonaZero.ROWS + " tiles).");
-} catch (e) {
-    console.log("Aviso: mapa_zona_zero.js não carregado: " + e.message);
-}
-
-let mapaBemVindo = null;
-try {
-    mapaBemVindo = require('./mapa_bemvindo.js');
-    console.log("Mapa inicial 'BemVindo' carregado (" + (mapaBemVindo.BEMVINDO_X1 - mapaBemVindo.BEMVINDO_X0) + "x" + mapaBemVindo.BEMVINDO_Y1 + " px).");
-} catch (e) {
-    console.log("Aviso: mapa_bemvindo.js não carregado: " + e.message);
-}
-
-let mapaRuinas01 = null;
-try {
-    mapaRuinas01 = require('./mapa_ruinas_01.js');
-} catch (e) {
-    console.log("Aviso: mapa_ruinas_01.js não carregado: " + e.message);
-}
-
-let mapaCastelo = null;
-try {
-    mapaCastelo = require('./mapa_castelo.js');
-    console.log("Dungeon 'Castelo Anda 1' carregada (" + mapaCastelo.COLS + "x" + mapaCastelo.ROWS + " tiles).");
-} catch (e) {
-    console.log("Aviso: mapa_castelo.js não carregado: " + e.message);
-}
-
-// Bioma Floresta — módulo isolado na pasta mapas/ (ID única, coordenadas exclusivas)
-let mapaFloresta = null;
-try {
-    mapaFloresta = require('./mapas/mapa_floresta.js');
-    console.log("Bioma 'Floresta dos Sussurros' carregado (" + mapaFloresta.COLS + "x" + mapaFloresta.ROWS + " tiles).");
-} catch (e) {
-    console.log("Aviso: mapas/mapa_floresta.js não carregado: " + e.message);
-}
-
-// Vila da Floresta dos Nebulos — módulo isolado (ID única, coordenadas exclusivas)
-let mapaNebulos = null;
-try {
-    mapaNebulos = require('./mapas/mapa_nebulos.js');
-    console.log("Bioma 'Floresta dos Nebulos' carregado (" + mapaNebulos.COLS + "x" + mapaNebulos.ROWS + " tiles).");
-} catch (e) {
-    console.log("Aviso: mapas/mapa_nebulos.js não carregado: " + e.message);
-}
-
-// Floresta Abissal — bioma sombrio e bioluminescente (ID única, coordenadas exclusivas)
-let mapaAbissal = null;
-try {
-    mapaAbissal = require('./mapas/mapa_abissal.js');
-    console.log("Bioma 'Floresta Abissal' carregado (" + mapaAbissal.COLS + "x" + mapaAbissal.ROWS + " tiles).");
-} catch (e) {
-    console.log("Aviso: mapas/mapa_abissal.js não carregado: " + e.message);
-}
-
-// Pântano Sombrio — bioma de pântano criado do zero (ID única pantano_sombrio, coordenadas exclusivas)
-let mapaPantanoSombrio = null;
-try {
-    mapaPantanoSombrio = require('./mapas/mapa_pantano_sombrio.js');
-    console.log("Bioma 'Pântano Sombrio' carregado (" + mapaPantanoSombrio.COLS + "x" + mapaPantanoSombrio.ROWS + " tiles).");
-} catch (e) {
-    console.log("Aviso: mapas/mapa_pantano_sombrio.js não carregado: " + e.message);
+    console.error("Aviso: mapas/mapa_mundo.js não carregado: " + e.message);
 }
 
 let SkillUpgradeTree = null;
@@ -154,10 +38,14 @@ try {
 }
 
 let salvarProgresso = () => {}, carregarProgresso = () => null;
+let salvarProgressoEmLote = () => { throw new Error('Persistência em lote indisponível.'); };
+let migrarIdentidadesItens = null;
 let dbCarregarTodos = () => ({}), dbRemoverProgresso = () => false;
 try {
     const db = require('./database.js');
     if (db.salvarProgresso) salvarProgresso = db.salvarProgresso;
+    if (db.salvarProgressoEmLote) salvarProgressoEmLote = db.salvarProgressoEmLote;
+    if (db.migrarIdentidadesItens) migrarIdentidadesItens = db.migrarIdentidadesItens;
     if (db.carregarProgresso) carregarProgresso = db.carregarProgresso;
     if (db.carregarTodos) dbCarregarTodos = db.carregarTodos;
     if (db.removerProgresso) dbRemoverProgresso = db.removerProgresso;
@@ -285,6 +173,8 @@ const server = http.createServer((req, res) => {
     if (extname === '.wav') contentType = 'audio/wav';
     if (extname === '.mp3') contentType = 'audio/mpeg';
     if (extname === '.ogg') contentType = 'audio/ogg';
+    if (extname === '.glb') contentType = 'model/gltf-binary';
+    if (extname === '.gltf') contentType = 'model/gltf+json';
 
     fs.readFile(filePath, (err, data) => {
         if (err) {
@@ -353,10 +243,8 @@ function solariSessaoPorInstancia(instanciaId) {
 }
 let slimes = [];
 // ===== TUTORIAL INICIAL — somente personagens novos =====
-// Etapa 1: status/pontos | Etapa 2: abrir/ler uma skill | Etapa 3: demônio ativo.
-// Etapa 4: tutorial encerrado após derrotar o demônio.
+// Etapa 1: status/pontos | Etapa 2: abrir/ler uma skill | Etapa 4: tutorial encerrado.
 const TUTORIAL_BEMVINDO_NPC = { x: 85820, y: 930 };
-const TUTORIAL_BEMVINDO_MONSTRO_HP = 500;
 const TUTORIAL_BEMVINDO_MONSTRO_ATK = 1;
 const tutorialDemonioPorPlayer = {};
 
@@ -383,29 +271,6 @@ function tutorialAvancar(p, etapa) {
     if (!p || !p.tutorialEtapa || p.tutorialEtapa >= etapa) return;
     p.tutorialEtapa = etapa;
     tutorialSalvar(p);
-}
-
-function tutorialCriarDemonio(p) {
-    if (!p || !p.tutorialEtapa || p.tutorialEtapa < 3 || tutorialDemonioPorPlayer[p.nome]) return null;
-    const id = 'tutorial_demonio_' + p.nome;
-    const demonio = {
-        id: id, tipo: 'tutorial_demonio', arquetipo: 'tutorial_demonio',
-        nome: 'Demônio do Tutorial', x: p.x + 300, y: p.y,
-        origemX: p.x + 300, origemY: p.y, mapa: 'bemvindo',
-        hp: TUTORIAL_BEMVINDO_MONSTRO_HP, maxHp: TUTORIAL_BEMVINDO_MONSTRO_HP,
-        dano: TUTORIAL_BEMVINDO_MONSTRO_ATK, defesa: 0, block: 0,
-        aggroRange: 900, attackRange: 48, velocidade: 1.8, cadenciaAtk: 60,
-        ehMelee: true, flagAgressivo: true, flagPassivo: false,
-        tutorialOwnerId: 'heroi_' + p.nome, targetId: 'heroi_' + p.nome,
-        attackCooldown: 0, tutorialSkillCooldown: 80,
-        tutorialSkillCharging: false, tutorialSkillTimer: 0, tutorialSkillMax: 20,
-        tutorialSkillAim: null, tutorialSkillArmed: false,
-        tabelaDano: {}, respawnTimer: 0, stunTimer: 0, slowTimer: 0,
-        efeitos: [], invisivel: false, elite: false, escala: 1
-    };
-    tutorialDemonioPorPlayer[p.nome] = demonio;
-    slimes.push(demonio);
-    return demonio;
 }
 
 function tutorialRemoverDemonio(p) {
@@ -597,7 +462,11 @@ let summonerFendas = colecaoCombate('summonerFendas');
 let summonerCrateras = colecaoCombate('summonerCrateras');
 let summonerImpactosAtrasados = colecaoCombate('summonerImpactosAtrasados');
 let summonerMiniFissuras = colecaoCombate('summonerMiniFissuras');
+let summonerColapsos = colecaoCombate('summonerColapsos');
 let proximoSummonerEntidadeId = 1;
+let golemsMago = {};
+let magoBolasFogoProjeteis = [];
+let magoMiniTornados = [];
 
 
 // ===== PIKEMAN — helpers da Execução da Morte (3 hits separados) =====
@@ -825,53 +694,41 @@ function colisaoObjetosDoMapa(mapa, cx, cy, raio) {
 }
 
 const WORLD_WIDTH = 126800; // inclui as Florestas dos Sussurros, dos Nebulos, a Floresta Abissal e o Pântano Sombrio (117200..126800)
-const WORLD_HEIGHT = 36000;
-const LARGURA_VERDE = 18000; // Fase 1 (mapa verde — 10x maior)
-const LARGURA_DESERTO = 50000; // Fase 2 (deserto — 20x maior)
-const LARGURA_PANTANO = 58000; // Fase 3 (pântano — 5x maior)
-const LARGURA_CAVERNA = 58000; // Fase 4 (caverna / DG) - começa aqui
-const FIM_CAVERNA = 59800;
-const LARGURA_CIDADE = 59800; // Fase 5 (cidade separada)
-const FIM_CIDADE = 61174;
-const LARGURA_SOLARI = mapaSolari ? mapaSolari.SOLARI_X0 : 63800; // Fase 6
-const FIM_SOLARI = mapaSolari ? mapaSolari.SOLARI_X1 : 65040;
-const LARGURA_CIDADE_PERDIDA = 65040; // Fase 7 (cidade perdida, apos a arena)
-const FIM_CIDADE_PERDIDA = 71920;
-const LARGURA_TESTE_VISUAL = 72000; // Arena Visual (teste gráfico legado)
-const FIM_TESTE_VISUAL = 73280;
-const LARGURA_ZONA_ZERO = 74000; // Fase Glacial «Zona Zero» (8.000 × 9.000 px)
-const FIM_ZONA_ZERO = 82000;
-const LARGURA_CASTELO = 82000; // Dungeon «Castelo Anda 1» (2.200 × 1.800 px)
-const FIM_CASTELO = 84200;
-const LARGURA_BEMVINDO = mapaBemVindo ? mapaBemVindo.BEMVINDO_X0 : 85000;
-const FIM_BEMVINDO = mapaBemVindo ? mapaBemVindo.BEMVINDO_X1 : 87400;
-const ALTO_BEMVINDO = mapaBemVindo ? mapaBemVindo.BEMVINDO_Y1 : 1800;
-const RUINAS_01_X0 = MAPAS_REGISTRY.ruinas_01.x0;
-const RUINAS_01_X1 = MAPAS_REGISTRY.ruinas_01.x0 + MAPAS_REGISTRY.ruinas_01.w;
-const ALTO_RUINAS_01 = MAPAS_REGISTRY.ruinas_01.h;
-// Bioma Floresta dos Sussurros — faixa exclusiva [90000, 98000) × [0, 6000)
-const LARGURA_FLORESTA = MAPAS_REGISTRY.floresta.x0;
-const FIM_FLORESTA = MAPAS_REGISTRY.floresta.x0 + MAPAS_REGISTRY.floresta.w;
-const ALTO_FLORESTA = MAPAS_REGISTRY.floresta.h;
-// Vila da Floresta dos Nebulos — faixa exclusiva [98000, 107600) × [0, 5400)
-const LARGURA_NEBOLOS = MAPAS_REGISTRY.nebulos.x0;
-const FIM_NEBOLOS = MAPAS_REGISTRY.nebulos.x0 + MAPAS_REGISTRY.nebulos.w;
-const ALTO_NEBOLOS = MAPAS_REGISTRY.nebulos.h;
-// Bioma Floresta Abissal — faixa exclusiva [107600, 117200) × [0, 5400)
-const LARGURA_ABISSAL = MAPAS_REGISTRY.abissal.x0;
-const FIM_ABISSAL = MAPAS_REGISTRY.abissal.x0 + MAPAS_REGISTRY.abissal.w;
-const ALTO_ABISSAL = MAPAS_REGISTRY.abissal.h;
-// Bioma Pântano Sombrio (Criado do zero) — faixa exclusiva [117200, 126800) × [0, 5400)
-const LARGURA_PANTANO_SOMBRIO = MAPAS_REGISTRY.pantano_sombrio.x0;
-const FIM_PANTANO_SOMBRIO = MAPAS_REGISTRY.pantano_sombrio.x0 + MAPAS_REGISTRY.pantano_sombrio.w;
-const ALTO_PANTANO_SOMBRIO = MAPAS_REGISTRY.pantano_sombrio.h;
-const ALTO_VERDE = 5400, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 1145, ALTO_SOLARI = mapaSolari ? mapaSolari.SOLARI_Y1 : 1240, ALTO_CIDADE_PERDIDA = 3920, ALTO_TESTE_VISUAL = 960, ALTO_ZONA_ZERO = 9000, ALTO_CASTELO = 1800;
-const CIDADE_SPAWN_X = 60487, CIDADE_SPAWN_Y = 553;
-const BEMVINDO_SPAWN_X = mapaBemVindo && mapaBemVindo.PONTO_SPAWN ? mapaBemVindo.PONTO_SPAWN.x : 85720;
-const BEMVINDO_SPAWN_Y = mapaBemVindo && mapaBemVindo.PONTO_SPAWN ? mapaBemVindo.PONTO_SPAWN.y : 930;
-// ATENCAO: cada ponto precisa ficar FORA do raio do portal de retorno do mapa,
-// senao o cliente detecta o portal e dispara transicao falsa (tela preta).
-const PONTOS_TELEPORTE = { green: { x: 9000, y: 2700 }, desert: { x: 34000, y: 18000 }, pantano: { x: 54000, y: 4500 }, caverna: { x: 58900, y: 960 }, cidade: { x: CIDADE_SPAWN_X, y: CIDADE_SPAWN_Y }, solari: { x: 64420, y: 620 }, cidadeperdida: { x: 68480, y: 1960 }, testevisual: { x: 72660, y: 480 }, zonazero: { x: 78000, y: 4500 }, castelo: { x: 83100, y: 900 }, bemvindo: { x: 86200, y: 900 }, ruinas_01: { x: RUINAS_01_X0 + 1300, y: 950 }, floresta: { x: 94000, y: 3000 }, nebulos: { x: 102860, y: 2700 }, abissal: { x: 112400, y: 2700 }, pantano_sombrio: { x: 122000, y: 2700 } };
+const WORLD_HEIGHT = 14000;
+const LARGURA_MUNDO = MAPAS_REGISTRY.mundo.x0;
+const FIM_MUNDO = MAPAS_REGISTRY.mundo.x0 + MAPAS_REGISTRY.mundo.w;
+const TOPO_MUNDO = MAPAS_REGISTRY.mundo.y0 || 0;
+const ALTO_MUNDO = TOPO_MUNDO + MAPAS_REGISTRY.mundo.h;
+
+// Constantes mantidas como fallbacks de segurança
+const LARGURA_VERDE = 18000, LARGURA_DESERTO = 50000, LARGURA_PANTANO = 58000,
+    LARGURA_CAVERNA = 58000, FIM_CAVERNA = 59800, LARGURA_CIDADE = 59800, FIM_CIDADE = 61174,
+    LARGURA_SOLARI = 63800, FIM_SOLARI = 65040, LARGURA_CIDADE_PERDIDA = 65040, FIM_CIDADE_PERDIDA = 71920,
+    LARGURA_TESTE_VISUAL = 72000, FIM_TESTE_VISUAL = 73280, LARGURA_ZONA_ZERO = 74000, FIM_ZONA_ZERO = 82000,
+    LARGURA_CASTELO = 82000, FIM_CASTELO = 84200, LARGURA_BEMVINDO = 85000, FIM_BEMVINDO = 87400, ALTO_BEMVINDO = 1800,
+    RUINAS_01_X0 = 87400, RUINAS_01_X1 = 90000, ALTO_RUINAS_01 = 1900,
+    LARGURA_FLORESTA = 90000, FIM_FLORESTA = 98000, ALTO_FLORESTA = 6000,
+    LARGURA_NEBOLOS = 98000, FIM_NEBOLOS = 107600, ALTO_NEBOLOS = 5400,
+    LARGURA_ABISSAL = 107600, FIM_ABISSAL = 117200, ALTO_ABISSAL = 5400,
+    LARGURA_PANTANO_SOMBRIO = 117200, FIM_PANTANO_SOMBRIO = 126800, ALTO_PANTANO_SOMBRIO = 5400,
+    LARGURA_TILETESTE = 128000, FIM_TILETESTE = 128960, ALTO_TILETESTE = 600,
+    ALTO_VERDE = 5400, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 1145, ALTO_SOLARI = 1240, ALTO_CIDADE_PERDIDA = 3920, ALTO_TESTE_VISUAL = 960, ALTO_ZONA_ZERO = 9000, ALTO_CASTELO = 1800;
+
+// SPAWN OFICIAL E ÚNICO: CENTRO EXATO DO CONTINENTE DE GAIA (144000, 14018)
+const MUNDO_SPAWN_X = 144000, MUNDO_SPAWN_Y = 14018;
+const CIDADE_SPAWN_X = MUNDO_SPAWN_X, CIDADE_SPAWN_Y = MUNDO_SPAWN_Y;
+const BEMVINDO_SPAWN_X = MUNDO_SPAWN_X, BEMVINDO_SPAWN_Y = MUNDO_SPAWN_Y;
+
+const PONTOS_TELEPORTE = Object.keys((mapaMundo && mapaMundo.CENTROS_BIOMAS) || {}).reduce(function (pontos, id) {
+    const centro = mapaMundo.CENTROS_BIOMAS[id];
+    pontos[id] = { x: centro.x, y: centro.y };
+    return pontos;
+}, {
+    mundo: { x: MUNDO_SPAWN_X, y: MUNDO_SPAWN_Y },
+    cidade: { x: MUNDO_SPAWN_X, y: MUNDO_SPAWN_Y },
+    green: { x: MUNDO_SPAWN_X, y: MUNDO_SPAWN_Y },
+    desert: { x: 153000, y: 14000 }
+});
 
 // ============================================================================
 // CONFIGURAÇÃO MULTI-MAPA DE COLISÕES E CAMADAS (Admin Editor v1.46.0 / v1.47.0)
@@ -1040,7 +897,7 @@ if (SOLARI_ROUNDS.length !== SOLARI_COORDS.rounds) {
 // Tipos usados na arena (sem clamp de bioma, sem projéteis invisíveis e com
 // dano escalável): melee, zumbi, caveira_melee, escorpiao, assassino, ogro,
 // gargula, mamute. 2 tipos aleatórios por round.
-const SOLARI_TIPOS = ['melee', 'zumbi', 'caveira_melee', 'escorpiao', 'assassino', 'ogro', 'gargula', 'mamute'];
+const SOLARI_TIPOS = [];
 
 // Tabela de XP oficial: valores progressivos (explicitos) do nível 1 ao 60.
 // TOTAL de 1 a 60: 946.465 XP — fórmula original: floor(100 * lvl^1.45)
@@ -1137,6 +994,17 @@ function getAtr(player, chave) {
     return base;
 }
 
+function ataqueEquipado(player) {
+    if (!player || !player.inventario || !player.inventario.slots) return 0;
+    return ['arma', 'armaSecundaria'].reduce(function (total, slot) {
+        const item = player.inventario.slots[slot];
+        if (!item || item.schemaVersion !== 1 || !itemSystem.validateEquipmentForClass(player.classe, item).valid) {
+            return total;
+        }
+        return total + item.attack;
+    }, 0);
+}
+
 function inventarioPadrao() {
     return {
         slots: {
@@ -1192,10 +1060,55 @@ function gerarDropsAuxiliares(x, y, baseHp, ehBoss) {
     }
 }
 
+function resolverBiomaDrop(x, y, entidade) {
+    const biomeName = entidade && (entidade.bioma || entidade.biome);
+    const explicitBiomeId = itemSystem.getBiomeIdByName(biomeName);
+    if (explicitBiomeId) return explicitBiomeId;
+    if (mapaMundo && typeof mapaMundo.isMundo === 'function' && mapaMundo.isMundo(x, y)) {
+        const worldBiomeId = itemSystem.getBiomeIdByName(mapaMundo.biomaNome(x, y));
+        if (worldBiomeId) return worldBiomeId;
+    }
+    return null;
+}
+
+function gerarEquipamentoParaDrop(classe, x, y, entidade) {
+    if (!itemSystem.getClass(classe)) {
+        console.error('[LOOT] Classe inválida para drop de equipamento:', classe);
+        return null;
+    }
+    const biomeId = resolverBiomaDrop(x, y, entidade);
+    if (!biomeId) {
+        console.error('[LOOT] Bioma não resolvido para drop de equipamento:', {
+            tipo: entidade && (entidade.tipo || entidade.nome),
+            bioma: entidade && entidade.bioma,
+            x: x,
+            y: y
+        });
+        return null;
+    }
+    const biome = itemSystem.getBiome(biomeId);
+    const range = itemSystem.getItemLevelRange(biomeId);
+    const levelValue = entidade && (entidade.nivel || entidade.level || entidade.nivelMonstro);
+    const monsterLevel = Number.isFinite(Number(levelValue))
+        ? Math.round(Number(levelValue))
+        : biome.recommendedLevel[0];
+    const itemLevel = Math.max(range[0], Math.min(range[1], monsterLevel));
+    try {
+        return itemSystem.generateEquipment({
+            classId: classe,
+            biomeId: biomeId,
+            itemLevel: itemLevel
+        });
+    } catch (e) {
+        console.error('[LOOT] Falha ao gerar equipamento:', e && e.stack ? e.stack : e);
+        return null;
+    }
+}
+
 // Spawna o drop no chão na morte de um monstro/boss.
 // A classe do item é decidida pela ÚNICA regra isolada em equipamentos.js
 // (escolherCriadorDrop = maior contribuidor de dano).
-function gerarDropNoChao(x, y, tabelaDano, baseHp, ehBoss) {
+function gerarDropNoChao(x, y, tabelaDano, baseHp, ehBoss, entidade) {
     if (!equipamentos) return;
     let vezes = ehBoss ? (equipamentos.BALANCE.dropsPorBoss || 1) : 1;
     if (!ehBoss && !equipamentos.rolarDropMonstro(baseHp)) return;
@@ -1203,7 +1116,8 @@ function gerarDropNoChao(x, y, tabelaDano, baseHp, ehBoss) {
     let classe = (criadorId && players[criadorId]) ? players[criadorId].classe : null;
     if (!classe) return;
     for (let i = 0; i < vezes; i++) {
-        let item = equipamentos.gerarEquipamento(classe);
+        let item = gerarEquipamentoParaDrop(classe, x, y, entidade);
+        if (!item) continue;
         console.log(`[LOG ITEM GERADO] Item UID ${item.uid || item.id} (${item.nome}) criado no chao (X: ${x}, Y: ${y})`);
         dropsChao.push({ id: item.id, x: x, y: y, criadoEm: Date.now(), item: item });
         if (item.raridade === 'epico' || item.raridade === 'lendario') {
@@ -1251,7 +1165,7 @@ function gerarDropsConfigurados(slime) {
                 let criadorId = equipamentos.escolherCriadorDrop(slime.tabelaDano);
                 let classe = (criadorId && players[criadorId]) ? players[criadorId].classe : null;
                 if (classe) {
-                    item = equipamentos.gerarEquipamento(classe);
+                    item = gerarEquipamentoParaDrop(classe, slime.x, slime.y, slime);
                     dropId = item.id;
                     if (item.raridade === 'epico' || item.raridade === 'lendario') {
                         let msgEq = JSON.stringify({ type: 'drop_raro', dropId: dropId, x: slime.x, y: slime.y, raridade: item.raridade, nome: item.nome || 'Item' });
@@ -1288,7 +1202,11 @@ function obterNivelSkill(p, skillId) {
 // Dano/cura escala +25% por nível
 function dmgSkill(p, skillId, base) {
     if (!base) return base;
-    return Math.round(base * (1 + (obterNivelSkill(p, skillId) - 1) * 0.25));
+    let d = Math.round(base * (1 + (obterNivelSkill(p, skillId) - 1) * 0.25));
+    if (p && p.classe === 'mago' && p.nevascaBuffStacks && p.nevascaBuffExpires && Date.now() < p.nevascaBuffExpires) {
+        d = Math.round(d * (1 + p.nevascaBuffStacks * 0.10));
+    }
+    return d;
 }
 
 // Custo de mana escala +6% por nível
@@ -1323,8 +1241,9 @@ function multiplicadorVelocidadeAtaque(p) {
             }
         }
     }
+    if (efeitos && efeitos.temEfeito(p, 'selva_ataque_lento')) mult *= 1.4;
     if (!Number.isFinite(mult) || mult <= 0) mult = 0.4;
-    return Math.max(0.4, Math.min(1, mult));
+    return Math.max(0.4, Math.min(1.6, mult));
 }
 
 // ===== ATAQUE BÁSICO AUTOMÁTICO: VALIDAÇÃO DE ALVO (server-authoritative) =====
@@ -1854,6 +1773,7 @@ function iniciarDash(playerId, ws, data) {
         return;
     }
     if (p.stunTimer > 0) return;
+    if (p.canalizandoMeteoro) { ws.send(JSON.stringify({ type: 'skill_erro', mensagem: 'Canalizando magia!' })); return; }
     if (p.dashAnim) return;                       // já está animando um dash
 
     const cfg = DASH_MOD.configDe(p.classe);
@@ -1882,7 +1802,9 @@ function iniciarDash(playerId, ws, data) {
     if (cfg.tipo === 'energia') {
         if (!dashNoCd(p)) return;
         if (p.escudoAbsoluto > 0 && p.escudoAbsolutoExpirador > Date.now()) return;
-        if (!gastarEstamina(ws, p, 40)) return;
+        let dmCusto = 40;
+        if (mapaMundo && typeof mapaMundo.ehDeserto === 'function' && mapaMundo.ehDeserto(p.x, p.y)) dmCusto *= 3;
+        if (!gastarEstamina(ws, p, dmCusto)) return;
         dashAplicarCd(p, cfg);
         const escudoDash = Math.round(p.maxHp * 0.50);
         darEscudoAbsorvente(p, escudoDash, 3000);
@@ -1894,9 +1816,13 @@ function iniciarDash(playerId, ws, data) {
     }
 
     if (!dashNoCd(p)) return;
+    let custoDash = cfg.stamina;
+    if (typeof custoDash === 'number' && mapaMundo && typeof mapaMundo.ehDeserto === 'function' && mapaMundo.ehDeserto(p.x, p.y)) {
+        custoDash *= 3;
+    }
     if (cfg.stamina === 'TODA') {
         if ((p.estamina || 0) < 20) { ws.send(JSON.stringify({ type: 'stamina_insuficiente', custo: 20, estamina: Math.round(p.estamina || 0) })); return; }
-    } else if (!gastarEstamina(ws, p, cfg.stamina)) return;
+    } else if (!gastarEstamina(ws, p, custoDash)) return;
     dashAplicarCd(p, cfg);
 
     const ang = Number.isFinite(Number(data.angulo)) ? Number(data.angulo) : (p.angulo || 0);
@@ -2182,6 +2108,7 @@ function calcularDanoJogador(autorId, quantidade, tipoOrigem, alvo) {
     // Debuffs/buffs alteram o dano causado
     if (efeitos) {
         if (efeitos.temEfeito(p, 'reducaoAtk')) mult *= 0.75; // Enfraquecido: -25%
+        if (efeitos.temEfeito(p, 'deserto_reducao_ataque')) mult *= 0.80;
         if (efeitos.temEfeito(p, 'fervor')) mult *= 1.25;     // Fervor: +25%
     }
     if (aliadoNaAura(autorId)) mult *= 1.05;
@@ -2200,7 +2127,8 @@ function calcularDanoJogador(autorId, quantidade, tipoOrigem, alvo) {
         mult *= 2;
         finalizarInvisibilidadeLadino(p, autorId);
     }
-    return { dano: Math.round(quantidade * mult * critMult), critico: critMult > 1 };
+    const attackBonus = tipoOrigem === 'pet' || tipoOrigem === 'dot' ? 0 : ataqueEquipado(p);
+    return { dano: Math.round((quantidade + attackBonus) * mult * critMult), critico: critMult > 1 };
 }
 
 // ===== LADINO: máquina de estados e helpers compartilhados =====
@@ -2324,6 +2252,10 @@ function xNoDeserto(x) { return x >= LARGURA_VERDE && x < LARGURA_DESERTO; }
 // Movimento de entidades (monstros/banda): respeita os grids de colisão
 // de cada bioma + os limites de altura de cada mapa.
 function podeAndar(x, y) {
+    if (x >= LARGURA_MUNDO && x < FIM_MUNDO) {
+        if (!(y >= TOPO_MUNDO) || y >= ALTO_MUNDO) return false;
+        return !(mapaMundo && mapaMundo.colideMundo(x, y, MONSTER_COLLISION_RADIUS));
+    }
     if (!(y >= 0)) return false;
     if (x < LARGURA_VERDE) {
         if (y >= ALTO_VERDE) return false;
@@ -2394,6 +2326,16 @@ function podeAndar(x, y) {
         if (mapaPantanoSombrio && mapaPantanoSombrio.colidePantanoSombrio(x, y)) return false;
         return true;
     }
+    if (x >= LARGURA_TILETESTE && x < FIM_TILETESTE) {
+        if (y >= ALTO_TILETESTE) return false;
+        if (mapaTileTeste && mapaTileTeste.colideTileTeste(x, y)) return false;
+        return true;
+    }
+    if (x >= LARGURA_MUNDO && x < FIM_MUNDO) {
+        if (y >= ALTO_MUNDO) return false;
+        if (mapaMundo && mapaMundo.colideMundo(x, y, MONSTER_COLLISION_RADIUS)) return false;
+        return true;
+    }
     return false;
 }
 
@@ -2402,6 +2344,7 @@ function podeAndar(x, y) {
 const PLAYER_OFFSET_X = 12;
 const PLAYER_OFFSET_Y = 16;
 const PLAYER_COLLISION_RADIUS = 12;
+const MONSTER_COLLISION_RADIUS = 14;
 const MAX_PLAYER_COLLISION_STEP = 12;
 
 // ---------------------------------------------------------------------------
@@ -2706,10 +2649,15 @@ function jogadorPodeUsarPortalMapa(player, destino) {
             (mapaAtual === 'green' && perto(17080, 4500));
     }
     if (destino === 'ruinas_01') return (mapaAtual === 'cidade' && perto(60474, 640)) || (mapaAtual === 'bemvindo' && perto(86780, 950));
-    if (destino === 'pantano' || destino === 'caverna' || destino === 'cidadeperdida' || destino === 'testevisual' || destino === 'zonazero' || destino === 'castelo' || destino === 'floresta' || destino === 'nebulos' || destino === 'abissal' || destino === 'pantano_sombrio') {
+    if (!PONTOS_TELEPORTE[destino] &&
+        (destino === 'pantano' || destino === 'caverna' || destino === 'cidadeperdida' ||
+            destino === 'testevisual' || destino === 'zonazero' || destino === 'castelo' ||
+            destino === 'floresta' || destino === 'nebulos' || destino === 'abissal' ||
+            destino === 'pantano_sombrio' || destino === 'tileteste' || destino === 'mundo')) {
         return mapaAtual === 'cidade' && perto(60474, 640);
     }
-    if (destino === 'cidade') return true; // Permitir retorno livre para a cidade pelo mapa mundial
+    if (destino === 'cidade' || destino === 'santuario' || destino === 'mundo') return true; // Retorno livre ao centro/cidade
+    if (PONTOS_TELEPORTE[destino]) return true; // Viagem para os biomas pelo mapa mundial
     return false;
 }
 
@@ -2728,6 +2676,43 @@ function garantirOrigemInimigo(inimigo) {
     if (!Number.isFinite(inimigo.origemX)) inimigo.origemX = inimigo.x;
     if (!Number.isFinite(inimigo.origemY)) inimigo.origemY = inimigo.y;
     if (!Number.isFinite(inimigo.patrulhaFase)) inimigo.patrulhaFase = Math.random() * Math.PI * 2;
+}
+
+function monstroPertenceABiomaDoMundo(monstro) {
+    if (!monstro || !monstro.bioma || !mapaMundo || typeof mapaMundo.isMundo !== 'function') return false;
+    garantirOrigemInimigo(monstro);
+    return mapaMundo.isMundo(monstro.origemX, monstro.origemY) &&
+        mapaMundo.biomaNome(monstro.origemX, monstro.origemY) === monstro.bioma;
+}
+
+function resetarMonstroNoBiomaNatal(monstro) {
+    garantirOrigemInimigo(monstro);
+    monstro.x = monstro.origemX;
+    monstro.y = monstro.origemY;
+    if (Number.isFinite(monstro.maxHp) && monstro.maxHp > 0) monstro.hp = monstro.maxHp;
+    monstro.targetId = null;
+    monstro.aiForcedTargetId = null;
+    monstro.aiForcedTargetAte = 0;
+    monstro.tabelaDano = {};
+    monstro.efeitos = [];
+    monstro.buffsMonstros = [];
+    monstro.venenoCastAte = 0;
+    monstro.venenoAlvoX = null;
+    monstro.venenoAlvoY = null;
+    monstro.attackCooldown = 0;
+    monstro.stunTimer = 0;
+    monstro.slowTimer = 0;
+    monstro.skillCharging = false;
+    monstro.skillChargeTimer = 0;
+    monstro.skillAim = null;
+    monstro.aiAtacandoAte = 0;
+    monstro.aiEstado = monstro.aiDormindo ? 'sleep' : 'idle';
+    monstro.aiEstadoTimer = 0;
+    monstro.aiPatrolX = monstro.origemX;
+    monstro.aiPatrolY = monstro.origemY;
+    monstro.aiProximoPatrulha = 0;
+    monstro.aiBloqueadoTicks = 0;
+    monstro.retornandoAoLar = false;
 }
 
 function moverInimigoParaOrigem(inimigo, fatorLentidao) {
@@ -2795,9 +2780,84 @@ function monstroPodeAtacar(entidade) {
     return !(efeitos && efeitos.temEfeito(entidade, 'cegueira'));
 }
 
+// Atualização e expiração de todos os debuffs de monstros e bosses (tick a tick)
+function atualizarDebuffsEntidade(ent, agora) {
+    if (!ent) return;
+    if (ent.imuneControle) {
+        ent.stunTimer = 0;
+        ent.slowTimer = 0;
+        ent.lentidaoTimer = 0;
+        ent.lentidao = 1.0;
+        ent.presoTimer = 0;
+        ent.isPreso = 0;
+        if (Array.isArray(ent.efeitos)) {
+            ent.efeitos = ent.efeitos.filter(ef => !['stun', 'lentidao', 'paralisia', 'sono', 'gelo'].includes(ef.id));
+        }
+    }
+
+    // 1. Slow / Lentidão
+    if (ent.slowTimer > 0 && !ent.imuneControle) {
+        ent.slowTimer--;
+    }
+    if (ent.lentidaoTimer > 0) {
+        ent.lentidaoTimer--;
+        if (ent.lentidaoTimer <= 0) {
+            ent.lentidao = 1.0;
+        }
+    } else {
+        ent.lentidao = 1.0;
+    }
+
+    // 2. Preso / Enraizado
+    if (ent.isPreso) {
+        if (agora >= ent.isPreso) {
+            ent.isPreso = 0;
+            ent.presoTimer = 0;
+        } else {
+            ent.presoTimer = Math.max(0, Math.ceil((ent.isPreso - agora) / 50));
+        }
+    } else if (ent.presoTimer > 0) {
+        ent.presoTimer--;
+    }
+
+    // 3. Fratura Exposta / Redução de Defesa
+    if (ent.fraturaExpostaExpires) {
+        if (agora >= ent.fraturaExpostaExpires) {
+            ent.fraturaExpostaExpires = 0;
+            ent.reducaoDefTimer = 0;
+        } else {
+            ent.reducaoDefTimer = Math.max(0, Math.ceil((ent.fraturaExpostaExpires - agora) / 50));
+        }
+    } else if (ent.reducaoDefTimer > 0) {
+        ent.reducaoDefTimer--;
+    }
+
+    // 4. Fratura Defensiva (Esmagamento 3B: +12% dano)
+    if (ent.fraturaDefensivaExpires && agora >= ent.fraturaDefensivaExpires) {
+        ent.fraturaDefensivaExpires = 0;
+    }
+
+    // 5. Marca da Presa (Salto 1A: +15% dano)
+    if (ent.marcaPresaExpires && agora >= ent.marcaPresaExpires) {
+        ent.marcaPresaExpires = 0;
+        ent.marcaPresaOwner = null;
+    }
+
+    // 6. Queimadura
+    if (ent.queimaduraExpires && agora >= ent.queimaduraExpires) {
+        ent.queimaduraExpires = 0;
+    }
+
+    // 7. Redução de Ataque
+    if (ent.reducaoAtkTimer > 0) {
+        ent.reducaoAtkTimer--;
+    }
+}
+
 function limitesMapaJogador(cx, cy) {
     if (!Number.isFinite(cx) || !Number.isFinite(cy)) return null;
     if (cx < 0 || cy < 0) return null;
+    if (cx >= LARGURA_MUNDO && cx < FIM_MUNDO) return { minX: LARGURA_MUNDO, maxX: FIM_MUNDO, maxY: ALTO_MUNDO };
 
     if (cx < LARGURA_VERDE) return { minX: 0, maxX: LARGURA_VERDE, maxY: ALTO_VERDE };
     if (cx < LARGURA_DESERTO) return { minX: LARGURA_VERDE, maxX: LARGURA_DESERTO, maxY: ALTO_DESERTO };
@@ -2815,10 +2875,15 @@ function limitesMapaJogador(cx, cy) {
     if (cx >= LARGURA_NEBOLOS && cx < FIM_NEBOLOS) return { minX: LARGURA_NEBOLOS, maxX: FIM_NEBOLOS, maxY: ALTO_NEBOLOS };
     if (cx >= LARGURA_ABISSAL && cx < FIM_ABISSAL) return { minX: LARGURA_ABISSAL, maxX: FIM_ABISSAL, maxY: ALTO_ABISSAL };
     if (cx >= LARGURA_PANTANO_SOMBRIO && cx < FIM_PANTANO_SOMBRIO) return { minX: LARGURA_PANTANO_SOMBRIO, maxX: FIM_PANTANO_SOMBRIO, maxY: ALTO_PANTANO_SOMBRIO };
+    if (cx >= LARGURA_TILETESTE && cx < FIM_TILETESTE) return { minX: LARGURA_TILETESTE, maxX: FIM_TILETESTE, maxY: ALTO_TILETESTE };
+    if (cx >= LARGURA_MUNDO && cx < FIM_MUNDO) return { minX: LARGURA_MUNDO, maxX: FIM_MUNDO, maxY: ALTO_MUNDO };
     return null;
 }
 
 function colideMapaJogador(cx, cy) {
+    if (cx >= LARGURA_MUNDO && cx < FIM_MUNDO) {
+        return !!(mapaMundo && mapaMundo.colideMundo(cx, cy, PLAYER_COLLISION_RADIUS));
+    }
     if (cx < LARGURA_VERDE) {
         if (mapaVerde && mapaVerde.colideVerde(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
         return colideObstaculosCustomizados('green', cx, cy, PLAYER_COLLISION_RADIUS);
@@ -2896,6 +2961,14 @@ function colideMapaJogador(cx, cy) {
         if (mapaPantanoSombrio && mapaPantanoSombrio.colidePantanoSombrio(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
         if (colisaoObjetosDoMapa('pantano_sombrio', cx, cy)) return true;
         return colideObstaculosCustomizados('pantano_sombrio', cx, cy, PLAYER_COLLISION_RADIUS);
+    }
+    if (cx >= LARGURA_TILETESTE && cx < FIM_TILETESTE) {
+        if (mapaTileTeste && mapaTileTeste.colideTileTeste(cx, cy, PLAYER_COLLISION_RADIUS)) return true;
+        if (colisaoObjetosDoMapa('tileteste', cx, cy)) return true;
+        return colideObstaculosCustomizados('tileteste', cx, cy, PLAYER_COLLISION_RADIUS);
+    }
+    if (cx >= LARGURA_MUNDO && cx < FIM_MUNDO) {
+        return !!(mapaMundo && mapaMundo.colideMundo(cx, cy, PLAYER_COLLISION_RADIUS));
     }
     return true;
 }
@@ -3028,6 +3101,657 @@ function gerarPosicaoCaverna() {
     return { x, y };
 }
 
+const SANTUARIO_SLIME_BIOMA = 'Planície das Plantas (Santuário)';
+const SANTUARIO_SLIME_CENTRO = { x: 144000, y: 14018 };
+const SANTUARIO_SLIME_ELITE_CENTRO = { x: 145300, y: 14018 };
+const SANTUARIO_SLIME_GRUPOS = [
+    { x: 142950, y: 13000 }, { x: 145050, y: 13000 },
+    { x: 142950, y: 15035 }, { x: 145050, y: 15035 }
+];
+
+function slimeEmBiomaValido(x, y) {
+    return entidadeEmBiomaValido({ bioma: SANTUARIO_SLIME_BIOMA }, x, y);
+}
+
+function entidadeEmBiomaValido(monstro, x, y) {
+    if (monstro.bioma) {
+        return !!mapaMundo &&
+            x >= LARGURA_MUNDO && x < FIM_MUNDO &&
+            y >= 0 && y < ALTO_MUNDO &&
+            mapaMundo.biomaNome(x, y) === monstro.bioma &&
+            !mapaMundo.colideMundo(x, y, monstro.raioColisao || MONSTER_COLLISION_RADIUS);
+    }
+    return podeAndar(x, y);
+}
+
+function gerarPosicaoSantuarioSlime(origem, raio) {
+    for (let tentativa = 0; tentativa < 100; tentativa++) {
+        const angulo = Math.random() * Math.PI * 2;
+        const distancia = Math.sqrt(Math.random()) * raio;
+        const x = origem.x + Math.cos(angulo) * distancia;
+        const y = origem.y + Math.sin(angulo) * distancia;
+        if (slimeEmBiomaValido(x, y)) return { x, y };
+    }
+    return null;
+}
+
+function gerarPosicaoNaturalBioma(bioma, origem, raio) {
+    if (!mapaMundo || !bioma) return null;
+    for (let tentativa = 0; tentativa < 180; tentativa++) {
+        const angulo = Math.random() * Math.PI * 2;
+        const distancia = Math.sqrt(Math.random()) * (raio || 700);
+        const x = origem.x + Math.cos(angulo) * distancia;
+        const y = origem.y + Math.sin(angulo) * distancia;
+        if (entidadeEmBiomaValido({ bioma: bioma, raioColisao: MONSTER_COLLISION_RADIUS }, x, y)) {
+            return { x: Math.round(x), y: Math.round(y) };
+        }
+    }
+    return null;
+}
+
+function criarSlimeNatural(x, y, grupoId, tipo) {
+    tipo = tipo || 'slime';
+    const conf = spawnsAdmin.getMonstroConfig(tipo);
+    const hp = Math.max(10, Math.floor(conf.baseHp));
+    const agora = Date.now();
+    const hora = sistemaDiaNoite ? sistemaDiaNoite.calcularTempoMundo(agora).horaDecimal : 12;
+    const dormindo = hora < 6 || hora >= 23;
+    return {
+        id: tipo + '_natural_' + Math.random().toString(36).slice(2, 12),
+        tipo: tipo,
+        nome: conf.nome,
+        asset: spawnsAdmin.TIPOS_MONSTROS[tipo].asset,
+        nivel: conf.nivel || 1,
+        tags: conf.tags.slice(),
+        elite: conf.tags.indexOf('elite') !== -1,
+        aiManaged: true,
+        bioma: conf.bioma || SANTUARIO_SLIME_BIOMA,
+        raioColisao: spawnsAdmin.TIPOS_MONSTROS[tipo].radius || MONSTER_COLLISION_RADIUS,
+        x: x,
+        y: y,
+        hp: hp,
+        maxHp: hp,
+        baseHp: hp,
+        dano: conf.dano,
+        xpBase: conf.xpBase,
+        aggroRange: conf.aggroRange,
+        attackRange: conf.attackRange,
+        velocidade: conf.velocidade,
+        cadenciaAtk: conf.cadenciaAtk,
+        velProjetil: conf.velProjetil || 9,
+        ehMelee: conf.ehMelee !== false,
+        escala: conf.escala || 1,
+        defesa: conf.defesa || 0,
+        block: conf.block || 0,
+        imuneDebuffs: conf.imuneDebuffs || [],
+        debuffsAplicados: conf.debuffsAplicados || [],
+        buffsAplicados: conf.buffsAplicados || [],
+        drops: conf.drops || [],
+        targetId: null,
+        tabelaDano: {},
+        attackCooldown: 0,
+        stunTimer: 0,
+        slowTimer: 0,
+        flagPassivo: false,
+        flagAgressivo: true,
+        spawnNatural: true,
+        spawnGrupoId: grupoId || null,
+        origemX: x,
+        origemY: y,
+        aiEstado: dormindo ? 'sleep' : 'idle',
+        aiDormindo: dormindo,
+        aiEstadoTimer: 0,
+        aiPatrolX: x,
+        aiPatrolY: y,
+        aiProximoPatrulha: agora + 1000 + Math.random() * 3000,
+        aiUltimoMovimento: agora,
+        aiUltimoDodge: 0,
+        aiIsNight: false,
+        criadoEm: agora
+    };
+}
+
+function gerarPosicaoNaturalDeserto(origem, raio) {
+    if (!mapaMundo || typeof mapaMundo.ehDeserto !== 'function') return null;
+    const centro = origem || mapaMundo.CENTROS_BIOMAS.deserto;
+    for (let tentativa = 0; tentativa < 160; tentativa++) {
+        const angulo = Math.random() * Math.PI * 2;
+        const distancia = Math.sqrt(Math.random()) * (raio || 9000);
+        const x = centro.x + Math.cos(angulo) * distancia;
+        const y = centro.y + Math.sin(angulo) * distancia;
+        if (mapaMundo.ehDeserto(x, y) &&
+            !mapaMundo.colideMundo(x, y, MONSTER_COLLISION_RADIUS)) {
+            return { x: Math.round(x), y: Math.round(y) };
+        }
+    }
+    return null;
+}
+
+function gerarPosicaoNaturalSelva(origem, raio) {
+    const centro = origem || mapaMundo.CENTROS_BIOMAS.selva;
+    return gerarPosicaoNaturalBioma('Selva Proibida', centro, raio || 9000);
+}
+
+function inicializarSpawnsNaturaisSlime() {
+    if (!spawnsAdmin || !mapaMundo) return;
+    let distribuidos = 0;
+    for (let i = 0; i < 24; i++) {
+        const pos = gerarPosicaoSantuarioSlime(SANTUARIO_SLIME_CENTRO, 2900);
+        if (!pos) break;
+        slimes.push(criarSlimeNatural(pos.x, pos.y, null));
+        distribuidos++;
+    }
+    let emGrupos = 0;
+    SANTUARIO_SLIME_GRUPOS.forEach(function (centro, indice) {
+        const quantidade = 4 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < quantidade; i++) {
+            const pos = gerarPosicaoSantuarioSlime(centro, 130);
+            if (!pos) continue;
+            slimes.push(criarSlimeNatural(pos.x, pos.y, 'santuario_' + indice));
+            emGrupos++;
+        }
+    });
+    const elitePos = gerarPosicaoSantuarioSlime(SANTUARIO_SLIME_ELITE_CENTRO, 160);
+    if (elitePos) slimes.push(criarSlimeNatural(elitePos.x, elitePos.y, null, 'slime_elite'));
+    console.log('Slimes naturais do Santuário: ' + distribuidos + ' distribuídos, ' + emGrupos + ' em grupos, elite ' + (elitePos ? 'posicionado' : 'sem posição livre') + '.');
+}
+
+function inicializarSpawnsNaturaisDeserto() {
+    if (!spawnsAdmin || !mapaMundo) return;
+    const centro = mapaMundo.CENTROS_BIOMAS.deserto;
+    const distribuicao = [
+        ['besouro_dourado', 10],
+        ['escorpiao_escaldante', 8],
+        ['formiga_sauva', 12],
+        ['besouro_negro_deserto', 1]
+    ];
+    let total = 0;
+    distribuicao.forEach(function (entrada) {
+        for (let i = 0; i < entrada[1]; i++) {
+            const pos = gerarPosicaoNaturalDeserto(centro, 9500);
+            if (!pos) continue;
+            slimes.push(criarSlimeNatural(pos.x, pos.y, null, entrada[0]));
+            total++;
+        }
+    });
+    console.log('Monstros naturais do Deserto Escaldante posicionados: ' + total + '.');
+}
+
+function inicializarSpawnsNaturaisSelva() {
+    if (!spawnsAdmin || !mapaMundo || !mapaMundo.CENTROS_BIOMAS.selva) return;
+    const centro = mapaMundo.CENTROS_BIOMAS.selva;
+    const distribuicao = [
+        ['cogumelo_proibido', 8],
+        ['anaconda_selvagem', 10],
+        ['jararaca', 10],
+        ['louvadermi', 8]
+    ];
+    let total = 0;
+    distribuicao.forEach(function (entrada) {
+        for (let i = 0; i < entrada[1]; i++) {
+            const pos = gerarPosicaoNaturalSelva(centro, 9000);
+            if (!pos) continue;
+            slimes.push(criarSlimeNatural(pos.x, pos.y, null, entrada[0]));
+            total++;
+        }
+    });
+    console.log('Monstros naturais da Selva Proibida posicionados: ' + total + '.');
+}
+
+function jogadorPodeSerAlvoDoSlime(pid, jogador, slime) {
+    if (!jogador || !(jogador.hp > 0) ||
+        mapaPorCoordenada(jogador.x + PLAYER_OFFSET_X) !== mapaPorCoordenada(slime.x) ||
+        !instanciaCompativel(jogador, slime) ||
+        (efeitos && (efeitos.temEfeito(jogador, 'invisivel') || efeitos.temEfeito(jogador, 'camuflagem')))) return false;
+    return !monstroPertenceABiomaDoMundo(slime) ||
+        mapaMundo.biomaNome(jogador.x + PLAYER_OFFSET_X, jogador.y + PLAYER_OFFSET_Y) === slime.bioma;
+}
+
+function moverMonstroComDesvio(slime, destinoX, destinoY, velocidade) {
+    const dx = destinoX - slime.x;
+    const dy = destinoY - slime.y;
+    const distancia = Math.hypot(dx, dy);
+    if (distancia < 1) return false;
+    const angulo = Math.atan2(dy, dx);
+    const passo = Math.min(velocidade, distancia);
+    if (monstroPertenceABiomaDoMundo(slime)) {
+        const passoTeste = Math.max(12, passo);
+        const destinoDiretoX = slime.x + Math.cos(angulo) * passoTeste;
+        const destinoDiretoY = slime.y + Math.sin(angulo) * passoTeste;
+        if (mapaMundo.biomaNome(destinoDiretoX, destinoDiretoY) !== slime.bioma) {
+            resetarMonstroNoBiomaNatal(slime);
+            return true;
+        }
+    }
+    const candidatos = [0, Math.PI / 6, -Math.PI / 6, Math.PI / 3, -Math.PI / 3,
+        Math.PI / 2, -Math.PI / 2, Math.PI * 2 / 3, -Math.PI * 2 / 3, Math.PI];
+    let melhor = null;
+    let melhorDistancia = distancia;
+    let melhorAlternativa = null;
+    let melhorPontuacaoAlternativa = Infinity;
+    for (let i = 0; i < candidatos.length; i++) {
+        const direcao = angulo + candidatos[i];
+        const testeX = slime.x + Math.cos(direcao) * Math.max(12, passo);
+        const testeY = slime.y + Math.sin(direcao) * Math.max(12, passo);
+        if (!entidadeEmBiomaValido(slime, testeX, testeY)) continue;
+        const restante = Math.hypot(destinoX - testeX, destinoY - testeY);
+        const pontuacao = restante + Math.abs(candidatos[i]) * 8;
+        if (pontuacao < melhorPontuacaoAlternativa) {
+            melhorPontuacaoAlternativa = pontuacao;
+            melhorAlternativa = direcao;
+        }
+        if (restante < melhorDistancia) {
+            melhorDistancia = restante;
+            melhor = direcao;
+        }
+    }
+    if (melhor === null) {
+        melhor = melhorAlternativa;
+        if (melhor === null) {
+            slime.aiBloqueadoTicks = (slime.aiBloqueadoTicks || 0) + 1;
+            return false;
+        }
+    }
+    const novoX = slime.x + Math.cos(melhor) * passo;
+    const novoY = slime.y + Math.sin(melhor) * passo;
+    if (!entidadeEmBiomaValido(slime, novoX, novoY)) return false;
+    slime.x = novoX;
+    slime.y = novoY;
+    slime.angulo = melhor;
+    slime.aiBloqueadoTicks = 0;
+    slime.aiUltimoMovimento = Date.now();
+    return true;
+}
+
+function atualizarIAMonstro(slime, agora, horaDecimal) {
+    if (slime.hp > 0 && monstroPertenceABiomaDoMundo(slime) &&
+        mapaMundo.biomaNome(slime.x, slime.y) !== slime.bioma) {
+        resetarMonstroNoBiomaNatal(slime);
+    }
+    if (!slime.aiManaged) return false;
+    const tags = Array.isArray(slime.tags) ? slime.tags : [];
+    const noturno = tags.indexOf('noturno') !== -1;
+    const dormePorHorario = noturno
+        ? !(horaDecimal >= 0 && horaDecimal < 4)
+        : !(horaDecimal >= 6 && horaDecimal < 23);
+    if (!slime.aiInicializada) {
+        slime.aiInicializada = true;
+        if (dormePorHorario && !slime.targetId) {
+            slime.aiDormindo = true;
+            slime.aiEstado = 'sleep';
+        }
+    }
+    if (slime.hp <= 0) {
+        if (!slime.spawnNatural) return false;
+        slime.aiRespawnTimer = (slime.aiRespawnTimer || 0) + 1;
+        if (slime.aiRespawnTimer < 2400) return true;
+        const pos = slime.bioma === SANTUARIO_SLIME_BIOMA
+            ? gerarPosicaoSantuarioSlime({ x: slime.origemX, y: slime.origemY }, slime.spawnGrupoId ? 220 : 700)
+            : (slime.bioma === 'Deserto Escaldante'
+                ? gerarPosicaoNaturalDeserto({ x: slime.origemX, y: slime.origemY }, slime.spawnGrupoId ? 220 : 9500)
+                : (slime.bioma === 'Selva Proibida'
+                    ? gerarPosicaoNaturalSelva({ x: slime.origemX, y: slime.origemY }, slime.spawnGrupoId ? 220 : 9000)
+                    : null));
+        if (!pos) return true;
+        slime.x = pos.x;
+        slime.y = pos.y;
+        slime.hp = slime.maxHp;
+        slime.aiRespawnTimer = 0;
+        slime.targetId = null;
+        slime.tabelaDano = {};
+        slime.buffsMonstros = [];
+        slime.venenoCastAte = 0;
+        slime.venenoAlvoX = null;
+        slime.venenoAlvoY = null;
+        slime.aiDormindo = dormePorHorario;
+        slime.aiEstado = slime.aiDormindo ? 'sleep' : 'idle';
+        slime.aiEstadoTimer = 0;
+    }
+    const noite = horaDecimal >= 23 || horaDecimal < 6;
+    if (slime._velocidadeBase == null) slime._velocidadeBase = slime.velocidade || 1.4;
+    slime.aiIsNight = noite;
+    const buffsAtivos = obterBuffsMonstroAtivos(slime, agora);
+    const multVelocidadeBuff = buffsAtivos.reduce(function (mult, buff) {
+        return mult * (buff.velocidadeMult || 1);
+    }, 1);
+    const multVelocidadeBioma = slime.bioma === 'Deserto Escaldante' ? 1.5 : 1;
+    slime.velocidade = slime._velocidadeBase * multVelocidadeBioma * (noite ? 3 : 1) * multVelocidadeBuff;
+    if (slime.stunTimer > 0) {
+        slime.stunTimer--;
+        return true;
+    }
+    if (!slime.aiDormindo) {
+        atualizarBuffAreaMonstro(slime, agora);
+        if (slime.tipo === 'cogumelo_proibido') atualizarRotinaCogumelo(slime, agora);
+    }
+
+    if (slime.aiEstadoTimer > 0) {
+        slime.aiEstadoTimer--;
+        if (slime.aiEstadoTimer === 0) {
+            if (slime.aiEstado === 'rest_enter') slime.aiEstado = 'sleep';
+            else if (slime.aiEstado === 'rest_exit') slime.aiEstado = 'idle';
+        }
+    }
+    let alvo = slime.targetId && players[slime.targetId];
+    if (alvo && !jogadorPodeSerAlvoDoSlime(slime.targetId, alvo, slime)) {
+        slime.targetId = null;
+        alvo = null;
+    }
+    if (alvo && Math.hypot((alvo.x + PLAYER_OFFSET_X) - slime.x, (alvo.y + PLAYER_OFFSET_Y) - slime.y) > 900) {
+        slime.targetId = null;
+        alvo = null;
+    }
+    let alvoForcado = false;
+    if (slime.aiForcedTargetAte > agora) {
+        const curador = players[slime.aiForcedTargetId];
+        if (jogadorPodeSerAlvoDoSlime(slime.aiForcedTargetId, curador, slime)) {
+            slime.targetId = slime.aiForcedTargetId;
+            alvo = curador;
+            alvoForcado = true;
+        } else {
+            slime.aiForcedTargetAte = 0;
+            slime.aiForcedTargetId = null;
+        }
+    }
+    if (!alvoForcado && !slime.flagPassivo && (!dormePorHorario || !slime.aiDormindo)) {
+        let jogadorMaisProximo = null;
+        let idMaisProximo = null;
+        let menorDistancia = slime.aggroRange || 320;
+        const candidatos = [];
+        for (const pid of Object.keys(players)) {
+            const jogador = players[pid];
+            if (!jogadorPodeSerAlvoDoSlime(pid, jogador, slime)) continue;
+            const distancia = Math.hypot((jogador.x + PLAYER_OFFSET_X) - slime.x, (jogador.y + PLAYER_OFFSET_Y) - slime.y);
+            if (distancia <= menorDistancia) candidatos.push({ pid: pid, jogador: jogador, distancia: distancia });
+        }
+        const elite = tags.indexOf('elite') !== -1 || tags.indexOf('boss') !== -1;
+        const assassino = tags.indexOf('assassinos') !== -1;
+        if (elite) {
+            candidatos.sort(function (a, b) {
+                const danoA = (slime.tabelaDano && slime.tabelaDano[a.pid]) || 0;
+                const danoB = (slime.tabelaDano && slime.tabelaDano[b.pid]) || 0;
+                const rangedA = /arqueiro|mago|curandeiro/i.test(a.jogador.classe || '') ? 1 : 0;
+                const rangedB = /arqueiro|mago|curandeiro/i.test(b.jogador.classe || '') ? 1 : 0;
+                return (danoB + rangedB * 1000) - (danoA + rangedA * 1000) || a.distancia - b.distancia;
+            });
+        } else if (assassino) {
+            candidatos.sort(function (a, b) {
+                const preferenciaA = /curandeiro|arqueiro|mago/i.test(a.jogador.classe || '') ? 0 : 1;
+                const preferenciaB = /curandeiro|arqueiro|mago/i.test(b.jogador.classe || '') ? 0 : 1;
+                return preferenciaA - preferenciaB || a.distancia - b.distancia;
+            });
+        } else {
+            candidatos.sort(function (a, b) { return a.distancia - b.distancia; });
+        }
+        if (candidatos.length) {
+            jogadorMaisProximo = candidatos[0].jogador;
+            idMaisProximo = candidatos[0].pid;
+            menorDistancia = candidatos[0].distancia;
+        }
+        if (jogadorMaisProximo) {
+            slime.targetId = idMaisProximo;
+            alvo = jogadorMaisProximo;
+        }
+    }
+    if (alvo && slime.aiDormindo) {
+        slime.aiDormindo = false;
+        slime.aiEstado = 'rest_exit';
+        slime.aiEstadoTimer = 12;
+    }
+    if (dormePorHorario && !alvo) {
+        slime.targetId = null;
+        slime.aiDormindo = true;
+        if (slime.aiEstado !== 'sleep' && slime.aiEstado !== 'rest_enter') {
+            slime.aiEstado = 'rest_enter';
+            slime.aiEstadoTimer = 12;
+        }
+        slime.attackCooldown = Math.max(slime.attackCooldown || 0, 1);
+        return true;
+    }
+    if (!dormePorHorario && slime.aiDormindo) {
+        slime.aiDormindo = false;
+        slime.aiEstado = 'rest_exit';
+        slime.aiEstadoTimer = 12;
+    }
+    if (slime.aiEstado === 'rest_enter' || slime.aiEstado === 'rest_exit') return true;
+    if (alvo) {
+        const alvoX = alvo.x + PLAYER_OFFSET_X;
+        const alvoY = alvo.y + PLAYER_OFFSET_Y;
+        const dx = alvoX - slime.x;
+        const dy = alvoY - slime.y;
+        const distancia = Math.hypot(dx, dy);
+        slime.angulo = Math.atan2(dy, dx);
+        slime.aiEstado = 'combat';
+        const melee = slime.ehMelee !== false;
+        const alcanceAtaque = slime.attackRange || (melee ? 48 : 180);
+        const distanciaPreferida = slime.distanciaPreferida || (melee ? alcanceAtaque : 200);
+        if (slime.tipo === 'escorpiao_escaldante') {
+            atualizarCombateEscorpiao(slime, alvo, distancia, agora, noite, buffsAtivos);
+            return true;
+        }
+        if (slime.tipo === 'besouro_negro_deserto' &&
+            distancia <= 240 && agora >= (slime.proximoDebuffAreaAte || 0)) {
+            aplicarDebuffAreaBesouroNegro(slime, agora);
+        }
+        if (!melee && slime.hp <= slime.maxHp * 0.5 && distancia < distanciaPreferida) {
+            const fugaX = slime.x - (dx / Math.max(1, distancia)) * 120;
+            const fugaY = slime.y - (dy / Math.max(1, distancia)) * 120;
+            slime.aiEstado = moverMonstroComDesvio(slime, fugaX, fugaY, slime.velocidade || 1.4)
+                ? 'kite' : 'blocked';
+        } else if (!melee && distancia < 260 && agora >= (slime.aiProximoDodge || 0)) {
+            const lado = Math.random() < 0.5 ? -1 : 1;
+            const dodgeX = slime.x + (-dy / Math.max(1, distancia)) * lado * 90;
+            const dodgeY = slime.y + (dx / Math.max(1, distancia)) * lado * 90;
+            moverMonstroComDesvio(slime, dodgeX, dodgeY, (slime.velocidade || 1.4) * 2);
+            slime.aiProximoDodge = agora + 1400 + Math.random() * 900;
+            slime.aiEstado = 'dodge';
+        } else if (distancia <= alcanceAtaque) {
+            slime.attackCooldown = Math.max(0, (slime.attackCooldown || 0) - 1);
+            if (slime.attackCooldown === 0) {
+                const multDanoBuff = buffsAtivos.reduce(function (mult, buff) {
+                    return mult * (buff.danoMult || 1);
+                }, 1);
+                const danoBase = Math.max(1, Math.floor((slime.dano || 8) * (noite ? 2 : 1) * multDanoBuff));
+                if (slime.tipo === 'cogumelo_proibido' || slime.tipo === 'louvadermi') {
+                    const tipoProjetil = slime.tipo === 'cogumelo_proibido' ? 'cogumelo_veneno' : 'louva_folha';
+                    if (dispararProjetilMonstro(slime, alvo, tipoProjetil, danoBase,
+                        slime.velProjetil || (slime.tipo === 'cogumelo_proibido' ? 8 : 11), 80)) {
+                        slime.aiSkillAt = agora;
+                        slime.aiAtacandoAte = agora + 801;
+                        slime.attackCooldown = cadenciaAtaqueMonstro(slime);
+                    } else {
+                        slime.attackCooldown = 1;
+                    }
+                } else {
+                    aplicarDanoJogador(slime.targetId, slime.x, slime.y, danoBase);
+                    slime.aiAtacandoAte = agora + (slime.bioma === 'Deserto Escaldante' ? 801 : 1122);
+                    slime.attackCooldown = cadenciaAtaqueMonstro(slime);
+                    if (slime.tipo === 'besouro_dourado' && efeitos) {
+                        efeitos.aplicarEfeito(alvo, 'deserto_lentidao', 200, 0.3);
+                    }
+                }
+            }
+
+        } else {
+            const moveu = moverMonstroComDesvio(slime, alvoX, alvoY, (slime.velocidade || 1.4) * (slime.slowTimer > 0 ? 0.5 : 1));
+            slime.aiEstado = moveu
+                ? (slime.velocidade > slime._velocidadeBase * 2 ? 'run' : 'walk')
+                : 'blocked';
+        }
+        return true;
+    }
+
+    if (slime.aiDormindo) return true;
+    if (agora >= (slime.aiProximoPatrulha || 0) ||
+        Math.hypot(slime.aiPatrolX - slime.x, slime.aiPatrolY - slime.y) < 20 ||
+        (slime.aiBloqueadoTicks || 0) > 20) {
+        let patrulha = null;
+        const raioPatrulha = slime.spawnGrupoId ? 220 : 700;
+        if (slime.bioma === SANTUARIO_SLIME_BIOMA) {
+            patrulha = gerarPosicaoSantuarioSlime({ x: slime.origemX, y: slime.origemY }, raioPatrulha);
+        } else if (slime.bioma === 'Deserto Escaldante') {
+            patrulha = gerarPosicaoNaturalDeserto({ x: slime.origemX, y: slime.origemY }, raioPatrulha);
+        } else if (slime.bioma === 'Selva Proibida') {
+            patrulha = gerarPosicaoNaturalSelva({ x: slime.origemX, y: slime.origemY }, raioPatrulha);
+        } else {
+            for (let tentativa = 0; tentativa < 30 && !patrulha; tentativa++) {
+                const angulo = Math.random() * Math.PI * 2;
+                const distancia = Math.random() * raioPatrulha;
+                const x = slime.origemX + Math.cos(angulo) * distancia;
+                const y = slime.origemY + Math.sin(angulo) * distancia;
+                if (entidadeEmBiomaValido(slime, x, y)) patrulha = { x: x, y: y };
+            }
+        }
+        if (patrulha) {
+            slime.aiPatrolX = patrulha.x;
+            slime.aiPatrolY = patrulha.y;
+        }
+        slime.aiProximoPatrulha = agora + 3000 + Math.random() * 7000;
+        slime.aiBloqueadoTicks = 0;
+    }
+    if (Math.hypot(slime.aiPatrolX - slime.x, slime.aiPatrolY - slime.y) > 20) {
+        slime.aiEstado = moverMonstroComDesvio(slime, slime.aiPatrolX, slime.aiPatrolY, slime.velocidade || 1.4)
+            ? 'walk' : 'blocked';
+    } else {
+        slime.aiEstado = 'idle';
+    }
+    return true;
+}
+
+function obterBuffsMonstroAtivos(monstro, agora) {
+    if (!Array.isArray(monstro.buffsMonstros)) monstro.buffsMonstros = [];
+    monstro.buffsMonstros = monstro.buffsMonstros.filter(function (buff) {
+        return buff && buff.expiraEm > agora;
+    });
+    return monstro.buffsMonstros;
+}
+
+function cadenciaAtaqueMonstro(monstro) {
+    const base = Math.max(1, Number(monstro.cadenciaAtk) || 45);
+    return Math.max(1, Math.round(base / (monstro.bioma === 'Deserto Escaldante' ? 1.4 : 1)));
+}
+
+function aplicarBuffAreaMonstros(caster, agora) {
+    const definicoes = [
+        { id: 'buff_ataque_deserto', icon: '⚔️', cor: '#ff9d57', nome: 'Ataque +10%', danoMult: 1.1 },
+        { id: 'buff_velocidade_deserto', icon: '💨', cor: '#79e7ff', nome: 'Velocidade +20%', velocidadeMult: 1.2 }
+    ];
+    for (const aliado of slimes) {
+        if (!aliado || aliado === caster || aliado.hp <= 0 ||
+            mapaPorCoordenada(aliado.x) !== mapaPorCoordenada(caster.x) ||
+            Math.hypot(aliado.x - caster.x, aliado.y - caster.y) > 260 ||
+            !mapaMundo.ehDeserto(aliado.x, aliado.y)) continue;
+        const buffs = obterBuffsMonstroAtivos(aliado, agora);
+        definicoes.forEach(function (def) {
+            const existente = buffs.find(function (buff) { return buff.id === def.id; });
+            const novo = Object.assign({ expiraEm: agora + 10000 }, def);
+            if (existente) Object.assign(existente, novo);
+            else buffs.push(novo);
+        });
+    }
+}
+
+function atualizarBuffAreaMonstro(monstro, agora) {
+    if (monstro.tipo !== 'formiga_sauva' && monstro.tipo !== 'escorpiao_escaldante') return;
+    if (agora < (monstro.proximoBuffAreaAte || 0)) return;
+    aplicarBuffAreaMonstros(monstro, agora);
+    monstro.proximoBuffAreaAte = agora + 20000;
+    monstro.aiAtacandoAte = agora + (monstro.bioma === 'Deserto Escaldante' ? 643 : 900);
+}
+
+function atualizarRotinaCogumelo(cogumelo, agora) {
+    if (agora < (cogumelo.proximoPulsoAte || 0)) return;
+    cogumelo.proximoPulsoAte = agora + 5000;
+    cogumelo.aiSkillAt = agora;
+    cogumelo.aiAtacandoAte = agora + 800;
+    const buffDefesa = {
+        id: 'selva_defesa_cogumelo',
+        icon: '🛡️',
+        cor: '#c084fc',
+        nome: 'Defesa +10%',
+        danoRecebidoMult: 0.9,
+        expiraEm: agora + 5500
+    };
+    for (const aliado of slimes) {
+        if (!aliado || aliado.hp <= 0 || aliado.bioma !== 'Selva Proibida' ||
+            Math.hypot(aliado.x - cogumelo.x, aliado.y - cogumelo.y) > 280) continue;
+        const buffs = obterBuffsMonstroAtivos(aliado, agora);
+        const existente = buffs.find(function (buff) { return buff.id === buffDefesa.id; });
+        if (existente) Object.assign(existente, buffDefesa);
+        else buffs.push(Object.assign({}, buffDefesa));
+        if (aliado.hp < aliado.maxHp) {
+            aliado.hp = Math.min(aliado.maxHp, aliado.hp + Math.max(1, Math.round(aliado.maxHp * 0.12)));
+        }
+    }
+}
+
+function atualizarCombateEscorpiao(slime, alvo, distancia, agora, noite, buffsAtivos) {
+    if (slime.venenoCastAte && agora < slime.venenoCastAte) {
+        slime.aiEstado = 'action';
+        slime.aiAtacandoAte = slime.venenoCastAte;
+        return;
+    }
+    if (slime.venenoCastAte && agora >= slime.venenoCastAte) {
+        for (const pid of Object.keys(players)) {
+            const jogador = players[pid];
+            if (!jogadorPodeSerAlvoDoSlime(pid, jogador, slime) ||
+                Math.hypot(jogador.x + PLAYER_OFFSET_X - slime.venenoAlvoX, jogador.y + PLAYER_OFFSET_Y - slime.venenoAlvoY) > (slime.venenoRaio || 165)) continue;
+            const multDano = buffsAtivos.reduce(function (mult, buff) { return mult * (buff.danoMult || 1); }, 1);
+            aplicarDanoJogador(pid, slime.x, slime.y, Math.round((slime.dano || 56) * 1.25 * (noite ? 2 : 1) * multDano));
+            if (efeitos) efeitos.aplicarEfeito(jogador, 'veneno', 100, 1);
+            aplicarContatoMonstro(slime, jogador);
+        }
+        slime.venenoCastAte = 0;
+        slime.venenoAlvoX = null;
+        slime.venenoAlvoY = null;
+        slime.proximoAtaqueVeneno = false;
+        slime.attackCooldown = cadenciaAtaqueMonstro(slime);
+        slime.aiAtacandoAte = agora;
+        return;
+    }
+    slime.attackCooldown = Math.max(0, (slime.attackCooldown || 0) - 1);
+    if (slime.proximoAtaqueVeneno && slime.attackCooldown <= 0 && distancia <= 520) {
+        slime.venenoAlvoX = alvo.x + PLAYER_OFFSET_X;
+        slime.venenoAlvoY = alvo.y + PLAYER_OFFSET_Y;
+        slime.venenoRaio = 165;
+        slime.venenoCastDuracao = slime.bioma === 'Deserto Escaldante' ? 714 : 1000;
+        slime.venenoCastAte = agora + slime.venenoCastDuracao;
+        slime.aiAtacandoAte = slime.venenoCastAte;
+        slime.aiEstado = 'action';
+        return;
+    }
+    if (!slime.proximoAtaqueVeneno && distancia <= (slime.attackRange || 48) && slime.attackCooldown <= 0) {
+        const multDano = buffsAtivos.reduce(function (mult, buff) { return mult * (buff.danoMult || 1); }, 1);
+        aplicarDanoJogador(slime.targetId, slime.x, slime.y,
+            Math.round((slime.dano || 56) * (noite ? 2 : 1) * multDano));
+        aplicarContatoMonstro(slime, alvo);
+        slime.proximoAtaqueVeneno = true;
+        slime.attackCooldown = cadenciaAtaqueMonstro(slime);
+        slime.aiAtacandoAte = agora + (slime.bioma === 'Deserto Escaldante' ? 801 : 1122);
+        return;
+    }
+    if (distancia > (slime.proximoAtaqueVeneno ? 520 : (slime.attackRange || 48))) {
+        const moveu = moverMonstroComDesvio(slime, alvo.x + PLAYER_OFFSET_X, alvo.y + PLAYER_OFFSET_Y,
+            (slime.velocidade || 1.7) * (slime.slowTimer > 0 ? 0.5 : 1));
+        slime.aiEstado = moveu ? 'walk' : 'blocked';
+    }
+}
+
+function aplicarDebuffAreaBesouroNegro(slime, agora) {
+    for (const pid of Object.keys(players)) {
+        const jogador = players[pid];
+        if (!jogadorPodeSerAlvoDoSlime(pid, jogador, slime) ||
+            Math.hypot(jogador.x + PLAYER_OFFSET_X - slime.x, jogador.y + PLAYER_OFFSET_Y - slime.y) > 240) continue;
+        if (efeitos) {
+            efeitos.aplicarEfeito(jogador, 'deserto_reducao_ataque', 200, 0.2);
+            efeitos.aplicarEfeito(jogador, 'deserto_reducao_defesa', 200, 0.1);
+            efeitos.aplicarEfeito(jogador, 'deserto_lentidao', 200, 0.3);
+        }
+    }
+    slime.proximoDebuffAreaAte = agora + 20000;
+    slime.aiAtacandoAte = agora + (slime.bioma === 'Deserto Escaldante' ? 643 : 900);
+}
+
 // Posição de um player/entidade sobre o tile de água venenosa do pântano
 function sobVenenoPantano(x, y) {
     if (!(x >= LARGURA_DESERTO && x < LARGURA_PANTANO)) return false;
@@ -3037,6 +3761,7 @@ function sobVenenoPantano(x, y) {
 
 function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
     if (!slime || !autorId || slime.hp <= 0) return { dano: 0, critico: false };
+    if (Array.isArray(slime.tags) && slime.tags.indexOf('invenciveis') !== -1) return { dano: 0, critico: false };
     const autorP = players[autorId];
     if (autorP && !instanciaCompativel(autorP, slime)) return { dano: 0, critico: false };
     let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem, slime);
@@ -3071,6 +3796,13 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
         danoFinal = Math.max(1, Math.floor(danoFinal * (1 - Math.min(90, defEfetiva) / 100)));
         if (danoFinal <= 0) danoFinal = 1;
     }
+    if (danoFinal > 0) {
+        const agoraBuff = Date.now();
+        const multiplicadorDefesaMonstro = obterBuffsMonstroAtivos(slime, agoraBuff).reduce(function (mult, buff) {
+            return mult * (Number(buff.danoRecebidoMult) || 1);
+        }, 1);
+        danoFinal = Math.max(1, Math.floor(danoFinal * multiplicadorDefesaMonstro));
+    }
     if (danoFinal > 0 && slime.canticoDebuffExpires && slime.canticoDebuffExpires > Date.now()) {
         danoFinal = Math.max(1, Math.round(danoFinal * 1.20));
     }
@@ -3098,9 +3830,16 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
 
     if (!slime.tabelaDano) slime.tabelaDano = {};
     if (danoFinal > 0) slime.tabelaDano[autorId] = (slime.tabelaDano[autorId] || 0) + danoFinal;
-    if (!slime.flagPassivo) {
+    if (!slime.flagPassivo || slime.aiManaged) {
         // LADINO invisível / SNIPER camuflado: o dano NÃO revela a posição (sem agro)
-        if (!autorP || !(efeitos && (efeitos.temEfeito(autorP, 'invisivel') || efeitos.temEfeito(autorP, 'camuflagem')))) slime.targetId = autorId;
+        if (!autorP || !(efeitos && (efeitos.temEfeito(autorP, 'invisivel') || efeitos.temEfeito(autorP, 'camuflagem')))) {
+            slime.targetId = autorId;
+            if (slime.aiManaged && slime.aiDormindo) {
+                slime.aiDormindo = false;
+                slime.aiEstado = 'rest_exit';
+                slime.aiEstadoTimer = 12;
+            }
+        }
     }
     slime.hp -= danoFinal;
     // LADINO — PASSIVA LÂMINAS SANGRENTAS (20% → sangramento 20% do dano físico/s por 5s)
@@ -3119,7 +3858,7 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
             const sessaoSolari = solariSessaoPorInstancia(slime.solariInstanceId);
             if (sessaoSolari && sessaoSolari.vivos > 0) sessaoSolari.vivos--;
         } else {
-            gerarDropNoChao(slime.x, slime.y, slime.tabelaDano, slime.baseHp || slime.maxHp || 0, false);
+            gerarDropNoChao(slime.x, slime.y, slime.tabelaDano, slime.baseHp || slime.maxHp || 0, false, slime);
             gerarDropsAuxiliares(slime.x, slime.y, slime.baseHp || slime.maxHp || 0, false);
             gerarDropsConfigurados(slime);
         }
@@ -3216,9 +3955,89 @@ function aplicarDanoJogador(pid, origemX, origemY, dano) {
         dano = Math.max(1, Math.round(dano * 0.95));
     }
 
-    if (jogador.classe === 'guerreiro' && jogador.guerreiroBuffAte > Date.now()) {
-        dano = Math.max(1, Math.round(dano * 0.70));
+    if (jogador.classe === 'guerreiro') {
+        const agoraDanoG = Date.now();
+        // Postura do Guardião
+        if (jogador.guerreiroBuffAte && jogador.guerreiroBuffAte > agoraDanoG) {
+            let multDef = 0.70;
+            // Bastião Inabalável (Tier 1 B): +50% Defesa total (em vez de +30%)
+            if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(jogador.skillUpgrades, 'postura_guardiao', 1, 'B')) {
+                multDef = 0.50;
+            }
+            dano = Math.max(1, Math.round(dano * multDef));
+
+            // Fortaleza Indestrutível (Tier 4 B): primeiros 3s dão 80% redução de dano absoluta
+            if (jogador.fortalezaIndestrutivelAte && jogador.fortalezaIndestrutivelAte > agoraDanoG) {
+                dano = Math.max(1, Math.round(dano * 0.20));
+            }
+
+            // Espinhos de Retaliação (Tier 2 A): reflete 35% do dano em área (120px)
+            if (jogador.espinhosRetaliacaoAte && jogador.espinhosRetaliacaoAte > agoraDanoG && dano > 0) {
+                let danoRefletido = Math.max(1, Math.round(dano * 0.35));
+                let gx = jogador.x + PLAYER_OFFSET_X, gy = jogador.y + PLAYER_OFFSET_Y;
+                slimes.forEach(s => {
+                    if (s.hp > 0 && Math.hypot(gx - s.x, gy - s.y) < 120) {
+                        registrarDanoMonstro(s, pid, danoRefletido, 'player');
+                        s.sangramentoTimer = 60;
+                        s.sangramentoDano = 8;
+                        s.sangramentoOwner = pid;
+                    }
+                });
+                danoEmBosses(gx, gy, 125, pid, danoRefletido, 'skill', 'player');
+                wss.clients.forEach(c => {
+                    if (c.readyState === WebSocket.OPEN) {
+                        c.send(JSON.stringify({ type: 'action_guerreiro_espinhos_retaliacao', id: pid, x: gx, y: gy }));
+                    }
+                });
+            }
+        }
+
+        // Vórtice Protetor (Tornado Tier 1 B): 40% redução de dano sofrido durante o giro
+        if (jogador.vorticeProtetorAte && jogador.vorticeProtetorAte > agoraDanoG) {
+            dano = Math.max(1, Math.round(dano * 0.60));
+        }
+
+        // Rugido Encouraçado (Provocação Tier 1 B): +20% defesa (sofre 20% a menos)
+        if (jogador.bonusDefesaGritoAte && jogador.bonusDefesaGritoAte > agoraDanoG) {
+            dano = Math.max(1, Math.round(dano * 0.80));
+        }
+
+        // Avatar da Vanguarda (Provocação Tier 4 B): +50% defesa (sofre 50% a menos)
+        if (jogador.avatarVanguardaAte && jogador.avatarVanguardaAte > agoraDanoG) {
+            dano = Math.max(1, Math.round(dano * 0.50));
+        }
+
+        // Absorções de barreiras:
+        // 1. Barreira da Postura (Bastião Inabalável 1B)
+        if (jogador.barreiraPostura && jogador.barreiraPosturaAte > agoraDanoG && dano > 0) {
+            let abs = Math.min(jogador.barreiraPostura, dano);
+            jogador.barreiraPostura -= abs;
+            dano -= abs;
+            if (dano <= 0) return true;
+        }
+        // 2. Barreira do Avatar (4B)
+        if (jogador.barreiraAvatar && jogador.barreiraAvatarAte > agoraDanoG && dano > 0) {
+            let abs = Math.min(jogador.barreiraAvatar, dano);
+            jogador.barreiraAvatar -= abs;
+            dano -= abs;
+            if (dano <= 0) return true;
+        }
+        // 3. Barreira de Vento (Tornado 3B)
+        if (jogador.barreiraVento && jogador.barreiraVentoAte > agoraDanoG && dano > 0) {
+            let abs = Math.min(jogador.barreiraVento, dano);
+            jogador.barreiraVento -= abs;
+            dano -= abs;
+            if (dano <= 0) return true;
+        }
+        // 4. Barreira do Escudo de Retorno (Escudo 3B)
+        if (jogador.barreiraEscudoRetorno && jogador.barreiraEscudoRetornoAte > agoraDanoG && dano > 0) {
+            let abs = Math.min(jogador.barreiraEscudoRetorno, dano);
+            jogador.barreiraEscudoRetorno -= abs;
+            dano -= abs;
+            if (dano <= 0) return true;
+        }
     }
+
 
     if (jogador.classe === 'summoner') {
         // Escudo do Salto de Recuo (Tier 3 A)
@@ -3241,6 +4060,30 @@ function aplicarDanoJogador(pid, origemX, origemY, dano) {
                 dano = Math.max(1, dano - transferido);
                 danoCausadoAoOgro(pid, transferido, jogador.x, jogador.y);
             }
+        }
+    }
+
+    if (jogador.classe === 'mago') {
+        const agoraDanoM = Date.now();
+        // Forma Ígnea (Meteoro Tier 4 B): Mago vira Bola de Fogo e reduz todo dano recebido em 50%
+        if (jogador.formaIgneaAte && jogador.formaIgneaAte > agoraDanoM) {
+            dano = Math.max(1, Math.round(dano * 0.50));
+        }
+        // Escudo Elemental de Vanguarda (Bola Elemental Tier 3 B): -35% de dano sofrido
+        if (jogador.escudoVanguardaAte && jogador.escudoVanguardaAte > agoraDanoM) {
+            dano = Math.max(1, Math.round(dano * 0.65));
+        }
+        // Bolha de Proteção do Rugido do Golem (Vulcão Tier 3 B): 20% HP Máx absorvido
+        if (jogador.escudoGolemMago && jogador.escudoGolemMago > 0 && jogador.escudoGolemMagoAte > agoraDanoM) {
+            let absMago = Math.min(jogador.escudoGolemMago, dano);
+            jogador.escudoGolemMago -= absMago;
+            dano -= absMago;
+            wss.clients.forEach(c => {
+                if (c.readyState === WebSocket.OPEN) {
+                    c.send(JSON.stringify({ type: 'action_mago_escudo_sync', id: pid, shieldVal: jogador.escudoGolemMago }));
+                }
+            });
+            if (dano <= 0) return true;
         }
     }
 
@@ -3328,6 +4171,7 @@ function aplicarDanoJogador(pid, origemX, origemY, dano) {
     // Debuffs/buffs alteram o dano recebido
     if (efeitos) {
         if (efeitos.temEfeito(jogador, 'reducaoDef')) dano = Math.round(dano * 1.25); // Defesa quebrada: +25%
+        if (efeitos.temEfeito(jogador, 'deserto_reducao_defesa')) dano = Math.round(dano * 1.10);
         if (efeitos.temEfeito(jogador, 'escudo')) dano = Math.round(dano * 0.8);      // Escudo: -20%
         if (jogador.classe === 'barbaro' && jogador.giroDescontroladoTimer > 0) dano = Math.round(dano * 0.90);
         // SONO: qualquer dano recebido acorda o jogador
@@ -3341,6 +4185,11 @@ function aplicarDanoJogador(pid, origemX, origemY, dano) {
     }
     if (aliadoNaAura(pid)) dano = Math.round(dano * 0.9);
     if (dano < 0) dano = 0;
+    dano = itemSystem.reduzirDanoPelaDefesaEquipamento(
+        jogador.classe,
+        jogador.inventario && jogador.inventario.slots || {},
+        dano
+    );
 
     if (jogador.escudoAbsoluto > 0) {
         let absorvido = Math.min(jogador.escudoAbsoluto, dano);
@@ -3382,14 +4231,67 @@ function aplicarDanoJogador(pid, origemX, origemY, dano) {
     return false;
 }
 
+function provocarMonstrosPelaCura(curadorId, aliadoId) {
+    if (!curadorId || !aliadoId || curadorId === aliadoId) return;
+    const curador = players[curadorId];
+    if (!curador || curador.hp <= 0) return;
+    const x = curador.x + PLAYER_OFFSET_X;
+    const y = curador.y + PLAYER_OFFSET_Y;
+    const agora = Date.now();
+    for (const slime of slimes) {
+        if (!slime || !slime.aiManaged || slime.hp <= 0 ||
+            mapaPorCoordenada(slime.x) !== mapaPorCoordenada(x) ||
+            !instanciaCompativel(curador, slime) ||
+            Math.hypot(slime.x - x, slime.y - y) > 500) continue;
+        slime.targetId = curadorId;
+        slime.aiForcedTargetId = curadorId;
+        slime.aiForcedTargetAte = agora + 10000;
+        if (slime.aiDormindo) {
+            slime.aiDormindo = false;
+            slime.aiEstado = 'rest_exit';
+            slime.aiEstadoTimer = 12;
+        }
+    }
+}
+
 // Aplica cura respeitando cortaCura no destinatário
-function aplicarCuraAoJogador(pid, quantidade) {
+function aplicarCuraAoJogador(pid, quantidade, curadorId) {
     let p = players[pid];
     if (!p || p.hp <= 0) return;
     let cura = quantidade;
     if (efeitos && efeitos.temEfeito(p, 'cortaCura')) cura = Math.round(cura * 0.5);
     if (aliadoNaAura(pid)) cura = Math.round(cura * 1.10);
     p.hp = Math.min(p.maxHp, p.hp + cura);
+    if (curadorId) provocarMonstrosPelaCura(curadorId, pid);
+}
+
+// Dano ambiental por biomas (Lava ardente, Água de Veneno do Pântano, etc.)
+function aplicarDanoAmbiente(pid, dano, tipoDano, texto) {
+    let jogador = players[pid];
+    if (!jogador || jogador.hp <= 0) return;
+    if (jogador.adminCheats && jogador.adminCheats.vidaInfinita) return;
+    dano = itemSystem.reduzirDanoPelaDefesaEquipamento(
+        jogador.classe,
+        jogador.inventario && jogador.inventario.slots || {},
+        dano
+    );
+    jogador.hp = Math.max(0, jogador.hp - dano);
+    let ws = playerSockets[pid];
+    if (ws && ws.readyState === WebSocket.OPEN) {
+        ws.send(JSON.stringify({
+            type: 'dano_ambiente',
+            dano: dano,
+            tipo: tipoDano,
+            hp: jogador.hp,
+            maxHp: jogador.maxHp,
+            texto: texto
+        }));
+        ws.send(JSON.stringify({ type: 'hp_sync', hp: jogador.hp, maxHp: jogador.maxHp }));
+    }
+    if (jogador.hp <= 0) {
+        solariMarcaMorte(pid);
+        tentarRessurreicaoAutomatica(pid);
+    }
 }
 
 // ============ BOSS: GOLEM DE PEDRA ============
@@ -3517,6 +4419,50 @@ function adicionarAoInventario(pid, item) {
     let invSlot = p.inventario.mochila.findIndex(x => x.tipo === 'vazio');
     if (invSlot !== -1) p.inventario.mochila[invSlot] = item;
     else p.inventario.mochila.push(item);
+}
+
+function clonarInventario(inventory) {
+    return JSON.parse(JSON.stringify(inventory || inventarioPadrao()));
+}
+
+function adicionarItemAoInventarioPreparado(inventory, item) {
+    if (!inventory.slots || typeof inventory.slots !== 'object') inventory.slots = inventarioPadrao().slots;
+    if (!Array.isArray(inventory.mochila)) inventory.mochila = [];
+    const instanceId = item && (item.itemInstanceId || item.uid || item.id);
+    if (!instanceId) throw new Error('Item sem identificador não pode ser transferido.');
+    const duplicate = Object.keys(inventory.slots).some(function (slot) {
+        const existing = inventory.slots[slot];
+        return existing && (existing.itemInstanceId || existing.uid || existing.id) === instanceId;
+    }) || inventory.mochila.some(function (existing) {
+        return existing && existing.tipo !== 'vazio' &&
+            (existing.itemInstanceId || existing.uid || existing.id) === instanceId;
+    });
+    if (duplicate) throw new Error('Instância de item já pertence a este inventário.');
+    const emptyIndex = inventory.mochila.findIndex(function (entry) { return entry && entry.tipo === 'vazio'; });
+    if (emptyIndex >= 0) inventory.mochila[emptyIndex] = item;
+    else inventory.mochila.push(item);
+}
+
+function inventarioTradePreparado(playerId, ownerId, items) {
+    const player = players[playerId];
+    const saved = player ? null : carregarProgresso(ownerId);
+    const currentInventory = player && player.inventario
+        ? player.inventario
+        : (saved && saved.inventario);
+    const inventory = clonarInventario(currentInventory);
+    items.forEach(function (item) { adicionarItemAoInventarioPreparado(inventory, item); });
+    return inventory;
+}
+
+function persistirRetornoTrade(trade) {
+    const inv1 = inventarioTradePreparado(trade.p1, trade.owner1, trade.items1);
+    const inv2 = inventarioTradePreparado(trade.p2, trade.owner2, trade.items2);
+    salvarProgressoEmLote([
+        { userId: trade.owner1, dados: { inventario: inv1 } },
+        { userId: trade.owner2, dados: { inventario: inv2 } }
+    ]);
+    if (players[trade.p1]) players[trade.p1].inventario = inv1;
+    if (players[trade.p2]) players[trade.p2].inventario = inv2;
 }
 
 // ============================================================================
@@ -3711,6 +4657,10 @@ function solariCriarSessao(pid) {
 function solariAbrir(pid) {
     const p = players[pid];
     if (!p) return;
+    if (SOLARI_TIPOS.length < 2) {
+        solariEnviarA(pid, 'solari_aviso', { texto: 'A Arena de Solari ficará indisponível até haver monstros cadastrados.' });
+        return;
+    }
     const existente = solariSessaoDoJogador(pid);
     if (existente) {
         existente.ultimaAtividade = Date.now();
@@ -3796,6 +4746,10 @@ function solariTeleportarParaSolari(pid, s) {
 }
 
 function solariIniciar(pid) {
+    if (SOLARI_TIPOS.length < 2) {
+        solariEnviarA(pid, 'solari_aviso', { texto: 'A Arena de Solari ficará indisponível até haver monstros cadastrados.' });
+        return false;
+    }
     const s = solariSessaoDoJogador(pid);
     if (!s || s.fase !== 'recrutando') return false;
     if (s.liderId !== pid) return false;
@@ -3813,6 +4767,7 @@ function solariIniciar(pid) {
 }
 
 function solariEscolherDoisTipos() {
+    if (SOLARI_TIPOS.length < 2) throw new Error('[SOLARI] São necessários pelo menos dois tipos de monstros.');
     const t1 = SOLARI_TIPOS[Math.floor(Math.random() * SOLARI_TIPOS.length)];
     let t2 = t1;
     while (t2 === t1) t2 = SOLARI_TIPOS[Math.floor(Math.random() * SOLARI_TIPOS.length)];
@@ -3917,14 +4872,20 @@ function solariIniciarSorteio(s) {
     const itens = [];
     for (let i = 0; i < 5; i++) {
         const classe = classes[Math.floor(Math.random() * classes.length)];
-        if (equipamentos && typeof equipamentos.gerarEquipamento === 'function') {
-            const item = equipamentos.gerarEquipamento(classe);
-            if (item) itens.push(item);
-        }
+        const item = gerarEquipamentoParaDrop(classe, 0, 0, {
+            bioma: 'Planície das Plantas (Santuário)',
+            nivel: Math.max(1, Math.min(15, Math.round(s.membros.reduce(function (total, member) {
+                return total + ((players[member.id] && players[member.id].level) || 1);
+            }, 0) / Math.max(1, s.membros.length))))
+        });
+        if (item) itens.push(item);
     }
-    if (!itens.length && equipamentos && typeof equipamentos.gerarEquipamento === 'function') {
+    if (!itens.length) {
         for (let i = 0; i < 5; i++) {
-            const item = equipamentos.gerarEquipamento('guerreiro');
+            const item = gerarEquipamentoParaDrop('guerreiro', 0, 0, {
+                bioma: 'Planície das Plantas (Santuário)',
+                nivel: 1
+            });
             if (item) itens.push(item);
         }
     }
@@ -4246,8 +5207,20 @@ function cancelarTrade(pid) {
     let tid = p.tradeId;
     let trade = trades[tid];
     if (trade) {
-        trade.items1.forEach(it => adicionarAoInventario(trade.p1, it));
-        trade.items2.forEach(it => adicionarAoInventario(trade.p2, it));
+        try {
+            persistirRetornoTrade(trade);
+        } catch (e) {
+            console.error('[TRADE] Falha ao persistir cancelamento; itens permanecem em escrow:', e && e.stack ? e.stack : e);
+            [trade.p1, trade.p2].forEach(function (playerId) {
+                if (playerSockets[playerId] && playerSockets[playerId].readyState === WebSocket.OPEN) {
+                    playerSockets[playerId].send(JSON.stringify({
+                        type: 'trade_erro',
+                        mensagem: 'Não foi possível persistir o cancelamento. Os itens foram mantidos na sessão de troca.'
+                    }));
+                }
+            });
+            return;
+        }
         syncInventario(trade.p1);
         syncInventario(trade.p2);
         if (playerSockets[trade.p1]) playerSockets[trade.p1].send(JSON.stringify({ type: 'trade_close', mensagem: "Trade Cancelado" }));
@@ -4293,6 +5266,11 @@ function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
     const agoraCantico = Date.now();
     if (p2.canticoDebuffExpires && p2.canticoDebuffExpires > agoraCantico) dano = Math.max(1, Math.round(dano * 1.20));
     if (atk && atk.canticoDebuffExpires && atk.canticoDebuffExpires > agoraCantico) dano = Math.max(1, Math.round(dano * 1.20));
+    dano = itemSystem.reduzirDanoPelaDefesaEquipamento(
+        p2.classe,
+        p2.inventario && p2.inventario.slots || {},
+        dano
+    );
     p2.hp -= dano;
     if (p2.hp < 0) p2.hp = 0;
     if (atk && atk.classe === 'barbaro' && (atk.vinculoAtivo || (atk.vampirismoBonus && atk.vampirismoBonus > 0)) && atk.vinculoExpires > Date.now() && dano > 0) {
@@ -4363,12 +5341,19 @@ function danoEmPlayers(x, y, raio, attackerId, dano, tipo = 'skill', cb = null, 
 
 // ============ SISTEMA DE BANDEIRAS DE SPAWN (Admin) ============
 function posicaoBandeiraValida(flag, raio) {
+    const conf = spawnsAdmin && spawnsAdmin.TIPOS_MONSTROS[flag.tipo];
+    const usaBioma = !!(conf && conf.bioma);
+    const minX = usaBioma ? LARGURA_MUNDO + 12 : 12;
+    const maxX = usaBioma ? FIM_MUNDO - 12 : WORLD_WIDTH - 12;
+    const maxY = usaBioma ? ALTO_MUNDO - 12 : WORLD_HEIGHT - 12;
     for (let t = 0; t < 8; t++) {
         let ang = Math.random() * Math.PI * 2;
         let dist = Math.random() * raio;
-        let x = Math.max(12, Math.min(WORLD_WIDTH - 12, flag.x + Math.cos(ang) * dist));
-        let y = Math.max(12, Math.min(WORLD_HEIGHT - 12, flag.y + Math.sin(ang) * dist));
-        if (!estaNaAgua(x, y) && podeAndar(x, y)) return { x, y };
+        let x = Math.max(minX, Math.min(maxX, flag.x + Math.cos(ang) * dist));
+        let y = Math.max(12, Math.min(maxY, flag.y + Math.sin(ang) * dist));
+        const biomaValido = !conf || !conf.bioma ||
+            entidadeEmBiomaValido({ bioma: conf.bioma, raioColisao: conf.radius }, x, y);
+        if (!estaNaAgua(x, y) && podeAndar(x, y) && biomaValido) return { x, y };
     }
     return { x: flag.x, y: flag.y };
 }
@@ -4377,6 +5362,9 @@ function spawnMonstroBandeira(flag, instanciaId) {
     if (!spawnsAdmin) return;
     // BemVindo é mapa inicial/tutorial: nenhum spawn de bandeira pode nascer aqui.
     if (Number.isFinite(flag.x) && mapaPorCoordenada(flag.x) === 'bemvindo') return;
+    const configMonstro = spawnsAdmin.TIPOS_MONSTROS[flag.tipo];
+    if (configMonstro && configMonstro.bioma &&
+        !entidadeEmBiomaValido({ bioma: configMonstro.bioma, raioColisao: configMonstro.radius }, flag.x, flag.y)) return;
     let ehBoss = spawnsAdmin.TIPOS_MONSTROS[flag.tipo] && spawnsAdmin.TIPOS_MONSTROS[flag.tipo].boss;
     let passivo = flag.comportamento !== 'agressivo';
     let agressivo = !passivo;
@@ -4556,7 +5544,7 @@ function aplicarConfigTipo(tipo) {
     // envia para os admins a config atualizada
     wss.clients.forEach(client => {
         if (client.readyState === WebSocket.OPEN && client.ehAdminCliente) {
-            client.send(JSON.stringify({ type: 'monstros_config', conf: spawnsAdmin.MONSTROS_EDITAVEIS }));
+            client.send(JSON.stringify({ type: 'monstros_config', conf: spawnsAdmin.MONSTROS_EDITAVEIS, tags: spawnsAdmin.TAGS_MONSTRO }));
         }
     });
 }
@@ -4758,9 +5746,13 @@ function validarDadosBandeira(data) {
     let x = Number(data.x), y = Number(data.y);
     let temPosicao = isFinite(x) && isFinite(y);
     if (temPosicao) {
-        x = Math.max(12, Math.min(WORLD_WIDTH - 12, x));
-        y = Math.max(12, Math.min(WORLD_HEIGHT - 12, y));
+        const usaBioma = !!tipoConfig.bioma;
+        x = Math.max(usaBioma ? LARGURA_MUNDO + 12 : 12,
+            Math.min(usaBioma ? FIM_MUNDO - 12 : WORLD_WIDTH - 12, x));
+        y = Math.max(12, Math.min(usaBioma ? ALTO_MUNDO - 12 : WORLD_HEIGHT - 12, y));
         if (estaNaAgua(x, y) || !podeAndar(x, y)) return null;
+        if (tipoConfig.bioma &&
+            !entidadeEmBiomaValido({ bioma: tipoConfig.bioma, raioColisao: tipoConfig.radius }, x, y)) return null;
     } else {
         x = 0;
         y = 0;
@@ -4822,6 +5814,11 @@ function danoCausadoAoOgro(pid, dano, x, y) {
             ogro.hp = Math.max(1, Math.round(ogro.maxHp * 0.10));
             ogro.imune = true;
             setTimeout(() => { if (ogro) ogro.imune = false; }, 1200);
+            wss.clients.forEach(c => {
+                if (c.readyState === WebSocket.OPEN) {
+                    c.send(JSON.stringify({ type: 'action_summoner_ultimo_bastiao', x: Math.round(ogro.x), y: Math.round(ogro.y), duracao: 1200 }));
+                }
+            });
             broadcastDanoNoOgro(x, y, dano);
             return;
         }
@@ -4901,6 +5898,7 @@ function distribuirXpBoss(boss) {
 }
 
 function criarGolemPedra() {
+    if (!spawnsAdmin || !spawnsAdmin.TIPOS_MONSTROS.golem_pedra) return;
     // Fica no centro da nova arena da caverna: x = 58000 + (36*40) = 59440, y = 22*40 = 880
     let pos = { x: 59440, y: 880 };
 
@@ -5056,6 +6054,17 @@ function posicaoPetValida(ox, oy) {
         if (mapaPantanoSombrio && mapaPantanoSombrio.colidePantanoSombrio(ox, oy, PET_COLLISION_RADIUS)) return false;
         if (colisaoObjetosDoMapa('pantano_sombrio', ox, oy)) return false;
         return !colideObstaculosCustomizados('pantano_sombrio', ox, oy, PET_COLLISION_RADIUS);
+    }
+    // TileTeste — o pet respeita o terreno e relevo procedural
+    if (ox >= LARGURA_TILETESTE && ox < FIM_TILETESTE) {
+        if (oy >= ALTO_TILETESTE) return false;
+        if (mapaTileTeste && mapaTileTeste.colideTileTeste(ox, oy, PET_COLLISION_RADIUS)) return false;
+        if (colisaoObjetosDoMapa('tileteste', ox, oy)) return false;
+        return !colideObstaculosCustomizados('tileteste', ox, oy, PET_COLLISION_RADIUS);
+    }
+    if (ox >= LARGURA_MUNDO && ox < FIM_MUNDO) {
+        if (oy >= ALTO_MUNDO) return false;
+        return !(mapaMundo && mapaMundo.colideMundo(ox, oy, PET_COLLISION_RADIUS));
     }
     return false;
 }
@@ -5420,16 +6429,28 @@ function dispararSkillZumbi(slime) {
     slime.skillAim = null;
 }
 
-// ============ SPAWNS AUTOMÁTICOS REMOVIDOS (decisão de design) ============
-// Nenhum monstro nasce automaticamente nos mapas. Os monstros passam a ser
-// posicionados pelo jogador via bandeiras de spawn (sistema admin / spawns.js).
+// ============ SPAWNS NATURAIS ============
+// Slimes do Santuário são criados em pontos dispersos e grupos fixos; os demais
+// monstros continuam usando as bandeiras administrativas até serem cadastrados.
 
 console.log("Servidor Rodando: Classe Bárbaro Sangrento Ativa!");
+inicializarSpawnsNaturaisSlime();
+inicializarSpawnsNaturaisDeserto();
+inicializarSpawnsNaturaisSelva();
 
 setInterval(() => {
 
     // ======= NOVAS SKILLS LOOP =======
     let agora = Date.now();
+    global.slimeAiTick = (global.slimeAiTick || 0) + 1;
+    if (global.slimeAiTick % 20 === 1) {
+        global.slimeAiHoraDecimal = sistemaDiaNoite
+            ? sistemaDiaNoite.calcularTempoMundo(agora).horaDecimal
+            : 12;
+    }
+    slimes.forEach(slime => {
+        atualizarIAMonstro(slime, agora, global.slimeAiHoraDecimal || 12);
+    });
     
     // Meteoro Fires
     for (let i = meteorFires.length - 1; i >= 0; i--) {
@@ -5445,22 +6466,99 @@ setInterval(() => {
             danoEmBosses(f.x, f.y, 100, f.ownerId, Math.floor(f.dano * 0.2), 'skill');
         }
     }
-    // Escudos Lancados
+    // Escudos Lancados (com Upgrades do Guerreiro)
     for (let i = escudosLancados.length - 1; i >= 0; i--) {
         let e = escudosLancados[i];
         e.x += Math.cos(e.ang) * e.speed;
         e.y += Math.sin(e.ang) * e.speed;
         e.dist += e.speed;
-        if (e.dist >= 300) { escudosLancados.splice(i, 1); continue; }
+        const maxDist = e.maxDist || 300;
+        const upg = e.upgrades || {};
+
+        if (e.dist >= maxDist) {
+            // Se tem muralha protetora (4B TANK), projeta a zona defensiva ao final
+            if (upg.muralha) {
+                wss.clients.forEach(c => {
+                    if (c.readyState === 1) c.send(JSON.stringify({
+                        type: 'action_guerreiro_escudo_hit',
+                        x: e.x,
+                        y: e.y,
+                        ownerId: e.ownerId,
+                        upgrades: upg
+                    }));
+                });
+            }
+            escudosLancados.splice(i, 1);
+            continue;
+        }
+
+        // Se é titânico (4A DPS), perfura todos os monstros pelo caminho sem parar!
+        if (upg.titanico) {
+            if (!e.mobsAtingidos) e.mobsAtingidos = [];
+            slimes.forEach(s => {
+                if (s.hp > 0 && Math.hypot(s.x - e.x, s.y - e.y) < 55 && !e.mobsAtingidos.includes(s.id)) {
+                    e.mobsAtingidos.push(s.id);
+                    registrarDanoMonstro(s, e.ownerId, e.dano);
+                }
+            });
+            danoEmBosses(e.x, e.y, 60, e.ownerId, e.dano, 'skill', 'player');
+            continue;
+        }
+
         let hit = slimes.find(s => s.hp > 0 && Math.hypot(s.x - e.x, s.y - e.y) < 40);
         if (hit) {
             let p = players[e.ownerId];
             if(p) {
                 hit.pull = { x: p.x + Math.cos(e.ang)*30, y: p.y + Math.sin(e.ang)*30, speed: 14 };
-                
                 hit.tauntTarget = e.ownerId;
                 hit.tauntTimer = 100;
+
+                // 1A DPS: Sangramento pesado (6 ticks de 10)
+                if (upg.serrilhado) {
+                    hit.sangramentoTimer = 120;
+                    hit.sangramentoDano = 10;
+                    hit.sangramentoOwner = e.ownerId;
+                }
+                // 1B TANK: Atordoamento (Stun 2s)
+                if (upg.esmagador) {
+                    hit.stunTimer = 40;
+                }
+                // 2A DPS: Ricochete em até 2 inimigos adicionais
+                if (upg.ricochete) {
+                    let ricocheteados = 0;
+                    slimes.forEach(s => {
+                        if (s.hp > 0 && s.id !== hit.id && ricocheteados < 2 && Math.hypot(s.x - hit.x, s.y - hit.y) < 140) {
+                            registrarDanoMonstro(s, e.ownerId, Math.round(e.dano * 0.85));
+                            ricocheteados++;
+                        }
+                    });
+                }
+                // 2B TANK: Vórtice de Atração no ponto do impacto
+                if (upg.vortice) {
+                    slimes.forEach(s => {
+                        if (s.hp > 0 && s.id !== hit.id && Math.hypot(s.x - hit.x, s.y - hit.y) < 120) {
+                            const angV = Math.atan2(hit.y - s.y, hit.x - s.x);
+                            s.x += Math.cos(angV) * 40;
+                            s.y += Math.sin(angV) * 40;
+                        }
+                    });
+                }
+                // 3A DPS: Estilhaços Cortantes (30 dano em área 120px)
+                if (upg.estilhacos) {
+                    slimes.forEach(s => {
+                        if (s.hp > 0 && Math.hypot(s.x - hit.x, s.y - hit.y) < 120) {
+                            registrarDanoMonstro(s, e.ownerId, 30);
+                        }
+                    });
+                }
+                // 3B TANK: Barreira no Retorno (15% HP por 6s)
+                if (upg.retorno) {
+                    p.barreiraEscudoRetorno = Math.round(p.maxHp * 0.15);
+                    p.barreiraEscudoRetornoAte = Date.now() + 6000;
+                }
+
                 registrarDanoMonstro(hit, e.ownerId, e.dano);
+
                 wss.clients.forEach(c => {
                     if(c.readyState === 1) c.send(JSON.stringify({
                         type: 'action_guerreiro_escudo_hit',
@@ -5469,21 +6567,121 @@ setInterval(() => {
                         y: hit.y,
                         ownerId: e.ownerId,
                         targetX: p.x + Math.cos(e.ang)*30,
-                        targetY: p.y + Math.sin(e.ang)*30
+                        targetY: p.y + Math.sin(e.ang)*30,
+                        upgrades: upg
                     }));
                 });
             }
             escudosLancados.splice(i, 1);
         }
     }
-    // Bolas Elementais (v2 — Bola Elemental: rola pelo chão, transforma ao cruzar Nevasca/Meteoro)
+    // Bolas Elementais (v2 — Bola Elemental: rola pelo chão, transforma ao cruzar Nevasca/Meteoro + Upgrades Mago)
     for (let i = bolasElementais.length - 1; i >= 0; i--) {
         let b = bolasElementais[i];
+        const upg = b.upgrades || {};
+        
         b.x += Math.cos(b.ang) * b.speed;
         b.y += Math.sin(b.ang) * b.speed;
         b.dist += b.speed;
-        if (b.dist >= 400) { bolasElementais.splice(i, 1); continue; }
+
+        // Bumerangue: retorno ao atingir distância máxima
+        if (upg.bumerangue && !upg.retornando && b.dist >= (b.maxDist || 400)) {
+            upg.retornando = true;
+        }
+
+        if (upg.retornando) {
+            let pCaster = players[b.ownerId];
+            if (pCaster && pCaster.hp > 0) {
+                b.ang = Math.atan2(pCaster.y - b.y, pCaster.x - b.x);
+                let distP = Math.hypot(pCaster.x - b.x, pCaster.y - b.y);
+                if (distP <= 35) {
+                    let mpRecov = Math.round((pCaster.maxMp || 100) * 0.15);
+                    let hpRecov = Math.round((pCaster.maxHp || 100) * 0.10);
+                    pCaster.mana = Math.min(pCaster.maxMp, pCaster.mana + mpRecov);
+                    pCaster.hp = Math.min(pCaster.maxHp, pCaster.hp + hpRecov);
+                    wss.clients.forEach(c => {
+                        if (c.readyState === 1) {
+                            c.send(JSON.stringify({ type: 'action_mago_bumerangue_catch', id: b.ownerId, mp: mpRecov, hp: hpRecov }));
+                            c.send(JSON.stringify({ type: 'hp_sync', id: b.ownerId, hp: pCaster.hp, maxHp: pCaster.maxHp }));
+                            c.send(JSON.stringify({ type: 'mp_sync', id: b.ownerId, mana: pCaster.mana, maxMp: pCaster.maxMp }));
+                        }
+                    });
+                    bolasElementais.splice(i, 1);
+                    continue;
+                }
+            } else {
+                bolasElementais.splice(i, 1);
+                continue;
+            }
+        } else if (b.dist >= (b.maxDist || 400)) {
+            // Alcance máximo atingido sem retorno: detonação/supernova/singularidade
+            if (upg.supernova) {
+                const rSuper = 180;
+                const danoSuper = Math.round(b.dano * 2.5);
+                slimes.forEach(s => {
+                    if (s.hp > 0 && Math.hypot(s.x - b.x, s.y - b.y) <= rSuper) {
+                        registrarDanoMonstro(s, b.ownerId, danoSuper);
+                        s.stunTimer = Math.max(s.stunTimer || 0, 40);
+                        efeitos.aplicarEfeito(s, 'congelado', 40, 1);
+                    }
+                });
+                danoEmBosses(b.x, b.y, rSuper, b.ownerId, danoSuper, 'skill');
+                bosses.forEach(bs => {
+                    if (bs.hp > 0 && Math.hypot(bs.x - b.x, bs.y - b.y) <= rSuper) {
+                        bs.stunTimer = Math.max(bs.stunTimer || 0, 40);
+                        efeitos.aplicarEfeito(bs, 'congelado', 40, 1);
+                    }
+                });
+                meteorFires.push({ x: b.x, y: b.y, ownerId: b.ownerId, expiresAt: Date.now() + 5000, nextTick: Date.now() + 1000, dano: Math.round(b.dano * 0.5) });
+                wss.clients.forEach(c => { if(c.readyState === 1) c.send(JSON.stringify({ type: 'action_mago_supernova', id: b.id, x: b.x, y: b.y, raio: rSuper })); });
+            } else if (upg.singularidade) {
+                wss.clients.forEach(c => { if(c.readyState === 1) c.send(JSON.stringify({ type: 'action_mago_singularidade', id: b.id, x: b.x, y: b.y, raio: 200, duracaoMs: 6000 })); });
+                for (let st = 0; st < 12; st++) {
+                    setTimeout(() => {
+                        slimes.forEach(s => {
+                            if (s.hp > 0 && Math.hypot(s.x - b.x, s.y - b.y) <= 200) {
+                                let a = Math.atan2(b.y - s.y, b.x - s.x);
+                                s.x += Math.cos(a) * 20;
+                                s.y += Math.sin(a) * 20;
+                                registrarDanoMonstro(s, b.ownerId, Math.round(b.dano * 0.25));
+                            }
+                        });
+                        danoEmBosses(b.x, b.y, 200, b.ownerId, Math.round(b.dano * 0.25), 'skill');
+                    }, st * 500);
+                }
+            }
+            bolasElementais.splice(i, 1);
+            continue;
+        }
         
+        // Vórtice gravitacional (Tier 1 B): atrai inimigos próximos continuamente
+        if (upg.vortex) {
+            slimes.forEach(s => {
+                if (s.hp > 0 && Math.hypot(s.x - b.x, s.y - b.y) <= 150) {
+                    let a = Math.atan2(b.y - s.y, b.x - s.x);
+                    s.x += Math.cos(a) * 6;
+                    s.y += Math.sin(a) * 6;
+                }
+            });
+        }
+
+        // Pulsos tri-elementais (Tier 2 A): a cada 6 ticks (~300ms) emite pulso de dano
+        if (upg.pulsos) {
+            b.pulseTick = (b.pulseTick || 0) + 1;
+            if (b.pulseTick % 6 === 0) {
+                const rPulse = 90;
+                const dPulse = Math.round(b.dano * 0.35);
+                slimes.forEach(s => {
+                    if (s.hp > 0 && Math.hypot(s.x - b.x, s.y - b.y) <= rPulse) {
+                        registrarDanoMonstro(s, b.ownerId, dPulse);
+                    }
+                });
+                danoEmBosses(b.x, b.y, rPulse, b.ownerId, dPulse, 'skill');
+                wss.clients.forEach(c => { if (c.readyState === 1) c.send(JSON.stringify({ type: 'action_mago_pulso_elemental', x: b.x, y: b.y, raio: rPulse })); });
+            }
+        }
+
+        // Transformação elemental ao cruzar zonas
         if (b.type === 'normal') {
             if (blizzards.some(bl => Math.hypot(bl.x - b.x, bl.y - b.y) <= bl.radius)) {
                 b.type = 'gelo';
@@ -5494,12 +6692,34 @@ setInterval(() => {
             }
         }
         
-        // Primeiro inimigo em contato (raio 28 = bola gigante giratória)
+        // Perfurante (Tier 1 A): não é destruída ao tocar nos inimigos, atinge múltiplos alvos
+        if (upg.perfurante) {
+            b.mobsAtingidos = b.mobsAtingidos || [];
+            const rPerfurar = 36;
+            slimes.forEach(s => {
+                if (s.hp > 0 && !b.mobsAtingidos.includes('s_' + s.id) && Math.hypot(s.x - b.x, s.y - b.y) < rPerfurar) {
+                    b.mobsAtingidos.push('s_' + s.id);
+                    registrarDanoMonstro(s, b.ownerId, b.dano);
+                    if (b.type === 'fogo') efeitos.aplicarEfeito(s, 'queimadura', 100, 8);
+                    if (b.type === 'gelo') efeitos.aplicarEfeito(s, 'congelado', 40, 1);
+                }
+            });
+            bosses.forEach(bs => {
+                if (bs.hp > 0 && !b.mobsAtingidos.includes('b_' + bs.id) && Math.hypot(bs.x - b.x, bs.y - b.y) < rPerfurar) {
+                    b.mobsAtingidos.push('b_' + bs.id);
+                    registrarDanoMonstro(bs, b.ownerId, b.dano);
+                    if (b.type === 'fogo') efeitos.aplicarEfeito(bs, 'queimadura', 100, 8);
+                    if (b.type === 'gelo') efeitos.aplicarEfeito(bs, 'congelado', 40, 1);
+                }
+            });
+            continue;
+        }
+
+        // Primeiro inimigo em contato (raio 28 = bola gigante giratória padrão)
         let hit = slimes.find(s => s.hp > 0 && Math.hypot(s.x - b.x, s.y - b.y) < 28);
         if (!hit) hit = bosses.find(bs => bs.hp > 0 && Math.hypot(bs.x - b.x, bs.y - b.y) < 28);
         if (hit) {
             if (b.type === 'fogo') {
-                // FOGO: grande explosão em área (raio 130) com dano ×2 — o fogo do Meteoro já queima o chão por 5s
                 const raioExplosao = 130;
                 slimes.forEach(s => {
                     if (s.hp > 0 && Math.hypot(s.x - b.x, s.y - b.y) <= raioExplosao) {
@@ -5509,7 +6729,6 @@ setInterval(() => {
                 danoEmBosses(b.x, b.y, raioExplosao, b.ownerId, b.dano * 2, 'skill');
                 wss.clients.forEach(c => { if(c.readyState === 1) c.send(JSON.stringify({ type: 'action_mago_bola_hit', id: b.id, x: b.x, y: b.y, ballType: 'fogo', radius: raioExplosao })); });
             } else if (b.type === 'gelo') {
-                // GELO: congela inimigos próximos (raio 85) por 2s + cristaliza o chão
                 const raioGelo = 85;
                 const tempoCongelado = 40; // 40 ticks @50ms = 2s
                 let alvos = [];
@@ -5536,10 +6755,8 @@ setInterval(() => {
                     }
                 });
             } else {
-                // NORMAL: empurra todos os inimigos próximos (raio 60) para trás + dano no contato
                 registrarDanoMonstro(hit, b.ownerId, b.dano);
                 if (hit.isBoss || bosses.indexOf(hit) !== -1) {
-                    // Boss só toma dano, não é empurrado
                 } else {
                     hit.x += Math.cos(b.ang) * 60;
                     hit.y += Math.sin(b.ang) * 60;
@@ -5551,6 +6768,26 @@ setInterval(() => {
                     }
                 });
                 wss.clients.forEach(c => { if(c.readyState === 1) c.send(JSON.stringify({ type: 'action_mago_bola_hit', id: b.id, x: b.x, y: b.y, ballType: 'normal', radius: 60 })); });
+            }
+            if (upg.supernova) {
+                const rSuper = 180;
+                const danoSuper = Math.round(b.dano * 2.5);
+                slimes.forEach(s => {
+                    if (s.hp > 0 && Math.hypot(s.x - b.x, s.y - b.y) <= rSuper) {
+                        registrarDanoMonstro(s, b.ownerId, danoSuper);
+                        s.stunTimer = Math.max(s.stunTimer || 0, 40);
+                        efeitos.aplicarEfeito(s, 'congelado', 40, 1);
+                    }
+                });
+                danoEmBosses(b.x, b.y, rSuper, b.ownerId, danoSuper, 'skill');
+                bosses.forEach(bs => {
+                    if (bs.hp > 0 && Math.hypot(bs.x - b.x, bs.y - b.y) <= rSuper) {
+                        bs.stunTimer = Math.max(bs.stunTimer || 0, 40);
+                        efeitos.aplicarEfeito(bs, 'congelado', 40, 1);
+                    }
+                });
+                meteorFires.push({ x: b.x, y: b.y, ownerId: b.ownerId, expiresAt: Date.now() + 5000, nextTick: Date.now() + 1000, dano: Math.round(b.dano * 0.5) });
+                wss.clients.forEach(c => { if(c.readyState === 1) c.send(JSON.stringify({ type: 'action_mago_supernova', id: b.id, x: b.x, y: b.y, raio: rSuper })); });
             }
             bolasElementais.splice(i, 1);
         }
@@ -6447,9 +7684,20 @@ setInterval(() => {
                                         registrarDanoMonstro(slAlvo, pid, danoPedra, 'pet');
                                     }
                                 }
+                                let isIncandescente = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgradesColossal, 'colossal', 1, 'B'));
+                                let isEstilhacos = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgradesColossal, 'colossal', 3, 'B'));
                                 wss.clients.forEach((client) => {
                                     if (client.readyState === WebSocket.OPEN) {
-                                        client.send(JSON.stringify({ type: 'ogro_pedra_enorme', sx: ogro.x, sy: ogro.y, tx: alvoPedra.x, ty: alvoPedra.y, gigante: isPedraGigante }));
+                                        client.send(JSON.stringify({ 
+                                            type: 'ogro_pedra_enorme', 
+                                            sx: ogro.x, 
+                                            sy: ogro.y, 
+                                            tx: alvoPedra.x, 
+                                            ty: alvoPedra.y, 
+                                            gigante: isPedraGigante,
+                                            incandescente: isIncandescente,
+                                            estilhacos: isEstilhacos
+                                        }));
                                     }
                                 });
                             });
@@ -6566,6 +7814,20 @@ setInterval(() => {
                     if (primeiroAlvoHit && SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgradesSalto, 'salto', 1, 'A')) {
                         primeiroAlvoHit.marcaPresaExpires = Date.now() + 6000;
                         primeiroAlvoHit.marcaPresaOwner = pid;
+                        wss.clients.forEach(c => {
+                            if (c.readyState === WebSocket.OPEN) {
+                                c.send(JSON.stringify({ 
+                                    type: 'action_summoner_marca_presa', 
+                                    alvoId: primeiroAlvoHit.id, 
+                                    alvoTipo: primeiroAlvoHit.tipo || 'slime', 
+                                    x: Math.round(primeiroAlvoHit.x), 
+                                    y: Math.round(primeiroAlvoHit.y), 
+                                    duracao: 6000, 
+                                    golemX: Math.round(ogro.x), 
+                                    golemY: Math.round(ogro.y) 
+                                }));
+                            }
+                        });
                     }
 
                     // Tier 4 A: Presa Inescapável (imobiliza por 2.5s, ataques do Golem causam +30%)
@@ -6573,6 +7835,16 @@ setInterval(() => {
                         primeiroAlvoHit.isPreso = Date.now() + 2500;
                         primeiroAlvoHit.presoTimer = 50;
                         primeiroAlvoHit.presaInescapavelAte = Date.now() + 2500;
+                        wss.clients.forEach(c => {
+                            if (c.readyState === WebSocket.OPEN) {
+                                c.send(JSON.stringify({ 
+                                    type: 'action_summoner_garras_terra', 
+                                    x: Math.round(primeiroAlvoHit.x), 
+                                    y: Math.round(primeiroAlvoHit.y), 
+                                    duracao: 2500 
+                                }));
+                            }
+                        });
                     }
 
                     // Tier 1 B: Cratera de Impacto (5s, 30% lentidão)
@@ -6715,9 +7987,35 @@ setInterval(() => {
                     } else {
                         ogro.attackCooldown++;
                         if (ogro.attackCooldown > (ogro.colossalAtivo ? 13 : 27)) {
-                            let r = registrarDanoMonstro(slimeAlvo, pid, dmgSkill(players[pid], 'ogro', 15), 'pet');
-                            broadcastDanoLacaio(slimeAlvo.x, slimeAlvo.y, r.dano);
-                            let db = danoEmBosses(ogro.x, ogro.y, 95, pid, dmgSkill(players[pid], 'ogro', 15), 'basico', 'pet');
+                            let danoBasePet = dmgSkill(players[pid], 'ogro', 15);
+                            let multSoco = 1;
+                            let foiMartelo = false;
+
+                            // Tier 4 B: Martelo do Colosso (+70% dano no próximo soco do Golem)
+                            if (ogro.marteloColossoAtivo) {
+                                multSoco += 0.70;
+                                ogro.marteloColossoAtivo = false;
+                                foiMartelo = true;
+                            }
+
+                            // Tier 2 B: Fratura Exposta (+15% dano recebido de ataques básicos do Golem)
+                            if (slimeAlvo.fraturaExpostaExpires && slimeAlvo.fraturaExpostaExpires > agora) {
+                                multSoco += 0.15;
+                            }
+
+                            let danoFinalSoco = Math.round(danoBasePet * multSoco);
+                            let r = registrarDanoMonstro(slimeAlvo, pid, danoFinalSoco, 'pet');
+                            broadcastDanoLacaio(slimeAlvo.x, slimeAlvo.y, r ? r.dano : danoFinalSoco);
+
+                            if (foiMartelo) {
+                                wss.clients.forEach(c => {
+                                    if (c.readyState === WebSocket.OPEN) {
+                                        c.send(JSON.stringify({ type: 'action_summoner_martelo_colosso_hit', x: slimeAlvo.x, y: slimeAlvo.y, dano: (r ? r.dano : danoFinalSoco), pid: pid }));
+                                    }
+                                });
+                            }
+
+                            let db = danoEmBosses(ogro.x, ogro.y, 95, pid, danoFinalSoco, 'basico', 'pet');
                             if (db) broadcastDanoLacaio(db.x, db.y, db.dano);
                             ogro.attackCooldown = 0;
                         }
@@ -6731,7 +8029,31 @@ setInterval(() => {
                     } else {
                         ogro.attackCooldown++;
                         if (ogro.attackCooldown > (ogro.colossalAtivo ? 13 : 27)) {
-                            registrarDanoBoss(bossAlvo, pid, dmgSkill(players[pid], 'ogro', 15), 'basico');
+                            let danoBasePet = dmgSkill(players[pid], 'ogro', 15);
+                            let multSoco = 1;
+                            let foiMartelo = false;
+
+                            if (ogro.marteloColossoAtivo) {
+                                multSoco += 0.70;
+                                ogro.marteloColossoAtivo = false;
+                                foiMartelo = true;
+                            }
+
+                            if (bossAlvo.fraturaExpostaExpires && bossAlvo.fraturaExpostaExpires > agora) {
+                                multSoco += 0.15;
+                            }
+
+                            let danoFinalSoco = Math.round(danoBasePet * multSoco);
+                            registrarDanoBoss(bossAlvo, pid, danoFinalSoco, 'basico');
+
+                            if (foiMartelo) {
+                                wss.clients.forEach(c => {
+                                    if (c.readyState === WebSocket.OPEN) {
+                                        c.send(JSON.stringify({ type: 'action_summoner_martelo_colosso_hit', x: bossAlvo.x, y: bossAlvo.y, dano: danoFinalSoco, pid: pid }));
+                                    }
+                                });
+                            }
+
                             ogro.attackCooldown = 0;
                         }
                     }
@@ -6811,15 +8133,42 @@ setInterval(() => {
             // LADINO — Dança das Adagas / ARQUEIRO — Salto + Chuva: imunes ao veneno do pântano
             if (!p.ladinoDancaAtivo && !p.imune && efeitos.temEfeito(p, 'veneno') && global.venenoTick % 10 === 0) {
                 const veneno = efeitos.pegarEfeito(p, 'veneno');
-                p.hp = Math.max(0, p.hp - Math.max(5, Math.round(5 * ((veneno && veneno.intensidade) || 1))));
+                const danoVeneno = Math.max(5, Math.round(5 * ((veneno && veneno.intensidade) || 1)));
+                p.hp = Math.max(0, p.hp - itemSystem.reduzirDanoPelaDefesaEquipamento(
+                    p.classe,
+                    p.inventario && p.inventario.slots || {},
+                    danoVeneno
+                ));
             }
         }
     }
 
-    // ===== ZONAS DE UPGRADES DO SUMMONER (Fendas, Crateras, Impactos Atrasados) =====
+    // ===== ZONAS DE UPGRADES DO SUMMONER (Fendas, Crateras, Impactos Atrasados, Colapsos) =====
     for (let i = summonerFendas.length - 1; i >= 0; i--) {
         const z = summonerFendas[i];
         if (agora >= z.expires) {
+            let dono = players[z.ownerId];
+            let upFenda = (dono && dono.skillUpgrades) || {};
+            // Tier 3 A: Prisão de Placas (no instante em que a fissura fecha, placas rochosas prendem todos na área)
+            if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upFenda, 'esmagamento', 3, 'A')) {
+                slimes.forEach(s => {
+                    if (s.hp > 0 && Math.hypot(s.x - z.x, s.y - z.y) < z.raio) {
+                        s.isPreso = agora + 700;
+                        s.presoTimer = 14;
+                    }
+                });
+                bosses.forEach(b => {
+                    if (b.hp > 0 && Math.hypot(b.x - z.x, b.y - z.y) < z.raio) {
+                        b.isPreso = agora + 700;
+                        b.presoTimer = 14;
+                    }
+                });
+                wss.clients.forEach(c => {
+                    if (c.readyState === WebSocket.OPEN) {
+                        c.send(JSON.stringify({ type: 'action_summoner_prisao_placas', x: z.x, y: z.y, raio: z.raio, duracao: 700 }));
+                    }
+                });
+            }
             summonerFendas.splice(i, 1);
             continue;
         }
@@ -6836,6 +8185,37 @@ setInterval(() => {
             let db = danoEmBosses(z.x, z.y, z.raio, z.ownerId, z.dano, 'skill', 'pet');
             if (db) broadcastDanoLacaio(db.x, db.y, db.dano);
         }
+    }
+
+    // Colapso Territorial (Esmagamento 4A: lentidão 50% e tremores por 3s + implosão final com puxão forte)
+    for (let i = summonerColapsos.length - 1; i >= 0; i--) {
+        const z = summonerColapsos[i];
+        if (agora >= z.expires) {
+            slimes.forEach(s => {
+                if (s.hp > 0 && Math.hypot(s.x - z.x, s.y - z.y) < z.raio) {
+                    let ang = Math.atan2(z.y - s.y, z.x - s.x);
+                    s.x += Math.cos(ang) * 45;
+                    s.y += Math.sin(ang) * 45;
+                    let r = registrarDanoMonstro(s, z.ownerId, z.danoFinal, 'pet');
+                    broadcastDanoLacaio(s.x, s.y, r ? r.dano : z.danoFinal);
+                }
+            });
+            let db = danoEmBosses(z.x, z.y, z.raio, z.ownerId, z.danoFinal, 'skill', 'pet');
+            if (db) broadcastDanoLacaio(db.x, db.y, db.dano);
+            wss.clients.forEach(c => {
+                if (c.readyState === WebSocket.OPEN) {
+                    c.send(JSON.stringify({ type: 'action_summoner_colapso_territorial_implosao', x: z.x, y: z.y, raio: z.raio }));
+                }
+            });
+            summonerColapsos.splice(i, 1);
+            continue;
+        }
+        slimes.forEach(s => {
+            if (s.hp > 0 && Math.hypot(s.x - z.x, s.y - z.y) < z.raio) {
+                s.lentidao = Math.min(s.lentidao || 1, 0.50);
+                s.lentidaoTimer = 10;
+            }
+        });
     }
 
     for (let i = summonerCrateras.length - 1; i >= 0; i--) {
@@ -6959,7 +8339,7 @@ setInterval(() => {
                 if (Math.hypot((p.x + PLAYER_OFFSET_X) - z.x, (p.y + PLAYER_OFFSET_Y) - z.y) > 100) continue;
                 const ehAliado = pid === z.ownerId || (players[z.ownerId] && players[z.ownerId].partyId && p.partyId === players[z.ownerId].partyId);
                 if (ehAliado) { 
-                    aplicarCuraAoJogador(pid, curaVal); 
+                    aplicarCuraAoJogador(pid, curaVal, z.ownerId);
                     alvosCurados.push({ id: pid, x: Math.round(p.x + PLAYER_OFFSET_X), y: Math.round(p.y + PLAYER_OFFSET_Y), valor: curaVal });
                 }
             }
@@ -7277,7 +8657,7 @@ setInterval(() => {
                 let alvo = players[alvoId];
                 let aliado = alvoId === healerId || (healer.partyId && alvo.partyId === healer.partyId);
                 if (aliado && alvo.hp > 0 && Math.hypot(alvo.x - healer.x, alvo.y - healer.y) <= aura.raio) {
-                    aplicarCuraAoJogador(alvoId, curaAura);
+                    aplicarCuraAoJogador(alvoId, curaAura, healerId);
                     alvos.push({ id: alvoId, x: alvo.x + 12, y: alvo.y + 16 });
                 }
             }
@@ -7287,7 +8667,7 @@ setInterval(() => {
         }
     }
 
-    // ============ REGEN DE MANA (a cada 0,5s; ~3% do máximo por tick) ============
+    // ============ REGEN DE MANA & EFEITOS AMBIENTAIS DE BIOMA (a cada 0,5s) ============
     global.manaTick = ((global.manaTick || 0) + 1);
     if (global.manaTick % 10 === 0) {
         for (let pid in players) {
@@ -7295,8 +8675,32 @@ setInterval(() => {
             if (p.mana === undefined) { p.mana = p.maxMp || 50; continue; }
             if (!p.maxMp) p.maxMp = calcularMaxMp(p);
             let regen = Math.max(1, Math.ceil(p.maxMp * 0.03));
-            p.mana = Math.min(p.maxMp, p.mana + regen);
             let wsTarget = playerSockets[pid];
+
+            // Mecânicas ambientais nos Biomas do Continente de Gaia
+            if (p.hp > 0 && mapaMundo && (p.mapa === 'mundo' || !p.mapa)) {
+                // 1. LAVA DO VULCÃO: Dano contínuo de Fogo
+                if (typeof mapaMundo.ehLava === 'function' && mapaMundo.ehLava(p.x, p.y)) {
+                    aplicarDanoAmbiente(pid, 8, 'fogo', '🔥 Lava (-8)');
+                }
+                // 2. PÂNTANO: Águas de Veneno tóxicas
+                else if (typeof mapaMundo.ehVeneno === 'function' && mapaMundo.ehVeneno(p.x, p.y)) {
+                    aplicarDanoAmbiente(pid, 5, 'veneno', '🧪 Veneno (-5)');
+                }
+                // 3. VALE DOS CRISTAIS: Ressonância Arcana (+12 MP de regen extra)
+                if (typeof mapaMundo.ehCristal === 'function' && mapaMundo.ehCristal(p.x, p.y)) {
+                    regen += 12;
+                }
+                // 4. SELVA PROIBIDA: Vitalidade Primordial (+4 HP a cada 0.5s)
+                if (typeof mapaMundo.ehSelva === 'function' && mapaMundo.ehSelva(p.x, p.y) && p.hp < p.maxHp) {
+                    p.hp = Math.min(p.maxHp, p.hp + 4);
+                    if (wsTarget && wsTarget.readyState === WebSocket.OPEN) {
+                        wsTarget.send(JSON.stringify({ type: 'hp_sync', hp: p.hp, maxHp: p.maxHp }));
+                    }
+                }
+            }
+
+            p.mana = Math.min(p.maxMp, p.mana + regen);
             if (wsTarget && wsTarget.readyState === WebSocket.OPEN) {
                 wsTarget.send(JSON.stringify({ type: 'mp_sync', mp: Math.round(p.mana), maxMp: p.maxMp }));
             }
@@ -7379,6 +8783,35 @@ setInterval(() => {
     for (let i = blizzards.length - 1; i >= 0; i--) {
         let b = blizzards[i];
         if (b.expiresAt && Date.now() >= b.expiresAt) {
+            // Ao expirar: estacas de gelo ou mini tornados
+            if (b.miniTornados) {
+                for (let k = 0; k < 4; k++) {
+                    let angMini = (Math.PI * 2 / 4) * k;
+                    magoMiniTornados.push({
+                        x: b.x + Math.cos(angMini) * 25,
+                        y: b.y + Math.sin(angMini) * 25,
+                        ownerId: b.ownerId,
+                        duracao: 100,
+                        expiresAt: Date.now() + 5000,
+                        dano: Math.round((b.danoNevasca || 6) * 1.5)
+                    });
+                }
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_mago_mini_tornados_spawn', x: b.x, y: b.y, count: 4, duracaoMs: 5000 }));
+                });
+            }
+            if (b.estacasGelo) {
+                let danoEstacas = Math.round((b.danoNevasca || 6) * 4);
+                slimes.forEach(slime => {
+                    if (slime.hp > 0 && Math.hypot(slime.x - b.x, slime.y - b.y) <= b.radius) {
+                        registrarDanoMonstro(slime, b.ownerId, danoEstacas);
+                    }
+                });
+                danoEmBosses(b.x, b.y, b.radius, b.ownerId, danoEstacas, 'skill');
+                wss.clients.forEach(c => {
+                    if (c.readyState === WebSocket.OPEN) c.send(JSON.stringify({ type: 'action_mago_estacas_explosao', x: b.x, y: b.y, raio: b.radius }));
+                });
+            }
             blizzards.splice(i, 1);
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'sound_event', action: 'stop', soundId: b.soundId }));
@@ -7386,24 +8819,114 @@ setInterval(() => {
             continue;
         }
         b.duracao--;
+
+        // Tornado Crescente Caçador (Tier 4 B): aumenta de tamanho e persegue alvos
+        if (b.crescente) {
+            b.radius = Math.min(b.maxRadius || 200, b.radius + 0.35);
+            b.danoNevasca = (b.danoNevasca || 6) * 1.002;
+        }
+        if (b.perseguidor) {
+            let nearest = null;
+            let minDist = 400;
+            slimes.forEach(s => {
+                if (s.hp > 0) {
+                    let d = Math.hypot(s.x - b.x, s.y - b.y);
+                    if (d < minDist) { minDist = d; nearest = s; }
+                }
+            });
+            if (!nearest) {
+                bosses.forEach(bs => {
+                    if (bs.hp > 0) {
+                        let d = Math.hypot(bs.x - b.x, bs.y - b.y);
+                        if (d < minDist) { minDist = d; nearest = bs; }
+                    }
+                });
+            }
+            if (nearest && minDist > 15) {
+                let dx = nearest.x - b.x, dy = nearest.y - b.y;
+                b.x += (dx / minDist) * 1.6;
+                b.y += (dy / minDist) * 1.6;
+            }
+        }
+
         slimes.forEach(slime => {
             if (slime.hp > 0 && Math.hypot(slime.x - b.x, slime.y - b.y) < b.radius) {
-                slime.slowTimer = 15;
-                efeitos.aplicarEfeito(slime, 'gelo', 60, 1);
+                if (b.isFogo) {
+                    efeitos.aplicarEfeito(slime, 'queimadura', 60, 4);
+                } else {
+                    slime.slowTimer = 15;
+                    efeitos.aplicarEfeito(slime, 'gelo', 60, 1);
+                }
+                if (b.isTornado) {
+                    efeitos.aplicarEfeito(slime, 'debuff_defesa', 40, 20);
+                }
+                if (b.congelamentoProfundo) {
+                    slime.tempoEmNevasca = (slime.tempoEmNevasca || 0) + 1;
+                    if (slime.tempoEmNevasca >= 60) {
+                        slime.stunTimer = Math.max(slime.stunTimer || 0, 30);
+                        efeitos.aplicarEfeito(slime, 'congelado', 30, 1);
+                        slime.tempoEmNevasca = 0;
+                    }
+                }
                 if (b.duracao % 20 === 0) {
                     registrarDanoMonstro(slime, b.ownerId, b.danoNevasca || 6);
                 }
             }
         });
+
         if (b.duracao % 20 === 0) {
             danoEmBosses(b.x, b.y, b.radius, b.ownerId, b.danoNevasca || 6, 'skill');
             bosses.forEach(bb => {
                 if (bb.hp > 0 && Math.hypot(bb.x - b.x, bb.y - b.y) < b.radius) {
-                    efeitos.aplicarEfeito(bb, 'gelo', 60, 1);
+                    if (b.isFogo) {
+                        efeitos.aplicarEfeito(bb, 'queimadura', 60, 4);
+                    } else {
+                        efeitos.aplicarEfeito(bb, 'gelo', 60, 1);
+                    }
+                    if (b.isTornado) {
+                        efeitos.aplicarEfeito(bb, 'debuff_defesa', 40, 20);
+                    }
+                    if (b.congelamentoProfundo) {
+                        bb.tempoEmNevasca = (bb.tempoEmNevasca || 0) + 1;
+                        if (bb.tempoEmNevasca >= 60) {
+                            bb.stunTimer = Math.max(bb.stunTimer || 0, 30);
+                            efeitos.aplicarEfeito(bb, 'congelado', 30, 1);
+                            bb.tempoEmNevasca = 0;
+                        }
+                    }
                 }
             });
         }
+
         if (b.duracao <= 0 || (b.expiresAt && Date.now() >= b.expiresAt)) {
+            if (b.miniTornados) {
+                for (let k = 0; k < 4; k++) {
+                    let angMini = (Math.PI * 2 / 4) * k;
+                    magoMiniTornados.push({
+                        x: b.x + Math.cos(angMini) * 25,
+                        y: b.y + Math.sin(angMini) * 25,
+                        ownerId: b.ownerId,
+                        duracao: 100,
+                        expiresAt: Date.now() + 5000,
+                        dano: Math.round((b.danoNevasca || 6) * 1.5)
+                    });
+                }
+                wss.clients.forEach((client) => {
+                    if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_mago_mini_tornados_spawn', x: b.x, y: b.y, count: 4, duracaoMs: 5000 }));
+                });
+            }
+            if (b.estacasGelo) {
+                let danoEstacas = Math.round((b.danoNevasca || 6) * 4);
+                slimes.forEach(slime => {
+                    if (slime.hp > 0 && Math.hypot(slime.x - b.x, slime.y - b.y) <= b.radius) {
+                        registrarDanoMonstro(slime, b.ownerId, danoEstacas);
+                    }
+                });
+                danoEmBosses(b.x, b.y, b.radius, b.ownerId, danoEstacas, 'skill');
+                wss.clients.forEach(c => {
+                    if (c.readyState === WebSocket.OPEN) c.send(JSON.stringify({ type: 'action_mago_estacas_explosao', x: b.x, y: b.y, raio: b.radius }));
+                });
+            }
             blizzards.splice(i, 1);
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'sound_event', action: 'stop', soundId: b.soundId }));
@@ -7414,25 +8937,46 @@ setInterval(() => {
     for (let vi = vulcoes.length - 1; vi >= 0; vi--) {
         let v = vulcoes[vi];
         v.duracao--;
+        const upgV = v.upgrades || {};
+
+        // Zona de Calor (Tier 4 A): raio 220 enfraquecendo velocidade de ataque e reduzindo 10% defesa
+        if (upgV.zonaCalor && v.duracao % 20 === 0) {
+            slimes.forEach(slime => {
+                if (slime.hp > 0 && Math.hypot(slime.x - v.x, slime.y - v.y) < 220) {
+                    efeitos.aplicarEfeito(slime, 'debuff_defesa', 40, 10);
+                }
+            });
+            bosses.forEach(b => {
+                if (b.hp > 0 && Math.hypot(b.x - v.x, b.y - v.y) < 220) {
+                    efeitos.aplicarEfeito(b, 'debuff_defesa', 40, 10);
+                }
+            });
+        }
+
         if (v.emergindo > 0) { v.emergindo--; }
         else {
             v.tickCounter++;
-            if (v.tickCounter % 20 === 0) {
-                let ang = Math.random() * Math.PI * 2;
-                let dist = Math.random() * v.radius;
-                let tx = v.x + Math.cos(ang) * dist;
-                let ty = v.y + Math.sin(ang) * dist;
-                let tipo = Math.random() < 0.5 ? 'fireball' : 'lava';
-                let projId = 'vp_' + Date.now() + '_' + Math.floor(Math.random() * 9999);
-                v.projeteis.push({ id: projId, tx: tx, ty: ty, tipo: tipo, timer: 16, landed: false });
-                wss.clients.forEach((client) => {
-                    if (client.readyState === WebSocket.OPEN) {
-                        client.send(JSON.stringify({
-                            type: 'vulcao_projetil', vx: v.x, vy: v.y,
-                            tx: tx, ty: ty, tipo: tipo, id: projId
-                        }));
-                    }
-                });
+            const freqTiro = upgV.cadenciaDupla ? 10 : 20;
+            const qtdDisparos = upgV.cadenciaDupla ? 2 : 1;
+
+            if (v.tickCounter % freqTiro === 0) {
+                for (let q = 0; q < qtdDisparos; q++) {
+                    let ang = Math.random() * Math.PI * 2;
+                    let dist = Math.random() * v.radius;
+                    let tx = v.x + Math.cos(ang) * dist;
+                    let ty = v.y + Math.sin(ang) * dist;
+                    let tipo = Math.random() < 0.5 ? 'fireball' : 'lava';
+                    let projId = 'vp_' + Date.now() + '_' + Math.floor(Math.random() * 9999);
+                    v.projeteis.push({ id: projId, tx: tx, ty: ty, tipo: tipo, timer: 16, landed: false });
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({
+                                type: 'vulcao_projetil', vx: v.x, vy: v.y,
+                                tx: tx, ty: ty, tipo: tipo, id: projId
+                            }));
+                        }
+                    });
+                }
             }
             for (let pi = v.projeteis.length - 1; pi >= 0; pi--) {
                 let pp = v.projeteis[pi];
@@ -7445,6 +8989,7 @@ setInterval(() => {
                             registrarDanoMonstro(slime, v.ownerId, v.danoImpacto);
                             efeitos.aplicarEfeito(slime, 'stun', 10, 1);
                             efeitos.aplicarEfeito(slime, 'queimadura', 200, v.danoDot);
+                            if (upgV.pocasLava) efeitos.aplicarEfeito(slime, 'debuff_ataque', 100, 30);
                         }
                     });
                     danoEmBosses(pp.tx, pp.ty, raioImpacto + 10, v.ownerId, v.danoImpacto, 'skill');
@@ -7452,6 +8997,7 @@ setInterval(() => {
                         if (b.hp > 0 && Math.hypot(b.x - pp.tx, b.y - pp.ty) < raioImpacto + 10) {
                             efeitos.aplicarEfeito(b, 'stun', 10, 1);
                             efeitos.aplicarEfeito(b, 'queimadura', 200, v.danoDot);
+                            if (upgV.pocasLava) efeitos.aplicarEfeito(b, 'debuff_ataque', 100, 5);
                         }
                     });
                     wss.clients.forEach((client) => {
@@ -7461,11 +9007,159 @@ setInterval(() => {
                             }));
                         }
                     });
+                    // Segunda Explosão (Tier 3 A): detonação secundária 200ms depois
+                    if (upgV.segundaExplosao) {
+                        setTimeout(() => {
+                            const dSegunda = Math.round(v.danoImpacto * 0.7);
+                            slimes.forEach(s => {
+                                if (s.hp > 0 && Math.hypot(s.x - pp.tx, s.y - pp.ty) < raioImpacto) {
+                                    registrarDanoMonstro(s, v.ownerId, dSegunda);
+                                }
+                            });
+                            danoEmBosses(pp.tx, pp.ty, raioImpacto + 10, v.ownerId, dSegunda, 'skill');
+                            wss.clients.forEach(c => {
+                                if (c.readyState === WebSocket.OPEN) {
+                                    c.send(JSON.stringify({ type: 'action_mago_vulcao_segunda_explosao', x: pp.tx, y: pp.ty, raio: raioImpacto }));
+                                }
+                            });
+                        }, 200);
+                    }
                 }
                 if (pp.timer <= -5) v.projeteis.splice(pi, 1);
             }
         }
         if (v.duracao <= 0) vulcoes.splice(vi, 1);
+    }
+
+    // ===== TICKS DOS LACAIOS E ENTIDADES DO MAGO =====
+    // 1. Golem Incandescente do Mago (Vulcão Lado B)
+    for (let pid in golemsMago) {
+        let g = golemsMago[pid];
+        let p = players[pid];
+        if (!p || p.hp <= 0 || Date.now() >= g.expiresAt) {
+            delete golemsMago[pid];
+            wss.clients.forEach(c => { if (c.readyState === 1) c.send(JSON.stringify({ type: 'action_mago_golem_despawn', ownerId: pid })); });
+            continue;
+        }
+
+        // Segue o Mago mantendo proximidade
+        let distP = Math.hypot(p.x - g.x, p.y - g.y);
+        if (distP > 50) {
+            let ang = Math.atan2(p.y - g.y, p.x - g.x);
+            g.x += Math.cos(ang) * 4.2;
+            g.y += Math.sin(ang) * 4.2;
+        }
+
+        // Procura inimigos próximos em raio 350
+        let alvoGolem = slimes.find(s => s.hp > 0 && Math.hypot(s.x - g.x, s.y - g.y) < 350);
+        if (!alvoGolem) alvoGolem = bosses.find(b => b.hp > 0 && Math.hypot(b.x - g.x, b.y - g.y) < 350);
+
+        if (alvoGolem) {
+            // Ataque básico (projéteis de fogo / gelo)
+            if (Date.now() >= g.nextAtk) {
+                g.nextAtk = Date.now() + (g.hasGeloHand ? 700 : 1000);
+                g.altMao = !g.altMao;
+                let tipoAtk = (g.hasGeloHand && g.altMao) ? 'gelo' : 'fogo';
+                let danoAtk = (tipoAtk === 'gelo') ? Math.round(g.danoBase * 1.35) : g.danoBase;
+                let projId = 'golem_proj_' + Date.now() + '_' + Math.floor(Math.random() * 999);
+                wss.clients.forEach(c => {
+                    if (c.readyState === 1) {
+                        c.send(JSON.stringify({
+                            type: 'action_mago_golem_atk',
+                            ownerId: pid, gx: g.x, gy: g.y, tx: alvoGolem.x, ty: alvoGolem.y, tipo: tipoAtk, id: projId
+                        }));
+                    }
+                });
+                setTimeout(() => {
+                    if (alvoGolem && alvoGolem.hp > 0) {
+                        registrarDanoMonstro(alvoGolem, pid, danoAtk, 'pet');
+                        if (tipoAtk === 'gelo') efeitos.aplicarEfeito(alvoGolem, 'gelo', 50, 1);
+                        else efeitos.aplicarEfeito(alvoGolem, 'queimadura', 60, 4);
+                    }
+                }, 220);
+            }
+
+            // Rugido com Bolha Protetora 20% HP Máx (Tier 3 B - a cada 10s)
+            if (g.hasRugido && Date.now() >= g.nextRoar) {
+                g.nextRoar = Date.now() + 10000;
+                let escudoValor = Math.round((p.maxHp || 100) * 0.20);
+                p.escudoMago = escudoValor;
+                p.escudoMagoMax = escudoValor;
+                wss.clients.forEach(c => {
+                    if (c.readyState === 1) {
+                        c.send(JSON.stringify({ type: 'action_mago_golem_rugido', ownerId: pid, gx: g.x, gy: g.y }));
+                        c.send(JSON.stringify({ type: 'action_mago_escudo_sync', id: pid, valor: escudoValor, max: escudoValor }));
+                    }
+                });
+            }
+
+            // Meteoros de Fogo e Gelo periódicos (Tier 4 B - a cada 5s)
+            if (g.hasMeteoros && Date.now() >= g.nextMeteor) {
+                g.nextMeteor = Date.now() + 5000;
+                let ex = alvoGolem.x, ey = alvoGolem.y;
+                wss.clients.forEach(c => {
+                    if (c.readyState === 1) c.send(JSON.stringify({ type: 'action_mago_golem_meteoros', ownerId: pid, x: ex, y: ey }));
+                });
+                setTimeout(() => {
+                    slimes.forEach(s => { if (s.hp > 0 && Math.hypot(s.x - ex, s.y - ey) < 75) registrarDanoMonstro(s, pid, 35, 'pet'); });
+                    danoEmBosses(ex, ey, 80, pid, 35, 'skill', 'pet');
+                }, 350);
+                setTimeout(() => {
+                    slimes.forEach(s => {
+                        if (s.hp > 0 && Math.hypot(s.x - ex, s.y - ey) < 75) {
+                            registrarDanoMonstro(s, pid, 35, 'pet');
+                            s.stunTimer = Math.max(s.stunTimer || 0, 20);
+                            efeitos.aplicarEfeito(s, 'congelado', 20, 1);
+                        }
+                    });
+                    danoEmBosses(ex, ey, 80, pid, 35, 'skill', 'pet');
+                }, 750);
+            }
+        }
+    }
+
+    // 2. Mini-Tornados do Mago (Nevasca B3)
+    for (let ti = magoMiniTornados.length - 1; ti >= 0; ti--) {
+        let mt = magoMiniTornados[ti];
+        mt.duracao--;
+        if (mt.duracao <= 0 || Date.now() >= mt.expiresAt) {
+            magoMiniTornados.splice(ti, 1);
+            continue;
+        }
+        let alvoT = slimes.find(s => s.hp > 0 && Math.hypot(s.x - mt.x, s.y - mt.y) < 300);
+        if (!alvoT) alvoT = bosses.find(b => b.hp > 0 && Math.hypot(b.x - mt.x, b.y - mt.y) < 300);
+        if (alvoT) {
+            let ang = Math.atan2(alvoT.y - mt.y, alvoT.x - mt.x);
+            mt.x += Math.cos(ang) * 3.8;
+            mt.y += Math.sin(ang) * 3.8;
+        }
+        if (mt.duracao % 10 === 0) {
+            slimes.forEach(s => {
+                if (s.hp > 0 && Math.hypot(s.x - mt.x, s.y - mt.y) < 35) {
+                    registrarDanoMonstro(s, mt.ownerId, mt.dano);
+                    efeitos.aplicarEfeito(s, 'queimadura', 40, 3);
+                }
+            });
+            danoEmBosses(mt.x, mt.y, 40, mt.ownerId, mt.dano, 'skill');
+        }
+    }
+
+    // 3. Metamorfose Ígnea do Mago (Meteoro B4 - dano por segundo por atropelamento)
+    for (let pid in players) {
+        let pMago = players[pid];
+        if (pMago && pMago.classe === 'mago' && pMago.formaIgneaAte && pMago.formaIgneaAte > Date.now()) {
+            if (pMago.hp > 0 && agora % 250 < 50) {
+                let danoAtropelo = dmgSkill(pMago, 'meteoro', 15);
+                slimes.forEach(s => {
+                    if (s.hp > 0 && Math.hypot(s.x - pMago.x, s.y - pMago.y) < 55) {
+                        registrarDanoMonstro(s, pid, danoAtropelo, 'player');
+                        s.slowTimer = 15;
+                        efeitos.aplicarEfeito(s, 'queimadura', 60, 5);
+                    }
+                });
+                danoEmBosses(pMago.x, pMago.y, 60, pid, danoAtropelo, 'skill', 'player');
+            }
+        }
     }
 
     for (let i = chuvasServidor.length - 1; i >= 0; i--) {
@@ -7538,6 +9232,10 @@ setInterval(() => {
             projeteis.splice(i, 1);
             projectileRemoved = true;
         }
+        if (!projectileRemoved && mapaTileTeste && p.x >= LARGURA_TILETESTE && p.x < FIM_TILETESTE && mapaTileTeste.colideProjetilTileTeste(p.x, p.y)) {
+            projeteis.splice(i, 1);
+            projectileRemoved = true;
+        }
         if (!projectileRemoved && p.petAlvo && lacaios[p.petAlvo]) {
             let ogroAlvo = lacaios[p.petAlvo];
             let raioHitOgro = (p.raio || 5) + 24;
@@ -7552,6 +9250,21 @@ setInterval(() => {
             let raioHit = (p.raio || 5) + 15;
             if (player.hp > 0 && (!p.mapa || p.mapa === mapaPorCoordenada(player.x)) && Math.hypot(player.x + 12 - p.x, player.y + 16 - p.y) < raioHit) {
                 aplicarDanoJogador(pid, p.x, p.y, p.dano || 10);
+                if (p.tipo === 'cogumelo_veneno' && efeitos) {
+                    efeitos.aplicarEfeito(player, 'veneno', 100, 1);
+                    efeitos.aplicarEfeito(player, 'confusao', 100, 1);
+                }
+                if (p.tipo === 'louva_folha' && efeitos) {
+                    efeitos.aplicarEfeito(player, 'selva_ataque_lento', 100, 0.4);
+                    const manaRoubada = Math.min(Math.max(0, Number(player.mana) || 0), Math.max(1, Math.round((Number(player.maxMp) || 100) * 0.08)));
+                    player.mana = Math.max(0, (Number(player.mana) || 0) - manaRoubada);
+                    if (manaRoubada > 0) {
+                        const socketMana = playerSockets[pid];
+                        if (socketMana && socketMana.readyState === WebSocket.OPEN) {
+                            socketMana.send(JSON.stringify({ type: 'mp_sync', mp: Math.round(player.mana), maxMp: player.maxMp }));
+                        }
+                    }
+                }
                 // EDITOR "EDIT MOOB": projétil de monstro aplica debuffs configurados no alvo
                 if (p.ownerMonstro) {
                     for (let ss of slimes) { if (ss.id === p.ownerMonstro) { aplicarContatoMonstro(ss, player); break; } }
@@ -7611,6 +9324,10 @@ setInterval(() => {
             playerProjeteis.splice(i, 1);
             removido = true;
         }
+        if (!removido && mapaTileTeste && pp.x >= LARGURA_TILETESTE && pp.x < FIM_TILETESTE && mapaTileTeste.colideProjetilTileTeste(pp.x, pp.y)) {
+            playerProjeteis.splice(i, 1);
+            removido = true;
+        }
         if (!removido && mapaZonaZero && pp.x >= LARGURA_ZONA_ZERO && pp.x < FIM_ZONA_ZERO && mapaZonaZero.colideProjetilZonaZero(pp.x, pp.y)) {
             playerProjeteis.splice(i, 1);
             removido = true;
@@ -7618,6 +9335,15 @@ setInterval(() => {
         if (!removido) for (let s of slimes) {
             if (s.hp > 0 && Math.hypot(s.x - pp.x, s.y - pp.y) < 30) {
                 registrarDanoMonstro(s, pp.ownerId, pp.dano);
+                if (pp.tipo === 'magia_gelo') {
+                    s.hitsGeloBasico = (s.hitsGeloBasico || 0) + 1;
+                    if (s.hitsGeloBasico >= 3) {
+                        s.stunTimer = Math.max(s.stunTimer || 0, 20);
+                        efeitos.aplicarEfeito(s, 'congelado', 20, 1);
+                        s.hitsGeloBasico = 0;
+                        wss.clients.forEach(c => { if(c.readyState === 1) c.send(JSON.stringify({ type: 'reacao_congelante', x: s.x, y: s.y })); });
+                    }
+                }
                 if (!pp.perfurante) {
                     playerProjeteis.splice(i, 1);
                     removido = true;
@@ -7629,6 +9355,15 @@ setInterval(() => {
             for (let bb of bosses) {
                 if (bb.hp > 0 && Math.hypot(bb.x - pp.x, bb.y - pp.y) < 82) {
                     registrarDanoBoss(bb, pp.ownerId, pp.dano, pp.origemBasica ? 'basico' : 'skill');
+                    if (pp.tipo === 'magia_gelo') {
+                        bb.hitsGeloBasico = (bb.hitsGeloBasico || 0) + 1;
+                        if (bb.hitsGeloBasico >= 3) {
+                            bb.stunTimer = Math.max(bb.stunTimer || 0, 20);
+                            efeitos.aplicarEfeito(bb, 'congelado', 20, 1);
+                            bb.hitsGeloBasico = 0;
+                            wss.clients.forEach(c => { if(c.readyState === 1) c.send(JSON.stringify({ type: 'reacao_congelante', x: bb.x, y: bb.y })); });
+                        }
+                    }
                     if (!pp.perfurante) {
                         playerProjeteis.splice(i, 1);
                         removido = true;
@@ -7696,6 +9431,10 @@ setInterval(() => {
     }
 
     slimes.forEach(slime => {
+        if (slime.aiManaged) {
+            if (slime.flagId && slime.hp <= 0) slime.respawnTimer = 0;
+            return;
+        }
         if (slime.hp <= 0) {
             // Demônio do tutorial: morte encerra o tutorial, sem respawn.
             if (slime.tipo === 'tutorial_demonio' && slime.tutorialOwnerId) {
@@ -7738,6 +9477,16 @@ setInterval(() => {
                 slime.fugindo = false;
                 slime.stunTimer = 0;
                 slime.slowTimer = 0;
+                slime.lentidaoTimer = 0;
+                slime.lentidao = 1.0;
+                slime.presoTimer = 0;
+                slime.isPreso = 0;
+                slime.reducaoDefTimer = 0;
+                slime.reducaoAtkTimer = 0;
+                slime.fraturaExpostaExpires = 0;
+                slime.fraturaDefensivaExpires = 0;
+                slime.marcaPresaExpires = 0;
+                slime.queimaduraExpires = 0;
                 slime.respawnTimer = 0;
                 slime.tabelaDano = {};
                 slime.skillCharging = false;
@@ -7755,6 +9504,9 @@ setInterval(() => {
             }
             return;
         }
+
+        // Atualização e expiração de todos os debuffs do monstro (Stun, Slow, Preso, Fratura, etc.)
+        atualizarDebuffsEntidade(slime, Date.now());
 
         // PUXÃO DE HABILIDADE (ex: Lançamento de Escudo do Guerreiro)
         if (slime.pull) {
@@ -7798,16 +9550,11 @@ setInterval(() => {
         }
 
         let fatorLentidao = 1.0;
-        if (slime.imuneControle) {
-            slime.stunTimer = 0;
-            slime.slowTimer = 0;
-            if (Array.isArray(slime.efeitos)) {
-                slime.efeitos = slime.efeitos.filter(ef => !['stun', 'lentidao', 'paralisia', 'sono', 'gelo'].includes(ef.id));
-            }
-        }
         if (slime.slowTimer > 0 && !slime.imuneControle) {
-            slime.slowTimer--;
-            fatorLentidao = 0.5;
+            fatorLentidao = Math.min(fatorLentidao, 0.5);
+        }
+        if (typeof slime.lentidao === 'number' && slime.lentidao < 1.0) {
+            fatorLentidao = Math.min(fatorLentidao, slime.lentidao);
         }
 
         // ===== DEMÔNIO DO TUTORIAL =====
@@ -7932,7 +9679,7 @@ setInterval(() => {
 
             if (slime.arquetipo && atualizarMonstroEspecial(slime, alvo, dx, dy, dist, fatorLentidao)) {
                 return;
-            } else if (slime.tipo === "melee" || (slime.tipo === "ranged" && slime.ehMelee)) {
+            } else if (slime.tipo === "melee" || slime.tipo === "globin" || (slime.tipo === "ranged" && slime.ehMelee)) {
                 const alcanceMelee = slime.attackRange || 55;
                 if (dist > alcanceMelee) {
                     let velSlime = (slime.velocidade || 3.2) * fatorLentidao;
@@ -8145,10 +9892,12 @@ setInterval(() => {
                         slime.skillAim = { x: alvo.x, y: alvo.y };
                     }
                 }
-            } else if (slime.tipo === "morcego") {
+            } else if (slime.tipo === "morcego" || slime.tipo === "morcegote") {
                 // ============ MORCEGO (voador da caverna) ============
-                slime.x = Math.max(LARGURA_CAVERNA, Math.min(FIM_CAVERNA - 10, slime.x));
-                slime.y = Math.max(0, Math.min(ALTO_CAVERNA - 10, slime.y));
+                if (slime.tipo === "morcego") {
+                    slime.x = Math.max(LARGURA_CAVERNA, Math.min(FIM_CAVERNA - 10, slime.x));
+                    slime.y = Math.max(0, Math.min(ALTO_CAVERNA - 10, slime.y));
+                }
 
                 if (slime.ziguezague === undefined) slime.ziguezague = 0;
 
@@ -8528,6 +10277,8 @@ setInterval(() => {
     // ============ BOSS: SIMULAÇÃO GOLEM DE PEDRA ============
     for (let i = bosses.length - 1; i >= 0; i--) {
         let g = bosses[i];
+        if (!g) continue;
+        if (g.hp > 0) atualizarDebuffsEntidade(g, Date.now());
 
         // STUN (Ladino — Estrela da Morte): golem parado por 2s (40 ticks)
         if (g.stunTimer > 0) {
@@ -8550,7 +10301,7 @@ if (g.hp <= 0) {
                 if (!g.mortoAnunciado) {
                     g.mortoAnunciado = true;
                     distribuirXpBoss(g);
-                    gerarDropNoChao(g.x, g.y, g.tabelaDano, g.maxHp || 0, true);
+                    gerarDropNoChao(g.x, g.y, g.tabelaDano, g.maxHp || 0, true, g);
                     gerarDropsAuxiliares(g.x, g.y, g.maxHp || 0, true);
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
@@ -8751,7 +10502,6 @@ if (g.hp <= 0) {
 
     // Sistema de bandeiras: garante os spawns/respawns sincronizados
     atualizarBandeirasSpawn();
-    verificarEventoHorda();
 
     // Expira drops antigos (tempo de vida no chão)
     if (equipamentos && dropsChao.length) {
@@ -9252,8 +11002,8 @@ wss.on('connection', (ws) => {
 
                 players[playerId] = {
                     nome: userId,
-                    x: dadosSalvos && dadosSalvos.x !== undefined ? (dadosSalvos.x < LARGURA_VERDE ? CIDADE_SPAWN_X + (Math.random() * 40 - 20) : dadosSalvos.x) : (CIDADE_SPAWN_X + (Math.random() * 40 - 20)),
-                    y: dadosSalvos && dadosSalvos.y !== undefined ? (dadosSalvos.x < LARGURA_VERDE ? CIDADE_SPAWN_Y + (Math.random() * 40 - 20) : dadosSalvos.y) : (CIDADE_SPAWN_Y + (Math.random() * 40 - 20)),
+                    x: (dadosSalvos && dadosSalvos.x !== undefined && mapaPorCoordenada(dadosSalvos.x)) ? dadosSalvos.x : CIDADE_SPAWN_X,
+                    y: (dadosSalvos && dadosSalvos.y !== undefined && mapaPorCoordenada(dadosSalvos.x)) ? dadosSalvos.y : CIDADE_SPAWN_Y,
                     angulo: 0,
                     moving: false,
                     hp: dadosSalvos && dadosSalvos.hp !== undefined ? dadosSalvos.hp : 100,
@@ -9271,7 +11021,7 @@ wss.on('connection', (ws) => {
                     pontosHabilidade: (dadosSalvos && typeof dadosSalvos.pontosHabilidade === 'number') ? dadosSalvos.pontosHabilidade : 0,
                     // Só personagens criados agora recebem o tutorial. Personagens antigos
                     // não ganham etapas novas nem ficam presos por ele.
-                    tutorialEtapa: (dadosSalvos && Number(dadosSalvos.tutorialEtapa) > 0) ? Number(dadosSalvos.tutorialEtapa) : 0,
+                    tutorialEtapa: (dadosSalvos && Number(dadosSalvos.tutorialEtapa) > 0) ? (Number(dadosSalvos.tutorialEtapa) >= 3 ? 4 : Number(dadosSalvos.tutorialEtapa)) : 0,
                     tutorialStatusConcluido: !!(dadosSalvos && dadosSalvos.tutorialStatusConcluido),
                     tutorialSkillConcluida: !!(dadosSalvos && dadosSalvos.tutorialSkillConcluida),
                     pvpAtivo: false,
@@ -9280,6 +11030,9 @@ wss.on('connection', (ws) => {
                     mana: (dadosSalvos && dadosSalvos.mana !== undefined) ? dadosSalvos.mana : 50,
                     maxMp: 50,
                     inventario: (dadosSalvos && dadosSalvos.inventario) ? dadosSalvos.inventario : inventarioPadrao(),
+                    upgradeTxn: (dadosSalvos && dadosSalvos.upgradeTxn && typeof dadosSalvos.upgradeTxn === 'object')
+                        ? dadosSalvos.upgradeTxn
+                        : null,
                     uiLayout: normalizarUiLayout(dadosSalvos && dadosSalvos.uiLayout),
                     isDashing: false,
                     mapaTransicaoAte: 0,
@@ -9365,7 +11118,7 @@ aaCometasCooldown: 0,
                 // cidade de Davahl no login.
                 let posXLogin = players[playerId].x;
                 let posYLogin = players[playerId].y;
-                if (posXLogin >= FIM_CIDADE && posXLogin < LARGURA_SOLARI) {
+                if (!mapaPorCoordenada(posXLogin)) {
                     posXLogin = CIDADE_SPAWN_X;
                     posYLogin = CIDADE_SPAWN_Y;
                 }
@@ -9414,7 +11167,7 @@ aaCometasCooldown: 0,
                 if (ehAdminConta) {
                     ws.send(JSON.stringify({ type: 'spawn_flags', bandeiras: bandeirasSpawn }));
                     if (spawnsAdmin && spawnsAdmin.MONSTROS_EDITAVEIS) {
-                        ws.send(JSON.stringify({ type: 'monstros_config', conf: spawnsAdmin.MONSTROS_EDITAVEIS, dropTipos: spawnsAdmin.DROPS_TIPOS || [] }));
+                        ws.send(JSON.stringify({ type: 'monstros_config', conf: spawnsAdmin.MONSTROS_EDITAVEIS, dropTipos: spawnsAdmin.DROPS_TIPOS || [], tags: spawnsAdmin.TAGS_MONSTRO }));
                     }
                 }
                 ws.send(JSON.stringify({ type: 'map_vfx', vfx: mapVfx }));
@@ -9559,7 +11312,16 @@ aaCometasCooldown: 0,
                 let inviterId = p2.tradeInviter;
                 if (inviterId && players[inviterId] && playerSockets[inviterId]) {
                     let tid = "trade_" + tradeCounter++;
-                    trades[tid] = { p1: inviterId, p2: playerId, items1: [], items2: [], conf1: false, conf2: false };
+                    trades[tid] = {
+                        p1: inviterId,
+                        p2: playerId,
+                        owner1: players[inviterId].nome,
+                        owner2: p2.nome,
+                        items1: [],
+                        items2: [],
+                        conf1: false,
+                        conf2: false
+                    };
                     
                     players[inviterId].tradeId = tid;
                     p2.tradeId = tid;
@@ -9578,7 +11340,14 @@ aaCometasCooldown: 0,
                 let trade = trades[tid];
                 let p = players[playerId];
                 let idx = parseInt(data.index);
-                if (trade && !trade.conf1 && !trade.conf2 && !isNaN(idx) && p.inventario && p.inventario.mochila && idx >= 0 && idx < p.inventario.mochila.length) {
+                if (trade && trade.p1 !== playerId && trade.p2 !== playerId) {
+                    ws.send(JSON.stringify({ type: 'trade_erro', mensagem: 'Você não participa desta troca.' }));
+                    return;
+                }
+                if (trade && (trade.p1 === playerId || trade.p2 === playerId) &&
+                    p && p.tradeId === tid && !trade.conf1 && !trade.conf2 &&
+                    !isNaN(idx) && p.inventario && p.inventario.mochila &&
+                    idx >= 0 && idx < p.inventario.mochila.length) {
                     let isP1 = (trade.p1 === playerId);
                     let myItems = isP1 ? trade.items1 : trade.items2;
                     if (myItems.length < 4 && p.inventario.mochila[idx] && p.inventario.mochila[idx].tipo !== 'vazio') {
@@ -9601,7 +11370,13 @@ aaCometasCooldown: 0,
                 let trade = trades[tid];
                 let p = players[playerId];
                 let idx = parseInt(data.index);
-                if (trade && !trade.conf1 && !trade.conf2 && !isNaN(idx) && p.inventario && p.inventario.mochila) {
+                if (trade && trade.p1 !== playerId && trade.p2 !== playerId) {
+                    ws.send(JSON.stringify({ type: 'trade_erro', mensagem: 'Você não participa desta troca.' }));
+                    return;
+                }
+                if (trade && (trade.p1 === playerId || trade.p2 === playerId) &&
+                    p && p.tradeId === tid && !trade.conf1 && !trade.conf2 &&
+                    !isNaN(idx) && p.inventario && p.inventario.mochila) {
                     let isP1 = (trade.p1 === playerId);
                     let myItems = isP1 ? trade.items1 : trade.items2;
                     if (idx >= 0 && idx < myItems.length && myItems[idx]) {
@@ -9618,23 +11393,41 @@ aaCometasCooldown: 0,
             if (data.action === 'trade_confirm') {
                 let tid = data.tradeId;
                 let trade = trades[tid];
-                if (trade) {
+                if (trade && trade.p1 !== playerId && trade.p2 !== playerId) {
+                    ws.send(JSON.stringify({ type: 'trade_erro', mensagem: 'Você não participa desta troca.' }));
+                    return;
+                }
+                if (trade && (trade.p1 === playerId || trade.p2 === playerId) &&
+                    players[playerId] && players[playerId].tradeId === tid) {
                     if (trade.p1 === playerId) trade.conf1 = true;
                     if (trade.p2 === playerId) trade.conf2 = true;
 
                     if (trade.conf1 && trade.conf2) {
-                        // SWAP ITEMS
                         let p1 = players[trade.p1];
                         let p2 = players[trade.p2];
                         if (p1 && p2) {
-                            trade.items2.forEach(it => {
-                                console.log(`[LOG TRADE] Item UID ${it.uid || it.id} (${it.nome}) transferido de ${trade.p2} para ${trade.p1}`);
-                                adicionarAoInventario(trade.p1, it);
-                            });
-                            trade.items1.forEach(it => {
-                                console.log(`[LOG TRADE] Item UID ${it.uid || it.id} (${it.nome}) transferido de ${trade.p1} para ${trade.p2}`);
-                                adicionarAoInventario(trade.p2, it);
-                            });
+                            try {
+                                const inventario1 = inventarioTradePreparado(trade.p1, trade.owner1, trade.items2);
+                                const inventario2 = inventarioTradePreparado(trade.p2, trade.owner2, trade.items1);
+                                salvarProgressoEmLote([
+                                    { userId: trade.owner1, dados: { inventario: inventario1 } },
+                                    { userId: trade.owner2, dados: { inventario: inventario2 } }
+                                ]);
+                                p1.inventario = inventario1;
+                                p2.inventario = inventario2;
+                            } catch (e) {
+                                trade.conf1 = false;
+                                trade.conf2 = false;
+                                console.error('[TRADE] Falha ao persistir troca; itens permanecem em escrow:', e && e.stack ? e.stack : e);
+                                ws.send(JSON.stringify({
+                                    type: 'trade_erro',
+                                    mensagem: 'A troca não foi concluída porque o salvamento falhou. Os itens continuam reservados.'
+                                }));
+                                broadcastTradeUpdate(tid);
+                                return;
+                            }
+                            trade.items2.forEach(it => console.log(`[LOG TRADE] Item UID ${it.uid || it.id} (${it.nome}) transferido de ${trade.p2} para ${trade.p1}`));
+                            trade.items1.forEach(it => console.log(`[LOG TRADE] Item UID ${it.uid || it.id} (${it.nome}) transferido de ${trade.p1} para ${trade.p2}`));
                             syncInventario(trade.p1);
                             syncInventario(trade.p2);
                             if(playerSockets[trade.p1]) playerSockets[trade.p1].send(JSON.stringify({ type: 'trade_close', mensagem: "Troca Concluída!" }));
@@ -9658,22 +11451,27 @@ aaCometasCooldown: 0,
                 let pC = players[playerIdColeta];
                 if (!pC || pC.hp <= 0) return;
                 let drop = dropsChao[idxDrop];
-                dropsChao.splice(idxDrop, 1);
                 let item = drop.item || {};
+                let inventarioSeguinte = clonarInventario(pC.inventario);
+                let ouroSeguinte = pC.ouro || 0;
                 if (item.tipo === 'ouro') { // cai como "gold" direto na carteira
                     let qtdOuro = Math.max(1, Math.round(item.quantidade || 1));
-                    pC.ouro = Math.max(0, (pC.ouro || 0) + qtdOuro);
-                    wsColeta.send(JSON.stringify({ type: 'ouro_ganho', quantidade: qtdOuro, ouro: pC.ouro }));
-                    console.log(`[LOG DROP] Ouro +${qtdOuro} coletado por ${playerIdColeta}`);
+                    ouroSeguinte = Math.max(0, ouroSeguinte + qtdOuro);
                 } else {
-                    if (!pC.inventario) pC.inventario = inventarioPadrao();
-                    if (!pC.inventario.mochila) pC.inventario.mochila = [];
+                    if (item.schemaVersion === 1) {
+                        const validation = itemSystem.validateDefinitionAndInstance(item);
+                        if (!validation.valid) {
+                            console.error('[LOOT] Drop de instância inválida recusado:', validation.reason);
+                            wsColeta.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Este drop está inválido e não foi coletado.' }));
+                            return;
+                        }
+                    }
                     // v1.34: poções e pedras empilham (mesmo subtipo+nível / tipo+raridade)
                     let chaveStack = null;
                     if (item.tipo === 'consumivel') chaveStack = 'pocao:' + (item.subtipo || item.tipo) + ':' + (item.nivel || 0);
                     else if (item.tipo === 'pedra') chaveStack = 'pedra:' + (item.raridade || 'comum');
                     if (chaveStack) {
-                        let existente = pC.inventario.mochila.find(mi => mi && (mi._stackChave === chaveStack || (
+                        let existente = inventarioSeguinte.mochila.find(mi => mi && (mi._stackChave === chaveStack || (
                             (mi.tipo === 'consumivel' && chaveStack === 'pocao:' + (mi.subtipo || mi.tipo) + ':' + (mi.nivel || 0)) ||
                             (mi.tipo === 'pedra' && chaveStack === 'pedra:' + (mi.raridade || 'comum'))
                         )));
@@ -9681,14 +11479,36 @@ aaCometasCooldown: 0,
                             existente.quantidade = (existente.quantidade || 1) + 1;
                             existente._stackChave = chaveStack;
                         } else {
-                            item.quantidade = item.quantidade || 1;
-                            item._stackChave = chaveStack;
-                            pC.inventario.mochila.push(item);
+                            const itemEmpilhado = JSON.parse(JSON.stringify(item));
+                            itemEmpilhado.quantidade = itemEmpilhado.quantidade || 1;
+                            itemEmpilhado._stackChave = chaveStack;
+                            inventarioSeguinte.mochila.push(itemEmpilhado);
                         }
                     } else {
-                        pC.inventario.mochila.push(item);
+                        adicionarItemAoInventarioPreparado(inventarioSeguinte, JSON.parse(JSON.stringify(item)));
                     }
-                    salvarProgresso(userIdColeta, { inventario: pC.inventario, ouro: pC.ouro || 0 });
+                }
+                try {
+                    salvarProgresso(userIdColeta, {
+                        inventario: inventarioSeguinte,
+                        ouro: ouroSeguinte
+                    });
+                } catch (e) {
+                    console.error('[DROP] Falha ao persistir coleta:', e && e.stack ? e.stack : e);
+                    wsColeta.send(JSON.stringify({
+                        type: 'inventario_erro',
+                        motivo: 'A coleta não foi concluída porque o salvamento falhou. Tente novamente.'
+                    }));
+                    return;
+                }
+                dropsChao.splice(idxDrop, 1);
+                pC.ouro = ouroSeguinte;
+                pC.inventario = inventarioSeguinte;
+                if (item.tipo === 'ouro') {
+                    let qtdOuro = Math.max(1, Math.round(item.quantidade || 1));
+                    wsColeta.send(JSON.stringify({ type: 'ouro_ganho', quantidade: qtdOuro, ouro: pC.ouro }));
+                    console.log(`[LOG DROP] Ouro +${qtdOuro} coletado por ${playerIdColeta}`);
+                } else {
                     console.log(`[LOG DROP] Item UID ${item.uid || item.id} (${item.nome || item.tipo}) coletado por ${playerIdColeta}`);
                     wsColeta.send(JSON.stringify({ type: 'item_coletado', item: item, equipadoMsg: null }));
                     if (pC.pocoes && item.tipo === 'consumivel') {
@@ -9720,34 +11540,81 @@ aaCometasCooldown: 0,
             if (data.action === 'usar_pocao') {
                 let pP = players[playerId];
                 if (!pP || pP.hp <= 0) return;
-                let subtipo = (data.subtipo === 'mp') ? 'pocao_mp' : 'pocao_hp';
-                if (!pP.inventario || !pP.inventario.mochila) return;
-                // escolhe a poção de maior nível disponível no tipo
+                if (data.subtipo !== 'mp' && data.subtipo !== 'hp') {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Tipo de poção inválido.' }));
+                    return;
+                }
+                let subtipo = data.subtipo === 'mp' ? 'pocao_mp' : 'pocao_hp';
+                if (!pP.inventario || !Array.isArray(pP.inventario.mochila)) {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Inventário indisponível no servidor.' }));
+                    return;
+                }
+                // A ação do HUD legado escolhe a poção de maior nível; a mochila pode enviar o ID exato.
                 let candidatas = pP.inventario.mochila.filter(mi => mi && mi.tipo === 'consumivel' && (mi.subtipo || '') === subtipo);
                 if (!candidatas.length) {
                     ws.send(JSON.stringify({ type: 'pocao_indisponivel', subtipo: subtipo }));
                     return;
                 }
-                candidatas.sort((a, b) => (b.nivel || 0) - (a.nivel || 0));
-                let pocao = candidatas[0];
+                let pocao;
+                if (data.id != null) {
+                    const itemId = typeof data.id === 'string' ? data.id.trim() : '';
+                    const selecionadas = candidatas.filter(function (item) { return item.id === itemId; });
+                    if (!itemId || selecionadas.length !== 1) {
+                        ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'A poção selecionada não existe ou está duplicada.' }));
+                        return;
+                    }
+                    pocao = selecionadas[0];
+                } else {
+                    candidatas.sort((a, b) => (b.nivel || 0) - (a.nivel || 0));
+                    pocao = candidatas[0];
+                }
                 let pct = pocao.pctCura || (pocao.nivel === 3 ? 1 : (pocao.nivel === 2 ? 0.4 : 0.2));
+                if (!Number.isFinite(pct) || pct <= 0 || pct > 1) {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Poção inválida; uso recusado.' }));
+                    return;
+                }
+                const inventarioSeguinte = clonarInventario(pP.inventario);
+                const pocaoSeguinte = inventarioSeguinte.mochila.find(function (item) {
+                    return item && item.id === pocao.id;
+                });
+                if (!pocaoSeguinte) {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Poção não encontrada.' }));
+                    return;
+                }
+                let hpSeguinte = pP.hp;
+                let manaSeguinte = pP.mana || 0;
                 if (subtipo === 'pocao_mp') {
                     let curaMp = Math.round((pP.maxMp || 50) * pct);
-                    pP.mana = Math.min(pP.maxMp || 50, (pP.mana || 0) + curaMp);
-                    ws.send(JSON.stringify({ type: 'mp_sync', mp: pP.mana, maxMp: pP.maxMp }));
-                    ws.send(JSON.stringify({ type: 'pocao_usada', subtipo: subtipo, nivel: pocao.nivel, nome: pocao.nome }));
+                    manaSeguinte = Math.min(pP.maxMp || 50, manaSeguinte + curaMp);
                 } else {
                     let curaHp = Math.round((pP.maxHp || 100) * pct);
-                    pP.hp = Math.min(pP.maxHp || 100, pP.hp + curaHp);
-                    ws.send(JSON.stringify({ type: 'hp_sync', hp: pP.hp, maxHp: pP.maxHp }));
-                    ws.send(JSON.stringify({ type: 'pocao_usada', subtipo: subtipo, nivel: pocao.nivel, nome: pocao.nome }));
+                    hpSeguinte = Math.min(pP.maxHp || 100, hpSeguinte + curaHp);
                 }
                 // consome 1 unidade
-                pocao.quantidade = (pocao.quantidade || 1) - 1;
-                if (pocao.quantidade <= 0) {
-                    pP.inventario.mochila = pP.inventario.mochila.filter(mi => mi !== pocao);
+                pocaoSeguinte.quantidade = (pocaoSeguinte.quantidade || 1) - 1;
+                if (pocaoSeguinte.quantidade <= 0) {
+                    inventarioSeguinte.mochila = inventarioSeguinte.mochila.filter(mi => mi !== pocaoSeguinte);
                 }
-                salvarProgresso(userId, { inventario: pP.inventario });
+                try {
+                    salvarProgresso(userId, {
+                        inventario: inventarioSeguinte,
+                        hp: hpSeguinte,
+                        mana: manaSeguinte
+                    });
+                } catch (e) {
+                    console.error('[INVENTARIO] Falha ao persistir uso de poção:', e && e.stack ? e.stack : e);
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Poção não consumida: falha ao salvar.' }));
+                    return;
+                }
+                pP.inventario = inventarioSeguinte;
+                pP.hp = hpSeguinte;
+                pP.mana = manaSeguinte;
+                if (subtipo === 'pocao_mp') {
+                    ws.send(JSON.stringify({ type: 'mp_sync', mp: pP.mana, maxMp: pP.maxMp }));
+                } else {
+                    ws.send(JSON.stringify({ type: 'hp_sync', hp: pP.hp, maxHp: pP.maxHp }));
+                }
+                ws.send(JSON.stringify({ type: 'pocao_usada', subtipo: subtipo, nivel: pocao.nivel, nome: pocao.nome }));
                 ws.send(JSON.stringify({ type: 'inventario_sync', inventario: JSON.parse(JSON.stringify(pP.inventario)) }));
                 return;
             }
@@ -9755,26 +11622,84 @@ aaCometasCooldown: 0,
             // ===== EQUIPAR item da mochila (valida classe/slot no servidor) =====
             if (data.action === 'equipar_item') {
                 let p = players[playerId];
-                if (!p.inventario || !p.inventario.mochila) return;
-                let itemMochila = p.inventario.mochila.find(i => i.id === data.id);
-                if (!itemMochila) {
-                    ws.send(JSON.stringify({ type: 'equipar_falhou', motivo: 'Item não encontrado na mochila.' }));
+                if (!p.inventario || !Array.isArray(p.inventario.mochila)) {
+                    ws.send(JSON.stringify({ type: 'equipar_falhou', motivo: 'Inventário indisponível no servidor.' }));
                     return;
                 }
-                if (!equipamentos || !equipamentos.classePodeEquipar(p.classe, itemMochila)) {
+                const itemId = typeof data.id === 'string' ? data.id.trim() : '';
+                const matches = p.inventario.mochila.filter(i => i && i.id === itemId);
+                if (!itemId || matches.length !== 1) {
+                    ws.send(JSON.stringify({ type: 'equipar_falhou', motivo: 'Item inválido, ausente ou duplicado na mochila.' }));
+                    return;
+                }
+                let itemMochila = matches[0];
+                if (data.uid && itemMochila.uid && data.uid !== itemMochila.uid) {
+                    ws.send(JSON.stringify({ type: 'equipar_falhou', motivo: 'A identidade deste item não corresponde ao estado do servidor.' }));
+                    return;
+                }
+                const slotsPermitidos = inventarioPadrao().slots;
+                const slotDestino = itemMochila.slot;
+                const referenciasMesmoItem = Object.keys(p.inventario.slots || {}).filter(function (slot) {
+                    return p.inventario.slots[slot] && p.inventario.slots[slot].id === itemId;
+                }).length + p.inventario.mochila.filter(function (item) { return item && item.id === itemId; }).length;
+                if (itemMochila.tipo !== 'equipamento' ||
+                    typeof slotDestino !== 'string' ||
+                    !Object.prototype.hasOwnProperty.call(slotsPermitidos, slotDestino) ||
+                    referenciasMesmoItem !== 1) {
+                    ws.send(JSON.stringify({ type: 'equipar_falhou', motivo: 'Equipamento, slot ou ID do item inválido.' }));
+                    return;
+                }
+                if (itemMochila.locked) {
+                    ws.send(JSON.stringify({ type: 'equipar_falhou', motivo: 'Desbloqueie o item antes de equipá-lo.' }));
+                    return;
+                }
+                const validEquip = itemMochila.schemaVersion === 1
+                    ? itemSystem.validateEquipmentForClass(p.classe, itemMochila)
+                    : { valid: !!(equipamentos && equipamentos.classePodeEquipar(p.classe, itemMochila)) };
+                if (!validEquip.valid) {
                     ws.send(JSON.stringify({ type: 'equipar_falhou', motivo: 'Sua classe não pode usar ' + (itemMochila.nome || 'esse item') + '!' }));
                     return;
                 }
-                let slotDestino = itemMochila.slot;
-                let antigo = p.inventario.slots[slotDestino] || null;
-                p.inventario.mochila = p.inventario.mochila.filter(i => i.id !== itemMochila.id);
-                if (antigo) p.inventario.mochila.push(antigo);
-                p.inventario.slots[slotDestino] = itemMochila;
-                p.maxHp = calcularMaxHp(p);
-                if (p.hp > p.maxHp) p.hp = p.maxHp;
-                p.maxMp = calcularMaxMp(p);
-                if (p.mana > p.maxMp) p.mana = p.maxMp;
-                salvarProgresso(userId, { inventario: p.inventario, maxHp: p.maxHp, hp: p.hp });
+                if (itemMochila.schemaVersion === 1 && validEquip.definition.slot !== slotDestino) {
+                    ws.send(JSON.stringify({ type: 'equipar_falhou', motivo: 'O slot do item não corresponde à definição validada pelo servidor.' }));
+                    return;
+                }
+                if (Number.isFinite(Number(itemMochila.requiredLevel)) && p.level < Number(itemMochila.requiredLevel)) {
+                    ws.send(JSON.stringify({
+                        type: 'equipar_falhou',
+                        motivo: 'Você precisa estar no nível ' + itemMochila.requiredLevel + ' para equipar este item.'
+                    }));
+                    return;
+                }
+                const inventarioSeguinte = clonarInventario(p.inventario);
+                const itemSeguinte = inventarioSeguinte.mochila.find(i => i.id === itemMochila.id);
+                const antigo = inventarioSeguinte.slots[slotDestino] || null;
+                inventarioSeguinte.mochila = inventarioSeguinte.mochila.filter(i => i.id !== itemMochila.id);
+                if (antigo) inventarioSeguinte.mochila.push(antigo);
+                inventarioSeguinte.slots[slotDestino] = itemSeguinte;
+                const jogadorSeguinte = Object.assign({}, p, { inventario: inventarioSeguinte });
+                const maxHpSeguinte = calcularMaxHp(jogadorSeguinte);
+                const hpSeguinte = Math.min(p.hp, maxHpSeguinte);
+                const maxMpSeguinte = calcularMaxMp(jogadorSeguinte);
+                const manaSeguinte = Math.min(p.mana, maxMpSeguinte);
+                try {
+                    salvarProgresso(userId, {
+                        inventario: inventarioSeguinte,
+                        maxHp: maxHpSeguinte,
+                        hp: hpSeguinte,
+                        maxMp: maxMpSeguinte,
+                        mana: manaSeguinte
+                    });
+                } catch (e) {
+                    console.error('[INVENTARIO] Falha ao persistir equipamento:', e && e.stack ? e.stack : e);
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Equipamento não alterado: falha ao salvar.' }));
+                    return;
+                }
+                p.inventario = inventarioSeguinte;
+                p.maxHp = maxHpSeguinte;
+                p.hp = hpSeguinte;
+                p.maxMp = maxMpSeguinte;
+                p.mana = manaSeguinte;
                 ws.send(JSON.stringify({
                     type: 'inventario_sync',
                     inventario: p.inventario,
@@ -9790,17 +11715,53 @@ aaCometasCooldown: 0,
             // ===== DESEQUIPAR item de volta para a mochila =====
             if (data.action === 'desequipar_item') {
                 let p = players[playerId];
-                if (!p.inventario || !p.inventario.mochila) return;
+                if (!p.inventario || !Array.isArray(p.inventario.mochila)) {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Inventário indisponível no servidor.' }));
+                    return;
+                }
                 let slotDeseq = data.slot;
+                const slotsPermitidos = inventarioPadrao().slots;
+                if (typeof slotDeseq !== 'string' ||
+                    !Object.prototype.hasOwnProperty.call(slotsPermitidos, slotDeseq) ||
+                    !p.inventario.slots || !Object.prototype.hasOwnProperty.call(p.inventario.slots, slotDeseq)) {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Slot de equipamento inválido.' }));
+                    return;
+                }
                 let itemSlot = p.inventario.slots[slotDeseq];
                 if (!itemSlot) return;
-                p.inventario.slots[slotDeseq] = null;
-                p.inventario.mochila.push(itemSlot);
-                p.maxHp = calcularMaxHp(p);
-                if (p.hp > p.maxHp) p.hp = p.maxHp;
-                p.maxMp = calcularMaxMp(p);
-                if (p.mana > p.maxMp) p.mana = p.maxMp;
-                salvarProgresso(userId, { inventario: p.inventario, maxHp: p.maxHp, hp: p.hp });
+                const referenciasMesmoItem = Object.keys(p.inventario.slots).filter(function (slot) {
+                    return p.inventario.slots[slot] && p.inventario.slots[slot].id === itemSlot.id;
+                }).length + p.inventario.mochila.filter(function (item) { return item && item.id === itemSlot.id; }).length;
+                if (!itemSlot.id || referenciasMesmoItem !== 1) {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Item equipado inválido ou duplicado; nada foi alterado.' }));
+                    return;
+                }
+                const inventarioSeguinte = clonarInventario(p.inventario);
+                inventarioSeguinte.slots[slotDeseq] = null;
+                adicionarItemAoInventarioPreparado(inventarioSeguinte, itemSlot);
+                const jogadorSeguinte = Object.assign({}, p, { inventario: inventarioSeguinte });
+                const maxHpSeguinte = calcularMaxHp(jogadorSeguinte);
+                const hpSeguinte = Math.min(p.hp, maxHpSeguinte);
+                const maxMpSeguinte = calcularMaxMp(jogadorSeguinte);
+                const manaSeguinte = Math.min(p.mana, maxMpSeguinte);
+                try {
+                    salvarProgresso(userId, {
+                        inventario: inventarioSeguinte,
+                        maxHp: maxHpSeguinte,
+                        hp: hpSeguinte,
+                        maxMp: maxMpSeguinte,
+                        mana: manaSeguinte
+                    });
+                } catch (e) {
+                    console.error('[INVENTARIO] Falha ao persistir desequipamento:', e && e.stack ? e.stack : e);
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Desequipamento não alterado: falha ao salvar.' }));
+                    return;
+                }
+                p.inventario = inventarioSeguinte;
+                p.maxHp = maxHpSeguinte;
+                p.hp = hpSeguinte;
+                p.maxMp = maxMpSeguinte;
+                p.mana = manaSeguinte;
                 ws.send(JSON.stringify({
                     type: 'inventario_sync',
                     inventario: p.inventario,
@@ -9824,8 +11785,16 @@ aaCometasCooldown: 0,
                     ws.send(JSON.stringify({ type: 'inventario_erro', motivo: '🔒 Item bloqueado — desbloqueie no inventário antes de destruir.' }));
                     return;
                 }
-                p.inventario.mochila.splice(idx, 1);
-                salvarProgresso(userId, { inventario: p.inventario });
+                const inventarioSeguinte = clonarInventario(p.inventario);
+                inventarioSeguinte.mochila.splice(idx, 1);
+                try {
+                    salvarProgresso(userId, { inventario: inventarioSeguinte });
+                } catch (e) {
+                    console.error('[INVENTARIO] Falha ao persistir destruição:', e && e.stack ? e.stack : e);
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Item não destruído: falha ao salvar.' }));
+                    return;
+                }
+                p.inventario = inventarioSeguinte;
                 ws.send(JSON.stringify({ type: 'inventario_sync', inventario: p.inventario }));
                 return;
             }
@@ -9839,8 +11808,28 @@ aaCometasCooldown: 0,
                     ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Item não encontrado para bloquear/desbloquear.' }));
                     return;
                 }
-                ref.item.locked = (data.action === 'bloquear_item');
-                salvarProgresso(userId, { inventario: p.inventario });
+                const inventarioSeguinte = clonarInventario(p.inventario);
+                let itemSeguinte = null;
+                if (ref.onde === 'mochila') {
+                    itemSeguinte = inventarioSeguinte.mochila.find(function (item) {
+                        return item && String(item.id) === String(data.id);
+                    });
+                } else {
+                    itemSeguinte = inventarioSeguinte.slots[ref.onde];
+                }
+                if (!itemSeguinte) {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Item não encontrado para bloquear/desbloquear.' }));
+                    return;
+                }
+                itemSeguinte.locked = (data.action === 'bloquear_item');
+                try {
+                    salvarProgresso(userId, { inventario: inventarioSeguinte });
+                } catch (e) {
+                    console.error('[INVENTARIO] Falha ao persistir bloqueio:', e && e.stack ? e.stack : e);
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Bloqueio não alterado: falha ao salvar.' }));
+                    return;
+                }
+                p.inventario = inventarioSeguinte;
                 ws.send(JSON.stringify({ type: 'inventario_sync', inventario: p.inventario }));
                 return;
             }
@@ -9878,8 +11867,13 @@ aaCometasCooldown: 0,
                     ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Apenas EQUIPAMENTOS podem ser melhorados na forja.' }));
                     return;
                 }
-                // itemInstanceId (uid): garante identidade física única (itens antigos sem uid ganham um agora)
-                if (!itemUp.uid) itemUp.uid = ferreiroMod.novoUid();
+                if (itemUp.schemaVersion === 1) {
+                    const validation = itemSystem.validateEquipmentForClass(p.classe, itemUp);
+                    if (!validation.valid) {
+                        ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Item inválido: a forja foi recusada.' }));
+                        return;
+                    }
+                }
                 // 4) Item bloqueado → recusa
                 if (itemUp.locked) {
                     ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: '🔒 Item bloqueado — desbloqueie no inventário para melhorar.' }));
@@ -9893,6 +11887,10 @@ aaCometasCooldown: 0,
                 }
                 // 6) Idempotência: mesma transação reenviada (lag/toque duplo/reconexão) → reenvia o MESMO resultado
                 let txnId = data.transactionId;
+                if (typeof txnId !== 'string' || !txnId.trim() || txnId.length > 128) {
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Identificador de transação inválido.' }));
+                    return;
+                }
                 if (txnId && p.upgradeTxn && p.upgradeTxn.id === txnId) {
                     let payload = Object.assign({ type: 'ferreiro_upgrade_resultado', repetido: true }, p.upgradeTxn.resultado || {});
                     ws.send(JSON.stringify(payload));
@@ -9920,47 +11918,77 @@ aaCometasCooldown: 0,
                 // Trava anti-spam da operação (aproximadamente a duração da animação)
                 p.upgradeEmAte = agoraUp + 2600;
 
+                const inventarioSeguinte = clonarInventario(p.inventario);
+                const itemRefSeguinte = itemRef.onde === 'mochila'
+                    ? inventarioSeguinte.mochila.find(function (item) { return item && item.id === itemUp.id; })
+                    : { item: inventarioSeguinte.slots[itemRef.onde] };
+                const itemSeguinte = itemRef.onde === 'mochila' ? itemRefSeguinte : itemRefSeguinte.item;
+                if (!itemSeguinte) {
+                    p.upgradeEmAte = 0;
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Item não encontrado para a forja.' }));
+                    return;
+                }
+                const jogadorSeguinte = Object.assign({}, p, { inventario: inventarioSeguinte });
+
                 // 9) Decisão do resultado SOMENTE no servidor
                 let chance = ferreiroMod.chanceParaNivel(nivelAtual);
                 let sucesso = Math.random() < chance;
                 let infoUpgrade = null;
                 if (sucesso) {
-                    itemUp.upgrade = alvo;
-                    infoUpgrade = ferreiroMod.aplicarUpgrade(itemUp, alvo);
+                    itemSeguinte.upgrade = alvo;
+                    infoUpgrade = ferreiroMod.aplicarUpgrade(itemSeguinte, alvo);
+                    if (itemSeguinte.schemaVersion === 1) itemSystem.recalculateDerived(itemSeguinte);
                 }
 
                 // 10) Consome a pedra (após decidir; se já era sucesso, o nível já subiu)
-                consumirPedra(p, pedraInfo.pedra, 1);
+                consumirPedra(jogadorSeguinte, pedraInfo.pedra, 1);
 
                 // 11) Recalcula atributos/vida (o item pode estar EQUIPADO — reflete imediatamente)
-                p.maxHp = calcularMaxHp(p);
-                if (p.hp > p.maxHp) p.hp = p.maxHp;
-                p.maxMp = calcularMaxMp(p);
-                if (p.mana > p.maxMp) p.mana = p.maxMp;
-
-                // 12) Persiste a transação inteira (item novo estado + pedra consumida + vida)
-                salvarProgresso(userId, { inventario: p.inventario, maxHp: p.maxHp, hp: p.hp, maxMp: p.maxMp, mana: p.mana });
+                const maxHpSeguinte = calcularMaxHp(jogadorSeguinte);
+                const hpSeguinte = Math.min(p.hp, maxHpSeguinte);
+                const maxMpSeguinte = calcularMaxMp(jogadorSeguinte);
+                const manaSeguinte = Math.min(p.mana, maxMpSeguinte);
 
                 let resultado = {
                     sucesso: sucesso,
                     repetido: false,
-                    upgrade: itemUp.upgrade || nivelAtual,
+                    upgrade: itemSeguinte.upgrade || nivelAtual,
                     nivelAnterior: nivelAtual,
                     chance: chance,
                     pedra: pedraInfo.pedra,
-                    item: itemUp,
+                    item: itemSeguinte,
                     infoUpgrade: infoUpgrade,
-                    inventario: p.inventario,
-                    maxHp: p.maxHp, hp: p.hp,
-                    maxMp: p.maxMp, mana: (typeof p.mana === 'number' ? Math.round(p.mana) : (p.mana || 0)),
-                    atributosTotais: atributosTotais(p)
+                    inventario: inventarioSeguinte,
+                    maxHp: maxHpSeguinte, hp: hpSeguinte,
+                    maxMp: maxMpSeguinte, mana: Math.round(manaSeguinte),
+                    atributosTotais: atributosTotais(jogadorSeguinte)
                 };
-                // 13) Registra transação para idempotência em reenvios
-                p.upgradeTxn = { id: txnId || null, resultado: resultado };
+                const upgradeTxnSeguinte = { id: txnId, resultado: resultado };
+                try {
+                    salvarProgresso(userId, {
+                        inventario: inventarioSeguinte,
+                        maxHp: maxHpSeguinte,
+                        hp: hpSeguinte,
+                        maxMp: maxMpSeguinte,
+                        mana: manaSeguinte,
+                        upgradeTxn: upgradeTxnSeguinte
+                    });
+                } catch (e) {
+                    p.upgradeEmAte = 0;
+                    console.error('[FORJA] Falha ao persistir upgrade:', e && e.stack ? e.stack : e);
+                    ws.send(JSON.stringify({ type: 'ferreiro_erro', motivo: 'Upgrade não aplicado: falha ao salvar.' }));
+                    return;
+                }
+                p.inventario = inventarioSeguinte;
+                p.maxHp = maxHpSeguinte;
+                p.hp = hpSeguinte;
+                p.maxMp = maxMpSeguinte;
+                p.mana = manaSeguinte;
+                p.upgradeTxn = upgradeTxnSeguinte;
 
                 // 14) Envia o resultado final (o cliente só anima por ~3s e revela)
                 ws.send(JSON.stringify(Object.assign({ type: 'ferreiro_upgrade_resultado' }, resultado)));
-                console.log(`[LOG UPGRADE] ${playerId} ${itemUp.nome} +${nivelAtual} → +${itemUp.upgrade} (${sucesso ? 'SUCESSO' : 'FALHA'}, pedra ${pedraInfo.pedra}, chance ${(chance * 100).toFixed(1)}%)`);
+                console.log(`[LOG UPGRADE] ${playerId} ${itemSeguinte.nome} +${nivelAtual} → +${itemSeguinte.upgrade} (${sucesso ? 'SUCESSO' : 'FALHA'}, pedra ${pedraInfo.pedra}, chance ${(chance * 100).toFixed(1)}%)`);
                 return;
             }
 
@@ -9988,7 +12016,7 @@ aaCometasCooldown: 0,
             if (data.action === 'organizar_mochila') {
                 let p = players[playerId];
                 if (!p.inventario || !p.inventario.mochila) return;
-                var ORDEM_RARIDADE = { lendario: 0, epico: 1, raro: 2, comum: 3 };
+                var ORDEM_RARIDADE = { lendario: 0, epico: 1, raro: 2, incomum: 3, comum: 4 };
                 var ORDEM_SLOT = { arma: 0, armaSecundaria: 1, capacete: 2, peitoral: 3, luva: 4, bota: 5, capa: 6, colar: 7, anel: 8 };
                 p.inventario.mochila.sort(function (a, b) {
                     let ra = ORDEM_RARIDADE[a.raridade] !== undefined ? ORDEM_RARIDADE[a.raridade] : 9;
@@ -10308,47 +12336,33 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 let p = players[playerId];
                 if (!p || !p.isAdmin) return;
 
-                let novoUid = 'muek' + Date.now().toString(36) + '-' + Math.random().toString(36).substr(2, 9);
-                let classeEscolha = data.classe || 'guerreiro';
-                let slotEscolha = data.slotItem || 'arma';
-                
-                let novoItem = {
-                    id: novoUid,
-                    uid: novoUid,
-                    tipo: 'equipamento',
-                    slot: slotEscolha,
-                    subTipo: novoUid,
-                    armaChave: novoUid,
-                    classe: classeEscolha,
-                    classeRestrita: classeEscolha,
-                    icon: '⚔️', // TODO: mudar dinamicamente na UI futuramente
-                    nome: data.nome || 'Arma Forjada',
-                    raridade: data.raridade || 'lendario',
-                    raridadeNome: (data.raridade || 'lendario').toUpperCase(),
-                    status: {
-                        // Anti-hack: clamp dos status. Sem teto, um item com
-                        // forca/vida enormes fazia calcularMaxHp() retornar
-                        // HP na casa das bilhões (HP infinito).
-                        forca: Math.max(0, Math.min(500, Number(data.forca) || 0)),
-                        vida: Math.max(0, Math.min(500, Number(data.vida) || 0))
-                    },
-                    customVisual: data.customVisual || null
-                };
-
-                // Salvar no Banco de Dados global
-                bancoItens.adicionarItem(novoItem);
-                equipamentos.adicionarEquipamentoCustomizado(novoItem);
-
-                // Dar ao jogador na MOCHILA (não equipar)
-                if (!p.inventario) p.inventario = equipamentos.inventarioPadrao();
-                if (!p.inventario.mochila) p.inventario.mochila = [];
-                
-                p.inventario.mochila.push(novoItem);
-                salvarProgresso(playerId, { inventario: p.inventario });
-                
-                if (ws && ws.readyState === WebSocket.OPEN) {
+                try {
+                    const novoItem = itemSystem.createAdminEquipment({
+                        classId: data.classe || 'guerreiro',
+                        slot: data.slotItem || 'arma',
+                        name: data.nome || 'Arma Forjada',
+                        rarityId: data.raridade || 'lendario',
+                        forca: data.forca,
+                        vida: data.vida,
+                        customVisual: data.customVisual || null
+                    });
+                    const inventario = clonarInventario(p.inventario);
+                    adicionarItemAoInventarioPreparado(inventario, novoItem);
+                    salvarProgresso(userId, { inventario: inventario });
+                    p.inventario = inventario;
                     ws.send(JSON.stringify({ type: 'inventario_sync', inventario: p.inventario }));
-                    ws.send(JSON.stringify({ type: 'server_msg', cor: '#00ff00', texto: 'Item Forjado adicionado ao Banco Global e à Mochila!' }));
+                    ws.send(JSON.stringify({
+                        type: 'server_msg',
+                        cor: '#00ff00',
+                        texto: 'Item forjado vinculado à definição ' + novoItem.itemDefinitionId + ' e salvo na mochila.'
+                    }));
+                } catch (e) {
+                    console.error('[ITEM ADMIN] Falha ao forjar item para', userId, ':', e && e.stack ? e.stack : e);
+                    ws.send(JSON.stringify({
+                        type: 'server_msg',
+                        cor: '#ff6666',
+                        texto: 'Não foi possível forjar o item: ' + (e && e.message ? e.message : 'erro interno de persistência.')
+                    }));
                 }
                 return;
             }
@@ -10365,7 +12379,14 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         flag = bandeirasSpawn.find(f => f.id === data.flagId);
                     }
                     let dados = validarDadosBandeira(data);
-                    if (!dados) return;
+                    if (!dados) {
+                        const config = spawnsAdmin.TIPOS_MONSTROS[data.tipo];
+                        const mensagem = config && config.bioma
+                            ? 'Este monstro só pode ser colocado no bioma ' + config.bioma + ', em uma área livre.'
+                            : 'Dados ou posição inválidos para a bandeira.';
+                        ws.send(JSON.stringify({ type: 'admin_spawn_result', success: false, message: mensagem }));
+                        return;
+                    }
 
                     if (sub === 'editar' && flag) {
                         // edição não muda o local; se x/y não vieram, mantém os atuais
@@ -10384,6 +12405,11 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         spawnsAdmin.salvarBandeiras(bandeirasSpawn);
                     }
                     broadcastBandeiras();
+                    ws.send(JSON.stringify({
+                        type: 'admin_spawn_result',
+                        success: true,
+                        message: sub === 'editar' ? 'Bandeira atualizada!' : 'Bandeira plantada!'
+                    }));
                 } else {
                     let flag = bandeirasSpawn.find(f => f.id === data.flagId);
                     if (flag) excluirBandeira(flag);
@@ -10402,7 +12428,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     }
                     wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN && client.ehAdminCliente) {
-                            client.send(JSON.stringify({ type: 'monstros_config', conf: spawnsAdmin.MONSTROS_EDITAVEIS }));
+                            client.send(JSON.stringify({ type: 'monstros_config', conf: spawnsAdmin.MONSTROS_EDITAVEIS, tags: spawnsAdmin.TAGS_MONSTRO }));
                         }
                     });
                     console.log('[EDIT MOOB] Config do mob ' + data.tipo + ' restaurada ao padrão.');
@@ -10466,9 +12492,8 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         pNpc.tutorialSkillConcluida = false;
                         tutorialSalvar(pNpc);
                     } else if (etapaAntes === 2 && pNpc.tutorialSkillConcluida) {
-                        pNpc.tutorialEtapa = 3;
                         pNpc.tutorialSkillAberta = false;
-                        tutorialCriarDemonio(pNpc);
+                        pNpc.tutorialEtapa = 4;
                         tutorialSalvar(pNpc);
                     } else if (etapaAntes >= 4) {
                         // Última conversa do tutorial: leva o jogador para a Cidade de Davahl.
@@ -10497,7 +12522,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         }
                     }
 
-                    const eventoInicio = etapaAntes === 0 ? 'tutorial_iniciado_npc' : (etapaAntes === 1 ? 'tutorial_etapa_2' : null);
+                    const eventoInicio = etapaAntes === 0 ? 'tutorial_iniciado_npc' : (etapaAntes === 1 ? 'tutorial_etapa_2' : (etapaAntes === 2 ? 'tutorial_concluido' : null));
                     // O NPC continua abrindo sua caixa de diálogo normalmente.
                     // A instrução do passo aparece separadamente no centro da tela.
                     ws.send(JSON.stringify({
@@ -10584,12 +12609,13 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         // O monstro final começa sem exigir nova conversa com o Guia.
                         pTut.tutorialSkillConcluida = true;
                         pTut.tutorialEtapa = 3;
-                        tutorialCriarDemonio(pTut);
+                        pTut.tutorialEtapa = 4;
                         tutorialSalvar(pTut);
                         ws.send(JSON.stringify({
                             type: 'tutorial_estado',
                             tutorial: tutorialEstadoParaPlayer(pTut),
-                            eventoTutorial: 'tutorial_concluido_skill'
+                            eventoTutorial: 'tutorial_concluido',
+                            mensagem: 'PARABÉNS! Treinamento concluído. Aproveite o vasto mundo de MMORP-Tall.'
                         }));
                     } else {
                         tutorialSalvar(pTut);
@@ -10981,13 +13007,17 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
 
                 salvarProgresso(userId, { skillUpgrades: p.skillUpgrades });
 
+                let infoTreeCompra = SkillUpgradeTree.gerarVisaoCliente(p.skillUpgrades || {}, p.level || 1);
                 ws.send(JSON.stringify({
                     type: 'skill_upgrade_tree_sucesso',
                     skillId: skillId,
                     tier: tier,
                     branch: branch,
                     nome: validacao.upgrade ? validacao.upgrade.nome : 'Novo Poder',
-                    skillUpgrades: p.skillUpgrades
+                    skillUpgrades: p.skillUpgrades,
+                    characterLevel: p.level || 1,
+                    pontosDisponiveis: infoTreeCompra ? infoTreeCompra.pontosDisponiveis : 0,
+                    pontosGanhos: infoTreeCompra ? infoTreeCompra.pontosGanhos : 0
                 }));
 
                 // Se comprou upgrade do colossal tier 1 A, recalcular vida do pet imediatamente
@@ -11004,9 +13034,13 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 if (!p) return;
                 p.skillUpgrades = {};
                 salvarProgresso(userId, { skillUpgrades: p.skillUpgrades });
+                let infoTreeReset = SkillUpgradeTree.gerarVisaoCliente(p.skillUpgrades || {}, p.level || 1);
                 ws.send(JSON.stringify({
                     type: 'skill_upgrades_tree_reset_sucesso',
-                    skillUpgrades: p.skillUpgrades
+                    skillUpgrades: p.skillUpgrades,
+                    characterLevel: p.level || 1,
+                    pontosDisponiveis: infoTreeReset ? infoTreeReset.pontosDisponiveis : 0,
+                    pontosGanhos: infoTreeReset ? infoTreeReset.pontosGanhos : 0
                 }));
                 // Recalcular vida do pet se tiver pet ativo
                 if (lacaios[playerId]) {
@@ -11050,7 +13084,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     lacaios[playerId] = { x: players[playerId].x + 30, y: players[playerId].y + 30, hp: petHp, maxHp: petHp, attackCooldown: 0, angleOffset: 0, skillCooldown: 0, skill2Cooldown: 0, isJumping: false, targetSlimeId: null, modoAgressivoTimer: 0, focoAlvo: null, modo: (players[playerId].ogroModo === 'passivo' ? 'passivo' : 'agressivo'), rugidoTimer: 200, rugindoTimer: 0 };
                 }
                 salvarProgresso(userId, { hp: players[playerId].hp, x: players[playerId].x, y: players[playerId].y });
-                ws.send(JSON.stringify({ type: 'respawn_confirmado', mapa: 'cidade', x: players[playerId].x, y: players[playerId].y }));
+                ws.send(JSON.stringify({ type: 'respawn_confirmado', mapa: 'mundo', x: players[playerId].x, y: players[playerId].y }));
                 return;
             }
 
@@ -11083,6 +13117,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 }
                 // Enquanto a mira do Disparo Supremo estiver ativa, movimento continua bloqueado.
                 if (podeMover && players[playerId].snAim) {
+                    podeMover = false;
+                }
+                if (podeMover && players[playerId].canalizandoMeteoro) {
                     podeMover = false;
                 }
                 if (efeitos && podeMover) {
@@ -12265,30 +14302,156 @@ if (data.action === 'dash') {
                     if (!cdSkillExpirado(ws, pTornado, 'lastTornado', 4500, 'tornado')) return;
                     if (!gastarMana(ws, pTornado, mpSkill(pTornado, 'tornado', 20))) return;
                     marcarSkillUsada(pTornado, 'lastTornado');
-                    wss.clients.forEach((client) => {
-                        if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: 'action_tornado', id: playerId }));
-                        }
-                    });
+
+                    // Upgrades do Guerreiro - Tornado
+                    const upgTornado = pTornado.skillUpgrades || {};
+                    const has1A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgTornado, 'tornado', 1, 'A')); // Vórtice Cortante (+40% dano + bleed)
+                    const has1B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgTornado, 'tornado', 1, 'B')); // Vórtice Protetor (-40% dano sofrido por 800ms)
+                    const has2A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgTornado, 'tornado', 2, 'A')); // Lâminas Dilacerantes (4 lâminas em cruz)
+                    const has2B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgTornado, 'tornado', 2, 'B')); // Ciclone Gravitacional (puxão + slow)
+                    const has3A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgTornado, 'tornado', 3, 'A')); // Ímpeto da Tempestade (+50% move speed + 4º pulso crítico)
+                    const has3B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgTornado, 'tornado', 3, 'B')); // Barricada de Vento (barreira por hit)
+                    const has4A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgTornado, 'tornado', 4, 'A')); // Cataclismo de Lâminas (+60% raio, +100% dano, detonação)
+                    const has4B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgTornado, 'tornado', 4, 'B')); // Olho do Furacão (stun 1.8s + cura 15% HP)
+
+                    if (has1B) {
+                        pTornado.vorticeProtetorAte = Date.now() + 800;
+                    }
+                    if (has3A) {
+                        pTornado.impetoTempestadeAte = Date.now() + 800;
+                    }
 
                     let pX = pTornado.x + 12;
                     let pY = pTornado.y + 16;
+
+                    wss.clients.forEach((client) => {
+                        if (client.readyState === WebSocket.OPEN) {
+                            client.send(JSON.stringify({
+                                type: 'action_tornado',
+                                id: playerId,
+                                x: pX,
+                                y: pY,
+                                upgrades: {
+                                    cortante: has1A,
+                                    protetor: has1B,
+                                    laminas: has2A,
+                                    gravitacional: has2B,
+                                    impeto: has3A,
+                                    barricada: has3B,
+                                    cataclismo: has4A,
+                                    furacao: has4B
+                                }
+                            }));
+                        }
+                    });
+
+                    // 2A: Lâminas Dilacerantes em cruz
+                    if (has2A) {
+                        const direcoes = [0, Math.PI * 0.5, Math.PI, Math.PI * 1.5];
+                        direcoes.forEach(ang => {
+                            for (let step = 40; step <= 180; step += 35) {
+                                const lx = pX + Math.cos(ang) * step;
+                                const ly = pY + Math.sin(ang) * step;
+                                slimes.forEach(slime => {
+                                    if (slime.hp > 0 && Math.hypot(lx - slime.x, ly - slime.y) < 35) {
+                                        registrarDanoMonstro(slime, playerId, 35, 'player');
+                                    }
+                                });
+                                danoEmBosses(lx, ly, 40, playerId, 35, 'skill', 'player');
+                            }
+                        });
+                    }
+
+                    // 2B: Ciclone Gravitacional (Puxa inimigos em raio 160px para o centro e aplica lentidão)
+                    if (has2B) {
+                        slimes.forEach(slime => {
+                            if (slime.hp > 0 && Math.hypot(pX - slime.x, pY - slime.y) < 160) {
+                                const angPuxao = Math.atan2(pY - slime.y, pX - slime.x);
+                                slime.x += Math.cos(angPuxao) * 35;
+                                slime.y += Math.sin(angPuxao) * 35;
+                                slime.slowTimer = 60; // 3s de slow
+                            }
+                        });
+                    }
+
                     let danoTornadoTotal = dmgSkill(pTornado, 'tornado', 25);
-                    let danoTornadoBase = Math.floor(danoTornadoTotal / 3);
-                    for (let tick = 0; tick < 3; tick++) {
+                    if (has1A) danoTornadoTotal = Math.round(danoTornadoTotal * 1.40);
+                    if (has4A) danoTornadoTotal = Math.round(danoTornadoTotal * 2.00);
+
+                    const numPulsos = has3A ? 4 : 3;
+                    const raioHit = has4A ? 160 : 100;
+                    let danoTornadoBase = Math.floor(danoTornadoTotal / numPulsos);
+                    let inimigosAtingidosBarricada = 0;
+
+                    for (let tick = 0; tick < numPulsos; tick++) {
                         setTimeout(function () {
                             let atacante = players[playerId];
                             if (!atacante || atacante.hp <= 0) return;
-                            let danoTick = tick === 2 ? danoTornadoTotal - danoTornadoBase * 2 : danoTornadoBase;
+                            let danoTick = (tick === numPulsos - 1) ? (danoTornadoTotal - danoTornadoBase * (numPulsos - 1)) : danoTornadoBase;
+                            // Se 3A (Ímpeto da Tempestade), o 4º pulso tem Acerto Crítico (1.5x)
+                            if (has3A && tick === 3) {
+                                danoTick = Math.round(danoTick * 1.5);
+                            }
                             let centroX = atacante.x + 12;
                             let centroY = atacante.y + 16;
                             slimes.forEach(slime => {
-                                if (slime.hp > 0 && Math.hypot(centroX - slime.x, centroY - slime.y) < 100) {
+                                if (slime.hp > 0 && Math.hypot(centroX - slime.x, centroY - slime.y) < raioHit) {
                                     registrarDanoMonstro(slime, playerId, danoTick, 'player');
+                                    inimigosAtingidosBarricada++;
+                                    // 1A: Sangramento lacerante
+                                    if (has1A) {
+                                        slime.sangramentoTimer = 80;
+                                        slime.sangramentoDano = 7;
+                                        slime.sangramentoOwner = playerId;
+                                    }
                                 }
                             });
-                            danoEmBosses(centroX, centroY, 105, playerId, danoTick, 'skill', 'player');
+                            danoEmBosses(centroX, centroY, raioHit + 5, playerId, danoTick, 'skill', 'player');
+
+                            // 3B: Barricada de Vento (Gera barreira por monstro atingido)
+                            if (has3B && inimigosAtingidosBarricada > 0) {
+                                const maxBarr = Math.round(atacante.maxHp * 0.25);
+                                const addBarr = Math.round(atacante.maxHp * 0.05) * Math.min(5, inimigosAtingidosBarricada);
+                                atacante.barreiraVento = Math.min(maxBarr, (atacante.barreiraVento || 0) + addBarr);
+                                atacante.barreiraVentoAte = Date.now() + 5000;
+                            }
                         }, tick * 200);
+                    }
+
+                    // 4A: Cataclismo de Lâminas (Detonação final estilhaçante aos 750ms)
+                    if (has4A) {
+                        setTimeout(function () {
+                            let atacante = players[playerId];
+                            if (!atacante || atacante.hp <= 0) return;
+                            let cx = atacante.x + 12, cy = atacante.y + 16;
+                            slimes.forEach(slime => {
+                                if (slime.hp > 0 && Math.hypot(cx - slime.x, cy - slime.y) < 160) {
+                                    registrarDanoMonstro(slime, playerId, 55, 'player');
+                                }
+                            });
+                            danoEmBosses(cx, cy, 165, playerId, 55, 'skill', 'player');
+                        }, 750);
+                    }
+
+                    // 4B: Olho do Furacão (Stun coletivo de 1.8s e cura 15% HP)
+                    if (has4B) {
+                        setTimeout(function () {
+                            let atacante = players[playerId];
+                            if (!atacante || atacante.hp <= 0) return;
+                            let cx = atacante.x + 12, cy = atacante.y + 16;
+                            slimes.forEach(slime => {
+                                if (slime.hp > 0 && Math.hypot(cx - slime.x, cy - slime.y) < 130) {
+                                    slime.stunTimer = 36; // 1.8s
+                                }
+                            });
+                            bosses.forEach(b => {
+                                if (b.hp > 0 && Math.hypot(cx - b.x, cy - b.y) < 135) {
+                                    b.stunTimer = 20; // 1s em bosses
+                                }
+                            });
+                            let curaFuracao = Math.round(atacante.maxHp * 0.15);
+                            aplicarCuraAoJogador(playerId, curaFuracao);
+                        }, 750);
                     }
                 }
 
@@ -12303,13 +14466,50 @@ if (data.action === 'dash') {
                     if(Date.now() - p.lastEscudo < 9500) return;
                     if (!gastarMana(ws, p, mpSkill(p, 'escudo_lancamento', 15))) return;
                     p.lastEscudo = Date.now();
-                    // Anti-hack: coordenadas tem que ser número finito. Sem isto,
-                    // targetX="abc" gera atan2(NaN,NaN) e o NaN se espalha por
-                    // todos os clientes que recebem o projétil.
                     const escudoTX = Number(data.targetX), escudoTY = Number(data.targetY);
                     if (!Number.isFinite(escudoTX) || !Number.isFinite(escudoTY)) return;
                     let ang = Math.atan2(escudoTY - p.y, escudoTX - p.x);
-                    escudosLancados.push({ id: Math.random(), ownerId: playerId, x: p.x, y: p.y, ang: ang, speed: 10, dist: 0, dano: dmgSkill(p, 'escudo_lancamento', 45) });
+
+                    // Upgrades do Guerreiro - Lançamento do Escudo
+                    const upgEscudo = p.skillUpgrades || {};
+                    const has1A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgEscudo, 'escudo_lancamento', 1, 'A')); // Escudo Serrilhado (+35% dano + bleed)
+                    const has1B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgEscudo, 'escudo_lancamento', 1, 'B')); // Impacto Esmagador (Stun 2s)
+                    const has2A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgEscudo, 'escudo_lancamento', 2, 'A')); // Escudo Ricocheteador (ricochete 2 alvos)
+                    const has2B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgEscudo, 'escudo_lancamento', 2, 'B')); // Vórtice de Atração
+                    const has3A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgEscudo, 'escudo_lancamento', 3, 'A')); // Estilhaços Cortantes (6 estilhaços)
+                    const has3B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgEscudo, 'escudo_lancamento', 3, 'B')); // Escudo de Retorno (Barreira 15% HP)
+                    const has4A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgEscudo, 'escudo_lancamento', 4, 'A')); // Escudo Titânico (2x tam, +100% dano, perfura tudo)
+                    const has4B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgEscudo, 'escudo_lancamento', 4, 'B')); // Muralha Protetora (zona de defesa 5s)
+
+                    let danoEscudo = dmgSkill(p, 'escudo_lancamento', 45);
+                    if (has1A) danoEscudo = Math.round(danoEscudo * 1.35);
+                    if (has4A) danoEscudo = Math.round(danoEscudo * 2.00);
+
+                    const maxDistEscudo = has4A ? 360 : 300;
+
+                    escudosLancados.push({
+                        id: Math.random(),
+                        ownerId: playerId,
+                        x: p.x,
+                        y: p.y,
+                        ang: ang,
+                        speed: has4A ? 11 : 10,
+                        dist: 0,
+                        maxDist: maxDistEscudo,
+                        dano: danoEscudo,
+                        upgrades: {
+                            serrilhado: has1A,
+                            esmagador: has1B,
+                            ricochete: has2A,
+                            vortice: has2B,
+                            estilhacos: has3A,
+                            retorno: has3B,
+                            titanico: has4A,
+                            muralha: has4B
+                        },
+                        mobsAtingidos: []
+                    });
+
                     wss.clients.forEach(c => {
                         if(c.readyState === WebSocket.OPEN) {
                             c.send(JSON.stringify({
@@ -12321,7 +14521,17 @@ if (data.action === 'dash') {
                                 startX: p.x,
                                 startY: p.y,
                                 ang: ang,
-                                maxDist: 300
+                                maxDist: maxDistEscudo,
+                                upgrades: {
+                                    serrilhado: has1A,
+                                    esmagador: has1B,
+                                    ricochete: has2A,
+                                    vortice: has2B,
+                                    estilhacos: has3A,
+                                    retorno: has3B,
+                                    titanico: has4A,
+                                    muralha: has4B
+                                }
                             }));
                         }
                     });
@@ -12330,21 +14540,71 @@ if (data.action === 'dash') {
                     let p = players[playerId];
                     if(!p || p.hp <= 0) return;
                     if(!p.lastBola) p.lastBola = 0;
-                    if(Date.now() - p.lastBola < 20000) return; // CD 20s (v2)
+                    if(Date.now() - p.lastBola < 20000) return;
                     if (!gastarMana(ws, p, mpSkill(p, 'bola_elemental', 30))) return;
                     p.lastBola = Date.now();
-                    // Anti-hack: coordenadas tem que ser número finito (evita NaN
-                    // no atan2 se espalhando para todos os clientes).
+
                     const bolaTX = Number(data.targetX), bolaTY = Number(data.targetY);
                     if (!Number.isFinite(bolaTX) || !Number.isFinite(bolaTY)) return;
-                    let ang = Math.atan2(bolaTY - p.y, bolaTX - p.x);
-                    let novaBola = { id: Math.random(), ownerId: playerId, x: p.x, y: p.y, ang: ang, speed: 12, dist: 0, dano: dmgSkill(p, 'bola_elemental', 60), type: 'normal' };
-                    bolasElementais.push(novaBola);
-                    wss.clients.forEach(c => {
-                        if(c.readyState === WebSocket.OPEN) {
-                            c.send(JSON.stringify({ type: 'action_mago_bola_elemental', ownerId: playerId, id: novaBola.id, x: p.x, y: p.y, targetX: data.targetX, targetY: data.targetY, speed: novaBola.speed, dist: 400 }));
-                        }
-                    });
+
+                    const upgBola = p.skillUpgrades || {};
+                    const hasBA1 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgBola, 'bola_elemental', 1, 'A')); // +25% tamanho, +30% velocidade, perfurante
+                    const hasBA2 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgBola, 'bola_elemental', 2, 'A')); // Pulsos tri-elementais
+                    const hasBA3 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgBola, 'bola_elemental', 3, 'A')); // Bolas gêmeas
+                    const hasBA4 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgBola, 'bola_elemental', 4, 'A')); // Supernova 180px
+                    const hasBB1 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgBola, 'bola_elemental', 1, 'B')); // Vórtice gravitacional
+                    const hasBB2 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgBola, 'bola_elemental', 2, 'B')); // Bumerangue retorno + 15% MP / 10% HP
+                    const hasBB3 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgBola, 'bola_elemental', 3, 'B')); // Barreira vanguarda (-35% dano)
+                    const hasBB4 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgBola, 'bola_elemental', 4, 'B')); // Singularidade do Vazio 6s
+
+                    // Tier 3 B: Barreira Elemental de Vanguarda (-35% dano sofrido por 5s)
+                    if (hasBB3) {
+                        p.escudoVanguardaAte = Date.now() + 5000;
+                    }
+
+                    const angBase = Math.atan2(bolaTY - p.y, bolaTX - p.x);
+                    const angulos = hasBA3 ? [angBase - 0.22, angBase + 0.22] : [angBase];
+                    const speedBola = hasBA1 ? 15.6 : 12;
+                    const danoBase = dmgSkill(p, 'bola_elemental', 60);
+
+                    for (let ang of angulos) {
+                        let novaBola = {
+                            id: Math.random(),
+                            ownerId: playerId,
+                            x: p.x,
+                            y: p.y,
+                            startX: p.x,
+                            startY: p.y,
+                            ang: ang,
+                            speed: speedBola,
+                            dist: 0,
+                            maxDist: 400,
+                            dano: danoBase,
+                            type: 'normal',
+                            upgrades: {
+                                perfurante: hasBA1,
+                                pulsos: hasBA2,
+                                supernova: hasBA4,
+                                vortex: hasBB1,
+                                bumerangue: hasBB2,
+                                retornando: false,
+                                singularidade: hasBB4
+                            },
+                            mobsAtingidos: []
+                        };
+                        bolasElementais.push(novaBola);
+
+                        wss.clients.forEach(c => {
+                            if(c.readyState === WebSocket.OPEN) {
+                                c.send(JSON.stringify({
+                                    type: 'action_mago_bola_elemental',
+                                    ownerId: playerId, id: novaBola.id,
+                                    x: p.x, y: p.y, targetX: data.targetX, targetY: data.targetY,
+                                    speed: novaBola.speed, dist: 400
+                                }));
+                            }
+                        });
+                    }
                 }
                                 if (data.action === 'summoner_golem_sismico') {
                     let p = players[playerId];
@@ -12684,6 +14944,35 @@ if (data.action === 'dash') {
 
                     p.lastGuerreiroGuardiao = agoraGuardiao;
                     p.guerreiroBuffAte = agoraGuardiao + 10000;
+
+                    // Upgrades do Guerreiro - Postura do Guardião
+                    const upgPostura = p.skillUpgrades || {};
+                    const has1A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgPostura, 'postura_guardiao', 1, 'A')); // Fúria do Vanguarda (+25% dano, +15% vel atk)
+                    const has1B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgPostura, 'postura_guardiao', 1, 'B')); // Bastião Inabalável (+50% defesa, barreira 20% HP)
+                    const has2A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgPostura, 'postura_guardiao', 2, 'A')); // Espinhos de Retaliação (reflete 35% dano)
+                    const has2B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgPostura, 'postura_guardiao', 2, 'B')); // Armadura Titânica (imune slow/knockback, -50% dano crit)
+                    const has3A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgPostura, 'postura_guardiao', 3, 'A')); // Pulso Sísmico de Ruptura (pulsos a cada 2s)
+                    const has3B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgPostura, 'postura_guardiao', 3, 'B')); // Égide Protetora (-20% dano aliados)
+                    const has4A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgPostura, 'postura_guardiao', 4, 'A')); // Fúria Berserker (golpes estendem + critico)
+                    const has4B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgPostura, 'postura_guardiao', 4, 'B')); // Fortaleza Indestrutível (80% reducao + imune CC por 3s)
+
+                    if (has1A) p.furiaVanguardaAte = p.guerreiroBuffAte;
+                    if (has1B) {
+                        p.barreiraPostura = Math.round(p.maxHp * 0.20);
+                        p.barreiraPosturaAte = agoraGuardiao + 10000;
+                    }
+                    if (has2A) p.espinhosRetaliacaoAte = p.guerreiroBuffAte;
+                    if (has2B) p.armaduraTitanicaAte = p.guerreiroBuffAte;
+                    if (has3A) p.pulsoRupturaAte = p.guerreiroBuffAte;
+                    if (has3B) p.egideProtetoraAte = p.guerreiroBuffAte;
+                    if (has4A) {
+                        p.furiaBerserkerAte = p.guerreiroBuffAte;
+                        p.furiaBerserkerStacks = 0;
+                    }
+                    if (has4B) {
+                        p.fortalezaIndestrutivelAte = agoraGuardiao + 3000;
+                    }
+
                     atualizarBonusMaxHpGritoGuerra(p);
                     ws.send(JSON.stringify({ type: 'hp_sync', hp: p.hp, maxHp: p.maxHp }));
 
@@ -12710,6 +14999,29 @@ if (data.action === 'dash') {
                         bossesProvocados++;
                     });
 
+                    // 3A: Se tem Pulso Sísmico de Ruptura, dispara ondas a cada 2s
+                    if (has3A) {
+                        for (let pTick = 1; pTick <= 4; pTick++) {
+                            setTimeout(function () {
+                                let guerreiro = players[playerId];
+                                if (!guerreiro || guerreiro.hp <= 0 || Date.now() > (guerreiro.guerreiroBuffAte || 0)) return;
+                                let gx = guerreiro.x + PLAYER_OFFSET_X, gy = guerreiro.y + PLAYER_OFFSET_Y;
+                                slimes.forEach(s => {
+                                    if (s.hp > 0 && Math.hypot(gx - s.x, gy - s.y) < 140) {
+                                        registrarDanoMonstro(s, playerId, 40, 'player');
+                                        s.armaduraShredTimer = 60; // 3s
+                                    }
+                                });
+                                danoEmBosses(gx, gy, 145, playerId, 40, 'skill', 'player');
+                                wss.clients.forEach(c => {
+                                    if (c.readyState === WebSocket.OPEN) {
+                                        c.send(JSON.stringify({ type: 'action_guerreiro_pulso_ruptura', id: playerId, x: gx, y: gy, raio: 140 }));
+                                    }
+                                });
+                            }, pTick * 2000);
+                        }
+                    }
+
                     wss.clients.forEach(client => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({
@@ -12719,7 +15031,17 @@ if (data.action === 'dash') {
                                 y: centroY,
                                 expiraEm: p.guerreiroBuffAte,
                                 mobsProvocados,
-                                bossesProvocados
+                                bossesProvocados,
+                                upgrades: {
+                                    furia: has1A,
+                                    bastiao: has1B,
+                                    espinhos: has2A,
+                                    titanica: has2B,
+                                    pulso: has3A,
+                                    egide: has3B,
+                                    berserker: has4A,
+                                    fortaleza: has4B
+                                }
                             }));
                         }
                     });
@@ -12736,11 +15058,46 @@ if (data.action === 'dash') {
                     let pX = p.x + 12;
                     let pY = p.y + 16;
 
-                    // Cura instantânea de 20% do HP Máximo
-                    let curaVal = Math.round(p.maxHp * 0.20);
+                    // Upgrades do Guerreiro - Provocação
+                    const upgProvocacao = p.skillUpgrades || {};
+                    const has1A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgProvocacao, 'provocacao', 1, 'A')); // Rugido Agressivo (+25% dano contra alvos)
+                    const has1B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgProvocacao, 'provocacao', 1, 'B')); // Rugido Encouraçado (35% cura, +20% def 6s)
+                    const has2A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgProvocacao, 'provocacao', 2, 'A')); // Onda Ressonante (50 dano + -25% def inimigos)
+                    const has2B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgProvocacao, 'provocacao', 2, 'B')); // Desmoralização (-30% atk inimigos 8s)
+                    const has3A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgProvocacao, 'provocacao', 3, 'A')); // Fervor de Batalha (+8% ATK / +5% AS por mob provocado)
+                    const has3B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgProvocacao, 'provocacao', 3, 'B')); // Fôlego Inabalável (regen 4% HP/s por 5s)
+                    const has4A = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgProvocacao, 'provocacao', 4, 'A')); // Brado do Conquistador (90 dano + repulsão + slow 60%)
+                    const has4B = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgProvocacao, 'provocacao', 4, 'B')); // Avatar da Vanguarda (+25% tam, +50% def, 40% HP barreira 10s)
+
+                    // Cura instantânea: 35% se has1B, 20% base
+                    let curaPct = has1B ? 0.35 : 0.20;
+                    let curaVal = Math.round(p.maxHp * curaPct);
                     aplicarCuraAoJogador(playerId, curaVal);
 
-                    // Provocação em área para monstros normais (10 segundos = 200 ticks de 50ms)
+                    if (has1B) {
+                        p.bonusDefesaGritoAte = agora + 6000;
+                    }
+
+                    // 3B: Fôlego Inabalável (Cura 4% HP/s por 5 segundos)
+                    if (has3B) {
+                        for (let s = 1; s <= 5; s++) {
+                            setTimeout(function () {
+                                let guerreiro = players[playerId];
+                                if (!guerreiro || guerreiro.hp <= 0) return;
+                                let regVal = Math.round(guerreiro.maxHp * 0.04);
+                                aplicarCuraAoJogador(playerId, regVal);
+                            }, s * 1000);
+                        }
+                    }
+
+                    // 4B: Avatar da Vanguarda (+50% defesa e barreira de 40% do HP Máx por 10s)
+                    if (has4B) {
+                        p.avatarVanguardaAte = agora + 10000;
+                        p.barreiraAvatar = Math.round(p.maxHp * 0.40);
+                        p.barreiraAvatarAte = agora + 10000;
+                    }
+
+                    // Provocação em área para monstros normais
                     let monstrosAfetados = 0;
                     slimes.forEach(slime => {
                         if (slime.hp <= 0 || slime.flagPassivo) return;
@@ -12749,10 +15106,28 @@ if (data.action === 'dash') {
                             slime.tauntTimer = 200; // 10 segundos
                             slime.targetId = playerId;
                             monstrosAfetados++;
+
+                            // 1A: Rugido Agressivo
+                            if (has1A) slime.alvoRugidoAgressivoDe = playerId;
+                            // 2A: Onda Ressonante (50 dano + quebra de defesa)
+                            if (has2A) {
+                                registrarDanoMonstro(slime, playerId, 50, 'player');
+                                slime.debuffDefesaQuebradaTimer = 120; // 6s
+                            }
+                            // 2B: Desmoralização (-30% ataque do monstro)
+                            if (has2B) slime.debuffDesmoralizadoTimer = 160; // 8s
+                            // 4A: Brado do Conquistador (90 dano + slow 60% + repulsão)
+                            if (has4A) {
+                                registrarDanoMonstro(slime, playerId, 90, 'player');
+                                slime.slowTimer = 80; // 4s
+                                const angRepulsao = Math.atan2(slime.y - pY, slime.x - pX);
+                                slime.x += Math.cos(angRepulsao) * 45;
+                                slime.y += Math.sin(angRepulsao) * 45;
+                            }
                         }
                     });
 
-                    // Provocação para Bosses (ex: Golem de Pedra) (5 segundos = 100 ticks de 50ms)
+                    // Provocação para Bosses
                     let bossesAfetados = 0;
                     bosses.forEach(b => {
                         if (b.hp <= 0 || b.flagPassivo) return;
@@ -12760,8 +15135,26 @@ if (data.action === 'dash') {
                             b.tauntId = playerId;
                             b.tauntTimer = 100; // 5 segundos
                             bossesAfetados++;
+
+                            if (has1A) b.alvoRugidoAgressivoDe = playerId;
+                            if (has2A) {
+                                danoEmBosses(pX, pY, 320, playerId, 50, 'skill', 'player');
+                                b.debuffDefesaQuebradaTimer = 120;
+                            }
+                            if (has2B) b.debuffDesmoralizadoTimer = 160;
+                            if (has4A) {
+                                danoEmBosses(pX, pY, 320, playerId, 90, 'skill', 'player');
+                                b.slowTimer = 60;
+                            }
                         }
                     });
+
+                    // 3A: Fervor de Batalha (+8% ATK / +5% AS por inimigo provocado, até 5 stacks)
+                    if (has3A && (monstrosAfetados + bossesAfetados) > 0) {
+                        const totalProvocados = Math.min(5, monstrosAfetados + bossesAfetados);
+                        p.fervorBatalhaStacks = totalProvocados;
+                        p.fervorBatalhaAte = agora + 8000;
+                    }
 
                     // Broadcast do efeito para todos os clientes
                     wss.clients.forEach((client) => {
@@ -12773,7 +15166,17 @@ if (data.action === 'dash') {
                                 y: pY,
                                 cura: curaVal,
                                 monstrosAfetados: monstrosAfetados,
-                                bossesAfetados: bossesAfetados
+                                bossesAfetados: bossesAfetados,
+                                upgrades: {
+                                    agressivo: has1A,
+                                    encouracado: has1B,
+                                    ressonante: has2A,
+                                    desmoralizacao: has2B,
+                                    fervor: has3A,
+                                    folego: has3B,
+                                    conquistador: has4A,
+                                    avatar: has4B
+                                }
                             }));
                         }
                     });
@@ -13253,7 +15656,16 @@ if (data.action === 'dash') {
                     let vidaProj = 60;
                     if (data.action === 'ataque_arqueiro') vidaProj = 48;
 
-                    let tipoProj = (data.action === 'ataque_mago') ? 'magia' :
+                    let isGeloBasico = false;
+                    if (data.action === 'ataque_mago') {
+                        const hasNevascaAtiva = blizzards.some(bl => bl.ownerId === playerId);
+                        if (hasNevascaAtiva && SkillUpgradeTree && SkillUpgradeTree.temUpgrade(players[playerId].skillUpgrades, 'nevasca', 3, 'A')) {
+                            isGeloBasico = true;
+                        }
+                    }
+
+                    let tipoProj = isGeloBasico ? 'magia_gelo' :
+                                   (data.action === 'ataque_mago') ? 'magia' :
                                    (data.action === 'ataque_summoner') ? 'orbe' :
                                    (data.action === 'ataque_arqueiro') ? 'flecha' : 'sagrado';
 
@@ -13272,10 +15684,10 @@ if (data.action === 'dash') {
                         solari: ownerInSolari
                     });
 
-                    let tipoAcao = 'action_magia_basica';
-                    if (data.action === 'ataque_summoner') tipoAcao = 'action_orbe';
-                    if (data.action === 'ataque_arqueiro') tipoAcao = 'action_flecha';
-                    if (data.action === 'ataque_curandeiro') tipoAcao = 'action_sagrado';
+                    let tipoAcao = isGeloBasico ? 'action_mago_tiro_gelo' :
+                                   (data.action === 'ataque_mago') ? 'action_magia_basica' :
+                                   (data.action === 'ataque_summoner') ? 'action_orbe' :
+                                   (data.action === 'ataque_arqueiro') ? 'action_flecha' : 'action_sagrado';
 
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
@@ -13320,7 +15732,7 @@ if (data.action === 'dash') {
                         let ally = players[id];
                         let ehAliado = (id === playerId) || (players[playerId].partyId && ally.partyId === players[playerId].partyId);
                         if (ehAliado && ally.hp > 0 && Math.hypot((ally.x + 12) - pX, (ally.y + 16) - pY) < 140) {
-                            aplicarCuraAoJogador(id, curaBase);
+                            aplicarCuraAoJogador(id, curaBase, playerId);
                         }
                     }
 
@@ -13425,14 +15837,108 @@ if (data.action === 'dash') {
                     const mago = players[playerId];
                     if (!mago || mago.hp <= 0) return;
                     if (!alcanceSkillValido(mago, data.targetX, data.targetY, 380)) { avisaForaAlcance(ws, 'meteoro'); return; }
-                    if (!cdSkillExpirado(ws, mago, 'lastMeteoro', 6500, 'meteoro')) return;
+
+                    const upgMet = mago.skillUpgrades || {};
+                    const hasMA1 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgMet, 'meteoro', 1, 'A')); // 5 Meteoros seguidos
+                    const hasMA2 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgMet, 'meteoro', 2, 'A')); // +30% Dano, -3s Recarga
+                    const hasMA3 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgMet, 'meteoro', 3, 'A')); // 10 Meteoros, MicroStun 0.5s, Paralisado
+                    const hasMA4 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgMet, 'meteoro', 4, 'A')); // Cometa Gigante final
+                    const hasMB1 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgMet, 'meteoro', 1, 'B')); // Bola de Fogo + Knockback + Rastro
+                    const hasMB2 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgMet, 'meteoro', 2, 'B')); // Desfragmentação + Queimadura 5s
+                    const hasMB3 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgMet, 'meteoro', 3, 'B')); // 3 Bolas de Fogo (100%, 50%, 20%)
+                    const hasMB4 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgMet, 'meteoro', 4, 'B')); // Metamorfose Orbe Vivo 5s
+
+                    const cdMeteoro = hasMA2 ? 3500 : 6500;
+                    if (!cdSkillExpirado(ws, mago, 'lastMeteoro', cdMeteoro, 'meteoro')) return;
                     if (!gastarMana(ws, mago, mpSkill(mago, 'meteoro', 30))) return;
                     marcarSkillUsada(mago, 'lastMeteoro');
+
                     const tx = Number(data.targetX), ty = Number(data.targetY);
-                    const danoMeteoro = dmgSkill(mago, 'meteoro', 25);
+                    let baseDano = 25;
+                    if (hasMA2) baseDano = Math.round(baseDano * 1.30);
+                    if (hasMA3) baseDano = Math.round(baseDano * 1.50);
+                    const danoMeteoro = dmgSkill(mago, 'meteoro', baseDano);
+
+                    // Lado B4: Metamorfose Elemental — Mago vira Bola de Fogo viva por 5s
+                    if (hasMB4) {
+                        mago.formaIgneaAte = Date.now() + 5000;
+                        wss.clients.forEach(c => {
+                            if (c.readyState === WebSocket.OPEN) {
+                                c.send(JSON.stringify({ type: 'action_mago_forma_ignea', id: playerId, duracaoMs: 5000 }));
+                            }
+                        });
+                        return;
+                    }
+
+                    // Lado B1/B2/B3: Bola de Fogo disparada
+                    if (hasMB1) {
+                        const pX = mago.x + 12, pY = mago.y + 16;
+                        const ang = Math.atan2(ty - pY, tx - pX);
+                        const qtdBolas = hasMB3 ? 3 : 1;
+                        const mults = [1.0, 0.5, 0.2];
+
+                        for (let b = 0; b < qtdBolas; b++) {
+                            setTimeout(() => {
+                                const caster = players[playerId];
+                                if (!caster || caster.hp <= 0) return;
+                                const danoAtual = Math.round(danoMeteoro * mults[b]);
+                                wss.clients.forEach(c => {
+                                    if (c.readyState === WebSocket.OPEN) {
+                                        c.send(JSON.stringify({
+                                            type: 'action_mago_bola_fogo_tiro',
+                                            id: playerId, x: pX, y: pY, ang: ang, speed: 14, danoMult: mults[b], knockback: 90
+                                        }));
+                                    }
+                                });
+                                // Registra impacto da bola de fogo ao longo do trajeto
+                                setTimeout(() => {
+                                    const cx = pX + Math.cos(ang) * 320;
+                                    const cy = pY + Math.sin(ang) * 320;
+                                    // Knockback nos monstros atingidos
+                                    slimes.forEach(s => {
+                                        if (s.hp > 0 && Math.hypot(s.x - cx, s.y - cy) < 70) {
+                                            s.x += Math.cos(ang) * 90;
+                                            s.y += Math.sin(ang) * 90;
+                                            registrarDanoMonstro(s, playerId, danoAtual, 'player');
+                                            if (hasMB2) efeitos.aplicarEfeito(s, 'queimadura', 100, 8);
+                                        }
+                                    });
+                                    danoEmBosses(cx, cy, 75, playerId, danoAtual, 'skill', 'player');
+                                    bosses.forEach(bs => {
+                                        if (bs.hp > 0 && Math.hypot(bs.x - cx, bs.y - cy) < 75) {
+                                            if (hasMB2) efeitos.aplicarEfeito(bs, 'queimadura', 100, 8);
+                                        }
+                                    });
+                                    if (hasMB2) {
+                                        wss.clients.forEach(c => {
+                                            if (c.readyState === WebSocket.OPEN) {
+                                                c.send(JSON.stringify({ type: 'action_mago_bola_fogo_desfragmentar', x: cx, y: cy, qtd: 6 }));
+                                            }
+                                        });
+                                    }
+                                    // Deixa rastro de fogo no chão
+                                    meteorFires.push({ x: cx, y: cy, ownerId: playerId, expiresAt: Date.now() + 4000, nextTick: Date.now() + 1000, dano: Math.round(danoAtual * 0.4) });
+                                }, 250);
+                            }, b * 150);
+                        }
+                        return;
+                    }
+
+                    // Lado A: Chuva de Meteoros (5 ou 10) e Cometa Gigante Final
+                    const castDur = hasMA1 ? 1500 : 1000;
                     wss.clients.forEach((client) => {
-                        if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_mago_cast_start', id: playerId, skill: 'meteoro', durMs: 1000 }));
+                        if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_mago_cast_start', id: playerId, skill: 'meteoro', durMs: castDur }));
                     });
+
+                    // Tier 3 A: Se for canalizado, paralisa o mago durante o cast e chuva
+                    if (hasMA3) {
+                        mago.canalizandoMeteoro = true;
+                        mago.isPreso = Date.now() + 2800;
+                        wss.clients.forEach(c => {
+                            if (c.readyState === WebSocket.OPEN) c.send(JSON.stringify({ type: 'action_mago_canalizacao', id: playerId, x: mago.x, y: mago.y, durMs: 2800 }));
+                        });
+                        setTimeout(() => { if (mago) mago.canalizandoMeteoro = false; }, 2800);
+                    }
 
                     setTimeout(() => {
                         const caster = players[playerId];
@@ -13440,19 +15946,101 @@ if (data.action === 'dash') {
                             wss.clients.forEach(client => { if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_mago_cast_end', id: playerId })); });
                             return;
                         }
-                        wss.clients.forEach((client) => {
-                            if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_meteoro', id: playerId, targetX: tx, targetY: ty }));
-                        });
-                        setTimeout(() => {
-                            const dono = players[playerId];
-                            if (!dono || dono.hp <= 0) return;
-                            slimes.forEach(slime => {
-                                if (slime.hp > 0 && Math.hypot(slime.x - tx, slime.y - ty) < 85) registrarDanoMonstro(slime, playerId, danoMeteoro, 'player');
+
+                        if (hasMA1 || hasMA3) {
+                            // Intervalos: meteoro 1 (0), 2 (0.4s), 3 (0.2s), 4 (0.1s), 5 (junto com 4)
+                            const baseIntervalos = [0, 400, 600, 700, 700];
+                            const extraIntervalos = [850, 950, 1050, 1150, 1200];
+                            const totalMeteoros = hasMA3 ? 10 : 5;
+                            const listaTempos = hasMA3 ? baseIntervalos.concat(extraIntervalos) : baseIntervalos;
+
+                            for (let mIdx = 0; mIdx < totalMeteoros; mIdx++) {
+                                setTimeout(() => {
+                                    const dono = players[playerId];
+                                    if (!dono || dono.hp <= 0) return;
+                                    const offAng = Math.random() * Math.PI * 2;
+                                    const offDist = (mIdx === 0) ? 0 : (Math.random() * 45 + 15);
+                                    const mx = tx + Math.cos(offAng) * offDist;
+                                    const my = ty + Math.sin(offAng) * offDist;
+
+                                    wss.clients.forEach(c => {
+                                        if (c.readyState === WebSocket.OPEN) {
+                                            c.send(JSON.stringify({
+                                                type: 'action_mago_meteoro_queda',
+                                                id: playerId, x: mx, y: my, isGrande: (mIdx === totalMeteoros - 1),
+                                                shake: 12, microStun: hasMA3
+                                            }));
+                                        }
+                                    });
+
+                                    slimes.forEach(slime => {
+                                        if (slime.hp > 0 && Math.hypot(slime.x - mx, slime.y - my) < 85) {
+                                            registrarDanoMonstro(slime, playerId, danoMeteoro, 'player');
+                                            if (hasMA3) {
+                                                slime.stunTimer = Math.max(slime.stunTimer || 0, 10);
+                                                efeitos.aplicarEfeito(slime, 'stun', 10, 1);
+                                            }
+                                        }
+                                    });
+                                    danoEmBosses(mx, my, 95, playerId, danoMeteoro, 'skill', 'player');
+                                    bosses.forEach(bs => {
+                                        if (bs.hp > 0 && Math.hypot(bs.x - mx, bs.y - my) < 95) {
+                                            if (hasMA3) {
+                                                bs.stunTimer = Math.max(bs.stunTimer || 0, 10);
+                                                efeitos.aplicarEfeito(bs, 'stun', 10, 1);
+                                            }
+                                        }
+                                    });
+                                }, listaTempos[mIdx]);
+                            }
+
+                            // Tier 4 A: Cometa Gigante Final após todos os meteoros
+                            if (hasMA4) {
+                                const delayCometa = (hasMA3 ? 1200 : 700) + 500;
+                                setTimeout(() => {
+                                    const dono = players[playerId];
+                                    if (!dono || dono.hp <= 0) return;
+                                    wss.clients.forEach(c => {
+                                        if (c.readyState === WebSocket.OPEN) {
+                                            c.send(JSON.stringify({
+                                                type: 'action_mago_cometa_gigante',
+                                                id: playerId, x: tx, y: ty, raio: 140, duracaoChamas: 10000
+                                            }));
+                                        }
+                                    });
+                                    // Impacto do Cometa após descida lenta (2000ms)
+                                    setTimeout(() => {
+                                        const d = players[playerId];
+                                        if (!d || d.hp <= 0) return;
+                                        const danoCometa = Math.round(danoMeteoro * 2.2);
+                                        slimes.forEach(slime => {
+                                            if (slime.hp > 0 && Math.hypot(slime.x - tx, slime.y - ty) < 140) {
+                                                registrarDanoMonstro(slime, playerId, danoCometa, 'player');
+                                            }
+                                        });
+                                        danoEmBosses(tx, ty, 150, playerId, danoCometa, 'skill', 'player');
+                                        meteorFires.push({ x: tx, y: ty, ownerId: playerId, expiresAt: Date.now() + 10000, nextTick: Date.now() + 1000, dano: Math.round(danoMeteoro * 0.8) });
+                                    }, 2000);
+                                }, delayCometa);
+                            } else {
+                                meteorFires.push({ x: tx, y: ty, ownerId: playerId, expiresAt: Date.now() + 5000, nextTick: Date.now() + 1000, dano: danoMeteoro });
+                            }
+                        } else {
+                            // Meteoro Padrão
+                            wss.clients.forEach((client) => {
+                                if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_meteoro', id: playerId, targetX: tx, targetY: ty }));
                             });
-                            danoEmBosses(tx, ty, 95, playerId, danoMeteoro, 'skill', 'player');
-                            meteorFires.push({ x: tx, y: ty, ownerId: playerId, expiresAt: Date.now() + 5000, nextTick: Date.now() + 1000, dano: danoMeteoro });
-                        }, 600);
-                    }, 1000);
+                            setTimeout(() => {
+                                const dono = players[playerId];
+                                if (!dono || dono.hp <= 0) return;
+                                slimes.forEach(slime => {
+                                    if (slime.hp > 0 && Math.hypot(slime.x - tx, slime.y - ty) < 85) registrarDanoMonstro(slime, playerId, danoMeteoro, 'player');
+                                });
+                                danoEmBosses(tx, ty, 95, playerId, danoMeteoro, 'skill', 'player');
+                                meteorFires.push({ x: tx, y: ty, ownerId: playerId, expiresAt: Date.now() + 5000, nextTick: Date.now() + 1000, dano: danoMeteoro });
+                            }, 600);
+                        }
+                    }, castDur);
                 }
 
                 if (data.action === 'nevasca') {
@@ -13462,23 +16050,100 @@ if (data.action === 'dash') {
                     if (!cdSkillExpirado(ws, mago, 'lastNevasca', 11500, 'nevasca')) return;
                     if (!gastarMana(ws, mago, mpSkill(mago, 'nevasca', 35))) return;
                     marcarSkillUsada(mago, 'lastNevasca');
+
+                    const upgNev = mago.skillUpgrades || {};
+                    const hasNA1 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgNev, 'nevasca', 1, 'A')); // Congela >3s por 1.5s
+                    const hasNA2 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgNev, 'nevasca', 2, 'A')); // +10% Dano Mágico por 10s (acumula 3x)
+                    const hasNA3 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgNev, 'nevasca', 3, 'A')); // Ataque básico de gelo
+                    const hasNA4 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgNev, 'nevasca', 4, 'A')); // Estacas de gelo explodem no final
+                    const hasNB1 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgNev, 'nevasca', 1, 'B')); // Funde ao fogo (queimadura sem slow)
+                    const hasNB2 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgNev, 'nevasca', 2, 'B')); // Tornado de Fogo (-20% def)
+                    const hasNB3 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgNev, 'nevasca', 3, 'B')); // 4 mini-tornados no final
+                    const hasNB4 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgNev, 'nevasca', 4, 'B')); // Tornado colossal crescente caçador 10s
+
+                    // Tier 2 A: +10% Dano Mágico por 10s (acumula até 3x = +30%)
+                    if (hasNA2) {
+                        mago.nevascaBuffStacks = Math.min((mago.nevascaBuffStacks || 0) + 1, 3);
+                        mago.nevascaBuffExpires = Date.now() + 10000;
+                        wss.clients.forEach(c => {
+                            if (c.readyState === WebSocket.OPEN) {
+                                c.send(JSON.stringify({ type: 'action_mago_aura_gelo', id: playerId, stacks: mago.nevascaBuffStacks, duracaoMs: 10000, x: mago.x, y: mago.y }));
+                            }
+                        });
+                    }
+
                     const tx = Number(data.targetX), ty = Number(data.targetY);
-                    const duracaoNevascaMs = Math.round(480 * (1000 / 60));
+                    const duracaoSegundos = hasNB4 ? 10 : 8;
+                    const duracaoNevascaMs = duracaoSegundos * 1000;
                     const soundIdNevasca = 'nevasca_' + playerId + '_' + Date.now();
                     const danoNevasca = dmgSkill(mago, 'nevasca', 6);
+
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_mago_cast_start', id: playerId, skill: 'nevasca', durMs: 1000 }));
                     });
+
                     setTimeout(() => {
                         const caster = players[playerId];
                         if (!caster || caster.hp <= 0) {
                             wss.clients.forEach(client => { if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_mago_cast_end', id: playerId })); });
                             return;
                         }
-                        blizzards.push({ ownerId: playerId, x: tx, y: ty, radius: 115, duracao: Math.ceil(duracaoNevascaMs / 50), expiresAt: Date.now() + duracaoNevascaMs, soundId: soundIdNevasca, danoNevasca: danoNevasca });
-                        wss.clients.forEach((client) => {
-                            if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_nevasca', ownerId: playerId, targetX: tx, targetY: ty, radius: 115, duracaoMs: duracaoNevascaMs, soundId: soundIdNevasca }));
-                        });
+
+                        const novaNevasca = {
+                            ownerId: playerId,
+                            x: tx,
+                            y: ty,
+                            radius: 115,
+                            maxRadius: hasNB4 ? 200 : 115,
+                            duracao: Math.ceil(duracaoNevascaMs / 50),
+                            duracaoInicial: Math.ceil(duracaoNevascaMs / 50),
+                            expiresAt: Date.now() + duracaoNevascaMs,
+                            soundId: soundIdNevasca,
+                            danoNevasca: danoNevasca,
+                            isFogo: hasNB1 || hasNB2 || hasNB3 || hasNB4,
+                            isTornado: hasNB2 || hasNB3 || hasNB4,
+                            crescente: hasNB4,
+                            perseguidor: hasNB4,
+                            miniTornados: hasNB3,
+                            congelamentoProfundo: hasNA1,
+                            estacasGelo: hasNA4
+                        };
+                        blizzards.push(novaNevasca);
+
+                        if (novaNevasca.isTornado) {
+                            wss.clients.forEach((client) => {
+                                if (client.readyState === WebSocket.OPEN) {
+                                    client.send(JSON.stringify({
+                                        type: 'action_mago_tornado_fogo',
+                                        id: soundIdNevasca, x: tx, y: ty, radius: 115,
+                                        duracaoMs: duracaoNevascaMs, crescente: hasNB4, perseguidor: hasNB4
+                                    }));
+                                }
+                            });
+                        } else {
+                            wss.clients.forEach((client) => {
+                                if (client.readyState === WebSocket.OPEN) {
+                                    client.send(JSON.stringify({
+                                        type: 'action_nevasca',
+                                        ownerId: playerId, targetX: tx, targetY: ty,
+                                        radius: 115, duracaoMs: duracaoNevascaMs, soundId: soundIdNevasca,
+                                        isFogo: novaNevasca.isFogo
+                                    }));
+                                }
+                            });
+                        }
+
+                        // Tier 4 A: Estacas de Gelo erguem-se sob os inimigos
+                        if (hasNA4) {
+                            const posInimigos = [];
+                            slimes.forEach(s => { if (s.hp > 0 && Math.hypot(s.x - tx, s.y - ty) < 115) posInimigos.push({ x: s.x, y: s.y }); });
+                            bosses.forEach(b => { if (b.hp > 0 && Math.hypot(b.x - tx, b.y - ty) < 115) posInimigos.push({ x: b.x, y: b.y }); });
+                            wss.clients.forEach(c => {
+                                if (c.readyState === WebSocket.OPEN) {
+                                    c.send(JSON.stringify({ type: 'action_mago_estacas_gelo', x: tx, y: ty, inimigosPos: posInimigos, duracaoMs: duracaoNevascaMs }));
+                                }
+                            });
+                        }
                     }, 1000);
                 }
 
@@ -13490,29 +16155,102 @@ if (data.action === 'dash') {
                     if (agora - p.lastVulcao < 19500) return;
                     if (!gastarMana(ws, p, mpSkill(p, 'vulcao', 20))) return;
                     p.lastVulcao = agora;
+
+                    const upgVul = p.skillUpgrades || {};
+                    const hasVA1 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgVul, 'vulcao', 1, 'A')); // 2x fragmentos e cadência
+                    const hasVA2 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgVul, 'vulcao', 2, 'A')); // Poças de larva no solo
+                    const hasVA3 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgVul, 'vulcao', 3, 'A')); // 2ª explosão nos fragmentos
+                    const hasVA4 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgVul, 'vulcao', 4, 'A')); // +20% área, +40% dano, Zona de Calor
+                    const hasVB1 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgVul, 'vulcao', 1, 'B')); // Despertar do Golem de Fogo por 30s
+                    const hasVB2 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgVul, 'vulcao', 2, 'B')); // Golem mão de gelo
+                    const hasVB3 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgVul, 'vulcao', 3, 'B')); // Golem rugido 10s bolha 20% HP
+                    const hasVB4 = !!(SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgVul, 'vulcao', 4, 'B')); // Golem meteoros dual 5s
+
+                    // Lado B: Transforma Vulcão no Golem Lacaio Incandescente por 30s
+                    if (hasVB1) {
+                        golemsMago[playerId] = {
+                            active: true,
+                            ownerId: playerId,
+                            x: p.x - 30,
+                            y: p.y - 20,
+                            duracao: 30000,
+                            expiresAt: Date.now() + 30000,
+                            nextAtk: Date.now() + 1000,
+                            nextRoar: Date.now() + 10000,
+                            nextMeteor: Date.now() + 5000,
+                            danoBase: 28,
+                            hasGeloHand: hasVB2,
+                            altMao: false,
+                            hasRugido: hasVB3,
+                            hasMeteoros: hasVB4
+                        };
+                        wss.clients.forEach(c => {
+                            if (c.readyState === WebSocket.OPEN) {
+                                c.send(JSON.stringify({
+                                    type: 'action_mago_golem_spawn',
+                                    ownerId: playerId, x: p.x - 30, y: p.y - 20,
+                                    duracaoMs: 30000, hasGeloHand: hasVB2
+                                }));
+                            }
+                        });
+                        return;
+                    }
+
                     let danoBase = dmgSkill(p, 'vulcao', 18);
+                    if (hasVA4) danoBase = Math.round(danoBase * 1.40);
                     let dotBase = dmgSkill(p, 'vulcao', 4);
                     let vx = Number(data.targetX), vy = Number(data.targetY);
+                    let raioVulcao = hasVA4 ? Math.round(140 * 1.20) : 140;
+
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'action_mago_cast_start', id: playerId, skill: 'vulcao', durMs: 1000 }));
                         }
                     });
+
                     setTimeout(() => {
                         let caster = players[playerId];
                         if (!caster || caster.hp <= 0) {
                             wss.clients.forEach(client => { if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_mago_cast_end', id: playerId })); });
                             return;
                         }
+
                         vulcoes.push({
                             ownerId: playerId, x: vx, y: vy,
-                            radius: 140, duracao: 200, tickCounter: 0,
+                            radius: raioVulcao, duracao: 200, tickCounter: 0,
                             danoImpacto: danoBase, danoDot: dotBase,
-                            emergindo: 30, projeteis: []
+                            emergindo: 30, projeteis: [],
+                            upgrades: {
+                                cadenciaDupla: hasVA1,
+                                pocasLava: hasVA2,
+                                segundaExplosao: hasVA3,
+                                zonaCalor: hasVA4
+                            }
                         });
+
                         wss.clients.forEach((client) => {
-                            if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'action_vulcao', targetX: vx, targetY: vy, radius: 140, duracao: 200, ownerId: playerId }));
+                            if (client.readyState === WebSocket.OPEN) {
+                                client.send(JSON.stringify({ type: 'action_vulcao', targetX: vx, targetY: vy, radius: raioVulcao, duracao: 200, ownerId: playerId }));
+                            }
                         });
+
+                        // Tier 2 A: Poças de larva no solo ao redor
+                        if (hasVA2) {
+                            wss.clients.forEach(c => {
+                                if (c.readyState === WebSocket.OPEN) {
+                                    c.send(JSON.stringify({ type: 'action_mago_vulcao_pocas', x: vx, y: vy, raio: raioVulcao, duracaoMs: 10000 }));
+                                }
+                            });
+                        }
+
+                        // Tier 4 A: Zona de Calor enfraquecedora
+                        if (hasVA4) {
+                            wss.clients.forEach(c => {
+                                if (c.readyState === WebSocket.OPEN) {
+                                    c.send(JSON.stringify({ type: 'action_mago_vulcao_zona_calor', x: vx, y: vy, raio: 220, duracaoMs: 10000 }));
+                                }
+                            });
+                        }
                     }, 1000);
                 }
 
@@ -13539,13 +16277,49 @@ if (data.action === 'dash') {
                         let upgrades = (player && player.skillUpgrades) || {};
                         ogro.modoAgressivoTimer = 140;
 
-                        // Tier 2 B: Pulso de Atração (puxa inimigos em raio 160 em direção ao Golem)
-                        if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 2, 'B')) {
+                        // Tier 2 A: Colisão Tectônica (puxa inimigos em raio 160 em direção ao Golem)
+                        if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 2, 'A')) {
                             slimes.forEach(slime => {
                                 if (slime.hp > 0 && Math.hypot(slime.x - ogro.x, slime.y - ogro.y) < 160) {
                                     let ang = Math.atan2(ogro.y - slime.y, ogro.x - slime.x);
                                     slime.x += Math.cos(ang) * 45;
                                     slime.y += Math.sin(ang) * 45;
+                                }
+                            });
+                            wss.clients.forEach(c => {
+                                if (c.readyState === WebSocket.OPEN) {
+                                    c.send(JSON.stringify({ type: 'action_summoner_pulso_magnetico', x: ogro.x, y: ogro.y, raio: 160 }));
+                                }
+                            });
+                        }
+
+                        // Tier 4 B: Martelo do Colosso (canaliza tremor no braço: próximo soco básico tem +70% dano e VFX massivo)
+                        if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 4, 'B')) {
+                            ogro.marteloColossoAtivo = true;
+                            ogro.marteloColossoExpires = Date.now() + 6000;
+                            wss.clients.forEach(c => {
+                                if (c.readyState === WebSocket.OPEN) {
+                                    c.send(JSON.stringify({ type: 'action_summoner_martelo_colosso_ready', pid: playerId, x: ogro.x, y: ogro.y }));
+                                }
+                            });
+                        }
+
+                        // Tier 4 A: Colapso Territorial (zona instável por 3s com 50% slow e implosão final com puxão forte)
+                        if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 4, 'A')) {
+                            summonerColapsos.push({
+                                id: proximoSummonerEntidadeId++,
+                                ownerId: playerId,
+                                x: ogro.x,
+                                y: ogro.y,
+                                raio: 110,
+                                danoFinal: Math.round(dmgSkill(player, 'esmagamento', 45) * 0.8),
+                                expires: Date.now() + 3000,
+                                mapa: player.mapa,
+                                instanciaId: player.instanciaId
+                            });
+                            wss.clients.forEach(c => {
+                                if (c.readyState === WebSocket.OPEN) {
+                                    c.send(JSON.stringify({ type: 'action_summoner_colapso_territorial', x: ogro.x, y: ogro.y, raio: 110, duracao: 3000 }));
                                 }
                             });
                         }
@@ -13557,15 +16331,7 @@ if (data.action === 'dash') {
                         });
 
                         let raioEsmaga = 100;
-                        let multDano = 1;
-                        if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 4, 'B')) {
-                            raioEsmaga = 150; // Terremoto Devastador: +50% raio
-                        }
-                        if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 4, 'A')) {
-                            multDano = 1.40; // Martelo do Colosso: +40% dano base
-                        }
-
-                        let danoPetSis = Math.round(dmgSkill(player, 'esmagamento', 45) * multDano);
+                        let danoPetSis = Math.round(dmgSkill(player, 'esmagamento', 45));
                         let alvosAtingidos = 0;
 
                         slimes.forEach(slime => {
@@ -13575,25 +16341,20 @@ if (data.action === 'dash') {
                                 let danoFinalAlvo = danoPetSis;
                                 let stunTicks = 30;
 
-                                // Martelo do Colosso: centro (raio 45) sofre +50% dano e 3s stun (60 ticks)
-                                if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 4, 'A') && dist < 45) {
-                                    danoFinalAlvo = Math.round(danoPetSis * 1.50);
-                                    stunTicks = 60;
+                                // Tier 2 B: Fratura Exposta (Debuff Fraturado 4s: carapaça rompida, +15% dano de socos do Golem)
+                                if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 2, 'B')) {
+                                    slime.fraturaExpostaExpires = Date.now() + 4000;
+                                    slime.reducaoDefTimer = 80;
                                 }
 
-                                // Fratura Exposta (Tier 2 A): -20% armadura por 5s
-                                if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 2, 'A')) {
-                                    slime.reducaoDefTimer = 100;
-                                    if (efeitos) efeitos.aplicarEfeito(slime, 'reducaoDef', 100, 0.20);
-                                }
-
-                                // Fratura Defensiva (Tier 3 A): +12% dano sofrido por 6s
-                                if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 3, 'A')) {
-                                    slime.fraturaDefensivaExpires = Date.now() + 6000;
+                                // Tier 3 B: Fratura Defensiva (Reduz Defesa Física em 12% por 4s)
+                                if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 3, 'B')) {
+                                    slime.fraturaDefensivaExpires = Date.now() + 4000;
+                                    slime.reducaoDefTimer = 80;
                                 }
 
                                 let r = registrarDanoMonstro(slime, playerId, danoFinalAlvo, 'pet');
-                                broadcastDanoLacaio(slime.x, slime.y, r.dano);
+                                broadcastDanoLacaio(slime.x, slime.y, r ? r.dano : danoFinalAlvo);
                                 slime.stunTimer = Math.max(slime.stunTimer || 0, stunTicks);
                                 ogro.targetSlimeId = slime.id;
                             }
@@ -13604,8 +16365,11 @@ if (data.action === 'dash') {
                             broadcastDanoLacaio(dbSis.x, dbSis.y, dbSis.dano);
                             bosses.forEach(b => {
                                 if (b.hp > 0 && Math.hypot(b.x - ogro.x, b.y - ogro.y) < raioEsmaga + 15) {
-                                    if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 3, 'A')) {
-                                        b.fraturaDefensivaExpires = Date.now() + 6000;
+                                    if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 2, 'B')) {
+                                        b.fraturaExpostaExpires = Date.now() + 4000;
+                                    }
+                                    if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgrades, 'esmagamento', 3, 'B')) {
+                                        b.fraturaDefensivaExpires = Date.now() + 4000;
                                     }
                                 }
                             });
@@ -13676,6 +16440,11 @@ if (data.action === 'dash') {
                                     }
                                 });
                             }
+                            wss.clients.forEach(c => {
+                                if (c.readyState === WebSocket.OPEN) {
+                                    c.send(JSON.stringify({ type: 'action_summoner_terremoto_3way', x: ogro.x, y: ogro.y }));
+                                }
+                            });
                         }
                     }
                 }
@@ -13712,6 +16481,11 @@ if (data.action === 'dash') {
                             if (Math.hypot(ogro.x - player.x, ogro.y - player.y) < 120) {
                                 player.escudoSummoner = Math.max(player.escudoSummoner || 0, 40);
                                 player.escudoSummonerExpires = Date.now() + 4000;
+                                wss.clients.forEach(c => {
+                                    if (c.readyState === WebSocket.OPEN) {
+                                        c.send(JSON.stringify({ type: 'action_summoner_escudo_invocadora', x: Math.round(player.x), y: Math.round(player.y), duracao: 4000 }));
+                                    }
+                                });
                             }
                         }
 
@@ -13762,14 +16536,19 @@ if (data.action === 'dash') {
             if (data.action === 'teleporte_mapa') {
                 let destino = PONTOS_TELEPORTE[data.mapa];
                 if (!destino || !playerId || !players[playerId]) return;
+                const biomasDoMapa = mapaMundo && mapaMundo.CENTROS_BIOMAS;
+                if (biomasDoMapa && Object.prototype.hasOwnProperty.call(biomasDoMapa, data.mapa) && !ws.ehAdminCliente) {
+                    ws.send(JSON.stringify({ type: 'teleporte_recusado', mapa: data.mapa }));
+                    return;
+                }
                 if (!jogadorPodeUsarPortalMapa(players[playerId], data.mapa)) {
                     ws.send(JSON.stringify({ type: 'teleporte_recusado', mapa: data.mapa }));
                     return;
                 }
                 // Só encerra a sessão depois de validar o portal de retorno.
                 if (data.mapa === 'cidade' && solariEmSessao(playerId)) solariRemoverMembro(playerId, 'portal');
-                const destinoSolicitadoX = destino.x + (Math.random() * 20 - 10);
-                const destinoSolicitadoY = destino.y + (Math.random() * 20 - 10);
+                const destinoSolicitadoX = (data.mapa === 'cidade' || data.mapa === 'santuario' || data.mapa === 'mundo') ? destino.x : (destino.x + (Math.random() * 20 - 10));
+                const destinoSolicitadoY = (data.mapa === 'cidade' || data.mapa === 'santuario' || data.mapa === 'mundo') ? destino.y : (destino.y + (Math.random() * 20 - 10));
                 const destinoSeguro = encontrarPosicaoJogadorSegura(players[playerId], destinoSolicitadoX, destinoSolicitadoY);
                 if (!destinoSeguro) return;
                 players[playerId].x = destinoSeguro.x;
@@ -13864,7 +16643,7 @@ if (data.action === 'dash') {
                 salvarProgresso(userId, { hp: players[playerId].hp, x: players[playerId].x, y: players[playerId].y });
                 ws.send(JSON.stringify({
                     type: 'respawn_confirmado',
-                    mapa: 'cidade',
+                    mapa: 'mundo',
                     x: players[playerId].x,
                     y: players[playerId].y
                 }));
@@ -13955,6 +16734,39 @@ server.on('error', (err) => {
         console.error('[ERRO SERVIDOR HTTP]', err);
     }
 });
+
+if (!migrarIdentidadesItens) {
+    throw new Error('Migração segura dos identificadores de itens indisponível; servidor não iniciado.');
+}
+const itemMigrationStats = migrarIdentidadesItens();
+const savedItemRecords = dbCarregarTodos();
+itemSystem.assertUniqueInventoryOwnership(savedItemRecords);
+for (const ownerId of Object.keys(savedItemRecords)) {
+    const savedCharacter = savedItemRecords[ownerId] || {};
+    const inventory = savedCharacter.inventario || {};
+    const equipment = [];
+    if (inventory.slots && typeof inventory.slots === 'object') {
+        Object.keys(inventory.slots).forEach(function (slot) {
+            const item = inventory.slots[slot];
+            if (item && item.schemaVersion === 1) {
+                if (item.slot !== slot) throw new Error('Slot salvo incompatível para item ' + item.itemInstanceId);
+                equipment.push(item);
+            }
+        });
+    }
+    if (Array.isArray(inventory.mochila)) {
+        inventory.mochila.forEach(function (item) {
+            if (item && item.schemaVersion === 1) equipment.push(item);
+        });
+    }
+    equipment.forEach(function (item) {
+        const validation = itemSystem.validateEquipmentForClass(savedCharacter.classe || 'guerreiro', item);
+        if (!validation.valid) {
+            throw new Error('Item salvo inválido (' + validation.reason + ') no personagem ' + ownerId);
+        }
+    });
+}
+console.log('[LOOT] migração de identidade concluída:', itemMigrationStats);
 
 // '0.0.0.0' obrigatorio no Render: escutar so em localhost/127.0.0.1 deixa o
 // servico inalcancavel por fora. Sem host o Node ja faz isso, mas ficar

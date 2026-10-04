@@ -372,5 +372,82 @@
     "intensidade": 0.7,
     "raio": 80,
     "cor": "#d99cff"
+  },
+  {
+    "id": "vfx_murlxcip",
+    "mapa": "cidadeperdida",
+    "x": 67369,
+    "y": 1684,
+    "tipo": "lampada",
+    "escala": 1,
+    "intensidade": 0.1,
+    "raio": 260,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_murwflzt",
+    "mapa": "bemvindo",
+    "x": 86261,
+    "y": 1067,
+    "tipo": "lampada",
+    "escala": 1,
+    "intensidade": 0.1,
+    "raio": 260,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_murwj9vu",
+    "mapa": "green",
+    "x": 8518,
+    "y": 2335,
+    "tipo": "lampada",
+    "escala": 1,
+    "intensidade": 0.1,
+    "raio": 260,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_murwn9a5",
+    "mapa": "green",
+    "x": 7841,
+    "y": 2477,
+    "tipo": "lampada",
+    "escala": 1,
+    "intensidade": 0.1,
+    "raio": 260,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_murykv01",
+    "mapa": "floresta",
+    "x": 94253,
+    "y": 3072,
+    "tipo": "lampada",
+    "escala": 1,
+    "intensidade": 0.1,
+    "raio": 260,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_musx3dvt",
+    "mapa": "mundo",
+    "x": 143963,
+    "y": 13921,
+    "tipo": "lampada",
+    "escala": 0.5,
+    "intensidade": 0.1,
+    "raio": 80,
+    "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_musx3k9y",
+    "mapa": "mundo",
+    "x": 144038,
+    "y": 13921,
+    "tipo": "lampada",
+    "escala": 0.6,
+    "intensidade": 0.1,
+    "raio": 80,
+    "cor": "#ffd166"
   }
 ]

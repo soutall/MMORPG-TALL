@@ -1,0 +1,19 @@
+{
+  "schemaVersion": 1,
+  "classes": {
+    "guerreiro": { "name": "Guerreiro", "primaryWeapon": "espada_de_pedra", "secondaryWeapon": "escudo_de_pedra" },
+    "mago": { "name": "Mago", "primaryWeapon": "cajado_arcano", "secondaryWeapon": "grimorio_arcano" },
+    "summoner": { "name": "Summoner", "primaryWeapon": "orbe_das_sombras", "secondaryWeapon": "calice_das_sombras" },
+    "arqueiro": { "name": "Arqueiro", "primaryWeapon": "arco_longo", "secondaryWeapon": "aljava_peregrina" },
+    "curandeiro": { "name": "Curandeiro", "primaryWeapon": "luz_sagrada", "secondaryWeapon": "rosario_sagrado" },
+    "barbaro": { "name": "Bárbaro", "primaryWeapon": "machado_gigante", "secondaryWeapon": "bolsa_de_sangue" },
+    "roqueiro": { "name": "Roqueiro", "primaryWeapon": "guitarra", "secondaryWeapon": "rockroll" },
+    "ladino": { "name": "Ladino", "primaryWeapon": "adaga_do_assassino", "secondaryWeapon": "bomba_de_veneno" },
+    "dronemaster": { "name": "Dronemaster", "primaryWeapon": "chave_tecnica", "secondaryWeapon": "modulo_de_energia" },
+    "arqueiro_arcano": { "name": "Arqueiro Arcano", "primaryWeapon": "arco_elemental", "secondaryWeapon": "runas_ancestrais" },
+    "sniper": { "name": "Sniper", "primaryWeapon": "barrett_antimateria", "secondaryWeapon": "luneta_tatica" },
+    "florim": { "name": "Florim", "primaryWeapon": "staff_de_rosa", "secondaryWeapon": "coroa_de_espinho" },
+    "pikeman": { "name": "Pikeman", "primaryWeapon": "foice_da_morte", "secondaryWeapon": "foice_curta" },
+    "guerreiro_kaledron": { "name": "Guerreiro Kaledron", "primaryWeapon": "montante_de_lava", "secondaryWeapon": "carapaca_de_aco" }
+  }
+}

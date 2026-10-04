@@ -7,8 +7,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Oswald:wght@500;600;700&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=246">
-    <link rel="stylesheet" href="inventario.css?v=160">
+    <link rel="stylesheet" href="style.css?v=251">
+    <link rel="stylesheet" href="inventario.css?v=171">
     <link rel="stylesheet" href="skills.css?v=146">
     <link rel="stylesheet" href="config.css?v=150">
     <link rel="stylesheet" href="atributos.css?v=5">
@@ -17,11 +17,61 @@
     <link rel="stylesheet" href="dragdrop.css?v=4">
     <link rel="stylesheet" href="ferreiro.css?v=1">
     <link rel="stylesheet" href="intro.css?v=1">
-    <link rel="stylesheet" href="mobile-hud.css?v=3">
+    <link rel="stylesheet" href="mobile-hud.css?v=6">
     <link rel="stylesheet" href="item-admin.css?v=2">
     <link rel="stylesheet" href="personagem-select.css?v=2">
+    <style>
+        #confusao-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 9998;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 180ms ease;
+            background:
+                radial-gradient(ellipse at 18% 32%, rgba(236, 72, 153, .26), transparent 48%),
+                radial-gradient(ellipse at 82% 65%, rgba(34, 211, 238, .24), transparent 50%),
+                conic-gradient(from 90deg at 50% 50%, rgba(168, 85, 247, .10), rgba(250, 204, 21, .12), rgba(34, 211, 238, .10), rgba(168, 85, 247, .10));
+            mix-blend-mode: screen;
+            filter: saturate(1.6);
+            animation: confusao-cromatica 2.4s linear infinite;
+        }
+        #confusao-overlay.ativo { opacity: .52; }
+        @keyframes confusao-cromatica {
+            from { filter: hue-rotate(0deg) saturate(1.6); }
+            to { filter: hue-rotate(360deg) saturate(1.6); }
+        }
+        @keyframes mapa-loading-giro {
+            to { transform: rotate(360deg); }
+        }
+        #overlay-teleporte-fade .mapa-loading-conteudo {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            color: #e8f4ff;
+            font: 700 20px 'Rajdhani', sans-serif;
+            letter-spacing: 1px;
+            text-shadow: 0 2px 8px #000;
+        }
+        #overlay-teleporte-fade .mapa-loading-anel {
+            width: 48px;
+            height: 48px;
+            border: 4px solid rgba(142, 214, 255, .2);
+            border-top-color: #8ed6ff;
+            border-radius: 50%;
+            animation: mapa-loading-giro .8s linear infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+            #confusao-overlay { animation: none; }
+        }
+    </style>
 </head>
 <body oncontextmenu="return false;">
+    <div id="confusao-overlay" aria-hidden="true"></div>
     <script>
         /* Bootstrap da intro: cobre tudo desde o primeiro paint (sem flash).
            Se o intro.js não carregar por qualquer motivo, um watchdog de 6s
@@ -76,7 +126,7 @@
             <input type="text" id="input-userid" maxlength="14" placeholder="Ex: Guerreiro_01" />
             <button id="btn-entrar" onclick="fazerLogin()">JOGAR</button>
         </div>
-        <div class="game-version-display">v1.69.2</div>
+        <div class="game-version-display">v1.73.14</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -132,14 +182,14 @@
     <div id="status" data-ui="status">Desconectado</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
     <div id="ping-counter" data-ui="ping">PING: -- ms</div>
-    <div id="hud-version" class="game-version-display">v1.69.2</div>
+    <div id="hud-version" class="game-version-display">v1.73.14</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
             <canvas id="hud-retrato" width="46" height="46"></canvas>
             <div id="hud-barras">
                 <div id="level-text-wrap"><span id="level-text">LVL 1</span></div>
-                <div id="hp-bar-container" title="Vida"><div id="hp-bar-fill"></div><span class="bar-value hp-value" id="hp-bar-texto"></span></div>
+                <div id="hp-bar-container" title="Vida"><div id="hp-bar-fill"></div><div id="shield-mago-bar-fill" style="position:absolute;top:0;left:0;height:100%;background:rgba(255,255,255,0.85);box-shadow:0 0 8px #fff;pointer-events:none;transition:width 0.15s ease-out;width:0%;display:none;border-radius:inherit;z-index:2;"></div><span class="bar-value hp-value" id="hp-bar-texto"></span></div>
                 <div id="mp-bar-container" title="Mana"><div id="mp-bar-fill"></div><span class="bar-value mp-value" id="mp-bar-texto"></span></div>
                 <div id="stamina-bar-container" title="Stamina (Dash)"><div id="stamina-bar-fill"></div></div>
             </div>
@@ -209,6 +259,15 @@
             width: 180px;
             pointer-events: none;
             z-index: 100;
+        }
+        .hud-party-toggle-btn {
+            display: none;
+        }
+        .hud-party-header-mobile {
+            display: none;
+        }
+        .hud-party-content {
+            display: block;
         }
         .party-member {
             background: rgba(0,0,0,0.6);
@@ -300,7 +359,7 @@
         <button onclick="tradeCancelar()" style="background:#e74c3c; color:#fff; border:none; padding:8px; border-radius:5px; cursor:pointer; font-weight:bold;">Cancelar Troca</button>
     </div>
 
-    <canvas id="jogoCanvas"></canvas>
+    <canvas id="jogoCanvas" style="display: block; width: 100vw; height: 100vh; position: fixed; top: 0; left: 0; touch-action: none;"></canvas>
 
     <div id="joystick-base" data-ui="joystick"><div id="joystick-stick"></div></div>
 
@@ -311,13 +370,17 @@
             <span id="relogio-texto">12:00</span>
         </div>
         <div id="minimap-header">
-            <span id="minimap-bioma">🌿 Campo Verde</span>
-            <div id="minimap-zoom-bar">
-                <button id="btn-mm-zoom-out" class="btn-mm-zoom" onclick="minimapZoomMenos(event)" title="Diminuir Zoom [−]">−</button>
-                <span id="minimap-zoom-label">2x</span>
-                <button id="btn-mm-zoom-in" class="btn-mm-zoom" onclick="minimapZoomMais(event)" title="Aumentar Zoom [+]">+</button>
+            <div id="minimap-header-top">
+                <span id="minimap-bioma" title="Bioma Atual">🌍 Santuário de Gaia</span>
+                <div id="minimap-zoom-bar">
+                    <button id="btn-mm-zoom-out" class="btn-mm-zoom" onclick="minimapZoomMenos(event)" title="Diminuir Zoom [−]">−</button>
+                    <span id="minimap-zoom-label">2x</span>
+                    <button id="btn-mm-zoom-in" class="btn-mm-zoom" onclick="minimapZoomMais(event)" title="Aumentar Zoom [+]">+</button>
+                </div>
             </div>
-            <span id="minimap-coords">X:0 Y:0</span>
+            <div id="minimap-header-bottom">
+                <span id="minimap-coords">X: 144000  Y: 14018</span>
+            </div>
         </div>
         <canvas id="minimap-canvas"></canvas>
         <div id="minimap-hint" onclick="toggleBigMap()">🗺️ Abrir Mapa [M]</div>
@@ -465,22 +528,20 @@
     </div>
 
     <!-- MAPA GRANDE (TECLA M) -->
-    <div id="big-map-screen">
-        <div id="big-map-window">
+    <div id="big-map-screen" style="background: rgba(2, 6, 12, 0.98) !important;">
+        <div id="big-map-window" style="background: transparent !important;">
             <div id="big-map-top">
                 <div id="big-map-title">🗺️ MAPA MUNDIAL — Davahl & Biomas</div>
                 <button id="btn-big-map-fechar" onclick="fecharBigMap()">✕ FECHAR [M]</button>
             </div>
-            <div id="big-map-canvas-container">
-                <canvas id="big-map-canvas" width="800" height="380"></canvas>
+            <div id="big-map-canvas-container" style="background: #030a16 !important; background-color: #030a16 !important; border: 1px solid rgba(27, 85, 130, 0.4) !important;">
+                <canvas id="big-map-canvas" width="800" height="380" style="background: #030a16 !important; background-color: #030a16 !important;"></canvas>
             </div>
             <div id="big-map-footer">
                 <div class="big-map-legend">
                     <span class="legend-item"><span class="legend-dot" style="background:#00ffff; box-shadow: 0 0 6px #0ff;"></span> Você</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#3498db;"></span> Players</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#e74c3c;"></span> Monstros</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#f1c40f;"></span> Drops</span>
-                    <span class="legend-item"><span class="legend-dot" style="background:#ff3366;"></span> Boss Golem</span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#ffd569; border:1px solid #17202a;"></span> Destinos dos biomas</span>
+                    <span class="legend-item"><span class="legend-dot" style="background:#080e18;"></span> Área inexplorada</span>
                 </div>
                 <button id="btn-portal-cidade-mapa" onclick="abrirConfirmacaoPortalMapa()">🌀 VOLTAR PARA A CIDADE</button>
             </div>
@@ -507,82 +568,115 @@
             <div id="teleport-title">🌀 PORTAL DE VIAGEM</div>
             <div id="teleport-sub">Escolha o mapa para onde deseja ir:</div>
             <div id="teleport-maps">
-                <button class="btn-teleportare" data-mapa="cidade" onclick="selecionarMapa('cidade')">🏰 Cidade de Davahl</button>
-                <button class="btn-teleportare" data-mapa="green" onclick="selecionarMapa('green')">🌿 Campo Verde</button>
-                <button class="btn-teleportare" data-mapa="desert" onclick="selecionarMapa('desert')">🏜️ Deserto com Oásis</button>
-                <button class="btn-teleportare" data-mapa="pantano" onclick="selecionarMapa('pantano')">🌿 Pantanal</button>
-                <button class="btn-teleportare" data-mapa="caverna" onclick="selecionarMapa('caverna')">🕳️ Caverna Sombria (DG)</button>
-                <button class="btn-teleportare" data-mapa="cidadeperdida" onclick="selecionarMapa('cidadeperdida')">🏛️ Cidade Perdida</button>
-                <button class="btn-teleportare" data-mapa="pantano_sombrio" onclick="selecionarMapa('pantano_sombrio')">🐊 Pântano Sombrio</button>
-                <button class="btn-teleportare" data-mapa="zonazero" onclick="selecionarMapa('zonazero')">❄️ Zona Zero (Bioma de Gelo)</button>
-                <button class="btn-teleportare" data-mapa="castelo" onclick="selecionarMapa('castelo')">🏯 Castelo Anda 1 (DG)</button>
-                <button class="btn-teleportare" data-mapa="ruinas_01" onclick="selecionarMapa('ruinas_01')">🏚️ Ruínas de Âmbar (ID)</button>
-                <button class="btn-teleportare" data-mapa="floresta" onclick="selecionarMapa('floresta')">🌲 Floresta dos Sussurros</button>
-                <button class="btn-teleportare" data-mapa="nebulos" onclick="selecionarMapa('nebulos')">🏘️ Floresta dos Nebulos</button>
-                <button class="btn-teleportare" data-mapa="abissal" onclick="selecionarMapa('abissal')">🌌 Floresta Abissal</button>
+                <button class="btn-teleportare" data-mapa="santuario" onclick="selecionarMapa('santuario')">🏛️ Santuário Inicial (Centro)</button>
+                <button class="btn-teleportare" data-mapa="floresta" onclick="selecionarMapa('floresta')">🌲 Floresta Sombria (Norte)</button>
+                <button class="btn-teleportare" data-mapa="tempestade" onclick="selecionarMapa('tempestade')">⚡ Pico dos Relâmpagos (Nordeste)</button>
+                <button class="btn-teleportare" data-mapa="deserto" onclick="selecionarMapa('deserto')">🏜️ Deserto Escaldante (Leste)</button>
+                <button class="btn-teleportare" data-mapa="cristais" onclick="selecionarMapa('cristais')">💎 Vale dos Cristais (Sudeste)</button>
+                <button class="btn-teleportare" data-mapa="neve" onclick="selecionarMapa('neve')">❄️ Tundra Gélida (Sul)</button>
+                <button class="btn-teleportare" data-mapa="pantano" onclick="selecionarMapa('pantano')">🐊 Pântano Nebuloso (Sul-Sudoeste)</button>
+                <button class="btn-teleportare" data-mapa="profanado" onclick="selecionarMapa('profanado')">💀 Terra Profanada (Sudoeste)</button>
+                <button class="btn-teleportare" data-mapa="vulcao" onclick="selecionarMapa('vulcao')">🌋 Terras Vulcânicas (Oeste)</button>
+                <button class="btn-teleportare" data-mapa="selva" onclick="selecionarMapa('selva')">🌴 Selva Proibida (Noroeste)</button>
             </div>
             <button id="btn-teleportare-confirmar" style="display:none;" onclick="confirmarTeleporte()">✅ CONFIRMAR</button>
             <button id="btn-teleportare-fechar" onclick="fecharTeleporteMapas()">FECHAR</button>
-            <button id="btn-teleportare-cidade" onclick="voltarCidade()">🏰 VOLTAR À CIDADE</button>
+            <button id="btn-teleportare-cidade" onclick="voltarCidade()">🏛️ VOLTAR AO SANTUÁRIO</button>
         </div>
     </div>
 
     <div id="inventory-screen">
-        <div id="inv-window">
-            <div id="inv-title">🎒 INVENTÁRIO</div>
-            <button id="btn-inv-fechar" onclick="fecharInventario()" title="Fechar (I)">✕</button>
+        <div id="inv-window" role="dialog" aria-label="Inventário">
+            <div id="inv-artboard">
+                <img id="inv-artwork" src="imagem/HUD/InventoryHUD.png?v=170" alt="" draggable="false">
+                <div id="inv-overlay">
+                    <button id="btn-inv-fechar" onclick="fecharInventario()" title="Fechar inventário" aria-label="Fechar inventário">✕</button>
 
-            <div id="inv-layout-duplo">
-                <!-- COLUNA DA ESQUERDA: SLOTS EQUIPADOS + PAINEL DE INSPEÇÃO E COMPARAÇÃO -->
-                <div id="inv-col-esquerda">
-                    <div class="inv-col-cabecalho">🛡️ EQUIPADOS</div>
-                    <div id="equip-body">
-                        <div class="inv-slot slot-capacete" data-slot="capacete"><span class="slot-ico">🪖</span><span class="slot-label">CAPACETE</span></div>
-                        <div class="inv-slot slot-colar" data-slot="colar"><span class="slot-ico">📿</span><span class="slot-label">COLAR</span></div>
-                        <div class="inv-slot slot-capa" data-slot="capa"><span class="slot-ico">🧥</span><span class="slot-label">CAPA</span></div>
-                        <div class="inv-slot slot-arma" data-slot="arma"><span class="slot-ico">⚔️</span><span class="slot-label">ARMA</span></div>
-                        <div class="inv-slot slot-peitoral" data-slot="peitoral"><span class="slot-ico">🛡️</span><span class="slot-label">PEITORAL</span></div>
-                        <div class="inv-slot slot-arma-sec" data-slot="armaSecundaria"><span class="slot-ico">🔪</span><span class="slot-label">ARMA SEC</span></div>
-                        <div class="inv-slot slot-luva" data-slot="luva"><span class="slot-ico">🧤</span><span class="slot-label">LUVA</span></div>
-                        <div class="inv-slot slot-anel" data-slot="anel"><span class="slot-ico">💍</span><span class="slot-label">ANEL</span></div>
-                        <div class="inv-slot slot-bota" data-slot="bota"><span class="slot-ico">🥾</span><span class="slot-label">BOTA</span></div>
-                    </div>
-
-                    <!-- EMBAIXO DOS SLOTS EQUIPADOS: INSPEÇÃO / COMPARAÇÃO DENTRO DO INVENTÁRIO -->
-                    <div id="inv-painel-inspecao">
-                        <div id="inv-info"><div class="slot-vazio-info"><span class="slot-vazio-desc">Toque em um item para inspecionar.</span></div></div>
-                        <div id="inv-comparacao" style="display:none;"></div>
-                    </div>
-                </div>
-
-                <!-- DIVISOR VERTICAL CENTRAL -->
-                <div id="inv-divisor-vertical"></div>
-
-                <!-- COLUNA DA DIREITA: ABAS NA VERTICAL + MOCHILA + AÇÕES -->
-                <div id="inv-col-direita">
-                    <div class="inv-col-cabecalho">🎒 MOCHILA</div>
-                    <div id="inv-mochila-linha">
-                        <!-- ABAS NA VERTICAL -->
-                        <div id="mochila-abas">
-                            <button class="mochila-aba ativa" data-aba="todos" title="Todos os itens"><span class="aba-ico">🎒</span><span class="aba-rotulo">TODOS</span></button>
-                            <button class="mochila-aba" data-aba="consumiveis" title="Consumíveis"><span class="aba-ico">🍶</span><span class="aba-rotulo">CONS.</span></button>
-                            <button class="mochila-aba" data-aba="itens" title="Itens diversos"><span class="aba-ico">🧰</span><span class="aba-rotulo">ITENS</span></button>
-                            <button class="mochila-aba" data-aba="equipamentos" title="Equipamentos"><span class="aba-ico">⚔️</span><span class="aba-rotulo">EQUIP.</span></button>
-                            <button class="mochila-aba" data-aba="pedras" title="Pedras de upgrade"><span class="aba-ico">💠</span><span class="aba-rotulo">PEDRAS</span></button>
+                    <section id="inv-col-esquerda" aria-label="Equipamento do personagem">
+                        <div id="equip-body">
+                            <button class="inv-slot slot-capacete" data-slot="capacete" aria-label="Capacete"><span class="slot-ico"></span></button>
+                            <button class="inv-slot slot-colar" data-slot="colar" aria-label="Colar"><span class="slot-ico"></span></button>
+                            <button class="inv-slot slot-peitoral" data-slot="peitoral" aria-label="Peitoral"><span class="slot-ico"></span></button>
+                            <button class="inv-slot slot-capa" data-slot="capa" aria-label="Capa"><span class="slot-ico"></span></button>
+                            <button class="inv-slot slot-luva" data-slot="luva" aria-label="Luva"><span class="slot-ico"></span></button>
+                            <button class="inv-slot slot-anel" data-slot="anel" aria-label="Anel"><span class="slot-ico"></span></button>
+                            <button class="inv-slot slot-arma" data-slot="arma" aria-label="Arma principal"><span class="slot-ico"></span></button>
+                            <button class="inv-slot slot-arma-sec" data-slot="armaSecundaria" aria-label="Arma secundária"><span class="slot-ico"></span></button>
+                            <button class="inv-slot slot-bota" data-slot="bota" aria-label="Bota"><span class="slot-ico"></span></button>
                         </div>
+                        <section id="inv-personagem" aria-label="Status do personagem">
+                            <div id="inv-personagem-nivel"></div>
+                            <div class="inv-recurso inv-recurso-hp"><span id="inv-hp-mascara"></span><span id="inv-hp-valor"></span></div>
+                            <div class="inv-recurso inv-recurso-mp"><span id="inv-mp-mascara"></span><span id="inv-mp-valor"></span></div>
+                            <div id="inv-atributos">
+                                <span data-atributo="forca"></span><span data-atributo="vida"></span>
+                                <span data-atributo="inteligencia"></span><span data-atributo="profanidade"></span>
+                                <span data-atributo="agilidade"></span><span data-atributo="divindade"></span>
+                                <span data-atributo="destreza"></span><span data-atributo="afinidade"></span>
+                            </div>
+                        </section>
+                    </section>
 
-                        <!-- GRADE DE ITENS DA MOCHILA -->
-                        <div id="mochila-grade-container">
-                            <div id="mochila-grade"></div>
-                        </div>
+                    <div id="inv-col-inspecao">
+                        <section class="inv-info-panel" aria-label="Item selecionado">
+                            <div id="inv-info"><div class="slot-vazio-info">Selecione um item para ver seus detalhes.</div></div>
+                        </section>
+                        <section class="inv-compare-panel" aria-label="Comparação de equipamento">
+                            <div id="inv-comparacao-empty">Selecione um equipamento para comparar com o que está usando.</div>
+                            <div id="inv-comparacao" style="display:none;"></div>
+                        </section>
                     </div>
-
-                    <!-- BOTÕES DE AÇÃO INFERIORES -->
                     <div id="inv-botoes">
-                        <button id="btn-inv-organizar" class="btn-inv-acao" onclick="organizarMochila()" title="Organizar Mochila">🗂️</button>
-                        <button id="btn-inv-destruir" class="btn-inv-acao btn-inv-vermelho" style="display:none;" onclick="destruirItemSelecionado()" title="Destruir Item">🗑️</button>
-                        <button id="btn-inv-bloquear" class="btn-inv-acao btn-inv-bloquear" style="display:none;" onclick="alternarBloqueioItemSelecionado()" title="Bloquear / Desbloquear Item">🔒</button>
+                        <span class="inv-botoes-ajuda" aria-live="polite"></span>
+                        <button id="btn-inv-acao-principal" type="button" title="Equipar ou usar item" aria-label="Equipar ou usar item" onclick="executarAcaoItemSelecionado()"></button>
+                        <button id="btn-inv-comparacao-equipar" type="button" title="Equipar o item comparado" aria-label="Equipar o item comparado" onclick="equiparItemComparado()"></button>
+                        <button id="btn-inv-destruir" type="button" onclick="destruirItemSelecionado()" title="Destruir item" aria-label="Destruir item">🗑️</button>
+                        <button id="btn-inv-bloquear" type="button" onclick="alternarBloqueioItemSelecionado()" title="Bloquear item" aria-label="Bloquear item">🔒</button>
                     </div>
+
+                    <section id="inv-col-direita" aria-label="Mochila">
+                        <div id="mochila-abas" role="tablist" aria-label="Categorias da mochila">
+                            <button class="mochila-aba ativa" data-aba="todos" title="Todos os itens" aria-label="Todos os itens"></button>
+                            <button class="mochila-aba" data-aba="itens" title="Itens diversos" aria-label="Itens diversos"></button>
+                            <button class="mochila-aba" data-aba="consumiveis" title="Consumíveis" aria-label="Consumíveis"></button>
+                            <button class="mochila-aba" data-aba="pedras" title="Pedras de upgrade" aria-label="Pedras"></button>
+                            <button id="btn-inv-categorias-extra" type="button" title="Mais categorias" aria-label="Mais categorias"></button>
+                            <div id="inv-menu-categorias" role="menu" hidden>
+                                <button type="button" data-aba-extra="quest">Itens de missão</button>
+                                <button type="button" data-aba-extra="cosmeticos">Itens visuais</button>
+                            </div>
+                        </div>
+                        <div id="mochila-filtros-slot" role="tablist" aria-label="Filtrar equipamentos">
+                            <button class="mochila-filtro-slot ativo" data-slot-filtro="" title="Todas as categorias" aria-label="Todas as categorias"></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="arma" title="Armas" aria-label="Armas"></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="armadura" title="Armaduras" aria-label="Armaduras"></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="anel" title="Anéis" aria-label="Anéis"></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="bota" title="Botas" aria-label="Botas"></button>
+                            <button id="btn-inv-slot-extra" type="button" title="Mais filtros de equipamento" aria-label="Mais filtros de equipamento"></button>
+                            <div id="inv-menu-slots" role="menu" hidden>
+                                <button type="button" data-slot-filtro-extra="capacete">Capacetes</button>
+                                <button type="button" data-slot-filtro-extra="peitoral">Peitorais</button>
+                                <button type="button" data-slot-filtro-extra="capa">Capas</button>
+                                <button type="button" data-slot-filtro-extra="luva">Luvas</button>
+                                <button type="button" data-slot-filtro-extra="colar">Colares</button>
+                                <button type="button" data-slot-filtro-extra="armaSecundaria">Armas secundárias</button>
+                            </div>
+                        </div>
+                        <div id="mochila-filtros">
+                            <label class="mochila-busca-wrap" for="mochila-busca"><input id="mochila-busca" type="search" placeholder="Buscar item..." autocomplete="off" aria-label="Buscar item"></label>
+                            <select id="mochila-filtro-raridade" aria-label="Filtrar por raridade">
+                                <option value="">Todas as raridades</option>
+                                <option value="comum">Comum</option>
+                                <option value="incomum">Incomum</option>
+                                <option value="raro">Raro</option>
+                                <option value="epico">Épico</option>
+                                <option value="lendario">Lendário</option>
+                            </select>
+                            <button id="btn-inv-organizar" type="button" title="Alterar ordenação" aria-label="Alterar ordenação">↕</button>
+                        </div>
+                        <div id="mochila-grade-container"><div id="mochila-grade" aria-label="Itens da mochila"></div></div>
+                        <div id="inv-contagem-itens" aria-live="polite"></div>
+                    </section>
                 </div>
             </div>
         </div>
@@ -821,28 +915,13 @@
         </div>
     </div>
 
-    <script src="mapas-registry.js?v=1"></script>
-    <script src="mapas.js?v=233"></script>
-    <script src="mapa_deserto.js?v=9"></script>
-    <script src="mapa_pantano.js?v=7"></script>
-    <script src="mapa_caverna.js?v=2"></script>
-    <!-- Three.js WebGL Engine — Cidade de Davahl 2.5D -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script src="https://unpkg.com/three@0.128.0/examples/js/utils/BufferGeometryUtils.js"></script>
-    <script src="mapa_cidade.js?v=8"></script>
-    <!-- <script src="mapa_cidade_three.js?v=1"></script> -->
-    <script src="mapa_solari.js?v=6"></script>
-    <script src="mapa_cidade_perdida.js?v=3"></script>
-    <script src="mapa_zona_zero.js?v=1"></script>
-    <script src="mapa_castelo.js?v=1"></script>
-    <script src="mapa_bemvindo.js?v=7"></script>
-    <script src="mapa_ruinas_01.js?v=1"></script>
-    <script src="mapas/mapa_floresta.js?v=1"></script>
-    <script src="mapas/mapa_nebulos.js?v=1"></script>
-    <script src="mapas/mapa_abissal.js?v=1"></script>
-    <script src="mapas/mapa_pantano_sombrio.js?v=2"></script>
-    <script src="instancias.js?v=1"></script>
-    <script src="solari.js?v=6"></script>
+    <script src="three.min.js"></script>
+    <script src="GLTFLoader.js"></script>
+    <script src="renderizador_arvore_3d.js?v=2"></script>
+    <script src="mapas-registry.js?v=6"></script>
+    <script src="mapas/mapa_mundo.js?v=19"></script>
+    <script src="cartografia_universal.js?v=9"></script>
+    <script src="engine_otimizador.js?v=5"></script>
     <script>
         (function () {
             if (typeof window !== 'undefined' && !window._earlyErros) {
@@ -862,10 +941,10 @@
          Precisa vir antes das classes porque elas podem consultar window.DASH. -->
     <script src="dash.js?v=1500"></script>
     <script src="dash-vfx.js?v=1500"></script>
-    <script src="classes/comum.js?v=1002"></script>
+    <script src="classes/comum.js?v=1006"></script>
     <script src="classes/guerreiro.js?v=1502"></script>
     <script src="classes/mago.js?v=1002"></script>
-    <script src="classes/summoner.js?v=1001"></script>
+    <script src="classes/summoner.js?v=1002"></script>
     <script src="classes/arqueiro.js?v=1002"></script>
     <script src="classes/curandeiro.js?v=1002"></script>
     <script src="classes/barbaro.js?v=1002"></script>
@@ -881,93 +960,72 @@
     <script src="efeitos/curandeiro_efeitos.js?v=231"></script>
     <script src="efeitos/barbaro_efeitos.js?v=231"></script>
     <script src="efeitos/guerreiro_efeitos.js?v=236"></script>
-    <script src="efeitos/mago_efeitos.js?v=1551"></script>
+    <script src="efeitos/mago_efeitos.js?v=1553"></script>
     <script src="efeitos/roqueiro_efeitos.js?v=231"></script>
     <script src="efeitos/ladino_efeitos.js?v=1300"></script>
     <script src="efeitos/pikeman_efeitos.js?v=2"></script>
     <script src="efeitos/florim_efeitos.js?v=3"></script>
     <script src="efeitos/kaledron_efeitos.js?v=1"></script>
-    <script src="efeitos.js?v=235"></script>
+    <script src="efeitos.js?v=236"></script>
     <script src="efeitos/vfx_master.js?v=1"></script>
     <script src="efeitos/vfx_guerreiro_escudo.js?v=3"></script>
     <script src="efeitos/vfx_mago_bola.js?v=3"></script>
     <script src="efeitos/vfx_summoner_golem.js?v=4"></script>
+    <script src="efeitos/vfx_summoner_upgrades.js?v=2"></script>
+    <script src="efeitos/vfx_guerreiro_upgrades.js?v=1"></script>
+    <script src="efeitos/vfx_mago_upgrades.js?v=3"></script>
     <script src="efeitos/vfx_arqueiro_salto.js?v=1"></script>
     <script src="efeitos/vfx_curandeiro_cantico.js?v=1"></script>
     <script src="efeitos/vfx_barbaro_vinculo.js?v=1"></script>
     <script src="efeitos/vfx_astral_buraco.js?v=2"></script>
-    <script src="debuffs.js?v=1500"></script>
+    <script src="debuffs.js?v=1502"></script>
     <script src="efeitos/boss_golem.js?v=230"></script>
     <script src="soldado_lanceiro.js?v=1"></script>
-    <script src="monstros.js?v=2009"></script>
-    <script src="inventario.js?v=160"></script>
-    <script src="skill_upgrade_tree.js?v=1"></script>
-    <script src="skills.js?v=150"></script>
-    <script src="skill_tree_ui.js?v=2"></script>
+    <script src="monstros.js?v=2028"></script>
+    <script src="inventario.js?v=170"></script>
+    <script src="skill_upgrade_tree.js?v=3"></script>
+    <script src="skills.js?v=153"></script>
+    <script src="skill_tree_ui.js?v=5"></script>
     <script src="config.js?v=145"></script>
-    <script src="atributos.js?v=3"></script>
-    <script src="spawn-admin.js?v=4"></script>
+    <script src="atributos.js?v=4"></script>
+    <script src="spawn-admin.js?v=12"></script>
     <script src="map-vfx-admin.js?v=2"></script>
-    <script src="mob-editor.js?v=1511"></script>
+    <script src="mob-editor.js?v=1513"></script>
     <script src="mob-vfx.js?v=1"></script>
     <script src="dragdrop.js?v=6"></script>
-    <script src="ferreiro.js?v=1"></script>
+    <script src="ferreiro.js?v=2"></script>
     <script src="colisao-editor.js?v=6"></script>
     <script src="mapa-editor.js?v=4"></script>
-    <script src="audio-manager.js?v=3"></script>
+    <script src="audio-manager.js?v=6"></script>
     <script src="sonoro.js?v=1582"></script>
     <script src="intro.js?v=1"></script>
     <script src="mobile-hud.js?v=1"></script>
     <script src="item-admin.js?v=5"></script>
-    <script src="admin-cheats.js?v=4"></script>
+    <script src="admin-cheats.js?v=5"></script>
     <script src="personagens-historias.js?v=2"></script>
     <script src="personagem-select.js?v=5"></script>
     <script>
-        const GAME_VERSION = 'v1.69.2';
+        const GAME_VERSION = 'v1.73.14';
         window.GAME_VERSION = GAME_VERSION;
-        const WORLD_WIDTH = 126800; // inclui as Florestas dos Sussurros, dos Nebulos, a Floresta Abissal e o Pântano Sombrio
-        const WORLD_HEIGHT = 36000;
+        const WORLD_WIDTH = 190000;
+        const WORLD_HEIGHT = 28500;
         window.WORLD_WIDTH = WORLD_WIDTH;
         window.WORLD_HEIGHT = WORLD_HEIGHT;
-        window.LARGURA_PANTANO_SOMBRIO = 117200;
-        window.FIM_PANTANO_SOMBRIO = 126800;
-        window.ALTO_PANTANO_SOMBRIO = 5400;
-        window.LARGURA_VERDE = 18000;
-        window.ALTO_VERDE = 5400;
-        window.LARGURA_DESERTO = 50000;
-        window.LARGURA_PANTANO = 58000;
-        window.FIM_CAVERNA = 59800;
-        window.LARGURA_CIDADE = 59800;
-        window.FIM_CIDADE = 61174;
-        window.ALTO_CIDADE = 1145;
-        window.LARGURA_SOLARI = 63800;
-        window.FIM_SOLARI = 65040;
-        window.ALTO_SOLARI = 1240;
-        window.LARGURA_CIDADE_PERDIDA = 65040;
-        window.FIM_CIDADE_PERDIDA = 71920;
-        window.ALTO_CIDADE_PERDIDA = 3920;
-        window.LARGURA_TESTE_VISUAL = 72000;
-        window.FIM_TESTE_VISUAL = 73280;
-        window.ALTO_TESTE_VISUAL = 960;
-        window.LARGURA_ZONA_ZERO = 74000;
-        window.FIM_ZONA_ZERO = 82000;
-        window.ALTO_ZONA_ZERO = 9000;
-        window.LARGURA_CASTELO = 82000;
-        window.FIM_CASTELO = 84200;
-        window.ALTO_CASTELO = 1800;
-        window.LARGURA_BEMVINDO = 85000;
-        window.FIM_BEMVINDO = 87400;
-        window.ALTO_BEMVINDO = 1800;
-        // Ponto de spawn da cidade de Davahl (espelho do server: CIDADE_SPAWN_X/Y = 60474,640).
-        // O respawn do jogador SEMPRE devolve para cá.
-        window.SPAWN_CIDADE = { x: 60474, y: 640 };
-        window.currentMap = 'cidade'; // ID do mapa ativo. Limites vêm de MAPAS_REGISTRY.
+        window.LARGURA_MUNDO = 100000;
+        window.FIM_MUNDO = 188000;
+        window.ALTO_MUNDO = 28000;
+        // Ponto de spawn de Gaia (espelho do server: MUNDO_SPAWN_X/Y = 144000, 14018).
+        // O respawn do jogador SEMPRE devolve para cá (Centro exato de Gaia).
+        window.SPAWN_CIDADE = { x: 144000, y: 14018 };
+        window.SPAWN_MUNDO = { x: 144000, y: 14018 };
+        window.currentMap = 'mundo'; // ID do mapa único: Continente de Gaia. Limites vêm de MAPAS_REGISTRY.
         // Pré-jogo: tela de login / seleção de personagem é independente do mundo.
         // Só vira true quando o jogador realmente entra (selecionarClasse).
         window.jogoIniciado = false;
         window.solariAtivo = false; // TRUE dentro da Solari
         window.instanciaAtualId = null; // identidade lógica do espaço instanciado
         window.transicaoMapaAtiva = false;
+        window.carregandoMapaMundo = false;
         window.portalMapaBloqueado = null;
         // Música de fundo (BGM): começa DESLIGADA. Só é liberada de verdade
         // quando o jogador entra no mundo com um personagem (selecionarClasse
@@ -1047,6 +1105,7 @@
         const hudBoss = document.getElementById("hud-boss");
         const bossBarFill = document.getElementById("boss-bar-fill");
         const bossBarHp = document.getElementById("boss-bar-hp");
+        const bossBarNome = document.getElementById("boss-bar-nome");
 const xpBarFill = document.getElementById("xp-bar-fill");
         const hpBarTexto = document.getElementById("hp-bar-texto");
         const mpBarTexto = document.getElementById("mp-bar-texto");
@@ -1314,6 +1373,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         window.ZOOM_CAMERA = ZOOM_CAMERA;
         window.cameraZoomAtual = ZOOM_CAMERA;
         window.zoomAlvo = ZOOM_CAMERA;
+        // Modo de Perspectiva / Profundidade 2.5D (Câmera Curvada com Relevo)
+        window.CAMERA_25D = true;
+        window.CAMERA_TILT_Y = 0.88;
 
         function redimensionarCanvas() { 
             let w = window.innerWidth || 800;
@@ -1357,7 +1419,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             if (e.key === "Enter") fazerLogin();
         });
 
-        window.minhaClasse = 'guerreiro'; let meuLevel = 1; let meuXp = 0; let minhaEstamina = 100;
+        window.minhaClasse = 'guerreiro'; let meuLevel = 1; window.meuLevel = 1; window.meuNivel = 1; let meuXp = 0; let minhaEstamina = 100;
         let autofarmLigado = false; window.danoFlashTimer = 0; let tornadoCooldownAtivo = false; window.tornadoAnimTimer = 0; window.tornadoTimers = {};
         let dashCooldownAtivo = false; let dashTrails = [];
         
@@ -1381,7 +1443,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         const teleportScreen = document.getElementById("teleport-screen");
 
         function abrirTeleporteMapas() {
-            if (typeof window.requerProximidade === 'function' && !window.requerProximidade(60474, 640, 160)) {
+            const portalX = (window.mapaMundo && window.mapaMundo.PORTAL_RETORNO) ? window.mapaMundo.PORTAL_RETORNO.x : 144000;
+            const portalY = (window.mapaMundo && window.mapaMundo.PORTAL_RETORNO) ? window.mapaMundo.PORTAL_RETORNO.y : 14018;
+            if (typeof window.requerProximidade === 'function' && !window.requerProximidade(portalX, portalY, 350)) {
                 if (typeof window.avisoProximidade === 'function') window.avisoProximidade();
                 return;
             }
@@ -1392,8 +1456,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         }
 
         setInterval(function () {
+            const portalX = (window.mapaMundo && window.mapaMundo.PORTAL_RETORNO) ? window.mapaMundo.PORTAL_RETORNO.x : 144000;
+            const portalY = (window.mapaMundo && window.mapaMundo.PORTAL_RETORNO) ? window.mapaMundo.PORTAL_RETORNO.y : 14018;
             if (window.teleporteAberto && window.meuX && window.meuY &&
-                typeof window.requerProximidade === 'function' && !window.requerProximidade(60474, 640, 180)) {
+                typeof window.requerProximidade === 'function' && !window.requerProximidade(portalX, portalY, 450)) {
                 fecharTeleporteMapas();
             }
         }, 700);
@@ -1444,7 +1510,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             window.teleporteAberto = false;
             atualizarDestaqueMapa();
             if (window.ws && window.ws.readyState === WebSocket.OPEN) {
-                window.ws.send(JSON.stringify({ action: 'teleporte_mapa', mapa: 'cidade' }));
+                window.ws.send(JSON.stringify({ action: 'teleporte_mapa', mapa: 'santuario' }));
             }
         }
 
@@ -1454,25 +1520,81 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             confirmarTeleporte();
         }
 
+        let teleporteLoadingToken = 0;
+        let teleporteLoadingWatchdog = null;
+
+        function ocultarLoadingTeleporte() {
+            teleporteLoadingToken++;
+            if (teleporteLoadingWatchdog) clearTimeout(teleporteLoadingWatchdog);
+            teleporteLoadingWatchdog = null;
+            window.carregandoMapaMundo = false;
+            const ov = document.getElementById('overlay-teleporte-fade');
+            if (ov) {
+                ov.style.opacity = '0';
+                setTimeout(function () { ov.style.pointerEvents = 'none'; }, 360);
+            }
+        }
+
         function fadeTeleporte(mapMostrar, novoX, novoY) {
             if (window.AudioManager && typeof window.AudioManager.stopMapSounds === 'function') window.AudioManager.stopMapSounds();
             let ov = document.getElementById('overlay-teleporte-fade');
             if (!ov) {
                 ov = document.createElement('div');
                 ov.id = 'overlay-teleporte-fade';
-                ov.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;background:#0a0e12;z-index:99998;opacity:0;pointer-events:none;transition:opacity .35s ease;';
+                ov.style.cssText = 'position:fixed;left:0;top:0;width:100%;height:100%;background:rgba(4,10,18,.96);z-index:99998;opacity:0;pointer-events:none;transition:opacity .35s ease;';
                 document.body.appendChild(ov);
             }
+            ov.innerHTML = '<div class="mapa-loading-conteudo" role="status" aria-live="polite"><span class="mapa-loading-anel" aria-hidden="true"></span><span>Preparando terreno...</span></div>';
+            ov.style.pointerEvents = 'auto';
             ov.style.opacity = '1';
             window.meuX = novoX;
             window.meuY = novoY;
             window.currentMap = mapMostrar;
+            window.transicaoMapaAtiva = true;
+            window.carregandoMapaMundo = true;
             if (window.AudioManager && typeof window.AudioManager.setMapAmbient === 'function') window.AudioManager.setMapAmbient(mapMostrar);
             window.portalMapaBloqueado = { x: novoX, y: novoY, raio: 90 };
-            setTimeout(function () {
+            const token = ++teleporteLoadingToken;
+            const inicio = performance.now();
+            const tempoMinimo = 500;
+            const limiteMs = 20000;
+            if (teleporteLoadingWatchdog) clearTimeout(teleporteLoadingWatchdog);
+
+            function verificarTerreno() {
+                if (token !== teleporteLoadingToken) return;
+                let progresso = null;
+                if (window.mapaMundo && typeof window.mapaMundo.progressoAreaTeleporte === 'function') {
+                    progresso = window.mapaMundo.progressoAreaTeleporte(novoX, novoY);
+                }
+                const pronto = !progresso || progresso.prontos >= progresso.total;
+                const decorrido = performance.now() - inicio;
+                if ((pronto && decorrido >= tempoMinimo) || decorrido >= limiteMs) {
+                    if (!pronto) console.error('[mapa] Tempo limite aguardando geração do terreno no destino.');
+                    window.carregandoMapaMundo = false;
+                    window.transicaoMapaAtiva = false;
+                    if (teleporteLoadingWatchdog) clearTimeout(teleporteLoadingWatchdog);
+                    teleporteLoadingWatchdog = null;
+                    ov.style.opacity = '0';
+                    setTimeout(function () {
+                        if (token === teleporteLoadingToken) ov.style.pointerEvents = 'none';
+                    }, 360);
+                    return;
+                }
+                requestAnimationFrame(verificarTerreno);
+            }
+
+            requestAnimationFrame(verificarTerreno);
+            teleporteLoadingWatchdog = setTimeout(function () {
+                if (token !== teleporteLoadingToken) return;
+                teleporteLoadingWatchdog = null;
+                console.error('[mapa] Tempo limite aguardando geração do terreno no destino.');
+                window.carregandoMapaMundo = false;
                 window.transicaoMapaAtiva = false;
                 ov.style.opacity = '0';
-            }, 360);
+                setTimeout(function () {
+                    if (token === teleporteLoadingToken) ov.style.pointerEvents = 'none';
+                }, 360);
+            }, limiteMs + 1000);
         }
 
         function alternarLocal() {
@@ -1618,8 +1740,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             if (!d.ativo) return;
             let cfg = SKILLS_DRAG[d.skill];
             let camX = window.camX || 0, camY = window.camY || 0;
+            const tilt = (window.CAMERA_25D ? (window.CAMERA_TILT_Y || 0.88) : 1.0);
             let mx = cx / (window.cameraZoomAtual || ZOOM_CAMERA) + camX;
-            let my = cy / (window.cameraZoomAtual || ZOOM_CAMERA) + camY;
+            let my = cy / ((window.cameraZoomAtual || ZOOM_CAMERA) * tilt) + camY;
             let pX = window.meuX + 12, pY = window.meuY + 16;
             d.xRaw = mx; d.yRaw = my;
             let dx = mx - pX, dy = my - pY;
@@ -1650,7 +1773,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         // ultrapassar o mapa atual — antes caia até x=71880 e o jogador saía da
         // Arena para dentro da Cidade Perdida (fundo verde #1c2a1d).
         function mapaConfigCliente(id) {
-            return (window.MAPAS_REGISTRY && window.MAPAS_REGISTRY[id]) || null;
+            if (window.MAPAS_REGISTRY && window.MAPAS_REGISTRY[id]) return window.MAPAS_REGISTRY[id];
+            if (window.MAPAS_REGISTRY && window.MAPAS_REGISTRY['mundo']) return window.MAPAS_REGISTRY['mundo'];
+            return { id: 'mundo', x0: 100000, y0: 0, w: 88000, h: 28000, nome: 'Continente de Gaia Expandido', icone: '🌍' };
         }
 
         function mapaPorCoordenadaCliente(x) {
@@ -1659,24 +1784,12 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 const m = lista[id];
                 if (x >= m.x0 && x < m.x0 + m.w) return id;
             }
-            return null;
+            return 'mundo';
         }
 
         function limitesMapaClienteAtivo() {
-            const m = window.currentMap;
-            const cfgId = (m === 'solari') ? 'solari' : m;
-            const cfg = mapaConfigCliente(cfgId);
-            if (cfg) return { minX: cfg.x0 + 20, maxX: cfg.x0 + cfg.w - 40, minY: cfg.y0 + 20, maxY: cfg.y0 + cfg.h - 40 };
-            if (m === 'castelo') return { minX: (window.LARGURA_CASTELO || 82000) + 20, maxX: (window.FIM_CASTELO || 84200) - 40, minY: 20, maxY: 1760 };
-            if (m === 'zonazero') return { minX: (window.LARGURA_ZONA_ZERO || 74000) + 20, maxX: (window.FIM_ZONA_ZERO || 82000) - 40, minY: 20, maxY: 8960 };
-            if (m === 'testevisual') return { minX: (window.LARGURA_TESTE_VISUAL || 72000) + 20, maxX: (window.FIM_TESTE_VISUAL || 73280) - 40, minY: 20, maxY: 920 };
-            if (m === 'solari') return { minX: window.LARGURA_SOLARI + 20, maxX: window.FIM_SOLARI - 40, minY: 20, maxY: 1200 };
-            if (m === 'cidadeperdida') return { minX: window.LARGURA_CIDADE_PERDIDA + 20, maxX: window.FIM_CIDADE_PERDIDA - 40, minY: 20, maxY: 3880 };
-            if (m === 'cidade') return { minX: window.LARGURA_CIDADE + 20, maxX: window.FIM_CIDADE - 40, minY: 20, maxY: 1105 };
-            if (m === 'caverna') return { minX: window.LARGURA_PANTANO + 20, maxX: window.FIM_CAVERNA - 40, minY: 20, maxY: 1760 };
-            if (m === 'pantano') return { minX: window.LARGURA_DESERTO + 20, maxX: window.LARGURA_PANTANO - 40, minY: 20, maxY: 8960 };
-            if (m === 'desert') return { minX: window.LARGURA_VERDE + 20, maxX: window.LARGURA_DESERTO - 40, minY: 20, maxY: 35960 };
-            return { minX: 20, maxX: window.LARGURA_VERDE - 40, minY: 20, maxY: (window.ALTO_VERDE || 5400) - 40 }; // green
+            const cfg = mapaConfigCliente(window.currentMap || 'mundo');
+            return { minX: cfg.x0 + 20, maxX: cfg.x0 + cfg.w - 40, minY: cfg.y0 + 20, maxY: cfg.y0 + cfg.h - 40 };
         }
 
         function clamparAlcanceSkill(skill, tx, ty) {
@@ -2401,7 +2514,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         let proximoAutoAtaqueEm = 0;    // performance.now() do próximo ataque permitido
         let ultimoAutoAtaqueEm = 0;     // feedback visual de ataque executado
         let historicoDano = []; let danoTotalAcumulado = 0;
-        window.meuId = null; window.meuX = 60474, window.meuY = 640; window.meuHp = 100, window.meuMaxHp = 100; window.estaMorto = false;
+        window.meuId = null; window.meuX = 144000, window.meuY = 14018; window.meuHp = 100, window.meuMaxHp = 100; window.estaMorto = false;
         window.meuOuro = 0; window.pedraBrilhoFx = [];
         window.meuEscudoAbsoluto = 0; window.meuEscudoAbsolutoMax = 0;
         let _tickBateria = 0; window.ultimoWorldUpdateAt = 0;
@@ -3374,10 +3487,16 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 _enviarErrosPendentes();
                 statusText.innerText = "Status: Conectado!";
                 statusText.style.color = "lightgreen";
+                setTimeout(() => {
+                    if (statusText && statusText.innerText === "Status: Conectado!") {
+                        statusText.classList.add("conectado-oculto");
+                    }
+                }, 2000);
                 ws.send(JSON.stringify({ action: 'login', userId: userIdDigitado }));
             };
 
             ws.onerror = () => {
+                statusText.classList.remove("conectado-oculto");
                 statusText.innerText = "Status: Servidor offline";
                 statusText.style.color = "red";
             };
@@ -3430,6 +3549,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     if (dados.type === 'trade_update') {
                         atualizarTradeUI(dados);
                     }
+                    if (dados.type === 'trade_erro') {
+                        if (statusText) statusText.innerText = "⚠️ " + (dados.mensagem || "A troca não foi concluída.");
+                    }
                     if (dados.type === 'trade_close') {
                         document.getElementById("trade-modal").style.display = "none";
                         window.tradeData = null;
@@ -3462,9 +3584,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             // CORREÇÃO: seta o mapa certo na 1ª frame (ex.: personagem salvo na Arena
                             // ou em qualquer bioma que não seja a cidade). Sem isso, a 1ª frame renderiza
                             // a cidade e o clamp puxa o char para o canto (X = FIM_CIDADE - 42).
-                            window.currentMap = mapaPorCoordenadaCliente(window.meuX) || 'cidade';
+                            window.currentMap = mapaPorCoordenadaCliente(window.meuX) || 'mundo';
                         }
-                        if (dados.level !== undefined) meuLevel = dados.level;
+                        if (dados.level !== undefined) { meuLevel = dados.level; window.meuLevel = meuLevel; window.meuNivel = meuLevel; }
+                        if (dados.classe) { window.minhaClasse = dados.classe; }
                         if (dados.xp !== undefined) meuXp = dados.xp;
                         if (dados.atributos) window.meusAtributos = dados.atributos;
                         if (dados.pontos !== undefined) window.pontosDisponiveis = dados.pontos;
@@ -3544,6 +3667,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     }
 
                     if (dados.type === 'teleporte_recusado') {
+                        ocultarLoadingTeleporte();
                         window.transicaoMapaAtiva = false;
                         window.teleporteDestinoSelecionado = null;
                         if (typeof fecharTeleporteMapas === 'function') fecharTeleporteMapas();
@@ -3568,12 +3692,12 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             window.todosJogadores[window.meuId].efeitos = [];
                             window.todosJogadores[window.meuId].hp = window.meuHp;
                         }
-                        window.currentMap = 'cidade';
+                        window.currentMap = (dados.mapa && dados.mapa !== 'cidade') ? dados.mapa : 'mundo';
                         window.transicaoMapaAtiva = false;
                         window.portalMapaBloqueado = { x: window.meuX + 12, y: window.meuY + 16, raio: 90 };
                         const fadeRespawn = document.getElementById('overlay-teleporte-fade');
                         if (fadeRespawn) fadeRespawn.style.opacity = '0';
-                        if (window.AudioManager && typeof window.AudioManager.setMapAmbient === 'function') window.AudioManager.setMapAmbient('cidade');
+                        if (window.AudioManager && typeof window.AudioManager.setMapAmbient === 'function') window.AudioManager.setMapAmbient('mundo');
                     }
 
                     if (dados.type === 'solari_painel' || dados.type === 'solari_estado' || dados.type === 'solari_convite' || dados.type === 'solari_contagem' || dados.type === 'solari_banner' || dados.type === 'solari_round' || dados.type === 'solari_leilao' || dados.type === 'solari_aviso') {
@@ -3583,6 +3707,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     if (dados.type === 'spawn_flags') {
                         window.listaBandeiras = dados.bandeiras || [];
                         if (typeof atualizarPainelSpawnAdmin === "function") atualizarPainelSpawnAdmin();
+                    }
+                    if (dados.type === 'admin_spawn_result' && typeof window.receberResultadoSpawnAdmin === 'function') {
+                        window.receberResultadoSpawnAdmin(dados);
                     }
 
                     if (dados.type === 'map_vfx') {
@@ -3624,6 +3751,8 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
                     if (dados.type === 'xp_ganho') {
                         meuLevel = dados.level;
+                        window.meuLevel = meuLevel;
+                        window.meuNivel = meuLevel;
                         meuXp = dados.xp;
                         if (dados.pontos !== undefined) window.pontosDisponiveis = dados.pontos;
                         if (dados.pontosHabilidade !== undefined) window.pontosHabilidade = dados.pontosHabilidade;
@@ -3689,12 +3818,22 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
                     if (dados.type === 'skill_upgrades_sync') {
                         window.skillUpgrades = dados.skillUpgrades || {};
+                        if (dados.characterLevel) {
+                            meuLevel = dados.characterLevel;
+                            window.meuLevel = meuLevel;
+                            window.meuNivel = meuLevel;
+                        }
                         if (typeof window.atualizarSkillTreeUi === 'function') window.atualizarSkillTreeUi();
                         if (typeof renderizarSkills === 'function') renderizarSkills();
                     }
 
                     if (dados.type === 'skill_upgrade_tree_sucesso') {
                         window.skillUpgrades = dados.skillUpgrades || (window.skillUpgrades || {});
+                        if (dados.characterLevel) {
+                            meuLevel = dados.characterLevel;
+                            window.meuLevel = meuLevel;
+                            window.meuNivel = meuLevel;
+                        }
                         if (typeof window.atualizarSkillTreeUi === 'function') window.atualizarSkillTreeUi();
                         if (typeof renderizarSkills === 'function') renderizarSkills();
                         if (statusText) statusText.innerText = "✨ Upgrade adquirido: " + (dados.nome || "Novo Poder") + "!";
@@ -3712,6 +3851,11 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
                     if (dados.type === 'skill_upgrades_tree_reset_sucesso') {
                         window.skillUpgrades = dados.skillUpgrades || {};
+                        if (dados.characterLevel) {
+                            meuLevel = dados.characterLevel;
+                            window.meuLevel = meuLevel;
+                            window.meuNivel = meuLevel;
+                        }
                         if (typeof window.atualizarSkillTreeUi === 'function') window.atualizarSkillTreeUi();
                         if (typeof renderizarSkills === 'function') renderizarSkills();
                         if (statusText) statusText.innerText = "↺ Árvore de Upgrades resetada! Pontos devolvidos.";
@@ -3826,6 +3970,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     if (dados.type === 'monstros_config') {
                         window.mobEditorConf = dados.conf || {};
                         window.mobEditorDropTipos = dados.dropTipos || [];
+                        window.mobTagCatalog = dados.tags || {};
                         if (typeof window.refrescarEditorMob === 'function') window.refrescarEditorMob();
                     }
                     function atualizarCustosMana() {
@@ -3886,27 +4031,63 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         }
                     }
 
+                    window.partyMobileAberto = !!window.partyMobileAberto;
+                    window.alternarPartyMobile = function(e) {
+                        if (e) {
+                            if (typeof e.stopPropagation === 'function') e.stopPropagation();
+                            if (typeof e.preventDefault === 'function') e.preventDefault();
+                        }
+                        window.partyMobileAberto = !window.partyMobileAberto;
+                        let content = document.getElementById("hud-party-content");
+                        let btn = document.getElementById("hud-party-toggle-btn");
+                        if (content) {
+                            if (window.partyMobileAberto) content.classList.add("expandido");
+                            else content.classList.remove("expandido");
+                        }
+                        if (btn) {
+                            if (window.partyMobileAberto) btn.classList.add("ativo");
+                            else btn.classList.remove("ativo");
+                        }
+                    };
+
+                    document.addEventListener('pointerdown', function(e) {
+                        if (window.partyMobileAberto) {
+                            let hud = document.getElementById("hud-party");
+                            if (hud && !hud.contains(e.target)) {
+                                window.partyMobileAberto = false;
+                                let content = document.getElementById("hud-party-content");
+                                let btn = document.getElementById("hud-party-toggle-btn");
+                                if (content) content.classList.remove("expandido");
+                                if (btn) btn.classList.remove("ativo");
+                            }
+                        }
+                    });
+
                     function atualizarPartyHUD() {
                         let hud = document.getElementById("hud-party");
                         if (!hud) return;
                         if (!window.todosJogadores || !window.meuId || !window.todosJogadores[window.meuId]) {
                             hud.innerHTML = "";
+                            window.partyMobileAberto = false;
                             return;
                         }
                         let me = window.todosJogadores[window.meuId];
                         let myPartyId = me.partyId;
                         if (!myPartyId) {
                             hud.innerHTML = "";
+                            window.partyMobileAberto = false;
                             return;
                         }
-                        let html = "";
+                        let membrosHtml = "";
+                        let countMembros = 0;
                         for (let pid in window.todosJogadores) {
                             let p = window.todosJogadores[pid];
                             if (p.partyId === myPartyId) {
+                                countMembros++;
                                 let hpPct = Math.max(0, Math.min(100, (p.hp / (p.maxHp || 100)) * 100));
                                 let mpPct = Math.max(0, Math.min(100, ((p.mana || 0) / (p.maxMp || 100)) * 100));
                                 let ehEu = (pid === window.meuId);
-                                html += `<div class="party-member">
+                                membrosHtml += `<div class="party-member">
                                     <div class="party-member-name">${p.nome} ${ehEu ? "(Você)" : ""} Lv.${p.level || 1}</div>
                                     <div class="party-bar-bg"><div class="party-hp-fill" style="width:${hpPct}%"></div></div>
                                     <div class="party-bar-bg"><div class="party-mp-fill" style="width:${mpPct}%"></div></div>
@@ -3914,8 +4095,24 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                 </div>`;
                             }
                         }
-                        hud.innerHTML = html;
-                        
+                        let expandidoClass = window.partyMobileAberto ? "expandido" : "";
+                        let btnAtivoClass = window.partyMobileAberto ? "ativo" : "";
+                        hud.innerHTML = `
+                            <button id="hud-party-toggle-btn" class="hud-party-toggle-btn ${btnAtivoClass}" onclick="window.alternarPartyMobile(event)" title="Grupo (${countMembros})">
+                                <span class="party-toggle-icon">👥</span>
+                                <span class="party-toggle-count">${countMembros}</span>
+                            </button>
+                            <div id="hud-party-content" class="hud-party-content ${expandidoClass}">
+                                <div class="hud-party-header-mobile">
+                                    <span>🛡️ GRUPO (${countMembros})</span>
+                                    <button class="btn-party-close-mobile" onclick="window.alternarPartyMobile(event)" title="Fechar">✖</button>
+                                </div>
+                                <div class="hud-party-members-list">
+                                    ${membrosHtml}
+                                </div>
+                            </div>
+                        `;
+
                         // Atualizar HUD de Buffs Pessoais
                         let hudBuffs = document.getElementById("hud-buffs");
                         let hudBuffsBar = document.getElementById("hud-buffs-bar");
@@ -4032,7 +4229,120 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             }
                         });
                         window.todosJogadores = dados.players;
-                        window.listaSlimes = dados.slimes;
+                        var slimesAnteriores = Object.create(null);
+                        (window.listaSlimes || []).forEach(function (mob) {
+                            if (mob && mob.id != null) slimesAnteriores[mob.id] = mob;
+                        });
+                        window._slimeEliteMovementLoops = window._slimeEliteMovementLoops || Object.create(null);
+                        var activeEliteLoops = Object.create(null);
+                        window._selvaMovementLoops = window._selvaMovementLoops || Object.create(null);
+                        var activeSelvaLoops = Object.create(null);
+                        var sonsMonstrosSelva = {
+                            cogumelo_proibido: { ataque: 'jungle_mushroom_attack', skill: 'jungle_mushroom_skill' },
+                            anaconda_selvagem: { ataque: 'jungle_snake_attack' },
+                            jararaca: { ataque: 'jungle_snake_attack' },
+                            louvadermi: { ataque: 'jungle_mantis_attack', skill: 'jungle_mantis_skill' }
+                        };
+                        (dados.slimes || []).forEach(function (mob) {
+                            var anterior = mob && slimesAnteriores[mob.id];
+                            var sonsMob = mob && sonsMonstrosSelva[mob.tipo];
+                            if (sonsMob && anterior && mob.bioma === 'Selva Proibida') {
+                                var dxSelva = mob.x - anterior.x;
+                                var dySelva = mob.y - anterior.y;
+                                var movendoSelva = mob.hp > 0 &&
+                                    (mob.aiEstado === 'walk' || mob.aiEstado === 'run' || mob.aiEstado === 'combat' || mob.aiEstado === 'kite' || mob.aiEstado === 'dodge') &&
+                                    dxSelva * dxSelva + dySelva * dySelva > 0.25;
+                                var loopSelva = 'selva_mob_' + mob.id;
+                                if (movendoSelva) {
+                                    activeSelvaLoops[loopSelva] = true;
+                                    if (!window._selvaMovementLoops[loopSelva] &&
+                                        window.AudioManager && typeof window.AudioManager.startSpatialLoop === 'function') {
+                                        window.AudioManager.startSpatialLoop('jungle_monster_move', {
+                                            key: loopSelva, x: mob.x, y: mob.y, mapa: window.currentMap
+                                        });
+                                        window._selvaMovementLoops[loopSelva] = true;
+                                    }
+                                    if (window._selvaMovementLoops[loopSelva] && window.AudioManager &&
+                                        typeof window.AudioManager.updateSpatialLoop === 'function') {
+                                        window.AudioManager.updateSpatialLoop(loopSelva, {
+                                            x: mob.x, y: mob.y, mapa: window.currentMap
+                                        });
+                                    }
+                                }
+                                if (mob.hp < anterior.hp && window.AudioManager) {
+                                    window.AudioManager.playSpatialSound('jungle_monster_hit', {
+                                        x: mob.x, y: mob.y, mapa: window.currentMap
+                                    });
+                                }
+                                var habilidadeNova = mob.aiSkillAt > (anterior.aiSkillAt || 0);
+                                if (habilidadeNova && sonsMob.skill && window.AudioManager) {
+                                    window.AudioManager.playSpatialSound(sonsMob.skill, {
+                                        x: mob.x, y: mob.y, mapa: window.currentMap
+                                    });
+                                } else if (mob.aiAtacandoAte > (anterior.aiAtacandoAte || 0) && window.AudioManager) {
+                                    window.AudioManager.playSpatialSound(sonsMob.ataque, {
+                                        x: mob.x, y: mob.y, mapa: window.currentMap
+                                    });
+                                }
+                            }
+                            var elite = mob && (mob.elite || (Array.isArray(mob.tags) && mob.tags.indexOf('elite') !== -1));
+                            if (!elite || !anterior) return;
+                            if (mob.hp < anterior.hp) {
+                                window._somEliteSlimeCooldown = window._somEliteSlimeCooldown || Object.create(null);
+                                var agoraSom = Date.now();
+                                if ((window._somEliteSlimeCooldown[mob.id] || 0) <= agoraSom) {
+                                    window._somEliteSlimeCooldown[mob.id] = agoraSom + 500;
+                                    if (window.AudioManager && typeof window.AudioManager.playSpatialSound === 'function') {
+                                        window.AudioManager.playSpatialSound('slime_elite_hit', {
+                                            x: mob.x,
+                                            y: mob.y,
+                                            mapa: window.currentMap
+                                        });
+                                    }
+                                }
+                            }
+                            var dxElite = mob.x - anterior.x;
+                            var dyElite = mob.y - anterior.y;
+                            var estadoMovimento = mob.aiEstado === 'walk' || mob.aiEstado === 'run' ||
+                                mob.aiEstado === 'combat' || mob.aiEstado === 'kite' || mob.aiEstado === 'dodge';
+                            if (mob.hp > 0 && estadoMovimento && dxElite * dxElite + dyElite * dyElite > 0.25) {
+                                var loopKey = 'slime_elite_move_' + mob.id;
+                                activeEliteLoops[loopKey] = true;
+                                if (!window._slimeEliteMovementLoops[loopKey] &&
+                                    window.AudioManager && typeof window.AudioManager.startSpatialLoop === 'function') {
+                                    window.AudioManager.startSpatialLoop('slime_elite_move', {
+                                        key: loopKey,
+                                        x: mob.x,
+                                        y: mob.y,
+                                        mapa: window.currentMap
+                                    });
+                                    window._slimeEliteMovementLoops[loopKey] = true;
+                                }
+                                if (window._slimeEliteMovementLoops[loopKey] &&
+                                    window.AudioManager && typeof window.AudioManager.updateSpatialLoop === 'function') {
+                                    window.AudioManager.updateSpatialLoop(loopKey, {
+                                        x: mob.x,
+                                        y: mob.y,
+                                        mapa: window.currentMap
+                                    });
+                                }
+                            }
+                        });
+                        Object.keys(window._selvaMovementLoops).forEach(function (loopKey) {
+                            if (activeSelvaLoops[loopKey]) return;
+                            if (window.AudioManager && typeof window.AudioManager.stopSpatialLoop === 'function') {
+                                window.AudioManager.stopSpatialLoop(loopKey);
+                            }
+                            delete window._selvaMovementLoops[loopKey];
+                        });
+                        Object.keys(window._slimeEliteMovementLoops).forEach(function (loopKey) {
+                            if (activeEliteLoops[loopKey]) return;
+                            if (window.AudioManager && typeof window.AudioManager.stopSpatialLoop === 'function') {
+                                window.AudioManager.stopSpatialLoop(loopKey);
+                            }
+                            delete window._slimeEliteMovementLoops[loopKey];
+                        });
+                        window.listaSlimes = dados.slimes || [];
                         listaProjeteis = dados.projeteis || [];
                         listaPlayerProjeteis = dados.playerProjeteis || [];
                         if (typeof atualizarPartyHUD === 'function') atualizarPartyHUD();
@@ -4075,19 +4385,33 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
                         let bossAtivoHud = null;
                         let melhorDistHud = 520;
+                        let eliteNaBarra = false;
                         listaBosses.forEach(bx => {
                             if (bx.hp > 0) {
                                 let d = Math.hypot(bx.x - (window.meuX + 12), bx.y - (window.meuY + 16));
-                                if (d < melhorDistHud) { melhorDistHud = d; bossAtivoHud = bx; }
+                                if (d < melhorDistHud) { melhorDistHud = d; bossAtivoHud = bx; eliteNaBarra = false; }
+                            }
+                        });
+                        (window.listaSlimes || []).forEach(mob => {
+                            const tags = Array.isArray(mob.tags) ? mob.tags : [];
+                            if (mob.hp <= 0 || (!mob.elite && tags.indexOf('elite') === -1 && tags.indexOf('boss') === -1)) return;
+                            let d = Math.hypot(mob.x - (window.meuX + 12), mob.y - (window.meuY + 16));
+                            if (d < melhorDistHud) {
+                                melhorDistHud = d;
+                                bossAtivoHud = mob;
+                                eliteNaBarra = tags.indexOf('elite') !== -1 || !!mob.elite;
                             }
                         });
                         if (bossAtivoHud) {
                             hudBoss.style.display = "block";
+                            hudBoss.classList.toggle("hud-elite", eliteNaBarra);
+                            bossBarNome.innerText = (eliteNaBarra ? "👑 ELITE · " : "") + (bossAtivoHud.nome || "BOSS");
                             let ratioBoss = Math.max(0, bossAtivoHud.hp / bossAtivoHud.maxHp);
                             bossBarFill.style.width = (ratioBoss * 100) + "%";
                             bossBarHp.innerText = Math.ceil(bossAtivoHud.hp) + " / " + bossAtivoHud.maxHp;
                         } else {
                             hudBoss.style.display = "none";
+                            hudBoss.classList.remove("hud-elite");
                         }
 
                         if (window.meuId && window.todosJogadores[window.meuId]) {
@@ -4106,7 +4430,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                 }
                                 window._tinhaStunLocal = temStunLocal;
 
-                                let temLentLocal = window.meusEfeitos.some(function (e) { return e && (e.id === 'lentidao' || e.id === 'slow') && e.tempo > 0; });
+                                let temLentLocal = window.meusEfeitos.some(function (e) { return e && (e.id === 'lentidao' || e.id === 'slow' || e.id === 'deserto_lentidao') && e.tempo > 0; });
                                 if (temLentLocal && !window._tinhaLentLocal) {
                                     if (window.tocarSonoro) window.tocarSonoro('debuff_lentidao');
                                 }
@@ -4213,6 +4537,21 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         if (dados.maxHp) window.meuMaxHp = dados.maxHp;
                         if (window.atualizarHudHp) window.atualizarHudHp();
                     }
+                    if (dados.type === 'dano_ambiente') {
+                        if (window.floatingTexts) {
+                            const cor = dados.tipo === 'fogo' ? '#ff4d4d' : (dados.tipo === 'veneno' ? '#2ecc71' : '#f39c12');
+                            window.floatingTexts.push({
+                                x: window.meuX + 12 + (Math.random() * 16 - 8),
+                                y: window.meuY - 28,
+                                text: dados.texto || ('-' + dados.dano),
+                                color: cor,
+                                alpha: 1.0
+                            });
+                        }
+                        if (typeof window.adicionarEfeitoCameraShake === 'function' && dados.dano >= 6) {
+                            window.adicionarEfeitoCameraShake(2, 120);
+                        }
+                    }
                     if (dados.type === 'drop_raro') {
                         if (dados.especial === 'pedra') {
                             // v1.34: PEDRA DE UPGRADE — brilho + som únicos ao dropar
@@ -4256,7 +4595,18 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                 classe: i.classe || null, armaChave: i.armaChave || null,
                                 uid: i.uid || null, upgrade: i.upgrade || 0,
                                 upgradeExtras: i.upgradeExtras || null, locked: !!i.locked,
-                                pedra: i.pedra || null, stackavel: i.stackavel !== false
+                                pedra: i.pedra || null, stackavel: i.stackavel !== false,
+                                schemaVersion: i.schemaVersion || null,
+                                itemInstanceId: i.itemInstanceId || null,
+                                itemDefinitionId: i.itemDefinitionId || null,
+                                itemLevel: i.itemLevel || null,
+                                requiredLevel: i.requiredLevel || null,
+                                itemPower: i.itemPower || null,
+                                attack: i.attack || 0, defense: i.defense || 0,
+                                quality: i.quality || null, isPerfect: !!i.isPerfect,
+                                rolls: Array.isArray(i.rolls) ? i.rolls : null,
+                                durability: i.durability == null ? null : i.durability,
+                                customVisual: i.customVisual || null
                             };
                         });
                         if (dados.maxHp) window.meuMaxHp = dados.maxHp;
@@ -4271,11 +4621,16 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         if (typeof renderizarInventario === "function") renderizarInventario();
                         if (typeof renderizarMochila === "function") renderizarMochila();
                         if (typeof renderizarAtributos === "function") renderizarAtributos();
+                        if (typeof window.reconciliarSelecaoInventario === "function") window.reconciliarSelecaoInventario();
                     }
                     if (dados.type === 'equipar_falhou' && dados.motivo) {
-                        if (invInfo) invInfo.innerText = "⚠️ " + dados.motivo;
+                        if (typeof mostrarMensagemInv === "function") mostrarMensagemInv("⚠️ " + dados.motivo, "#ffbf69");
                         if (statusText) statusText.innerText = "⚠️ " + dados.motivo;
                         if (window.floatingTexts) window.floatingTexts.push({ x: (window.meuX || 0) + 12, y: (window.meuY || 0) - 30, text: "⚠️ " + dados.motivo, color: "#f39c12", alpha: 1.0 });
+                    }
+                    if (dados.type === 'inventario_erro' && dados.motivo) {
+                        if (typeof mostrarMensagemInv === "function") mostrarMensagemInv("⚠️ " + dados.motivo, "#ff7676");
+                        if (statusText) statusText.innerText = "⚠️ " + dados.motivo;
                     }
                     if (dados.type === 'action_magia_basica' && window.todosJogadores[dados.id] && dados.id !== window.meuId) {
                         let __pjR = window.todosJogadores[dados.id];
@@ -4320,6 +4675,58 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         if (typeof window.criarAnimacaoRugidoOgro === 'function') window.criarAnimacaoRugidoOgro(dados.x, dados.y);
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 45, text: "🦁 RUGIDO!", color: "#9b59b6", alpha: 1.0 });
                     }
+                    // ===== SUMMONER UPGRADE VFX EVENTS =====
+                    if (dados.type === 'action_summoner_fenda' && typeof window.criarVfxSummonerFenda === 'function') {
+                        window.criarVfxSummonerFenda(dados.x, dados.y, dados.raio, dados.duracao);
+                    }
+                    if (dados.type === 'action_ogro_sismico_segundo' && typeof window.criarVfxSummonerImpactoDuplo === 'function') {
+                        window.criarVfxSummonerImpactoDuplo(dados.x, dados.y, dados.raio);
+                    }
+                    if (dados.type === 'action_summoner_pulso_magnetico' && typeof window.criarVfxSummonerPulsoMagnetico === 'function') {
+                        window.criarVfxSummonerPulsoMagnetico(dados.x, dados.y, dados.raio);
+                    }
+                    if (dados.type === 'action_summoner_terremoto_3way' && typeof window.criarVfxSummonerTerremoto3Way === 'function') {
+                        window.criarVfxSummonerTerremoto3Way(dados.x, dados.y);
+                    }
+                    if (dados.type === 'action_summoner_cratera' && typeof window.criarVfxSummonerCratera === 'function') {
+                        window.criarVfxSummonerCratera(dados.x, dados.y, dados.raio, dados.duracao);
+                    }
+                    if (dados.type === 'action_summoner_marca_presa' && typeof window.criarVfxSummonerMarcaPresa === 'function') {
+                        window.criarVfxSummonerMarcaPresa(dados.alvoId, dados.alvoTipo, dados.x, dados.y, dados.duracao, dados.golemX, dados.golemY);
+                    }
+                    if (dados.type === 'action_summoner_onda_choque' && typeof window.criarVfxSummonerOndaChoque === 'function') {
+                        window.criarVfxSummonerOndaChoque(dados.x, dados.y, dados.raio);
+                    }
+                    if (dados.type === 'action_summoner_escudo_invocadora' && typeof window.criarVfxSummonerEscudoInvocadora === 'function') {
+                        window.criarVfxSummonerEscudoInvocadora(dados.x, dados.y, dados.duracao);
+                    }
+                    if (dados.type === 'action_summoner_garras_terra' && typeof window.criarVfxSummonerGarrasTerra === 'function') {
+                        window.criarVfxSummonerGarrasTerra(dados.x, dados.y, dados.duracao);
+                    }
+                    if (dados.type === 'action_summoner_meteoro_sismico' && typeof window.criarVfxSummonerMeteoroSismico === 'function') {
+                        window.criarVfxSummonerMeteoroSismico(dados.x, dados.y);
+                    }
+                    if (dados.type === 'action_summoner_colapso_final' && typeof window.criarVfxSummonerColapsoFinal === 'function') {
+                        window.criarVfxSummonerColapsoFinal(dados.x, dados.y, dados.raio);
+                    }
+                    if (dados.type === 'action_summoner_ultimo_bastiao' && typeof window.criarVfxSummonerUltimoBastiao === 'function') {
+                        window.criarVfxSummonerUltimoBastiao(dados.x, dados.y, dados.duracao);
+                    }
+                    if (dados.type === 'action_summoner_prisao_placas' && typeof window.criarVfxSummonerPrisaoPlacas === 'function') {
+                        window.criarVfxSummonerPrisaoPlacas(dados.x, dados.y, dados.raio, dados.duracao);
+                    }
+                    if (dados.type === 'action_summoner_martelo_colosso_ready' && typeof window.criarVfxSummonerMarteloColossoReady === 'function') {
+                        window.criarVfxSummonerMarteloColossoReady(dados.pid, dados.x, dados.y);
+                    }
+                    if (dados.type === 'action_summoner_martelo_colosso_hit' && typeof window.criarVfxSummonerMarteloColossoHit === 'function') {
+                        window.criarVfxSummonerMarteloColossoHit(dados.x, dados.y, dados.dano, dados.pid);
+                    }
+                    if (dados.type === 'action_summoner_colapso_territorial' && typeof window.criarVfxSummonerColapsoTerritorial === 'function') {
+                        window.criarVfxSummonerColapsoTerritorial(dados.x, dados.y, dados.raio, dados.duracao);
+                    }
+                    if (dados.type === 'action_summoner_colapso_territorial_implosao' && typeof window.criarVfxSummonerColapsoTerritorialImplosao === 'function') {
+                        window.criarVfxSummonerColapsoTerritorialImplosao(dados.x, dados.y, dados.raio);
+                    }
                     if (dados.type === 'action_mago_cast_start') {
                         window.magoCasts = window.magoCasts || {};
                         if (!window.magoCasts[dados.id]) {
@@ -4329,13 +4736,24 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     if (dados.type === 'action_mago_cast_end') {
                         if (window.magoCasts) delete window.magoCasts[dados.id];
                     }
+                    if (dados.type === 'action_mago_canalizacao') {
+                        if (dados.id === window.meuId) {
+                            window.canalizandoMeteoro = true;
+                            setTimeout(() => { window.canalizandoMeteoro = false; }, dados.durMs || 3000);
+                        }
+                    }
+                    if (dados.type === 'action_mago_escudo_sync') {
+                        if (dados.id === window.meuId) {
+                            window.escudoMagoValor = dados.shieldVal;
+                        }
+                    }
                     if (dados.type === 'action_meteoro') {
                         if (window.magoCasts) delete window.magoCasts[dados.id];
                         if (typeof window.criarAnimacaoMeteoro === 'function') window.criarAnimacaoMeteoro(dados.targetX, dados.targetY);
                     }
                     if (dados.type === 'action_nevasca') {
                         if (window.magoCasts) delete window.magoCasts[dados.ownerId];
-                        if (typeof window.criarAnimacaoNevasca === 'function') window.criarAnimacaoNevasca(dados.targetX, dados.targetY, dados.radius, dados.duracaoMs);
+                        if (typeof window.criarAnimacaoNevasca === 'function') window.criarAnimacaoNevasca(dados.targetX, dados.targetY, dados.radius, dados.duracaoMs, dados.isFogo);
                     }
                     if (dados.type === 'action_vulcao') {
                         if (window.magoCasts) delete window.magoCasts[dados.ownerId];
@@ -4667,6 +5085,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     if (dados.type === 'action_tornado' && window.todosJogadores[dados.id]) {
                         window.tornadoTimers[dados.id] = 30;
                         if (dados.id === window.meuId) { if (window.tocarSonoro) window.tocarSonoro('guerreiro_tornado'); else tocarSomTornado(); }
+                        if (typeof window.criarVfxGuerreiroTornado === 'function') window.criarVfxGuerreiroTornado(dados);
                     }
                     if (dados.type === 'action_guerreiro_provocacao') {
                         if (dados.id === window.meuId) {
@@ -4681,6 +5100,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             window.criarAnimacaoCuraGuerreiro(dados.id, dados.x, dados.y, dados.cura);
                         }
                         if (typeof window.registrarDefesaGuerreiro === 'function') window.registrarDefesaGuerreiro(dados.id);
+                        if (typeof window.criarVfxGuerreiroGrito === 'function') window.criarVfxGuerreiroGrito(dados);
                     }
                     if (dados.type === 'action_guerreiro_postura_guardiao') {
                         if (dados.id === window.meuId) {
@@ -4690,6 +5110,13 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                 color: '#74f0b4', alpha: 1.0
                             });
                         }
+                        if (typeof window.criarVfxGuerreiroPostura === 'function') window.criarVfxGuerreiroPostura(dados);
+                    }
+                    if (dados.type === 'action_guerreiro_pulso_ruptura') {
+                        if (typeof window.criarVfxGuerreiroPulsoRuptura === 'function') window.criarVfxGuerreiroPulsoRuptura(dados.x, dados.y, dados.raio);
+                    }
+                    if (dados.type === 'action_guerreiro_espinhos_retaliacao') {
+                        if (typeof window.criarVfxGuerreiroEspinhosRetaliacao === 'function') window.criarVfxGuerreiroEspinhosRetaliacao(dados.x, dados.y);
                     }
                     if (dados.type === 'action_roqueiro_grito_guerra') {
                         if (dados.id === window.meuId) {
@@ -4738,13 +5165,16 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         tocarSomImpactoPesado(dados.x, dados.y);
                         window.lacaioColossal = window.lacaioColossal || {};
                         window.lacaioColossal[dados.pid] = true;
+                        window.lacaioColossalTimers = window.lacaioColossalTimers || {};
+                        window.lacaioColossalTimers[dados.pid] = Date.now() + (dados.duracao || 20000);
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 60, text: "🗿 GOLEM COLOSSAL!", color: "#e67e22", alpha: 1.0 });
                     }
                     if (dados.type === 'action_ogro_colossal_fim') {
                         if (window.lacaioColossal) delete window.lacaioColossal[dados.pid];
+                        if (window.lacaioColossalTimers) delete window.lacaioColossalTimers[dados.pid];
                     }
                     if (dados.type === 'ogro_pedra_enorme') {
-                        if (typeof window.criarPedraEnorme === 'function') window.criarPedraEnorme(dados.sx, dados.sy, dados.tx, dados.ty);
+                        if (typeof window.criarPedraEnorme === 'function') window.criarPedraEnorme(dados.sx, dados.sy, dados.tx, dados.ty, { gigante: dados.gigante, incandescente: dados.incandescente, estilhacos: dados.estilhacos });
                         tocarSomImpactoPesado(dados.sx, dados.sy);
                     }
                     if (dados.type === 'ogro_ultimo_vinculo') {
@@ -5058,7 +5488,12 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         if (typeof window.dashAdicionarVfxApos === 'function') window.dashAdicionarVfxApos(dados);
                     }
                     if (dados.type === 'action_guerreiro_escudo') {
-                        if (dados.lancamento) return;
+                        if (dados.lancamento) {
+                            if (typeof window.criarVfxGuerreiroLancamentoEscudo === 'function') {
+                                window.criarVfxGuerreiroLancamentoEscudo(dados);
+                            }
+                            return;
+                        }
                         if (!window.guerreiroEscudoDe) window.guerreiroEscudoDe = {};
                         if (dados.ativo) {
                             window.guerreiroEscudoDe[dados.id] = {
@@ -5071,6 +5506,11 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         if (dados.id === window.meuId) {
                             window.escudoGuerreiroAtivo = !!dados.ativo;
                             if (dados.ativo && Number.isFinite(dados.angulo)) window.escudoGuerreiroAng = dados.angulo;
+                        }
+                    }
+                    if (dados.type === 'action_guerreiro_escudo_hit') {
+                        if (typeof window.criarVfxGuerreiroEscudoHit === 'function') {
+                            window.criarVfxGuerreiroEscudoHit(dados);
                         }
                     }
                     // O escudo vira junto com a espada: o servidor reenvia o ângulo
@@ -6342,8 +6782,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     mult *= (1 - Math.min(0.20, it.status.velocidadeAtaque / 100));
                 }
             }
+            if (ef.some(e => e && e.id === 'selva_ataque_lento' && e.tempo > 0)) mult *= 1.4;
             if (!Number.isFinite(mult) || mult <= 0) mult = 0.4;
-            mult = Math.max(0.4, Math.min(1, mult));
+            mult = Math.max(0.4, Math.min(1.6, mult));
             return Math.max(120, Math.round(base * mult));
         }
 
@@ -6620,7 +7061,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         window.escudoTravandoAcoes = function () { return window.escudoGuerreiroAtivo; };
 
         function usarDash() {
-            if (window.estaMorto || window.meuStunTimer > 0) return;
+            if (window.estaMorto || window.meuStunTimer > 0 || window.canalizandoMeteoro) return;
             const cfg = dashConfig();
 
             // Já segurando o escudo: o segundo toque não faz nada
@@ -6630,12 +7071,20 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 // Cooldown: usa o mais restritivo entre o timer local e o eco do servidor
                 if (Date.now() < dashCdAteServidor) return;
                 if (dashCooldownAtivo) return;
+                let custoDash = cfg.stamina;
+                const noDeserto = (window.currentMap === 'mundo' && window.mapaMundo && typeof window.mapaMundo.ehDeserto === 'function' && window.mapaMundo.ehDeserto(window.meuX, window.meuY));
+                if (noDeserto && typeof custoDash === 'number') {
+                    custoDash *= 3;
+                }
                 if (cfg.stamina === 'TODA') {
                     if ((window.minhaEstamina || 0) < 20) {
                         if (typeof mostrarAvisoEstamina === 'function') mostrarAvisoEstamina();
                         return;
                     }
-                } else if (!checarEstamina(cfg.stamina)) {
+                } else if (!checarEstamina(custoDash)) {
+                    if (noDeserto && window.floatingTexts) {
+                        window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 35, text: "🏜️ Areia Pesada (3x Stamina)!", color: "#e67e22", alpha: 1.0 });
+                    }
                     return;
                 }
             }
@@ -6928,10 +7377,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             // para o servidor apos o respawn — o que o arrastava para a borda do mapa e bugava o movimento.
             window.meuX = window.SPAWN_CIDADE.x;
             window.meuY = window.SPAWN_CIDADE.y;
-            window.currentMap = 'cidade';
+            window.currentMap = 'mundo';
             window.transicaoMapaAtiva = false;
             window.portalMapaBloqueado = { x: window.meuX + 12, y: window.meuY + 16, raio: 90 };
-            if (window.AudioManager && typeof window.AudioManager.setMapAmbient === 'function') window.AudioManager.setMapAmbient('cidade');
+            if (window.AudioManager && typeof window.AudioManager.setMapAmbient === 'function') window.AudioManager.setMapAmbient('mundo');
         }
         function criarEfeitoCorte(x, y, angulo) { slashes.push({ x: x, y: y, angulo: angulo, alpha: 1.0, escala: 0.5 }); }
 
@@ -6998,7 +7447,14 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         function abrirBigMap() {
             if (window.estaMorto) return;
             window.bigMapAberto = true;
+            bigMapRenderCache = null;
             if (bigMapScreen) bigMapScreen.style.display = "flex";
+            if (bigMapCanvas) {
+                bigMapCanvas.style.cursor = window.ehAdmin ? "crosshair" : "default";
+                bigMapCanvas.title = window.ehAdmin
+                    ? "Clique em um bioma para teleportar"
+                    : "Somente administradores podem teleportar pelo mapa mundial";
+            }
             fecharConfirmacaoPortalMapa();
             desenharBigMap();
         }
@@ -7277,313 +7733,332 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         if (bigMapCanvas) {
             bigMapCanvas.addEventListener("click", function(e) {
                 if (e) e.preventDefault();
+                if (!window.ehAdmin) return;
+                const rect = bigMapCanvas.getBoundingClientRect();
+                const clickX = (e.clientX - rect.left) * (bigMapCanvas.width / rect.width);
+                const clickY = (e.clientY - rect.top) * (bigMapCanvas.height / rect.height);
+                const reg = (window.MAPAS_REGISTRY || {})['mundo'];
+                if (!reg) return;
+                const bw = bigMapCanvas.width, bh = bigMapCanvas.height;
+                const img = window.bigMapArtImage;
+                const aspect = img && img.naturalWidth && img.naturalHeight ? img.naturalWidth / img.naturalHeight : reg.w / reg.h;
+                const mapaW = Math.min(bw, bh * aspect);
+                const mapaH = mapaW / aspect;
+                const ox = (bw - mapaW) / 2, oy = (bh - mapaH) / 2;
+
+                if (clickX < ox || clickX > ox + mapaW || clickY < oy || clickY > oy + mapaH) return;
+
+                const wx = reg.x0 + ((clickX - ox) / mapaW) * reg.w;
+                const wy = (reg.y0 || 0) + ((clickY - oy) / mapaH) * reg.h;
+
+                let biomaAlvo = 'santuario';
+                const centros = (window.mapaMundo && window.mapaMundo.CENTROS_BIOMAS) || {};
+                let menorDist = Infinity;
+                for (let k in centros) {
+                    const c = centros[k];
+                    const dist = Math.hypot(wx - c.x, wy - c.y);
+                    if (dist < menorDist) {
+                        menorDist = dist;
+                        biomaAlvo = k;
+                    }
+                }
+
+                if (window.ws && window.ws.readyState === WebSocket.OPEN) {
+                    window.ws.send(JSON.stringify({ action: 'teleporte_mapa', mapa: biomaAlvo }));
+                    fecharBigMap();
+                    const nomeBio = centros[biomaAlvo] ? centros[biomaAlvo].nome : biomaAlvo;
+                    if (window.floatingTexts) {
+                        window.floatingTexts.push({
+                            x: window.meuX + 12,
+                            y: window.meuY - 40,
+                            text: '🌀 Viajou para o ' + nomeBio,
+                            color: '#00ffff',
+                            alpha: 1.0
+                        });
+                    }
+                }
             });
         }
 
-        function desenharMapaMundiInstanciaSolari() {
-            if (!bigMapCtx || !bigMapCanvas) return;
-            const bw = bigMapCanvas.width = bigMapCanvas.clientWidth || 800;
-            const bh = bigMapCanvas.height = bigMapCanvas.clientHeight || 380;
-            const solariGrid = (window.mapaSolari && typeof window.mapaSolari.grid === 'function') ? window.mapaSolari.grid() : null;
-            const W = 1240, H = 1240;
-            const escala = Math.min((bw - 30) / W, (bh - 55) / H);
-            const ox = (bw - W * escala) / 2;
-            const oy = 38;
-            bigMapCtx.clearRect(0, 0, bw, bh);
-            bigMapCtx.fillStyle = '#090612';
-            bigMapCtx.fillRect(0, 0, bw, bh);
-            bigMapCtx.fillStyle = '#e9d5ff';
-            bigMapCtx.font = 'bold 15px Arial';
-            bigMapCtx.textAlign = 'center';
-            bigMapCtx.fillText('SOLARI — MAPA DA INSTÂNCIA', bw / 2, 18);
-            bigMapCtx.font = '9px Arial';
-            bigMapCtx.fillStyle = '#bda7d6';
-            bigMapCtx.fillText('Instância: ' + (window.instanciaAtualId || 'não identificada'), bw / 2, 31);
-            if (solariGrid) {
-                const rows = solariGrid.length, cols = rows ? solariGrid[0].length : 31;
-                const tw = W / cols, th = H / rows;
-                for (let y = 0; y < rows; y++) {
-                    for (let x = 0; x < cols; x++) {
-                        const parede = solariGrid[y] && solariGrid[y][x] && solariGrid[y][x].alt >= 2;
-                        bigMapCtx.fillStyle = parede ? '#21182b' : '#392b48';
-                        bigMapCtx.fillRect(ox + x * tw * escala, oy + y * th * escala, tw * escala + 0.5, th * escala + 0.5);
+        const FOG_GRID_W = 192;
+        const FOG_GRID_H = 96;
+        const FOG_REVEAL_RADIUS = 3500;
+        const FOG_STORAGE_PREFIX = 'mmorpg_world_fog_v1:';
+        let bigMapFog = new Uint8Array(FOG_GRID_W * FOG_GRID_H);
+        let bigMapFogKey = null;
+        let bigMapFogNeedsSave = false;
+        let bigMapFogMaskDirty = true;
+        let bigMapFogRevision = 0;
+        let bigMapFogSaveTimer = null;
+        let bigMapLastRevealPosition = null;
+        let bigMapRenderCache = null;
+        const bigMapFogCanvas = document.createElement('canvas');
+        bigMapFogCanvas.width = FOG_GRID_W;
+        bigMapFogCanvas.height = FOG_GRID_H;
+        const bigMapFogCtx = bigMapFogCanvas.getContext('2d');
+        let bigMapFogImage = bigMapFogCtx ? bigMapFogCtx.createImageData(FOG_GRID_W, FOG_GRID_H) : null;
+
+        function chaveNevoaMapa() {
+            try {
+                const conta = localStorage.getItem('mmorpg_user_id') || window.meuId;
+                return conta ? FOG_STORAGE_PREFIX + String(conta).trim().toLowerCase() : null;
+            } catch (error) {
+                console.error('Falha ao identificar a conta para salvar a exploração do mapa:', error);
+                return null;
+            }
+        }
+
+        function salvarNevoaMapa() {
+            if (!bigMapFogKey || !bigMapFogNeedsSave) return;
+            try {
+                let bytes = '';
+                for (let i = 0; i < bigMapFog.length; i += 8192) {
+                    bytes += String.fromCharCode.apply(null, bigMapFog.subarray(i, Math.min(i + 8192, bigMapFog.length)));
+                }
+                localStorage.setItem(bigMapFogKey, btoa(bytes));
+                bigMapFogNeedsSave = false;
+            } catch (error) {
+                console.error('Falha ao salvar áreas descobertas do mapa mundial:', error);
+            }
+        }
+        window.addEventListener('pagehide', salvarNevoaMapa);
+
+        function carregarNevoaMapa() {
+            const novaChave = chaveNevoaMapa();
+            if (!novaChave || novaChave === bigMapFogKey) return;
+            salvarNevoaMapa();
+            bigMapFogKey = novaChave;
+            bigMapFog = new Uint8Array(FOG_GRID_W * FOG_GRID_H);
+            try {
+                const salvo = localStorage.getItem(bigMapFogKey);
+                if (salvo) {
+                    const bytes = atob(salvo);
+                    if (bytes.length !== bigMapFog.length) {
+                        console.error('Dados salvos de exploração do mapa mundial têm tamanho inválido.');
+                    } else {
+                        for (let i = 0; i < bytes.length; i++) bigMapFog[i] = bytes.charCodeAt(i) ? 1 : 0;
                     }
                 }
-            } else {
-                bigMapCtx.fillStyle = '#392b48';
-                bigMapCtx.fillRect(ox, oy, W * escala, H * escala);
+            } catch (error) {
+                console.error('Falha ao carregar áreas descobertas do mapa mundial:', error);
             }
-            bigMapCtx.strokeStyle = '#c77dff';
-            bigMapCtx.lineWidth = 2;
-            bigMapCtx.strokeRect(ox, oy, W * escala, H * escala);
-            function ponto(x, y) { return { x: ox + (x - 63800) * escala, y: oy + y * escala }; }
-            if (window.listaSlimes) window.listaSlimes.forEach(function (s) {
-                if (!s || s.hp <= 0 || s.solari === false) return;
-                const q = ponto(s.x, s.y);
-                bigMapCtx.fillStyle = s.elite ? '#ffcc00' : '#ff7043';
-                bigMapCtx.beginPath(); bigMapCtx.arc(q.x, q.y, s.elite ? 4 : 2.5, 0, Math.PI * 2); bigMapCtx.fill();
-            });
-            if (window.todosJogadores) Object.keys(window.todosJogadores).forEach(function (id) {
-                const p = window.todosJogadores[id];
-                if (!p || p.hp <= 0) return;
-                const q = ponto(p.x, p.y);
-                bigMapCtx.fillStyle = (id === window.meuId) ? '#00ffff' : '#6bb7ff';
-                bigMapCtx.beginPath(); bigMapCtx.arc(q.x, q.y, id === window.meuId ? 5 : 3, 0, Math.PI * 2); bigMapCtx.fill();
-                if (id === window.meuId) { bigMapCtx.fillStyle = '#00ffff'; bigMapCtx.font = 'bold 9px Arial'; bigMapCtx.fillText('VOCÊ', q.x, q.y - 8); }
-            });
-            bigMapCtx.fillStyle = '#d8c3f0';
-            bigMapCtx.font = '9px Arial';
-            bigMapCtx.textAlign = 'left';
-            bigMapCtx.fillText('🟣 Instância isolada • até 5 jogadores • outros mapas não aparecem', 10, bh - 10);
+            bigMapFogNeedsSave = false;
+            bigMapFogRevision++;
+            bigMapFogMaskDirty = true;
+            bigMapLastRevealPosition = null;
+            bigMapRenderCache = null;
+        }
+
+        function revelarAreaMapaMundo(x, y) {
+            const reg = (window.MAPAS_REGISTRY || {}).mundo;
+            if (!reg || x < reg.x0 || x >= reg.x0 + reg.w || y < (reg.y0 || 0) || y >= (reg.y0 || 0) + reg.h) return false;
+            const raioX = Math.ceil(FOG_REVEAL_RADIUS * FOG_GRID_W / reg.w);
+            const raioY = Math.ceil(FOG_REVEAL_RADIUS * FOG_GRID_H / reg.h);
+            const gx = Math.floor((x - reg.x0) * FOG_GRID_W / reg.w);
+            const gy = Math.floor((y - (reg.y0 || 0)) * FOG_GRID_H / reg.h);
+            let mudou = false;
+            for (let cy = Math.max(0, gy - raioY); cy <= Math.min(FOG_GRID_H - 1, gy + raioY); cy++) {
+                const mundoY = (cy + 0.5) * reg.h / FOG_GRID_H;
+                for (let cx = Math.max(0, gx - raioX); cx <= Math.min(FOG_GRID_W - 1, gx + raioX); cx++) {
+                    const mundoX = (cx + 0.5) * reg.w / FOG_GRID_W;
+                    if (Math.hypot(mundoX - (x - reg.x0), mundoY - (y - (reg.y0 || 0))) > FOG_REVEAL_RADIUS) continue;
+                    const index = cy * FOG_GRID_W + cx;
+                    if (!bigMapFog[index]) {
+                        bigMapFog[index] = 1;
+                        mudou = true;
+                    }
+                }
+            }
+            if (mudou) {
+                bigMapFogNeedsSave = true;
+                bigMapFogMaskDirty = true;
+                bigMapFogRevision++;
+                bigMapRenderCache = null;
+                if (bigMapFogSaveTimer) clearTimeout(bigMapFogSaveTimer);
+                bigMapFogSaveTimer = setTimeout(function() {
+                    bigMapFogSaveTimer = null;
+                    salvarNevoaMapa();
+                }, 1200);
+            }
+            return mudou;
+        }
+
+        window.revelarTodoFogMapaMundo = function() {
+            if (!window.ehAdmin) return false;
+            carregarNevoaMapa();
+            if (!bigMapFogKey) {
+                console.error('Não foi possível identificar a conta para liberar o Fog of War.');
+                return false;
+            }
+            let mudou = false;
+            for (let i = 0; i < bigMapFog.length; i++) {
+                if (!bigMapFog[i]) {
+                    bigMapFog[i] = 1;
+                    mudou = true;
+                }
+            }
+            if (mudou) {
+                bigMapFogMaskDirty = true;
+                bigMapFogRevision++;
+                bigMapRenderCache = null;
+            }
+            bigMapFogNeedsSave = true;
+            if (bigMapFogSaveTimer) {
+                clearTimeout(bigMapFogSaveTimer);
+                bigMapFogSaveTimer = null;
+            }
+            salvarNevoaMapa();
+            if (bigMapFogNeedsSave) return false;
+            desenharBigMap();
+            return true;
+        };
+
+        function atualizarDescobertaMapaMundo() {
+            if (!window.jogoIniciado || window.currentMap !== 'mundo' ||
+                !Number.isFinite(window.meuX) || !Number.isFinite(window.meuY)) return;
+            carregarNevoaMapa();
+            const atual = { x: window.meuX, y: window.meuY };
+            const anterior = bigMapLastRevealPosition;
+            if (!anterior) {
+                revelarAreaMapaMundo(atual.x, atual.y);
+                bigMapLastRevealPosition = atual;
+                return;
+            }
+            const distancia = Math.hypot(atual.x - anterior.x, atual.y - anterior.y);
+            if (distancia < 100) return;
+            if (distancia > 5000) {
+                revelarAreaMapaMundo(atual.x, atual.y);
+            } else {
+                const passos = Math.max(1, Math.ceil(distancia / (FOG_REVEAL_RADIUS * 0.35)));
+                for (let passo = 1; passo <= passos; passo++) {
+                    const t = passo / passos;
+                    revelarAreaMapaMundo(
+                        anterior.x + (atual.x - anterior.x) * t,
+                        anterior.y + (atual.y - anterior.y) * t
+                    );
+                }
+            }
+            bigMapLastRevealPosition = atual;
+        }
+
+        function atualizarCanvasNevoaMapa() {
+            if (!bigMapFogCtx || !bigMapFogImage || !bigMapFogMaskDirty) return;
+            const pixels = bigMapFogImage.data;
+            for (let i = 0; i < bigMapFog.length; i++) {
+                const p = i * 4;
+                pixels[p] = 4;
+                pixels[p + 1] = 8;
+                pixels[p + 2] = 15;
+                pixels[p + 3] = bigMapFog[i] ? 0 : 255;
+            }
+            bigMapFogCtx.putImageData(bigMapFogImage, 0, 0);
+            bigMapFogMaskDirty = false;
         }
 
         function desenharBigMap() {
             if (!bigMapCtx || !bigMapCanvas) return;
-            if (window.solariAtivo) {
-                const titulo = document.getElementById('big-map-title');
-                if (titulo) titulo.textContent = '🗺️ MAPA DA INSTÂNCIA — SOLARI';
-                desenharMapaMundiInstanciaSolari();
-                return;
+            const bw = bigMapCanvas.clientWidth || 800;
+            const bh = bigMapCanvas.clientHeight || 380;
+            if (bigMapCanvas.width !== bw || bigMapCanvas.height !== bh) {
+                bigMapCanvas.width = bw;
+                bigMapCanvas.height = bh;
+                bigMapRenderCache = null;
             }
-            const mapaAtual = (window.MAPAS_REGISTRY || {})[window.currentMap];
-            if (!mapaAtual) {
-                bigMapCtx.clearRect(0, 0, bigMapCanvas.width, bigMapCanvas.height);
-                return;
-            }
-            if (mapaAtual) {
-                const titulo = document.getElementById('big-map-title');
-                if (titulo) titulo.textContent = '🗺️ MAPA ATUAL — ' + mapaAtual.nome;
-                const bw = bigMapCanvas.width = bigMapCanvas.clientWidth || 800;
-                const bh = bigMapCanvas.height = bigMapCanvas.clientHeight || 380;
-                const padX = 28, padTop = 36, padBottom = 30;
-                const escala = Math.min((bw - padX * 2) / mapaAtual.w, (bh - padTop - padBottom) / mapaAtual.h);
-                const mapaW = mapaAtual.w * escala, mapaH = mapaAtual.h * escala;
-                const ox = (bw - mapaW) / 2, oy = padTop + (bh - padTop - padBottom - mapaH) / 2;
-                const paleta = { green: '#24492b', desert: '#66532a', pantano: '#34432b', caverna: '#392728', cidade: '#34434b', solari: '#342942', cidadeperdida: '#354739', testevisual: '#35462e', zonazero: '#2c414a', castelo: '#39332c', bemvindo: '#31545a', ruinas_01: '#40394a', floresta: '#254333', nebulos: '#3e5532', abissal: '#302943', pantano_sombrio: '#2d4934' };
-                const y0 = mapaAtual.y0 || 0;
-                bigMapCtx.clearRect(0, 0, bw, bh);
-                bigMapCtx.fillStyle = '#080c0d';
-                bigMapCtx.fillRect(0, 0, bw, bh);
-                bigMapCtx.fillStyle = paleta[window.currentMap] || '#26362a';
-                bigMapCtx.fillRect(ox, oy, mapaW, mapaH);
-                bigMapCtx.strokeStyle = 'rgba(210,220,210,0.5)';
-                bigMapCtx.lineWidth = 1;
-                bigMapCtx.strokeRect(ox, oy, mapaW, mapaH);
-                bigMapCtx.strokeStyle = 'rgba(235,245,230,0.13)';
-                for (let i = 1; i < 10; i++) {
-                    const gx = ox + mapaW * i / 10, gy = oy + mapaH * i / 10;
-                    bigMapCtx.beginPath(); bigMapCtx.moveTo(gx, oy); bigMapCtx.lineTo(gx, oy + mapaH); bigMapCtx.stroke();
-                    bigMapCtx.beginPath(); bigMapCtx.moveTo(ox, gy); bigMapCtx.lineTo(ox + mapaW, gy); bigMapCtx.stroke();
-                }
-                const toMap = function (x, y) {
-                    return { x: ox + (x - mapaAtual.x0) * escala, y: oy + (y - y0) * escala };
-                };
-                const inMap = function (x, y) {
-                    return x >= mapaAtual.x0 && x < mapaAtual.x0 + mapaAtual.w && y >= y0 && y < y0 + mapaAtual.h;
-                };
-                (window.listaDrops || []).forEach(function (drop) {
-                    if (!drop || !drop.item || !inMap(drop.x, drop.y)) return;
-                    const p = toMap(drop.x, drop.y);
-                    bigMapCtx.fillStyle = '#ffd166';
-                    bigMapCtx.fillRect(p.x - 2, p.y - 2, 4, 4);
-                });
-                (window.listaSlimes || []).forEach(function (mob) {
-                    if (!mob || mob.hp <= 0 || !inMap(mob.x, mob.y)) return;
-                    const p = toMap(mob.x, mob.y);
-                    bigMapCtx.fillStyle = mob.tipo === 'golem_pedra' ? '#ff394f' : '#ff794d';
-                    bigMapCtx.beginPath(); bigMapCtx.arc(p.x, p.y, mob.tipo === 'golem_pedra' ? 4 : 2.5, 0, Math.PI * 2); bigMapCtx.fill();
-                });
-                if (window.todosJogadores) Object.keys(window.todosJogadores).forEach(function (id) {
-                    const jogador = window.todosJogadores[id];
-                    if (!jogador || jogador.hp <= 0 || id === window.meuId || !inMap(jogador.x + 12, jogador.y + 16)) return;
-                    const p = toMap(jogador.x + 12, jogador.y + 16);
-                    bigMapCtx.fillStyle = '#79bdff';
-                    bigMapCtx.beginPath(); bigMapCtx.arc(p.x, p.y, 3.5, 0, Math.PI * 2); bigMapCtx.fill();
-                });
-                if (typeof window.meuX === 'number' && typeof window.meuY === 'number' && inMap(window.meuX + 12, window.meuY + 16)) {
-                    const p = toMap(window.meuX + 12, window.meuY + 16);
-                    bigMapCtx.save();
-                    bigMapCtx.strokeStyle = 'rgba(0,255,255,0.8)';
-                    bigMapCtx.lineWidth = 2;
-                    bigMapCtx.beginPath(); bigMapCtx.arc(p.x, p.y, 8 + Math.sin(Date.now() / 180) * 2, 0, Math.PI * 2); bigMapCtx.stroke();
-                    bigMapCtx.fillStyle = '#00ffff';
-                    bigMapCtx.beginPath(); bigMapCtx.arc(p.x, p.y, 4, 0, Math.PI * 2); bigMapCtx.fill();
-                    bigMapCtx.restore();
-                }
-                bigMapCtx.fillStyle = '#d5e1df';
-                bigMapCtx.font = 'bold 11px Arial';
-                bigMapCtx.textAlign = 'left';
-                bigMapCtx.fillText('X: ' + Math.round(window.meuX || 0) + '  Y: ' + Math.round(window.meuY || 0), 12, bh - 10);
-                return;
-            }
+            bigMapCanvas.style.background = '#030a16';
+            bigMapCanvas.style.backgroundColor = '#030a16';
             const titulo = document.getElementById('big-map-title');
-            if (titulo) titulo.textContent = '🗺️ MAPA MUNDIAL — Davahl & Biomas';
-            let bw = bigMapCanvas.width = bigMapCanvas.clientWidth || 800;
-            let bh = bigMapCanvas.height = bigMapCanvas.clientHeight || 380;
-            let sx = bw / WORLD_WIDTH, sy = bh / WORLD_HEIGHT;
+            if (titulo) titulo.textContent = '🌍 CONTINENTE DE GAIA';
+            const reg = (window.MAPAS_REGISTRY || {})['mundo'];
+            const img = window.bigMapArtImage;
+            if (!reg || !img || !img.complete || !img.naturalWidth || !img.naturalHeight) {
+                bigMapCtx.fillStyle = '#030a16';
+                bigMapCtx.fillRect(0, 0, bw, bh);
+                return;
+            }
 
-            bigMapCtx.clearRect(0, 0, bw, bh);
-
-            // Zonas do mundo
-            let zonas = [
-                { nome: "🌿 CAMPO VERDE", nivel: "Nv. 1-10", x: 0, w: 18000, cor: "#183e20", borda: "#2ecc71" },
-                { nome: "🏜️ DESERTO COM OÁSIS", nivel: "Nv. 10-25", x: 18000, w: 32000, cor: "#5a4516", borda: "#f39c12" },
-                { nome: "🌿 PANTANAL", nivel: "Nv. 25-40 (Tóxico)", x: 50000, w: 8000, cor: "#223114", borda: "#27ae60" },
-                { nome: "🕳️ CAVERNA DG", nivel: "Nv. 40+", x: 58000, w: 1800, cor: "#2a1515", borda: "#c0392b" },
-                { nome: "🏰 CIDADE DE DAVAHL", nivel: "Safe Hub", x: 59800, w: 1374, cor: "#152a3b", borda: "#3498db" },
-                { nome: "🏛️ CIDADE PERDIDA", nivel: "Ruínas distantes", x: 65040, w: 6880, cor: "#1c2a1d", borda: "#00e5ff" },
-                { nome: "🌲 FLORESTA DOS SUSSURROS", nivel: "Bioma isolado (ID única)", x: 90000, w: 8000, cor: "#12251a", borda: "#2ecc71" },
-                { nome: "🏘️ FLORESTA DOS NEBULOS", nivel: "Vila da Floresta (ID única)", x: 98000, w: 9600, cor: "#24501f", borda: "#f1c40f" },
-                { nome: "🌌 FLORESTA ABISSAL", nivel: "Zona Sombria (ID única)", x: 107600, w: 9600, cor: "#100921", borda: "#9b59b6" },
-                { nome: "🐊 PÂNTANO SOMBRIO", nivel: "Bioma Pantanoso (ID única)", x: 117200, w: 9600, cor: "#0e180d", borda: "#27ae60" }
+            const escala = Math.min(bw / img.naturalWidth, bh / img.naturalHeight);
+            const mapaW = img.naturalWidth * escala;
+            const mapaH = img.naturalHeight * escala;
+            const ox = (bw - mapaW) / 2;
+            const oy = (bh - mapaH) / 2;
+            carregarNevoaMapa();
+            const cache = [
+                bw, bh, mapaW, mapaH, ox, oy,
+                window.meuX, window.meuY, bigMapFogRevision, bigMapFogKey
             ];
+            if (bigMapRenderCache && cache.every(function(valor, i) { return valor === bigMapRenderCache[i]; })) return;
+            bigMapRenderCache = cache;
+            bigMapCtx.fillStyle = '#030a16';
+            bigMapCtx.fillRect(0, 0, bw, bh);
+            bigMapCtx.drawImage(img, ox, oy, mapaW, mapaH);
 
-            zonas.forEach(z => {
-                let zx = z.x * sx, zw = z.w * sx;
-                bigMapCtx.fillStyle = z.cor;
-                bigMapCtx.fillRect(zx, 0, zw, bh);
-                bigMapCtx.strokeStyle = z.borda;
-                bigMapCtx.lineWidth = 1.5;
-                bigMapCtx.strokeRect(zx, 0, zw, bh);
+            function pontoMapa(x, y) {
+                return {
+                    x: ox + ((x - reg.x0) / reg.w) * mapaW,
+                    y: oy + ((y - (reg.y0 || 0)) / reg.h) * mapaH
+                };
+            }
 
-                bigMapCtx.fillStyle = "#ffffff";
-                bigMapCtx.font = "bold 11px Arial";
-                bigMapCtx.textAlign = "center";
-                bigMapCtx.fillText(z.nome, zx + zw / 2, 22);
-                bigMapCtx.fillStyle = "#bdc3c7";
-                bigMapCtx.font = "9px Arial";
-                bigMapCtx.fillText(z.nivel, zx + zw / 2, 35);
-            });
-
-            // Portal na Cidade de Davahl (60487, 460)
-            let pxPortal = 60487 * sx, pyPortal = 460 * sy;
+            atualizarCanvasNevoaMapa();
             bigMapCtx.save();
-            let tempoP = Date.now() / 300;
-            bigMapCtx.strokeStyle = "#4fc3f7";
-            bigMapCtx.lineWidth = 2.5;
-            bigMapCtx.beginPath();
-            bigMapCtx.arc(pxPortal, pyPortal, 9 + Math.sin(tempoP) * 2, 0, Math.PI * 2);
-            bigMapCtx.stroke();
-            bigMapCtx.fillStyle = "#00e5ff";
-            bigMapCtx.beginPath();
-            bigMapCtx.arc(pxPortal, pyPortal, 5, 0, Math.PI * 2);
-            bigMapCtx.fill();
-            bigMapCtx.fillStyle = "#4fc3f7";
-            bigMapCtx.font = "bold 10px Arial";
-            bigMapCtx.textAlign = "center";
-            bigMapCtx.shadowColor = "#000";
-            bigMapCtx.shadowBlur = 4;
-            bigMapCtx.fillText("🌀 PORTAL DAVAHL", pxPortal, pyPortal - 14);
-
-                        bigMapCtx.restore();
-
-            // Portal de Retorno da Cidade Perdida (65140, 460)
-            let pxPortalCPD = 65140 * sx, pyPortalCPD = 460 * sy;
-            bigMapCtx.save();
-            bigMapCtx.strokeStyle = "#00e5ff";
-            bigMapCtx.lineWidth = 2;
-            bigMapCtx.beginPath();
-            bigMapCtx.arc(pxPortalCPD, pyPortalCPD, 7 + Math.sin(tempoP) * 1.5, 0, Math.PI * 2);
-            bigMapCtx.stroke();
-            bigMapCtx.fillStyle = "#4dd0e1";
-            bigMapCtx.beginPath();
-            bigMapCtx.arc(pxPortalCPD, pyPortalCPD, 4, 0, Math.PI * 2);
-            bigMapCtx.fill();
-            bigMapCtx.fillStyle = "#00e5ff";
-            bigMapCtx.font = "bold 9px Arial";
-            bigMapCtx.fillText("🌀 PORTAL C. PERDIDA", pxPortalCPD, pyPortalCPD - 11);
+            bigMapCtx.imageSmoothingEnabled = true;
+            bigMapCtx.filter = 'blur(2px)';
+            bigMapCtx.drawImage(bigMapFogCanvas, ox, oy, mapaW, mapaH);
+            bigMapCtx.filter = 'none';
             bigMapCtx.restore();
 
-            // Drops
-            if (window.listaDrops && window.listaDrops.length) {
-                window.listaDrops.forEach(d => {
-                    if (!d || !d.item) return;
-                    bigMapCtx.fillStyle = (d.item.raridade === "lendario") ? "#ff7a00" : ((d.item.raridade === "epico") ? "#a855f7" : "#f1c40f");
-                    bigMapCtx.fillRect(d.x * sx - 1.5, d.y * sy - 1.5, 3, 3);
-                });
+            const centros = (window.mapaMundo && window.mapaMundo.CENTROS_BIOMAS) || {};
+            bigMapCtx.save();
+            const selvaX = Math.floor((138000 - reg.x0) * FOG_GRID_W / reg.w);
+            const selvaY = Math.floor((7400 - (reg.y0 || 0)) * FOG_GRID_H / reg.h);
+            if (selvaX >= 0 && selvaX < FOG_GRID_W && selvaY >= 0 && selvaY < FOG_GRID_H &&
+                bigMapFog[selvaY * FOG_GRID_W + selvaX]) {
+                const selva = pontoMapa(138000, 7400);
+                bigMapCtx.textAlign = 'center';
+                bigMapCtx.textBaseline = 'middle';
+                bigMapCtx.font = 'bold ' + Math.max(12, Math.min(20, bw / 55)) + 'px Georgia, serif';
+                bigMapCtx.lineWidth = 4;
+                bigMapCtx.strokeStyle = 'rgba(0, 0, 0, 0.9)';
+                bigMapCtx.strokeText('SELVA PROIBIDA', selva.x, selva.y);
+                bigMapCtx.fillStyle = '#d7f7a2';
+                bigMapCtx.fillText('SELVA PROIBIDA', selva.x, selva.y);
             }
-
-            // Monstros
-            if (window.listaSlimes && window.listaSlimes.length) {
-                window.listaSlimes.forEach(s => {
-                    if (s.hp <= 0) return;
-                    let mx = s.x * sx, my = s.y * sy;
-                    if (s.tipo === 'golem_pedra') {
-                        bigMapCtx.save();
-                        bigMapCtx.fillStyle = "#ff1744";
-                        bigMapCtx.shadowColor = "#ff1744";
-                        bigMapCtx.shadowBlur = 10;
-                        bigMapCtx.beginPath();
-                        bigMapCtx.arc(mx, my, 6, 0, Math.PI * 2);
-                        bigMapCtx.fill();
-                        bigMapCtx.strokeStyle = "#fff";
-                        bigMapCtx.lineWidth = 1.5;
-                        bigMapCtx.stroke();
-                        bigMapCtx.fillStyle = "#ff5252";
-                        bigMapCtx.font = "bold 9px Arial";
-                        bigMapCtx.textAlign = "center";
-                        bigMapCtx.fillText("👹 GOLEM", mx, my + 14);
-                        bigMapCtx.restore();
-                    } else {
-                        bigMapCtx.fillStyle = (s.tipo === 'zumbi') ? "#00e676" : ((s.tipo === 'besouro_negro') ? "#ff9100" : "#ff3d00");
-                        bigMapCtx.fillRect(mx - 2, my - 2, 4, 4);
-                    }
-                });
-            }
-
-            // Outros Players
-            if (window.todosJogadores) {
-                for (let pid in window.todosJogadores) {
-                    let pj = window.todosJogadores[pid];
-                    if (!pj || pj.id === window.meuId || pj.hp <= 0) continue;
-                    let px = pj.x * sx, py = pj.y * sy;
-                    bigMapCtx.fillStyle = "#3498db";
-                    bigMapCtx.beginPath();
-                    bigMapCtx.arc(px, py, 3.5, 0, Math.PI * 2);
-                    bigMapCtx.fill();
-                }
-            }
-
-            // Jogador Atual
-            if (typeof window.meuX === 'number' && typeof window.meuY === 'number') {
-                let jx = window.meuX * sx, jy = window.meuY * sy;
-                bigMapCtx.save();
-                let tempoJ = Date.now() / 250;
-                let raioPulso = 8 + Math.sin(tempoJ) * 3;
-                bigMapCtx.strokeStyle = "rgba(0, 255, 255, 0.7)";
-                bigMapCtx.lineWidth = 2;
+            Object.keys(centros).forEach(function(id) {
+                const centro = centros[id];
+                const gridX = Math.floor((centro.x - reg.x0) * FOG_GRID_W / reg.w);
+                const gridY = Math.floor((centro.y - (reg.y0 || 0)) * FOG_GRID_H / reg.h);
+                if (gridX < 0 || gridX >= FOG_GRID_W || gridY < 0 || gridY >= FOG_GRID_H ||
+                    !bigMapFog[gridY * FOG_GRID_W + gridX]) return;
+                const ponto = pontoMapa(centro.x, centro.y);
                 bigMapCtx.beginPath();
-                bigMapCtx.arc(jx, jy, raioPulso, 0, Math.PI * 2);
-                bigMapCtx.stroke();
-
-                bigMapCtx.fillStyle = "#00ffff";
-                bigMapCtx.beginPath();
-                bigMapCtx.arc(jx, jy, 4.5, 0, Math.PI * 2);
+                bigMapCtx.arc(ponto.x, ponto.y, 4, 0, Math.PI * 2);
+                bigMapCtx.fillStyle = 'rgba(255, 213, 105, 0.9)';
                 bigMapCtx.fill();
-                bigMapCtx.strokeStyle = "#ffffff";
                 bigMapCtx.lineWidth = 1.5;
+                bigMapCtx.strokeStyle = '#17202a';
                 bigMapCtx.stroke();
-
-                let hx = jx + Math.cos(window.meuAngulo || 0) * 10;
-                let hy = jy + Math.sin(window.meuAngulo || 0) * 10;
+            });
+            if (Number.isFinite(window.meuX) && Number.isFinite(window.meuY)) {
+                const jogador = pontoMapa(window.meuX, window.meuY);
                 bigMapCtx.beginPath();
-                bigMapCtx.moveTo(jx, jy);
-                bigMapCtx.lineTo(hx, hy);
-                bigMapCtx.strokeStyle = "#00ffff";
+                bigMapCtx.arc(jogador.x, jogador.y, 6, 0, Math.PI * 2);
+                bigMapCtx.fillStyle = '#00ffff';
+                bigMapCtx.fill();
                 bigMapCtx.lineWidth = 2;
+                bigMapCtx.strokeStyle = '#ffffff';
                 bigMapCtx.stroke();
-
-                bigMapCtx.fillStyle = "#00ffff";
-                bigMapCtx.font = "bold 10px Arial";
-                bigMapCtx.textAlign = "center";
-                bigMapCtx.shadowColor = "#000";
-                bigMapCtx.shadowBlur = 4;
-                bigMapCtx.fillText("🚩 VOCÊ", jx, jy - 14);
-                bigMapCtx.font = "9px Arial";
-                bigMapCtx.fillText("(" + Math.round(window.meuX) + ", " + Math.round(window.meuY) + ")", jx, jy - 4);
-                bigMapCtx.restore();
             }
+            bigMapCtx.restore();
         }
+
+        window.bigMapArtImage = new Image();
+        window.bigMapArtImage.onload = function() {
+            if (window.bigMapAberto) desenharBigMap();
+        };
+        window.bigMapArtImage.onerror = function() {
+            console.error('Não foi possível carregar a imagem do mapa mundial:', window.bigMapArtImage.src);
+        };
+        window.bigMapArtImage.src = 'sprites/mapas/futuro_mapa_mundo.jpg?v=14';
 
         // ===============================================
         // CONTROLES DE PC: TECLADO (WASD + ATALHOS)
@@ -7815,6 +8290,23 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 toggleBigMap();
                 return;
             }
+            if (key === 'v') {
+                e.preventDefault();
+                window.CAMERA_25D = !window.CAMERA_25D;
+                if (window.mapaMundo) window.mapaMundo.MODO_LOWPOLY_3D = window.CAMERA_25D;
+                const txt = window.CAMERA_25D ? "📐 Visão 2.5D Low-Poly ATIVADA" : "🌐 Visão 2D Clássica ATIVADA";
+                if (statusText) statusText.innerText = txt;
+                if (window.floatingTexts) {
+                    window.floatingTexts.push({
+                        x: window.meuX + 12,
+                        y: window.meuY - 45,
+                        text: txt,
+                        color: window.CAMERA_25D ? '#52e396' : '#f39c12',
+                        alpha: 1.0
+                    });
+                }
+                return;
+            }
             if (key === 'p') {
                 e.preventDefault();
                 if (typeof window.togglePvP === 'function') window.togglePvP();
@@ -7973,22 +8465,21 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     }
                 }
             }
-            // PORTAL DE VIAGEM: toque perto do portal → abre janela de seleção de mapa
-            if (window.currentMap === 'cidade' && !window.estaMorto) {
+            // PORTAL DE VIAGEM: toque perto do portal → abre janela de seleção de biomas
+            if (!window.estaMorto) {
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     let touch = e.changedTouches[i];
                     let camX = window.camX || 0, camY = window.camY || 0;
                     let mx = Math.max(0, Math.min(WORLD_WIDTH, (touch.clientX / window.innerWidth * window.canvas.width) / (window.cameraZoomAtual || ZOOM_CAMERA) + camX));
                     let my = Math.max(0, Math.min(WORLD_HEIGHT, (touch.clientY / window.innerHeight * window.canvas.height) / (window.cameraZoomAtual || ZOOM_CAMERA) + camY));
-                    if (typeof window.tocarPortalViagem === 'function' && window.tocarPortalViagem(mx, my)) {
+                    if (window.mapaMundo && typeof window.mapaMundo.infoPortalMundo === 'function' && window.mapaMundo.infoPortalMundo(mx, my)) {
                         if (e.cancelable) e.preventDefault();
                         abrirTeleporteMapas();
                         return;
                     }
-                    // NPC FERREIRO (toque)
-                    if (typeof window.tocarFerreiroNpc === 'function' && window.tocarFerreiroNpc(mx, my)) {
+                    if (typeof window.tocarPortalViagem === 'function' && window.tocarPortalViagem(mx, my)) {
                         if (e.cancelable) e.preventDefault();
-                        window.abrirFerreiro();
+                        abrirTeleporteMapas();
                         return;
                     }
                 }
@@ -8147,8 +8638,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             let cw = (window.canvas && window.canvas.width) ? window.canvas.width : window.innerWidth;
             let ch = (window.canvas && window.canvas.height) ? window.canvas.height : window.innerHeight;
 
+            const tilt = (window.CAMERA_25D ? (window.CAMERA_TILT_Y || 0.88) : 1.0);
             let mx = (clientX / window.innerWidth * cw) / zoom + camX;
-            let my = (clientY / window.innerHeight * ch) / zoom + camY;
+            let my = (clientY / window.innerHeight * ch) / (zoom * tilt) + camY;
             window.mouseWorldX = Math.max(0, Math.min(WORLD_WIDTH, mx));
             window.mouseWorldY = Math.max(0, Math.min(WORLD_HEIGHT, my));
 
@@ -8183,8 +8675,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             if (e.pointerType === 'touch') return;
             if (window.estaMorto || window.spawnAdminAberto || window.teleporteAberto || window.bigMapAberto || window.ferreiroAberto || (window.colisaoEditorAtivo && !window.editorMinimizado) || (window.mapaEditorAtivo && !window.mapaEditorMinimizado)) return;
             let camX = window.camX || 0, camY = window.camY || 0;
+            const tilt = (window.CAMERA_25D ? (window.CAMERA_TILT_Y || 0.88) : 1.0);
             let mx = Math.max(0, Math.min(WORLD_WIDTH, (e.clientX / window.innerWidth * window.canvas.width) / (window.cameraZoomAtual || ZOOM_CAMERA) + camX));
-            let my = Math.max(0, Math.min(WORLD_HEIGHT, (e.clientY / window.innerHeight * window.canvas.height) / (window.cameraZoomAtual || ZOOM_CAMERA) + camY));
+            let my = Math.max(0, Math.min(WORLD_HEIGHT, (e.clientY / window.innerHeight * window.canvas.height) / ((window.cameraZoomAtual || ZOOM_CAMERA) * tilt) + camY));
             if (window.ehAdmin && typeof window.tentarAbrirBandeira === 'function' && window.tentarAbrirBandeira(mx, my)) {
                 e.preventDefault();
                 return;
@@ -8197,18 +8690,12 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 e.preventDefault();
                 return;
             }
-            if (window.currentMap === 'cidade' && typeof window.tocarPortalViagem === 'function' && window.tocarPortalViagem(mx, my)) {
+            if (window.mapaMundo && typeof window.mapaMundo.infoPortalMundo === 'function' && window.mapaMundo.infoPortalMundo(mx, my)) {
                 abrirTeleporteMapas();
                 return;
             }
-            // PORTAL ROXO DA SOLARI (cidade x=60488, y=236)
-            if (window.currentMap === 'cidade' && typeof window.tocarPortalSolari === 'function' && window.tocarPortalSolari(mx, my)) {
-                return;
-            }
-            // NPC FERREIRO (cidade x=60800, y=400)
-            if (window.currentMap === 'cidade' && typeof window.tocarFerreiroNpc === 'function' && window.tocarFerreiroNpc(mx, my)) {
-                e.preventDefault();
-                window.abrirFerreiro();
+            if (typeof window.tocarPortalViagem === 'function' && window.tocarPortalViagem(mx, my)) {
+                abrirTeleporteMapas();
                 return;
             }
 
@@ -8282,6 +8769,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
         window.lastFrameTime = window.lastFrameTime || performance.now();
         function loop() {
+            if (window.EngineOtimizador) {
+                window.EngineOtimizador.registrarFrame();
+                if (window.ctx) window.EngineOtimizador.aplicarInterceptorContexto(window.ctx);
+            }
             let currentFrameTime = performance.now();
             let dt = (currentFrameTime - window.lastFrameTime) / 16.666; // Normalized to 60fps
             if (dt > 3.0) dt = 3.0; // clamp max delta
@@ -8353,11 +8844,16 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             // EFEITOS: lentidão (-50%) e velocidade (+50%) afetam o passo
             let efeitosMove = window.meusEfeitos || [];
             let temEf = function (id) { return efeitosMove.some(function (e) { return e && e.id === id && e.tempo > 0; }); };
+            let controleInvertido = temEf('confusao');
+            let overlayConfusao = document.getElementById('confusao-overlay');
+            if (overlayConfusao) overlayConfusao.classList.toggle('ativo', controleInvertido);
             let multEfeitosVel = 1;
             if (temEf('lentidao')) multEfeitosVel *= 0.5;
+            let lentidaoDeserto = efeitosMove.find(function (e) { return e && e.id === 'deserto_lentidao' && e.tempo > 0; });
+            if (lentidaoDeserto) multEfeitosVel *= 1 - Math.min(0.9, Math.max(0, Number(lentidaoDeserto.intensidade) || 0.3));
             let efeitoVelocidade = efeitosMove.find(function (e) { return e && e.id === 'velocidade' && e.tempo > 0; });
             if (efeitoVelocidade) multEfeitosVel *= 1 + (Number(efeitoVelocidade.intensidade) || 0.5);
-            let efeitoTravaMovimento = temEf('paralisia') || temEf('sono');
+            let efeitoTravaMovimento = temEf('paralisia') || temEf('sono') || (window.canalizandoMeteoro === true);
 
             // =================================================================
             // DASH v2 — PREDICAO LOCAL (corre/investida/arranque)
@@ -8396,8 +8892,21 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             // O efeito `velocidade` já vem do servidor via efeitos_sync, mas
             // o espelho local abaixo evita 1 round-trip de lag no primeiro frame.
             let velocidadeAtual = ((typeof window.estaNaAgua === "function" && window.estaNaAgua(window.meuX, window.meuY)) ? 2.52 : 3.6) * bonusVelocidadeFuria * bonusVelocidadeAgilidade * multEfeitosVel;
+            if (window.currentMap === 'mundo' && window.mapaMundo) {
+                // Pico dos Relâmpagos: Carga Eletrostática (+20% velocidade)
+                if (typeof window.mapaMundo.ehTempestade === 'function' && window.mapaMundo.ehTempestade(window.meuX, window.meuY)) {
+                    velocidadeAtual *= 1.20;
+                }
+                // Água Tóxica do Pântano: Lentidão (-25% velocidade)
+                if (typeof window.mapaMundo.ehVeneno === 'function' && window.mapaMundo.ehVeneno(window.meuX, window.meuY)) {
+                    velocidadeAtual *= 0.75;
+                }
+            }
             if (!dashTravandoMovimento && window.dashMultVel && Date.now() < window.dashMultVelAte) {
                 velocidadeAtual *= window.dashMultVel;
+            }
+            if (window.vfxMagoFormaIgnea && window.vfxMagoFormaIgnea.ativo && Date.now() < window.vfxMagoFormaIgnea.expiraEm) {
+                velocidadeAtual *= 2.0;
             }
             if (dashTravandoMovimento) efeitoTravaMovimento = true;
 
@@ -8406,12 +8915,14 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 cancelarBateriaRoqueiro();
             }
 
-            // Gelo Liso na Zona Zero: física de deslizamento e inércia
+            // Gelo Liso na Tundra de Gaia e Zona Zero: física de deslizamento e inércia
             window.inerciaGeloX = window.inerciaGeloX || 0;
             window.inerciaGeloY = window.inerciaGeloY || 0;
-            const noGelo = (window.currentMap === 'zonazero' && typeof window.ehGeloZonaZero === 'function' && window.ehGeloZonaZero(window.meuX + 12, window.meuY + 16));
+            const noGelo = (window.currentMap === 'zonazero' && typeof window.ehGeloZonaZero === 'function' && window.ehGeloZonaZero(window.meuX + 12, window.meuY + 16)) ||
+                           (window.currentMap === 'mundo' && window.mapaMundo && typeof window.mapaMundo.ehBiomaGelo === 'function' && window.mapaMundo.ehBiomaGelo(window.meuX + 12, window.meuY + 16));
+            let movendoEntrada = (moveX !== 0 || moveY !== 0);
 
-            if (autofarmLigado && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo) {
+            if (autofarmLigado && !controleInvertido && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo) {
                 // Autofarm só cuida do DESLOCAMENTO até o inimigo; o ataque em si é o auto-attack (atualizarAutoAtaque abaixo).
                 let alvoMaisProximo = null; let menorDistancia = Infinity;
                 window.listaSlimes.forEach(slime => { if (slime.hp > 0) { let dist = Math.hypot(slime.x - window.meuX, slime.y - window.meuY); if (dist < menorDistancia) { menorDistancia = dist; alvoMaisProximo = slime; } } });
@@ -8428,11 +8939,13 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     }
                 }
             } else if (!window.transicaoMapaAtiva && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo && !window.snAimAtivo && !window.snPosicaoAtivo && ((moveX !== 0 || moveY !== 0) || (noGelo && (Math.abs(window.inerciaGeloX) > 0.08 || Math.abs(window.inerciaGeloY) > 0.08)))) {
-                let movendoEntrada = (moveX !== 0 || moveY !== 0);
+                let entradaMoveX = controleInvertido ? -moveX : moveX;
+                let entradaMoveY = controleInvertido ? -moveY : moveY;
+                movendoEntrada = (entradaMoveX !== 0 || entradaMoveY !== 0);
                 if (noGelo) {
                     if (movendoEntrada) {
-                        const velDesejadaX = (moveX / 2) * (velocidadeAtual / 1.8);
-                        const velDesejadaY = (moveY / 2) * (velocidadeAtual / 1.8);
+                        const velDesejadaX = (entradaMoveX / 2) * (velocidadeAtual / 1.8);
+                        const velDesejadaY = (entradaMoveY / 2) * (velocidadeAtual / 1.8);
                         window.inerciaGeloX += (velDesejadaX - window.inerciaGeloX) * 0.16;
                         window.inerciaGeloY += (velDesejadaY - window.inerciaGeloY) * 0.16;
                     } else {
@@ -8446,8 +8959,8 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     window.inerciaGeloY = 0;
                 }
 
-                let velPassoX = noGelo ? (window.inerciaGeloX * window.dt) : ((moveX / 2) * (velocidadeAtual / 1.8) * window.dt);
-                let velPassoY = noGelo ? (window.inerciaGeloY * window.dt) : ((moveY / 2) * (velocidadeAtual / 1.8) * window.dt);
+                let velPassoX = noGelo ? (window.inerciaGeloX * window.dt) : ((entradaMoveX / 2) * (velocidadeAtual / 1.8) * window.dt);
+                let velPassoY = noGelo ? (window.inerciaGeloY * window.dt) : ((entradaMoveY / 2) * (velocidadeAtual / 1.8) * window.dt);
 
                 let proximoX = window.meuX + velPassoX;
                 let proximoY = window.meuY + velPassoY;
@@ -8497,41 +9010,31 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 }
             } else if (window.estaMorto) { moveX = 0; moveY = 0; joystickBase.style.display = "none"; }
 
-            // REDE DE SEGURANÇA v1.34.2: se a posição vira NaN (bug cross-mapa ou
-            // dado corrompido), restaura a posição autoritativa do servidor e evita
-            // que currentMap caia no branch 'green' (tela toda verde).
-            if (!Number.isFinite(window.meuX) || !Number.isFinite(window.meuY)) {
+            // REDE DE SEGURANÇA: se a posição vira NaN ou sai dos limites do mapa 88000x28000, restaura
+            if (!Number.isFinite(window.meuX) || !Number.isFinite(window.meuY) || window.meuX < 100000 || window.meuX >= 188000 || window.meuY < 0 || window.meuY >= 28000) {
                 const ref = (window.meuId && window.todosJogadores && window.todosJogadores[window.meuId]) ? window.todosJogadores[window.meuId] : null;
-                if (ref && Number.isFinite(ref.x) && Number.isFinite(ref.y)) {
+                if (ref && Number.isFinite(ref.x) && ref.x >= 100000 && ref.x < 188000 && Number.isFinite(ref.y) && ref.y >= 0 && ref.y < 28000) {
                     window.meuX = ref.x;
                     window.meuY = ref.y;
                 } else {
-                    window.meuX = 60474;
-                    window.meuY = 640;
+                    window.meuX = window.SPAWN_MUNDO ? window.SPAWN_MUNDO.x : 144000;
+                    window.meuY = window.SPAWN_MUNDO ? window.SPAWN_MUNDO.y : 14018;
                 }
             }
-            if (window.meuX < 10) window.meuX = 10; if (window.meuX > WORLD_WIDTH - 30) window.meuX = WORLD_WIDTH - 30;
-            if (window.meuY < 10) window.meuY = 10;
-            // CORREÇÃO (canto preso): derivar o mapa ATUAL da posição ANTES do clamp de limites.
-            // Antes, o clamp usava o currentMap da frame ANTERIOR (padrão 'cidade'); um personagem
-            // salvo em outro mapa (ex.: Solari X=63800+) era puxado para FIM_CIDADE-42 (=X 61132)
-            // e ficava travado no canto, sem conseguir andar nem teleportar.
-            window.currentMap = mapaPorCoordenadaCliente(window.meuX) || 'cidade';
-            const mapaConfigLoop = mapaConfigCliente(window.currentMap === 'solari' ? 'solari' : window.currentMap) || mapaConfigCliente('green');
+            window.currentMap = 'mundo';
+            const mapaConfigLoop = mapaConfigCliente('mundo');
             let maxYMapa = mapaConfigLoop.y0 + mapaConfigLoop.h;
             if (window.meuY > maxYMapa - 40) window.meuY = maxYMapa - 40;
-            const cfgLimiteLoop = mapaConfigCliente(window.currentMap === 'solari' ? 'solari' : window.currentMap);
-            const limitesMapaAtual = cfgLimiteLoop ? [cfgLimiteLoop.x0, cfgLimiteLoop.x0 + cfgLimiteLoop.w] : null;
-            if (limitesMapaAtual) {
-                window.meuX = Math.max(limitesMapaAtual[0] + 10, Math.min(limitesMapaAtual[1] - 42, window.meuX));
-            }
+            if (window.meuY < mapaConfigLoop.y0 + 20) window.meuY = mapaConfigLoop.y0 + 20;
+            window.meuX = Math.max(mapaConfigLoop.x0 + 20, Math.min(mapaConfigLoop.x0 + mapaConfigLoop.w - 40, window.meuX));
             if (window.AudioManager && window._audioMapaAtual !== window.currentMap) {
                 window._audioMapaAtual = window.currentMap;
                 window.AudioManager.setMapAmbient(window.currentMap);
             }
-            if (typeof window.chainMapas === "object" && typeof window.chainMapas.onUpdatePosicao === "function") window.chainMapas.onUpdatePosicao(window.meuX, window.meuY);
 
-            let larguraVisivel = canvas.width / (window.cameraZoomAtual || ZOOM_CAMERA); let alturaVisivel = canvas.height / (window.cameraZoomAtual || ZOOM_CAMERA);
+            const cameraTiltY = (window.CAMERA_25D ? (window.CAMERA_TILT_Y || 0.88) : 1.0);
+            let larguraVisivel = canvas.width / (window.cameraZoomAtual || ZOOM_CAMERA); 
+            let alturaVisivel = canvas.height / ((window.cameraZoomAtual || ZOOM_CAMERA) * cameraTiltY);
             let cameraX = Math.max(0, Math.min(window.meuX - larguraVisivel / 2, Math.max(0, WORLD_WIDTH - larguraVisivel))); 
             let cameraY = Math.max(0, Math.min(window.meuY - alturaVisivel / 2, Math.max(0, WORLD_HEIGHT - alturaVisivel)));
             window.camX = cameraX; window.camY = cameraY;
@@ -8573,93 +9076,15 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
             ctx.setTransform(1, 0, 0, 0, 0, 0);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
-            if (window.currentMap === 'testevisual') {
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-            } else {
-                ctx.fillStyle = ({ ruinas_01: "#151522", castelo: "#0d0a07", zonazero: "#0a1622", solari: "#150f24", pantano: "#24301a", desert: "#d9b45c", caverna: "#1a0f0f", cidade: "#2c2a27", cidadeperdida: "#1c2a1d", floresta: "#12251a", nebulos: "#24501f", abissal: "#0a0714", pantano_sombrio: "#0e180d" })[window.currentMap] || "#163f18";
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-            }
-            ctx.save(); ctx.scale((window.cameraZoomAtual || ZOOM_CAMERA), (window.cameraZoomAtual || ZOOM_CAMERA)); ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
+            ctx.fillStyle = "#0a1926";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.save(); ctx.scale((window.cameraZoomAtual || ZOOM_CAMERA), (window.cameraZoomAtual || ZOOM_CAMERA) * cameraTiltY); ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
 
-            // ===== FUNDO + CENÁRIO: cada mapa é selecionado pelo ID =====
+            // ===== FUNDO + CENÁRIO: Continente de Gaia (Mundo Único) =====
             let tempoAnimacao = Date.now() / 1000;
-            if (window.currentMap === 'ruinas_01') {
-                if (typeof window.desenharMapaRuinas01 === "function") window.desenharMapaRuinas01(ctx, tempoAnimacao, cameraX, cameraY, larguraVisivel, alturaVisivel);
-            } else if (window.currentMap === 'bemvindo') {
-                ctx.fillStyle = "#07546a";
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenarioBemVindo === "function") window.desenharCenarioBemVindo(tempoAnimacao);
-            } else if (window.currentMap === 'castelo') {
-                ctx.fillStyle = "#0d0a07"; // pedra negra ancestral
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenarioCastelo === "function") window.desenharCenarioCastelo(tempoAnimacao);
-                if (typeof window.desenharPortalCasteloSaida === "function") window.desenharPortalCasteloSaida(tempoAnimacao);
-            } else if (window.currentMap === 'zonazero') {
-                ctx.fillStyle = "#0a1622";
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenarioZonaZero === "function") window.desenharCenarioZonaZero(tempoAnimacao);
-                if (typeof window.desenharPortalZonaZero === "function") window.desenharPortalZonaZero(tempoAnimacao);
-                if (typeof window.desenharPortalCasteloEntrada === "function") window.desenharPortalCasteloEntrada(tempoAnimacao);
-            } else if (window.currentMap === 'testevisual') {
-                if (typeof window.desenharCenarioTesteVisual === "function") window.desenharCenarioTesteVisual(tempoAnimacao);
-            } else if (window.currentMap === 'solari') {
-                ctx.fillStyle = (window.currentMap === 'solari') ? "#150f24" : "#141210";
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenarioSolari === "function") window.desenharCenarioSolari(tempoAnimacao);
-            } else if (window.currentMap === 'cidadeperdida') {
-                ctx.fillStyle = "#1c2a1d"; // cor de fundo da Cidade Perdida
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenarioCidadePerdida === "function") window.desenharCenarioCidadePerdida(tempoAnimacao);
-            } else if (window.currentMap === 'pantano') {
-                ctx.fillStyle = "#2c3a1d"; // cor de fundo do pântano (limpa o buffer)
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenarioPantano === "function") window.desenharCenarioPantano(tempoAnimacao);
-                if (typeof window.desenharPortalPantano === "function") window.desenharPortalPantano(tempoAnimacao);
-            } else if (window.currentMap === 'desert') {
-                ctx.fillStyle = "#d9b45c"; // cor de fundo do deserto (limpa o buffer)
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharDesertoCenario === "function") window.desenharDesertoCenario(tempoAnimacao);
-                if (typeof window.desenharPortalDeserto === "function") window.desenharPortalDeserto(tempoAnimacao);
-                if (typeof window.desenharPortalEntradaPantano === "function") window.desenharPortalEntradaPantano(tempoAnimacao);
-            } else if (window.currentMap === 'caverna') {
-                ctx.fillStyle = "#1a0f0f"; // cor de fundo da caverna
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenarioCaverna === "function") window.desenharCenarioCaverna(tempoAnimacao);
-                if (typeof window.desenharPortalCavernaSaida === "function") window.desenharPortalCavernaSaida(tempoAnimacao);
-            } else if (window.currentMap === 'cidade') {
-                ctx.fillStyle = "#2c2a27"; // cor de fundo da cidade
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenarioCidade === "function") window.desenharCenarioCidade(tempoAnimacao);
-                if (typeof window.desenharPortalSolari === "function") window.desenharPortalSolari(tempoAnimacao);
-                if (typeof window.desenharFerreiroNpc === "function") window.desenharFerreiroNpc(tempoAnimacao);
-            } else if (window.currentMap === 'floresta') {
-                // 🌲 Floresta dos Sussurros — renderizador próprio (ID única, x [90000,98000))
-                ctx.fillStyle = "#12251a";
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenarioFloresta === "function") window.desenharCenarioFloresta(tempoAnimacao);
-            } else if (window.currentMap === 'nebulos') {
-                // 🏘️ Floresta dos Nebulos — renderizador próprio (ID única, x [98000,107600))
-                ctx.fillStyle = "#24501f";
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenarioNebulos === "function") window.desenharCenarioNebulos(tempoAnimacao);
-            } else if (window.currentMap === 'abissal') {
-                // 🌌 Floresta Abissal — renderizador próprio (ID única, x [107600,117200))
-                ctx.fillStyle = "#0a0714";
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenarioAbissal === "function") window.desenharCenarioAbissal(tempoAnimacao);
-            } else if (window.currentMap === 'pantano_sombrio') {
-                // 🐊 Pântano Sombrio — renderizador próprio do zero (ID única, x [117200,126800))
-                ctx.fillStyle = "#0e180d";
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenarioPantanoSombrio === "function") window.desenharCenarioPantanoSombrio(tempoAnimacao);
-            } else {
-                ctx.fillStyle = "#163f18"; // cor de fundo do mapa verde (limpa o buffer)
-                ctx.fillRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
-                if (typeof window.desenharCenario === "function") window.desenharCenario(tempoAnimacao);
-                if (typeof window.desenharPortalVerde === "function") window.desenharPortalVerde(tempoAnimacao);
-                if (typeof window.desenharPortalCavernaVerde === "function") window.desenharPortalCavernaVerde(tempoAnimacao);
-                if (typeof window.desenharPortalCidadeVerde === "function") window.desenharPortalCidadeVerde(tempoAnimacao);
-            }
+            ctx.fillStyle = "#0e3250";
+            ctx.fillRect(100000, 0, 88000, 28000);
+            if (typeof window.desenharCenarioMundo === "function") window.desenharCenarioMundo(tempoAnimacao, ctx);
             // Captura somente o quadro do cenário antes do Y-SORT de personagens.
             // O Editor de Colisões usa este snapshot como fallback genérico para
             // desenhar camadas em mapas que não possuem um renderizador próprio.
@@ -8733,6 +9158,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             if (typeof window.desenharEfeitosPikeman === "function") window.desenharEfeitosPikeman();
             if (typeof window.desenharEfeitosFlorim === "function") window.desenharEfeitosFlorim();
             if (typeof window.desenharEfeitosKaledron === "function") window.desenharEfeitosKaledron();
+            if (typeof window.desenharEfeitosSummonerUpgrades === "function") window.desenharEfeitosSummonerUpgrades();
+            if (typeof window.desenharEfeitosGuerreiroUpgrades === "function") window.desenharEfeitosGuerreiroUpgrades();
+            if (typeof window.desenharEfeitosMagoUpgrades === "function") window.desenharEfeitosMagoUpgrades();
             if (typeof window.desenharMiraArcana === "function") window.desenharMiraArcana();
             if (typeof window.desenharMarcadorDrag === "function") window.desenharMarcadorDrag();
             if (typeof window.desenharMarcasBoss === "function") window.desenharMarcasBoss();
@@ -8783,20 +9211,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
             // ===== Y-SORT: profundidade entre cenário decorado, monstros e jogadores =====
             let spritesSort = [];
-            if (window.currentMap === 'zonazero' && typeof window.coletarZonaZeroSortables === "function") window.coletarZonaZeroSortables(tempoAnimacao, spritesSort);
-            if (window.currentMap === 'testevisual' && typeof window.coletarTestevisualSortables === "function") window.coletarTestevisualSortables(tempoAnimacao, spritesSort);
-            if ((window.currentMap === 'solari') && typeof window.coletarSolariSortables === "function") window.coletarSolariSortables(tempoAnimacao, spritesSort);
-            if (window.currentMap === 'desert' && typeof window.coletarDesertSortables === "function") window.coletarDesertSortables(tempoAnimacao, spritesSort);
-            if (window.currentMap === 'pantano' && typeof window.coletarPantanoSortables === "function") window.coletarPantanoSortables(tempoAnimacao, spritesSort);
-            if (window.currentMap === 'caverna' && typeof window.coletarCavernaSortables === "function") window.coletarCavernaSortables(tempoAnimacao, spritesSort);
-            if (window.currentMap === 'castelo' && typeof window.coletarCasteloSortables === "function") window.coletarCasteloSortables(tempoAnimacao, spritesSort);
-            if (window.currentMap === 'bemvindo' && typeof window.coletarBemVindoSortables === "function") window.coletarBemVindoSortables(tempoAnimacao, spritesSort);
-            if (window.currentMap === 'cidade' && typeof window.coletarCidadeSortables === "function") window.coletarCidadeSortables(tempoAnimacao, spritesSort);
-            if (window.currentMap === 'green' && typeof window.coletarVerdeSortables === "function") window.coletarVerdeSortables(tempoAnimacao, spritesSort);
-            if (window.currentMap === 'floresta' && typeof window.coletarFlorestaSortables === "function") window.coletarFlorestaSortables(tempoAnimacao, spritesSort);
-            if (window.currentMap === 'nebulos' && typeof window.coletarNebulosSortables === "function") window.coletarNebulosSortables(tempoAnimacao, spritesSort);
-            if (window.currentMap === 'abissal' && typeof window.coletarAbissalSortables === "function") window.coletarAbissalSortables(tempoAnimacao, spritesSort);
-            if (window.currentMap === 'pantano_sombrio' && typeof window.coletarPantanoSombrioSortables === "function") window.coletarPantanoSombrioSortables(tempoAnimacao, spritesSort);
+            if (typeof window.coletarMundoSortables === "function") window.coletarMundoSortables(tempoAnimacao, spritesSort);
             if (typeof window.coletarObjetosMapa === "function") window.coletarObjetosMapa(tempoAnimacao, spritesSort);
             if (typeof window.coletarCamadasMapaAtivo === "function") window.coletarCamadasMapaAtivo(tempoAnimacao, spritesSort);
 
@@ -8862,14 +9277,24 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
                 if (id !== window.meuId && (!pp || pp.hp <= 0 || posX < cameraBounds.minX || posX > cameraBounds.maxX || posY < cameraBounds.minY || posY > cameraBounds.maxY)) continue;
                 (function (pid, pj) {
+                    let basePosY = (pid === window.meuId ? window.meuY : (pj ? pj.y : 0));
+                    let basePosX = (pid === window.meuId ? window.meuX : (pj ? pj.x : 0));
+                    let elevSort = 0;
+                    if (window.currentMap === 'tileteste' && window.mapaTileTeste && typeof window.mapaTileTeste.heightAt === 'function') {
+                        elevSort = window.mapaTileTeste.heightAt(basePosX + 12, basePosY + 16);
+                    }
                     spritesSort.push({
-                        y: (pid === window.meuId ? window.meuY : (pj ? pj.y : 0)) + 16,
+                        y: basePosY + 16 - elevSort,
                         draw: function () {
                             let pp = window.todosJogadores[pid];
                             if (!pp) return;
                             let isSpinningPlayer = ((window.tornadoTimers[pid] || 0) > 0);
                             let classeJogador = (pid === window.meuId) ? window.minhaClasse : (pp.classe || 'guerreiro');
-                            let posX = (pid === window.meuId) ? window.meuX : pp.x; let posY = (pid === window.meuId) ? window.meuY : pp.y;
+                            let posX = (pid === window.meuId) ? window.meuX : pp.x;
+                            let posY = (pid === window.meuId) ? window.meuY : pp.y;
+                            if (window.currentMap === 'tileteste' && window.mapaTileTeste && typeof window.mapaTileTeste.heightAt === 'function') {
+                                posY -= window.mapaTileTeste.heightAt(posX + 12, posY + 16);
+                            }
                             let mov = (pid === window.meuId) ? isMoving : pp.moving; let ang = (pid === window.meuId) ? window.meuAngulo : pp.angulo;
                             let hpVal = (pid === window.meuId) ? window.meuHp : pp.hp; let maxHpVal = pp.maxHp || 100;
 
@@ -9123,6 +9548,41 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     ctx.lineTo(p.x - raioP, p.y - raioP * 0.4);
                     ctx.stroke();
                     ctx.restore();
+                } else if (p.tipo === 'cogumelo_veneno') {
+                    let raioP = p.raio || 8;
+                    let faseSpore = Date.now() / 170;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(faseSpore);
+                    ctx.shadowColor = '#c0ff48';
+                    ctx.shadowBlur = 13;
+                    ctx.fillStyle = '#92d84b';
+                    ctx.beginPath();
+                    ctx.arc(0, 0, raioP, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#e9ffad';
+                    ctx.beginPath();
+                    ctx.arc(-raioP * 0.25, -raioP * 0.3, raioP * 0.32, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+                } else if (p.tipo === 'louva_folha') {
+                    let raioP = p.raio || 8;
+                    ctx.save();
+                    ctx.translate(p.x, p.y);
+                    ctx.rotate(Math.atan2(p.vy || 0, p.vx || 1));
+                    ctx.shadowColor = '#a3e635';
+                    ctx.shadowBlur = 12;
+                    ctx.fillStyle = '#75b83b';
+                    ctx.beginPath();
+                    ctx.ellipse(0, 0, raioP * 1.7, raioP * 0.65, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.strokeStyle = '#e2ff9b';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.moveTo(-raioP * 1.2, 0);
+                    ctx.lineTo(raioP * 1.2, 0);
+                    ctx.stroke();
+                    ctx.restore();
                 } else if (p.tipo === 'fedido') {
                     let raioP = (p.raio || 9);
                     ctx.save();
@@ -9328,12 +9788,11 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
                 // Header do minimapa: bioma e coordenadas
                 if (minimapBioma) {
-                    let biomaLabel = (window.currentMap === 'ruinas_01') ? "🏚️ Ruínas de Âmbar" : (window.currentMap === 'pantano_sombrio') ? "🐊 Pântano Sombrio" : (window.currentMap === 'abissal') ? "🌌 Floresta Abissal" : (window.currentMap === 'floresta') ? "🌲 Floresta dos Sussurros" : (window.currentMap === 'nebulos') ? "🏘️ Floresta dos Nebulos" : (window.currentMap === 'bemvindo') ? "🏝️ Ilha BemVindo" : (window.currentMap === 'castelo') ? "🏯 Castelo Anda 1 (DG)" : ((window.currentMap === 'zonazero') ? "❄️ Zona Zero (Gelo)" : ((window.currentMap === 'testevisual') ? "🌿 Arena Visual (Pântano)" : ((window.currentMap === 'solari') ? "🔮 Solari" : ((window.currentMap === 'solari') ? "🔮 Solari" : ((window.currentMap === 'cidade') ? "🏰 Davahl" : ((window.currentMap === 'cidadeperdida') ? "🏛️ Cidade Perdida" : ((window.currentMap === 'caverna') ? "🕳️ Caverna" : ((window.currentMap === 'pantano') ? "🪷 Pântano" : ((window.currentMap === 'desert') ? "🏜️ Deserto" : "🌿 Verde")))))))));
+                    let biomaLabel = "🌍 " + (window.mapaMundo ? window.mapaMundo.biomaNome(window.meuX, window.meuY) : "Gaia");
                     minimapBioma.innerText = biomaLabel;
-                    if (window.currentMap === 'pantano') minimapBioma.innerText = '🌿 Pantanal';
                 }
                 if (minimapCoords) {
-                    minimapCoords.innerText = "X:" + Math.round(window.meuX) + " Y:" + Math.round(window.meuY);
+                    minimapCoords.innerText = "X: " + Math.round(window.meuX) + "  Y: " + Math.round(window.meuY);
                 }
 
                 let zoomCfg = (typeof MM_ZOOM_LEVELS !== 'undefined') ? MM_ZOOM_LEVELS[window.mmZoomIdx || 1] : { label: '2x', raio: 1400 };
@@ -9349,10 +9808,16 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         return { x: cx0 + (wx - window.meuX) * escala, y: cy0 + (wy - window.meuY) * escala };
                     }
 
-                    // Fundo temático do bioma ativo
-                    let corFundoBioma = (window.currentMap === 'pantano_sombrio') ? "#0d1a0c" : (window.currentMap === 'castelo') ? "#140e0a" : (window.currentMap === 'zonazero') ? "#0c1f2e" : (window.currentMap === 'testevisual') ? "#141f10" : (window.currentMap === 'solari') ? "#201430" : (window.currentMap === 'cidade') ? "#132333" : (window.currentMap === 'cidadeperdida') ? "#1c2a1d" : (window.currentMap === 'caverna') ? "#241315" : (window.currentMap === 'pantano') ? "#1a2714" : (window.currentMap === 'desert') ? "#4a3915" : (window.currentMap === 'floresta') ? "#0f2415" : (window.currentMap === 'nebulos') ? "#12240e" : (window.currentMap === 'abissal') ? "#0c0817" : "#163a1c";
-                    mmCtx.fillStyle = corFundoBioma;
-                    mmCtx.fillRect(0, 0, mw, mh);
+                    // Fundo temático do bioma ativo via Sistema Universal de Cartografia
+                    if (window.CartografiaUniversal && typeof window.CartografiaUniversal.desenharMinimapaUniversal === 'function') {
+                        window.CartografiaUniversal.desenharMinimapaUniversal(mmCtx, mw, mh, window.meuX, window.meuY, escala, window.currentMap, cx0, cy0);
+                    } else if (window.currentMap === 'mundo' && window.mapaMundo && typeof window.mapaMundo.desenharMinimapaMundo === 'function') {
+                        window.mapaMundo.desenharMinimapaMundo(mmCtx, mw, mh, window.meuX, window.meuY, escala, cx0, cy0);
+                    } else {
+                        let corFundoBioma = (window.currentMap === 'tileteste') ? "#1e3820" : (window.currentMap === 'pantano_sombrio') ? "#0d1a0c" : (window.currentMap === 'castelo') ? "#140e0a" : (window.currentMap === 'zonazero') ? "#0c1f2e" : (window.currentMap === 'testevisual') ? "#141f10" : (window.currentMap === 'solari') ? "#201430" : (window.currentMap === 'cidade') ? "#132333" : (window.currentMap === 'cidadeperdida') ? "#1c2a1d" : (window.currentMap === 'caverna') ? "#241315" : (window.currentMap === 'pantano') ? "#1a2714" : (window.currentMap === 'desert') ? "#8c7241" : (window.currentMap === 'floresta') ? "#0f2415" : (window.currentMap === 'nebulos') ? "#12240e" : (window.currentMap === 'abissal') ? "#0c0817" : "#163a1c";
+                        mmCtx.fillStyle = corFundoBioma;
+                        mmCtx.fillRect(0, 0, mw, mh);
+                    }
 
                     // Anéis e linhas de radar sutis
                     mmCtx.strokeStyle = "rgba(255, 255, 255, 0.08)";
@@ -9399,6 +9864,33 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                     mmCtx.stroke();
                                     mmCtx.restore();
                                 }
+                            } else if ((s.elite || (Array.isArray(s.tags) && s.tags.indexOf('elite') !== -1)) &&
+                                pos.x >= -9 && pos.x <= mw + 9 && pos.y >= -9 && pos.y <= mh + 9) {
+                                mmCtx.save();
+                                var pulsoElite = 0.75 + Math.sin(Date.now() / 180) * 0.25;
+                                mmCtx.shadowColor = '#ffe45c';
+                                mmCtx.shadowBlur = 8 * pulsoElite;
+                                mmCtx.strokeStyle = 'rgba(255,255,220,' + (0.75 + pulsoElite * 0.25) + ')';
+                                mmCtx.lineWidth = 1.3;
+                                mmCtx.beginPath();
+                                mmCtx.arc(pos.x, pos.y, 6.5 + pulsoElite, 0, Math.PI * 2);
+                                mmCtx.stroke();
+                                mmCtx.fillStyle = '#ffd54f';
+                                mmCtx.beginPath();
+                                for (let ponto = 0; ponto < 10; ponto++) {
+                                    let raio = ponto % 2 === 0 ? 5.5 : 2.5;
+                                    let angulo = -Math.PI / 2 + ponto * Math.PI / 5;
+                                    let px = pos.x + Math.cos(angulo) * raio;
+                                    let py = pos.y + Math.sin(angulo) * raio;
+                                    if (ponto === 0) mmCtx.moveTo(px, py);
+                                    else mmCtx.lineTo(px, py);
+                                }
+                                mmCtx.closePath();
+                                mmCtx.fill();
+                                mmCtx.strokeStyle = '#fffde7';
+                                mmCtx.lineWidth = 0.8;
+                                mmCtx.stroke();
+                                mmCtx.restore();
                             } else if (pos.x >= -5 && pos.x <= mw + 5 && pos.y >= -5 && pos.y <= mh + 5) {
                                 let corMob = (s.tipo === 'zumbi') ? "#00e676" : ((s.tipo === 'besouro_negro') ? "#ff9100" : ((s.tipo === 'morcego') ? "#d500f9" : "#ff3344"));
                                 mmCtx.fillStyle = corMob;
@@ -9511,6 +10003,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             }
 
             // Atualiza o Mapa Grande ao vivo caso esteja aberto
+            atualizarDescobertaMapaMundo();
             if (window.bigMapAberto) {
                 desenharBigMap();
             }

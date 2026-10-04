@@ -1,9 +1,102 @@
 # INFO DO PROJETO - MMORPG Mobile
 
-## Registro v1.69.2 - Correção do Botão da Coroa no HUD (Admin Cheats) e Acesso Dual PC & Mobile
+## Registro v1.73.14 - Ferramentas Admin do Mapa e Reset de Monstros por Bioma
 
 | Versao | Data | O que foi feito | Arquivos |
 |---|---|---|---|
+| v1.73.14 | 03/10/2026 23:46 (BRT) | Painel Cheats ganhou ação para revelar e salvar todo o Fog na conta/navegador; teleportes para os biomas pelo mapa mundial ficaram exclusivos para administradores, protegidos no cliente e servidor; monstros do mundo que tocam a divisória do bioma natal retornam à origem, recuperam 100% da vida e reiniciam combate/efeitos temporários. | admin-cheats.js, index.html, server.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.13 - Nova Arte e Fog of War no Mapa Mundial
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.73.13 | 03/10/2026 23:35 (BRT) | Substituída a arte do mapa; adicionado rótulo manual da Selva Proibida. Fog of War revela áreas ao explorar, oculta terreno e marcadores não descobertos e salva o progresso por conta no armazenamento local do navegador. Destinos oficiais continuam clicáveis. | sprites/mapas/futuro_mapa_mundo.jpg, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.12 - Substituição da Arte do Mapa Mundial
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.73.12 | 03/10/2026 23:29 (BRT) | Atualizada a imagem do mapa mundial pela nova versão enviada com os textos corrigidos. Mantidos os marcadores, a conversão das coordenadas e os cliques para teleporte existentes. | sprites/mapas/futuro_mapa_mundo.jpg, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.11 - Mapa Mundial com Arte Enviada
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.73.11 | 03/10/2026 23:25 (BRT) | O mapa grande exibe a imagem `sprites/mapas/futuro_mapa_mundo.jpg` preservando sua proporção, com marcador do jogador e destinos dos 18 biomas. Cliques convertem a área exibida da imagem para os destinos oficiais, também em canvas responsivo. | sprites/mapas/futuro_mapa_mundo.jpg, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.10 - Remoção de Fissuras da Costa Cristalina
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.73.10 | 03/10/2026 23:21 (BRT) | Removidas as linhas ciano procedurais exclusivas da Costa da Rocha Cristalina (RECIFE_CRISTAL), mantendo intactos as lagoas de mana, o terreno e as fissuras dos outros biomas. | mapas/mapa_mundo.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.9 - Menos Fissuras com Largura Original
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.73.9 | 03/10/2026 23:17 (BRT) | Restaurada a largura original dos veios e canais de lava; a quantidade de canais é reduzida espacialmente nos biomas Vulcão e Obsidiana, preservando a variação de largura das fissuras que permanecem. Mantida a correção de frestas entre chunks. | mapas/mapa_mundo.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.8 - Pré-carga de Sete Chunks
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.73.8 | 03/10/2026 23:16 (BRT) | A geração antecipada cobre continuamente o corredor da área visível atual até sete chunks adiante na direção do movimento; chunks fora da câmera são preparados, mas não desenhados. | mapas/mapa_mundo.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.7 - Fissuras Mais Raras e Costuras de Chunks
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.73.7 | 03/10/2026 23:14 (BRT) | Veios de magma do Vulcão/Obsidiana reduzidos em 75% e canais de lava tornados bem menos frequentes; a detecção ambiental de lava permanece alinhada. Ao desenhar, chunks vizinhos se sobrepõem por um texel para cobrir frestas de arredondamento nas divisões. | mapas/mapa_mundo.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.6 - Aumento da Distância de Pré-carga
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.73.6 | 03/10/2026 23:12 (BRT) | A região de pré-carga avança cerca de 4 telas além do campo visível, a fila dá maior prioridade aos chunks na direção do movimento e o orçamento de geração sobe para 5ms por quadro enquanto o jogador se desloca. O desenho permanece restrito aos chunks visíveis. | mapas/mapa_mundo.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.5 - Pré-carga Mais Distante e Prévia Texturizada do Terreno
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.73.5 | 03/10/2026 23:08 (BRT) | Chunks incompletos exibem uma prévia procedural texturizada de baixa resolução; a fila prioriza a área visível, conclui cada chunk antes de avançar e antecipa a geração em cerca de uma tela na direção do movimento. O orçamento sobe para 4ms por quadro durante o deslocamento. | mapas/mapa_mundo.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.4 - Correção de Cenário Azul ao Caminhar
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.73.4 | 03/10/2026 23:03 (BRT) | Corrigida referência inválida à função que agenda chunks à frente do jogador. O erro interrompia o renderizador ao caminhar após teleportar, deixando o fundo azul como única imagem. Atualizado cache-buster do mapa. | mapas/mapa_mundo.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.3 - Carregamento do Terreno no Teleporte e Pré-carga
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.73.3 | 03/10/2026 22:43 (BRT) | Tela de carregamento no teleporte aguarda todos os chunks visíveis do destino e tem watchdog de segurança. A geração recebe orçamento temporariamente maior durante a transição. Ao caminhar, a fila prepara e prioriza chunks de uma tela adiante na direção observada do deslocamento. | mapas/mapa_mundo.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.2 - Ajustes Visuais do Terreno
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.73.2 | 03/10/2026 22:28 (BRT) | Removidos brilhos pontuais e flores de quatro pontos amarelos do chão; canais internos e caminhos/veios procedurais nos biomas foram reduzidos. O limiar de terreno perigoso de lava foi alinhado com a densidade visual menor. | mapas/mapa_mundo.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.1 - Correções do Mapa Mundial
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.73.1 | 03/10/2026 22:13 (BRT) | O teleporte pelo mapa usa os 18 centros oficiais dos biomas; permissões antigas de mapas separados não bloqueiam destinos do mundo integrado. Geração de chunks do terreno agora é incremental com orçamento por quadro, prioriza a região visível, descarta tarefas distantes e desenha a cor real do bioma enquanto o detalhe termina, eliminando o retângulo azul de carregamento e reduzindo travadas. | server.js, mapas/mapa_mundo.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.73.0 - Deserto e Selva Proibida
+
+| Versao | Data | O que foi feito | Arquivos |
+| v1.73.0 | 03/10/2026 21:59 (BRT) | Besouro Negro Elite em escala 2.7; movimento, cadência de ataque e animações do Deserto acelerados; spawns/patrulhas/respawns limitados aos biomas. Quatro monstros da Selva com spritesheets, IA, habilidades, projéteis e debuffs/buffs visíveis: Cogumelo cura e protege aliados, envenena e causa Confusão por 5s; Louvadermi reduz velocidade de ataque e rouba mana; Anaconda e Jararaca são rápidas. Confusão inverte teclado/joystick e aplica efeito cromático; sons espaciais CC0 de caminhada, ataque, hit e habilidade com licença incluída. | server.js, spawns.js, monster_configs.json, spawn-admin.js, debuffs.js, monstros.js, index.html, audio-manager.js, Sonoro/Monstros/passos_selva_cc0.ogg, Sonoro/Monstros/impacto_selva_cc0.ogg, Sonoro/Monstros/ataque_serpente_cc0.ogg, Sonoro/Monstros/ataque_cogumelo_cc0.ogg, Sonoro/Monstros/ataque_louva_cc0.ogg, Sonoro/Monstros/LICENSE_KENNEY_IMPACT.txt, CHANGELOG.md, INFO_PROJETO.md, REGRAS_IA.md |
+|---|---|---|---|
+
+## Registro v1.72.1 - Regra Permanente de Animação dos Monstros
+
+| Versao | Data | O que foi feito | Arquivos |
+| v1.72.1 | 03/10/2026 21:28 (BRT) | Regra permanente: enquanto o monstro se desloca, walk/run/kite/dodge prevalece sobre ataque/hit; essas animações só prevalecem quando parado. Mantida no renderizador genérico para todos os próximos monstros. Versão do jogo atualizada. | REGRAS_IA.md, CHANGELOG.md, INFO_PROJETO.md, index.html |
+|---|---|---|---|
+| v1.71.0 | 02/10/2026 | Sistema unificado e centralizado de badges de debuffs acima da vida de inimigos em Canvas 2D (Stun, Lentidão, Prisão de Placas / Enraizamento, Fratura Exposta, Fratura Defensiva, Marca da Presa, Queimadura, Redução ATK), barra de HP do Golem na cor roxa com barra invertida de contagem regressiva da Skill 3 (Golem Colossal) em chamas âmbar/ouro, correção da mecânica e efeitos visuais da Prisão de Placas (Esmagamento 3A) e Martelo do Colosso (Esmagamento 4B), inclusão da Skill 4 (Golem Sísmico com ícone ⛰️) na janela K em ordem sequencial de combate. | classes/comum.js, classes/summoner.js, server.js, efeitos/vfx_summoner_upgrades.js, skills.js, index.html, teste_summoner_debuffs_e_vfx.js, CHANGELOG.md, INFO_PROJETO.md, REGRAS_IA.md |
+| v1.70.0 | 02/10/2026 | Correção definitiva do ganho e exibição de pontos de upgrades a cada 10 leveis (sincronização de level no cliente e polimorfismo no servidor), criação da suíte completa de efeitos visuais de alta performance Canvas 2D (60 FPS) para todos os upgrades da Summoner em `efeitos/vfx_summoner_upgrades.js`. | efeitos/vfx_summoner_upgrades.js, skill_upgrade_tree.js, skill_tree_ui.js, server.js, index.html, admin-cheats.js, teste_summoner_vfx_upgrades.js, CHANGELOG.md, INFO_PROJETO.md, REGRAS_IA.md |
 | v1.69.2 | 02/10/2026 | Correção e garantia de exibição do botão da coroa (`#btn-admin-cheats`) no HUD e novo atalho dedicado na barra lateral mobile (`#mobile-sidebar-dropdown` -> `#mobile-sidebar-item-admin`), normalização case-insensitive na verificação de admins em `spawns.js`, identificação robusta de admins em `server.js` (`personagem_selecionar`) e no cliente `index.html`. | server.js, spawns.js, index.html, admin-cheats.js, teste_admin_level_up.js, CHANGELOG.md, INFO_PROJETO.md, REGRAS_IA.md |
 | v1.69.1 | 02/10/2026 | Opção administrativa de Level Up com 1 clique (+1 LVL, +10 LVL e reset para LVL 1) integrada no Painel de Cheats Admin (`admin-cheats.js`), atalhos diretos no topo da janela de Árvore de Upgrades (`skill_tree_ui.js`), expansão de `NIVEL_MAXIMO` para 100 com tabela dinâmica e handlers autoritativos no `server.js` para testes ágeis de progressão e upgrades. | server.js, admin-cheats.js, skill_tree_ui.js, skills.css, index.html, teste_admin_level_up.js, CHANGELOG.md, INFO_PROJETO.md, REGRAS_IA.md |
 | v1.69.0 | 01/10/2026 | Sistema de Árvore de Upgrades de Habilidades exclusivo da classe Summoner (4 skills: Esmagamento Sísmico, Salto do Ogro, Golem Colossal, Golem Sísmico), 32 upgrades com caminhos A/B, regra de revelação progressiva (Enigma), pontos a cada 10 níveis (máx 10), validação e persistência server-authoritative e interface responsiva dual PC/Mobile. | skill_upgrade_tree.js, skill_tree_ui.js, skills.js, skills.css, server.js, index.html, teste_summoner_tree_v1.js, CHANGELOG.md, INFO_PROJETO.md, REGRAS_IA.md |
@@ -45,6 +138,8 @@
 ### 📊 Histórico de Atualizações
 
 | Versão | Data / Hora | O que foi feito | Arquivos Alterados |
+| **v1.70.0** | 02/10/2026 | **CORREÇÃO DEFINITIVA DO GANHO DE PONTOS POR NÍVEL NA ÁRVORE DE UPGRADES E OVERHAUL VISUAL COMPLETO COM EFEITOS EXCLUSIVOS PARA CADA UPGRADE DA CLASSE SUMMONER (CANVAS 2D 60 FPS, DUAL PC & MOBILE):** (1) **Correção Raiz do Ganho e Exibição de Pontos a Cada 10 Níveis:** Identificado e corrigido o problema onde `meuLevel` não estava sincronizado com `window.meuLevel` e `window.meuNivel` em `index.html`, fazendo com que a UI da Árvore de Upgrades (`skill_tree_ui.js`) lesse `window.meuNivel` como `undefined` (fallback para nível 1), travando o cálculo em 0 pontos disponíveis e exibindo incorretamente `REQUER NÍVEL 10`. Criado o helper universal e resiliente `obterNivelJogador()` em `skill_tree_ui.js`, sincronização em todas as chegadas de pacotes (`init`, `xp_ganho`, `skill_upgrades_sync`, `skill_upgrade_tree_sucesso`, `skill_upgrades_tree_reset_sucesso`) e atualização instantânea e otimista nos cliques do painel Admin (`admin-cheats.js`); (2) **Polimorfismo e Estabilidade no Servidor (`server.js` e `skill_upgrade_tree.js`):** Ajustada `SkillUpgradeTree.gerarVisaoCliente(skillUpgrades, level)` para suportar assinatura polimórfica, garantindo que o servidor e o cliente sempre sincronizem `pontosDisponiveis`, `pontosGanhos` e `pontosGastos` com base na fórmula `Math.min(10, Math.floor(level / 10))` sem qualquer erro ou dessincronização; (3) **Motor Gráfico de Efeitos Visuais Exclusivos da Summoner (`efeitos/vfx_summoner_upgrades.js`):** Implementada suíte completa de VFX de alta fidelidade e performance (60 FPS Canvas 2D) cobrindo os upgrades da Invocadora: (a) *Fenda Persistente (Esmagamento 1A)*: Fissuras profundas no solo com lava mágica violeta e névoa ascendente por 4s; (b) *Impacto Duplo (Esmagamento 1B)*: Implosão subterrânea atrasada (800ms) com tremor de tela e estilhaços balísticos; (c) *Pulso Magnético / Atração (Esmagamento 2B)*: Vórtice gravitacional centrípeto violeta puxando inimigos; (d) *Terremoto Devastador (Esmagamento 4B)*: Três fraturas tectônicas radiais em 120° rasgando o solo; (e) *Cratera de Impacto (Salto 1B)*: Depressão afundada com borda rochosa e fumaça por 5s; (f) *Marca da Presa (Salto 1A)*: Retículo arcano holográfico rotativo com cruz luminosa sobre o alvo e feixe tether de energia conectando o Golem à presa; (g) *Onda de Choque Sísmica (Salto 2B)*: Anel acústico expansivo com raios elétricos violetas e partículas de poeira; (h) *Barreira da Invocadora (Salto 3A)*: Cúpula ametista luminosa com 3 escudos rúnicos em órbita contínua ao redor da Invocadora; (i) *Presa Inescapável / Garras da Terra (Salto 4A)*: Estalagmites e garras pontiagudas de rocha brotando do chão para imobilizar o inimigo; (j) *Meteoro Sísmico (Sísmico 2B)*: Meteoritos de cristal violeta cadentes com rastro flamejante e cratera explosiva; (k) *Colapso Final (Sísmico 4B)*: Supernova implosiva cataclímica de raio 260px ao término do Golem Sísmico; (l) *Último Bastião (Colossal 4A)*: Cúpula celestial sagrada dourada ativada no limiar da sobrevivência com imunidade; (m) *Munição Incandescente e Estilhaços (Colossal 1B/3B)*: Projéteis de rocha flamejantes com brilho ardente e estilhaçamento balístico; (4) **Validação Automatizada:** Testes `teste_admin_level_up.js`, `teste_summoner_tree_v1.js` e a nova suíte `teste_summoner_vfx_upgrades.js` executados e aprovados com 100% de sucesso. | `efeitos/vfx_summoner_upgrades.js` (novo), `teste_summoner_vfx_upgrades.js` (novo), `skill_upgrade_tree.js`, `skill_tree_ui.js`, `server.js`, `index.html`, `admin-cheats.js`, `efeitos/mago_efeitos.js`, `teste_admin_level_up.js`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
+| **v1.69.2** | 02/10/2026 | **CORREÇÃO CRÍTICA DO BOTÃO DA COROA NO HUD (PAINEL ADMIN / CHEATS) E ACESSO DUAL PC & MOBILE:** (1) **Identificação Robusta de Admin no Servidor (`server.js`):** Corrigida a detecção de `ehAdminConta` em `personagem_selecionar` para checar `ws.ehAdminContaGlobal`, `contaId`, `userId`, `dadosSalvos.owner` e `spawnsAdmin.ehAdmin()`, garantindo que personagens de administradores sempre recebam `isAdmin: true` e `admin: true` no pacote `init`; (2) **Normalização Case-Insensitive em `spawns.js`:** Corrigido o cache de administradores para converter todas as entradas para minúsculas, evitando falhas de correspondência de maiúsculas/minúsculas (`Admin` vs `admin`); (3) **Identificação e Visibilidade no Cliente (`index.html`):** Corrigida a determinação de `window.ehAdmin` para verificar `dados.admin`, `window.meuId` (incluindo prefixo `heroi_admin`), `dados.nome`, `localStorage.getItem('mmorpg_user_id')` e `localStorage.getItem('mmorpg_conta_id')`; (4) **Garantia de Exibição do Botão Coroa (`admin-cheats.js` e `index.html`):** O botão `#btn-admin-cheats` agora recebe exibição forçada (`display: flex !important`) na inicialização do HUD; (5) **Suporte Mobile Dedicado:** Adicionado o item `👑 Admin Cheats` (`#mobile-sidebar-item-admin`) dentro do dropdown da barra lateral mobile (`#mobile-sidebar-dropdown`), garantindo que administradores em dispositivos móveis possam abrir o painel tanto pela coroa quanto pelo menu lateral; (6) **Testes Automatizados:** Suíte `teste_admin_level_up.js` atualizada para validar `v1.69.2`, integridade do botão coroa e item mobile. | `server.js`, `spawns.js`, `index.html`, `admin-cheats.js`, `teste_admin_level_up.js`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.69.1** | 02/10/2026 | **OPÇÃO ADMINISTRATIVA DE SUBIR DE NÍVEL COM 1 CLIQUE (+1 LVL / +10 LVL / RESET LVL 1) PARA TESTES DE PROGRESSÃO E ÁRVORE DE UPGRADES (DUAL PC & MOBILE):** (1) **Painel de Cheats Admin (`admin-cheats.js`):** Adicionado card dedicado `⭐ Subir Nível (Level Up)` com botões `⭐ +1 NÍVEL`, `🌟 +10 NÍVEIS` e `🔄 LVL 1`, permitindo subir de nível instantaneamente com um clique para testar a progressão e árvores de upgrades; (2) **Atalhos na Janela da Árvore de Upgrades (`skill_tree_ui.js` e `skills.css`):** Adicionados botões de nível `👑 +1 LVL` e `🌟 +10 LVL` diretamente no cabeçalho da janela da árvore de upgrades quando logado como Admin, permitindo subir de nível e desbloquear tiers sem precisar fechar o modal; (3) **Autoridade no Servidor (`server.js`):** Expansão do `NIVEL_MAXIMO` para 100 com tabela de XP dinâmica, e novos handlers autoritativos `admin_subir_level` e `admin_resetar_level` protegidos por validação de admin, recalculando atributos, pontos de habilidade, pontos de upgrade e persistindo no save; (4) **Validação Automatizada:** Criação da suíte `teste_admin_level_up.js` 100% aprovada. | `server.js`, `admin-cheats.js`, `skill_tree_ui.js`, `skills.css`, `index.html`, `teste_admin_level_up.js` (novo), `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.69.0** | 01/10/2026 | **SISTEMA DE ÁRVORE DE UPGRADES DE HABILIDADES EXCLUSIVO PARA A CLASSE SUMMONER (32 UPGRADES FUNCIONAIS, ESCOLHAS A/B, REVELAÇÃO PROGRESSIVA ENIGMA, PONTOS A CADA 10 NÍVEIS, AUTORIDADE SERVER-SIDE E INTERFACE DUAL PC/MOBILE):** (1) **Módulo Isomórfico Central (`skill_upgrade_tree.js`):** Arquitetura extensível de árvores de upgrades para as 4 habilidades principais da Summoner (`esmagamento`, `salto`, `colossal`, `sismico`), com 32 upgrades funcionais divididos em 4 Tiers por skill (Nv 10, Nv 20, Nv 30, Nv 40), cada qual com bifurcação funcional A/B; (2) **Regra de Pontos e Progressão:** Exatamente +1 ponto a cada 10 níveis (`min(floor(level/10), 10)`, máximo 10 pontos); (3) **Revelação Progressiva (Enigma):** Tiers futuros protegidos como `??? / BLOQUEADO`; (4) **Autoridade Server-Side:** 32 upgrades integrados no combate; (5) **Interface Dual PC & Mobile:** Indicador de diamante âmbar (`◆`), pips (`●●○○` / `●●●●`), modal com caminhos A/B e reset gratuito. | `skill_upgrade_tree.js`, `skill_tree_ui.js`, `skills.js`, `skills.css`, `server.js`, `index.html`, `teste_summoner_tree_v1.js`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |
 | **v1.68.0** | 01/10/2026 | **REFORMULAÇÃO VISUAL COMPLETA DO GUERREIRO (VANGUARDA IMPERIAL: LANÇA DE BATALHA, ESCUDO OGIVAL DO LEÃO DOURADO, ARMADURA DE PLACAS GRAVADAS E NOVOS EFEITOS VISUAIS):** (1) **Visual Procedural Completo do Guerreiro (`classes/guerreiro.js`):** Substituição integral do visual antigo pela estética medieval de cavaleiro/cruzado de elite baseada na referência visual: armadura de placas completa de aço prateado com relevos e arabescos gravados, elmo Great Helm fechado com visor cruciforme e furos de respiração, cota de malha no saiote, cinturão com fivela dourada e capa escura; (2) **Novas Armas (Lança de Batalha & Escudo Ogival do Leão):** A espada curta e broquel circular foram substituídos por: (a) **Lança de Batalha:** haste longa de madeira nobre polida, lâmina foliar de aço afiada com nervura central e contra-gumes, aletas douradas na base da guarda e borla carmesim na ponta; (b) **Escudo Ogival do Leão Dourado (Kite Shield):** escudo em gota com borda chanfrada em ouro reluzente, campo azul-aço e imponente brasão do Leão Rampante dourado renderizado proceduralmente em vetor Canvas 2D; (3) **Novas Animações e Posturas:** Estocada penetrante com lança e impacto estelar de faíscas metálicas, postura de defesa e investida com o escudo em primeiro plano, e giro tempestuoso de 360° com rastro cortante em arco crescente; (4) **Efeitos Visuais e Habilidades Reformuladas (`efeitos/vfx_guerreiro_escudo.js`, `efeitos/guerreiro_efeitos.js`, `skills.js`):** (a) **Skill 1 (Aura do Vanguarda):** Cúpula dourada sagrada com arcos em filigrana, escudos rúnicos orbitando e partículas estelares reluzentes; (b) **Skill 2 (Giro do Vanguarda):** Turbilhão de 360° com varredura da lança e ondas concêntricas de vento e poeira; (c) **Skill 3 (Grito Estrondoso):** Ondas acústicas concêntricas de choque sônico emanadas do elmo e cruzes de cura flutuantes em verde brilhante; (d) **Skill 4 (Lançamento de Escudo):** Projétil do novo Escudo Ogival giratório com leão dourado, cópias translúcidas (afterimage) e corda de energia esmeralda/dourada conectando o guerreiro ao alvo; (5) **Integridade Mecânica & Lore:** 100% das mecânicas, dano, CDs e rede mantidos intactos; lore atualizada em `personagens-historias.js` e interface/cards em `index.html`. | `classes/guerreiro.js`, `efeitos/vfx_guerreiro_escudo.js`, `efeitos/guerreiro_efeitos.js`, `skills.js`, `personagens-historias.js`, `index.html`, `CHANGELOG.md`, `INFO_PROJETO.md`, `REGRAS_IA.md` |

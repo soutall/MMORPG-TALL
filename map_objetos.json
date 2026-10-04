@@ -1363,5 +1363,50 @@
     "camada": "meio",
     "efeito": "",
     "efeitoCor": "#ffd166"
+  },
+  {
+    "id": "obj_muskfghx_6s1hs",
+    "tipo": "tocha",
+    "mapa": "floresta",
+    "x": 93028,
+    "y": 2920,
+    "w": 22,
+    "h": 48,
+    "escala": 1,
+    "variante": 0,
+    "colisao": true,
+    "camada": "meio",
+    "efeito": "",
+    "efeitoCor": "#ffd166"
+  },
+  {
+    "id": "obj_muskfkv2_b6x82",
+    "tipo": "tocha",
+    "mapa": "floresta",
+    "x": 93034,
+    "y": 3077,
+    "w": 22,
+    "h": 48,
+    "escala": 1,
+    "variante": 0,
+    "colisao": true,
+    "camada": "meio",
+    "efeito": "",
+    "efeitoCor": "#ffd166"
+  },
+  {
+    "id": "obj_mut2mmtn_7laaq",
+    "tipo": "placa",
+    "mapa": "mundo",
+    "x": 143760,
+    "y": 13892,
+    "w": 24,
+    "h": 44,
+    "escala": 1.4,
+    "variante": 0,
+    "colisao": true,
+    "camada": "meio",
+    "efeito": "",
+    "efeitoCor": "#ffd166"
   }
 ]

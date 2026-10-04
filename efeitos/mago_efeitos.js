@@ -79,6 +79,11 @@ function desenharMeteorosMago(ctx) {
     for (let i = window.meteorosMagoAtivos.length - 1; i >= 0; i--) {
         const m = window.meteorosMagoAtivos[i];
         m.timer++;
+        if (m.timer >= (m.maxTimer || 52)) {
+            window.meteorosMagoAtivos.splice(i, 1);
+            continue;
+        }
+        if (window.EngineOtimizador && !window.EngineOtimizador.estaNaTela(m.x, m.y, 200)) continue;
 
         const pre = Math.min(1, m.timer / 18);
         const impactT = Math.max(0, (m.timer - 34) / 12);
@@ -247,6 +252,11 @@ function desenharNevascasMago(ctx) {
     for (let i = window.nevascasMagoAtivas.length - 1; i >= 0; i--) {
         const n = window.nevascasMagoAtivas[i];
         n.timer++;
+        if (n.timer > n.duracao + 35) {
+            window.nevascasMagoAtivas.splice(i, 1);
+            continue;
+        }
+        if (window.EngineOtimizador && !window.EngineOtimizador.estaNaTela(n.x, n.y, n.raio || 150)) continue;
         const ciclo = n.timer * 0.07;
         const vida = clamp01(1 - Math.max(0, n.timer - n.duracao) / 35);
 
@@ -348,10 +358,14 @@ function desenharNevascasMago(ctx) {
 // VULCÃO
 // =====================================================================
 window.pedrasEnormesAtivas = window.pedrasEnormesAtivas || [];
-window.criarPedraEnorme = function(sx, sy, tx, ty) {
+window.criarPedraEnorme = function(sx, sy, tx, ty, flags) {
+    flags = flags || {};
     window.pedrasEnormesAtivas.push({
         sx, sy, tx, ty, progresso: 0, velocidade: 0.05,
-        rot: 0, seed: Math.random() * 1000
+        rot: 0, seed: Math.random() * 1000,
+        gigante: !!flags.gigante,
+        incandescente: !!flags.incandescente,
+        estilhacos: !!flags.estilhacos
     });
 };
 
@@ -364,7 +378,7 @@ window.desenharPedrasEnormes = function() {
         p.rot += 0.2;
         if (p.progresso >= 1) {
             window.pedrasEnormesAtivas.splice(i, 1);
-            if (typeof window.tremorTela !== 'undefined') window.tremorTela = 6;
+            if (typeof window.tremorTela !== 'undefined') window.tremorTela = p.gigante ? 12 : 6;
             continue;
         }
         const t = p.progresso;
@@ -372,19 +386,36 @@ window.desenharPedrasEnormes = function() {
         const curY = p.sy + (p.ty - p.sy) * t - 100 * Math.sin(t * Math.PI);
         ctx.save();
         ctx.translate(curX, curY);
+
+        const esc = p.gigante ? 1.6 : 1.0;
+        ctx.scale(esc, esc);
         ctx.rotate(p.rot);
+
+        // Brilho incandescente se munição de fogo
+        if (p.incandescente) {
+            ctx.shadowColor = '#f97316';
+            ctx.shadowBlur = 14;
+        }
+
         const rg = ctx.createLinearGradient(-12, -14, 12, 12);
-        rg.addColorStop(0, '#8a6547');
-        rg.addColorStop(0.5, '#5e422f');
-        rg.addColorStop(1, '#2f2118');
+        if (p.incandescente) {
+            rg.addColorStop(0, '#f97316');
+            rg.addColorStop(0.5, '#b91c1c');
+            rg.addColorStop(1, '#450a0a');
+        } else {
+            rg.addColorStop(0, '#8a6547');
+            rg.addColorStop(0.5, '#5e422f');
+            rg.addColorStop(1, '#2f2118');
+        }
         ctx.fillStyle = rg;
         ctx.beginPath();
         ctx.moveTo(-12, -10); ctx.lineTo(-1, -16); ctx.lineTo(13, -7);
         ctx.lineTo(10, 8); ctx.lineTo(-7, 14); ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = '#2a1c14';
-        ctx.lineWidth = 1.5;
+        ctx.strokeStyle = p.incandescente ? '#fef08a' : '#2a1c14';
+        ctx.lineWidth = p.incandescente ? 2.0 : 1.5;
         ctx.stroke();
+        ctx.shadowBlur = 0;
         ctx.restore();
     }
 };
@@ -532,6 +563,7 @@ function desenharVulcoes(ctx, agora) {
     for (let i = window.vulcoesAtivos.length - 1; i >= 0; i--) {
         const v = window.vulcoesAtivos[i];
         v.timer++;
+        if (window.EngineOtimizador && !window.EngineOtimizador.estaNaTela(v.x, v.y, (v.radius || 100) + 80)) continue;
 
         const progEmergir = Math.min(1, v.timer / v.emergirDuracao);
         const easeEmergir = 1 - Math.pow(1 - progEmergir, 3);
@@ -541,38 +573,73 @@ function desenharVulcoes(ctx, agora) {
         ctx.save();
         ctx.translate(v.x, v.y);
 
-        // Luz quente sobre o chão.
-        const heat = ctx.createRadialGradient(0, 7, 2, 0, 7, v.radius * 0.72);
-        heat.addColorStop(0, 'rgba(255,170,55,0.15)');
-        heat.addColorStop(0.4, 'rgba(230,60,20,0.08)');
-        heat.addColorStop(1, 'rgba(150,20,0,0)');
-        ctx.fillStyle = heat;
+        // Terreno vulcânico calcinado realista e luz térmica profunda sobre o chão
+        const pulsoVulcao = Math.sin(agora / 180) * 0.15 + 0.85;
+
+        // 1. Mancha profunda de terra calcinada e cinzas sob o vulcão
+        const soloBasalto = ctx.createRadialGradient(0, 7, 6, 0, 7, v.radius * 0.78);
+        soloBasalto.addColorStop(0, 'rgba(25, 12, 8, 0.85)');
+        soloBasalto.addColorStop(0.5, 'rgba(42, 22, 14, 0.65)');
+        soloBasalto.addColorStop(0.82, 'rgba(60, 28, 16, 0.35)');
+        soloBasalto.addColorStop(1, 'rgba(0, 0, 0, 0)');
+        ctx.fillStyle = soloBasalto;
         ctx.beginPath();
-        ctx.ellipse(0, 7, v.radius * 0.72, v.radius * 0.24, 0, 0, Math.PI * 2);
+        ctx.ellipse(0, 7, v.radius * 0.78, v.radius * 0.28, 0, 0, Math.PI * 2);
         ctx.fill();
 
-        // Fissuras do terreno.
-        if (v.timer < v.emergirDuracao) {
-            const brilhoRach = Math.min(1, v.timer / 15);
-            for (let r = 0; r < v.rachaduras.length; r++) {
-                const rach = v.rachaduras[r];
-                if (v.timer < rach.delay) continue;
-                const progR = Math.min(1, (v.timer - rach.delay) / 12);
+        // 2. Halo incandescente térmico do magma subterrâneo
+        const heat = ctx.createRadialGradient(0, 7, 2, 0, 7, v.radius * 0.65);
+        heat.addColorStop(0, `rgba(255, 230, 110, ${0.45 * pulsoVulcao})`);
+        heat.addColorStop(0.35, `rgba(249, 115, 22, ${0.32 * pulsoVulcao})`);
+        heat.addColorStop(0.75, 'rgba(185, 28, 28, 0.18)');
+        heat.addColorStop(1, 'rgba(150, 20, 0, 0)');
+        ctx.fillStyle = heat;
+        ctx.beginPath();
+        ctx.ellipse(0, 7, v.radius * 0.65, v.radius * 0.24, 0, 0, Math.PI * 2);
+        ctx.fill();
 
-                ctx.save();
-                ctx.rotate(rach.ang);
-                ctx.beginPath();
-                ctx.moveTo(5, 0);
-                ctx.lineTo(5 + rach.comp * progR, Math.sin(r * 2.1) * 1.8);
-                ctx.strokeStyle = 'rgba(255,86,28,' + (0.55 + brilhoRach * 0.45) + ')';
-                ctx.lineWidth = rach.largura * progR;
-                ctx.shadowColor = '#ff4d18';
-                ctx.shadowBlur = 8;
-                ctx.stroke();
-                ctx.restore();
-            }
+        // 3. Fissuras tectônicas de magma persistentes que pulsam com a respiração do vulcão
+        const brilhoRach = Math.min(1, v.timer / 15);
+        for (let r = 0; r < v.rachaduras.length; r++) {
+            const rach = v.rachaduras[r];
+            if (v.timer < rach.delay) continue;
+            const progR = Math.min(1, (v.timer - rach.delay) / 12);
+            const pulsoR = Math.sin(agora / 160 + r * 1.3) * 0.2 + 0.8;
 
+            ctx.save();
+            ctx.rotate(rach.ang);
+
+            // Fenda escura
+            ctx.beginPath();
+            ctx.moveTo(4, 0);
+            ctx.lineTo(4 + rach.comp * progR, Math.sin(r * 2.1) * 2.2);
+            ctx.strokeStyle = 'rgba(28, 12, 8, 0.85)';
+            ctx.lineWidth = (rach.largura + 2.5) * progR;
+            ctx.stroke();
+
+            // Magma incandescente
+            ctx.strokeStyle = `rgba(255, 86, 28, ${(0.65 + brilhoRach * 0.35) * pulsoR})`;
+            ctx.lineWidth = rach.largura * progR;
+            ctx.shadowColor = '#ff4d18';
+            ctx.shadowBlur = 10;
+            ctx.stroke();
+
+            // Núcleo em ouro líquido
+            ctx.strokeStyle = `rgba(254, 240, 138, ${0.75 * pulsoR})`;
+            ctx.lineWidth = Math.max(0.8, rach.largura * 0.45 * progR);
+            ctx.stroke();
+
+            ctx.restore();
         }
+
+        // 4. Anel basal de magma onde o cone encontra a crosta
+        ctx.strokeStyle = `rgba(254, 240, 138, ${0.55 * pulsoVulcao})`;
+        ctx.lineWidth = 1.8;
+        ctx.shadowColor = '#ff4d18';
+        ctx.shadowBlur = 8;
+        ctx.beginPath();
+        ctx.ellipse(0, 9, 36 + h * 0.78, 14 + h * 0.22, 0, 0, Math.PI * 2);
+        ctx.stroke();
 
         if (v.timer % 8 === 0 && v.pedras.length < 48) {
             for (let f = 0; f < 3 && v.pedras.length < 48; f++) {

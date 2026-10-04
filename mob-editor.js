@@ -63,6 +63,8 @@
                 '<div class="spawn-campo"><label>EMOJI</label><input id="me-emoji" maxlength="4"></div>' +
                 '<div class="spawn-campo"><label>COR</label><input id="me-cor" type="color"></div>' +
             '</div>' +
+            '<div class="me-secao">Tags</div>' +
+            '<div id="me-tags" class="me-grid-chk"></div>' +
             '<div class="me-secao">Combate</div>' +
             '<div class="me-dupla">' +
                 '<div class="spawn-campo"><label>HP BASE</label><input id="me-baseHp" type="number" min="1"></div>' +
@@ -124,7 +126,19 @@ window._meAplicar = aplicar;
         if (!sel) return;
         var atual = sel.value || selecionado;
         sel.innerHTML = '';
-        tipos().forEach(function (t) {
+        var listaTipos = tipos();
+        if (!listaTipos.length) {
+            var vazio = el('option', { value: '' }, '— Nenhum monstro cadastrado —');
+            vazio.disabled = true;
+            vazio.selected = true;
+            sel.appendChild(vazio);
+            sel.disabled = true;
+            var status = document.getElementById('me-status');
+            if (status) status.textContent = 'Envie um monstro exportado para habilitar o editor.';
+            return;
+        }
+        sel.disabled = false;
+        listaTipos.forEach(function (t) {
             var c = window.mobEditorConf[t] || {};
             var opt = el('option', { value: t }, (c.emoji || '🐾') + ' ' + (c.nome || t));
             sel.appendChild(opt);
@@ -161,6 +175,7 @@ window._meAplicar = aplicar;
         }
         if (document.getElementById('me-cor')) document.getElementById('me-cor').value = c.cor || '#7CFC00';
         if (document.getElementById('me-vfxCor')) document.getElementById('me-vfxCor').value = c.vfxCor || '#ffffff';
+        preencherTags(c.tags || []);
         var melee = document.getElementById('me-ehMelee');
         if (melee) melee.value = c.ehMelee === false ? '0' : '1';
         preencherVfx(c.efeitoVisual || 'none');
@@ -170,6 +185,21 @@ window._meAplicar = aplicar;
         preencherLinhas('me-drops-lista', c.drops, adicionarDropRow);
         var st = document.getElementById('me-status');
         if (st) st.textContent = (c.nome || tipo).toUpperCase() + ' · carregado ✓';
+    }
+
+    function preencherTags(tags) {
+        var cont = document.getElementById('me-tags');
+        if (!cont) return;
+        cont.innerHTML = '';
+        var catalogo = window.mobTagCatalog || {};
+        (tags || []).forEach(function (tag) {
+            var item = catalogo[tag];
+            var badge = el('span', {}, (item && item.nome) || tag);
+            badge.title = (item && item.descricao) || '';
+            badge.className = 'me-tag-badge';
+            cont.appendChild(badge);
+        });
+        if (!tags || !tags.length) cont.textContent = 'Nenhuma tag atribuída';
     }
 
     function preencherVfx(sel) {
