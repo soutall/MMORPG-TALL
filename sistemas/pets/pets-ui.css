@@ -254,6 +254,16 @@
     transition: width 0.2s ease;
 }
 
+.pets-knowledge-meter {
+    margin: 6px 0 4px;
+    border-color: rgba(110, 194, 230, 0.58);
+}
+
+.pets-knowledge-fill {
+    background: linear-gradient(90deg, #197da9, #71d8ee);
+    box-shadow: 0 0 8px rgba(71, 198, 235, 0.58);
+}
+
 .pets-mode-controls {
     display: flex;
     flex-wrap: wrap;

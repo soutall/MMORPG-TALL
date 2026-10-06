@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Oswald:wght@500;600;700&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css?v=254">
-    <link rel="stylesheet" href="sistemas/pets/pets-ui.css?v=1">
+    <link rel="stylesheet" href="sistemas/pets/pets-ui.css?v=2">
     <link rel="stylesheet" href="inventario.css?v=171">
     <link rel="stylesheet" href="skills.css?v=149">
     <link rel="stylesheet" href="config.css?v=150">
@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="dragdrop.css?v=4">
     <link rel="stylesheet" href="ferreiro.css?v=1">
     <link rel="stylesheet" href="intro.css?v=1">
-    <link rel="stylesheet" href="mobile-hud.css?v=9">
+    <link rel="stylesheet" href="mobile-hud.css?v=10">
     <link rel="stylesheet" href="item-admin.css?v=2">
     <link rel="stylesheet" href="personagem-select.css?v=2">
     <style>
@@ -69,6 +69,47 @@
         @media (prefers-reduced-motion: reduce) {
             #confusao-overlay { animation: none; }
         }
+        .pet-capture-announcement {
+            position: fixed; inset: 0; z-index: 200001; display: flex; align-items: center; justify-content: center;
+            padding: 22px; box-sizing: border-box; pointer-events: none; animation: pet-capture-fade 2.8s ease forwards;
+        }
+        .pet-capture-announcement > div {
+            width: min(640px, 94vw); padding: 26px 20px; border-radius: 22px; text-align: center; color: #fff;
+            font-family: 'Cinzel', Georgia, serif; box-shadow: 0 0 45px rgba(0,0,0,.8); animation: pet-capture-pop .55s cubic-bezier(.2,1.5,.5,1) both;
+        }
+        .pet-capture-announcement.success > div { border: 3px solid #ffe27a; background: linear-gradient(135deg, rgba(17,75,49,.97), rgba(15,28,38,.98)); }
+        .pet-capture-announcement.failure > div { border: 3px solid #ff8579; background: linear-gradient(135deg, rgba(105,26,31,.97), rgba(30,19,28,.98)); }
+        .pet-capture-announcement .pet-capture-icon { font-size: clamp(42px, 12vw, 76px); line-height: 1.15; }
+        .pet-capture-announcement h2 { margin: 7px 0; font-size: clamp(25px, 7vw, 44px); font-weight: 900; text-shadow: 0 3px 8px #000; }
+        .pet-capture-announcement p { margin: 8px 0 0; font: 700 clamp(17px, 4vw, 23px) 'Rajdhani', sans-serif; }
+        .pet-capture-monster-bubble {
+            position: fixed; z-index: 200002; max-width: min(300px, 82vw); padding: 11px 16px; border: 2px solid #ffae68;
+            border-radius: 16px; background: #fff8ec; color: #512416; text-align: center; font: 800 17px 'Rajdhani', sans-serif;
+            box-shadow: 0 5px 18px rgba(0,0,0,.75); pointer-events: none; animation: pet-capture-bubble-in .25s ease-out both;
+        }
+        .pet-capture-monster-bubble:after { content: ''; position: absolute; left: 50%; bottom: -12px; border: 11px solid transparent; border-top-color: #fff8ec; border-bottom: 0; transform: translateX(-50%); }
+        @keyframes pet-capture-pop { from { opacity: 0; transform: scale(.45) rotate(-4deg); } to { opacity: 1; transform: scale(1) rotate(0); } }
+        @keyframes pet-capture-fade { 0%,78% { opacity: 1; } 100% { opacity: 0; } }
+        @keyframes pet-capture-bubble-in { from { opacity: 0; transform: translate(-50%, -75%) scale(.75); } to { opacity: 1; transform: translate(-50%, -100%) scale(1); } }
+        @media (prefers-reduced-motion: reduce) { .pet-capture-announcement, .pet-capture-announcement > div, .pet-capture-monster-bubble { animation-duration: .01ms; } }
+        .pet-capture-game-hud { position: fixed; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); z-index: 200010; width: min(440px, calc(100vw - 28px)); padding: 10px 12px; transform: translateX(-50%); border: 1.5px solid rgba(130,255,207,.9); border-radius: 13px; color: #f4fff9; background: rgba(10,25,30,.92); box-shadow: 0 4px 22px rgba(0,0,0,.72), 0 0 15px rgba(64,239,182,.22); box-sizing: border-box; font-family: 'Rajdhani', sans-serif; }
+        .pet-capture-game-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 6px; }
+        .pet-capture-game-head h2 { margin: 0; color: #a9ffdc; font: 800 14px 'Cinzel', serif; white-space: nowrap; }
+        .pet-capture-game-rounds { color: #d2e9df; font-size: 13px; font-weight: 800; }
+        .pet-capture-game-track { position: relative; height: 22px; margin: 5px 0 7px; border: 1.5px solid #b6c9c4; border-radius: 7px; background: linear-gradient(90deg, #17232b, #25343a); overflow: hidden; box-shadow: inset 0 2px 6px #000; }
+        .pet-capture-game-zone { position: absolute; top: 0; bottom: 0; background: linear-gradient(180deg, #aaffd2, #18c77d); box-shadow: 0 0 12px #32ffac; }
+        .pet-capture-game-marker { position: absolute; top: -2px; bottom: -2px; left: 0; width: 4px; border: 1px solid #fff; border-radius: 4px; background: #ffe66d; box-shadow: 0 0 8px #ffe66d; transform: translateX(-50%); }
+        .pet-capture-game-controls { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .pet-capture-game-status { flex: 1; min-width: 0; color: #ffe88a; font-size: 13px; font-weight: 800; }
+        .pet-capture-game-timer { color: #b9d2ca; font-size: 12px; white-space: nowrap; }
+        .pet-capture-game-actions { display: flex; gap: 6px; }
+        .pet-capture-game-actions button { min-height: 36px; padding: 5px 13px; border: 1px solid #93f5cb; border-radius: 8px; color: white; background: #087c58; font: 900 16px 'Rajdhani', sans-serif; touch-action: manipulation; }
+        .pet-capture-game-actions button:active { transform: scale(.96); }
+        .pet-capture-game-actions .pet-capture-game-cancel { border-color: #71818b; background: #26333d; font-size: 13px; }
+        .pet-capture-game-hud.easy { border-color: #73e6a8; }
+        .pet-capture-game-hud.medium { border-color: #ffd36c; }
+        .pet-capture-game-hud.hard { border-color: #ff8178; }
+        @media (max-width: 900px), (pointer: coarse) { .pet-capture-game-hud { bottom: max(24px, calc(env(safe-area-inset-bottom) + 10px)); width: min(380px, calc(100vw - 24px)); } }
     </style>
 </head>
 <body oncontextmenu="return false;">
@@ -403,6 +444,9 @@
     <div id="mobile-sidebar-container" >
         <button id="mobile-sidebar-toggle" class="mobile-sidebar-toggle-btn" onclick="toggleMobileSidebar(event)" title="Menu">
             <span class="menu-ico">☰</span> <span class="btn-label">MENU</span>
+        </button>
+        <button id="btn-pet-capture-mobile" type="button" onclick="window.solicitarCapturaPetUI()" title="Usar rede para tentar capturar o monstro" aria-label="Usar rede para capturar">
+            <span aria-hidden="true">🕸️</span><small>CAPTURAR</small>
         </button>
         <div id="mobile-sidebar-dropdown">
             <button id="mobile-sidebar-item-admin" class="mobile-sidebar-item" style="display:none; border-color: rgba(243, 156, 18, 0.8); background: rgba(243, 156, 18, 0.15); color: #f1c40f;" onclick="acionarMenuMobile(window.toggleAdminCheats)" title="Painel Admin (Cheats)">
@@ -985,7 +1029,7 @@
     <script src="sistema_dia_noite_cliente.js?v=1521"></script>
     <!-- DASH v2: módulo ISOMÓRFICO (o MESMO arquivo é require() no server.js).
          Precisa vir antes das classes porque elas podem consultar window.DASH. -->
-    <script src="dash.js?v=1500"></script>
+    <script src="dash.js?v=1501"></script>
     <script src="dash-vfx.js?v=1500"></script>
     <script src="classes/comum.js?v=1006"></script>
     <script src="classes/guerreiro.js?v=1502"></script>
@@ -1027,7 +1071,7 @@
     <script src="debuffs.js?v=1502"></script>
     <script src="efeitos/boss_golem.js?v=230"></script>
     <script src="soldado_lanceiro.js?v=1"></script>
-    <script src="monstros.js?v=2028"></script>
+    <script src="monstros.js?v=2030"></script>
     <script src="inventario.js?v=170"></script>
     <script src="skill_upgrade_tree.js?v=3"></script>
     <script src="skills.js?v=156"></script>
@@ -2699,6 +2743,20 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             }
             ws.send(JSON.stringify({ action: 'pet_set_mode', mode: mode }));
         };
+        window.solicitarEquiparPetUI = function (petInstanceId) {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                if (typeof window.mostrarToast === 'function') window.mostrarToast('Conecte-se antes de equipar o Pet.');
+                return;
+            }
+            ws.send(JSON.stringify({ action: 'pet_set_active', petInstanceId: petInstanceId }));
+        };
+        window.solicitarDesequiparPetUI = function () {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                if (typeof window.mostrarToast === 'function') window.mostrarToast('Conecte-se antes de desequipar o Pet.');
+                return;
+            }
+            ws.send(JSON.stringify({ action: 'pet_clear_active' }));
+        };
         window.togglePets = function () {
             const screen = document.getElementById('pets-screen');
             if (screen && screen.classList.contains('ativo')) {
@@ -2709,6 +2767,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         };
         window.solicitarCapturaPetUI = function () {
             if (window.estaMorto) return;
+            if (window.petCaptureChallengePending) return;
             if (!ws || ws.readyState !== WebSocket.OPEN) {
                 if (typeof window.mostrarToast === 'function') window.mostrarToast('Conecte-se antes de tentar capturar.');
                 return;
@@ -2717,7 +2776,185 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 if (typeof window.mostrarToast === 'function') window.mostrarToast('Aproxime-se de um monstro normal para selecioná-lo.');
                 return;
             }
-            ws.send(JSON.stringify({ action: 'pet_capture', targetId: autoAlvo.id }));
+            const distanciaCaptura = Math.hypot(
+                autoAlvo.x - (window.meuX + 12),
+                autoAlvo.y - (window.meuY + 16)
+            );
+            if (distanciaCaptura > 140) {
+                if (typeof window.mostrarToast === 'function') window.mostrarToast('Chegue a até 140 unidades do monstro para lançar a rede.');
+                return;
+            }
+            window.petCaptureChallengePending = true;
+            ws.send(JSON.stringify({ action: 'pet_capture_start', targetId: autoAlvo.id }));
+            clearTimeout(window.petCaptureStartTimeout);
+            window.petCaptureStartTimeout = window.setTimeout(function () {
+                if (!window.petCaptureChallengePending || document.querySelector('.pet-capture-game-hud')) return;
+                window.petCaptureChallengePending = false;
+                if (typeof window.mostrarToast === 'function') {
+                    window.mostrarToast('O servidor não iniciou a captura. Reconecte ou reinicie o servidor do jogo.');
+                }
+            }, 5000);
+        };
+        window.iniciarMinigameCapturaPet = function (challenge, currentHud) {
+            const socket = ws;
+            clearTimeout(window.petCaptureStartTimeout);
+            if (!challenge || !challenge.challengeId || !socket || socket.readyState !== WebSocket.OPEN) {
+                window.petCaptureChallengePending = false;
+                return;
+            }
+            let overlay = currentHud && currentHud.isConnected ? currentHud : null;
+            if (overlay) overlay.replaceChildren();
+            else overlay = document.createElement('div');
+            overlay.className = 'pet-capture-game-hud ' + (challenge.difficulty || 'easy');
+            const card = document.createElement('div');
+            card.className = 'pet-capture-game-card';
+            const title = document.createElement('h2');
+            title.textContent = '🕸️ Captura · ' + (challenge.difficultyLabel || 'Fácil');
+            const head = document.createElement('div');
+            head.className = 'pet-capture-game-head';
+            const rounds = document.createElement('span');
+            rounds.className = 'pet-capture-game-rounds';
+            rounds.textContent = 'Rodada ' + (Number(challenge.round) || 1) + ' de 3';
+            head.append(title, rounds);
+            const track = document.createElement('div');
+            track.className = 'pet-capture-game-track';
+            const zone = document.createElement('div');
+            zone.className = 'pet-capture-game-zone';
+            zone.style.left = (Number(challenge.zoneStart) * 100) + '%';
+            zone.style.width = (Number(challenge.zoneWidth) * 100) + '%';
+            const marker = document.createElement('div');
+            marker.className = 'pet-capture-game-marker';
+            track.append(zone, marker);
+            const status = document.createElement('div');
+            status.className = 'pet-capture-game-status';
+            status.textContent = 'Toque quando o marcador estiver na faixa verde.';
+            const timer = document.createElement('div');
+            timer.className = 'pet-capture-game-timer';
+            const actions = document.createElement('div');
+            actions.className = 'pet-capture-game-actions';
+            const stop = document.createElement('button');
+            stop.type = 'button';
+            stop.textContent = 'ACERTAR';
+            const cancel = document.createElement('button');
+            cancel.type = 'button';
+            cancel.className = 'pet-capture-game-cancel';
+            cancel.textContent = 'CANCELAR';
+            actions.append(stop, cancel);
+            const controls = document.createElement('div');
+            controls.className = 'pet-capture-game-controls';
+            controls.append(status, timer, actions);
+            card.append(head, track, controls);
+            overlay.appendChild(card);
+            if (!overlay.isConnected) document.body.appendChild(overlay);
+
+            let enviado = false;
+            const finish = function () {
+                if (enviado) return;
+                enviado = true;
+                stop.disabled = true;
+                cancel.disabled = true;
+                status.textContent = 'Verificando…';
+                if (!ws || ws.readyState !== WebSocket.OPEN) {
+                    overlay.remove();
+                    window.petCaptureChallengePending = false;
+                    return;
+                }
+                ws.send(JSON.stringify({
+                    action: 'pet_capture_round',
+                    targetId: challenge.targetId,
+                    challengeId: challenge.challengeId,
+                    round: Number(challenge.round) || 1
+                }));
+            };
+            stop.addEventListener('click', finish);
+            cancel.addEventListener('click', function () {
+                if (enviado) return;
+                enviado = true;
+                overlay.remove();
+                window.petCaptureChallengePending = false;
+            });
+
+            const duration = Math.max(500, Number(challenge.durationMs) || 1800);
+            const maxAttempt = Math.max(1500, Number(challenge.maxAttemptMs) || 5500);
+            const frame = function () {
+                if (enviado || !overlay.isConnected) return;
+                const elapsed = Date.now() - Number(challenge.startedAt || Date.now());
+                stop.disabled = elapsed < 0;
+                const phase = ((Math.max(0, elapsed) + Number(challenge.phaseMs || 0)) % (duration * 2)) / duration;
+                const position = phase <= 1 ? phase : 2 - phase;
+                marker.style.left = (position * 100) + '%';
+                const remaining = Math.max(0, maxAttempt - Math.max(0, elapsed));
+                timer.textContent = 'Tempo: ' + (remaining / 1000).toFixed(1) + ' s';
+                if (elapsed >= maxAttempt) {
+                    finish();
+                    return;
+                }
+                window.requestAnimationFrame(frame);
+            };
+            window.requestAnimationFrame(frame);
+        };
+        window.desenharIndicadorCapturaPet = function (x, y) {
+            if (!window.petCaptureChallengePending) return;
+            const pulse = 1 + Math.sin(Date.now() / 110) * 0.08;
+            const cx = x + 12;
+            const cy = y - 43;
+            ctx.save();
+            ctx.translate(cx, cy);
+            ctx.scale(pulse, pulse);
+            ctx.shadowColor = '#65ffd0';
+            ctx.shadowBlur = 12;
+            ctx.fillStyle = 'rgba(7, 26, 29, .9)';
+            ctx.strokeStyle = '#8dffda';
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+            ctx.arc(0, 0, 13, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.font = "16px 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif";
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText('🕸️', 0, 1);
+            ctx.restore();
+        };
+        window.mostrarResultadoCapturaPet = function (dados, mensagem) {
+            const success = !!(dados && dados.success);
+            const container = document.createElement('div');
+            container.className = 'pet-capture-announcement ' + (success ? 'success' : 'failure');
+            const card = document.createElement('div');
+            const icon = document.createElement('div');
+            icon.className = 'pet-capture-icon';
+            icon.textContent = success ? '🎉🐾✨' : '💥🐾';
+            const title = document.createElement('h2');
+            title.textContent = success ? 'PARABÉNS! PET CAPTURADO!' : 'CAPTURA FALHOU!';
+            const detail = document.createElement('p');
+            detail.textContent = mensagem;
+            card.append(icon, title, detail);
+            container.appendChild(card);
+            document.body.appendChild(container);
+            window.setTimeout(function () { container.remove(); }, 2900);
+
+            if (dados && dados.reason === 'capture_impossible' && Number.isFinite(Number(dados.monsterX)) && Number.isFinite(Number(dados.monsterY))) {
+                const bubble = document.createElement('div');
+                bubble.className = 'pet-capture-monster-bubble';
+                bubble.textContent = '😡 Impossível ser capturado!';
+                document.body.appendChild(bubble);
+                const expiresAt = Date.now() + 4200;
+                const updateBubble = function () {
+                    if (!bubble.isConnected || Date.now() >= expiresAt) { bubble.remove(); return; }
+                    const canvas = document.getElementById('jogoCanvas');
+                    if (canvas) {
+                        const rect = canvas.getBoundingClientRect();
+                        const zoom = window.cameraZoomAtual || 1;
+                        const x = rect.left + (Number(dados.monsterX) - (window.camX || 0)) * zoom * (rect.width / canvas.width);
+                        const y = rect.top + (Number(dados.monsterY) - (window.camY || 0) - 48) * zoom * (rect.height / canvas.height);
+                        bubble.style.left = Math.max(12, Math.min(window.innerWidth - 12, x)) + 'px';
+                        bubble.style.top = Math.max(60, y) + 'px';
+                    }
+                    window.requestAnimationFrame(updateBubble);
+                };
+                window.requestAnimationFrame(updateBubble);
+            }
         };
         window.addEventListener('keydown', function (event) {
             if ((event.key || '').toLowerCase() !== 'g' && event.code !== 'KeyG') return;
@@ -3142,7 +3379,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             }
             if (!ok) { e.preventDefault(); e.stopImmediatePropagation(); }
         }, { capture: true, passive: false });
-        let slashes = []; let blockEffects = []; window.floatingTexts = []; let ultimoEnvioRede = 0; let pingAtual = 0;
+        let slashes = []; let blockEffects = []; window.floatingTexts = []; window.petDamageTexts = []; let ultimoEnvioRede = 0; let pingAtual = 0;
         function atualizarHudPing() { const el = document.getElementById('ping-counter'); if (el) el.textContent = 'PING: ' + Math.max(0, Math.round(pingAtual)) + ' ms'; }
         window.atualizarHudPing = atualizarHudPing;
 
@@ -3741,6 +3978,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
             socket.onclose = (event) => {
                 if (socket !== ws) return;
+                window.petCaptureChallengePending = false;
+                clearTimeout(window.petCaptureStartTimeout);
+                const captureGame = document.querySelector('.pet-capture-game-hud');
+                if (captureGame) captureGame.remove();
                 if (pingIntervalo) {
                     clearInterval(pingIntervalo);
                     pingIntervalo = null;
@@ -3785,20 +4026,77 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 try {
                         let dados = JSON.parse(event.data);
                         window.__msgTipo = (dados && dados.type) || '?';
+                        if (dados.type === 'pet_xp_ganho') {
+                            if (window.PetsUI && dados.petProfile) window.PetsUI.setProfile(dados.petProfile);
+                            (dados.ganhos || []).forEach(function (ganho) {
+                                const message = ganho.levelUp
+                                    ? 'Seu Pet subiu para o nível ' + ganho.level + '! (+' + ganho.xpGain + ' XP)'
+                                    : 'Seu Pet ganhou ' + ganho.xpGain + ' XP.';
+                                if (typeof window.mostrarToast === 'function') window.mostrarToast(message);
+                            });
+                            (dados.maestrias || []).filter(function (ganho) { return ganho.levelUp; })
+                                .forEach(function (ganho) {
+                                    const species = (dados.petProfile && dados.petProfile.species || [])
+                                        .find(function (entry) { return entry.species_id === ganho.speciesId; });
+                                    const speciesName = species && species.nome || ganho.speciesId || 'Espécie';
+                                    if (typeof window.mostrarToast === 'function') {
+                                        window.mostrarToast('Maestria de ' + speciesName + ' subiu para o nível ' + ganho.level + '!');
+                                    }
+                                });
+                            return;
+                        }
+                        if (dados.type === 'pet_capture_challenge') {
+                            if (typeof window.iniciarMinigameCapturaPet === 'function') {
+                                window.petCaptureChallengeTargetId = dados.targetId;
+                                window.iniciarMinigameCapturaPet(dados, document.querySelector('.pet-capture-game-hud'));
+                            }
+                            return;
+                        }
+                        if (dados.type === 'pet_capture_round_result') {
+                            const hud = document.querySelector('.pet-capture-game-hud');
+                            const status = hud && hud.querySelector('.pet-capture-game-status');
+                            const stop = hud && hud.querySelector('.pet-capture-game-actions button');
+                            if (status) status.textContent = dados.roundPassed
+                                ? 'Acerto! ' + (Number(dados.roundsPassed) || 0) + '/3 — próxima faixa…'
+                                : 'Errou a faixa; a tentativa será registrada.';
+                            if (stop) stop.disabled = true;
+                            if (dados.complete && ws && ws.readyState === WebSocket.OPEN) {
+                                if (status) status.textContent = dados.roundsPassed === 3
+                                    ? 'Três acertos! Chance maior, captura não garantida.'
+                                    : 'Minigame falhou. Registrando tentativa…';
+                                ws.send(JSON.stringify({
+                                    action: 'pet_capture',
+                                    targetId: window.petCaptureChallengeTargetId,
+                                    challengeId: dados.challengeId
+                                }));
+                            }
+                            return;
+                        }
                         if (dados.type === 'pet_capture_result') {
+                            window.petCaptureChallengePending = false;
+                            clearTimeout(window.petCaptureStartTimeout);
+                            const game = document.querySelector('.pet-capture-game-hud');
+                            if (game) game.remove();
                             if (window.PetsUI && dados.petProfile) window.PetsUI.setProfile(dados.petProfile);
                             const petName = dados.pet && (dados.pet.nome || dados.pet.species_id);
                             const messages = {
-                                capture_failed: 'A captura falhou. Enfraqueça o monstro e tente novamente.',
+                                capture_failed: dados.minigamePassed === false
+                                    ? 'Você errou o minigame! O monstro ficou furioso e recuperou vida. Falhas: ' + (Number(dados.failCount) || 1) + '/3.'
+                                    : 'A rede acertou, mas o monstro resistiu e recuperou vida. Falhas: ' + (Number(dados.failCount) || 1) + '/3.',
+                                capture_impossible: 'Este monstro resistiu a três tentativas e não pode mais ser capturado.',
+                                minigame_required: 'Inicie a captura pela rede para jogar o minigame.',
                                 cooldown_active: 'Aguarde antes de tentar capturar novamente.',
                                 distance_invalid: 'Aproxime-se do monstro para tentar capturá-lo.',
                                 species_not_capturable: 'Este monstro não pode ser capturado.',
                                 target_invalid: 'O monstro selecionado não está mais disponível.'
                             };
                             const message = dados.success
-                                ? 'Captura realizada: ' + (petName || 'Pet') + '!'
+                                ? 'Parabéns! ' + (petName || 'Seu pet') + ' agora faz parte da sua equipe!'
                                 : (messages[dados.reason] || 'Captura recusada: ' + (dados.reason || 'erro desconhecido') + '.');
-                            if (typeof window.mostrarToast === 'function') window.mostrarToast(message);
+                            if (dados.success || dados.reason === 'capture_failed' || dados.reason === 'capture_impossible') {
+                                if (typeof window.mostrarResultadoCapturaPet === 'function') window.mostrarResultadoCapturaPet(dados, message);
+                                else if (typeof window.mostrarToast === 'function') window.mostrarToast(message);
+                            } else if (typeof window.mostrarToast === 'function') window.mostrarToast(message);
                             else console.info(message);
                             return;
                         }
@@ -3810,6 +4108,18 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                 }
                             } else if (typeof window.mostrarToast === 'function') {
                                 window.mostrarToast('Não foi possível alterar o modo do Pet (morto, em respawn ou indisponível).');
+                            }
+                            return;
+                        }
+                        if (dados.type === 'pet_active_result') {
+                            if (window.PetsUI && dados.petProfile) window.PetsUI.setProfile(dados.petProfile);
+                            if (typeof window.mostrarToast === 'function') {
+                                if (dados.success) {
+                                    window.mostrarToast(dados.petActiveId ? 'Pet equipado com sucesso.' : 'Pet desequipado com sucesso.');
+                                } else {
+                                    const reason = dados.reason === 'pet_not_found' ? 'Pet não encontrado no seu perfil.' : 'Não foi possível equipar o Pet.';
+                                    window.mostrarToast(reason);
+                                }
                             }
                             return;
                         }
@@ -4142,6 +4452,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     }
 
                     if (dados.type === 'xp_ganho') {
+                        if (window.PetsUI && dados.petProfile) window.PetsUI.setProfile(dados.petProfile);
                         meuLevel = dados.level;
                         window.meuLevel = meuLevel;
                         window.meuNivel = meuLevel;
@@ -4342,6 +4653,15 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             alpha: 1.0 
                         });
                         if (dados.autorId === window.meuId && typeof registrarDanoCausado === 'function') registrarDanoCausado(dados.dano);
+                    }
+                    if (dados.type === 'pet_texto_dano' && dados.dano > 0 && window.petDamageTexts) {
+                        window.petDamageTexts.push({
+                            x: dados.x,
+                            y: dados.y - 18,
+                            dano: Math.round(dados.dano),
+                            startedAt: Date.now(),
+                            duration: 820
+                        });
                     }
 
                     if (dados.type === 'mob_block') {
@@ -7231,18 +7551,18 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             let c = window.minhaClasse;
             if (c === 'arqueiro') return 250;
             if (c === 'roqueiro') return 200;
-            if (c === 'guerreiro') return 100;
-            if (c === 'barbaro') return 100;
+            if (c === 'guerreiro') return 50;
+            if (c === 'barbaro') return 50;
             if (c === 'mago') return 200;
             if (c === 'summoner') return 190;
             if (c === 'curandeiro') return 200;
-            if (c === 'ladino') return 110;
+            if (c === 'ladino') return 44;
             if (c === 'dronemaster') return (window.dmTitaAtivo ? 242 : 124); // v1.32: alcance +15% (108→124; Tita 210→242)
             if (c === 'arqueiro_arcano') return 260;
             if (c === 'sniper') return 384;
-            if (c === 'pikeman') return 100;
+            if (c === 'pikeman') return 50;
             if (c === 'florim') return 320;
-            if (c === 'guerreiro_kaledron') return 110;
+            if (c === 'guerreiro_kaledron') return 55;
             return 300;
         }
 
@@ -7402,7 +7722,8 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         }
 
         function dispararAutoAtaque() {
-            if (!autoAlvo || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) return;
+            if (window.petCaptureChallengePending || document.querySelector('.pet-capture-game-hud') ||
+                !autoAlvo || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) return;
             if (window.minhaClasse === 'pikeman' && typeof window.pikemanEmAnimacaoSkill === 'function' && window.pikemanEmAnimacaoSkill(window.meuId)) return;
             let ang = Math.atan2(autoAlvo.y - (window.meuY + 16), autoAlvo.x - (window.meuX + 12));
             // Ataque básico: arma/personagem sempre acompanham o inimigo atingido,
@@ -7427,6 +7748,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
         // Chamado 1x por frame no loop principal (sem setInterval por ataque).
         function atualizarAutoAtaque() {
+            if (window.petCaptureChallengePending || document.querySelector('.pet-capture-game-hud')) return;
             if (window.estaMorto || window.transicaoMapaAtiva) { autoAlvo = null; return; }
             let ef = window.meusEfeitos || [];
             let trava = ef.some(e => e && (e.id === 'paralisia' || e.id === 'sono') && e.tempo > 0);
@@ -9814,7 +10136,14 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 if (slime.x < cameraBounds.minX || slime.x > cameraBounds.maxX || slime.y < cameraBounds.minY || slime.y > cameraBounds.maxY) return;
                 if (typeof window.desenharSlime === "function") {
                     let s = slime;
-                    spritesSort.push({ y: s.y, draw: function () { window.desenharSlime(s); if (typeof window.desenharEfeitoVisualMob === "function") window.desenharEfeitoVisualMob(s); } });
+                    spritesSort.push({ y: s.y, draw: function () {
+                        window.desenharSlime(s);
+                        if (window.petCaptureChallengePending && s.id === window.petCaptureChallengeTargetId &&
+                            typeof window.desenharIndicadorCapturaPet === 'function') {
+                            window.desenharIndicadorCapturaPet(s.x, s.y);
+                        }
+                        if (typeof window.desenharEfeitoVisualMob === "function") window.desenharEfeitoVisualMob(s);
+                    } });
                 }
             });
 
@@ -9833,7 +10162,12 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 if (!pet || pet.hp <= 0 || pet.state === "DEAD" || pet.state === "RESPAWN") continue;
                 if (pet.x < cameraBounds.minX || pet.x > cameraBounds.maxX || pet.y < cameraBounds.minY || pet.y > cameraBounds.maxY) continue;
                 if (typeof window.desenharSlime === "function") {
-                    spritesSort.push({ y: pet.y, draw: function () { window.desenharSlime(pet); } });
+                    spritesSort.push({ y: pet.y, draw: function () {
+                        window.desenharSlime(pet);
+                        if (typeof window.desenharBalaoConversaPet === 'function') {
+                            window.desenharBalaoConversaPet(pet);
+                        }
+                    } });
                 }
             }
 
@@ -9944,6 +10278,11 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "function") window.desenharFlorim(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'guerreiro_kaledron') { if (typeof window.desenharKaledron === "function") window.desenharKaledron(posX, posY, mov, ang, hpVal, maxHpVal, pid); }
                             else { if (typeof window.desenharGuerreiro === "function") window.desenharGuerreiro(posX, posY, (pid === window.meuId ? "#c0392b" : "#2980b9"), mov, ang, hpVal, maxHpVal, isSpinningPlayer, window.tornadoTimers[pid] || 0, pid); }
+
+                            if (pid === window.meuId && window.petCaptureChallengePending &&
+                                typeof window.desenharIndicadorCapturaPet === 'function') {
+                                window.desenharIndicadorCapturaPet(posX, posY);
+                            }
 
                             let magoCast = window.magoCasts && window.magoCasts[pid];
                             if (magoCast) {
@@ -10376,6 +10715,41 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     window.ctx.restore(); 
                 } 
             }
+            for (let i = (window.petDamageTexts || []).length - 1; i >= 0; i--) {
+                const petText = window.petDamageTexts[i];
+                const elapsed = Date.now() - petText.startedAt;
+                if (elapsed >= petText.duration) {
+                    window.petDamageTexts.splice(i, 1);
+                    continue;
+                }
+                const progress = Math.max(0, Math.min(1, elapsed / petText.duration));
+                const jump = Math.sin(Math.min(1, progress * 1.35) * Math.PI);
+                const fade = progress < 0.58 ? 1 : Math.max(0, 1 - (progress - 0.58) / 0.42);
+                const y = petText.y - progress * 18 - jump * 20;
+                const text = '-' + petText.dano;
+                ctx.save();
+                ctx.globalAlpha = fade;
+                ctx.font = "900 19px 'Rajdhani', 'Segoe UI', Arial, sans-serif";
+                ctx.textAlign = 'left';
+                ctx.textBaseline = 'middle';
+                ctx.lineJoin = 'round';
+                ctx.lineWidth = 3;
+                const numberWidth = ctx.measureText(text).width;
+                const pawWidth = 15;
+                const gap = 3;
+                const totalWidth = numberWidth + gap + pawWidth;
+                const startX = petText.x - totalWidth / 2;
+                ctx.strokeStyle = 'rgba(20, 8, 35, 0.95)';
+                ctx.strokeText(text, startX, y);
+                ctx.fillStyle = '#c084fc';
+                ctx.shadowColor = '#a855f7';
+                ctx.shadowBlur = 7;
+                ctx.fillText(text, startX, y);
+                ctx.font = "13px 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif";
+                ctx.strokeText('🐾', startX + numberWidth + gap, y + 1);
+                ctx.fillText('🐾', startX + numberWidth + gap, y + 1);
+                ctx.restore();
+            }
             for (let i = blockEffects.length - 1; i >= 0; i--) { let b = blockEffects[i]; b.y -= 0.8; b.alpha -= 0.03; if (b.alpha <= 0) { blockEffects.splice(i, 1); } else { ctx.save(); ctx.translate(b.x, b.y); ctx.globalAlpha = b.alpha; ctx.font = "bold 18px 'Rajdhani', Arial, sans-serif"; ctx.lineJoin = "round"; ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; ctx.strokeText("🛡️ BLOCK!", -30, 0); ctx.fillStyle = "#f1c40f"; ctx.fillText("🛡️ BLOCK!", -30, 0); ctx.restore(); } }
 
             // v1.34: BRILHO ÚNICO das PEDRAS DE UPGRADE (anéis pulsantes caindo no chão)
@@ -10672,7 +11046,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
         loop();
     </script>
-    <script src="sistemas/pets/pets-ui.js?v=1"></script>
+    <script src="sistemas/pets/pets-ui.js?v=3"></script>
     <!-- FORJADOR ADMIN MODAL -->
     <div id="item-admin-window" class="modal-window" style="display:none;" data-ui="true">
         <div class="modal-header">

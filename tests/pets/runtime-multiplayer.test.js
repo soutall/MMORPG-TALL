@@ -16,6 +16,57 @@ function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+async function captureWithTimingMinigame(client, targetId) {
+    client.socket.send(JSON.stringify({ action: 'pet_capture_start', targetId: targetId }));
+    let challenge = await client.waitFor.next((message) =>
+        message.type === 'pet_capture_challenge' || message.type === 'pet_capture_result');
+    if (challenge.type === 'pet_capture_result') return challenge;
+
+    let minigamePassed = true;
+    for (let round = 1; round <= 3; round++) {
+        const duration = Number(challenge.durationMs) || 1800;
+        const maxAttempt = Number(challenge.maxAttemptMs) || 5500;
+        let sent = false;
+        while (Date.now() - challenge.startedAt < maxAttempt) {
+            const elapsed = Date.now() - challenge.startedAt;
+            if (elapsed >= 0) {
+                const phase = ((Math.max(0, elapsed) + Number(challenge.phaseMs || 0)) % (duration * 2)) / duration;
+                const marker = phase <= 1 ? phase : 2 - phase;
+                if (marker >= challenge.zoneStart + 0.025 &&
+                    marker <= challenge.zoneStart + challenge.zoneWidth - 0.025) {
+                    client.socket.send(JSON.stringify({
+                        action: 'pet_capture_round', targetId: targetId,
+                        challengeId: challenge.challengeId, round: round
+                    }));
+                    sent = true;
+                    break;
+                }
+            }
+            await sleep(4);
+        }
+        if (!sent) {
+            client.socket.send(JSON.stringify({
+                action: 'pet_capture_round', targetId: targetId,
+                challengeId: challenge.challengeId, round: round
+            }));
+        }
+        const roundResult = await client.waitFor.next((message) =>
+            message.type === 'pet_capture_round_result' || message.type === 'pet_capture_result');
+        if (roundResult.type === 'pet_capture_result') return roundResult;
+        if (!roundResult.roundPassed || roundResult.complete) {
+            minigamePassed = roundResult.roundsPassed === 3;
+            client.socket.send(JSON.stringify({
+                action: 'pet_capture', targetId: targetId, challengeId: challenge.challengeId
+            }));
+            return client.waitFor.next((message) => message.type === 'pet_capture_result');
+        }
+        challenge = await client.waitFor.next((message) =>
+            message.type === 'pet_capture_challenge' || message.type === 'pet_capture_result');
+        if (challenge.type === 'pet_capture_result') return challenge;
+    }
+    return { success: false, reason: 'minigame_incomplete', minigamePassed: minigamePassed };
+}
+
 async function reservePort() {
     const socket = net.createServer();
     await new Promise((resolve, reject) => {
@@ -51,7 +102,7 @@ function listenForMessages(socket) {
                 : null,
             pets: message.pets
                 ? Object.fromEntries(Object.entries(message.pets).map(([id, pet]) =>
-                    [id, { x: pet.x, y: pet.y, hp: pet.hp, state: pet.state, mode: pet.mode }]))
+                    [id, { x: pet.x, y: pet.y, hp: pet.hp, state: pet.state, mode: pet.mode, targetId: pet.targetId }]))
                 : null,
             ownerC: message.players && message.players.heroi_player_c
                 ? { x: message.players.heroi_player_c.x, y: message.players.heroi_player_c.y,
@@ -65,7 +116,7 @@ function listenForMessages(socket) {
                     const pet = message.pets[Object.keys(message.pets)[0]];
                     return pet && Math.hypot(monster.x - pet.x, monster.y - pet.y) < 450;
                 }).slice(0, 3).map((monster) => ({
-                    type: monster.tipo, hp: monster.hp, x: monster.x, y: monster.y, targetId: monster.targetId
+                    id: monster.id, type: monster.tipo, hp: monster.hp, x: monster.x, y: monster.y, targetId: monster.targetId
                 }))
                 : null
         }));
@@ -219,6 +270,62 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
     assert.equal(updateA.pets[petA.pet_instance_id].hp > 0, true);
     assert.equal(updateB.pets[petB.pet_instance_id].hp > 0, true);
 
+    clientA.socket.send(JSON.stringify({ action: 'pet_set_mode', mode: 'ATK' }));
+    await clientA.waitFor((message) =>
+        message.type === 'pet_mode_result' && message.success === true && message.mode === 'ATK');
+    const ownerA = updateA.players.heroi_player_a;
+    const engagedMonster = updateA.slimes.filter((monster) => monster && monster.hp > 0)
+        .map((monster) => ({
+            monster,
+            distance: Math.hypot(monster.x - (ownerA.x + 12), monster.y - (ownerA.y + 16))
+        }))
+        .filter((entry) => entry.distance <= 90)
+        .sort((a, b) => a.distance - b.distance)[0];
+    assert.ok(engagedMonster, 'test owner must have a real monster within basic attack reach');
+    clientA.socket.send(JSON.stringify({
+        action: 'corte',
+        alvoTipo: 'slime',
+        alvoId: engagedMonster.monster.id
+    }));
+    await clientA.waitFor((message) => message.type === 'world_update' && message.slimes &&
+        message.slimes.some((monster) => monster.id === engagedMonster.monster.id &&
+            monster.hp < engagedMonster.monster.hp), 5000);
+    clientA.socket.send(JSON.stringify({
+        action: 'admin_cheats_toggle',
+        cheats: { superAtaque: true }
+    }));
+    await clientA.waitFor((message) =>
+        message.type === 'admin_cheats_sync' && message.cheats && message.cheats.superAtaque);
+    const petXpUpdateEarly = await clientA.waitFor((message) =>
+        message.type === 'pet_xp_ganho' &&
+        Array.isArray(message.ganhos) &&
+        message.ganhos.some((gain) => gain.petInstanceId === petA.pet_instance_id), 15000)
+        .catch((error) => { throw new Error(error.message + '\nServer trace:\n' + serverOutput.slice(-5000)); });
+    const petXpGainEarly = petXpUpdateEarly.ganhos.find((gain) => gain.petInstanceId === petA.pet_instance_id);
+    assert.ok(petXpGainEarly.xpGain > 0,
+        'pet should gain individual XP for a real monster kill it contributed damage to');
+    assert.ok(petXpUpdateEarly.petProfile.pets.find((pet) => pet.pet_instance_id === petA.pet_instance_id).pet_xp > 0,
+        'pet XP update must include the refreshed persisted profile');
+    const masteryGain = (petXpUpdateEarly.maestrias || []).find((gain) => gain.speciesId === petA.species_id);
+    assert.ok(masteryGain && masteryGain.xpGain > 0,
+        'pet species must gain mastery XP for a real kill after its owner engaged the target');
+    assert.ok(petXpUpdateEarly.petProfile.maestria[petA.species_id].xpMaestria > 0 ||
+        petXpUpdateEarly.petProfile.maestria[petA.species_id].nivelMaestria > 0,
+    'mastery progress must be included in the updated owner profile');
+    const persistedPetXpEarly = JSON.parse(fs.readFileSync(databaseFile, 'utf8')).player_a.pets
+        .find((pet) => pet.pet_instance_id === petA.pet_instance_id);
+    assert.ok(persistedPetXpEarly.pet_xp > 0, 'pet individual XP must be saved to the player profile');
+    const persistedMastery = JSON.parse(fs.readFileSync(databaseFile, 'utf8')).player_a.maestria[petA.species_id];
+    assert.ok(persistedMastery.xpMaestria > 0 || persistedMastery.nivelMaestria > 0,
+        'species mastery progress must be persisted');
+    await sleep(550);
+    clientA.socket.send(JSON.stringify({ action: 'pet_set_mode', mode: 'PARADO' }));
+    await clientA.waitFor((message) =>
+        message.type === 'pet_mode_result' && message.success === true && message.mode === 'PARADO');
+    clientA.socket.send(JSON.stringify({ action: 'admin_cheats_toggle', cheats: { superAtaque: false } }));
+    await clientA.waitFor((message) =>
+        message.type === 'admin_cheats_sync' && message.cheats && !message.cheats.superAtaque);
+
     const initialOwner = updateA.players.heroi_player_a;
     const initialPet = updateA.pets[petA.pet_instance_id];
     const movementCursor = clientA.waitFor.mark();
@@ -265,14 +372,13 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
     const initialDropIds = new Set((cInitialUpdate.drops || []).map((drop) => drop.id));
     let captureResult = null;
     for (let attempt = 0; attempt < 5; attempt++) {
-        clientC.socket.send(JSON.stringify({ action: 'pet_capture', targetId: captureMonster.id }));
-        const result = await clientC.waitFor.next((message) =>
-            message.type === 'pet_capture_result');
+        const result = await captureWithTimingMinigame(clientC, captureMonster.id);
         if (result.success) {
             captureResult = result;
             break;
         }
         assert.equal(result.reason, 'capture_failed', 'capture result must come from the live server');
+        assert.equal(result.minigamePassed, true, 'all three successful minigame rounds must apply the capture chance bonus');
         if (attempt < 4) await sleep(3100);
     }
     assert.ok(captureResult, 'server must eventually accept the genuine live-monster capture');

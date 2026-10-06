@@ -24,6 +24,41 @@ test('registra automaticamente monstros normais e ignora elite/boss', () => {
     assert.ok(capturaveis.some((monster) => monster.species_id === 'besouro_dourado'));
 });
 
+test('espécies e instâncias de pet expõem ícone e emoji corretos', () => {
+    const species = petSystem.getSpeciesById('escorpiao_escaldante');
+    assert.ok(species, 'espécie deve existir');
+    assert.equal(species.emoji, '🦂');
+    assert.equal(species.icon, '🦂');
+
+    const pet = petSystem.createPetInstance('escorpiao_escaldante');
+    assert.equal(pet.emoji, '🦂');
+    assert.equal(pet.icon, '🦂');
+    assert.equal(pet.visual.icon, '🦂');
+});
+
+test('troca de pet ativo precisa alternar o perfil corretamente', () => {
+    const profile = {
+        pets: [
+            { pet_instance_id: 'pet_a', species_id: 'slime', nome: 'Slime A' },
+            { pet_instance_id: 'pet_b', species_id: 'escorpiao_escaldante', nome: 'Escorpião B' }
+        ],
+        bestiario: {},
+        maestria: {},
+        captureState: { species: {} },
+        petActiveId: null
+    };
+
+    const afterSelect = petSystem.setActivePet(profile, 'pet_b');
+    assert.equal(afterSelect.valid, true);
+    assert.equal(afterSelect.petActiveId, 'pet_b');
+    assert.equal(afterSelect.profile.petActiveId, 'pet_b');
+
+    const afterClear = petSystem.clearActivePet(afterSelect.profile);
+    assert.equal(afterClear.valid, true);
+    assert.equal(afterClear.petActiveId, null);
+    assert.equal(afterClear.profile.petActiveId, null);
+});
+
 test('espécies com projéteis existentes expõem somente a habilidade original compatível', () => {
     assert.deepEqual(
         petSystem.getSpeciesById('cogumelo_proibido').combat_profile.petAttackSkill,
@@ -176,11 +211,93 @@ test('XP e nível do pet são independentes da maestria da espécie', () => {
     const pet = petSystem.createPetInstance('slime', { pet_xp: 330, level: 1 });
     petSystem.gainPetXp(pet, 120);
     assert.ok(pet.pet_xp >= 330);
-    assert.ok(pet.level >= 1);
+    assert.equal(pet.level, 3);
+    assert.equal(pet.pet_level, pet.level, 'level e pet_level devem permanecer sincronizados');
+    assert.equal(pet.pet_xp_progress, 0, '450 XP acumulados devem preencher os níveis 1 e 2');
+    assert.equal(pet.pet_xp_to_next, 360, 'o nível 3 exige 360 XP para o próximo nível');
+    assert.equal(pet.status.vida, pet.status_base.vida + 2,
+        'dois níveis ganhos devem aumentar vida em pelo menos 1 por nível');
+    assert.equal(pet.status.ataque, pet.status_base.ataque + 2,
+        'dois níveis ganhos devem aumentar ataque em pelo menos 1 por nível');
+    assert.equal(pet.status.defesa, pet.status_base.defesa + 2,
+        'dois níveis ganhos devem aumentar defesa em pelo menos 1 por nível');
+    petSystem.gainPetXp(pet, 50);
+    assert.equal(pet.pet_xp_progress, 50, 'o progresso deve mostrar o XP dentro do nível atual');
+    assert.equal(pet.pet_xp_to_next, 360);
     const mastery = petSystem.createMasteryRecord('slime');
     petSystem.applyMasteryXp(mastery, { xp: 250 });
     assert.ok(mastery.nivelMaestria >= 0);
     assert.notEqual(mastery.nivelMaestria, pet.level);
+});
+
+test('maestria de espécie progride em patamares próprios e registra recompensas de nível', () => {
+    const mastery = petSystem.createMasteryRecord('slime');
+    petSystem.applyMasteryXp(mastery, { xp: petSystem.getMasteryXpToNext(0) });
+    assert.equal(mastery.nivelMaestria, 1);
+    assert.equal(mastery.xpMaestria, 0);
+    assert.equal(mastery.xpParaProximo, petSystem.getMasteryXpToNext(1));
+    assert.deepEqual(mastery.recompensas.map((reward) => reward.nivel), [1]);
+
+    petSystem.applyMasteryXp(mastery, { xp: petSystem.getMasteryXpToNext(1) + 25 });
+    assert.equal(mastery.nivelMaestria, 2);
+    assert.equal(mastery.xpMaestria, 25);
+    assert.equal(mastery.xpParaProximo, petSystem.getMasteryXpToNext(2));
+    assert.deepEqual(mastery.recompensas.map((reward) => reward.nivel), [1, 2]);
+});
+
+test('conhecimento do Bestiário sobe por abates com barra independente da maestria', () => {
+    const bestiario = {};
+    const first = petSystem.grantMonsterKnowledge(bestiario, 'slime', 1, 1);
+    assert.equal(first.entry.monstrosMortos, 1);
+    assert.equal(first.level, 0);
+    assert.equal(first.xpGain, 23);
+    assert.equal(first.xpProgress, 23);
+    assert.equal(first.xpToNext, 100);
+    assert.equal(first.captureBonusPercent, 0);
+
+    const next = petSystem.grantMonsterKnowledge(bestiario, 'slime', 1, 4);
+    assert.equal(next.entry.monstrosMortos, 5);
+    assert.equal(next.level, 1);
+    assert.equal(next.xpProgress, 15);
+    assert.equal(next.xpToNext, 175);
+    assert.equal(next.captureBonusPercent, 1.5);
+    assert.equal(bestiario.slime.nivelMaestria, 0,
+        'Bestiary knowledge must not mutate species mastery');
+});
+
+test('Conhecimento aumenta somente a chance de captura e respeita o limite global', () => {
+    const base = petSystem.calculateCaptureChance({
+        playerLevel: 15, monsterLevel: 20, monsterHp: 20, maxHp: 100,
+        masteryLevel: 0, knowledgeLevel: 0, pityFails: 0, resistance: 0
+    });
+    const informed = petSystem.calculateCaptureChance({
+        playerLevel: 15, monsterLevel: 20, monsterHp: 20, maxHp: 100,
+        masteryLevel: 0, knowledgeLevel: 5, pityFails: 0, resistance: 0
+    });
+    const capped = petSystem.calculateCaptureChance({
+        playerLevel: 15, monsterLevel: 20, monsterHp: 20, maxHp: 100,
+        masteryLevel: 0, knowledgeLevel: 100, pityFails: 0, resistance: 0
+    });
+    assert.ok(informed > base, 'knowledge should improve capture chance');
+    assert.ok(capped <= 0.88, 'knowledge must respect the existing global chance cap');
+
+    const pet = petSystem.createPetInstance('slime');
+    const statusBefore = Object.assign({}, pet.status);
+    petSystem.grantMonsterKnowledge({}, 'slime', 1, 10);
+    assert.deepEqual(pet.status, statusBefore,
+        'Bestiary knowledge must never mutate any pet attributes');
+});
+
+test('pet só considera inimigo engajado pelo próprio dono como alvo', () => {
+    const enemy = { id: 'mob_1', hp: 20 };
+    assert.equal(petSystem.isEnemyEngagedByOwner(enemy, 'player_1'), false,
+        'inimigo próximo mas não atacado pelo dono não deve liberar o pet para atacar');
+    enemy.petAggroOwners = { player_2: Date.now() };
+    assert.equal(petSystem.isEnemyEngagedByOwner(enemy, 'player_1'), false,
+        'ataque de outro jogador não deve liberar o alvo para este pet');
+    enemy.petAggroOwners.player_1 = Date.now();
+    assert.equal(petSystem.isEnemyEngagedByOwner(enemy, 'player_1'), true,
+        'dano iniciado pelo dono deve liberar esse inimigo como alvo');
 });
 
 test('aceita valores zero sem quebrar a captura e os traits', () => {

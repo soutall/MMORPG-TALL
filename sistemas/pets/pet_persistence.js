@@ -1,6 +1,30 @@
 function normalizePetProfile(profile) {
     const safeProfile = profile && typeof profile === 'object' ? profile : {};
-    const pets = Array.isArray(safeProfile.pets) ? safeProfile.pets.slice() : [];
+    const pets = Array.isArray(safeProfile.pets) ? safeProfile.pets.map(function (pet) {
+        if (!pet || typeof pet !== 'object') return pet;
+        const speciesId = String(pet.species_id || '').trim();
+        const resolvedIcon = pet.icon || pet.emoji || (pet.visual && (pet.visual.icon || pet.visual.emoji)) || '🐾';
+        const nextPet = Object.assign({}, pet, {
+            icon: pet.icon || resolvedIcon,
+            emoji: pet.emoji || resolvedIcon,
+            visual: Object.assign({}, pet.visual || {}, {
+                icon: (pet.visual && pet.visual.icon) || pet.icon || pet.emoji || resolvedIcon,
+                emoji: (pet.visual && pet.visual.emoji) || pet.emoji || pet.icon || resolvedIcon
+            })
+        });
+        if (speciesId && nextPet.icon === '🐾' && nextPet.visual && nextPet.visual.icon === '🐾') {
+            const speciesRef = safeProfile.species && safeProfile.species.find && safeProfile.species.find(function (entry) {
+                return entry && entry.species_id === speciesId;
+            });
+            if (speciesRef) {
+                nextPet.icon = speciesRef.icon || speciesRef.emoji || nextPet.icon;
+                nextPet.emoji = speciesRef.emoji || speciesRef.icon || nextPet.emoji;
+                nextPet.visual.icon = speciesRef.icon || speciesRef.emoji || nextPet.visual.icon;
+                nextPet.visual.emoji = speciesRef.emoji || speciesRef.icon || nextPet.visual.emoji;
+            }
+        }
+        return nextPet;
+    }) : [];
     const bestiario = safeProfile.bestiario && typeof safeProfile.bestiario === 'object'
         ? Object.assign({}, safeProfile.bestiario)
         : {};
@@ -54,8 +78,31 @@ function setPetState(profile, nextState) {
     return normalized;
 }
 
+function setActivePet(profile, petInstanceId) {
+    const normalized = ensurePlayerPetState(profile || {});
+    const petId = petInstanceId && typeof petInstanceId === 'string' ? petInstanceId.trim() : '';
+    if (!petId) {
+        normalized.petActiveId = null;
+        return { valid: true, petActiveId: null, profile: normalized, reason: 'cleared' };
+    }
+    const owned = Array.isArray(normalized.pets) ? normalized.pets.filter(function (pet) {
+        return pet && pet.pet_instance_id && pet.pet_instance_id === petId;
+    }) : [];
+    if (!owned.length) {
+        return { valid: false, petActiveId: normalized.petActiveId || null, profile: normalized, reason: 'pet_not_owned' };
+    }
+    normalized.petActiveId = petId;
+    return { valid: true, petActiveId: petId, profile: normalized, reason: 'equipped' };
+}
+
+function clearActivePet(profile) {
+    return setActivePet(profile, null);
+}
+
 module.exports = {
     normalizePetProfile,
     ensurePlayerPetState,
-    setPetState
+    setPetState,
+    setActivePet,
+    clearActivePet
 };

@@ -106,6 +106,10 @@ function selectNearestEnemy(petState, enemies, options) {
         .sort((a, b) => distance(petState, a) - distance(petState, b))[0] || null;
 }
 
+function isEnemyEngagedByOwner(enemy, ownerId) {
+    return !!(enemy && ownerId && enemy.petAggroOwners && enemy.petAggroOwners[ownerId]);
+}
+
 function resolvePetTarget(petState, enemies, options) {
     const candidates = Array.isArray(enemies) ? enemies : [];
     const cfg = petState && petState.config ? petState.config : PET_DEFAULT_CONFIG;
@@ -383,6 +387,7 @@ module.exports = {
     createPetAIState,
     isPetActionAllowed,
     selectNearestEnemy,
+    isEnemyEngagedByOwner,
     resolvePetTarget,
     computePetState,
     moveTowards,

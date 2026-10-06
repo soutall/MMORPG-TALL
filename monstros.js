@@ -2677,6 +2677,33 @@ function _barraHp(slime, dx, dy, largura) {
     }
 }
 
+window.desenharEfeitoAtaquePet = function(ctx, pet) {
+    if (!ctx || !pet || !(pet.type === 'pet' || pet.pet_instance_id || pet.owner_id) ||
+        pet.animationState !== 'ATTACK' || !Number.isFinite(pet.animationUntil) ||
+        pet.animationUntil <= Date.now() || typeof ctx.ellipse !== 'function') return;
+    var duracao = Math.max(1, (pet.animationUntil || 0) - (pet.animationStartedAt || 0));
+    var progresso = Math.max(0, Math.min(1, (Date.now() - (pet.animationStartedAt || 0)) / duracao));
+    var escala = Number(pet.escala) > 0 ? Number(pet.escala) : 1;
+    var pulso = Math.sin(progresso * Math.PI);
+    ctx.save();
+    ctx.translate(pet.x, pet.y);
+    ctx.scale(escala, escala);
+    ctx.globalAlpha = 0.10 + pulso * 0.12;
+    ctx.fillStyle = '#ff4655';
+    ctx.shadowColor = '#ff3548';
+    ctx.shadowBlur = 10 + pulso * 6;
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 24 + pulso * 3, 19 + pulso * 2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalAlpha = 0.18 + pulso * 0.12;
+    ctx.lineWidth = 1.5;
+    ctx.strokeStyle = '#ff6470';
+    ctx.beginPath();
+    ctx.ellipse(0, 2, 25 + pulso * 4, 20 + pulso * 3, 0, 0, Math.PI * 2);
+    ctx.stroke();
+    ctx.restore();
+};
+
 // Marca visual do ELITE da Arena de Solari: aura dourada pulsante + anel piscando
 function _desenharEliteMark(slime, escala) {
     var ctx = window.ctx;
@@ -2999,6 +3026,10 @@ window.desenharSlime = function(slime) {
     var tp = (slime.tipo || '').toLowerCase();
     var arq = (slime.arquetipo || '').toLowerCase();
 
+    if (typeof window.desenharEfeitoAtaquePet === 'function') {
+        window.desenharEfeitoAtaquePet(ctx, slime);
+    }
+
     if (tp.indexOf('zumbi') !== -1) {
         ctx.save();
         ctx.translate(slime.x, slime.y);
@@ -3120,6 +3151,83 @@ window.desenharSlime = function(slime) {
     var offs = (arq === 'web' || tp.indexOf('aranha') !== -1) ? [-28, -38] : (foi ? [-18, -30] : [-15, -20]);
     _barraHp(slime, offs[0] * escala, offs[1] * escala);
     if (elite) _desenharEliteMark(slime, escala);
+};
+
+var _estadosBaloesConversaPet = Object.create(null);
+var _falasEstranhasPet = [
+    'Zun... blip!', 'Kra-nu?', 'Mrr... zaa!', 'Plim plom!', 'Uka ziii!',
+    'Bli-bli, gru!', 'Nekto...?', 'Vruum!', 'Xaa... lom!', 'Bzz kilu!'
+];
+
+window.desenharBalaoConversaPet = function(pet) {
+    if (!pet || !(pet.type === 'pet' || pet.pet_instance_id || pet.owner_id) || !window.ctx) return;
+    var petId = pet.pet_instance_id || pet.id;
+    if (!petId) return;
+
+    var agora = Date.now();
+    var estado = _estadosBaloesConversaPet[petId];
+    if (!estado) {
+        _estadosBaloesConversaPet[petId] = {
+            fala: '',
+            proximaFala: agora + 4000 + Math.random() * 11000,
+            expiraEm: 0,
+            vistoEm: agora
+        };
+        return;
+    }
+    estado.vistoEm = agora;
+    if (agora >= estado.expiraEm && estado.fala) {
+        estado.fala = '';
+        estado.proximaFala = agora + 7000 + Math.random() * 14000;
+    }
+    if (!estado.fala && agora >= estado.proximaFala) {
+        estado.fala = _falasEstranhasPet[Math.floor(Math.random() * _falasEstranhasPet.length)];
+        estado.expiraEm = agora + 2000;
+    }
+    if (!estado.fala) return;
+
+    var ctx = window.ctx;
+    var larguraTexto = typeof ctx.measureText === 'function' ? ctx.measureText(estado.fala).width : estado.fala.length * 7;
+    var largura = Math.max(72, Math.min(150, larguraTexto + 20));
+    var altura = 26;
+    var x = pet.x - largura / 2;
+    var y = pet.y - 92;
+
+    ctx.save();
+    ctx.font = "bold 12px 'Rajdhani', 'Segoe UI', Arial, sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 1.5;
+    ctx.shadowColor = 'rgba(0, 0, 0, 0.55)';
+    ctx.shadowBlur = 5;
+    ctx.fillStyle = '#fff8df';
+    ctx.strokeStyle = '#49345b';
+    ctx.beginPath();
+    if (typeof ctx.roundRect === 'function') ctx.roundRect(x, y, largura, altura, 7);
+    else ctx.rect(x, y, largura, altura);
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.beginPath();
+    ctx.moveTo(pet.x - 5, y + altura - 1);
+    ctx.lineTo(pet.x, y + altura + 6);
+    ctx.lineTo(pet.x + 5, y + altura - 1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#342844';
+    ctx.fillText(estado.fala, pet.x, y + altura / 2, largura - 12);
+    ctx.restore();
+
+    if (Object.keys(_estadosBaloesConversaPet).length > 256) {
+        Object.keys(_estadosBaloesConversaPet).forEach(function(id) {
+            var registro = _estadosBaloesConversaPet[id];
+            if (agora - registro.vistoEm > 60000) delete _estadosBaloesConversaPet[id];
+        });
+    }
 };
 
 // ============ ZUMBI (mantido do visual antigo) ============

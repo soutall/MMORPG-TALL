@@ -26,13 +26,48 @@ function getPetLevelFromXp(xp) {
     return level;
 }
 
+function getPetXpProgress(xp) {
+    let remainingXp = Math.max(0, Number(xp || 0));
+    let level = 1;
+    while (remainingXp >= getPetXpThreshold(level)) {
+        remainingXp -= getPetXpThreshold(level);
+        level += 1;
+    }
+    return {
+        level: level,
+        xpProgress: remainingXp,
+        xpToNext: getPetXpThreshold(level)
+    };
+}
+
 function gainPetXp(pet, xpGain) {
     if (!pet || typeof pet !== 'object') throw new TypeError('Instância de pet inválida.');
     const xp = Math.max(0, Number(xpGain || 0));
     pet.pet_xp = Number(pet.pet_xp || pet.xp || 0) + xp;
     pet.xp = pet.pet_xp;
-    pet.level = getPetLevelFromXp(pet.pet_xp);
-    pet.pet_xp_to_next = getPetXpThreshold(pet.level);
+    const progression = getPetXpProgress(pet.pet_xp);
+    const previousLevel = Math.max(1, Number(pet.level || pet.pet_level) || 1);
+    const currentStatus = pet.status && typeof pet.status === 'object' ? pet.status : {};
+    if (!pet.status_base || typeof pet.status_base !== 'object') {
+        pet.status_base = Object.assign({}, currentStatus);
+    }
+    const appliedLevel = Math.max(1, Number(pet.status_level_applied) || previousLevel);
+    const levelsGained = Math.max(0, progression.level - appliedLevel);
+    if (levelsGained > 0) {
+        ['vida', 'ataque', 'defesa', 'agilidade', 'sorte', 'critico', 'velocidade'].forEach(function (stat) {
+            const baseValue = Math.max(0, Number(pet.status_base[stat]) || 0);
+            const increasePerLevel = Math.max(1, baseValue * 0.05);
+            const cap = stat === 'critico' ? 100 : Infinity;
+            currentStatus[stat] = Math.min(cap, Math.round((baseValue + increasePerLevel *
+                (progression.level - appliedLevel)) * 100) / 100);
+        });
+    }
+    pet.status = currentStatus;
+    pet.status_level_applied = Math.max(appliedLevel, progression.level);
+    pet.level = progression.level;
+    pet.pet_level = progression.level;
+    pet.pet_xp_progress = progression.xpProgress;
+    pet.pet_xp_to_next = progression.xpToNext;
     return pet;
 }
 
@@ -57,18 +92,24 @@ function createPetInstance(speciesId, overrides) {
     const petInstanceId = 'pet_' + crypto.randomUUID();
     const mergedOverrides = overrides && typeof overrides === 'object' ? overrides : {};
     const baseStatus = Object.assign({}, PET_DEFAULT_STATUS, mergedOverrides.status || {});
+    const speciesIcon = species.icon || species.emoji || '🐾';
     const instance = Object.assign({
         pet_instance_id: petInstanceId,
         species_id: species.species_id,
         nome: species.nome,
+        emoji: species.emoji || speciesIcon,
+        icon: species.icon || species.emoji || speciesIcon,
         rarity: 'comum',
         level: 1,
         pet_level: 1,
         xp: 0,
         pet_xp: 0,
+        pet_xp_progress: 0,
         pet_xp_to_next: getPetXpThreshold(1),
         potencial: 0,
         status: baseStatus,
+        status_base: Object.assign({}, baseStatus),
+        status_level_applied: Math.max(1, Number(mergedOverrides.level || mergedOverrides.pet_level) || 1),
         passivas: [],
         traits: [],
         skills: Array.isArray(species.skills) ? species.skills.slice() : [],
@@ -76,7 +117,9 @@ function createPetInstance(speciesId, overrides) {
         skill_source: 'spawns.TIPOS_MONSTROS',
         visual: {
             asset: species.visual && species.visual.asset ? species.visual.asset : null,
-            cor: species.visual && species.visual.cor ? species.visual.cor : '#ffffff'
+            cor: species.visual && species.visual.cor ? species.visual.cor : '#ffffff',
+            icon: species.visual && species.visual.icon ? species.visual.icon : (species.icon || species.emoji || speciesIcon),
+            emoji: species.visual && species.visual.emoji ? species.visual.emoji : (species.emoji || speciesIcon)
         },
         atributos: {
             vida: 0,
@@ -90,6 +133,12 @@ function createPetInstance(speciesId, overrides) {
         created_at: new Date().toISOString()
     }, mergedOverrides);
 
+    instance.emoji = instance.emoji || instance.icon || species.emoji || species.icon || speciesIcon;
+    instance.icon = instance.icon || instance.emoji || species.icon || species.emoji || speciesIcon;
+    if (!instance.visual || typeof instance.visual !== 'object') instance.visual = {};
+    instance.visual.icon = instance.visual.icon || instance.icon || instance.emoji || speciesIcon;
+    instance.visual.emoji = instance.visual.emoji || instance.emoji || instance.icon || speciesIcon;
+    if (instance.visual.asset == null && species.visual && species.visual.asset) instance.visual.asset = species.visual.asset;
     if (instance.pet_level == null) instance.pet_level = instance.level || 1;
     if (instance.pet_xp == null) instance.pet_xp = Number(instance.xp || 0);
     if (instance.xp == null) instance.xp = Number(instance.pet_xp || 0);
@@ -134,6 +183,7 @@ module.exports = {
     PET_DEFAULT_STATUS,
     getPetXpThreshold,
     getPetLevelFromXp,
+    getPetXpProgress,
     gainPetXp,
     createPetInstance,
     validatePetInstance,

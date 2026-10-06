@@ -82,6 +82,7 @@
         let lastRenderSignature = '';
         let renderTimer = null;
         let onModeRequest = function () {};
+        let onActivateRequest = function () {};
 
         function el(tag, className, text) {
             const node = doc.createElement(tag);
@@ -177,6 +178,28 @@
             addStat(stats, 'Maior raridade capturada', maxRarity ? rarityLabel(maxRarity) : '—');
             detail.appendChild(stats);
 
+            const knowledgeLevel = Math.max(0, Number(record.nivelConhecimento) || 0);
+            const knowledgeXp = Math.max(0, Number(record.conhecimentoXp) || 0);
+            const storedKnowledgeNext = Number(record.conhecimentoXpParaProximo);
+            const knowledgeNext = Number.isFinite(storedKnowledgeNext)
+                ? Math.max(0, storedKnowledgeNext)
+                : (knowledgeLevel >= 10 ? 0 : 100 + knowledgeLevel * 75);
+            const knowledgeBonus = Math.min(15, Math.max(0, Number(record.bonusCapturaConhecimento) || knowledgeLevel * 1.5));
+            detail.appendChild(el('h4', 'pets-section-title', 'CONHECIMENTO DO INIMIGO'));
+            detail.appendChild(el('div', 'pets-detail-subtitle',
+                'Nível ' + knowledgeLevel + ' · ' + Number(record.monstrosMortos || 0) + ' derrotados'));
+            const knowledgeMeter = el('div', 'pets-meter pets-knowledge-meter');
+            const knowledgeFill = el('div', 'pets-meter-fill pets-knowledge-fill');
+            knowledgeFill.style.width = knowledgeNext > 0
+                ? Math.max(0, Math.min(100, knowledgeXp / knowledgeNext * 100)) + '%'
+                : '100%';
+            knowledgeMeter.appendChild(knowledgeFill);
+            detail.appendChild(knowledgeMeter);
+            detail.appendChild(el('div', 'pets-detail-subtitle', knowledgeNext > 0
+                ? knowledgeXp + ' / ' + knowledgeNext + ' XP · +' + knowledgeBonus.toFixed(1) + '% chance de captura'
+                : 'Conhecimento máximo · +' + knowledgeBonus.toFixed(1) + '% chance de captura'));
+            detail.appendChild(el('div', 'pets-muted', 'Conhecimento do Bestiário afeta somente captura; não altera status dos Pets.'));
+
             detail.appendChild(el('h4', 'pets-section-title', 'MAESTRIA DA ESPÉCIE'));
             if (mastery) {
                 const masteryLevel = Number(mastery.nivelMaestria || 0);
@@ -223,7 +246,10 @@
                 if (row.discovered) {
                     button.appendChild(makePreview(row.species, null));
                     const title = el('span', 'pets-row-title', row.species.nome);
-                    title.appendChild(el('span', 'pets-row-meta', 'Capturas: ' + Number((row.record && row.record.capturas) || 0)));
+                    const knowledgeLevel = Number((row.record && row.record.nivelConhecimento) || 0);
+                    title.appendChild(el('span', 'pets-row-meta',
+                        'Capturas: ' + Number((row.record && row.record.capturas) || 0) +
+                        ' · Conhecimento Lv. ' + knowledgeLevel));
                     button.appendChild(title);
                 } else {
                     button.appendChild(el('span', 'pets-preview', '❔'));
@@ -273,8 +299,20 @@
             const stats = el('div', 'pets-detail-grid');
             addStat(stats, 'Raridade', rarityLabel(pet.rarity));
             addStat(stats, 'Nível do Pet', Number(pet.level || pet.pet_level || 1));
-            addStat(stats, 'XP do Pet', Number(pet.pet_xp ?? pet.xp ?? 0) +
-                (Number(pet.pet_xp_to_next) > 0 ? ' / ' + Number(pet.pet_xp_to_next) : ''));
+            const totalPetXp = Math.max(0, Number(pet.pet_xp ?? pet.xp ?? 0));
+            let petXpProgress = Number(pet.pet_xp_progress);
+            let petXpToNext = Number(pet.pet_xp_to_next);
+            if (!Number.isFinite(petXpProgress) || !(petXpToNext > 0)) {
+                let remainingXp = totalPetXp;
+                let calculatedLevel = 1;
+                while (remainingXp >= 90 + calculatedLevel * 90) {
+                    remainingXp -= 90 + calculatedLevel * 90;
+                    calculatedLevel += 1;
+                }
+                petXpProgress = remainingXp;
+                petXpToNext = 90 + calculatedLevel * 90;
+            }
+            addStat(stats, 'XP para próximo nível', petXpProgress + ' / ' + petXpToNext);
             addStat(stats, 'Potencial', Number(pet.potencial ?? pet.potential ?? 0) + ' / 100');
             addStat(stats, 'Estado', pet.state || (item.active ? 'INATIVO' : 'INATIVO'));
             addStat(stats, 'Modo', pet.mode || '—');
@@ -303,8 +341,8 @@
             detail.appendChild(el('div', skills.length ? 'pets-detail-subtitle' : 'pets-muted',
                 skills.length ? skills.join(' · ') : 'Nenhuma skill registrada.'));
 
+            const controls = el('div', 'pets-mode-controls');
             if (item.active) {
-                const controls = el('div', 'pets-mode-controls');
                 ['ATK', 'DEFESA', 'PARADO'].forEach(function (mode) {
                     const button = el('button', 'pets-mode-button' + (pet.mode === mode ? ' ativo' : ''), mode);
                     button.type = 'button';
@@ -317,8 +355,21 @@
                 });
                 detail.appendChild(el('h4', 'pets-section-title', 'Comportamento do Pet ativo'));
                 detail.appendChild(controls);
+                const deactivate = el('button', 'pets-mode-button', 'Desequipar pet');
+                deactivate.type = 'button';
+                deactivate.addEventListener('click', function () {
+                    onActivateRequest(null);
+                });
+                detail.appendChild(deactivate);
             } else {
-                detail.appendChild(el('div', 'pets-muted', 'Troca de Pet ativo não está disponível.'));
+                const equip = el('button', 'pets-mode-button', 'Equipar pet');
+                equip.type = 'button';
+                equip.addEventListener('click', function () {
+                    onActivateRequest(pet.pet_instance_id);
+                });
+                controls.appendChild(equip);
+                detail.appendChild(el('div', 'pets-muted', 'Pet inativo no momento.'));
+                detail.appendChild(controls);
             }
             return detail;
         }
@@ -445,6 +496,10 @@
             if (typeof handler === 'function') onModeRequest = handler;
         }
 
+        function setActivateRequester(handler) {
+            if (typeof handler === 'function') onActivateRequest = handler;
+        }
+
         doc.getElementById('pets-close').addEventListener('click', close);
         doc.getElementById('pets-capture').addEventListener('click', function () {
             if (typeof win.solicitarCapturaPetUI === 'function') {
@@ -474,16 +529,34 @@
             }
         };
 
-        return {
+        onActivateRequest = function (petInstanceId) {
+            if (petInstanceId) {
+                if (typeof win.solicitarEquiparPetUI === 'function') {
+                    win.solicitarEquiparPetUI(petInstanceId);
+                } else {
+                    console.error('[PetsUI] O cliente não disponibilizou o envio de equipar pet.');
+                }
+            } else if (typeof win.solicitarDesequiparPetUI === 'function') {
+                win.solicitarDesequiparPetUI();
+            } else {
+                console.error('[PetsUI] O cliente não disponibilizou o envio de desequipar pet.');
+            }
+        };
+
+        const instance = {
             open: open,
             close: close,
             setProfile: setProfile,
             setRuntime: setRuntime,
             setMode: setMode,
             setModeRequester: setModeRequester,
+            setActivateRequester: setActivateRequester,
             buildSpeciesRows: buildSpeciesRows,
             buildPetRows: buildPetRows
         };
+        instance.setModeRequester(onModeRequest);
+        instance.setActivateRequester(onActivateRequest);
+        return instance;
     }
 
     return {

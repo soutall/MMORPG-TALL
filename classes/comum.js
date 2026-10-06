@@ -155,7 +155,9 @@ window.desenharBarraHp = function(x, y, hp, maxHp, stunTimer = 0, slowTimer = 0,
     window.ctx.strokeStyle = "rgba(0, 0, 0, 0.9)";
     window.ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
     window.ctx.shadowBlur = 3;
-    window.ctx.fillStyle = "#f4e6b5";
+    window.ctx.fillStyle = (slime.type === 'pet' || slime.pet_instance_id || slime.owner_id)
+        ? '#4ade80'
+        : '#f4e6b5';
     const nomeY = y - (debuffs.length > 0 ? 28 : 13);
     window.ctx.strokeText(nomeMonstro, x + largura / 2, nomeY, 150);
     window.ctx.fillText(nomeMonstro, x + largura / 2, nomeY, 150);

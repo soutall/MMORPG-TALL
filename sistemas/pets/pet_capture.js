@@ -86,6 +86,8 @@ function calculateCaptureChance(options) {
     const resistance = Number.isFinite(Number(options && options.resistance !== undefined ? options.resistance : 0))
         ? Number(options.resistance)
         : 0;
+    const knowledgeLevelValue = Number(options && options.knowledgeLevel);
+    const knowledgeLevel = Number.isFinite(knowledgeLevelValue) ? Math.max(0, knowledgeLevelValue) : 0;
 
     const levelGap = monsterLevel - playerLevel;
     const levelBias = levelGap <= -10 ? 28 :
@@ -103,9 +105,10 @@ function calculateCaptureChance(options) {
         CAPTURE_CONFIG.monsterCapWindow.below15;
 
     const masteryBonus = Math.min(23, masteryLevel * 1.8);
+    const knowledgeBonus = Math.min(15, Math.max(0, knowledgeLevel) * 1.5);
     const pityBonus = Math.min(18, pityFails * 2.2);
     const resistancePenalty = resistance * 52;
-    const chance = (35 + levelBias + hpWindow * 24 + masteryBonus + pityBonus - resistancePenalty);
+    const chance = (35 + levelBias + hpWindow * 24 + masteryBonus + knowledgeBonus + pityBonus - resistancePenalty);
     const clamped = Math.min(CAPTURE_CONFIG.maxChance, Math.max(CAPTURE_CONFIG.minChance, chance / 100));
     return Number(clamped.toFixed(4));
 }
@@ -142,12 +145,15 @@ function validateCaptureAttempt(options) {
     }
     const resistanceMultiplier = getResistanceMultiplier(record);
     const masteryLevel = Number((captureProfile.maestria && captureProfile.maestria[species.species_id] && captureProfile.maestria[species.species_id].nivelMaestria) || 0);
+    const knowledgeLevel = Number((captureProfile.bestiario && captureProfile.bestiario[species.species_id] &&
+        captureProfile.bestiario[species.species_id].nivelConhecimento) || 0);
     const chance = calculateCaptureChance({
         playerLevel: Number((player.level || player.nivel || 1)),
         monsterLevel: Number(monster.nivel || species.level || 1),
         monsterHp: Number(monster.hp),
         maxHp: Number(monster.maxHp),
         masteryLevel,
+        knowledgeLevel,
         pityFails: Number(record.fails || 0),
         resistance: Number(record.resistance || 0) * resistanceMultiplier
     });

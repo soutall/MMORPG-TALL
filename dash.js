@@ -60,7 +60,7 @@
             atordoamentoMs: 5000, reducaoAtordoado: 0.50, empurraoPx: 220, empurraoRaio: 170, vfx: 'curandeiro_escudo_area'
         },
         barbaro: {
-            tipo: 'investida', distancia: 400, duracaoMs: 500, stamina: 40, cooldownMs: 6000,
+            tipo: 'investida', distancia: 280, duracaoMs: 500, stamina: 40, cooldownMs: 6000,
             dano: 45, danoBossMult: 0.35, raioLateral: 55, empurraoPx: 90, vfx: 'barbaro_investida'
         },
         roqueiro: {

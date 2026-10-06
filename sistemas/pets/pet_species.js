@@ -65,11 +65,14 @@ function buildSpeciesDefinition(monsterReference, forceKey) {
     const capturavel = !elite && !boss && !tags.includes('invenciveis');
     const monsterSkills = Array.isArray(conf.skills) ? conf.skills.slice() : [];
 
+    const icon = conf.icon || conf.emoji || '🐾';
     return {
         species_id: speciesId,
         nome: conf.nome || speciesId,
         monster_type: conf.tipo || speciesId,
         monster_data: conf,
+        emoji: conf.emoji || icon,
+        icon: conf.icon || conf.emoji || icon,
         skills: monsterSkills,
         combat_profile: {
             ehMelee: conf.ehMelee !== false,
@@ -85,7 +88,9 @@ function buildSpeciesDefinition(monsterReference, forceKey) {
         visual: {
             asset: conf.asset || null,
             cor: conf.cor || '#ffffff',
-            sprite: conf.asset || null
+            sprite: conf.asset || null,
+            emoji: conf.emoji || icon,
+            icon: conf.icon || conf.emoji || icon
         },
         tipo: conf.tipo || speciesId,
         level: Number(conf.nivel || conf.level || 1),

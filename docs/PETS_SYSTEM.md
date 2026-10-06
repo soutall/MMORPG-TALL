@@ -101,6 +101,18 @@ A estrutura inclui:
 
 O cálculo ficou em [pet_maestria.js](../sistemas/pets/pet_maestria.js), com a fórmula centralizada em `computeMasteryXpGain` e `getMasteryXpToNext`.
 
+### Primeira etapa funcional da Maestria
+
+- Quando um Pet causa dano positivo a um monstro/boss que morre, sua espécie recebe XP de Maestria uma vez por abate.
+- Se mais de uma espécie de Pet do mesmo dono contribuiu, a recompensa é dividida proporcionalmente ao dano de cada espécie; várias instâncias da mesma espécie compartilham a mesma contribuição/registro.
+- A fórmula usa nível do dono e nível do monstro, e mantém a Maestria totalmente independente do XP/nível individual dos Pets.
+- O nível, XP e recompensas de Maestria são salvos no perfil, sincronizados no evento `pet_xp_ganho` e exibidos no Bestiário. O cliente não concede progresso.
+- As recompensas por nível continuam sendo apenas registros de marco (`recompensa_maestria`); efeitos/bônus de gameplay associados a elas ainda não foram definidos.
+
+## Conhecimento do inimigo no Bestiário
+
+Conhecimento é uma progressão separada da Maestria da espécie, do nível do Pet e de todos os atributos do Pet. Cada inimigo derrotado concede Conhecimento para a espécie correspondente ao jogador que participou diretamente do abate. O Bestiário mostra nível, XP, barra e abates; cada nível concede +1,5 ponto percentual de chance de captura, até +15 pontos no nível 10, respeitando o limite global atual de 88%. O bônus só afeta a captura e não altera status de Pets. A restrição/desbloqueio de espécies por nível de Conhecimento fica para uma etapa futura; por enquanto, as regras atuais de capturabilidade permanecem iguais.
+
 ## Persistência
 
 A fundação usa um perfil do jogador com:
@@ -293,6 +305,20 @@ O pet individual possui:
 
 A lógica foi implementada em [sistemas/pets/pet_instance.js](../sistemas/pets/pet_instance.js), mantendo a separação com a Maestria em [sistemas/pets/pet_maestria.js](../sistemas/pets/pet_maestria.js).
 
+### Primeira etapa de evolução individual
+
+- O pet ganha XP ao contribuir com dano positivo para a morte de um monstro ou boss.
+- A contribuição é atribuída pelo servidor à instância de pet real; dano bloqueado, captura e dano de lacaios antigos sem `pet_instance_id` não concedem XP individual.
+- O XP ganho corresponde ao XP por jogador já calculado no rateio de grupo daquele abate; várias instâncias contribuintes do mesmo dono dividem a recompensa de acordo com o dano causado.
+- A curva começa em 180 XP para o nível 2 e aumenta 90 XP por nível: `90 + 90 × nível atual`.
+- `pet_xp` guarda XP total; `pet_xp_progress` e `pet_xp_to_next` representam o progresso dentro do nível atual.
+- Ao subir de nível, o servidor atualiza os aliases `level`/`pet_level`, aumenta os status de vida, ataque, defesa, agilidade, sorte, crítico e velocidade em 5% da base (mínimo +1 por nível), aumenta a vida máxima do runtime e o dano de combate continua escalando pela fórmula já existente.
+- O perfil é salvo imediatamente e sincronizado com a interface do dono pelo evento `pet_xp_ganho`.
+
+### Regra de alvo do pet
+
+ATK e DEFESA não iniciam combate por proximidade. O servidor só libera para o pet os monstros/bosses que receberam dano positivo iniciado pelo próprio dono; dano causado por pet não marca um alvo novo. No modo DEFESA, o pet ainda exige que esse inimigo esteja mirando o dono.
+
 ## Persistência
 
 A persistência do sistema continua integrada ao perfil do jogador e ao armazenamento do projeto já existente, com:
@@ -344,7 +370,7 @@ Para o teste manual pelo cliente, aproxime-se de um monstro normal até ele ser 
 
 O mesmo `world_update` envia `animationState`, `animationStartedAt`, `animationUntil`, `aiAtacandoAte`, `aiEstado`, `moving`, `angulo` e `targetId` do Pet. `monstros.js` consome esses campos no `desenharSlime` compartilhado para selecionar os clips originais da espécie: `WALK` usa o clip de movimento, `ATTACK` usa o clip `action` e `HIT` usa o clip de dano existente. A direção vem da posição/facing runtime. O HP reduzido também é detectado pelo renderer original; não há animação ou renderer paralelo.
 
-O Bestiário exibe somente campos presentes no perfil: abates/capturas, maior nível, skills/passivas conhecidas e maestria da espécie; maior raridade é derivada das instâncias reais possuídas. A descoberta de uma espécie em captura bem-sucedida registra o record de maestria inicial pelo helper existente, sem conceder XP. A UI não altera nem concede progresso. Atualmente os helpers para contabilizar abates, XP individual e XP de maestria não estão conectados a eventos de combate; portanto esses valores podem permanecer em zero.
+O Bestiário exibe abates/capturas, conhecimento, maior nível, skills/passivas conhecidas e Maestria da espécie; maior raridade é derivada das instâncias reais possuídas. A descoberta de uma espécie em captura bem-sucedida registra os dados iniciais sem conceder progresso de Conhecimento. Conhecimento é concedido por participação direta do jogador no abate; XP individual e XP de Maestria seguem seus próprios critérios de contribuição de Pet.
 
 Estados publicados pelo runtime:
 

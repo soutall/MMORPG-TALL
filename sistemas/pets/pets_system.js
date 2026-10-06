@@ -8,15 +8,15 @@ const {
     validateSpeciesId
 } = require('./pet_species.js');
 
-const { createPetInstance, validatePetInstance, getPetLevelFromXp, getPetXpThreshold, gainPetXp } = require('./pet_instance.js');
-const { createBestiaryEntry, registerBestiarySpecies, incrementMonsterKills } = require('./pet_bestiario.js');
+const { createPetInstance, validatePetInstance, getPetLevelFromXp, getPetXpThreshold, getPetXpProgress, gainPetXp } = require('./pet_instance.js');
+const { KNOWLEDGE_MAX_LEVEL, getKnowledgeXpToNext, getKnowledgeCaptureBonus, createBestiaryEntry, registerBestiarySpecies, incrementMonsterKills, grantMonsterKnowledge } = require('./pet_bestiario.js');
 const { createMasteryRecord, applyMasteryXp, computeMasteryXpGain, getMasteryXpToNext } = require('./pet_maestria.js');
-const { ensurePlayerPetState, normalizePetProfile, setPetState } = require('./pet_persistence.js');
+const { ensurePlayerPetState, normalizePetProfile, setPetState, setActivePet, clearActivePet } = require('./pet_persistence.js');
 const { calculateCaptureChance, createPetCaptureResult, validateCaptureAttempt } = require('./pet_capture.js');
 const { rollRarity, generatePetStatus, getRarityValue } = require('./pet_rarity.js');
 const { generatePassiveSet } = require('./pet_passives.js');
 const { pickTraits } = require('./pet_traits.js');
-const { PET_STATES, PET_DEFAULT_CONFIG, createPetAIState, computePetState, updatePetFollowState, validatePetServerAction, selectNearestEnemy } = require('./pet_ai.js');
+const { PET_STATES, PET_DEFAULT_CONFIG, createPetAIState, computePetState, updatePetFollowState, validatePetServerAction, selectNearestEnemy, isEnemyEngagedByOwner } = require('./pet_ai.js');
 
 function ensureSpeciesEntry(speciesId) {
     const species = getSpeciesById(speciesId);
@@ -67,10 +67,15 @@ module.exports = {
     validatePetInstance,
     getPetLevelFromXp,
     getPetXpThreshold,
+    getPetXpProgress,
     gainPetXp,
     createBestiaryEntry,
     registerBestiarySpecies,
     incrementMonsterKills,
+    KNOWLEDGE_MAX_LEVEL,
+    getKnowledgeXpToNext,
+    getKnowledgeCaptureBonus,
+    grantMonsterKnowledge,
     createMasteryRecord,
     applyMasteryXp,
     computeMasteryXpGain,
@@ -86,6 +91,8 @@ module.exports = {
     ensurePlayerPetState,
     normalizePetProfile,
     setPetState,
+    setActivePet,
+    clearActivePet,
     ensureSpeciesEntry,
     registerAutoSpecies,
     createCapturedPet,
@@ -95,5 +102,6 @@ module.exports = {
     computePetState,
     updatePetFollowState,
     validatePetServerAction,
-    selectNearestEnemy
+    selectNearestEnemy,
+    isEnemyEngagedByOwner
 };

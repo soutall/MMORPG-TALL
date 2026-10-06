@@ -60,6 +60,30 @@
     font-size: 11px;
 }
 
+#btn-pet-capture-mobile {
+    display: none;
+    width: 54px;
+    min-height: 50px;
+    margin-top: 5px;
+    padding: 3px 4px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    border: 1.5px solid #8fffd3;
+    border-radius: 11px;
+    color: #f2fff8;
+    background: linear-gradient(145deg, rgba(17, 91, 69, .96), rgba(8, 25, 32, .97));
+    box-shadow: 0 0 12px rgba(83, 255, 183, .36), 0 3px 8px rgba(0, 0, 0, .75);
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#btn-pet-capture-mobile span { font-size: 27px; line-height: 1; filter: drop-shadow(0 2px 2px #000); }
+#btn-pet-capture-mobile small { font: 800 8px 'Rajdhani', sans-serif; letter-spacing: .6px; }
+#btn-pet-capture-mobile:active { transform: scale(.93); border-color: #fff2a4; }
+
 /* Dropdown da Sidebar (compacto para caber perfeitamente na vertical) */
 #mobile-sidebar-dropdown {
     display: none;
@@ -190,6 +214,8 @@
     #mobile-sidebar-container {
         display: flex !important;
     }
+
+    #btn-pet-capture-mobile { display: flex; }
 
     /* Minimapa fixado com precisão no canto superior direito */
     #minimap-wrapper {

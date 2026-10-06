@@ -1,6 +1,7 @@
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const MAPAS_REGISTRY = require('./mapas-registry.js');
 const INSTANCIAS = require('./instancias.js');
 const WebSocket = require('ws');
@@ -1506,14 +1507,14 @@ function alcanceAtaqueBasicoClasse(p) {
     if (!p) return 300;
     if (p.classe === 'arqueiro') return 250;
     if (p.classe === 'roqueiro') return 200;
-    if (p.classe === 'guerreiro') return 100;
-    if (p.classe === 'barbaro') return 100;
+    if (p.classe === 'guerreiro') return 50;
+    if (p.classe === 'barbaro') return 50;
     if (p.classe === 'mago') return 200;
     if (p.classe === 'summoner') return 190;
     if (p.classe === 'curandeiro') return 200;
-    if (p.classe === 'ladino') return 110;
-    if (p.classe === 'pikeman') return 100;
-    if (p.classe === 'guerreiro_kaledron') return 110;
+    if (p.classe === 'ladino') return 44;
+    if (p.classe === 'pikeman') return 50;
+    if (p.classe === 'guerreiro_kaledron') return 55;
     if (p.classe === 'dronemaster') return (p.dmTitaAtivo ? 242 : 124); // +15% (108→124; Tita 210→242)
     if (p.classe === 'sniper') return 384; // range reduzido em 20% (480 -> 384)
     if (p.classe === 'florim') return 180;
@@ -3795,6 +3796,21 @@ function jogadorPodeSerAlvoDoSlime(pid, jogador, slime) {
         mapaMundo.biomaNome(jogador.x + PLAYER_OFFSET_X, jogador.y + PLAYER_OFFSET_Y) === slime.bioma;
 }
 
+function monstroEhEliteOuBoss(monstro) {
+    const tags = Array.isArray(monstro && monstro.tags) ? monstro.tags : [];
+    return !!(monstro && (monstro.elite || monstro.boss || bosses.includes(monstro) ||
+        tags.includes('elite') || tags.includes('boss')));
+}
+
+function monstroPodeFocarPet(monstro, pet) {
+    const owner = pet && players[pet.owner_id];
+    if (!monstro || !pet || pet.hp <= 0 || pet.mode === 'PARADO' || !owner || owner.hp <= 0 ||
+        monstroEhEliteOuBoss(monstro)) return false;
+    return !slimes.concat(bosses).some(function (outro) {
+        return outro && outro !== monstro && outro.hp > 0 && outro.targetId === pet.pet_instance_id;
+    });
+}
+
 function moverMonstroComDesvio(slime, destinoX, destinoY, velocidade) {
     const dx = destinoX - slime.x;
     const dy = destinoY - slime.y;
@@ -3917,6 +3933,7 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
         slime.y = pos.y;
         slime.hp = slime.maxHp;
         slime.captureConsumed = false;
+        slime.captureFailCount = 0;
         slime.aiRespawnTimer = 0;
         slime.targetId = null;
         slime.tabelaDano = {};
@@ -3960,7 +3977,7 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
     const alvoPetValido = petProvocando && petProvocando.hp > 0 &&
         players[petProvocando.owner_id] && players[petProvocando.owner_id].hp > 0 &&
         mapaPorCoordenada(petProvocando.x) === mapaPorCoordenada(slime.x) &&
-        instanciaCompativel(slime, petProvocando);
+        instanciaCompativel(slime, petProvocando) && monstroPodeFocarPet(slime, petProvocando);
     let alvoPet = !!alvoPetValido;
     let alvo = alvoPet ? petProvocando : (slime.targetId && players[slime.targetId]);
     if (alvoPet && !petProvocando.pet_instance_id) slime.targetId = slime.tauntId;
@@ -4001,6 +4018,7 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
         for (const pet of Object.values(petsAtivos)) {
             const owner = pet && players[pet.owner_id];
             if (!owner || owner.hp <= 0 || pet.hp <= 0 || pet.mode === 'PARADO' ||
+                !monstroPodeFocarPet(slime, pet) ||
                 !podeEntidadeAtacarAlvo(slime, pet, slime.aggroRange || 320)) continue;
             const distancia = Math.hypot(pet.x - slime.x, pet.y - slime.y);
             if (distancia <= menorDistancia) {
@@ -4223,9 +4241,17 @@ function obterBuffsMonstroAtivos(monstro, agora) {
     return monstro.buffsMonstros;
 }
 
+const MULTIPLICADOR_CADENCIA_ATAQUE = 2.2; // 120% mais ataques por segundo
+
+function cadenciaAtaqueAumentada(cadenciaBase) {
+    const base = Math.max(1, Number(cadenciaBase) || 1);
+    return Math.max(1, Math.round(base / MULTIPLICADOR_CADENCIA_ATAQUE));
+}
+
 function cadenciaAtaqueMonstro(monstro) {
     const base = Math.max(1, Number(monstro.cadenciaAtk) || 45);
-    return Math.max(1, Math.round(base / (monstro.bioma === 'Deserto Escaldante' ? 1.4 : 1)));
+    const bonusDeserto = monstro.bioma === 'Deserto Escaldante' ? 1.4 : 1;
+    return cadenciaAtaqueAumentada(base / bonusDeserto);
 }
 
 function aplicarBuffAreaMonstros(caster, agora) {
@@ -4404,7 +4430,166 @@ function sobVenenoPantano(x, y) {
     return mapaPantano.ehVenenoPantano(x, y);
 }
 
-function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
+function registrarContribuicaoPet(entidade, ownerId, petInstanceId, dano) {
+    if (!entidade || !ownerId || !petInstanceId || !(Number(dano) > 0)) return;
+    const runtime = petRuntimeDoId(petInstanceId);
+    if (!runtime || runtime.owner_id !== ownerId || !validarOwnerPet(ownerId, runtime) ||
+        !instanciaCompativel(runtime, entidade)) return;
+    if (!entidade.petContribuicoes || typeof entidade.petContribuicoes !== 'object') {
+        entidade.petContribuicoes = {};
+    }
+    const contribution = entidade.petContribuicoes[petInstanceId] || {
+        ownerId: ownerId,
+        dano: 0
+    };
+    contribution.dano += Number(dano);
+    entidade.petContribuicoes[petInstanceId] = contribution;
+}
+
+function registrarInimigoIniciadoPeloJogador(entidade, ownerId, tipoOrigem, dano) {
+    if (!entidade || !ownerId || !(Number(dano) > 0) || tipoOrigem === 'pet' || !players[ownerId]) return;
+    if (!entidade.petAggroOwners || typeof entidade.petAggroOwners !== 'object') {
+        entidade.petAggroOwners = {};
+    }
+    entidade.petAggroOwners[ownerId] = Date.now();
+}
+
+function concederXpPetPorAbate(entidade, ownerId, xpBase) {
+    if (!entidade || !ownerId || !entidade.petContribuicoes) return [];
+    const owner = players[ownerId];
+    const socket = playerSockets[ownerId];
+    if (!owner || !owner.petProfile || !Array.isArray(owner.petProfile.pets) ||
+        !socket || socket.readyState !== WebSocket.OPEN) return [];
+
+    const contributions = Object.entries(entidade.petContribuicoes).filter(function(entry) {
+        return entry[1] && entry[1].ownerId === ownerId && Number(entry[1].dano) > 0;
+    });
+    if (!contributions.length) return [];
+    const totalDamage = contributions.reduce(function(total, entry) {
+        return total + Number(entry[1].dano || 0);
+    }, 0);
+    if (!(totalDamage > 0)) return [];
+
+    const xpTotal = Math.max(1, Math.floor(Number(xpBase) || 1));
+    const results = [];
+    const speciesContributions = new Map();
+    let totalPetDamage = 0;
+    contributions.forEach(function(entry) {
+        const pet = owner.petProfile.pets.find(function(candidate) {
+            return candidate && candidate.pet_instance_id === entry[0];
+        });
+        if (!pet || !pet.species_id) return;
+        const damage = Number(entry[1].dano) || 0;
+        totalPetDamage += damage;
+        const current = speciesContributions.get(pet.species_id) || { damage: 0, petIds: [] };
+        current.damage += damage;
+        current.petIds.push(entry[0]);
+        speciesContributions.set(pet.species_id, current);
+    });
+
+    const masteryGains = [];
+    const monsterLevel = Math.max(1, Number(entidade.nivel || entidade.level) || 1);
+    if (totalPetDamage > 0) {
+        speciesContributions.forEach(function(contribution, speciesId) {
+            const masteryRecord = owner.petProfile.maestria[speciesId] ||
+                petSystem.createMasteryRecord(speciesId);
+            const previousLevel = Math.max(0, Number(masteryRecord.nivelMaestria) || 0);
+            const masteryXpBase = petSystem.computeMasteryXpGain({
+                playerLevel: Math.max(1, Number(owner.level) || 1),
+                monsterLevel: monsterLevel,
+                levelDifference: (Number(owner.level) || 1) - monsterLevel
+            });
+            const masteryXp = Math.max(1, Math.round(masteryXpBase *
+                contribution.damage / totalPetDamage));
+            petSystem.applyMasteryXp(masteryRecord, { xp: masteryXp });
+            owner.petProfile.maestria[speciesId] = masteryRecord;
+            const bestiary = petSystem.registerBestiarySpecies(owner.petProfile.bestiario, speciesId);
+            bestiary.xpMaestria = masteryRecord.xpMaestria;
+            bestiary.nivelMaestria = masteryRecord.nivelMaestria;
+            bestiary.ultimaAtualizacao = masteryRecord.ultimaAtualizacao;
+            masteryGains.push({
+                speciesId: speciesId,
+                xpGain: masteryXp,
+                level: masteryRecord.nivelMaestria,
+                levelUp: masteryRecord.nivelMaestria > previousLevel
+            });
+        });
+    }
+
+    contributions.forEach(function(entry) {
+        const petId = entry[0];
+        const pet = owner.petProfile.pets.find(function(candidate) {
+            return candidate && candidate.pet_instance_id === petId;
+        });
+        if (!pet) return;
+
+        const xpGain = Math.max(1, Math.floor(xpTotal * Number(entry[1].dano) / totalDamage));
+        const previousLevel = Math.max(1, Number(pet.level || pet.pet_level) || 1);
+        petSystem.gainPetXp(pet, xpGain);
+        const runtime = petRuntimeDoId(petId);
+        if (runtime && runtime.owner_id === ownerId) {
+            const species = petSystem.getSpeciesById(runtime.species_id);
+            const monsterConfig = species && species.monster_data || {};
+            const newMaxHp = Math.max(1, Math.round((Number(monsterConfig.baseHp) || 80) *
+                (1 + Math.min(50, Number(pet.level) - 1) * 0.04)));
+            const hpIncrease = Math.max(0, newMaxHp - (Number(runtime.maxHp) || newMaxHp));
+            runtime.level = pet.level;
+            runtime.pet_level = pet.pet_level;
+            runtime.pet_xp = pet.pet_xp;
+            runtime.pet_xp_progress = pet.pet_xp_progress;
+            runtime.pet_xp_to_next = pet.pet_xp_to_next;
+            runtime.status = pet.status;
+            runtime.status_base = pet.status_base;
+            runtime.status_level_applied = pet.status_level_applied;
+            runtime.maxHp = newMaxHp;
+            runtime.hp = runtime.hp > 0 ? Math.min(newMaxHp, runtime.hp + hpIncrease) : 0;
+            syncPetRuntimeToProfile(runtime);
+        }
+
+        results.push({ petInstanceId: petId, xpGain: xpGain, level: pet.level, levelUp: pet.level > previousLevel });
+    });
+
+    if (!results.length) return results;
+    salvarProgresso(owner.nome, {
+        pets: owner.petProfile.pets,
+        bestiario: owner.petProfile.bestiario,
+        maestria: owner.petProfile.maestria,
+        captureState: owner.petProfile.captureState,
+        petActiveId: owner.petActiveId || null
+    });
+    socket.send(JSON.stringify({
+        type: 'pet_xp_ganho',
+        petProfile: petProfileForClient(owner),
+        ganhos: results,
+        maestrias: masteryGains
+    }));
+    return results;
+}
+
+function concederConhecimentoBestiarioPorAbate(entidade, ownerId) {
+    const owner = ownerId && players[ownerId];
+    if (!entidade || !owner || !owner.petProfile || !owner.petProfile.bestiario) return null;
+    const speciesId = String(entidade.species_id || entidade.tipo || entidade.monster_type || '').trim();
+    if (!speciesId || !petSystem.getSpeciesById(speciesId)) return null;
+    const species = petSystem.getSpeciesById(speciesId);
+    const progress = petSystem.grantMonsterKnowledge(
+        owner.petProfile.bestiario,
+        species.species_id,
+        entidade.nivel || species.level || 1,
+        1
+    );
+    return {
+        speciesId: species.species_id,
+        xpGain: progress.xpGain,
+        level: progress.level,
+        levelUp: progress.levelUp,
+        xpProgress: progress.xpProgress,
+        xpToNext: progress.xpToNext,
+        captureBonusPercent: progress.captureBonusPercent
+    };
+}
+
+function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem, petInstanceId) {
     if (!slime || !autorId || slime.hp <= 0) return { dano: 0, critico: false };
     if (Array.isArray(slime.tags) && slime.tags.indexOf('invenciveis') !== -1) return { dano: 0, critico: false };
     const autorP = players[autorId];
@@ -4475,6 +4660,8 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
 
     if (!slime.tabelaDano) slime.tabelaDano = {};
     if (danoFinal > 0) slime.tabelaDano[autorId] = (slime.tabelaDano[autorId] || 0) + danoFinal;
+    registrarContribuicaoPet(slime, autorId, petInstanceId, danoFinal);
+    registrarInimigoIniciadoPeloJogador(slime, autorId, tipoOrigem, danoFinal);
     if (!slime.flagPassivo || slime.aiManaged) {
         // LADINO invisível / SNIPER camuflado: o dano NÃO revela a posição (sem agro)
         if (!autorP || !(efeitos && (efeitos.temEfeito(autorP, 'invisivel') || efeitos.temEfeito(autorP, 'camuflagem')))) {
@@ -4495,6 +4682,7 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem) {
     }
     if (calc.critico) broadcastCritico(slime.x, slime.y, autorId);
     if (danoFinal > 0 && autorP && tipoOrigem !== 'pet') broadcastDanoFlut(slime.x, slime.y, danoFinal, autorId);
+    if (danoFinal > 0 && petInstanceId) broadcastDanoPetFlut(slime.x, slime.y, danoFinal, autorId, petInstanceId);
 
     if (slime.hp <= 0) {
         slime.hp = 0;
@@ -4540,11 +4728,15 @@ function distribuirXpMorte(slime) {
         let p = players[pid];
         let wsTarget = playerSockets[pid];
         if (p && wsTarget && wsTarget.readyState === WebSocket.OPEN) {
+            const conhecimento = Number(slime.tabelaDano[pid] || 0) > 0
+                ? concederConhecimentoBestiarioPorAbate(slime, pid)
+                : null;
             // Anti-hack: o level-up é creditado pelo servidor a partir do XP
             // que ELE mesmo concessionou, e sanitizarLevelXp() garante que um xp
             // inflado (do disco ou de qualquer origem) nunca dispare dozens de
             // pontos de atributo/skill de uma vez.
             let subiuLevel = concederXpSeguro(p, xpPorPessoa);
+            concederXpPetPorAbate(slime, pid, xpPorPessoa);
 
 
             salvarProgresso(p.nome, {
@@ -4557,7 +4749,14 @@ function distribuirXpMorte(slime) {
                 atributos: p.atributos,
                 pontosDisponiveis: p.pontosDisponiveis,
                 skills: p.skills || {},
-                pontosHabilidade: p.pontosHabilidade || 0
+                pontosHabilidade: p.pontosHabilidade || 0,
+                ...(p.petProfile ? {
+                    pets: p.petProfile.pets,
+                    bestiario: p.petProfile.bestiario,
+                    maestria: p.petProfile.maestria,
+                    captureState: p.petProfile.captureState
+                } : {}),
+                petActiveId: p.petActiveId || null
             });
 
             wsTarget.send(JSON.stringify({
@@ -4567,12 +4766,16 @@ function distribuirXpMorte(slime) {
                 xp: p.xp,
                 pontos: (p.pontosDisponiveis || 0),
                 pontosHabilidade: (p.pontosHabilidade || 0),
-                subiuLevel: subiuLevel
+                subiuLevel: subiuLevel,
+                petProfile: conhecimento ? petProfileForClient(p) : null,
+                conhecimento: conhecimento
             }));
         }
     });
 
     slime.tabelaDano = {};
+    slime.petContribuicoes = {};
+    slime.petAggroOwners = {};
 }
 
 function aplicarDanoJogador(pid, origemX, origemY, dano) {
@@ -4938,7 +5141,7 @@ function aplicarDanoAmbiente(pid, dano, tipoDano, texto) {
 // ============ BOSS: GOLEM DE PEDRA ============
 let bosses = [];
 
-function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem) {
+function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem, petInstanceId) {
     if (!boss || !autorId || boss.hp <= 0) return { dano: 0, critico: false };
     const autorP0 = players[autorId];
     if (autorP0 && !instanciaCompativel(autorP0, boss)) return { dano: 0, critico: false };
@@ -4978,6 +5181,8 @@ function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem) {
 
     if (!boss.tabelaDano) boss.tabelaDano = {};
     boss.tabelaDano[autorId] = (boss.tabelaDano[autorId] || 0) + danoFinal;
+    registrarContribuicaoPet(boss, autorId, petInstanceId, danoFinal);
+    registrarInimigoIniciadoPeloJogador(boss, autorId, tipoOrigem, danoFinal);
     boss.hp -= danoFinal;
     if (boss.hp < 0) boss.hp = 0;
     // LADINO — PASSIVA LÂMINAS SANGRENTAS em Bosses
@@ -4989,6 +5194,7 @@ function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem) {
     }
     if (calc.critico) broadcastCritico(boss.x, boss.y, autorId);
     if (danoFinal > 0 && autorBossP && tipoOrigem !== 'pet') broadcastDanoFlut(boss.x, boss.y, danoFinal, autorId);
+    if (danoFinal > 0 && petInstanceId) broadcastDanoPetFlut(boss.x, boss.y, danoFinal, autorId, petInstanceId);
     return { dano: danoFinal, critico: calc.critico };
 }
 
@@ -6443,6 +6649,22 @@ function broadcastDanoFlut(x, y, dano, autorId) {
     });
 }
 
+function broadcastDanoPetFlut(x, y, dano, ownerId, petInstanceId) {
+    if (!dano || dano <= 0 || !petInstanceId) return;
+    const message = {
+        type: 'pet_texto_dano',
+        x: Math.round(x),
+        y: Math.round(y),
+        dano: Math.round(dano),
+        ownerId: ownerId || null,
+        petInstanceId: petInstanceId
+    };
+    const serialized = JSON.stringify(message);
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) client.send(serialized);
+    });
+}
+
 function broadcastDanoNoOgro(x, y, dano) {
     if (!dano || dano <= 0) return;
     wss.clients.forEach((client) => {
@@ -6518,11 +6740,15 @@ function distribuirXpBoss(boss) {
         let p = players[pid];
         let wsTarget = playerSockets[pid];
         if (p && wsTarget && wsTarget.readyState === WebSocket.OPEN) {
+            const conhecimento = Number(boss.tabelaDano[pid] || 0) > 0
+                ? concederConhecimentoBestiarioPorAbate(boss, pid)
+                : null;
             // Anti-hack: o level-up é creditado pelo servidor a partir do XP
             // que ELE mesmo concessionou, e sanitizarLevelXp() garante que um xp
             // inflado (do disco ou de qualquer origem) nunca dispare dozens de
             // pontos de atributo/skill de uma vez.
             let subiuLevel = concederXpSeguro(p, xpPorPessoa);
+            concederXpPetPorAbate(boss, pid, xpPorPessoa);
 
             salvarProgresso(p.nome, {
                 level: p.level,
@@ -6534,7 +6760,14 @@ function distribuirXpBoss(boss) {
                 atributos: p.atributos,
                 pontosDisponiveis: p.pontosDisponiveis,
                 skills: p.skills || {},
-                pontosHabilidade: p.pontosHabilidade || 0
+                pontosHabilidade: p.pontosHabilidade || 0,
+                ...(p.petProfile ? {
+                    pets: p.petProfile.pets,
+                    bestiario: p.petProfile.bestiario,
+                    maestria: p.petProfile.maestria,
+                    captureState: p.petProfile.captureState
+                } : {}),
+                petActiveId: p.petActiveId || null
             });
 
             wsTarget.send(JSON.stringify({
@@ -6544,12 +6777,16 @@ function distribuirXpBoss(boss) {
                 xp: p.xp,
                 pontos: (p.pontosDisponiveis || 0),
                 pontosHabilidade: (p.pontosHabilidade || 0),
-                subiuLevel: subiuLevel
+                subiuLevel: subiuLevel,
+                petProfile: conhecimento ? petProfileForClient(p) : null,
+                conhecimento: conhecimento
             }));
         }
     });
 
     boss.tabelaDano = {};
+    boss.petContribuicoes = {};
+    boss.petAggroOwners = {};
 }
 
 function criarGolemPedra() {
@@ -6568,7 +6805,7 @@ function criarGolemPedra() {
         maxHp: 8000,
         fase: 'idle',
         faseTick: 0,
-        cooldown: 40,
+        cooldown: cadenciaAtaqueAumentada(40),
         mortoTimer: 0,
         mortoAnunciado: false,
         alvoX: 0,
@@ -6807,6 +7044,8 @@ function petProfileForClient(owner) {
                 tipo: species.tipo,
                 asset: species.visual && species.visual.asset ? species.visual.asset : null,
                 cor: species.visual && species.visual.cor ? species.visual.cor : '#ffffff',
+                emoji: species.emoji || species.icon || '🐾',
+                icon: species.icon || species.emoji || '🐾',
                 capturavel: species.capturavel,
                 habitat: species.habitat || null,
                 skills: Array.isArray(species.skills) ? species.skills : []
@@ -6887,10 +7126,10 @@ function spawnPetRuntime(ownerId, petInstance) {
         inheritedAttackSkill: species.combat_profile && species.combat_profile.petAttackSkill
             ? Object.assign({}, species.combat_profile.petAttackSkill)
             : null,
-        attackCooldownMs: Math.max(500, Number(
+        attackCooldownMs: Math.max(250, cadenciaAtaqueAumentada(Number(
             species.combat_profile && species.combat_profile.petAttackSkill &&
             species.combat_profile.petAttackSkill.cooldownMs
-        ) || (Number(monsterConfig.cadenciaAtk) || 45) * 50),
+        ) || (Number(monsterConfig.cadenciaAtk) || 45) * 50)),
         nextAttackAt: 0,
         inheritedSkills: species.skills,
         visual: species.visual,
@@ -6900,6 +7139,9 @@ function spawnPetRuntime(ownerId, petInstance) {
         animationUntil: 0,
         moving: false,
         aiEstado: 'idle',
+        idleSince: 0,
+        wanderTarget: null,
+        wanderNextAt: 0,
         aiAtacandoAte: 0,
         angulo: 0,
         escala: Number(monsterConfig.escala) || 1,
@@ -6950,6 +7192,15 @@ function syncPetRuntimeToProfile(runtime) {
     persisted.maxHp = runtime.maxHp;
     persisted.state = runtime.state;
     persisted.respawnAt = runtime.respawnAt;
+    persisted.level = runtime.level;
+    persisted.pet_level = runtime.pet_level || runtime.level;
+    persisted.pet_xp = runtime.pet_xp;
+    persisted.xp = runtime.xp || runtime.pet_xp;
+    persisted.pet_xp_progress = runtime.pet_xp_progress;
+    persisted.pet_xp_to_next = runtime.pet_xp_to_next;
+    persisted.status = runtime.status;
+    persisted.status_base = runtime.status_base;
+    persisted.status_level_applied = runtime.status_level_applied;
 }
 
 function applyDamageToCapturedPet(runtime, damage, source) {
@@ -6990,18 +7241,18 @@ function validarOwnerPet(ownerId, runtime) {
         instanciaCompativel(owner, runtime));
 }
 
-function aplicarDanoAtaquePet(ownerId, targetType, targetId, damage, attackKind) {
+function aplicarDanoAtaquePet(ownerId, targetType, targetId, damage, attackKind, petInstanceId) {
     const owner = players[ownerId];
     if (!owner || owner.hp <= 0 || !damage) return false;
     if (targetType === 'slime') {
         const target = slimes.find(function (mob) { return mob && mob.id === targetId && mob.hp > 0; });
         if (!target || !instanciaCompativel(owner, target)) return false;
-        return registrarDanoMonstro(target, ownerId, damage, 'pet').dano > 0;
+        return registrarDanoMonstro(target, ownerId, damage, 'pet', petInstanceId).dano > 0;
     }
     if (targetType === 'boss') {
         const target = bosses.find(function (boss) { return boss && boss.id === targetId && boss.hp > 0; });
         if (!target || !instanciaCompativel(owner, target)) return false;
-        return registrarDanoBoss(target, ownerId, damage, attackKind === 'basico' ? 'basico' : 'skill', 'pet').dano > 0;
+        return registrarDanoBoss(target, ownerId, damage, attackKind === 'basico' ? 'basico' : 'skill', 'pet', petInstanceId).dano > 0;
     }
     if (targetType === 'player') {
         const target = players[targetId];
@@ -7024,8 +7275,16 @@ function escolherAlvoPet(runtime, owner) {
     const ownerId = runtime.owner_id;
     const species = petSystem.getSpeciesById(runtime.species_id);
     const acquireRange = Math.max(180, Number(species && species.combat_profile && species.combat_profile.skillRange) || 320);
-    const monsters = slimes.concat(bosses).filter(function (mob) {
-        if (!mob || mob.hp <= 0 || !instanciaCompativel(runtime, mob)) return false;
+    const allMonsters = slimes.concat(bosses);
+    const lockedTarget = allMonsters.find(function (mob) {
+        return mob && mob.id === runtime.targetId && mob.hp > 0 && instanciaCompativel(runtime, mob);
+    });
+    if (lockedTarget && runtime.mode !== 'PARADO') {
+        return { type: bosses.includes(lockedTarget) ? 'boss' : 'slime', entity: lockedTarget };
+    }
+    const monsters = allMonsters.filter(function (mob) {
+        if (!mob || mob.hp <= 0 || !instanciaCompativel(runtime, mob) ||
+            !petAi.isEnemyEngagedByOwner(mob, ownerId)) return false;
         if (runtime.mode === 'DEFESA') {
             return mob.targetId === ownerId &&
                 Math.hypot(mob.x - (owner.x + PLAYER_OFFSET_X), mob.y - (owner.y + PLAYER_OFFSET_Y)) <= acquireRange;
@@ -7168,6 +7427,9 @@ function atualizarPetsAtivos(now) {
                 runtime.state = petAi.PET_STATES.FOLLOW;
                 runtime.respawnAt = 0;
                 runtime.stuckMs = 0;
+                runtime.idleSince = 0;
+                runtime.wanderTarget = null;
+                runtime.wanderNextAt = 0;
                 runtime.animationState = 'IDLE';
                 runtime.animationStartedAt = tickNow;
                 runtime.animationUntil = 0;
@@ -7189,22 +7451,44 @@ function atualizarPetsAtivos(now) {
             });
             continue;
         }
-        if (tickNow - (runtime.lastTickAt || 0) < 150) continue;
-        const elapsed = runtime.lastTickAt ? tickNow - runtime.lastTickAt : 150;
+        if (tickNow - (runtime.lastTickAt || 0) < 75) continue;
+        const elapsed = runtime.lastTickAt ? tickNow - runtime.lastTickAt : 75;
         runtime.lastTickAt = tickNow;
         const ownerPoint = { x: owner.x + PLAYER_OFFSET_X, y: owner.y + PLAYER_OFFSET_Y };
-        const ownerDistance = Math.hypot(ownerPoint.x - runtime.x, ownerPoint.y - runtime.y);
+        let ownerDistance = Math.hypot(ownerPoint.x - runtime.x, ownerPoint.y - runtime.y);
+        if (ownerDistance > 850) {
+            const safe = posicaoSeguraPet(owner, runtime);
+            if (safe) {
+                runtime.x = safe.x;
+                runtime.y = safe.y;
+                runtime.targetId = null;
+                runtime.state = petAi.PET_STATES.RETURN;
+                runtime.stuckMs = 0;
+                runtime.idleSince = 0;
+                runtime.wanderTarget = null;
+                runtime.wanderNextAt = 0;
+                runtime.lastProgressAt = tickNow;
+                runtime.moving = false;
+                runtime.animationState = 'IDLE';
+                runtime.animationStartedAt = tickNow;
+                runtime.animationUntil = 0;
+                runtime.aiEstado = 'idle';
+                syncPetRuntimeToProfile(runtime);
+                continue;
+            }
+        }
         const followDistance = runtime.mode === 'DEFESA' ? 110 : 76;
         const returnDistance = 300;
         const previousX = runtime.x;
         const previousY = runtime.y;
         let movementIntent = false;
-        const movementElapsed = Math.min(elapsed, 250);
+        const movementElapsed = Math.min(elapsed, 150);
         const followSpeed = velocidadeMaximaMovimentoJogador(owner) *
-            (ownerDistance > returnDistance ? 1.6 : 1.15);
+            (ownerDistance > returnDistance ? 1.05 : 0.82);
         if (runtime.mode === 'DEFESA') {
             const threat = slimes.concat(bosses).filter(function (mob) {
                 return mob && mob.hp > 0 && mob.targetId === ownerId &&
+                    petAi.isEnemyEngagedByOwner(mob, ownerId) &&
                     instanciaCompativel(runtime, mob) &&
                     Math.hypot(mob.x - ownerPoint.x, mob.y - ownerPoint.y) <= 220;
             }).sort(function (a, b) {
@@ -7216,6 +7500,8 @@ function atualizarPetsAtivos(now) {
         let target = runtime.mode === 'PARADO' ? null : escolherAlvoPet(runtime, owner);
 
         if (target) {
+            runtime.idleSince = 0;
+            runtime.wanderTarget = null;
             runtime.targetId = target.entity.id || target.entity.pet_instance_id;
             const targetPoint = target.type === 'player'
                 ? { x: target.entity.x, y: target.entity.y }
@@ -7225,8 +7511,9 @@ function atualizarPetsAtivos(now) {
                 runtime.state = petAi.PET_STATES.COMBAT;
                 movementIntent = true;
                 runtime.angulo = Math.atan2(targetPoint.y - runtime.y, targetPoint.x - runtime.x);
+                const chaseSpeed = followSpeed * 0.72;
                 moverPetComColisao(runtime, targetPoint.x - runtime.x, targetPoint.y - runtime.y,
-                    Math.min(followSpeed * movementElapsed / 1000, targetDistance - runtime.attackRange),
+                    Math.min(chaseSpeed * movementElapsed / 1000, targetDistance - runtime.attackRange),
                     target.entity.id || target.entity.pet_instance_id);
             } else {
                 runtime.state = petAi.PET_STATES.COMBAT;
@@ -7262,7 +7549,7 @@ function atualizarPetsAtivos(now) {
                                 skill.projectileSpeed || 10, skill.projectileLife || 80);
                         }
                         return aplicarDanoAtaquePet(ownerId, target.type,
-                            target.entity.id || target.entity.pet_instance_id, damage, 'basico');
+                            target.entity.id || target.entity.pet_instance_id, damage, 'basico', runtime.pet_instance_id);
                     }
                 });
                 if (!result.valid && result.reason !== 'cooldown_active') runtime.targetId = null;
@@ -7273,11 +7560,53 @@ function atualizarPetsAtivos(now) {
                 ? petAi.PET_STATES.RETURN
                 : ownerDistance > followDistance ? petAi.PET_STATES.FOLLOW : petAi.PET_STATES.IDLE;
             if (ownerDistance > followDistance) {
+                runtime.idleSince = 0;
+                runtime.wanderTarget = null;
                 movementIntent = true;
                 runtime.angulo = Math.atan2(ownerPoint.y - runtime.y, ownerPoint.x - runtime.x);
                 moverPetComColisao(runtime, ownerPoint.x - runtime.x, ownerPoint.y - runtime.y,
                     Math.min(followSpeed * movementElapsed / 1000,
                         Math.max(1, ownerDistance - followDistance)), null);
+            } else {
+                if (!runtime.idleSince) runtime.idleSince = tickNow;
+                if (tickNow - runtime.idleSince >= 3000 && tickNow >= (runtime.wanderNextAt || 0)) {
+                    const wanderTarget = runtime.wanderTarget;
+                    const wanderDistance = wanderTarget
+                        ? Math.hypot(wanderTarget.x - runtime.x, wanderTarget.y - runtime.y)
+                        : Infinity;
+                    if (wanderDistance <= 9) {
+                        runtime.wanderTarget = null;
+                        runtime.idleSince = tickNow;
+                        runtime.wanderNextAt = tickNow + 3000;
+                    } else if (!runtime.wanderTarget) {
+                        for (let attempt = 0; attempt < 10; attempt++) {
+                            const angle = Math.random() * Math.PI * 2;
+                            const radius = 35 + Math.random() * 30;
+                            const candidate = {
+                                x: ownerPoint.x + Math.cos(angle) * radius,
+                                y: ownerPoint.y + Math.sin(angle) * radius
+                            };
+                            if (!posicaoPetValida(candidate.x, candidate.y) ||
+                                petColideComInimigo(candidate.x, candidate.y, null)) continue;
+                            runtime.wanderTarget = candidate;
+                            break;
+                        }
+                        if (!runtime.wanderTarget) runtime.wanderNextAt = tickNow + 750;
+                    }
+
+                    if (runtime.wanderTarget) {
+                        const dx = runtime.wanderTarget.x - runtime.x;
+                        const dy = runtime.wanderTarget.y - runtime.y;
+                        const distance = Math.hypot(dx, dy);
+                        if (distance > 9) {
+                            movementIntent = true;
+                            runtime.angulo = Math.atan2(dy, dx);
+                            const wanderSpeed = velocidadeMaximaMovimentoJogador(owner) * 0.42;
+                            moverPetComColisao(runtime, dx, dy,
+                                Math.min(wanderSpeed * movementElapsed / 1000, distance), null);
+                        }
+                    }
+                }
             }
         }
 
@@ -7549,7 +7878,7 @@ function atualizarMonstroEspecial(slime, alvo, dx, dy, dist, fatorLentidao) {
         else {
             slime.attackCooldown++;
             slime.lanceiroFaceAngle = Math.atan2(dy, dx);
-            if ((slime.attackCooldown > (slime.cadenciaAtk || 50) || slime.ataqueTelegraph) && monstroPodeAtacar(slime)) {
+            if ((slime.attackCooldown > cadenciaAtaqueAumentada(slime.cadenciaAtk || 50) || slime.ataqueTelegraph) && monstroPodeAtacar(slime)) {
                 const aviso = prepararAtaqueMonstroComAviso(slime, alvo, slime.attackRange || 70, 'melee');
                 if (aviso.status === 'ready') {
                     if (alvo && alvo.pet_instance_id) applyDamageToCapturedPet(alvo, slime.dano || 58, slime.id);
@@ -7601,7 +7930,7 @@ function atualizarMonstroEspecial(slime, alvo, dx, dy, dist, fatorLentidao) {
         if (dist > preferida + 35) moverMonstroEspecial(slime, dx, dy, slime.velocidade || 2.2, fatorLentidao);
         else if (dist < preferida - 35 && !slime.ataqueTelegraph) moverMonstroEspecial(slime, -dx, -dy, slime.velocidade || 2.2, fatorLentidao);
         slime.attackCooldown++;
-        if ((slime.attackCooldown > (slime.cadenciaAtk || 55) || slime.ataqueTelegraph) &&
+        if ((slime.attackCooldown > cadenciaAtaqueAumentada(slime.cadenciaAtk || 55) || slime.ataqueTelegraph) &&
             (dist <= ataqueDistancia || slime.ataqueTelegraph)) {
             // CEGUEIRA: ranged cego não dispara flechas/pedras normais
             if (monstroPodeAtacar(slime)) {
@@ -7620,7 +7949,7 @@ function atualizarMonstroEspecial(slime, alvo, dx, dy, dist, fatorLentidao) {
         moverMonstroEspecial(slime, dx, dy, slime.velocidade || 2.3, fatorLentidao);
     } else {
         slime.attackCooldown++;
-        if (slime.attackCooldown > (slime.cadenciaAtk || (tipo === 'tank_melee' ? 65 : 42)) || slime.ataqueTelegraph) {
+        if (slime.attackCooldown > cadenciaAtaqueAumentada(slime.cadenciaAtk || (tipo === 'tank_melee' ? 65 : 42)) || slime.ataqueTelegraph) {
             // CEGUEIRA (Ladino): monstro cego erra ataques normais — só habilidades seguem
             if (monstroPodeAtacar(slime)) {
                 const aviso = prepararAtaqueMonstroComAviso(slime, alvo, ataqueDistancia, 'melee');
@@ -9232,7 +9561,7 @@ setInterval(() => {
                         moverPetComColisao(ogro, dx, dy, 4.16, slimeAlvo.id);
                     } else {
                         ogro.attackCooldown++;
-                        if (ogro.attackCooldown > (ogro.colossalAtivo ? 13 : 27)) {
+                        if (ogro.attackCooldown > cadenciaAtaqueAumentada(ogro.colossalAtivo ? 13 : 27)) {
                             let danoBasePet = dmgSkill(players[pid], 'ogro', 15);
                             let multSoco = 1;
                             let foiMartelo = false;
@@ -9274,7 +9603,7 @@ setInterval(() => {
                         moverPetComColisao(ogro, dxB, dyB, 4.16, bossAlvo.id);
                     } else {
                         ogro.attackCooldown++;
-                        if (ogro.attackCooldown > (ogro.colossalAtivo ? 13 : 27)) {
+                        if (ogro.attackCooldown > cadenciaAtaqueAumentada(ogro.colossalAtivo ? 13 : 27)) {
                             let danoBasePet = dmgSkill(players[pid], 'ogro', 15);
                             let multSoco = 1;
                             let foiMartelo = false;
@@ -9993,7 +10322,7 @@ setInterval(() => {
                     m.y += (dy / dist) * 3.3;
                 } else {
                     m.attackCooldown++;
-                    if (m.attackCooldown > 22) { // +80% vel ataque (era 40)
+                    if (m.attackCooldown > cadenciaAtaqueAumentada(22)) { // aumento global de cadência
                         registrarDanoMonstro(slimeAlvo, pid, dmgSkill(players[pid], 'banda', 12), 'pet'); // +20% dano (era 10)
                         danoEmBosses(m.x, m.y, 45, pid, dmgSkill(players[pid], 'banda', 12), 'basico', 'pet');
                         m.attackCooldown = 0;
@@ -10008,7 +10337,7 @@ setInterval(() => {
                     m.y += (dyB / distB) * 3.3;
                 } else {
                     m.attackCooldown++;
-                    if (m.attackCooldown > 22) { // +80% vel ataque (era 40)
+                    if (m.attackCooldown > cadenciaAtaqueAumentada(22)) { // aumento global de cadência
                         registrarDanoBoss(bossAlvo, pid, dmgSkill(players[pid], 'banda', 12), 'basico'); // +20% dano (era 10)
                         m.attackCooldown = 0;
                     }
@@ -10497,7 +10826,7 @@ setInterval(() => {
                 if ((!p.mapa || p.mapa === mapaPorCoordenada(targetX)) &&
                     Math.hypot(targetX - p.x, targetY - p.y) < hitRadius) {
                     const landed = aplicarDanoAtaquePet(
-                        p.petOwnerId, p.petTargetType, p.petTargetId, p.dano || 10, 'skill'
+                        p.petOwnerId, p.petTargetType, p.petTargetId, p.dano || 10, 'skill', p.petInstanceId
                     );
                     if (landed) aplicarEfeitoProjetilPet(p, target, p.petTargetType, p.petTargetId);
                     projeteis.splice(i, 1);
@@ -10907,7 +11236,7 @@ setInterval(() => {
                 moverMonstroDirecionalComDesvio(slime, dxT, dyT, passoT, { limitarDistancia: true });
             } else {
                 slime.attackCooldown++;
-                if (slime.attackCooldown > (slime.cadenciaAtk || 60) || slime.ataqueTelegraph) {
+                if (slime.attackCooldown > cadenciaAtaqueAumentada(slime.cadenciaAtk || 60) || slime.ataqueTelegraph) {
                     const aviso = prepararAtaqueMonstroComAviso(slime, dono, slime.attackRange || 48, 'melee');
                     if (aviso.status === 'ready') {
                         slime.attackCooldown = 0;
@@ -10952,7 +11281,7 @@ setInterval(() => {
             for (const pet of Object.values(petsAtivos)) {
                 const owner = pet && players[pet.owner_id];
                 if (!owner || owner.hp <= 0 || pet.hp <= 0 || pet.mode === 'PARADO' ||
-                    !alvoDentroDaVisao(slime, pet)) continue;
+                    !monstroPodeFocarPet(slime, pet) || !alvoDentroDaVisao(slime, pet)) continue;
                 const distancia = Math.sqrt(distanciaEntidadesQuadrada(pet, slime));
                 if (distancia < menorDist) {
                     menorDist = distancia;
@@ -10962,6 +11291,11 @@ setInterval(() => {
             if (alvoProximo) slime.targetId = alvoProximo;
         }
 
+        const petAlvoAtual = petRuntimeDoId(slime.targetId);
+        if (petAlvoAtual && !monstroPodeFocarPet(slime, petAlvoAtual)) {
+            slime.targetId = null;
+            slime.ataqueTelegraph = null;
+        }
         if (slime.targetId && petRuntimeDoId(slime.targetId) &&
             (!players[petRuntimeDoId(slime.targetId).owner_id] ||
                 players[petRuntimeDoId(slime.targetId).owner_id].hp <= 0)) {
@@ -11007,7 +11341,7 @@ setInterval(() => {
                     moverMonstroDirecionalComDesvio(slime, dx, dy, velSlime, { limitarDistancia: true });
                 } else {
                     slime.attackCooldown++;
-                    if (slime.attackCooldown > (slime.cadenciaAtk || 45) || slime.ataqueTelegraph) {
+                    if (slime.attackCooldown > cadenciaAtaqueAumentada(slime.cadenciaAtk || 45) || slime.ataqueTelegraph) {
                         // CEGUEIRA: melee cego erra a mordida/corte normal
                         if (monstroPodeAtacar(slime)) {
                             const aviso = prepararAtaqueMonstroComAviso(slime, alvo, alcanceMelee, 'melee');
@@ -11044,7 +11378,7 @@ setInterval(() => {
                 }
 
                 slime.attackCooldown++;
-                if ((slime.attackCooldown > (slime.cadenciaAtk || 60) || slime.ataqueTelegraph) &&
+                if ((slime.attackCooldown > cadenciaAtaqueAumentada(slime.cadenciaAtk || 60) || slime.ataqueTelegraph) &&
                     (podeEntidadeAtacarAlvo(slime, alvo, alcanceAtaqueRanged) || slime.ataqueTelegraph)) {
                     if (monstroPodeAtacar(slime)) {
                         const aviso = prepararAtaqueMonstroComAviso(slime, alvo, alcanceAtaqueRanged, 'ranged');
@@ -11085,7 +11419,7 @@ setInterval(() => {
                         moverMonstroDirecionalComDesvio(slime, dx, dy, velZumbi, { limitarDistancia: true });
                     } else {
                         slime.attackCooldown++;
-                        if (slime.attackCooldown > (slime.cadenciaAtk || 50) || slime.ataqueTelegraph) {
+                        if (slime.attackCooldown > cadenciaAtaqueAumentada(slime.cadenciaAtk || 50) || slime.ataqueTelegraph) {
                             // CEGUEIRA: zumbi cego erra a mordida normal (cuspida tóxica é skill e continua)
                             if (monstroPodeAtacar(slime)) {
                                 const aviso = prepararAtaqueMonstroComAviso(slime, alvo, alcanceAtaque, 'melee');
@@ -11213,7 +11547,7 @@ setInterval(() => {
 
                     slime.attackCooldown++;
                     const alcanceAtaqueBesouro = slime.attackRange || 320;
-                    if ((slime.attackCooldown > 20 || slime.ataqueTelegraph) &&
+                    if ((slime.attackCooldown > cadenciaAtaqueAumentada(20) || slime.ataqueTelegraph) &&
                         (podeEntidadeAtacarAlvo(slime, alvo, alcanceAtaqueBesouro) || slime.ataqueTelegraph)) {
                         if (monstroPodeAtacar(slime)) {
                             const aviso = prepararAtaqueMonstroComAviso(slime, alvo, alcanceAtaqueBesouro, 'ranged');
@@ -11254,7 +11588,7 @@ setInterval(() => {
 
                 // Chirp sonoro/visual a cada ~8s (efeito de susto)
                 slime.attackCooldown++;
-                if (slime.attackCooldown > 160) {
+                if (slime.attackCooldown > cadenciaAtaqueAumentada(160)) {
                     slime.attackCooldown = 0;
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
@@ -11273,7 +11607,7 @@ setInterval(() => {
                 } else {
                     // Ataque corpo-a-corpo (mordida)
                     slime.attackCooldown++;
-                    if (slime.attackCooldown > 35 || slime.ataqueTelegraph) {
+                    if (slime.attackCooldown > cadenciaAtaqueAumentada(35) || slime.ataqueTelegraph) {
                         // CEGUEIRA: morcego cego erra a mordida normal
                         if (monstroPodeAtacar(slime)) {
                             const aviso = prepararAtaqueMonstroComAviso(slime, alvo, slime.attackRange || 45, 'melee');
@@ -11677,7 +12011,7 @@ if (g.hp <= 0) {
                 g.tabelaDano = {};
                 g.fase = 'idle';
                 g.faseTick = 0;
-                g.cooldown = 80;
+                g.cooldown = cadenciaAtaqueAumentada(80);
                 g.mortoTimer = 0;
                 g.mortoAnunciado = false;
                 g.pedraOrbita = 0;
@@ -11847,7 +12181,7 @@ if (g.hp <= 0) {
                 if (g.faseTick >= g.durFase) {
                     g.fase = 'idle';
                     g.faseTick = 0;
-                    g.cooldown = Math.max(8, Math.round(30 / fatorVel));
+                    g.cooldown = cadenciaAtaqueAumentada(Math.max(8, Math.round(30 / fatorVel)));
                     g.pedraOrbita += 0.018 * fatorVel;
                 }
                 break;
@@ -14949,7 +15283,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 return;
             }
 
-            if (data.action === 'pet_capture') {
+            if (data.action === 'pet_capture_start') {
                 const owner = players[playerId];
                 const targetId = typeof data.targetId === 'string' ? data.targetId : '';
                 const monster = slimes.find(function (candidate) {
@@ -14961,7 +15295,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     ws.send(JSON.stringify({ type: 'pet_capture_result', success: false, reason: 'target_invalid' }));
                     return;
                 }
-                const result = petSystem.createPetCaptureResult({
+                const validation = petSystem.validateCaptureAttempt({
                     player: Object.assign({ id: playerId }, owner),
                     monster: Object.assign({}, monster, { species_id: monster.tipo }),
                     profile: owner.petProfile,
@@ -14970,8 +15304,179 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     targetX: monster.x,
                     targetY: monster.y
                 });
+                if (!validation.valid) {
+                    ws.send(JSON.stringify({ type: 'pet_capture_result', success: false, reason: validation.reason }));
+                    return;
+                }
+                if (Number(monster.captureFailCount || 0) >= 3) {
+                    ws.send(JSON.stringify({
+                        type: 'pet_capture_result', success: false, reason: 'capture_impossible',
+                        monsterId: monster.id, monsterX: monster.x, monsterY: monster.y,
+                        monsterName: monster.nome || monster.tipo
+                    }));
+                    return;
+                }
+                const startedAt = Date.now() + 350;
+                const challenge = {
+                    id: crypto.randomUUID(),
+                    monsterId: monster.id,
+                    currentRound: 1,
+                    roundsPassed: 0,
+                    minigamePassed: false,
+                    completed: false,
+                    stages: [
+                        { difficulty: 'easy', difficultyLabel: 'Fácil', durationMs: 1800, zoneWidth: 0.28 },
+                        { difficulty: 'medium', difficultyLabel: 'Médio', durationMs: 1350, zoneWidth: 0.18 },
+                        { difficulty: 'hard', difficultyLabel: 'Difícil', durationMs: 1000, zoneWidth: 0.11 }
+                    ].map(function (stage, index) {
+                        return Object.assign(stage, {
+                            startedAt: index === 0 ? startedAt : 0,
+                            phaseMs: Math.floor(Math.random() * stage.durationMs),
+                            zoneStart: Number((0.08 + Math.random() * (0.84 - stage.zoneWidth)).toFixed(3)),
+                            maxAttemptMs: 2 * stage.durationMs + 2200,
+                            expiresAt: index === 0 ? startedAt + 2 * stage.durationMs + 2500 : 0
+                        });
+                    }),
+                    expiresAt: startedAt + 16000
+                };
+                owner.petCaptureChallenge = challenge;
+                const firstStage = challenge.stages[0];
+                ws.send(JSON.stringify({
+                    type: 'pet_capture_challenge',
+                    challengeId: challenge.id,
+                    targetId: challenge.monsterId,
+                    round: 1,
+                    difficulty: firstStage.difficulty,
+                    difficultyLabel: firstStage.difficultyLabel,
+                    startedAt: firstStage.startedAt,
+                    durationMs: firstStage.durationMs,
+                    phaseMs: firstStage.phaseMs,
+                    zoneStart: firstStage.zoneStart,
+                    zoneWidth: firstStage.zoneWidth,
+                    maxAttemptMs: firstStage.maxAttemptMs
+                }));
+                return;
+            }
+
+            if (data.action === 'pet_capture_round') {
+                const owner = players[playerId];
+                const challenge = owner && owner.petCaptureChallenge;
+                const round = Number(data.round);
+                if (!challenge || challenge.id !== data.challengeId || challenge.completed ||
+                    !Number.isInteger(round) || round !== challenge.currentRound) {
+                    ws.send(JSON.stringify({ type: 'pet_capture_result', success: false, reason: 'minigame_required' }));
+                    return;
+                }
+                const stage = challenge.stages[round - 1];
+                const now = Date.now();
+                const elapsedMs = now - stage.startedAt;
+                const phase = ((Math.max(0, elapsedMs) + stage.phaseMs) % (stage.durationMs * 2)) /
+                    stage.durationMs;
+                const markerPosition = phase <= 1 ? phase : 2 - phase;
+                const roundPassed = elapsedMs >= 0 && elapsedMs <= stage.maxAttemptMs &&
+                    now <= stage.expiresAt && markerPosition >= stage.zoneStart &&
+                    markerPosition <= stage.zoneStart + stage.zoneWidth;
+                if (!roundPassed) {
+                    challenge.minigamePassed = false;
+                    challenge.completed = true;
+                    ws.send(JSON.stringify({
+                        type: 'pet_capture_round_result', challengeId: challenge.id,
+                        round: round, roundPassed: false, complete: true,
+                        roundsPassed: challenge.roundsPassed
+                    }));
+                    return;
+                }
+
+                challenge.roundsPassed++;
+                if (round >= challenge.stages.length) {
+                    challenge.minigamePassed = true;
+                    challenge.completed = true;
+                    ws.send(JSON.stringify({
+                        type: 'pet_capture_round_result', challengeId: challenge.id,
+                        round: round, roundPassed: true, complete: true,
+                        roundsPassed: challenge.roundsPassed
+                    }));
+                    return;
+                }
+
+                challenge.currentRound++;
+                const nextStage = challenge.stages[challenge.currentRound - 1];
+                nextStage.startedAt = now + 350;
+                nextStage.expiresAt = nextStage.startedAt + nextStage.maxAttemptMs;
+                ws.send(JSON.stringify({
+                    type: 'pet_capture_round_result', challengeId: challenge.id,
+                    round: round, roundPassed: true, complete: false,
+                    roundsPassed: challenge.roundsPassed
+                }));
+                ws.send(JSON.stringify({
+                    type: 'pet_capture_challenge',
+                    challengeId: challenge.id,
+                    targetId: challenge.monsterId,
+                    round: challenge.currentRound,
+                    difficulty: nextStage.difficulty,
+                    difficultyLabel: nextStage.difficultyLabel,
+                    startedAt: nextStage.startedAt,
+                    durationMs: nextStage.durationMs,
+                    phaseMs: nextStage.phaseMs,
+                    zoneStart: nextStage.zoneStart,
+                    zoneWidth: nextStage.zoneWidth,
+                    maxAttemptMs: nextStage.maxAttemptMs
+                }));
+                return;
+            }
+
+            if (data.action === 'pet_capture') {
+                const owner = players[playerId];
+                const targetId = typeof data.targetId === 'string' ? data.targetId : '';
+                const challenge = owner && owner.petCaptureChallenge;
+                if (!challenge || typeof data.challengeId !== 'string' || data.challengeId !== challenge.id ||
+                    targetId !== challenge.monsterId || !challenge.completed) {
+                    ws.send(JSON.stringify({ type: 'pet_capture_result', success: false, reason: 'minigame_required' }));
+                    return;
+                }
+                owner.petCaptureChallenge = null;
+                const minigamePassed = challenge.minigamePassed === true && challenge.roundsPassed === 3;
+                const monster = slimes.find(function (candidate) {
+                    return candidate && candidate.id === targetId;
+                });
+                if (!owner || owner.hp <= 0 || !monster || monster.captureConsumed ||
+                    !instanciaCompativel(owner, monster) ||
+                    entidadeEhSolari(owner) !== entidadeEhSolari(monster)) {
+                    ws.send(JSON.stringify({ type: 'pet_capture_result', success: false, reason: 'target_invalid' }));
+                    return;
+                }
+                let firstCaptureRoll = true;
+                const captureRandom = function () {
+                    const value = Math.random();
+                    if (!firstCaptureRoll) return value;
+                    firstCaptureRoll = false;
+                    // Três acertos dão cerca de 7% de bônus relativo à chance, sem garanti-la.
+                    return minigamePassed ? value * 0.93 : 0.999999;
+                };
+                const result = petSystem.createPetCaptureResult({
+                    player: Object.assign({ id: playerId }, owner),
+                    monster: Object.assign({}, monster, { species_id: monster.tipo }),
+                    profile: owner.petProfile,
+                    sourceX: owner.x + PLAYER_OFFSET_X,
+                    sourceY: owner.y + PLAYER_OFFSET_Y,
+                    targetX: monster.x,
+                    targetY: monster.y,
+                    random: captureRandom
+                });
                 if (!result.valid) {
                     ws.send(JSON.stringify({ type: 'pet_capture_result', success: false, reason: result.reason }));
+                    return;
+                }
+                if (Number(monster.captureFailCount || 0) >= 3) {
+                    ws.send(JSON.stringify({
+                        type: 'pet_capture_result',
+                        success: false,
+                        reason: 'capture_impossible',
+                        monsterId: monster.id,
+                        monsterX: monster.x,
+                        monsterY: monster.y,
+                        monsterName: monster.nome || monster.tipo
+                    }));
                     return;
                 }
                 owner.petProfile = result.profile;
@@ -14992,6 +15497,10 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         owner.petActiveId = result.pet.pet_instance_id;
                         spawnPetRuntime(playerId, result.pet);
                     }
+                } else if (result.reason === 'capture_failed') {
+                    monster.captureFailCount = Number(monster.captureFailCount || 0) + 1;
+                    const curaFuria = Math.max(1, Math.ceil(Number(monster.maxHp || 1) * 0.2));
+                    monster.hp = Math.min(Number(monster.maxHp || monster.hp), Number(monster.hp || 0) + curaFuria);
                 }
                 salvarProgresso(userId, {
                     pets: owner.petProfile.pets,
@@ -15005,8 +15514,73 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     success: result.success,
                     reason: result.reason,
                     chance: result.chance,
+                    failCount: Number(monster.captureFailCount || 0),
+                    monsterHp: Number(monster.hp || 0),
+                    monsterMaxHp: Number(monster.maxHp || 0),
+                    monsterId: monster.id,
+                    monsterX: monster.x,
+                    monsterY: monster.y,
+                    minigamePassed: minigamePassed,
+                    roundsPassed: challenge.roundsPassed,
                     pet: result.success ? result.pet : null,
                     petProfile: petProfileForClient(owner)
+                }));
+                return;
+            }
+
+            if (data.action === 'pet_set_active' || data.action === 'pet_equip') {
+                const owner = players[playerId];
+                const petId = typeof data.petInstanceId === 'string' ? data.petInstanceId.trim() : '';
+                if (!owner || !owner.petProfile) {
+                    ws.send(JSON.stringify({ type: 'pet_active_result', success: false, petInstanceId: petId, petActiveId: owner && owner.petActiveId ? owner.petActiveId : null, reason: 'profile_missing' }));
+                    return;
+                }
+                const pet = owner.petProfile.pets.find(function (candidate) {
+                    return candidate && candidate.pet_instance_id === petId;
+                });
+                if (!pet) {
+                    ws.send(JSON.stringify({ type: 'pet_active_result', success: false, petInstanceId: petId, petActiveId: owner.petActiveId || null, reason: 'pet_not_found' }));
+                    return;
+                }
+                owner.petActiveId = pet.pet_instance_id;
+                spawnPetRuntime(playerId, pet);
+                salvarProgresso(userId, {
+                    pets: owner.petProfile.pets,
+                    petActiveId: owner.petActiveId
+                });
+                ws.send(JSON.stringify({
+                    type: 'pet_active_result',
+                    success: true,
+                    petInstanceId: pet.pet_instance_id,
+                    petActiveId: owner.petActiveId,
+                    petProfile: petProfileForClient(owner),
+                    reason: 'equip_success'
+                }));
+                return;
+            }
+
+            if (data.action === 'pet_clear_active' || data.action === 'pet_desequip') {
+                const owner = players[playerId];
+                if (!owner) {
+                    ws.send(JSON.stringify({ type: 'pet_active_result', success: false, petInstanceId: null, petActiveId: null, reason: 'profile_missing' }));
+                    return;
+                }
+                const current = owner.petActiveId ? petRuntimeDoId(owner.petActiveId) : null;
+                if (current && current.owner_id === playerId) {
+                    delete petsAtivos[current.pet_instance_id];
+                }
+                owner.petActiveId = null;
+                salvarProgresso(userId, {
+                    pets: owner.petProfile ? owner.petProfile.pets : [],
+                    petActiveId: owner.petActiveId
+                });
+                ws.send(JSON.stringify({
+                    type: 'pet_active_result',
+                    success: true,
+                    petInstanceId: null,
+                    petActiveId: null,
+                    petProfile: petProfileForClient(owner),
+                    reason: 'unequip_success'
                 }));
                 return;
             }
