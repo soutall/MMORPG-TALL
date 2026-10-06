@@ -17,6 +17,30 @@ const CONFIG_PADRAO = {
     totalmenteClaro: 6.0         // Pleno dia (06:00)
 };
 
+let horaFixaMundo = null;
+
+function definirHorarioFixo(hora, minuto) {
+    const h = Number(hora);
+    const m = Number(minuto);
+    if (!Number.isInteger(h) || h < 0 || h > 23 || !Number.isInteger(m) || m < 0 || m > 59) {
+        throw new RangeError('Horário fixo inválido.');
+    }
+    horaFixaMundo = h + m / 60;
+    return obterControleHorario();
+}
+
+function retomarCicloNatural() {
+    horaFixaMundo = null;
+    return obterControleHorario();
+}
+
+function obterControleHorario() {
+    return {
+        travado: horaFixaMundo !== null,
+        horaDecimal: horaFixaMundo
+    };
+}
+
 function temVisaoNoturnaAprimorada(classe) {
     const c = String(classe || '').toLowerCase();
     return c === 'ladino' || c === 'pikeman';
@@ -42,7 +66,17 @@ function aplicarEscuridaoPorClasse(tempo, classe) {
 function calcularTempoMundo(agora = Date.now(), config = CONFIG_PADRAO) {
     const cicloTotalSegundos = config.cicloDiaSegundos + config.cicloNoiteSegundos;
     const cicloTotalMs = cicloTotalSegundos * 1000;
-    const elapsedMs = agora % cicloTotalMs;
+    let instanteCalculo = agora;
+    if (horaFixaMundo !== null) {
+        const progressoDiaOuNoite = horaFixaMundo >= 6 && horaFixaMundo < 18
+            ? (horaFixaMundo - 6) / 12
+            : (horaFixaMundo >= 18 ? horaFixaMundo - 18 : horaFixaMundo + 6) / 12;
+        const elapsedFixo = horaFixaMundo >= 6 && horaFixaMundo < 18
+            ? progressoDiaOuNoite * config.cicloDiaSegundos
+            : config.cicloDiaSegundos + progressoDiaOuNoite * config.cicloNoiteSegundos;
+        instanteCalculo = elapsedFixo * 1000;
+    }
+    const elapsedMs = instanteCalculo % cicloTotalMs;
     const elapsedSec = elapsedMs / 1000;
 
     let horaDecimal = 0;
@@ -57,8 +91,16 @@ function calcularTempoMundo(agora = Date.now(), config = CONFIG_PADRAO) {
         if (horaDecimal >= 24.0) horaDecimal -= 24.0;
     }
 
-    const hora = Math.floor(horaDecimal);
-    const minuto = Math.floor((horaDecimal - hora) * 60);
+    let hora = Math.floor(horaDecimal);
+    let minuto = Math.floor((horaDecimal - hora) * 60);
+    if (horaFixaMundo !== null) {
+        hora = Math.floor(horaFixaMundo);
+        minuto = Math.round((horaFixaMundo - hora) * 60);
+        if (minuto === 60) {
+            hora = (hora + 1) % 24;
+            minuto = 0;
+        }
+    }
     const horaFormatada = String(hora).padStart(2, '0') + ':' + String(minuto).padStart(2, '0');
 
     let escuridao = 0.0;
@@ -110,7 +152,7 @@ function calcularTempoMundo(agora = Date.now(), config = CONFIG_PADRAO) {
     return {
         hora,
         minuto,
-        horaDecimal: parseFloat(horaDecimal.toFixed(3)),
+        horaDecimal: parseFloat(horaDecimal.toFixed(4)),
         horaFormatada,
         fase,
         icone,
@@ -118,7 +160,8 @@ function calcularTempoMundo(agora = Date.now(), config = CONFIG_PADRAO) {
         duracaoDiaSegundos: config.cicloDiaSegundos,
         duracaoNoiteSegundos: config.cicloNoiteSegundos,
         maxEscuridao: config.maxEscuridaoMadrugada,
-        maxEscuridaoNoite: config.maxEscuridaoNoite
+        maxEscuridaoNoite: config.maxEscuridaoNoite,
+        horarioTravado: horaFixaMundo !== null
     };
 }
 
@@ -126,6 +169,9 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = {
         CONFIG_PADRAO,
         calcularTempoMundo,
+        definirHorarioFixo,
+        retomarCicloNatural,
+        obterControleHorario,
         temVisaoNoturnaAprimorada,
         aplicarEscuridaoPorClasse
     };

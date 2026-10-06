@@ -5,8 +5,10 @@ const crypto = require('crypto');
 const inventoryMigration = require('./items/migrate-inventories.js');
 const fileLock = require('./persistence-lock.js');
 
-const DB_FILE = path.join(__dirname, 'jogadores.json');
-const DB_LOCK = path.join(__dirname, 'jogadores.json.lock');
+const DB_FILE = process.env.MMORPG_DATABASE_FILE
+    ? path.resolve(process.env.MMORPG_DATABASE_FILE)
+    : path.join(__dirname, 'jogadores.json');
+const DB_LOCK = DB_FILE + '.lock';
 
 const adquirirLock = () => fileLock.adquirirLock(DB_LOCK);
 const liberarLock = fileLock.liberarLock;

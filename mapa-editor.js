@@ -32,6 +32,12 @@
         ['palmeira', 'Palmeira', '🌴', 42, 84, true, 'meio', 'arvore'],
         ['arvore_sakura', 'Árvore Sakura', '🌸', 46, 64, true, 'meio', 'arvore'],
         ['arvore_carvalho', 'Carvalho Antigo', '🌳', 56, 76, true, 'meio', 'arvore'],
+        ['arvore_pantano', 'Salgueiro do Pântano', '🌳', 70, 98, true, 'meio', 'arvore', ['pantano']],
+        ['arvore_gelo', 'Pinheiro Boreal', '🌲', 58, 106, true, 'meio', 'arvore', ['neve', 'taiga', 'picos_gelo', 'plataforma_gelo']],
+        ['arvore_deserto', 'Acácia do Deserto', '🌳', 78, 86, true, 'meio', 'arvore', ['deserto', 'canyon']],
+        ['arvore_selva', 'Árvore Gigante da Selva', '🌴', 96, 132, true, 'meio', 'arvore', ['selva', 'recife_cristal']],
+        ['arvore_profana', 'Árvore Retorcida Profanada', '🪾', 72, 106, true, 'meio', 'arvore', ['profanado', 'lamentos', 'obsidiana']],
+        ['arvore_cristal', 'Árvore de Cristal', '💎', 76, 112, true, 'meio', 'arvore', ['cristais', 'recife_cristal']],
         ['muda', 'Muda', '🌱', 22, 26, false, 'chao', 'arvore'],
         // ----- Paredes Vivas (Labirintos) -----
         ['parede_viva', 'Parede Viva (Sebe)', '🌿', 84, 30, true, 'meio', 'sebe'],
@@ -57,13 +63,25 @@
         ['obelisco', 'Obelisco', '🔺', 40, 108, true, 'frente', 'montanha'],
         ['ruina', 'Ruína', '🏚️', 82, 58, true, 'meio', 'montanha'],
         ['muro_pedra', 'Muro de Pedra', '🧱', 90, 40, true, 'meio', 'montanha'],
+        ['montanha_gigante', 'Montanha Colossal', '🏔️', 320, 220, true, 'meio', 'montanha'],
+        ['montanha_neve', 'Montanha Nevada', '🏔️', 280, 210, true, 'meio', 'montanha', ['neve', 'taiga', 'picos_gelo', 'oceano_gelo']],
+        ['montanha_vulcanica', 'Montanha Vulcânica', '🌋', 280, 210, true, 'meio', 'montanha', ['vulcao', 'obsidiana']],
+        ['iceberg_editor', 'Iceberg Esculpido', '🧊', 150, 110, true, 'meio', 'montanha', ['plataforma_gelo', 'oceano_gelo']],
+        ['duna_gigante', 'Duna Gigante', '🏜️', 250, 150, false, 'chao', 'montanha', ['deserto', 'canyon']],
         ['muralha', 'Muralha Alta', '🏰', 120, 70, true, 'frente', 'montanha'],
         ['portao', 'Portão de Fazenda', '🚪', 60, 70, true, 'meio', 'montanha'],
         ['ponte', 'Ponte de Madeira', '🎢', 110, 40, true, 'meio', 'montanha'],
         // ----- Paredes / Estruturas -----
         ['parede_tijolo', 'Parede de Tijolo', '🧱', 90, 32, true, 'meio', 'parede'],
+        ['muro_pedra_vertical', 'Muro de Pedra Vertical', '🧱', 38, 92, true, 'meio', 'parede'],
+        ['muro_pedra_diagonal', 'Muro de Pedra Diagonal', '🧱', 110, 110, true, 'meio', 'parede'],
         ['parede_madeira', 'Parede de Madeira', '🪵', 90, 34, true, 'meio', 'parede'],
+        ['parede_madeira_vertical', 'Parede de Madeira Vertical', '🪵', 38, 94, true, 'meio', 'parede'],
+        ['parede_tijolo_vertical', 'Parede de Tijolo Vertical', '🧱', 38, 94, true, 'meio', 'parede'],
+        ['parede_gelo', 'Muralha de Gelo', '🧊', 100, 48, true, 'meio', 'parede', ['neve', 'taiga', 'picos_gelo', 'oceano_gelo']],
+        ['muro_pantano', 'Muro de Raízes do Pântano', '🌿', 100, 46, true, 'meio', 'parede', ['pantano', 'lamentos']],
         ['cerca', 'Cerca', '🚧', 84, 26, true, 'meio', 'parede'],
+        ['cerca_vertical', 'Cerca Vertical', '🚧', 28, 82, true, 'meio', 'parede'],
         ['torre', 'Torre', '🗼', 60, 110, true, 'frente', 'parede'],
         ['parede_troncos', 'Palicada de Troncos', '🪵', 90, 42, true, 'meio', 'parede'],
         ['tocha', 'Tocha', '🔥', 22, 48, false, 'meio', 'parede'],
@@ -74,6 +92,12 @@
         ['moita_esconderijo', 'Moita Esconderijo', '🌳', 68, 42, true, 'meio', 'vegetacao'],
         ['arbusto', 'Arbusto', '🌱', 34, 24, false, 'meio', 'vegetacao'],
         ['grama', 'Grama', '🌾', 36, 20, false, 'chao', 'vegetacao'],
+        ['grama_alta', 'Touceira de Grama Alta', '🌾', 48, 44, false, 'chao', 'vegetacao', ['santuario', 'floresta', 'selva', 'taiga']],
+        ['juncos_pantano', 'Juncos do Pântano', '🌿', 60, 72, false, 'chao', 'vegetacao', ['pantano', 'lamentos']],
+        ['raizes_pantano', 'Raízes Expostas', '🌱', 86, 46, true, 'meio', 'vegetacao', ['pantano', 'lamentos', 'selva']],
+        ['arbusto_desertico', 'Arbusto Espinhoso do Deserto', '🌵', 54, 48, true, 'meio', 'vegetacao', ['deserto', 'canyon', 'obsidiana']],
+        ['cristal_colossal', 'Cristal Colossal', '💎', 92, 130, true, 'meio', 'vegetacao', ['cristais', 'recife_cristal', 'tempestade']],
+        ['rocha_lava', 'Rocha Vulcânica Incandescente', '🌋', 74, 62, true, 'meio', 'vegetacao', ['vulcao', 'obsidiana']],
         ['capim', 'Capim', '🍃', 30, 24, false, 'chao', 'vegetacao'],
         ['samambaia', 'Samambaia', '🌿', 38, 26, false, 'chao', 'vegetacao'],
         ['bambu', 'Bambu', '🎋', 26, 72, true, 'meio', 'vegetacao'],
@@ -116,6 +140,7 @@
         ['barril', 'Barril', '🛢️', 26, 34, true, 'meio', 'decor'],
         ['carroca', 'Carroça', '🛒', 64, 44, true, 'meio', 'decor'],
         ['placa', 'Placa', '🪧', 24, 44, false, 'meio', 'decor'],
+        ['ruina_ancestral', 'Ruína Ancestral Submersa', '🏛️', 96, 72, true, 'meio', 'decor', ['plataforma_gelo', 'oceano_gelo']],
         // ----- Floresta dos Sussurros (árvores animadas) -----
         ['arvore_florestal', 'Árvore da Floresta', '🌳', 48, 68, true, 'meio', 'floresta'],
         ['arvore_gigante_f', 'Árvore Gigante', '🌳', 70, 96, true, 'meio', 'floresta'],
@@ -153,7 +178,7 @@
     ];
 
     PALETA.forEach(function (p) {
-        var o = { nome: p[1], icone: p[2], w: p[3], h: p[4], colisao: p[5], camada: p[6], grupo: p[7], agua: false };
+        var o = { nome: p[1], icone: p[2], w: p[3], h: p[4], colisao: p[5], camada: p[6], grupo: p[7], biomas: p[8] || [], agua: false };
         o.pintar = pintorParaTipo(p[0]);
         CATALOGO[p[0]] = o;
     });
@@ -172,6 +197,16 @@
         ['decor', '✨ Decoração'],
         ['zona', '🚧 Zonas (colisão/frente)']
     ];
+    var BIOMAS_CATALOGO = [
+        ['todos', '🌐 Todos os biomas'], ['santuario', '🌿 Santuário'], ['floresta', '🌲 Floresta sombria'],
+        ['tempestade', '⚡ Pico dos relâmpagos'], ['deserto', '🏜️ Deserto'], ['cristais', '💎 Vale dos cristais'],
+        ['neve', '❄️ Tundra gélida'], ['pantano', '🐊 Pântano nebuloso'], ['profanado', '💀 Terra profanada'],
+        ['vulcao', '🌋 Terras vulcânicas'], ['selva', '🌴 Selva proibida'], ['obsidiana', '♨️ Terras de obsidiana'],
+        ['lamentos', '🍂 Floresta dos lamentos'], ['taiga', '🌲 Taiga boreal'], ['picos_gelo', '🧊 Picos de gelo'],
+        ['canyon', '🟠 Canyon'], ['recife_cristal', '🐚 Costa cristalina'],
+        ['plataforma_gelo', '🏛️ Plataforma ancestral'], ['oceano_gelo', '🌊 Oceano de gelo']
+    ];
+    var meBiomaCatalogo = 'todos';
 
     var EFX_LIST = [
         ['nenhum', 'Sem efeito'],
@@ -197,11 +232,47 @@
         espinhos: '#a7d129', cristais: '#7ee7ff', runas: '#75f0ca',
         folhas: '#7abf45', petalas: '#ff86b7', grama: '#72b75b', borboletas: '#d99cff', neve: '#e8f7ff'
     };
+    var ANIMACOES_SPRITE = [
+        ['nenhuma', 'Sem animação'],
+        ['brisa_suave', 'Brisa suave'],
+        ['vento_constante', 'Vento constante'],
+        ['rajada_vento', 'Rajada de vento'],
+        ['copa_ondulante', 'Copa ondulante'],
+        ['folhas_tremulas', 'Folhas trêmulas'],
+        ['arvore_tempestade', 'Árvore na tempestade'],
+        ['respirar', 'Respirar'],
+        ['pulsar', 'Pulsar'],
+        ['batimento', 'Batimento cardíaco'],
+        ['esticar', 'Esticar e relaxar'],
+        ['compressao', 'Compressão elástica'],
+        ['crescer', 'Crescer e diminuir'],
+        ['flutuar', 'Flutuar'],
+        ['levitar_lento', 'Levitar lentamente'],
+        ['saltitar', 'Saltitar'],
+        ['balanco_vertical', 'Balanço vertical'],
+        ['balanco_horizontal', 'Balanço horizontal'],
+        ['inclinar', 'Inclinar'],
+        ['balanco_profundo', 'Balanço profundo'],
+        ['tronco_flexivel', 'Tronco flexível'],
+        ['ondular', 'Ondular'],
+        ['tremular', 'Tremular'],
+        ['sacudir', 'Sacudir'],
+        ['tremor', 'Tremor'],
+        ['giro_horario', 'Giro horário'],
+        ['giro_lento', 'Giro lento'],
+        ['oscilacao', 'Oscilação dupla'],
+        ['deriva_vento', 'Deriva com o vento'],
+        ['vibracao_folhas', 'Vibração de folhas'],
+        ['squash_stretch', 'Squash e stretch']
+    ];
+    var ANIMACOES_SPRITE_VALIDAS = ANIMACOES_SPRITE.map(function (animacao) { return animacao[0]; });
 
     // ============================================================================
     // ESTADO
     // ============================================================================
     window.mapaObjetos = [];
+    var mapaObjetoIdsConfirmados = new Set();
+    var meUltimoAvisoFalhaAutoSave = 0;
     window.mapaEditorAtivo = false;
     window.mapaEditorTravado = false;
     window.mapaEditorMinimizado = false;
@@ -213,14 +284,297 @@
     var meShowCamadas = true;
     var meShift = false;
     var mePintando = false;
+    var meTracoColisao = null;
     var meMoverObj = null;
     var meOffX = 0, meOffY = 0;
     var meLastX = -1e9, meLastY = -1e9;
     var meGhostX = -1e9, meGhostY = -1e9;
     var meSnap = false;
+    var mePlacementGrid = false;
     var meDragPincel = true;
     var meUltimoMapa = null;
-    var brush = { tipo: 'arvore', escala: 1, variante: 0, camada: 'meio', colisao: true, efeito: '', efeitoCor: '#ffd166', zonaW: 40, zonaH: 40 };
+    var brush = { tipo: 'arvore', asset: '', assetRect: null, assetMask: null, assetMaskRaster: null, assetMaskMode: '', spriteId: '', categoria: 'Geral', escala: 1, escalaX: 1, escalaY: 1, rotacao: 0, variante: 0, camada: 'objects', colisao: true, efeito: '', efeitoCor: '#ffd166', animacao: 'nenhuma', zonaW: 40, zonaH: 40 };
+    var spritesMapaCatalogo = [];
+    var spritePaletteItems = [];
+    var paletteCategory = 'Todas';
+    var imagensSpritesMapa = {};
+    var assetCropDrag = null;
+    var assetCropLayout = null;
+
+    function urlSpriteMapa(nome) {
+        return 'sprites/Objetos/editor/' + encodeURIComponent(nome);
+    }
+
+    function obterImagemSpriteMapa(nome) {
+        if (!nome) return null;
+        if (!imagensSpritesMapa[nome]) {
+            imagensSpritesMapa[nome] = new Image();
+            imagensSpritesMapa[nome].src = urlSpriteMapa(nome);
+        }
+        return imagensSpritesMapa[nome];
+    }
+
+    function dimensoesSpriteMapa(nome, recorte) {
+        var imagem = obterImagemSpriteMapa(nome);
+        if (imagem && imagem.complete && imagem.naturalWidth > 0 && imagem.naturalHeight > 0) {
+            var largura = recorte && Number.isFinite(recorte.w) ? recorte.w : imagem.naturalWidth;
+            var altura = recorte && Number.isFinite(recorte.h) ? recorte.h : imagem.naturalHeight;
+            var fator = Math.min(1, 500 / Math.max(largura, altura));
+            return { w: Math.max(4, Math.round(largura * fator)), h: Math.max(4, Math.round(altura * fator)) };
+        }
+        return { w: 64, h: 64 };
+    }
+
+    function dimensoesImagemSprite(imagem) {
+        return {
+            w: imagem ? Number(imagem.naturalWidth || imagem.width) || 0 : 0,
+            h: imagem ? Number(imagem.naturalHeight || imagem.height) || 0 : 0
+        };
+    }
+
+    function assetRectValido(recorte, imagem) {
+        var dimensoes = dimensoesImagemSprite(imagem);
+        return !!(recorte && imagem && dimensoes.w > 0 && dimensoes.h > 0 &&
+            Number.isFinite(recorte.x) && Number.isFinite(recorte.y) && Number.isFinite(recorte.w) && Number.isFinite(recorte.h) &&
+            recorte.x >= 0 && recorte.y >= 0 && recorte.w >= 1 && recorte.h >= 1 &&
+            recorte.x + recorte.w <= dimensoes.w && recorte.y + recorte.h <= dimensoes.h);
+    }
+
+    function assetMaskValida(mask) {
+        return Array.isArray(mask) && mask.length >= 3 && mask.length <= 256 &&
+            mask.every(function (point) {
+                return point && Number.isFinite(point.x) && Number.isFinite(point.y) &&
+                    point.x >= 0 && point.x <= 1 && point.y >= 0 && point.y <= 1;
+            });
+    }
+
+    function assetMaskRasterValida(mask, region) {
+        if (!mask || !region || !Number.isInteger(mask.w) || !Number.isInteger(mask.h) ||
+            mask.w !== region.w || mask.h !== region.h || mask.w < 1 || mask.h < 1 ||
+            mask.w * mask.h > 2000000 || typeof mask.data !== 'string' || !/^[A-Za-z0-9+/]+={0,2}$/.test(mask.data)) return false;
+        return Math.ceil(mask.w * mask.h / 8) === Math.floor(mask.data.length * 3 / 4) -
+            (mask.data.endsWith('==') ? 2 : (mask.data.endsWith('=') ? 1 : 0));
+    }
+
+    var lassoDiagEnabled = !!(global.location && new URLSearchParams(global.location.search).get('lasso-diagnostics') === '1');
+    var lassoDiagTarget = null;
+    var lassoDiagTargetSelector = null;
+    var lassoDiagLogged = new Set();
+    var lassoDiagMaskHashes = new WeakMap();
+    function lassoRasterResumo(mask) {
+        if (!mask || typeof mask.data !== 'string') return null;
+        var packed = atob(mask.data), selectedPixels = 0;
+        for (var i = 0; i < packed.length; i++) {
+            var value = packed.charCodeAt(i);
+            while (value) {
+                value &= value - 1;
+                selectedPixels++;
+            }
+        }
+        return {
+            width: mask.w, height: mask.h, selectedPixels: selectedPixels,
+            transparentPixels: Math.max(0, mask.w * mask.h - selectedPixels)
+        };
+    }
+
+    function lassoDiagFingerprint(o) {
+        var rect = o && (o.assetRect || o.region) || {};
+        var raster = o && (o.assetMaskRaster || o.maskRaster);
+        var hash = '';
+        if (raster && typeof raster.data === 'string') {
+            hash = lassoDiagMaskHashes.get(raster);
+            if (!hash) {
+                hash = 2166136261;
+                for (var i = 0; i < raster.data.length; i++) {
+                    hash ^= raster.data.charCodeAt(i);
+                    hash = Math.imul(hash, 16777619);
+                }
+                hash = (hash >>> 0).toString(16);
+                lassoDiagMaskHashes.set(raster, hash);
+            }
+        }
+        return [o && o.asset || '', rect.x, rect.y, rect.w, rect.h, hash].join('|');
+    }
+
+    function lassoDiagAlphaCount(canvas) {
+        var context = canvas && canvas.getContext && canvas.getContext('2d');
+        if (!context || !canvas.width || !canvas.height) return null;
+        var pixels = context.getImageData(0, 0, canvas.width, canvas.height).data;
+        var alphaPixels = 0;
+        for (var i = 3; i < pixels.length; i += 4) if (pixels[i] > 0) alphaPixels++;
+        return alphaPixels;
+    }
+
+    function lassoDiagnostico(stage, o, sourceImage, finalTexture, details) {
+        if (!lassoDiagEnabled || !o || o.assetMaskMode !== 'auto') return;
+        var fingerprint = lassoDiagFingerprint(o);
+        if (lassoDiagTargetSelector &&
+            lassoDiagTargetSelector !== String(o.id || '') &&
+            lassoDiagTargetSelector !== String(o.spriteId || '') &&
+            lassoDiagTargetSelector !== String(o.asset || '')) return;
+        if (stage === 'SELECTION') lassoDiagTarget = fingerprint;
+        if (lassoDiagTarget && lassoDiagTarget !== fingerprint) return;
+        if (!lassoDiagTarget) lassoDiagTarget = fingerprint;
+        var onceKey = stage + '|' + String(o.id || o.spriteId || o.asset || '');
+        if (stage !== 'PLACEMENT' && stage !== 'SERIALIZATION' && lassoDiagLogged.has(onceKey)) return;
+        lassoDiagLogged.add(onceKey);
+        var region = o.assetRect || o.region || null;
+        var dim = sourceImage ? dimensoesImagemSprite(sourceImage) : null;
+        console.info('[LASSO DIAG ' + stage + ']', {
+            id: o.id || null,
+            spriteId: o.spriteId || null,
+            asset: o.asset || null,
+            sourceTexture: o.asset || null,
+            sourceTextureSize: dim,
+            sourceXY: region ? { x: region.x, y: region.y } : null,
+            sourceRegion: region,
+            mapBounds: Number.isFinite(o.x) ? { x: o.x, y: o.y, w: o.w, h: o.h } : null,
+            hasRasterMask: assetMaskRasterValida(o.assetMaskRaster || o.maskRaster, region),
+            mask: lassoRasterResumo(o.assetMaskRaster || o.maskRaster),
+            finalTexture: finalTexture ? {
+                type: finalTexture.tagName === 'CANVAS' ? 'masked-canvas' : 'image',
+                width: finalTexture.width,
+                height: finalTexture.height,
+                alphaPixels: lassoDiagAlphaCount(finalTexture)
+            } : null,
+            details: details || null
+        });
+    }
+
+    window.meDiagnosticarLaco = function (target) {
+        lassoDiagEnabled = target !== false;
+        lassoDiagTarget = null;
+        lassoDiagTargetSelector = typeof target === 'string' ? target : null;
+        lassoDiagLogged.clear();
+        console.info('[LASSO DIAG]', lassoDiagEnabled
+            ? 'Ativo: registros de seleção, preview, colocação, serialização, load e render final serão emitidos no console.'
+            : 'Desativado.');
+        return lassoDiagEnabled;
+    };
+
+    window.meExportarTexturaLaco = function (id) {
+        var object = (window.mapaObjetos || []).find(function (item) { return item && item.id === id; });
+        if (!object || object.tipo !== 'sprite_personalizado') throw new Error('Objeto sprite não encontrado: ' + id);
+        var image = obterImagemSpriteMapa(object.asset);
+        if (!image || !image.complete) throw new Error('A spritesheet ainda não terminou de carregar.');
+        if (mascaraAutomaticaAusente(object, obterAssetRect(object, image))) {
+            throw new Error('A máscara raster do Laço 2 não está disponível neste objeto.');
+        }
+        var texture = obterSpriteComMascara(object, image);
+        if (!texture) throw new Error('Não foi possível produzir a textura final mascarada.');
+        return texture.toDataURL('image/png');
+    };
+
+    function limparPixelsForaMascara(imageData, width, height, rasterMask) {
+        var packed = atob(rasterMask.data);
+        var sameSize = width === rasterMask.w && height === rasterMask.h;
+        for (var y = 0; y < height; y++) {
+            var maskY = sameSize ? y : Math.min(rasterMask.h - 1, Math.floor(y / height * rasterMask.h));
+            for (var x = 0; x < width; x++) {
+                var maskX = sameSize ? x : Math.min(rasterMask.w - 1, Math.floor(x / width * rasterMask.w));
+                var maskIndex = maskY * rasterMask.w + maskX;
+                if ((packed.charCodeAt(maskIndex >> 3) & (1 << (maskIndex & 7))) !== 0) continue;
+                var colorIndex = (y * width + x) * 4;
+                imageData.data[colorIndex] = 0;
+                imageData.data[colorIndex + 1] = 0;
+                imageData.data[colorIndex + 2] = 0;
+                imageData.data[colorIndex + 3] = 0;
+            }
+        }
+        return imageData;
+    }
+
+    function obterAssetRect(o, imagem) {
+        var dimensoes = dimensoesImagemSprite(imagem);
+        return assetRectValido(o && o.assetRect, imagem) ? o.assetRect : { x: 0, y: 0, w: dimensoes.w, h: dimensoes.h };
+    }
+
+    var assetMascaraAutoInvalidaAvisada = new Set();
+    function mascaraAutomaticaAusente(o, region) {
+        if (!o || o.assetMaskMode !== 'auto' || assetMaskRasterValida(o.assetMaskRaster, region)) return false;
+        var key = String(o.spriteId || o.id || o.asset || 'sprite');
+        if (!assetMascaraAutoInvalidaAvisada.has(key)) {
+            assetMascaraAutoInvalidaAvisada.add(key);
+            console.error('Laço 2 sem máscara raster válida; sprite ocultada para impedir vazamento do atlas:', key);
+        }
+        return true;
+    }
+
+    var assetMaskSourceIds = new WeakMap();
+    var assetMaskSourceNextId = 1;
+    var assetMaskedSprites = new Map();
+    var ASSET_MASKED_SPRITES_MAX_BYTES = 32 * 1024 * 1024;
+    var assetMaskedSpritesBytes = 0;
+    function guardarSpriteMascaradaNoCache(key, canvas) {
+        var cachedBytes = canvas.width * canvas.height * 4;
+        var existing = assetMaskedSprites.get(key);
+        if (existing) {
+            assetMaskedSprites.delete(key);
+            assetMaskedSpritesBytes -= existing.bytes;
+        }
+        while (assetMaskedSprites.size && assetMaskedSpritesBytes + cachedBytes > ASSET_MASKED_SPRITES_MAX_BYTES) {
+            var oldestKey = assetMaskedSprites.keys().next().value;
+            var oldest = assetMaskedSprites.get(oldestKey);
+            assetMaskedSprites.delete(oldestKey);
+            assetMaskedSpritesBytes -= oldest.bytes;
+        }
+        assetMaskedSprites.set(key, { canvas: canvas, bytes: cachedBytes });
+        assetMaskedSpritesBytes += cachedBytes;
+    }
+    function obterSpriteComMascara(o, imagem) {
+        var region = obterAssetRect(o, imagem);
+        var rasterMask = assetMaskRasterValida(o && o.assetMaskRaster, region) ? o.assetMaskRaster : null;
+        var vectorMask = assetMaskValida(o && o.assetMask) ? o.assetMask : null;
+        if (mascaraAutomaticaAusente(o, region)) return null;
+        var maskSource = rasterMask || vectorMask;
+        if (!maskSource || !region || !imagem) return null;
+        var width = region.w;
+        var height = region.h;
+        var sourceId = assetMaskSourceIds.get(maskSource);
+        if (!sourceId) {
+            sourceId = assetMaskSourceNextId++;
+            assetMaskSourceIds.set(maskSource, sourceId);
+        }
+        var key = [sourceId, o.asset, region.x, region.y, region.w, region.h, width, height].join('|');
+        var cached = assetMaskedSprites.get(key);
+        if (cached) {
+            assetMaskedSprites.delete(key);
+            assetMaskedSprites.set(key, cached);
+            lassoDiagnostico('MASKED_TEXTURE', o, imagem, cached.canvas, { cache: 'hit', sourceRegion: region });
+            return cached.canvas;
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        var context = canvas.getContext('2d');
+        context.imageSmoothingEnabled = false;
+        context.drawImage(imagem, region.x, region.y, region.w, region.h, 0, 0, width, height);
+        if (rasterMask) {
+            var imageData = context.getImageData(0, 0, width, height);
+            limparPixelsForaMascara(imageData, width, height, rasterMask);
+            context.putImageData(imageData, 0, 0);
+        } else {
+            var maskCanvas = document.createElement('canvas');
+            maskCanvas.width = width;
+            maskCanvas.height = height;
+            var maskContext = maskCanvas.getContext('2d');
+            maskContext.beginPath();
+            vectorMask.forEach(function (point, index) {
+                var x = point.x * width, y = point.y * height;
+                if (index === 0) maskContext.moveTo(x, y);
+                else maskContext.lineTo(x, y);
+            });
+            maskContext.closePath();
+            maskContext.fillStyle = '#fff';
+            maskContext.fill();
+            context.globalCompositeOperation = 'destination-in';
+            context.drawImage(maskCanvas, 0, 0);
+            context.globalCompositeOperation = 'source-over';
+        }
+        guardarSpriteMascaradaNoCache(key, canvas);
+        lassoDiagnostico('MASKED_TEXTURE', o, imagem, canvas, { cache: 'miss', sourceRegion: region });
+        return canvas;
+    }
 
     function seedDe(o) {
         var s = 7;
@@ -229,8 +583,99 @@
         return s;
     }
     function variar(s, n) { return (s % 97) / n; }
+    function hash2(a, b) {
+        var n = (a * 374761393 + b * 668265263) | 0;
+        n = Math.imul(n ^ (n >>> 13), 1274126177);
+        return ((n ^ (n >>> 16)) >>> 0) / 4294967296;
+    }
     function dims(o) {
-        return { x: o.x, y: o.y, W: (o.w || 40) * (o.escala || 1), H: (o.h || 40) * (o.escala || 1) };
+        var escala = o.escala || 1;
+        return {
+            x: o.x, y: o.y,
+            W: (o.w || 40) * escala * (o.escalaX || 1),
+            H: (o.h || 40) * escala * (o.escalaY || 1)
+        };
+    }
+    function normalizarCamadaEditor(camada) {
+        var aliases = { chao: 'ground', meio: 'objects', frente: 'foreground' };
+        var canonical = aliases[camada] || camada;
+        return ['ground', 'decoration_behind', 'objects', 'decoration_front', 'buildings', 'foreground'].indexOf(canonical) !== -1 ? canonical : 'objects';
+    }
+    function camadaEditorFicaNaFrente(camada) {
+        var canonical = normalizarCamadaEditor(camada);
+        return canonical === 'decoration_front' || canonical === 'foreground';
+    }
+    function mascaraPoligonoValida(mask) {
+        return Array.isArray(mask) && mask.length >= 3 && mask.length <= 256 &&
+            mask.every(function (point) {
+                return point && Number.isFinite(point.x) && Number.isFinite(point.y) &&
+                    point.x >= 0 && point.x <= 1 && point.y >= 0 && point.y <= 1;
+            });
+    }
+    function mascaraPoligonoContem(mask, x, y) {
+        var dentro = false;
+        for (var i = 0, j = mask.length - 1; i < mask.length; j = i++) {
+            var a = mask[i], b = mask[j];
+            if ((a.y > y) !== (b.y > y) &&
+                x < (b.x - a.x) * (y - a.y) / (b.y - a.y) + a.x) dentro = !dentro;
+        }
+        return dentro;
+    }
+    function ancoraYDoLaco(mask) {
+        var intersections = [];
+        for (var i = 0; i < mask.length; i++) {
+            var a = mask[i], b = mask[(i + 1) % mask.length];
+            if (a.x === 0.5) intersections.push(a.y);
+            if ((a.x < 0.5 && b.x > 0.5) || (a.x > 0.5 && b.x < 0.5)) {
+                intersections.push(a.y + (b.y - a.y) * ((0.5 - a.x) / (b.x - a.x)));
+            }
+        }
+        return intersections.length
+            ? Math.max.apply(null, intersections)
+            : Math.max.apply(null, mask.map(function (point) { return point.y; }));
+    }
+    function areaMascaraPoligono(mask) {
+        var area = 0;
+        for (var i = 0; i < mask.length; i++) {
+            var a = mask[i], b = mask[(i + 1) % mask.length];
+            area += a.x * b.y - b.x * a.y;
+        }
+        return Math.abs(area) / 2;
+    }
+    function mascaraInferiorDoLaco(mask, limiteY) {
+        if (!assetMaskValida(mask) || !Number.isFinite(limiteY) || limiteY <= 0 || limiteY >= 1) return null;
+        var resultado = [];
+        for (var i = 0; i < mask.length; i++) {
+            var atual = mask[i], anterior = mask[(i + mask.length - 1) % mask.length];
+            var atualDentro = atual.y >= limiteY, anteriorDentro = anterior.y >= limiteY;
+            if (atualDentro !== anteriorDentro) {
+                var fracao = (limiteY - anterior.y) / (atual.y - anterior.y);
+                resultado.push({
+                    x: anterior.x + (atual.x - anterior.x) * fracao,
+                    y: limiteY
+                });
+            }
+            if (atualDentro) resultado.push({ x: atual.x, y: atual.y });
+        }
+        if (resultado.length > 1) {
+            var primeiro = resultado[0], ultimo = resultado[resultado.length - 1];
+            if (Math.abs(primeiro.x - ultimo.x) < 1e-9 && Math.abs(primeiro.y - ultimo.y) < 1e-9) resultado.pop();
+        }
+        return mascaraPoligonoValida(resultado) && areaMascaraPoligono(resultado) > 1e-6 ? resultado : null;
+    }
+    function divisaoSpriteValida(objeto) {
+        return objeto && objeto.tipo === 'sprite_personalizado' &&
+            Number.isFinite(objeto.assetDepthSplit) && objeto.assetDepthSplit >= 0.1 && objeto.assetDepthSplit <= 0.9;
+    }
+    function atualizarDivisaoAutomaticaSprite(objeto, limiteY) {
+        if (!objeto || objeto.tipo !== 'sprite_personalizado' || !assetMaskValida(objeto.assetMask)) return false;
+        var colisaoInferior = mascaraInferiorDoLaco(objeto.assetMask, limiteY);
+        if (!colisaoInferior) return false;
+        objeto.assetDepthSplit = limiteY;
+        objeto.assetCollisionMask = colisaoInferior;
+        objeto.ySortAnchor = limiteY;
+        objeto.colisao = true;
+        return true;
     }
 
     function sombra(ctx, cx, cy, rx, ry, a) {
@@ -268,6 +713,12 @@
             case 'palmeira': return pintarPalmeira;
             case 'arvore_sakura': return pintarArvoreSakura;
             case 'arvore_carvalho': return pintarCarvalho;
+            case 'arvore_pantano': return pintarSalgueiro;
+            case 'arvore_gelo': return pintarPinheiro;
+            case 'arvore_deserto': return pintarPalmeira;
+            case 'arvore_selva': return pintarArvoreGiganteF;
+            case 'arvore_profana': return pintarArvoreProfana;
+            case 'arvore_cristal': return pintarArvoreCristal;
             case 'muda': return pintarMuda;
             case 'parede_viva': case 'parede_viva_florida': case 'roseiral': return function (o, ctx) { pintarSebe(o, ctx, o.tipo); };
             case 'parede_viva_curva': return pintarSebeCanto;
@@ -279,17 +730,27 @@
             case 'cristais_rocha': return pintarCristaisRocha;
             case 'pedra_lunar': return pintarPedraLunar;
             case 'montanha': return pintarMontanha;
+            case 'montanha_gigante': case 'montanha_neve': case 'montanha_vulcanica': case 'duna_gigante':
+                return function (o, ctx) { pintarMontanhaBioma(o, ctx, tipo); };
+            case 'iceberg_editor': return pintarIceberg;
             case 'bloco_pedra': case 'bloco_granito': return function (o, ctx) { pintarBloco(o, ctx, tipo); };
             case 'coluna': return pintarColuna;
             case 'obelisco': return pintarObelisco;
             case 'ruina': return pintarRuina;
             case 'muro_pedra': return pintarMuroPedra;
+            case 'muro_pedra_vertical': return pintorRotacionado(pintarMuroPedra, Math.PI / 2);
+            case 'muro_pedra_diagonal': return pintorRotacionado(pintarMuroPedra, -Math.PI / 4, 40);
             case 'muralha': return pintarMuralha;
             case 'portao': return pintarPortao;
             case 'ponte': return pintarPonte;
             case 'parede_tijolo': return pintarParedeTijolo;
+            case 'parede_tijolo_vertical': return pintorRotacionado(pintarParedeTijolo, Math.PI / 2);
             case 'parede_madeira': return pintarParedeMadeira;
+            case 'parede_madeira_vertical': return pintorRotacionado(pintarParedeMadeira, Math.PI / 2);
+            case 'parede_gelo': return pintarParedeGelo;
+            case 'muro_pantano': return pintarMuroPantano;
             case 'cerca': return pintarCerca;
+            case 'cerca_vertical': return pintorRotacionado(pintarCerca, Math.PI / 2);
             case 'torre': return pintarTorre;
             case 'parede_troncos': return pintarPalicada;
             case 'tocha': return pintarTocha;
@@ -297,6 +758,12 @@
             case 'moita': case 'moita2': case 'moita_esconderijo': return function (o, ctx) { pintarMoita(o, ctx, tipo); };
             case 'arbusto': return pintarArbusto;
             case 'grama': return pintarGrama;
+            case 'grama_alta': return pintarGramaAlta;
+            case 'juncos_pantano': return pintarJuncosPantano;
+            case 'raizes_pantano': return pintarRaizesPantano;
+            case 'arbusto_desertico': return pintarArbustoDesertico;
+            case 'cristal_colossal': return pintarCristalColossal;
+            case 'rocha_lava': return pintarRochaLava;
             case 'capim': return pintarCapim;
             case 'samambaia': return pintarSamambaia;
             case 'bambu': return pintarBambu;
@@ -330,6 +797,7 @@
             case 'barril': return pintarBarril;
             case 'carroca': return pintarCarroca;
             case 'placa': return pintarPlaca;
+            case 'ruina_ancestral': return pintarRuinaAncestral;
             case 'zona_colisao': return pintarZonaColisao;
             case 'zona_frente': return pintarZonaFrente;
             // ----- Floresta dos Sussurros -----
@@ -1519,6 +1987,232 @@
         ret(ctx, x, y + H, W, 3, '#6f6a58');
     }
 
+    function pintorRotacionado(pintor, angulo, alturaBase) {
+        return function (o, ctx, t) {
+            var escala = o.escala || 1;
+            var d = dims(o);
+            var troca = Math.abs(angulo) === Math.PI / 2;
+            var baseW = troca ? d.H : d.W;
+            var baseH = troca ? d.W : (alturaBase ? Math.min(d.H, alturaBase * escala) : d.H);
+            var base = Object.assign({}, o, {
+                x: d.x + d.W / 2 - baseW / 2,
+                y: d.y + d.H / 2 - baseH / 2,
+                w: baseW / escala,
+                h: baseH / escala
+            });
+            ctx.save();
+            ctx.translate(d.x + d.W / 2, d.y + d.H / 2);
+            ctx.rotate(angulo);
+            ctx.translate(-(d.x + d.W / 2), -(d.y + d.H / 2));
+            pintor(base, ctx, t);
+            ctx.restore();
+        };
+    }
+
+    function pintarMontanhaBioma(o, ctx, tipo) {
+        var v = o.variante || 0, d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W * 0.52, y + H * 0.98, W * 0.48, H * 0.07, 0.34);
+        if (tipo === 'duna_gigante') {
+            var duna = ctx.createLinearGradient(x, y + H * 0.35, x + W, y + H);
+            duna.addColorStop(0, '#f7d98b'); duna.addColorStop(0.55, '#d9a94f'); duna.addColorStop(1, '#9b6834');
+            ctx.fillStyle = duna;
+            ctx.beginPath(); ctx.moveTo(x, y + H * 0.86);
+            ctx.bezierCurveTo(x + W * 0.28, y + H * 0.12, x + W * 0.68, y + H * 0.08, x + W, y + H * 0.62);
+            ctx.lineTo(x + W, y + H); ctx.lineTo(x, y + H); ctx.closePath(); ctx.fill();
+            ctx.strokeStyle = 'rgba(255,244,190,0.72)'; ctx.lineWidth = Math.max(2, H * 0.025);
+            ctx.beginPath(); ctx.moveTo(x + W * 0.08, y + H * 0.78);
+            ctx.bezierCurveTo(x + W * 0.35, y + H * 0.42, x + W * 0.66, y + H * 0.32, x + W * 0.94, y + H * 0.58); ctx.stroke();
+            return;
+        }
+        var topo = tipo === 'montanha_vulcanica' ? '#292d33' : (tipo === 'montanha_neve' ? '#718999' : '#626b70');
+        var luz = tipo === 'montanha_vulcanica' ? '#55504d' : (tipo === 'montanha_neve' ? '#a8c1ce' : '#9aa19e');
+        var sombraRocha = tipo === 'montanha_vulcanica' ? '#171b20' : '#414b50';
+        var baseY = y + H * 0.92;
+        var picoX = x + W * (0.48 + (v % 3 - 1) * 0.035);
+        poligono(ctx, [{ x: x + W * 0.03, y: baseY }, { x: x + W * 0.22, y: y + H * 0.4 }, { x: x + W * 0.38, y: y + H * 0.54 }, { x: picoX, y: y + H * 0.05 }, { x: x + W * 0.66, y: y + H * 0.42 }, { x: x + W * 0.82, y: y + H * 0.3 }, { x: x + W * 0.98, y: baseY }], topo);
+        poligono(ctx, [{ x: picoX, y: y + H * 0.05 }, { x: x + W * 0.66, y: y + H * 0.42 }, { x: x + W * 0.98, y: baseY }, { x: x + W * 0.54, y: baseY }], sombraRocha);
+        poligono(ctx, [{ x: x + W * 0.03, y: baseY }, { x: x + W * 0.22, y: y + H * 0.4 }, { x: x + W * 0.38, y: y + H * 0.54 }, { x: picoX, y: y + H * 0.05 }, { x: x + W * 0.53, y: baseY }], luz);
+        if (tipo === 'montanha_neve' || tipo === 'montanha_gigante') {
+            var neve = tipo === 'montanha_neve' ? '#f1fbff' : '#e0e8e8';
+            poligono(ctx, [{ x: picoX, y: y + H * 0.05 }, { x: x + W * 0.39, y: y + H * 0.33 }, { x: x + W * 0.46, y: y + H * 0.28 }, { x: x + W * 0.52, y: y + H * 0.38 }, { x: x + W * 0.60, y: y + H * 0.30 }, { x: x + W * 0.66, y: y + H * 0.42 }, { x: picoX, y: y + H * 0.22 }], neve);
+        }
+        ctx.strokeStyle = 'rgba(28,35,39,0.42)'; ctx.lineWidth = Math.max(1.5, W * 0.009);
+        for (var i = 0; i < 5; i++) {
+            var sx = x + W * (0.18 + i * 0.14);
+            ctx.beginPath(); ctx.moveTo(sx, y + H * (0.55 + (i % 2) * 0.08));
+            ctx.lineTo(sx + W * 0.045, y + H * (0.74 + (i % 3) * 0.035));
+            ctx.lineTo(sx + W * 0.02, y + H * 0.86); ctx.stroke();
+        }
+        if (tipo === 'montanha_vulcanica') {
+            ctx.strokeStyle = '#ff6a21'; ctx.lineWidth = Math.max(3, W * 0.018); ctx.lineCap = 'round';
+            ctx.beginPath(); ctx.moveTo(picoX, y + H * 0.15); ctx.lineTo(picoX - W * 0.06, y + H * 0.4); ctx.lineTo(picoX + W * 0.02, y + H * 0.57); ctx.stroke();
+            ctx.strokeStyle = '#ffd166'; ctx.lineWidth = Math.max(1, W * 0.005); ctx.stroke();
+            ctx.lineCap = 'butt';
+        }
+    }
+
+    function pintarIceberg(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W * 0.52, y + H * 0.94, W * 0.48, H * 0.1, 0.34);
+        poligono(ctx, [{ x: x + W * 0.07, y: y + H * 0.92 }, { x: x + W * 0.2, y: y + H * 0.45 },
+            { x: x + W * 0.37, y: y + H * 0.5 }, { x: x + W * 0.53, y: y + H * 0.05 },
+            { x: x + W * 0.72, y: y + H * 0.41 }, { x: x + W * 0.9, y: y + H * 0.34 },
+            { x: x + W * 0.96, y: y + H * 0.9 }], '#5ca9c0');
+        poligono(ctx, [{ x: x + W * 0.2, y: y + H * 0.45 }, { x: x + W * 0.53, y: y + H * 0.05 },
+            { x: x + W * 0.55, y: y + H * 0.9 }, { x: x + W * 0.07, y: y + H * 0.92 }], '#d7f5f6');
+        poligono(ctx, [{ x: x + W * 0.53, y: y + H * 0.05 }, { x: x + W * 0.72, y: y + H * 0.41 },
+            { x: x + W * 0.62, y: y + H * 0.53 }, { x: x + W * 0.55, y: y + H * 0.9 }], '#9adce5');
+        poligono(ctx, [{ x: x + W * 0.72, y: y + H * 0.41 }, { x: x + W * 0.9, y: y + H * 0.34 },
+            { x: x + W * 0.96, y: y + H * 0.9 }, { x: x + W * 0.55, y: y + H * 0.9 }], '#347e9d');
+        linha(ctx, x + W * 0.25, y + H * 0.5, x + W * 0.37, y + H * 0.68, 'rgba(255,255,255,0.75)', 2);
+        linha(ctx, x + W * 0.75, y + H * 0.47, x + W * 0.69, y + H * 0.72, 'rgba(221,250,255,0.7)', 2);
+    }
+
+    function pintarRuinaAncestral(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W * 0.52, y + H, W * 0.48, 5);
+        ret(ctx, x + W * 0.08, y + H * 0.32, W * 0.84, H * 0.62, '#526e78');
+        poligono(ctx, [{ x: x + W * 0.04, y: y + H * 0.34 }, { x: x + W * 0.24, y: y + H * 0.08 },
+            { x: x + W * 0.42, y: y + H * 0.3 }, { x: x + W * 0.62, y: y + H * 0.06 },
+            { x: x + W * 0.96, y: y + H * 0.34 }], '#9ab3b4');
+        ret(ctx, x + W * 0.2, y + H * 0.48, W * 0.17, H * 0.42, '#203f4e');
+        ret(ctx, x + W * 0.64, y + H * 0.48, W * 0.16, H * 0.42, '#274956');
+        ret(ctx, x + W * 0.43, y + H * 0.58, W * 0.17, H * 0.34, '#183947');
+        ctx.strokeStyle = 'rgba(205,235,222,0.65)'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(x + W * 0.15, y + H * 0.38); ctx.lineTo(x + W * 0.35, y + H * 0.4);
+        ctx.moveTo(x + W * 0.73, y + H * 0.36); ctx.lineTo(x + W * 0.83, y + H * 0.4); ctx.stroke();
+        for (var i = 0; i < 5; i++) {
+            ctx.strokeStyle = i % 2 ? '#557f66' : '#78966b'; ctx.lineWidth = 2;
+            ctx.beginPath(); ctx.moveTo(x + W * (0.13 + i * 0.17), y + H * 0.38);
+            ctx.quadraticCurveTo(x + W * (0.11 + i * 0.18), y + H * 0.14, x + W * (0.18 + i * 0.16), y + H * 0.2); ctx.stroke();
+        }
+    }
+
+    function pintarParedeGelo(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H, W * 0.48, 5);
+        var gelo = ctx.createLinearGradient(x, y, x + W, y + H);
+        gelo.addColorStop(0, '#e4fbff'); gelo.addColorStop(0.45, '#83cddd'); gelo.addColorStop(1, '#397c9c');
+        ctx.fillStyle = gelo; ctx.fillRect(x, y + H * 0.1, W, H * 0.9);
+        poligono(ctx, [{ x: x, y: y + H * 0.1 }, { x: x + W * 0.18, y: y }, { x: x + W * 0.35, y: y + H * 0.1 }, { x: x + W * 0.57, y: y - H * 0.03 }, { x: x + W * 0.76, y: y + H * 0.1 }, { x: x + W, y: y + H * 0.02 }, { x: x + W, y: y + H * 0.24 }, { x: x, y: y + H * 0.24 }], '#c9f4fb');
+        ctx.strokeStyle = 'rgba(255,255,255,0.75)'; ctx.lineWidth = 2;
+        for (var i = 0; i < 4; i++) {
+            var cx = x + W * (0.16 + i * 0.22);
+            ctx.beginPath(); ctx.moveTo(cx, y + H * 0.25); ctx.lineTo(cx + W * 0.04, y + H * 0.48); ctx.lineTo(cx - W * 0.01, y + H * 0.67); ctx.stroke();
+        }
+    }
+
+    function pintarMuroPantano(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H, W * 0.5, 5);
+        ctx.strokeStyle = '#554331'; ctx.lineWidth = Math.max(4, H * 0.23); ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x, y + H * 0.76); ctx.bezierCurveTo(x + W * 0.24, y + H * 0.34, x + W * 0.55, y + H * 0.9, x + W * 0.78, y + H * 0.38); ctx.lineTo(x + W, y + H * 0.7); ctx.stroke();
+        ctx.strokeStyle = '#334d30'; ctx.lineWidth = Math.max(2, H * 0.08);
+        ctx.beginPath(); ctx.moveTo(x + W * 0.2, y + H * 0.45); ctx.lineTo(x + W * 0.28, y + H); ctx.moveTo(x + W * 0.7, y + H * 0.52); ctx.lineTo(x + W * 0.62, y + H); ctx.stroke();
+        for (var i = 0; i < 7; i++) circulo(ctx, x + W * (0.08 + i * 0.14), y + H * (0.28 + (i % 2) * 0.14), H * 0.055, i % 2 ? '#78934a' : '#49683a');
+        ctx.lineCap = 'butt';
+    }
+
+    function pintarGramaAlta(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H, s = seedDe(o);
+        sombra(ctx, x + W / 2, y + H, W * 0.38, 2, 0.14);
+        for (var i = 0; i < 17; i++) {
+            var bx = x + W * (0.08 + i / 19), tipX = bx + (variar(s + i, 2) - 0.5) * W * 0.22;
+            var tipY = y + H * (0.08 + variar(s + i + 31, 2) * 0.42);
+            ctx.strokeStyle = ['#386d35', '#4e8e3f', '#72a84b'][i % 3]; ctx.lineWidth = 1.4 + (i % 3) * 0.35;
+            ctx.beginPath(); ctx.moveTo(bx, y + H); ctx.quadraticCurveTo(bx + (tipX - bx) * 0.4, y + H * 0.45, tipX, tipY); ctx.stroke();
+            if (i % 3 === 0) { ctx.beginPath(); ctx.moveTo(bx, y + H * 0.78); ctx.lineTo(bx - W * 0.12, y + H * 0.58); ctx.stroke(); }
+        }
+    }
+
+    function pintarJuncosPantano(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H, W * 0.4, 3, 0.18);
+        for (var i = 0; i < 8; i++) {
+            var bx = x + W * (0.12 + i * 0.105), top = y + H * (0.12 + (i % 3) * 0.08);
+            ctx.strokeStyle = i % 2 ? '#587a3b' : '#758d45'; ctx.lineWidth = 2.4;
+            ctx.beginPath(); ctx.moveTo(bx, y + H); ctx.quadraticCurveTo(bx + (i % 2 ? 5 : -5), y + H * 0.5, bx, top); ctx.stroke();
+            if (i % 2 === 0) { ctx.fillStyle = '#69472f'; ctx.beginPath(); ctx.ellipse(bx, top - 3, 2.8, 7, -0.1, 0, Math.PI * 2); ctx.fill(); }
+        }
+    }
+
+    function pintarRaizesPantano(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H * 0.82, W * 0.48, 4);
+        ctx.strokeStyle = '#57432c'; ctx.lineCap = 'round';
+        for (var i = 0; i < 6; i++) {
+            var sx = x + W * (0.2 + i * 0.12);
+            ctx.lineWidth = 3 + (i % 2);
+            ctx.beginPath(); ctx.moveTo(sx, y + H * 0.05); ctx.bezierCurveTo(sx - W * 0.08, y + H * 0.4, sx + W * 0.08, y + H * 0.7, sx + (i - 2.5) * W * 0.08, y + H); ctx.stroke();
+        }
+        ctx.lineCap = 'butt';
+        for (var j = 0; j < 8; j++) circulo(ctx, x + W * (0.08 + j * 0.12), y + H * (0.76 + (j % 2) * 0.12), 2.5, j % 2 ? '#637c3f' : '#816645');
+    }
+
+    function pintarArbustoDesertico(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H, W * 0.4, 3);
+        var cx = x + W / 2;
+        ctx.strokeStyle = '#76502b'; ctx.lineWidth = W * 0.1; ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(cx, y + H); ctx.lineTo(cx, y + H * 0.25); ctx.moveTo(cx, y + H * 0.62); ctx.lineTo(x + W * 0.2, y + H * 0.42); ctx.moveTo(cx, y + H * 0.72); ctx.lineTo(x + W * 0.82, y + H * 0.48); ctx.stroke();
+        ctx.lineCap = 'butt';
+        for (var i = 0; i < 7; i++) {
+            var lx = x + W * (0.16 + i * 0.11), ly = y + H * (0.28 + (i % 3) * 0.1);
+            elipse(ctx, lx, ly, W * 0.12, H * 0.075, i % 2 ? '#76904a' : '#91a75a');
+            circulo(ctx, lx + W * 0.04, ly - 2, 1.7, '#d8c77d');
+        }
+    }
+
+    function pintarCristalColossal(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H, W * 0.38, 4);
+        var cores = ['#164e75', '#2587ae', '#65d7e8', '#b9f5f3'];
+        for (var i = 0; i < 5; i++) {
+            var cx = x + W * (0.16 + i * 0.17), cw = W * (0.22 - (i % 2) * 0.025), ch = H * (0.72 + (i % 3) * 0.09);
+            poligono(ctx, [{ x: cx, y: y + H }, { x: cx + cw * 0.08, y: y + H - ch * 0.72 }, { x: cx + cw * 0.5, y: y + H - ch }, { x: cx + cw * 0.94, y: y + H - ch * 0.68 }, { x: cx + cw, y: y + H }], cores[i % cores.length]);
+            poligono(ctx, [{ x: cx + cw * 0.5, y: y + H - ch }, { x: cx + cw * 0.94, y: y + H - ch * 0.68 }, { x: cx + cw, y: y + H }, { x: cx + cw * 0.54, y: y + H }], 'rgba(12,48,84,0.42)');
+            linha(ctx, cx + cw * 0.5, y + H - ch, cx + cw * 0.42, y + H - ch * 0.22, 'rgba(255,255,255,0.65)', 1.5);
+        }
+    }
+
+    function pintarRochaLava(o, ctx) {
+        pintarPedra(o, ctx, 'rocha_grande');
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        ctx.save();
+        ctx.strokeStyle = 'rgba(255,93,35,0.9)'; ctx.lineWidth = Math.max(2, W * 0.035); ctx.lineCap = 'round';
+        ctx.beginPath(); ctx.moveTo(x + W * 0.35, y + H * 0.32); ctx.lineTo(x + W * 0.48, y + H * 0.5); ctx.lineTo(x + W * 0.42, y + H * 0.77); ctx.moveTo(x + W * 0.48, y + H * 0.5); ctx.lineTo(x + W * 0.7, y + H * 0.62); ctx.stroke();
+        ctx.strokeStyle = 'rgba(255,204,102,0.8)'; ctx.lineWidth = Math.max(1, W * 0.012); ctx.stroke();
+        ctx.lineCap = 'butt'; ctx.restore();
+    }
+
+    function pintarArvoreProfana(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H, W * 0.36, 4);
+        ctx.strokeStyle = '#342c2b'; ctx.lineCap = 'round';
+        ctx.lineWidth = W * 0.11;
+        ctx.beginPath(); ctx.moveTo(x + W * 0.5, y + H); ctx.bezierCurveTo(x + W * 0.38, y + H * 0.68, x + W * 0.62, y + H * 0.37, x + W * 0.46, y + H * 0.1); ctx.stroke();
+        ctx.lineWidth = W * 0.055;
+        ctx.beginPath(); ctx.moveTo(x + W * 0.45, y + H * 0.56); ctx.lineTo(x + W * 0.15, y + H * 0.3); ctx.lineTo(x + W * 0.08, y + H * 0.12);
+        ctx.moveTo(x + W * 0.52, y + H * 0.43); ctx.lineTo(x + W * 0.81, y + H * 0.24); ctx.lineTo(x + W * 0.9, y + H * 0.06);
+        ctx.moveTo(x + W * 0.48, y + H * 0.7); ctx.lineTo(x + W * 0.22, y + H * 0.55); ctx.stroke();
+        ctx.lineCap = 'butt';
+        elipse(ctx, x + W * 0.5, y + H * 0.17, W * 0.3, H * 0.08, 'rgba(87,104,71,0.48)');
+    }
+
+    function pintarArvoreCristal(o, ctx) {
+        var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        sombra(ctx, x + W / 2, y + H, W * 0.32, 4);
+        ret(ctx, x + W * 0.46, y + H * 0.5, W * 0.09, H * 0.5, '#235c70');
+        for (var i = 0; i < 5; i++) {
+            var bx = x + W * (0.5 + (i - 2) * 0.09), top = y + H * (0.1 + (i % 2) * 0.12);
+            ctx.strokeStyle = '#287d93'; ctx.lineWidth = Math.max(2, W * 0.035);
+            ctx.beginPath(); ctx.moveTo(x + W * 0.5, y + H * 0.62); ctx.lineTo(bx, top + H * 0.3); ctx.stroke();
+            var cw = W * 0.14, ch = H * 0.31;
+            poligono(ctx, [{ x: bx - cw * 0.45, y: top + ch }, { x: bx - cw * 0.3, y: top + ch * 0.28 }, { x: bx, y: top }, { x: bx + cw * 0.4, y: top + ch * 0.3 }, { x: bx + cw * 0.45, y: top + ch }], i % 2 ? '#42c4d0' : '#77e4e4');
+            poligono(ctx, [{ x: bx, y: top }, { x: bx + cw * 0.4, y: top + ch * 0.3 }, { x: bx + cw * 0.45, y: top + ch }, { x: bx, y: top + ch }], 'rgba(20,92,133,0.42)');
+        }
+    }
+
     function pintarMuralha(o, ctx) {
         var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
         sombra(ctx, x + W / 2, y + H, W * 0.5, 5);
@@ -1859,6 +2553,10 @@
     function pintarZonaColisao(o, ctx) {
         if (!window.mapaEditorAtivo) return; // colisão é invisível fora do editor
         var d = dims(o), x = d.x, y = d.y, W = d.W, H = d.H;
+        if (Array.isArray(o.pontos) && o.pontos.length) {
+            desenharTracoColisao(ctx, o.pontos, o.raioX || 12, o.raioY || 12, 'rgba(231,76,60,0.2)', 'rgba(231,76,60,0.9)', [6, 4]);
+            return;
+        }
         ctx.fillStyle = 'rgba(231,76,60,0.20)';
         ctx.fillRect(x, y, W, H);
         ctx.strokeStyle = 'rgba(231,76,60,0.9)';
@@ -1869,6 +2567,32 @@
         ctx.fillStyle = 'rgba(10,10,10,0.7)';
         ctx.font = 'bold 9px monospace';
         ctx.fillText('⛔ COLISÃO', x + 3, y + 11);
+    }
+
+    function desenharTracoColisao(ctx, pontos, raioX, raioY, preenchimento, contorno, tracejado) {
+        if (!pontos || !pontos.length) return;
+        var origemX = pontos[0].x, origemY = pontos[0].y;
+        ctx.save();
+        ctx.translate(origemX, origemY);
+        ctx.scale(Math.max(1, raioX), Math.max(1, raioY));
+        ctx.beginPath();
+        if (pontos.length === 1) {
+            ctx.arc(0, 0, 1, 0, Math.PI * 2);
+        } else {
+            ctx.moveTo(0, 0);
+            for (var i = 1; i < pontos.length; i++) ctx.lineTo(pontos[i].x - origemX, pontos[i].y - origemY);
+        }
+        ctx.lineWidth = 2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        if (tracejado) ctx.setLineDash(tracejado);
+        ctx.fillStyle = preenchimento;
+        ctx.strokeStyle = contorno;
+        ctx.globalAlpha = 1;
+        if (pontos.length === 1) ctx.fill();
+        else ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
     }
 
     function pintarZonaFrente(o, ctx) {
@@ -1975,8 +2699,143 @@
     // ============================================================================
     // PINTURA DO OBJETO (usa window.ctx; efeito anexado)
     // ============================================================================
-    function pintarObjeto(o, ctx, t, alpha) {
+    function animarSpritePersonalizado(o, ctx, imagem, medidas, t) {
+        var animacao = ANIMACOES_SPRITE_VALIDAS.indexOf(o.animacao) !== -1 ? o.animacao : 'nenhuma';
+        var tempo = Number(t) || 0;
+        var semente = seedDe(o) * 0.173;
+        var fase = tempo * 2.4 + semente;
+        var amp = Math.max(1, Math.min(medidas.W, medidas.H) * 0.055);
+        var rotacao = 0, sx = 1, sy = 1, deslocamentoX = 0, deslocamentoY = 0, shear = 0;
+        switch (animacao) {
+            case 'brisa_suave': rotacao = Math.sin(fase * 0.55) * 0.035; shear = Math.sin(fase * 0.55) * 0.035; break;
+            case 'vento_constante': rotacao = 0.055 + Math.sin(fase * 0.7) * 0.025; shear = 0.08 + Math.sin(fase * 0.7) * 0.045; break;
+            case 'rajada_vento': {
+                var rajada = Math.sin(tempo * 0.75 + semente) > 0.72 ? 1 : 0.28;
+                rotacao = Math.sin(fase * 0.65) * 0.09 * rajada; shear = Math.sin(fase * 0.65) * 0.14 * rajada;
+                break;
+            }
+            case 'copa_ondulante': shear = Math.sin(fase * 0.7) * 0.11; deslocamentoX = Math.sin(fase * 0.7) * amp * 0.2; break;
+            case 'folhas_tremulas': shear = Math.sin(fase * 2.1) * 0.055 + Math.sin(fase * 3.4) * 0.025; break;
+            case 'arvore_tempestade': rotacao = Math.sin(fase * 0.55) * 0.14; shear = Math.sin(fase * 0.55) * 0.22; break;
+            case 'respirar': sx = 1 + Math.sin(fase * 0.5) * 0.035; sy = 1 + Math.sin(fase * 0.5 - 0.6) * 0.045; break;
+            case 'pulsar': sx = sy = 1 + Math.sin(fase) * 0.055; break;
+            case 'batimento': {
+                var batida = Math.pow(Math.max(0, Math.sin(fase * 0.5)), 12);
+                sx = 1 + batida * 0.07; sy = 1 - batida * 0.035;
+                break;
+            }
+            case 'esticar': sy = 1 + Math.sin(fase * 0.65) * 0.12; sx = 1 - Math.sin(fase * 0.65) * 0.045; break;
+            case 'compressao': sx = 1 + Math.sin(fase) * 0.075; sy = 1 - Math.sin(fase) * 0.075; break;
+            case 'crescer': sx = sy = 0.94 + (0.5 + 0.5 * Math.sin(fase * 0.35)) * 0.12; break;
+            case 'flutuar': deslocamentoY = Math.sin(fase) * amp * 0.22; rotacao = Math.sin(fase * 0.5) * 0.018; break;
+            case 'levitar_lento': deslocamentoY = Math.sin(fase * 0.35) * amp * 0.35; deslocamentoX = Math.sin(fase * 0.24) * amp * 0.12; break;
+            case 'saltitar': deslocamentoY = -Math.max(0, Math.sin(fase * 0.7)) * amp * 0.42; sx = 1 + Math.sin(fase * 0.7) * 0.025; break;
+            case 'balanco_vertical': deslocamentoY = Math.sin(fase * 0.7) * amp * 0.1; break;
+            case 'balanco_horizontal': deslocamentoX = Math.sin(fase * 0.7) * amp * 0.14; break;
+            case 'inclinar': rotacao = Math.sin(fase * 0.65) * 0.1; break;
+            case 'balanco_profundo': rotacao = Math.sin(fase * 0.55) * 0.17; deslocamentoX = Math.sin(fase * 0.55) * amp * 0.1; break;
+            case 'tronco_flexivel': shear = Math.sin(fase * 0.8) * 0.15; rotacao = Math.sin(fase * 0.8) * 0.045; break;
+            case 'ondular': shear = Math.sin(fase + semente) * 0.075; deslocamentoY = Math.sin(fase * 1.2) * amp * 0.08; break;
+            case 'tremular': rotacao = Math.sin(fase * 2.5) * 0.035; deslocamentoX = Math.sin(fase * 3) * amp * 0.045; break;
+            case 'sacudir': {
+                var sacudida = Math.sin(tempo * 0.7 + semente) > 0.88 ? 1 : 0;
+                deslocamentoX = Math.sin(fase * 9) * amp * 0.12 * sacudida; rotacao = Math.sin(fase * 8) * 0.05 * sacudida;
+                break;
+            }
+            case 'tremor': deslocamentoX = Math.sin(fase * 11) * amp * 0.035; deslocamentoY = Math.cos(fase * 13) * amp * 0.025; break;
+            case 'giro_horario': rotacao = (tempo * 0.42 + semente) % (Math.PI * 2); break;
+            case 'giro_lento': rotacao = Math.sin(fase * 0.16) * 0.35; break;
+            case 'oscilacao': rotacao = Math.sin(fase) * 0.06; deslocamentoY = Math.sin(fase * 2) * amp * 0.12; break;
+            case 'deriva_vento': deslocamentoX = Math.sin(fase * 0.28) * amp * 0.42; deslocamentoY = Math.sin(fase * 0.38) * amp * 0.15; rotacao = Math.sin(fase * 0.28) * 0.035; break;
+            case 'vibracao_folhas': shear = Math.sin(fase * 3.2) * 0.085 + Math.sin(fase * 4.7) * 0.035; break;
+            case 'squash_stretch': {
+                var squash = Math.sin(fase * 0.8);
+                sx = 1 + squash * 0.085; sy = 1 - squash * 0.085;
+                deslocamentoY = Math.max(0, squash) * amp * 0.1;
+                break;
+            }
+        }
+
+        var area = o.animacaoArea;
+        var recorte = obterAssetRect(o, imagem);
+        if (area && Number.isFinite(area.x) && Number.isFinite(area.y) && Number.isFinite(area.w) && Number.isFinite(area.h) &&
+            area.x >= 0 && area.y >= 0 && area.w > 0 && area.h > 0 && area.x + area.w <= 1 && area.y + area.h <= 1 &&
+            (area.x > 0 || area.y > 0 || area.w < 1 || area.h < 1)) {
+            var ax = medidas.x + medidas.W * area.x, ay = medidas.y + medidas.H * area.y;
+            var aw = medidas.W * area.w, ah = medidas.H * area.h;
+            ctx.save();
+            ctx.beginPath();
+            ctx.rect(medidas.x, medidas.y, medidas.W, medidas.H);
+            ctx.rect(ax, ay, aw, ah);
+            ctx.clip('evenodd');
+            ctx.drawImage(imagem, recorte.x, recorte.y, recorte.w, recorte.h, medidas.x, medidas.y, medidas.W, medidas.H);
+            ctx.restore();
+
+            ctx.save();
+            ctx.translate(ax + aw / 2 + deslocamentoX, ay + ah / 2 + deslocamentoY);
+            ctx.rotate(rotacao);
+            ctx.transform(1, 0, shear, 1, 0, 0);
+            ctx.scale(sx, sy);
+            ctx.drawImage(imagem, recorte.x + area.x * recorte.w, recorte.y + area.y * recorte.h,
+                area.w * recorte.w, area.h * recorte.h, -aw / 2, -ah / 2, aw, ah);
+            ctx.restore();
+            return;
+        }
+        ctx.save();
+        ctx.translate(medidas.x + medidas.W / 2 + deslocamentoX, medidas.y + medidas.H + deslocamentoY);
+        ctx.rotate(rotacao);
+        ctx.transform(1, 0, shear, 1, 0, 0);
+        ctx.scale(sx, sy);
+        ctx.drawImage(imagem, recorte.x, recorte.y, recorte.w, recorte.h, -medidas.W / 2, -medidas.H, medidas.W, medidas.H);
+        ctx.restore();
+    }
+
+    function pintarObjeto(o, ctx, t, alpha, parteSprite) {
         if (!o) return;
+        if (o.tipo === 'sprite_personalizado') {
+            var imagemSprite = obterImagemSpriteMapa(o.asset);
+            if (imagemSprite && imagemSprite.complete && imagemSprite.naturalWidth > 0) {
+                var medidasSprite = dims(o);
+                var sourceImage = imagemSprite;
+                var sourceRegion = obterAssetRect(o, sourceImage);
+                if (mascaraAutomaticaAusente(o, sourceRegion)) return;
+                var imagemComMascara = obterSpriteComMascara(o, sourceImage);
+                var objetoDesenho = o;
+                if (imagemComMascara) {
+                    imagemSprite = imagemComMascara;
+                    objetoDesenho = Object.assign({}, o, { assetRect: null, assetMask: null, assetMaskRaster: null });
+                }
+                lassoDiagnostico('FINAL_RENDER', o, sourceImage, imagemSprite, {
+                    rendererTexture: imagemComMascara ? 'masked-canvas' : o.asset,
+                    drawSourceRegion: imagemComMascara ? null : sourceRegion,
+                    originalSpritesheet: imagemComMascara ? o.asset : null,
+                    finalTextureSize: { width: imagemSprite.width, height: imagemSprite.height }
+                });
+                ctx.save();
+                if (alpha != null) ctx.globalAlpha = alpha;
+                var rotacaoObjeto = (Number(o.rotacao) || 0) * Math.PI / 180;
+                if (rotacaoObjeto) {
+                    ctx.translate(medidasSprite.x + medidasSprite.W / 2, medidasSprite.y + medidasSprite.H / 2);
+                    ctx.rotate(rotacaoObjeto);
+                    medidasSprite.x = -medidasSprite.W / 2;
+                    medidasSprite.y = -medidasSprite.H / 2;
+                }
+                if (parteSprite && divisaoSpriteValida(o)) {
+                    var linhaDivisao = medidasSprite.y + medidasSprite.H * o.assetDepthSplit;
+                    var topoRecorte = parteSprite === 'superior' ? medidasSprite.y - medidasSprite.H : linhaDivisao;
+                    ctx.save();
+                    ctx.beginPath();
+                    ctx.rect(medidasSprite.x - medidasSprite.W, topoRecorte, medidasSprite.W * 3, medidasSprite.H * 2);
+                    ctx.clip();
+                    animarSpritePersonalizado(objetoDesenho, ctx, imagemSprite, medidasSprite, t);
+                    ctx.restore();
+                } else {
+                    animarSpritePersonalizado(objetoDesenho, ctx, imagemSprite, medidasSprite, t);
+                }
+                ctx.restore();
+            }
+            return;
+        }
         var def = CATALOGO[o.tipo];
         if (!def) def = CATALOGO.arvore;
         ctx.save();
@@ -1989,6 +2848,51 @@
     // ============================================================================
     // COLISÃO DO CLIENTE (objetos com colisão bloqueiam o jogador)
     // ============================================================================
+    function pontoNaColisaoPincel(objeto, x, y, raioJogador) {
+        var pontos = objeto.pontos;
+        var raioX = Math.max(1, Number(objeto.raioX) || 12);
+        var raioY = Math.max(1, Number(objeto.raioY) || 12);
+        var expandir = Math.max(0, raioJogador || 0) / Math.min(raioX, raioY);
+        var px = x / raioX, py = y / raioY;
+        if (px < (objeto.x - raioJogador) / raioX || px > (objeto.x + objeto.w + raioJogador) / raioX ||
+            py < (objeto.y - raioJogador) / raioY || py > (objeto.y + objeto.h + raioJogador) / raioY) return false;
+        if (pontos.length === 1) return Math.hypot(px - pontos[0].x / raioX, py - pontos[0].y / raioY) <= 1 + expandir;
+        for (var i = 1; i < pontos.length; i++) {
+            var x1 = pontos[i - 1].x / raioX, y1 = pontos[i - 1].y / raioY;
+            var x2 = pontos[i].x / raioX, y2 = pontos[i].y / raioY;
+            var dx = x2 - x1, dy = y2 - y1;
+            var comprimento2 = dx * dx + dy * dy;
+            var t = comprimento2 ? Math.max(0, Math.min(1, ((px - x1) * dx + (py - y1) * dy) / comprimento2)) : 0;
+            if (Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy)) <= 1 + expandir) return true;
+        }
+        return false;
+    }
+
+    function pontoNaMascaraColisao(objeto, x, y, raioJogador) {
+        var mask = objeto.assetCollisionMask;
+        var medidas = dims(objeto);
+        var radians = -(Number(objeto.rotacao) || 0) * Math.PI / 180;
+        var dx = x - (medidas.x + medidas.W / 2), dy = y - (medidas.y + medidas.H / 2);
+        var localX = dx * Math.cos(radians) - dy * Math.sin(radians);
+        var localY = dx * Math.sin(radians) + dy * Math.cos(radians);
+        var localPixelX = localX + medidas.W / 2, localPixelY = localY + medidas.H / 2;
+        var radius = Math.max(0, Number(raioJogador) || 0);
+        if (localPixelX < -radius || localPixelX > medidas.W + radius ||
+            localPixelY < -radius || localPixelY > medidas.H + radius) return false;
+        if (mascaraPoligonoContem(mask, localPixelX / medidas.W, localPixelY / medidas.H)) return true;
+        if (!radius) return false;
+        for (var i = 0; i < mask.length; i++) {
+            var a = mask[i], b = mask[(i + 1) % mask.length];
+            var ax = a.x * medidas.W, ay = a.y * medidas.H;
+            var bx = b.x * medidas.W, by = b.y * medidas.H;
+            var segX = bx - ax, segY = by - ay;
+            var length2 = segX * segX + segY * segY;
+            var t = length2 ? Math.max(0, Math.min(1, ((localPixelX - ax) * segX + (localPixelY - ay) * segY) / length2)) : 0;
+            if (Math.hypot(localPixelX - (ax + t * segX), localPixelY - (ay + t * segY)) <= radius) return true;
+        }
+        return false;
+    }
+
     function colideObjetosDoMapa(x, y, raio) {
         var mapa = global.currentMap || 'green';
         var r = (typeof raio === 'number') ? raio : 8;
@@ -1997,9 +2901,20 @@
         for (var i = 0; i < lista.length; i++) {
             var o = lista[i];
             if (!o || o.mapa !== mapa || !o.colisao) continue;
-            var w = o.w || 40, h = o.h || 40;
-            var cxo = o.x + w / 2, cyo = o.y + h / 2;
-            var dx = Math.abs(x - cxo), dy = Math.abs(y - cyo);
+            if (o.tipo === 'zona_colisao' && Array.isArray(o.pontos) && o.pontos.length) {
+                if (pontoNaColisaoPincel(o, x, y, r)) return true;
+                continue;
+            }
+            if (o.tipo === 'sprite_personalizado' && mascaraPoligonoValida(o.assetCollisionMask)) {
+                if (pontoNaMascaraColisao(o, x, y, r)) return true;
+                continue;
+            }
+            var medidas = dims(o);
+            var radians = -(Number(o.rotacao) || 0) * Math.PI / 180;
+            var deltaX = x - (medidas.x + medidas.W / 2), deltaY = y - (medidas.y + medidas.H / 2);
+            var dx = Math.abs(deltaX * Math.cos(radians) - deltaY * Math.sin(radians));
+            var dy = Math.abs(deltaX * Math.sin(radians) + deltaY * Math.cos(radians));
+            var w = medidas.W, h = medidas.H;
             if (dx >= w / 2 + r || dy >= h / 2 + r) continue;
             var ox = dx - w / 2, oy = dy - h / 2;
             if (ox <= 0 || oy <= 0) return true;
@@ -2045,7 +2960,12 @@
     // RENDERIZAÇÃO: objetos entram no y-sort + camada frente depois dos jogadores
     // ============================================================================
     function visivel(o, camX, camY, cw, ch) {
-        return o && (o.x + o.w >= camX - 80) && (o.x <= camX + cw + 80) && (o.y + o.h >= camY - 80) && (o.y <= camY + ch + 80);
+        if (!o) return false;
+        var medidas = dims(o);
+        var raioBounds = Math.hypot(medidas.W, medidas.H) / 2;
+        var centroX = medidas.x + medidas.W / 2, centroY = medidas.y + medidas.H / 2;
+        return centroX + raioBounds >= camX - 80 && centroX - raioBounds <= camX + cw + 80 &&
+            centroY + raioBounds >= camY - 80 && centroY - raioBounds <= camY + ch + 80;
     }
 
     window.coletarObjetosMapa = function (t, arr) {
@@ -2059,12 +2979,126 @@
         for (var i = 0; i < lista.length; i++) {
             var o = lista[i];
             if (!o || o.mapa !== mapa) continue;
-            if (o.camada === 'frente') continue; // desenhado depois dos jogadores
+            if (camadaEditorFicaNaFrente(o.camada) && !divisaoSpriteValida(o)) continue; // sprites divididas entram no Y-sort
             if (!visivel(o, camX, camY, cw, ch)) continue;
             (function (obj) {
-                arr.push({ y: obj.y + (obj.h || 40), draw: function () { pintarObjeto(obj, global.ctx, t || 0); } });
+                var orderTieBreak = Math.max(0, Math.min(1000000, Number(obj.ordem) || 0)) * 0.000001;
+                var layer = normalizarCamadaEditor(obj.camada);
+                if (divisaoSpriteValida(obj)) {
+                    var splitDepth = obj.y + dims(obj).H * obj.assetDepthSplit + orderTieBreak;
+                    var baseDepth = obj.y + dims(obj).H + orderTieBreak;
+                    arr.push({
+                        y: splitDepth,
+                        draw: function () { pintarObjeto(obj, global.ctx, t || 0, null, 'superior'); }
+                    });
+                    arr.push({
+                        y: baseDepth,
+                        draw: function () { pintarObjeto(obj, global.ctx, t || 0, null, 'inferior'); }
+                    });
+                    return;
+                }
+                var depth = layer === 'ground' ? -1000000000 + orderTieBreak :
+                    (layer === 'decoration_behind' ? -500000000 + orderTieBreak :
+                        obj.y + dims(obj).H * (Number.isFinite(obj.ySortAnchor) &&
+                            obj.ySortAnchor >= 0 && obj.ySortAnchor <= 1 ? obj.ySortAnchor : 1) + orderTieBreak);
+                arr.push({ y: depth, draw: function () { pintarObjeto(obj, global.ctx, t || 0); } });
             })(o);
         }
+    };
+
+    window.meSetSelAnimacao = function (animacao) {
+        if (!meSel || meSel.tipo !== 'sprite_personalizado') return;
+        meSel.animacao = ANIMACOES_SPRITE_VALIDAS.indexOf(animacao) !== -1 ? animacao : 'nenhuma';
+        enviar(meSel, 'editar');
+        meAtualizarPropsUI();
+    };
+
+    function meDesenharAreaAnimacao() {
+        var canvas = document.getElementById('me-area-animacao-preview');
+        if (!canvas || !meSel || meSel.tipo !== 'sprite_personalizado') return;
+        var ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#101710';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        var imagem = obterImagemSpriteMapa(meSel.asset);
+        if (!imagem || !imagem.complete || !imagem.naturalWidth || !imagem.naturalHeight) {
+            if (imagem) imagem.addEventListener('load', meDesenharAreaAnimacao, { once: true });
+            return;
+        }
+        var recorte = obterAssetRect(meSel, imagem);
+        var escala = Math.min(canvas.width / recorte.w, canvas.height / recorte.h);
+        var largura = recorte.w * escala, altura = recorte.h * escala;
+        var x = (canvas.width - largura) / 2, y = (canvas.height - altura) / 2;
+        meAreaAnimacaoLayout = { x: x, y: y, w: largura, h: altura };
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(imagem, recorte.x, recorte.y, recorte.w, recorte.h, x, y, largura, altura);
+        var area = meAreaAnimacaoDrag && meAreaAnimacaoDrag.preview ? meAreaAnimacaoDrag.preview : meSel.animacaoArea || { x: 0, y: 0, w: 1, h: 1 };
+        var rx = x + largura * area.x, ry = y + altura * area.y;
+        var rw = largura * area.w, rh = altura * area.h;
+        ctx.fillStyle = 'rgba(83, 220, 155, 0.2)';
+        ctx.fillRect(rx, ry, rw, rh);
+        ctx.strokeStyle = '#5bffb2';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([5, 3]);
+        ctx.strokeRect(rx, ry, rw, rh);
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#e8fff3';
+        ctx.font = '11px sans-serif';
+        ctx.fillText(meSel.animacaoArea ? 'Somente a área destacada será animada' : 'Sprite inteiro · arraste para limitar a área', 6, 14);
+    }
+
+    function meAreaAnimacaoCoordenada(e) {
+        var canvas = document.getElementById('me-area-animacao-preview');
+        var layout = meAreaAnimacaoLayout;
+        if (!canvas || !layout) return null;
+        var rect = canvas.getBoundingClientRect();
+        var px = (e.clientX - rect.left) * canvas.width / rect.width;
+        var py = (e.clientY - rect.top) * canvas.height / rect.height;
+        if (px < layout.x || py < layout.y || px > layout.x + layout.w || py > layout.y + layout.h) return null;
+        return { x: (px - layout.x) / layout.w, y: (py - layout.y) / layout.h };
+    }
+
+    window.meAreaAnimacaoPointerDown = function (e) {
+        if (!meSel || meSel.tipo !== 'sprite_personalizado') return;
+        var ponto = meAreaAnimacaoCoordenada(e);
+        if (!ponto) return;
+        meAreaAnimacaoDrag = { pointerId: e.pointerId, start: ponto, preview: { x: ponto.x, y: ponto.y, w: 0, h: 0 } };
+        e.currentTarget.setPointerCapture(e.pointerId);
+        meDesenharAreaAnimacao();
+        e.preventDefault();
+    };
+
+    window.meAreaAnimacaoPointerMove = function (e) {
+        if (!meAreaAnimacaoDrag || meAreaAnimacaoDrag.pointerId !== e.pointerId) return;
+        var ponto = meAreaAnimacaoCoordenada(e);
+        if (!ponto) return;
+        var inicio = meAreaAnimacaoDrag.start;
+        meAreaAnimacaoDrag.preview = {
+            x: Math.min(inicio.x, ponto.x), y: Math.min(inicio.y, ponto.y),
+            w: Math.abs(ponto.x - inicio.x), h: Math.abs(ponto.y - inicio.y)
+        };
+        meDesenharAreaAnimacao();
+        e.preventDefault();
+    };
+
+    window.meAreaAnimacaoPointerUp = function (e) {
+        if (!meAreaAnimacaoDrag || meAreaAnimacaoDrag.pointerId !== e.pointerId) return;
+        var area = meAreaAnimacaoDrag.preview;
+        meAreaAnimacaoDrag = null;
+        if (area.w >= 0.01 && area.h >= 0.01 && meSel && meSel.tipo === 'sprite_personalizado') {
+            meSel.animacaoArea = area;
+            enviar(meSel, 'editar');
+        }
+        meAtualizarPropsUI();
+        meDesenharAreaAnimacao();
+    };
+
+    window.meLimparAreaAnimacao = function () {
+        if (!meSel || meSel.tipo !== 'sprite_personalizado') return;
+        delete meSel.animacaoArea;
+        enviar(meSel, 'editar');
+        meAtualizarPropsUI();
+        meDesenharAreaAnimacao();
     };
 
     window.desenharObjetosFrente = function () {
@@ -2076,12 +3110,20 @@
         var cw = ((global.canvas && global.canvas.width) || 800) / zoom;
         var ch = ((global.canvas && global.canvas.height) || 600) / zoom;
         var t = Date.now() / 1000;
+        var objetosFrente = [];
         for (var i = 0; i < lista.length; i++) {
             var o = lista[i];
-            if (!o || o.mapa !== mapa || o.camada !== 'frente') continue;
+            if (!o || o.mapa !== mapa || !camadaEditorFicaNaFrente(o.camada)) continue;
             if (!visivel(o, camX, camY, cw, ch)) continue;
-            pintarObjeto(o, global.ctx, t);
+            objetosFrente.push(o);
         }
+        objetosFrente.sort(function (a, b) {
+            var ordem = (Number(a.ordem) || 0) - (Number(b.ordem) || 0);
+            return ordem || (a.y + dims(a).H) - (b.y + dims(b).H);
+        });
+        objetosFrente.forEach(function (objeto) {
+            if (!divisaoSpriteValida(objeto)) pintarObjeto(objeto, global.ctx, t);
+        });
     };
 
     // ============================================================================
@@ -2089,6 +3131,20 @@
     // ============================================================================
     window.receberMapaObjetos = function (lista) {
         window.mapaObjetos = lista || [];
+        mapaObjetoIdsConfirmados = new Set(window.mapaObjetos.filter(function (objeto) {
+            return objeto && typeof objeto.id === 'string';
+        }).map(function (objeto) { return objeto.id; }));
+        if (lassoDiagEnabled) {
+            window.mapaObjetos.forEach(function (objeto) {
+                if (objeto && objeto.assetMaskMode === 'auto') {
+                    var imagem = obterImagemSpriteMapa(objeto.asset);
+                    lassoDiagnostico('LOAD_CLIENT', objeto, imagem, null, {
+                        receivedAssetRect: objeto.assetRect,
+                        rasterMaskPresent: !!objeto.assetMaskRaster
+                    });
+                }
+            });
+        }
         // mantém a seleção pelo id (o broadcast substitui a lista)
         if (meSelId) {
             var achado = null;
@@ -2106,18 +3162,62 @@
             action: 'admin_map_objetos',
             sub: sub || 'criar',
             objeto: {
-                id: o.id, tipo: o.tipo, x: o.x, y: o.y, w: o.w, h: o.h,
+                id: o.id, tipo: o.tipo, asset: o.asset || '', x: o.x, y: o.y, w: o.w, h: o.h,
+                assetRect: o.assetRect ? {
+                    x: o.assetRect.x, y: o.assetRect.y, w: o.assetRect.w, h: o.assetRect.h
+                } : undefined,
+                assetMask: assetMaskValida(o.assetMask) ? o.assetMask.map(function (point) { return { x: point.x, y: point.y }; }) : undefined,
+                assetMaskRaster: o.assetMaskRaster || undefined,
+                assetMaskMode: o.assetMaskMode === 'auto' || o.assetMaskMode === 'manual' ? o.assetMaskMode : '',
+                assetCollisionMask: mascaraPoligonoValida(o.assetCollisionMask)
+                    ? o.assetCollisionMask.map(function (point) { return { x: point.x, y: point.y }; })
+                    : undefined,
+                ySortAnchor: Number.isFinite(o.ySortAnchor) ? o.ySortAnchor : undefined,
+                assetDepthSplit: divisaoSpriteValida(o) ? o.assetDepthSplit : undefined,
+                spriteId: o.spriteId || '',
+                categoria: o.categoria || 'Geral',
                 escala: o.escala != null ? o.escala : 1,
+                escalaX: o.escalaX != null ? o.escalaX : 1,
+                escalaY: o.escalaY != null ? o.escalaY : 1,
+                rotacao: o.rotacao || 0,
+                ordem: o.ordem || 0,
                 variante: o.variante || 0,
+                animacao: ANIMACOES_SPRITE_VALIDAS.indexOf(o.animacao) !== -1 ? o.animacao : 'nenhuma',
+                animacaoArea: o.animacaoArea ? {
+                    x: o.animacaoArea.x, y: o.animacaoArea.y, w: o.animacaoArea.w, h: o.animacaoArea.h
+                } : undefined,
                 colisao: !!o.colisao,
+                pontos: Array.isArray(o.pontos) ? o.pontos : undefined,
+                raioX: o.raioX,
+                raioY: o.raioY,
                 camada: o.camada || 'meio',
                 efeito: o.efeito || '',
                 efeitoCor: o.efeitoCor || ''
             }
         };
+        var sourceImage = o.asset ? obterImagemSpriteMapa(o.asset) : null;
+        lassoDiagnostico('SERIALIZATION', o, sourceImage, null, {
+            action: msg.action,
+            sub: msg.sub,
+            payloadAsset: msg.objeto.asset,
+            payloadRect: msg.objeto.assetRect,
+            payloadMaskPresent: !!msg.objeto.assetMaskRaster,
+            payloadMask: lassoRasterResumo(msg.objeto.assetMaskRaster),
+            mapBounds: { x: msg.objeto.x, y: msg.objeto.y, w: msg.objeto.w, h: msg.objeto.h }
+        });
         if (global.ws && global.ws.readyState === 1) {
             global.ws.send(JSON.stringify(msg));
+            return true;
         }
+        return false;
+    }
+
+    function enviarNovoObjeto(objeto) {
+        if (enviar(objeto, 'criar')) return;
+        var agora = Date.now();
+        if (agora - meUltimoAvisoFalhaAutoSave < 2500) return;
+        meUltimoAvisoFalhaAutoSave = agora;
+        meToast('Objeto colocado apenas localmente: servidor desconectado. Salve após reconectar.');
     }
 
     // ============================================================================
@@ -2129,8 +3229,12 @@
     }
 
     function pontoEmObjeto(o, wx, wy) {
-        var w = o.w || 40, h = o.h || 40;
-        return wx >= o.x && wx <= o.x + w && wy >= o.y && wy <= o.y + h;
+        var medidas = dims(o);
+        var radians = -(Number(o.rotacao) || 0) * Math.PI / 180;
+        var dx = wx - (medidas.x + medidas.W / 2), dy = wy - (medidas.y + medidas.H / 2);
+        var localX = dx * Math.cos(radians) - dy * Math.sin(radians);
+        var localY = dx * Math.sin(radians) + dy * Math.cos(radians);
+        return Math.abs(localX) <= medidas.W / 2 && Math.abs(localY) <= medidas.H / 2;
     }
 
     function acharObjetoEm(wx, wy) {
@@ -2138,11 +3242,17 @@
         // 1) hit exato: caixa do objeto expandida pela escala (o desenho pode ser maior que o hitbox)
         for (var i = lista.length - 1; i >= 0; i--) {
             var o0 = lista[i];
-            var ew = (o0.w || 40) * (o0.escala || 1);
-            var eh = (o0.h || 40) * (o0.escala || 1);
+            if (o0.tipo === 'zona_colisao' && Array.isArray(o0.pontos) && o0.pontos.length) {
+                if (pontoNaColisaoPincel(o0, wx, wy, 0)) return o0;
+                continue;
+            }
+            var medidas = dims(o0);
+            var ew = medidas.W;
+            var eh = medidas.H;
             var extW = Math.max(ew, (o0.w || 40) + 12);
             var extH = Math.max(eh, (o0.h || 40) + 12);
-            if (wx >= o0.x && wx <= o0.x + extW && wy >= o0.y && wy <= o0.y + extH) return o0;
+            if (pontoEmObjeto(o0, wx, wy) ||
+                (wx >= o0.x && wx <= o0.x + extW && wy >= o0.y && wy <= o0.y + extH)) return o0;
         }
         // 2) mais próximo pelo centro (até 60px) — garante que "clicou na árvore" sempre apaga
         var melhor = null, melhorD = 60;
@@ -2160,19 +3270,45 @@
     function telaParaMundo(cx, cy) {
         var cv = global.canvas;
         if (!cv) return { wx: 0, wy: 0 };
+        var rect = cv.getBoundingClientRect();
+        if (!rect.width || !rect.height) return { wx: 0, wy: 0 };
         var zoom = (typeof global.cameraZoomAtual === 'number' && global.cameraZoomAtual > 0) ? global.cameraZoomAtual : (global.ZOOM_CAMERA || 0.92);
         var camX = global.camX || 0, camY = global.camY || 0;
-        var iw = window.innerWidth || 1, ih = window.innerHeight || 1;
-        var wx = (((cx || 0) / iw) * cv.width) / zoom + camX;
-        var wy = (((cy || 0) / ih) * cv.height) / zoom + camY;
+        var canvasX = Math.max(0, Math.min(cv.width, (cx - rect.left) * cv.width / rect.width));
+        var canvasY = Math.max(0, Math.min(cv.height, (cy - rect.top) * cv.height / rect.height));
+        var wx = canvasX / zoom + camX;
+        var wy = canvasY / zoom + camY;
+        var cfg = (global.MAPAS_REGISTRY || {})[global.currentMap || 'mundo'];
+        var minX = cfg ? cfg.x0 : 0, minY = cfg ? cfg.y0 : 0;
+        var maxX = cfg ? cfg.x0 + cfg.w : (global.WORLD_WIDTH || 65040);
+        var maxY = cfg ? cfg.y0 + cfg.h : (global.WORLD_HEIGHT || 36000);
         return {
-            wx: Math.max(0, Math.min((global.WORLD_WIDTH || 65040), wx)),
-            wy: Math.max(0, Math.min((global.WORLD_HEIGHT || 36000), wy))
+            wx: Math.max(minX, Math.min(maxX - 1, wx)),
+            wy: Math.max(minY, Math.min(maxY - 1, wy))
         };
+    }
+
+    function limitesMapaEditor() {
+        var cfg = (global.MAPAS_REGISTRY || {})[global.currentMap || 'mundo'];
+        if (cfg) return cfg;
+        return { x0: 0, y0: 0, w: global.WORLD_WIDTH || 65040, h: global.WORLD_HEIGHT || 36000 };
     }
 
     function editorAberto() {
         return window.mapaEditorAtivo && !window.mapaEditorMinimizado;
+    }
+
+    function editorCampoCapturaDelete(active) {
+        if (!active) return false;
+        if (active.tagName === 'TEXTAREA' || active.isContentEditable) return true;
+        if (active.tagName !== 'INPUT') return false;
+        return ['text', 'number', 'search', 'email', 'password', 'tel', 'url'].indexOf(String(active.type || 'text').toLowerCase()) !== -1;
+    }
+
+    function focarCanvasEditor() {
+        if (!global.canvas || typeof global.canvas.focus !== 'function') return;
+        if (global.canvas.tabIndex < 0) global.canvas.tabIndex = -1;
+        global.canvas.focus();
     }
 
     function snapCoord(v) {
@@ -2181,6 +3317,67 @@
 
     function ferramentaColoca() {
         return meFerramenta === 'colocar' || meFerramenta === 'colocar_colisao' || meFerramenta === 'colocar_frente';
+    }
+
+    function iniciarTracoColisao(wx, wy) {
+        mePintando = true;
+        meTracoColisao = {
+            mapa: global.currentMap || 'green',
+            pontos: [{ x: Math.round(wx), y: Math.round(wy) }],
+            raioX: Math.max(2, (brush.zonaW || 40) / 2),
+            raioY: Math.max(2, (brush.zonaH || 40) / 2)
+        };
+        meLastX = wx;
+        meLastY = wy;
+    }
+
+    function acrescentarPontoTraco(wx, wy) {
+        if (!meTracoColisao) return;
+        var dx = wx - meLastX, dy = wy - meLastY;
+        var distancia = Math.hypot(dx, dy);
+        var passo = Math.max(4, Math.min(meTracoColisao.raioX, meTracoColisao.raioY) * 0.35);
+        var segmentos = Math.max(1, Math.ceil(distancia / passo));
+        for (var i = 1; i <= segmentos; i++) {
+            var fracao = i / segmentos;
+            var proximo = { x: Math.round(meLastX + dx * fracao), y: Math.round(meLastY + dy * fracao) };
+            var ultimo = meTracoColisao.pontos[meTracoColisao.pontos.length - 1];
+            if (ultimo.x === proximo.x && ultimo.y === proximo.y) continue;
+            if (meTracoColisao.pontos.length < 512) meTracoColisao.pontos.push(proximo);
+            else meTracoColisao.pontos[511] = proximo;
+        }
+        meLastX = wx;
+        meLastY = wy;
+    }
+
+    function finalizarTracoColisao(wx, wy) {
+        if (!meTracoColisao) return;
+        if (Number.isFinite(wx) && Number.isFinite(wy)) acrescentarPontoTraco(wx, wy);
+        var traco = meTracoColisao;
+        meTracoColisao = null;
+        mePintando = false;
+        var pontos = traco.pontos;
+        var minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+        pontos.forEach(function (ponto) {
+            minX = Math.min(minX, ponto.x); maxX = Math.max(maxX, ponto.x);
+            minY = Math.min(minY, ponto.y); maxY = Math.max(maxY, ponto.y);
+        });
+        var objeto = {
+            id: 'obj_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7),
+            tipo: 'zona_colisao',
+            mapa: traco.mapa,
+            x: Math.round(minX - traco.raioX), y: Math.round(minY - traco.raioY),
+            w: Math.max(4, Math.ceil(maxX - minX + traco.raioX * 2)),
+            h: Math.max(4, Math.ceil(maxY - minY + traco.raioY * 2)),
+            escala: 1, variante: 0, colisao: true, camada: 'meio',
+            pontos: pontos, raioX: traco.raioX, raioY: traco.raioY,
+            efeito: '', efeitoCor: ''
+        };
+        window.mapaObjetos.push(objeto);
+        meSelId = objeto.id;
+        meSel = objeto;
+        enviarNovoObjeto(objeto);
+        meAtualizarListas();
+        meAtualizarPropsUI();
     }
 
     function colocarNoPonto(wx, wy) {
@@ -2201,19 +3398,43 @@
             };
         } else {
             var def = CATALOGO[brush.tipo] || CATALOGO.arvore;
-            var w = def.w, h = def.h;
+            var spriteDims = brush.tipo === 'sprite_personalizado' ? dimensoesSpriteMapa(brush.asset, brush.assetRect) : null;
+            var w = spriteDims ? spriteDims.w : def.w, h = spriteDims ? spriteDims.h : def.h;
+            var escalaInstancia = brush.escala || 1;
+            var escalaXInstancia = brush.escalaX || 1, escalaYInstancia = brush.escalaY || 1;
             o = {
                 id: 'obj_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7),
-                tipo: brush.tipo, mapa: mapa,
-                x: snapCoord(wx - w / 2), y: snapCoord(wy - h / 2),
-                w: w, h: h, escala: brush.escala, variante: brush.variante,
+                tipo: brush.tipo, asset: brush.asset || '', mapa: mapa,
+                assetRect: brush.assetRect ? { x: brush.assetRect.x, y: brush.assetRect.y, w: brush.assetRect.w, h: brush.assetRect.h } : undefined,
+                assetMask: assetMaskValida(brush.assetMask) ? brush.assetMask.map(function (point) { return { x: point.x, y: point.y }; }) : undefined,
+                assetMaskRaster: brush.assetMaskRaster || undefined,
+                assetMaskMode: brush.assetMaskMode || '',
+                spriteId: brush.spriteId || '',
+                categoria: brush.categoria || 'Geral',
+                x: snapCoord(wx - w * escalaInstancia * escalaXInstancia / 2),
+                y: snapCoord(wy - h * escalaInstancia * escalaYInstancia / 2),
+                w: w, h: h, escala: escalaInstancia, escalaX: escalaXInstancia, escalaY: escalaYInstancia,
+                rotacao: Number(brush.rotacao) || 0,
+                ordem: window.mapaObjetos.reduce(function (maximo, existente) { return Math.max(maximo, Number(existente.ordem) || 0); }, 0) + 1,
+                variante: brush.variante,
+                animacao: brush.animacao,
                 colisao: !!brush.colisao, camada: brush.camada,
                 efeito: brush.efeito || '', efeitoCor: brush.efeitoCor || ''
             };
         }
+        if (o.tipo === 'sprite_personalizado' && assetMaskValida(o.assetMask) && !divisaoSpriteValida(o)) {
+            atualizarDivisaoAutomaticaSprite(o, 0.5);
+        }
+        lassoDiagnostico('PLACEMENT', o, o.asset ? obterImagemSpriteMapa(o.asset) : null, null, {
+            sourceTexture: o.asset || null,
+            sourceRegion: o.assetRect || null,
+            maskSent: !!o.assetMaskRaster,
+            mask: lassoRasterResumo(o.assetMaskRaster),
+            exactTextureWillBeDerivedFromMask: o.assetMaskMode === 'auto'
+        });
         window.mapaObjetos.push(o);
         meSelId = o.id; meSel = o;
-        enviar(o, 'criar');
+        enviarNovoObjeto(o);
         meAtualizarListas();
         meAtualizarPropsUI();
     }
@@ -2237,6 +3458,7 @@
         if (window.mapaEditorMinimizado) return;
         e.preventDefault();
         e.stopPropagation();
+        focarCanvasEditor();
         var p = telaParaMundo(e.clientX, e.clientY);
         meGhostX = p.wx; meGhostY = p.wy;
         if (window.mapaEditorTravado) return; // travado: não edita
@@ -2245,6 +3467,7 @@
             var alvo = acharObjetoEm(p.wx, p.wy);
             if (alvo) {
                 meSelId = alvo.id; meSel = alvo;
+                meDefinirAlvoRecorteSelecao(alvo);
                 meMoverObj = alvo;
                 meOffX = p.wx - alvo.x;
                 meOffY = p.wy - alvo.y;
@@ -2254,6 +3477,10 @@
             return;
         }
         if (meFerramenta === 'apagar') { apagarNoPonto(p.wx, p.wy); return; }
+        if (meFerramenta === 'colocar_colisao') {
+            iniciarTracoColisao(p.wx, p.wy);
+            return;
+        }
         if (ferramentaColoca()) {
             mePintando = true;
             meLastX = p.wx; meLastY = p.wy;
@@ -2269,11 +3496,16 @@
         if (window.mapaEditorTravado) return;
         if (meMoverObj) {
             var novoX = snapCoord(p.wx - meOffX), novoY = snapCoord(p.wy - meOffY);
-            novoX = Math.max(0, Math.min((global.WORLD_WIDTH || 65040) - 20, novoX));
-            novoY = Math.max(0, Math.min((global.WORLD_HEIGHT || 36000) - 20, novoY));
+            var limites = limitesMapaEditor();
+            novoX = Math.max(limites.x0, Math.min(limites.x0 + limites.w - 20, novoX));
+            novoY = Math.max(limites.y0, Math.min(limites.y0 + limites.h - 20, novoY));
             if (novoX !== meMoverObj.x || novoY !== meMoverObj.y) {
                 meMoverObj.x = novoX; meMoverObj.y = novoY;
             }
+            return;
+        }
+        if (meTracoColisao && mePintando) {
+            acrescentarPontoTraco(p.wx, p.wy);
             return;
         }
         var pintar = (mePintando && meDragPincel) || meShift;
@@ -2289,7 +3521,11 @@
         }
     }
 
-    function onMouseUp() {
+    function onMouseUp(e) {
+        if (meTracoColisao) {
+            var p = e && Number.isFinite(e.clientX) && Number.isFinite(e.clientY) ? telaParaMundo(e.clientX, e.clientY) : null;
+            finalizarTracoColisao(p && p.wx, p && p.wy);
+        }
         mePintando = false;
         if (meMoverObj) {
             var movido = meMoverObj;
@@ -2299,6 +3535,36 @@
     }
 
     function onKeyDown(e) {
+        if (!editorAberto() || window.mapaEditorTravado) return;
+        var active = document.activeElement;
+        var editingText = editorCampoCapturaDelete(active);
+        if (!editingText && (e.ctrlKey || e.metaKey) && String(e.key).toLowerCase() === 'd') {
+            e.preventDefault();
+            e.stopPropagation();
+            window.meDuplicar();
+            return;
+        }
+        if (!editingText && (e.key === 'Delete' || e.key === 'Backspace') && meSelId) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.meExcluirSel();
+            return;
+        }
+        if (!editingText && e.key === 'Escape' && meFerramenta === 'colocar') {
+            e.preventDefault();
+            e.stopPropagation();
+            stampPlacementArmed = false;
+            brush.spriteId = '';
+            meSetFerramenta('mover');
+            meToast('Carimbo cancelado. Selecione outra sprite ou ferramenta.');
+            return;
+        }
+        if (!editingText && String(e.key).toLowerCase() === 'r' && meSel) {
+            e.preventDefault();
+            e.stopPropagation();
+            window.meRotateSelected(15);
+            return;
+        }
         if (e.key === 'Shift') meShift = true;
     }
     function onKeyUp(e) {
@@ -2319,8 +3585,15 @@
             if (meFerramenta === 'apagar') apagarNoPonto(p.wx, p.wy);
             else {
                 var alvo = acharObjetoEm(p.wx, p.wy);
-                if (alvo) { meSelId = alvo.id; meSel = alvo; }
+                if (alvo) {
+                    meSelId = alvo.id; meSel = alvo;
+                    meDefinirAlvoRecorteSelecao(alvo);
+                }
             }
+            return;
+        }
+        if (meFerramenta === 'colocar_colisao') {
+            iniciarTracoColisao(p.wx, p.wy);
             return;
         }
         mePintando = true;
@@ -2336,6 +3609,10 @@
         if (!ch || !ch.length) return;
         var p = telaParaMundo(ch[0].clientX, ch[0].clientY);
         meGhostX = p.wx; meGhostY = p.wy;
+        if (meTracoColisao && mePintando) {
+            acrescentarPontoTraco(p.wx, p.wy);
+            return;
+        }
         if (mePintando && ferramentaColoca()) {
             var dist = Math.hypot(p.wx - meLastX, p.wy - meLastY);
             if (dist >= 14) {
@@ -2344,7 +3621,12 @@
             }
         }
     }
-    function onTouchEnd() {
+    function onTouchEnd(e) {
+        if (meTracoColisao) {
+            var toque = e && e.changedTouches && e.changedTouches.length ? e.changedTouches[0] : null;
+            var p = toque ? telaParaMundo(toque.clientX, toque.clientY) : null;
+            finalizarTracoColisao(p && p.wx, p && p.wy);
+        }
         mePintando = false;
         if (meMoverObj) { enviar(meMoverObj, 'editar'); meMoverObj = null; }
     }
@@ -2364,11 +3646,12 @@
         cv.addEventListener('mousedown', onMouseDown, true);
         cv.addEventListener('mousemove', onMouseMove, true);
         cv.addEventListener('mouseup', onMouseUp, true);
+        window.addEventListener('mouseup', onMouseUp, true);
         cv.addEventListener('click', onCanvasClick, true);
         cv.addEventListener('touchstart', onTouchStart, { capture: true, passive: false });
         cv.addEventListener('touchmove', onTouchMove, { capture: true, passive: false });
         cv.addEventListener('touchend', onTouchEnd, { capture: true, passive: false });
-        window.addEventListener('keydown', onKeyDown);
+        window.addEventListener('keydown', onKeyDown, true);
         window.addEventListener('keyup', onKeyUp);
     }
 
@@ -2394,33 +3677,81 @@
         for (var i = 0; i < lista.length; i++) {
             var o = lista[i];
             if (!o || o.mapa !== mapa) continue;
+            var medidasObjeto = dims(o), ow = medidasObjeto.W, oh = medidasObjeto.H;
+            var raioBounds = Math.hypot(ow, oh) / 2;
+            var centroX = medidasObjeto.x + ow / 2, centroY = medidasObjeto.y + oh / 2;
+            var foraDaTela = centroX + raioBounds < camX || centroX - raioBounds > camX + cw ||
+                centroY + raioBounds < camY || centroY - raioBounds > camY + ch;
             if (window.mapaEditorTab === 'colisao' && meShowColisoes && o.colisao) {
-                if (o.x + o.w < camX || o.x > camX + cw || o.y + o.h < camY || o.y > camY + ch) continue;
-                ctx.fillStyle = (o.tipo === 'zona_colisao') ? 'rgba(231,76,60,0.0)' : 'rgba(241,196,15,0.16)';
-                ctx.fillRect(o.x, o.y, o.w, o.h);
-                ctx.strokeStyle = (o.id === meSelId) ? '#ffffff' : '#f1c40f';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([5, 3]);
-                ctx.strokeRect(o.x, o.y, o.w, o.h);
-                ctx.setLineDash([]);
+                if (foraDaTela) continue;
+                if (o.tipo === 'sprite_personalizado' && mascaraPoligonoValida(o.assetCollisionMask)) {
+                    ctx.save();
+                    ctx.translate(centroX, centroY);
+                    ctx.rotate((Number(o.rotacao) || 0) * Math.PI / 180);
+                    ctx.beginPath();
+                    o.assetCollisionMask.forEach(function (point, index) {
+                        var px = -ow / 2 + point.x * ow, py = -oh / 2 + point.y * oh;
+                        if (index === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    });
+                    ctx.closePath();
+                    ctx.fillStyle = 'rgba(231,76,60,0.24)';
+                    ctx.strokeStyle = (o.id === meSelId) ? '#ffffff' : '#e74c3c';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 3]);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.restore();
+                } else if (o.tipo === 'zona_colisao' && Array.isArray(o.pontos) && o.pontos.length) {
+                    desenharTracoColisao(ctx, o.pontos, o.raioX || 12, o.raioY || 12, 'rgba(231,76,60,0.24)', (o.id === meSelId) ? '#ffffff' : '#e74c3c', [5, 3]);
+                } else {
+                    ctx.fillStyle = (o.tipo === 'zona_colisao') ? 'rgba(231,76,60,0.0)' : 'rgba(241,196,15,0.16)';
+                    ctx.strokeStyle = (o.id === meSelId) ? '#ffffff' : '#f1c40f';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([5, 3]);
+                    ctx.save();
+                    ctx.translate(centroX, centroY);
+                    ctx.rotate((Number(o.rotacao) || 0) * Math.PI / 180);
+                    ctx.fillRect(-ow / 2, -oh / 2, ow, oh);
+                    ctx.strokeRect(-ow / 2, -oh / 2, ow, oh);
+                    ctx.restore();
+                    ctx.setLineDash([]);
+                }
                 if (o.id === meSelId) {
                     ctx.fillStyle = 'rgba(0,0,0,0.7)';
                     ctx.font = 'bold 10px monospace';
-                    var rotulo = '🚧 ' + (CATALOGO[o.tipo] ? CATALOGO[o.tipo].nome : o.tipo) + ' [' + o.w + 'x' + o.h + ']';
+                    var rotulo = '🚧 ' + (CATALOGO[o.tipo] ? CATALOGO[o.tipo].nome : (o.asset || o.tipo)) + ' [' + Math.round(ow) + 'x' + Math.round(oh) + ']';
                     ctx.fillText(rotulo, o.x + 2, o.y - 4);
                 }
             }
             if (window.mapaEditorTab === 'camada' && meShowCamadas) {
-                if (o.x + o.w < camX || o.x > camX + cw || o.y + o.h < camY || o.y > camY + ch) continue;
+                if (foraDaTela) continue;
                 if (o.tipo === 'zona_frente') continue; // já fica visível no jogo
-                var badge = o.camada === 'frente' ? '⬆ FRENTE' : (o.camada === 'chao' ? '⬇ CHÃO' : '➡ MEIO');
-                var corBadge = o.camada === 'frente' ? '#27ae60' : (o.camada === 'chao' ? '#8e44ad' : '#2980b9');
+                var camadaAtual = normalizarCamadaEditor(o.camada);
+                var badge = { ground: '⬇ CHÃO', decoration_behind: '◀ ATRÁS', objects: '➡ OBJETOS', decoration_front: '▶ FRENTE', buildings: '🏠 CONSTRUÇÕES', foreground: '⬆ PRIMEIRO PLANO' }[camadaAtual];
+                var corBadge = camadaAtual === 'ground' ? '#8e44ad' : (camadaEditorFicaNaFrente(camadaAtual) ? '#27ae60' : (camadaAtual === 'decoration_behind' ? '#d68910' : '#2980b9'));
                 ctx.fillStyle = 'rgba(10,10,10,0.78)';
                 ctx.font = 'bold 10px monospace';
                 var tw = ctx.measureText(badge).width;
-                ctx.fillRect(o.x + 2, o.y + o.h - 15, tw + 8, 14);
+                ctx.fillRect(o.x + 2, o.y + oh - 15, tw + 8, 14);
                 ctx.fillStyle = corBadge;
-                ctx.fillText(badge, o.x + 6, o.y + o.h - 4);
+                ctx.fillText(badge, o.x + 6, o.y + oh - 4);
+                if (o.id === meSelId && Number.isFinite(o.ySortAnchor)) {
+                    var depthY = o.y + oh * o.ySortAnchor;
+                    ctx.save();
+                    ctx.strokeStyle = '#00e5ff';
+                    ctx.lineWidth = 2;
+                    ctx.setLineDash([4, 3]);
+                    ctx.beginPath();
+                    ctx.moveTo(o.x, depthY);
+                    ctx.lineTo(o.x + ow, depthY);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                    ctx.fillStyle = '#00e5ff';
+                    ctx.font = 'bold 9px monospace';
+                    ctx.fillText('Y SORT', o.x + 3, depthY - 3);
+                    ctx.restore();
+                }
             }
         }
 
@@ -2431,28 +3762,59 @@
             if (sel && sel.mapa === mapa) {
                 ctx.strokeStyle = '#00e5ff';
                 ctx.lineWidth = 2.5;
-                ctx.strokeRect(sel.x - 3, sel.y - 3, (sel.w || 40) + 6, (sel.h || 40) + 6);
+                var medidasSelecionada = dims(sel);
+                ctx.save();
+                ctx.translate(medidasSelecionada.x + medidasSelecionada.W / 2, medidasSelecionada.y + medidasSelecionada.H / 2);
+                ctx.rotate((Number(sel.rotacao) || 0) * Math.PI / 180);
+                if (sel.tipo === 'sprite_personalizado' && assetMaskValida(sel.assetMask)) {
+                    ctx.beginPath();
+                    sel.assetMask.forEach(function (point, index) {
+                        var px = -medidasSelecionada.W / 2 + point.x * medidasSelecionada.W;
+                        var py = -medidasSelecionada.H / 2 + point.y * medidasSelecionada.H;
+                        if (index === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    });
+                    ctx.closePath();
+                    ctx.stroke();
+                } else {
+                    ctx.strokeRect(-medidasSelecionada.W / 2 - 3, -medidasSelecionada.H / 2 - 3, medidasSelecionada.W + 6, medidasSelecionada.H + 6);
+                }
+                ctx.restore();
                 ctx.fillStyle = 'rgba(0,0,0,0.7)';
                 ctx.font = 'bold 11px monospace';
-                var lb = (CATALOGO[sel.tipo] ? CATALOGO[sel.tipo].icone + ' ' + CATALOGO[sel.tipo].nome : sel.tipo) + '  (X:' + sel.x + ' Y:' + sel.y + ')';
+                var lb = (CATALOGO[sel.tipo] ? CATALOGO[sel.tipo].icone + ' ' + CATALOGO[sel.tipo].nome : (sel.asset || sel.tipo)) + '  (X:' + sel.x + ' Y:' + sel.y + ')';
                 ctx.fillText(lb, sel.x + 4, sel.y - 8);
             }
         }
 
+        if (meTracoColisao) {
+            desenharTracoColisao(ctx, meTracoColisao.pontos, meTracoColisao.raioX, meTracoColisao.raioY, 'rgba(231,76,60,0.22)', '#ff6b5e', [5, 3]);
+            desenharTracoColisao(ctx, [{ x: meGhostX, y: meGhostY }], meTracoColisao.raioX, meTracoColisao.raioY, 'rgba(231,76,60,0.28)', '#ff6b5e');
+        }
+
         // Ghost do pincel (onde o mouse está agora)
-        if (!window.mapaEditorTravado && ferramentaColoca() && meGhostX > -1e8) {
+        if (!meTracoColisao && !window.mapaEditorTravado && ferramentaColoca() &&
+            (meFerramenta !== 'colocar' || !brush.spriteId || stampPlacementArmed) && meGhostX > -1e8) {
             var gwx = meGhostX, gwy = meGhostY;
             if (meFerramenta === 'colocar') {
                 var gdef = CATALOGO[brush.tipo] || CATALOGO.arvore;
-                var gw = gdef.w * (brush.escala || 1), gh = gdef.h * (brush.escala || 1);
-                ctx.fillStyle = 'rgba(0,229,255,0.06)';
-                ctx.fillRect(snapCoord(gwx - gdef.w / 2), snapCoord(gwy - gdef.h / 2), gdef.w, gdef.h);
-                ctx.strokeStyle = 'rgba(0,229,255,0.85)';
-                ctx.lineWidth = meSnap ? 1.5 : 1;
-                ctx.setLineDash([4, 4]);
-                ctx.strokeRect(snapCoord(gwx - gdef.w / 2), snapCoord(gwy - gdef.h / 2), gdef.w, gdef.h);
-                ctx.setLineDash([]);
-                var ghost = { id: 'ghost', tipo: brush.tipo, x: snapCoord(gwx - gdef.w / 2), y: snapCoord(gwy - gdef.h / 2), w: gdef.w, h: gdef.h, escala: brush.escala, variante: brush.variante, colisao: brush.colisao, camada: brush.camada, efeito: '', efeitoCor: '' };
+                var gSpriteDims = brush.tipo === 'sprite_personalizado' ? dimensoesSpriteMapa(brush.asset, brush.assetRect) : null;
+                var gBaseW = gSpriteDims ? gSpriteDims.w : gdef.w;
+                var gBaseH = gSpriteDims ? gSpriteDims.h : gdef.h;
+                var gw = gBaseW * (brush.escala || 1) * (brush.escalaX || 1);
+                var gh = gBaseH * (brush.escala || 1) * (brush.escalaY || 1);
+                var gX = snapCoord(gwx - gw / 2), gY = snapCoord(gwy - gh / 2);
+                if (!assetMaskValida(brush.assetMask)) {
+                    ctx.fillStyle = 'rgba(0,229,255,0.06)';
+                    ctx.fillRect(gX, gY, gw, gh);
+                    ctx.strokeStyle = 'rgba(0,229,255,0.85)';
+                    ctx.lineWidth = meSnap ? 1.5 : 1;
+                    ctx.setLineDash([4, 4]);
+                    ctx.strokeRect(gX, gY, gw, gh);
+                    ctx.setLineDash([]);
+                }
+                var ghost = { id: 'ghost', tipo: brush.tipo, asset: brush.asset || '', assetRect: brush.assetRect, assetMask: brush.assetMask, assetMaskRaster: brush.assetMaskRaster, assetMaskMode: brush.assetMaskMode, x: gX, y: gY, w: gBaseW, h: gBaseH, escala: brush.escala, escalaX: brush.escalaX, escalaY: brush.escalaY, rotacao: brush.rotacao, variante: brush.variante, colisao: brush.colisao, camada: brush.camada, efeito: '', efeitoCor: '' };
+                ghost.animacao = brush.animacao;
                 pintarObjeto(ghost, ctx, Date.now() / 1000, 0.45);
             } else {
                 var zonaW = brush.zonaW || 40, zonaH = brush.zonaH || 40;
@@ -2484,7 +3846,7 @@
         var st = document.createElement('style');
         st.id = 'me-style';
         st.textContent = [
-            '#mapa-editor-screen{position:fixed;right:8px;top:8px;width:352px;max-width:92vw;max-height:86vh;background:rgba(14,17,14,0.97);border:1px solid #2e7d32;border-radius:10px;display:none;flex-direction:column;z-index:990;font-family:"Rajdhani","Segoe UI",Arial,sans-serif;color:#ecf0f1;box-shadow:0 6px 22px rgba(0,0,0,.7);}',
+            '#mapa-editor-screen{position:fixed;right:8px;top:8px;width:min(1080px,calc(100vw - 20px));height:min(960px,calc(100vh - 16px));min-height:min(640px,calc(100vh - 16px));max-width:calc(100vw - 20px);max-height:calc(100vh - 16px);box-sizing:border-box;background:rgba(14,17,14,0.98);border:1px solid #2e7d32;border-radius:10px;display:none;flex-direction:column;z-index:990;font-family:"Rajdhani","Segoe UI",Arial,sans-serif;color:#ecf0f1;box-shadow:0 6px 22px rgba(0,0,0,.7);}',
             '#mapa-editor-screen.visible{display:flex;}',
             '#mapa-editor-header{display:flex;align-items:center;justify-content:space-between;background:linear-gradient(135deg,#1b5e20,#2e7d32);padding:6px 10px;border-radius:9px 9px 0 0;cursor:move;user-select:none;}',
             '#mapa-editor-title{font-weight:700;font-size:14px;letter-spacing:1px;color:#eafbea;}',
@@ -2493,7 +3855,18 @@
             '#mapa-editor-tabs{display:flex;gap:4px;padding:6px 8px 0;}',
             '.me-tab-btn{flex:1;padding:5px 2px;background:#1c241c;border:1px solid #34403a;border-radius:6px 6px 0 0;color:#b8c4bc;font-weight:700;font-size:11px;cursor:pointer;}',
             '.me-tab-btn.active{background:#2e7d32;border-color:#43a047;color:#fff;}',
-            '#mapa-editor-body{overflow-y:auto;padding:8px;display:flex;flex-direction:column;gap:8px;}',
+            '#mapa-editor-body{flex:1 1 auto;min-height:0;overflow-y:auto;overflow-x:hidden;padding:10px;display:flex;flex-direction:column;gap:10px;box-sizing:border-box;}',
+            '#me-panel-objetos,#me-panel-colisao,#me-panel-camada{flex-direction:column;gap:8px;width:100%;min-width:0;box-sizing:border-box;}',
+            '#me-sprites-paleta{display:grid!important;grid-template-columns:repeat(auto-fill,minmax(125px,1fr));gap:8px!important;overflow-y:auto!important;overflow-x:hidden!important;max-height:260px;min-height:120px!important;padding:6px!important;background:rgba(0,0,0,.22);border:1px solid #34403a;border-radius:6px;box-sizing:border-box;}',
+            '#me-sprites-paleta button{width:100%;min-width:0;min-height:104px;box-sizing:border-box;}',
+            '#me-sprites-paleta button img{width:100%!important;height:72px!important;object-fit:contain!important;image-rendering:auto!important;}',
+            '#me-sprites-paleta button span{max-width:100%!important;width:100%;}',
+            '#me-sprite-palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:6px;max-height:190px;min-height:64px;overflow:auto;padding:6px;background:#111911;border:1px solid #34483a;border-radius:6px;}',
+            '#me-recorte-wrap{align-items:center;}#me-recorte-preview{width:min(100%,900px,calc((100vh - 360px)*1.5))!important;height:auto!important;max-height:none!important;object-fit:fill!important;}',
+            '.me-sprite-item{display:flex;min-width:0;min-height:74px;flex-direction:column;align-items:center;justify-content:center;gap:3px;background:#202a20;border:1px solid #39513b;border-radius:6px;color:#e1eee1;padding:4px;cursor:pointer;}',
+            '.me-sprite-item.active{border-color:#00e5ff;background:#123a4a;box-shadow:0 0 6px rgba(0,229,255,.45);}',
+            '.me-sprite-item img{width:58px;height:44px;object-fit:contain;image-rendering:auto;}',
+            '.me-sprite-item span{width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center;font-size:9px;}',
             '.me-toolbar{display:flex;gap:4px;flex-wrap:wrap;}',
             '.me-tool-btn{flex:1 1 auto;padding:5px 6px;background:#232c23;border:1px solid #3a4a3c;border-radius:6px;color:#dfe8df;font-size:11px;cursor:pointer;min-width:70px;}',
             '.me-tool-btn.active{background:#2980b9;border-color:#3498db;color:#fff;}',
@@ -2527,12 +3900,23 @@
             '#me-contador{font-size:10px;color:#2ecc71;text-align:center;font-weight:700;}',
             '#mapa-editor-hud-badge{position:fixed;left:50%;transform:translateX(-50%);top:6px;background:rgba(16,24,16,.95);border:1px solid #43a047;border-radius:8px;padding:4px 10px;color:#dff6df;font-size:11px;display:none;z-index:991;font-family:"Rajdhani",Arial,sans-serif;}',
             '#mapa-editor-hud-badge button{border:1px solid;border-radius:5px;padding:1px 7px;cursor:pointer;margin-left:5px;background:rgba(0,0,0,.3);color:#fff;font-size:10px;}',
-            '#btn-mapa-editor{display:none;}'
+            '#btn-mapa-editor{display:none;}',
+            '@media(max-width:600px){#mapa-editor-screen{left:8px;right:8px;top:8px;width:auto;height:calc(100vh - 16px);min-height:0;max-width:none;}#mapa-editor-body{padding:7px;gap:7px;}#me-sprites-paleta{grid-template-columns:repeat(auto-fill,minmax(95px,1fr));max-height:180px;}#me-sprite-palette{grid-template-columns:repeat(auto-fill,minmax(76px,1fr));max-height:150px;}#me-recorte-preview{width:100%!important;}}'
         ].join('\n');
         document.head.appendChild(st);
     }
 
     var meSel = null;
+    var meAreaAnimacaoDrag = null;
+    var meAreaAnimacaoLayout = null;
+
+    function animacoesSelectHtml(id, onchange) {
+        return '<select id="' + id + '" onchange="' + onchange + '">' +
+            ANIMACOES_SPRITE.map(function (animacao) {
+                return '<option value="' + animacao[0] + '">' + animacao[1] + '</option>';
+            }).join('') +
+            '</select>';
+    }
 
     function montarEditorUI() {
         var barra = document.getElementById('util-buttons');
@@ -2580,30 +3964,54 @@
                 '<div id="mapa-editor-body">' +
 
                     '<div id="me-panel-objetos">' +
-                        '<div class="me-toolbar">' +
+                            '<div style="display:flex;align-items:center;justify-content:space-between;padding:4px 2px;font-size:10px;color:#9db8a5;">' +
+                                '<span>🖼️ Importar atlas · sprites/Objetos/editor</span>' +
+                                '<button class="me-tool-btn" onclick="window.meAtualizarSprites()">↻ Atualizar</button>' +
+                            '</div>' +
+                            '<div id="me-sprites-paleta"></div>' +
+                            '<div id="me-recorte-wrap" style="display:none;flex-direction:column;gap:4px;padding:5px;background:#172117;border:1px solid #43543f;border-radius:5px;">' +
+                                '<label style="font-size:10px;color:#d8e8d1;">Selecione em retângulo ou trace o contorno da sprite com o laço magnético.</label>' +
+                                '<div class="me-toolbar"><button id="me-crop-mode-rect" class="me-tool-btn active" onclick="window.meSetCropMode(\'rect\')">▭ Retângulo</button><button id="me-crop-mode-lasso" class="me-tool-btn" onclick="window.meSetCropMode(\'lasso\')">🧲 Laço 1 — magnético</button><button id="me-crop-mode-lasso2" class="me-tool-btn" onclick="window.meSetCropMode(\'auto\')">🧲 Laço 2 — clique automático</button></div>' +
+                                '<canvas id="me-recorte-preview" width="900" height="600" style="display:block;width:min(100%,900px);height:auto;object-fit:fill;background-color:#263126;background-image:linear-gradient(45deg,#344234 25%,transparent 25%),linear-gradient(-45deg,#344234 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#344234 75%),linear-gradient(-45deg,transparent 75%,#344234 75%);background-size:16px 16px;background-position:0 0,0 8px,8px -8px,-8px 0;touch-action:none;cursor:crosshair;" onpointerdown="window.meRecortePointerDown(event)" onpointermove="window.meRecortePointerMove(event)" onpointerup="window.meRecortePointerUp(event)" onpointercancel="window.meRecortePointerUp(event)"></canvas>' +
+                                '<div class="me-row"><div class="me-field"><label>Região X</label><input id="me-crop-x" type="number" min="0" step="1" onchange="window.meSetCropField(\'x\',this.value)"></div><div class="me-field"><label>Região Y</label><input id="me-crop-y" type="number" min="0" step="1" onchange="window.meSetCropField(\'y\',this.value)"></div><div class="me-field"><label>Largura</label><input id="me-crop-w" type="number" min="4" step="1" onchange="window.meSetCropField(\'w\',this.value)"></div><div class="me-field"><label>Altura</label><input id="me-crop-h" type="number" min="4" step="1" onchange="window.meSetCropField(\'h\',this.value)"></div></div>' +
+                                '<div class="me-row"><div class="me-field"><label>Nome da sprite</label><input id="me-sprite-name" maxlength="64" type="text" placeholder="Ex.: Carvalho grande"></div><div class="me-field"><label>Categoria</label><input id="me-sprite-category" maxlength="48" type="text" list="me-sprite-categories" value="Vegetação" placeholder="Ex.: Vegetação"><datalist id="me-sprite-categories"><option value="Vegetação"><option value="Construções"><option value="Decoração"><option value="Estruturas"></datalist></div></div>' +
+                                '<div style="display:flex;align-items:center;gap:6px;"><span id="me-recorte-status" style="flex:1;font-size:9px;color:#a9c0a7;">Selecione uma imagem acima e marque uma região.</span><button class="me-tool-btn" onclick="window.meLimparRecorteSprite()">Imagem inteira</button><button class="me-tool-btn" onclick="window.meLimparMascaraSprite()">Limpar laço</button><button class="me-tool-btn" onclick="window.meAdicionarSpritePaleta()">＋ Adicionar à Palette</button></div>' +
+                            '</div>' +
+                            '<div style="display:flex;align-items:center;justify-content:space-between;padding:2px;font-size:10px;color:#9db8a5;"><strong>SPRITE PALETTE</strong><select id="me-sprite-category-filter" onchange="window.meFiltrarSpritePalette(this.value)" style="background:#171f17;border:1px solid #3a4a3c;color:#ecf0f1;border-radius:5px;padding:3px 5px;font-size:10px;"><option value="Todas">Todas as categorias</option></select></div>' +
+                            '<div id="me-sprite-palette"></div>' +
+                            '<div class="me-toolbar">' +
                             '<button id="me-tool-colocar" class="me-tool-btn active" onclick="window.meSetFerramenta(\'colocar\')">🖱️ Colocar</button>' +
                             '<button id="me-tool-apagar" class="me-tool-btn" onclick="window.meSetFerramenta(\'apagar\')">🗑️ Apagar</button>' +
                             '<button id="me-tool-mover" class="me-tool-btn" onclick="window.meSetFerramenta(\'mover\')">👆 Mover</button>' +
                         '</div>' +
                         '<div class="me-toolbar">' +
                             '<button id="me-drag-pincel" class="me-tool-btn active" onclick="window.meToggleArrastarPincel()">🖌️ Arrastar: ON</button>' +
-                            '<button id="me-snap-btn" class="me-tool-btn" onclick="window.meToggleSnap()">🧲 Grade 20: OFF</button>' +
+                            '<button id="me-snap-btn" class="me-tool-btn" onclick="window.meToggleSnap()">🧲 FREE</button>' +
                             '<button id="me-efeito-rand" class="me-tool-btn" onclick="window.meRandomVariante()">🎲 Variação</button>' +
                         '</div>' +
-                        '<div class="me-cat" id="me-cat-bar"></div>' +
-                        '<div id="me-paleta"></div>' +
+                        '<div id="me-brush-settings" style="display:flex;flex-direction:column;gap:8px;">' +
                         '<div class="me-row">' +
-                            '<div class="me-field"><label>Escala</label><input type="range" id="me-escala" min="0.5" max="3" step="0.1" value="1" oninput="window.meSetEscala(this.value)"></div>' +
+                            '<div class="me-field"><label>Escala</label><input type="range" id="me-escala" min="0.2" max="4" step="0.1" value="1" oninput="window.meSetEscala(this.value)"></div>' +
                             '<div class="me-field"><label>Variação</label><div class="me-steppers"><button class="me-step" onclick="window.meSetVariante(-1)">−</button><span id="me-variante-label" style="font-size:11px;">0</span><button class="me-step" onclick="window.meSetVariante(1)">+</button></div></div>' +
                             '<div class="me-field"><label>Camada</label><select id="me-camada" onchange="window.meSetCamada(this.value)">' +
-                                '<option value="chao">⬇ Chão</option><option value="meio" selected>➡ Meio</option><option value="frente">⬆ Frente</option>' +
+                                '<option value="ground">⬇ Chão</option><option value="decoration_behind">◀ Decoração atrás</option><option value="objects" selected>➡ Objetos</option><option value="decoration_front">▶ Decoração à frente</option><option value="buildings">🏠 Construções</option><option value="foreground">⬆ Primeiro plano</option>' +
                             '</select></div>' +
+                        '</div>' +
+                        '<div class="me-row" id="me-brush-transform-row"><div class="me-field"><label>Escala X</label><input type="range" id="me-brush-scale-x" min="0.2" max="4" step="0.1" value="1" oninput="window.meSetBrushScaleAxis(\'escalaX\',this.value)"></div><div class="me-field"><label>Escala Y</label><input type="range" id="me-brush-scale-y" min="0.2" max="4" step="0.1" value="1" oninput="window.meSetBrushScaleAxis(\'escalaY\',this.value)"></div><div class="me-field"><label>Rotação: <span id="me-brush-rotation-label">0°</span></label><input type="range" id="me-brush-rotation" min="0" max="359" step="1" value="0" oninput="window.meSetBrushRotation(this.value)"></div></div>' +
+                        '<div class="me-row">' +
+                            '<div class="me-field"><label>Animação do sprite (30 estilos)</label>' + animacoesSelectHtml('me-animacao', 'window.meSetAnimacao(this.value)') + '</div>' +
                         '</div>' +
                         '<div class="me-row">' +
                             '<div class="me-field"><label>Colisão</label><label class="me-chk"><input type="checkbox" id="me-colisao" checked onchange="window.meSetColisao(this.checked)"> Ativa</label></div>' +
                             '<div class="me-field"><label>Efeito</label><select id="me-efeito" onchange="window.meSetEfeito(this.value)"></select></div>' +
                             '<div class="me-field" style="flex:0 0 52px;"><label>Cor</label><input type="color" id="me-efeito-cor" value="#ffd166" oninput="window.meSetEfeitoCor(this.value)"></div>' +
                         '</div>' +
+                        '</div>' +
+                            '<div class="me-row"><div class="me-field"><label>Conjunto do bioma</label><select id="me-bioma-catalogo" onchange="window.meSetFiltroBioma(this.value)">' +
+                                BIOMAS_CATALOGO.map(function (bioma) { return '<option value="' + bioma[0] + '">' + bioma[1] + '</option>'; }).join('') +
+                            '</select></div></div>' +
+                            '<div class="me-cat" id="me-cat-bar"></div>' +
+                        '<div id="me-paleta"></div>' +
                     '</div>' +
 
                     '<div id="me-panel-colisao" style="display:none;">' +
@@ -2612,6 +4020,7 @@
                             '<button id="me-tool-apagar2" class="me-tool-btn" onclick="window.meSetFerramenta(\'apagar\')">🗑️ Apagar</button>' +
                             '<button id="me-tool-mover2" class="me-tool-btn" onclick="window.meSetFerramenta(\'mover\')">👆 Selecionar</button>' +
                         '</div>' +
+                        '<div style="font-size:10px;color:#9db8a5;">Arraste o pincel pelo mapa e solte: o traço inteiro vira uma única colisão contínua.</div>' +
                         '<div class="me-row">' +
                             '<div class="me-field"><label>Zona W</label><div class="me-steppers"><button class="me-step" onclick="window.meSetZona(\'w\',-10)">−10</button><button class="me-step" onclick="window.meSetZona(\'w\',-1)">−1</button><span id="me-zona-w-label">40</span><button class="me-step" onclick="window.meSetZona(\'w\',1)">+1</button><button class="me-step" onclick="window.meSetZona(\'w\',10)">+10</button></div></div>' +
                             '<div class="me-field"><label>Zona H</label><div class="me-steppers"><button class="me-step" onclick="window.meSetZona(\'h\',-10)">−10</button><button class="me-step" onclick="window.meSetZona(\'h\',-1)">−1</button><span id="me-zona-h-label">40</span><button class="me-step" onclick="window.meSetZona(\'h\',1)">+1</button><button class="me-step" onclick="window.meSetZona(\'h\',10)">+10</button></div></div>' +
@@ -2637,12 +4046,34 @@
                     '<div id="me-sel-panel">' +
                         '<div style="font-size:11px;font-weight:700;" id="me-sel-titulo">—</div>' +
                         '<div style="font-size:10px;color:#9db8a5;" id="me-sel-pos">—</div>' +
+                        '<div id="me-sel-lasso-tools" style="display:none;flex-direction:column;gap:5px;padding:5px;background:#172117;border:1px solid #43543f;border-radius:5px;">' +
+                            '<div style="font-size:10px;color:#d8e8d1;">Laço 1 do objeto selecionado: use o contorno para ajustar colisão e referência Y.</div>' +
+                            '<div id="me-sel-lasso-status" style="font-size:10px;color:#9db8a5;"></div>' +
+                            '<div class="me-row"><button class="me-tool-btn" onclick="window.meAplicarLacoColisao()">Aplicar Laço 1 à colisão</button><button class="me-tool-btn" onclick="window.meAplicarLacoCamadaY()">Definir Y pelo Laço 1</button></div>' +
+                            '<div class="me-row"><button class="me-tool-btn" onclick="window.meLimparLacoColisao()">Remover máscara de colisão</button><button class="me-tool-btn" onclick="window.meLimparLacoCamadaY()">Restaurar Y padrão</button></div>' +
+                            '<div id="me-sel-lasso-holder"></div>' +
+                        '</div>' +
+                        '<div id="me-sel-depth-split-tools" style="display:none;flex-direction:column;gap:4px;padding:5px;background:#172117;border:1px solid #43543f;border-radius:5px;">' +
+                            '<label class="me-field"><span>Divisão copa/tronco: <b id="me-sel-depth-split-label">50%</b></span><input id="me-sel-depth-split" type="range" min="10" max="90" step="1" value="50" oninput="window.meSetSelDepthSplit(this.value,false)" onchange="window.meSetSelDepthSplit(this.value,true)"></label>' +
+                            '<div style="font-size:10px;color:#9db8a5;">Parte superior acompanha o Y-sort; parte inferior recebe a colisão do Laço.</div>' +
+                            '<div class="me-row"><button class="me-tool-btn" onclick="window.meAplicarDivisaoSprite()">Aplicar divisão automática</button><button class="me-tool-btn" onclick="window.meRemoverDivisaoSprite()">Remover divisão</button></div>' +
+                        '</div>' +
                         '<div class="me-row">' +
                             '<div class="me-field"><label>Colisão (W)</label><div class="me-steppers"><button class="me-step" onclick="window.meSetWH(\'w\',-10)">−10</button><button class="me-step" onclick="window.meSetWH(\'w\',-1)">−1</button><span id="me-sel-w">—</span><button class="me-step" onclick="window.meSetWH(\'w\',1)">+1</button><button class="me-step" onclick="window.meSetWH(\'w\',10)">+10</button></div></div>' +
                             '<div class="me-field"><label>Colisão (H)</label><div class="me-steppers"><button class="me-step" onclick="window.meSetWH(\'h\',-10)">−10</button><button class="me-step" onclick="window.meSetWH(\'h\',-1)">−1</button><span id="me-sel-h">—</span><button class="me-step" onclick="window.meSetWH(\'h\',1)">+1</button><button class="me-step" onclick="window.meSetWH(\'h\',10)">+10</button></div></div>' +
                             '<div class="me-field"><label>Camada</label><select id="me-sel-camada" onchange="window.meSetSelCamada(this.value)">' +
-                                '<option value="chao">⬇ Chão</option><option value="meio">➡ Meio</option><option value="frente">⬆ Frente</option>' +
+                                '<option value="ground">⬇ Chão</option><option value="decoration_behind">◀ Decoração atrás</option><option value="objects">➡ Objetos</option><option value="decoration_front">▶ Decoração à frente</option><option value="buildings">🏠 Construções</option><option value="foreground">⬆ Primeiro plano</option>' +
                             '</select></div>' +
+                        '</div>' +
+                        '<div class="me-field"><label>Escala visual: <span id="me-sel-escala-label">1.0x</span></label><input type="range" id="me-sel-escala" min="0.2" max="4" step="0.1" value="1" oninput="window.meSetSelEscala(this.value, false)" onchange="window.meSetSelEscala(this.value, true)"></div>' +
+                        '<div class="me-row"><div class="me-field"><label>Escala X</label><input type="range" id="me-sel-scale-x" min="0.2" max="4" step="0.1" value="1" oninput="window.meSetSelScaleAxis(\'escalaX\',this.value,false)" onchange="window.meSetSelScaleAxis(\'escalaX\',this.value,true)"></div><div class="me-field"><label>Escala Y</label><input type="range" id="me-sel-scale-y" min="0.2" max="4" step="0.1" value="1" oninput="window.meSetSelScaleAxis(\'escalaY\',this.value,false)" onchange="window.meSetSelScaleAxis(\'escalaY\',this.value,true)"></div></div>' +
+                        '<div class="me-row"><div class="me-field"><label>Rotação: <span id="me-sel-rotation-label">0°</span></label><input type="range" id="me-sel-rotation" min="0" max="359" step="1" value="0" oninput="window.meSetSelRotation(this.value,false)" onchange="window.meSetSelRotation(this.value,true)"></div><button class="me-step" id="me-sel-rotate-right" onclick="window.meRotateSelected(15)" title="Girar 15°">↻ 15°</button><button class="me-step" id="me-sel-rotate-left" onclick="window.meRotateSelected(-15)" title="Girar -15°">↺ 15°</button></div>' +
+                        '<div class="me-field"><label>Ordem de desenho</label><input id="me-sel-order" type="number" min="0" max="1000000" step="1" onchange="window.meSetSelOrder(this.value)"></div>' +
+                        '<div class="me-field"><label>Animação do sprite</label>' + animacoesSelectHtml('me-sel-animacao', 'window.meSetSelAnimacao(this.value)') + '</div>' +
+                        '<div id="me-area-animacao-wrap" class="me-field" style="display:none;">' +
+                            '<label>Área animada · arraste sobre o sprite</label>' +
+                            '<canvas id="me-area-animacao-preview" width="320" height="150" style="display:block;width:100%;height:auto;max-height:150px;object-fit:contain;background:#101710;border:1px solid #52634a;border-radius:4px;touch-action:none;cursor:crosshair;" onpointerdown="window.meAreaAnimacaoPointerDown(event)" onpointermove="window.meAreaAnimacaoPointerMove(event)" onpointerup="window.meAreaAnimacaoPointerUp(event)" onpointercancel="window.meAreaAnimacaoPointerUp(event)"></canvas>' +
+                            '<button class="me-tool-btn" onclick="window.meLimparAreaAnimacao()">Animar o sprite inteiro</button>' +
                         '</div>' +
                         '<div class="me-row">' +
                             '<label class="me-chk"><input type="checkbox" id="me-sel-colisao" onchange="window.meSetSelColisao(this.checked)"> 🟡 Colisão</label>' +
@@ -2722,6 +4153,7 @@
             var def = CATALOGO[tipo];
             if (!def) return;
             if (meCategoria !== 'todas' && def.grupo !== meCategoria) return;
+            if (meBiomaCatalogo !== 'todos' && def.biomas.length && def.biomas.indexOf(meBiomaCatalogo) === -1) return;
             if (tipo === 'zona_colisao' || tipo === 'zona_frente') return; // usadas nas abas Colisão/Camada
             t++;
             var item = document.createElement('div');
@@ -2747,6 +4179,912 @@
         });
         if (!t) pal.innerHTML = '<div style="font-size:10px;color:#7f8c8d;padding:6px;">Nada nesta categoria.</div>';
     }
+
+    window.meSetFiltroBioma = function (bioma) {
+        meBiomaCatalogo = BIOMAS_CATALOGO.some(function (item) { return item[0] === bioma; }) ? bioma : 'todos';
+        meMontarPaleta();
+    };
+
+    function meMontarPaletaSprites() {
+        var paleta = document.getElementById('me-sprites-paleta');
+        if (!paleta) return;
+        paleta.innerHTML = '';
+        if (!spritesMapaCatalogo.length) {
+            paleta.textContent = 'Nenhuma imagem encontrada. Adicione PNG/JPG/WEBP à pasta e atualize.';
+            paleta.style.color = '#7f8c8d';
+            paleta.style.fontSize = '10px';
+            return;
+        }
+        paleta.style.color = '';
+        spritesMapaCatalogo.forEach(function (sprite) {
+            var item = document.createElement('button');
+            item.type = 'button';
+            item.title = sprite.name;
+            item.style.cssText = 'display:flex;flex:0 0 72px;flex-direction:column;align-items:center;gap:2px;background:#231e17;border:1px solid #5a4b36;border-radius:4px;color:#ddd;padding:3px;cursor:pointer;font-size:9px;overflow:hidden;';
+            item.classList.toggle('active', brush.tipo === 'sprite_personalizado' && brush.asset === sprite.name);
+            var imagemCompleta = obterImagemSpriteMapa(sprite.name);
+            item.disabled = false;
+            if (!item.disabled) item.title += ' · ' + imagemCompleta.naturalWidth + '×' + imagemCompleta.naturalHeight;
+            else if (imagemCompleta) {
+                imagemCompleta.addEventListener('load', function () {
+                    item.disabled = false;
+                    item.title = sprite.name + ' · ' + imagemCompleta.naturalWidth + '×' + imagemCompleta.naturalHeight;
+                }, { once: true });
+            }
+            var img = document.createElement('img');
+            img.src = urlSpriteMapa(sprite.name);
+            img.alt = '';
+            img.style.cssText = 'width:42px;height:32px;object-fit:contain;image-rendering:pixelated;';
+            img.onerror = function () {
+                item.disabled = true;
+                label.textContent = 'Falha ao carregar';
+            };
+            item.appendChild(img);
+            var label = document.createElement('span');
+            label.textContent = sprite.name;
+            label.style.cssText = 'max-width:68px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;';
+            item.appendChild(label);
+            item.onclick = function () {
+                    stampPlacementArmed = false;
+                    brush.tipo = 'sprite_personalizado';
+                brush.asset = sprite.name;
+                brush.assetRect = null;
+                brush.assetMask = null;
+                brush.assetMaskRaster = null;
+                brush.assetMaskMode = '';
+                brush.spriteId = '';
+                brush.categoria = 'Vegetação';
+                brush.escala = 1;
+                brush.escalaX = 1;
+                brush.escalaY = 1;
+                brush.rotacao = 0;
+                brush.colisao = false;
+                assetCropTarget = 'brush';
+                assetCropAsset = sprite.name;
+                var nomeInput = document.getElementById('me-sprite-name');
+                if (nomeInput) nomeInput.value = sprite.name.replace(/\.[^.]+$/, '');
+                var categoriaInput = document.getElementById('me-sprite-category');
+                if (categoriaInput) categoriaInput.value = 'Vegetação';
+                var slider = document.getElementById('me-escala');
+                if (slider) slider.value = '1';
+                meMontarPaletaSprites();
+                meDesenharRecorteSprite();
+                meAtualizarPainel();
+            };
+            paleta.appendChild(item);
+        });
+    }
+
+    var assetCropTarget = 'brush';
+    var assetCropAsset = '';
+    var stampPlacementArmed = false;
+    var assetCropMode = 'rect';
+    var assetMaskCanvases = {};
+
+    window.receberSpritePalette = function (items) {
+        spritePaletteItems = Array.isArray(items) ? items.filter(function (item) {
+            return item && typeof item.id === 'string' && typeof item.name === 'string' &&
+                typeof item.asset === 'string' && item.region && typeof item.category === 'string';
+        }) : [];
+        meMontarSpritePalette();
+    };
+
+    function meMontarSpritePalette() {
+        var root = document.getElementById('me-sprite-palette');
+        var filter = document.getElementById('me-sprite-category-filter');
+        if (!root || !filter) return;
+        var categories = ['Todas'].concat(Array.from(new Set(spritePaletteItems.map(function (item) { return item.category; })).values()).sort());
+        filter.innerHTML = categories.map(function (category) {
+            return '<option value="' + category.replace(/[&<>"']/g, '') + '">' +
+                (category === 'Todas' ? 'Todas as categorias' : category.replace(/[&<>]/g, '')) + '</option>';
+        }).join('');
+        if (categories.indexOf(paletteCategory) === -1) paletteCategory = 'Todas';
+        filter.value = paletteCategory;
+        root.innerHTML = '';
+        var visibleItems = spritePaletteItems.filter(function (item) {
+            return paletteCategory === 'Todas' || item.category === paletteCategory;
+        });
+        visibleItems.forEach(function (paletteItem) {
+            var button = document.createElement('button');
+            button.type = 'button';
+            button.className = 'me-sprite-item' + (brush.spriteId === paletteItem.id ? ' active' : '');
+            button.title = paletteItem.name + ' · ' + paletteItem.category;
+            var preview = document.createElement('canvas');
+            preview.width = 116;
+            preview.height = 88;
+            var image = obterImagemSpriteMapa(paletteItem.asset);
+            var desenhar = function () {
+                if (!image || !image.complete || !image.naturalWidth) return;
+                var rect = paletteItem.region;
+                if (!assetRectValido(rect, image)) return;
+                var context = preview.getContext('2d');
+                context.clearRect(0, 0, preview.width, preview.height);
+                var scale = Math.min((preview.width - 8) / rect.w, (preview.height - 8) / rect.h);
+                var width = rect.w * scale, height = rect.h * scale;
+                var maskedCanvas = obterSpriteComMascara({
+                    asset: paletteItem.asset,
+                    id: paletteItem.id,
+                    spriteId: paletteItem.id,
+                    assetRect: rect,
+                    assetMask: paletteItem.mask,
+                    assetMaskRaster: paletteItem.maskRaster,
+                    assetMaskMode: paletteItem.maskMode
+                }, image);
+                if (maskedCanvas) {
+                    context.drawImage(maskedCanvas, (preview.width - width) / 2, (preview.height - height) / 2, width, height);
+                    return;
+                }
+                if (mascaraAutomaticaAusente({
+                    id: paletteItem.id, assetMaskMode: paletteItem.maskMode,
+                    assetMaskRaster: paletteItem.maskRaster
+                }, rect)) return;
+                if (assetMaskValida(paletteItem.mask)) {
+                    context.save();
+                    context.beginPath();
+                    paletteItem.mask.forEach(function (point, index) {
+                        var px = (preview.width - width) / 2 + point.x * width;
+                        var py = (preview.height - height) / 2 + point.y * height;
+                        if (index === 0) context.moveTo(px, py);
+                        else context.lineTo(px, py);
+                    });
+                    context.closePath();
+                    context.clip();
+                }
+                context.drawImage(image, rect.x, rect.y, rect.w, rect.h,
+                    (preview.width - width) / 2, (preview.height - height) / 2, width, height);
+                if (assetMaskValida(paletteItem.mask)) context.restore();
+            };
+            if (image && image.complete) desenhar();
+            else if (image) image.addEventListener('load', desenhar, { once: true });
+            button.appendChild(preview);
+            var label = document.createElement('span');
+            label.textContent = paletteItem.name;
+            button.appendChild(label);
+            button.onclick = function () {
+                brush.tipo = 'sprite_personalizado';
+                brush.asset = paletteItem.asset;
+                brush.assetRect = {
+                    x: paletteItem.region.x, y: paletteItem.region.y,
+                    w: paletteItem.region.w, h: paletteItem.region.h
+                };
+                brush.assetMask = assetMaskValida(paletteItem.mask) ? paletteItem.mask.map(function (point) { return { x: point.x, y: point.y }; }) : null;
+                brush.assetMaskRaster = paletteItem.maskRaster || null;
+                brush.assetMaskMode = paletteItem.maskMode === 'auto' || paletteItem.maskMode === 'manual' ? paletteItem.maskMode : '';
+                brush.spriteId = paletteItem.id;
+                brush.categoria = paletteItem.category;
+                brush.escala = 1;
+                brush.escalaX = 1;
+                brush.escalaY = 1;
+                brush.rotacao = 0;
+                brush.colisao = false;
+                assetCropTarget = 'brush';
+                assetCropAsset = paletteItem.asset;
+                meFerramenta = 'colocar';
+                meSetTab('objetos');
+                stampPlacementArmed = true;
+                meAtualizarToolbar();
+                meMontarSpritePalette();
+                meMontarPaletaSprites();
+                meAtualizarPainel();
+                meToast('Sprite selecionada. Clique no mapa para carimbar; ESC cancela.');
+            };
+            root.appendChild(button);
+        });
+        if (!visibleItems.length) {
+            root.textContent = spritePaletteItems.length ? 'Nenhuma sprite nesta categoria.' : 'Selecione um atlas, marque uma região e adicione sprites à palette.';
+            root.style.color = '#7f8c8d';
+            root.style.fontSize = '10px';
+        } else {
+            root.style.color = '';
+            root.style.fontSize = '';
+        }
+    }
+
+    window.meFiltrarSpritePalette = function (category) {
+        paletteCategory = category || 'Todas';
+        meMontarSpritePalette();
+    };
+
+    window.meSolicitarSpritePalette = function () {
+        if (!global.ws || global.ws.readyState !== 1) {
+            meToast('Não foi possível carregar a palette: conexão com o servidor fechada.');
+            return;
+        }
+        global.ws.send(JSON.stringify({ action: 'admin_map_sprite_palette_get' }));
+    };
+
+    function meSalvarSpritePaletteItems(items) {
+        if (!global.ws || global.ws.readyState !== 1) {
+            meToast('Não foi possível salvar a palette: conexão com o servidor fechada.');
+            return false;
+        }
+        global.ws.send(JSON.stringify({ action: 'admin_map_sprite_palette_save', items: items }));
+        return true;
+    }
+
+    window.meAdicionarSpritePaleta = function () {
+        if (brush.tipo !== 'sprite_personalizado' || !brush.asset) {
+            meToast('Selecione primeiro uma imagem do atlas.');
+            return;
+        }
+        var image = obterImagemSpriteMapa(brush.asset);
+        if (!image || !image.complete || !image.naturalWidth || !image.naturalHeight) {
+            meToast('Aguarde o carregamento completo do atlas.');
+            return;
+        }
+        var region = brush.assetRect || { x: 0, y: 0, w: image.naturalWidth, h: image.naturalHeight };
+        if (!assetRectValido(region, image) || region.w < 4 || region.h < 4) {
+            meToast('Selecione uma região válida da imagem.');
+            return;
+        }
+        var nameInput = document.getElementById('me-sprite-name');
+        var categoryInput = document.getElementById('me-sprite-category');
+        var name = nameInput ? nameInput.value.trim() : '';
+        var category = categoryInput ? categoryInput.value.trim() : '';
+        if (!name || !category) {
+            meToast('Informe o nome da sprite e sua categoria.');
+            return;
+        }
+        var item = {
+            id: 'sprite_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7),
+            name: name,
+            asset: brush.asset,
+            region: { x: Math.floor(region.x), y: Math.floor(region.y), w: Math.floor(region.w), h: Math.floor(region.h) },
+            mask: assetMaskValida(brush.assetMask) ? brush.assetMask.map(function (point) { return { x: point.x, y: point.y }; }) : undefined,
+            maskRaster: brush.assetMaskRaster || undefined,
+            maskMode: assetMaskValida(brush.assetMask) ? brush.assetMaskMode : '',
+            category: category
+        };
+        var items = spritePaletteItems.concat([item]);
+        meSalvarSpritePaletteItems(items);
+    };
+
+    function meAlvoRecorteSprite() {
+        if (assetCropTarget === 'selection' && meSel && meSel.tipo === 'sprite_personalizado' && meSel.asset === assetCropAsset) return meSel;
+        return brush.tipo === 'sprite_personalizado' && brush.asset === assetCropAsset ? brush : null;
+    }
+
+    function meAlphaCanvas(asset, image) {
+        if (!assetMaskCanvases[asset]) {
+            var canvas = document.createElement('canvas');
+            canvas.width = image.naturalWidth;
+            canvas.height = image.naturalHeight;
+            var context = canvas.getContext('2d', { willReadFrequently: true });
+            context.drawImage(image, 0, 0);
+            assetMaskCanvases[asset] = { canvas: canvas, context: context, width: canvas.width, height: canvas.height, alpha: null };
+        }
+        return assetMaskCanvases[asset];
+    }
+
+    function meSimplificarLinha(points, tolerance) {
+        if (points.length <= 3) return points.slice();
+        var keep = new Uint8Array(points.length);
+        keep[0] = 1;
+        keep[points.length - 1] = 1;
+        var stack = [[0, points.length - 1]];
+        var toleranceSquared = tolerance * tolerance;
+        while (stack.length) {
+            var range = stack.pop();
+            var first = points[range[0]], last = points[range[1]];
+            var dx = last.x - first.x, dy = last.y - first.y;
+            var lengthSquared = dx * dx + dy * dy;
+            var greatest = toleranceSquared, bestIndex = -1;
+            for (var i = range[0] + 1; i < range[1]; i++) {
+                var px = points[i].x - first.x, py = points[i].y - first.y;
+                var ratio = lengthSquared ? Math.max(0, Math.min(1, (px * dx + py * dy) / lengthSquared)) : 0;
+                var deltaX = points[i].x - (first.x + ratio * dx);
+                var deltaY = points[i].y - (first.y + ratio * dy);
+                var distanceSquared = deltaX * deltaX + deltaY * deltaY;
+                if (distanceSquared > greatest) {
+                    greatest = distanceSquared;
+                    bestIndex = i;
+                }
+            }
+            if (bestIndex !== -1) {
+                keep[bestIndex] = 1;
+                stack.push([range[0], bestIndex], [bestIndex, range[1]]);
+            }
+        }
+        return points.filter(function (_, index) { return keep[index] === 1; });
+    }
+
+    function meSimplificarContorno(points) {
+        var corners = [];
+        for (var i = 0; i < points.length; i++) {
+            var previous = points[(i + points.length - 1) % points.length];
+            var current = points[i];
+            var next = points[(i + 1) % points.length];
+            var cross = (current.x - previous.x) * (next.y - current.y) -
+                (current.y - previous.y) * (next.x - current.x);
+            if (cross !== 0) corners.push(current);
+        }
+        if (corners.length <= 256) return corners;
+        var farthest = 1, farthestDistance = 0;
+        for (var p = 1; p < corners.length; p++) {
+            var distance = Math.hypot(corners[p].x - corners[0].x, corners[p].y - corners[0].y);
+            if (distance > farthestDistance) {
+                farthestDistance = distance;
+                farthest = p;
+            }
+        }
+        var firstHalf = corners.slice(0, farthest + 1);
+        var secondHalf = corners.slice(farthest).concat([corners[0]]);
+        var tolerance = 1;
+        var result = corners;
+        for (var attempt = 0; attempt < 18; attempt++) {
+            var simplified = meSimplificarLinha(firstHalf, tolerance)
+                .concat(meSimplificarLinha(secondHalf, tolerance).slice(1, -1));
+            result = simplified;
+            if (result.length <= 256) break;
+            tolerance *= 1.5;
+        }
+        if (result.length > 256) {
+            var sampled = [];
+            var stride = result.length / 256;
+            for (var sample = 0; sample < 256; sample++) sampled.push(result[Math.floor(sample * stride)]);
+            result = sampled;
+        }
+        return result;
+    }
+
+    function meCodificarBitsMascara(bits) {
+        var binary = '';
+        for (var start = 0; start < bits.length; start += 0x8000) {
+            binary += String.fromCharCode.apply(null, bits.subarray(start, Math.min(start + 0x8000, bits.length)));
+        }
+        return btoa(binary);
+    }
+
+    function meCriarMascaraRaster(visited, atlasWidth, region) {
+        var pixelCount = region.w * region.h;
+        var packed = new Uint8Array(Math.ceil(pixelCount / 8));
+        for (var y = 0; y < region.h; y++) {
+            var atlasOffset = (region.y + y) * atlasWidth + region.x;
+            var regionOffset = y * region.w;
+            for (var x = 0; x < region.w; x++) {
+                if (!visited[atlasOffset + x]) continue;
+                var index = regionOffset + x;
+                packed[index >> 3] |= 1 << (index & 7);
+            }
+        }
+        return { w: region.w, h: region.h, data: meCodificarBitsMascara(packed) };
+    }
+
+    function meLacoAutomatico(point, image) {
+        var alphaMap = meAlphaCanvas(assetCropAsset, image);
+        if (!alphaMap.alpha) {
+            var pixels = alphaMap.context.getImageData(0, 0, alphaMap.width, alphaMap.height).data;
+            alphaMap.alpha = new Uint8Array(alphaMap.width * alphaMap.height);
+            for (var i = 0; i < alphaMap.alpha.length; i++) alphaMap.alpha[i] = pixels[i * 4 + 3];
+        }
+        var width = alphaMap.width, height = alphaMap.height, alpha = alphaMap.alpha;
+        var seedX = Math.max(0, Math.min(width - 1, Math.floor(point.x * width)));
+        var seedY = Math.max(0, Math.min(height - 1, Math.floor(point.y * height)));
+        var seed = seedY * width + seedX, alphaThreshold = 32;
+        if (alpha[seed] < alphaThreshold) {
+            var nearest = -1, nearestDistance = Infinity, radius = 18;
+            for (var oy = -radius; oy <= radius; oy++) {
+                var py = seedY + oy;
+                if (py < 0 || py >= height) continue;
+                for (var ox = -radius; ox <= radius; ox++) {
+                    var px = seedX + ox;
+                    if (px < 0 || px >= width) continue;
+                    var candidate = py * width + px;
+                    var distance = ox * ox + oy * oy;
+                    if (distance < nearestDistance && alpha[candidate] >= alphaThreshold) {
+                        nearest = candidate;
+                        nearestDistance = distance;
+                    }
+                }
+            }
+            seed = nearest;
+        }
+        if (seed < 0 || alpha[seed] < alphaThreshold) return null;
+
+        var visited = new Uint8Array(width * height);
+        var queue = new Int32Array(width * height);
+        var head = 0, tail = 0;
+        visited[seed] = 1;
+        queue[tail++] = seed;
+        var minX = width, minY = height, maxX = 0, maxY = 0;
+        var componentLimit = 400000;
+        while (head < tail) {
+            var pixel = queue[head++];
+            var x = pixel % width, y = Math.floor(pixel / width);
+            minX = Math.min(minX, x); minY = Math.min(minY, y);
+            maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+            if (tail >= componentLimit) throw new Error('A seleção automática ficou grande demais; use o Laço magnético manual.');
+            var neighbors = [pixel - width, pixel + 1, pixel + width, pixel - 1];
+            for (var n = 0; n < 4; n++) {
+                var next = neighbors[n];
+                if ((n === 0 && y === 0) || (n === 1 && x === width - 1) ||
+                    (n === 2 && y === height - 1) || (n === 3 && x === 0) ||
+                    visited[next] || alpha[next] < alphaThreshold) continue;
+                visited[next] = 1;
+                queue[tail++] = next;
+            }
+        }
+
+        var edges = [], outgoing = new Map();
+        function addEdge(sx, sy, ex, ey, direction) {
+            var edge = { sx: sx, sy: sy, ex: ex, ey: ey, direction: direction, used: false };
+            edges.push(edge);
+            var key = sx + ',' + sy;
+            if (!outgoing.has(key)) outgoing.set(key, []);
+            outgoing.get(key).push(edge);
+        }
+        for (var q = 0; q < tail; q++) {
+            var cell = queue[q], cellX = cell % width, cellY = Math.floor(cell / width);
+            if (cellY === 0 || !visited[cell - width]) addEdge(cellX, cellY, cellX + 1, cellY, 0);
+            if (cellX === width - 1 || !visited[cell + 1]) addEdge(cellX + 1, cellY, cellX + 1, cellY + 1, 1);
+            if (cellY === height - 1 || !visited[cell + width]) addEdge(cellX + 1, cellY + 1, cellX, cellY + 1, 2);
+            if (cellX === 0 || !visited[cell - 1]) addEdge(cellX, cellY + 1, cellX, cellY, 3);
+        }
+        if (edges.length < 12) return null;
+        var first = edges[0];
+        for (var edgeIndex = 1; edgeIndex < edges.length; edgeIndex++) {
+            var candidateEdge = edges[edgeIndex];
+            if (candidateEdge.sy < first.sy || (candidateEdge.sy === first.sy && candidateEdge.sx < first.sx)) first = candidateEdge;
+        }
+        var contour = [], currentEdge = first, maxSteps = edges.length + 1;
+        while (maxSteps-- > 0 && currentEdge && !currentEdge.used) {
+            currentEdge.used = true;
+            contour.push({ x: currentEdge.sx, y: currentEdge.sy });
+            var candidates = outgoing.get(currentEdge.ex + ',' + currentEdge.ey) || [];
+            var preference = [
+                (currentEdge.direction + 1) % 4,
+                currentEdge.direction,
+                (currentEdge.direction + 3) % 4,
+                (currentEdge.direction + 2) % 4
+            ];
+            var nextEdge = null;
+            for (var turn = 0; turn < preference.length && !nextEdge; turn++) {
+                for (var candidateIndex = 0; candidateIndex < candidates.length; candidateIndex++) {
+                    if (!candidates[candidateIndex].used && candidates[candidateIndex].direction === preference[turn]) {
+                        nextEdge = candidates[candidateIndex];
+                        break;
+                    }
+                }
+            }
+            if (!nextEdge || nextEdge === first) break;
+            currentEdge = nextEdge;
+        }
+        if (contour.length < 3) return null;
+        var polygon = meSimplificarContorno(contour);
+        var rectX = Math.max(0, Math.floor(minX)), rectY = Math.max(0, Math.floor(minY));
+        var rectW = Math.min(width, maxX + 1) - rectX, rectH = Math.min(height, maxY + 1) - rectY;
+        if (rectW < 4 || rectH < 4 || polygon.length < 3) return null;
+        return {
+            region: { x: rectX, y: rectY, w: rectW, h: rectH },
+            mask: polygon.map(function (vertex) {
+                return {
+                    x: Math.max(0, Math.min(1, (vertex.x - rectX) / rectW)),
+                    y: Math.max(0, Math.min(1, (vertex.y - rectY) / rectH))
+                };
+            }),
+            raster: meCriarMascaraRaster(visited, width, { x: rectX, y: rectY, w: rectW, h: rectH }),
+            mode: 'auto',
+            pixels: tail
+        };
+    }
+
+    function mePontoBordaAlpha(asset, image, x, y) {
+        var alphaMap = meAlphaCanvas(asset, image);
+        var centerX = Math.round(x), centerY = Math.round(y), radius = 28;
+        var left = Math.max(0, centerX - radius), top = Math.max(0, centerY - radius);
+        var right = Math.min(alphaMap.width - 1, centerX + radius), bottom = Math.min(alphaMap.height - 1, centerY + radius);
+        var sample = alphaMap.context.getImageData(left, top, right - left + 1, bottom - top + 1);
+        var best = null, bestDistance = Infinity;
+        for (var py = 1; py < sample.height - 1; py++) {
+            for (var px = 1; px < sample.width - 1; px++) {
+                var index = (py * sample.width + px) * 4 + 3;
+                if (sample.data[index] < 96) continue;
+                var edge = sample.data[index - 4] < 48 || sample.data[index + 4] < 48 ||
+                    sample.data[index - sample.width * 4] < 48 || sample.data[index + sample.width * 4] < 48;
+                if (!edge) continue;
+                var ax = left + px, ay = top + py;
+                var distance = (ax - x) * (ax - x) + (ay - y) * (ay - y);
+                if (distance < bestDistance) {
+                    bestDistance = distance;
+                    best = { x: ax, y: ay };
+                }
+            }
+        }
+        return best && bestDistance <= radius * radius ? best : { x: x, y: y };
+    }
+
+    function meCroparMascara(points, image) {
+        if (!points || points.length < 3) return null;
+        var minX = image.naturalWidth, minY = image.naturalHeight, maxX = 0, maxY = 0;
+        points.forEach(function (point) {
+            minX = Math.min(minX, point.x); minY = Math.min(minY, point.y);
+            maxX = Math.max(maxX, point.x); maxY = Math.max(maxY, point.y);
+        });
+        var x = Math.max(0, Math.floor(minX)), y = Math.max(0, Math.floor(minY));
+        var right = Math.min(image.naturalWidth, Math.ceil(maxX)), bottom = Math.min(image.naturalHeight, Math.ceil(maxY));
+        if (right - x < 4 || bottom - y < 4) return null;
+        var width = right - x, height = bottom - y;
+        var normalized = points.map(function (point) {
+            return {
+                x: Math.max(0, Math.min(1, (point.x - x) / width)),
+                y: Math.max(0, Math.min(1, (point.y - y) / height))
+            };
+        });
+        return { region: { x: x, y: y, w: width, h: height }, mask: normalized, raster: null };
+    }
+
+    window.meSetCropMode = function (mode) {
+        assetCropMode = mode === 'lasso' || mode === 'auto' ? mode : 'rect';
+        var rectButton = document.getElementById('me-crop-mode-rect');
+        var lassoButton = document.getElementById('me-crop-mode-lasso');
+        var autoButton = document.getElementById('me-crop-mode-lasso2');
+        if (rectButton) rectButton.classList.toggle('active', assetCropMode === 'rect');
+        if (lassoButton) lassoButton.classList.toggle('active', assetCropMode === 'lasso');
+        if (autoButton) autoButton.classList.toggle('active', assetCropMode === 'auto');
+        var canvas = document.getElementById('me-recorte-preview');
+        if (canvas) canvas.style.cursor = assetCropMode === 'lasso' ? 'crosshair' : 'crosshair';
+        var status = document.getElementById('me-recorte-status');
+        if (status && assetCropMode === 'auto') status.textContent = 'Laço 2: clique dentro da sprite para selecionar automaticamente sua área opaca.';
+        else if (status && assetCropMode === 'lasso') status.textContent = 'Laço magnético: arraste o cursor ao redor da sprite.';
+    };
+
+    function meDesenharRecorteSprite() {
+        var wrap = document.getElementById('me-recorte-wrap');
+        var canvas = document.getElementById('me-recorte-preview');
+        if (!wrap || !canvas) return;
+        var target = meAlvoRecorteSprite();
+        wrap.style.display = target ? 'flex' : 'none';
+        if (!target) return;
+
+        var ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        var imagem = obterImagemSpriteMapa(assetCropAsset);
+        var status = document.getElementById('me-recorte-status');
+        if (!imagem || !imagem.complete || !imagem.naturalWidth || !imagem.naturalHeight) {
+            if (status) status.textContent = 'Carregando o atlas…';
+            if (imagem) imagem.addEventListener('load', meDesenharRecorteSprite, { once: true });
+            return;
+        }
+        var escala = Math.min(canvas.width / imagem.naturalWidth, canvas.height / imagem.naturalHeight);
+        var largura = imagem.naturalWidth * escala, altura = imagem.naturalHeight * escala;
+        var x = (canvas.width - largura) / 2, y = (canvas.height - altura) / 2;
+        assetCropLayout = { x: x, y: y, w: largura, h: altura };
+        ctx.imageSmoothingEnabled = false;
+        ctx.drawImage(imagem, x, y, largura, altura);
+        var recorte = assetCropDrag && assetCropDrag.mode === 'rect' && assetCropDrag.preview ? assetCropDrag.preview : target.assetRect;
+        if (assetRectValido(recorte, imagem) && !assetMaskValida(target.assetMask)) {
+            var rx = x + largura * recorte.x / imagem.naturalWidth;
+            var ry = y + altura * recorte.y / imagem.naturalHeight;
+            var rw = largura * recorte.w / imagem.naturalWidth;
+            var rh = altura * recorte.h / imagem.naturalHeight;
+            ctx.fillStyle = 'rgba(70,245,155,0.18)';
+            ctx.fillRect(rx, ry, rw, rh);
+            ctx.strokeStyle = '#56ffad';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.strokeRect(rx, ry, rw, rh);
+            ctx.setLineDash([]);
+        }
+        var lassoInProgress = assetCropDrag && assetCropDrag.mode === 'lasso' && assetCropDrag.points.length > 1;
+        var mask = lassoInProgress
+            ? assetCropDrag.points.map(function (point) {
+                return { x: point.x / imagem.naturalWidth, y: point.y / imagem.naturalHeight };
+            })
+            : target.assetMask;
+        if (assetMaskValida(mask) || (lassoInProgress && mask && mask.length > 1)) {
+            ctx.save();
+            ctx.beginPath();
+            mask.forEach(function (point, index) {
+                var px = lassoInProgress
+                    ? x + point.x * largura
+                    : x + (recorte.x + point.x * recorte.w) * largura / imagem.naturalWidth;
+                var py = lassoInProgress
+                    ? y + point.y * altura
+                    : y + (recorte.y + point.y * recorte.h) * altura / imagem.naturalHeight;
+                if (index === 0) ctx.moveTo(px, py);
+                else ctx.lineTo(px, py);
+            });
+            if (assetMaskValida(mask)) {
+                ctx.closePath();
+                ctx.fillStyle = 'rgba(70,245,155,0.18)';
+                ctx.fill();
+            }
+            ctx.strokeStyle = '#56ffad';
+            ctx.lineWidth = 2;
+            ctx.setLineDash([6, 4]);
+            ctx.stroke();
+            ctx.restore();
+        }
+        if (status) {
+            status.textContent = target.assetRect
+                ? (assetMaskValida(target.assetMask)
+                    ? (target.assetMaskMode === 'auto' ? 'Laço 2: ' : 'Laço magnético: ')
+                    : 'Recorte: ') + Math.round(target.assetRect.w) + ' × ' + Math.round(target.assetRect.h) + ' px · ' + assetCropAsset
+                : 'Arraste um retângulo sobre uma peça do atlas · ' + imagem.naturalWidth + ' × ' + imagem.naturalHeight + ' px';
+        }
+        meAtualizarCropInputs(target.assetRect);
+    }
+
+    function meAtualizarCropInputs(region) {
+        var values = region || { x: '', y: '', w: '', h: '' };
+        [['x', 'x'], ['y', 'y'], ['w', 'w'], ['h', 'h']].forEach(function (field) {
+            var input = document.getElementById('me-crop-' + field[0]);
+            if (input) input.value = values[field[1]] == null ? '' : String(Math.round(values[field[1]]));
+        });
+    }
+
+    window.meSetCropField = function (field, value) {
+        if (['x', 'y', 'w', 'h'].indexOf(field) === -1) return;
+        var target = meAlvoRecorteSprite();
+        var image = target && obterImagemSpriteMapa(assetCropAsset);
+        var number = Number(value);
+        if (!target || !image || !image.complete || !image.naturalWidth || !image.naturalHeight || !Number.isFinite(number)) return;
+        var region = target.assetRect ? {
+            x: target.assetRect.x, y: target.assetRect.y, w: target.assetRect.w, h: target.assetRect.h
+        } : { x: 0, y: 0, w: image.naturalWidth, h: image.naturalHeight };
+        region[field] = Math.round(number);
+        region.x = Math.max(0, Math.min(image.naturalWidth - 4, region.x));
+        region.y = Math.max(0, Math.min(image.naturalHeight - 4, region.y));
+        region.w = Math.max(4, Math.min(image.naturalWidth - region.x, region.w));
+        region.h = Math.max(4, Math.min(image.naturalHeight - region.y, region.h));
+        target.assetRect = region;
+        target.assetMask = null;
+        target.assetMaskRaster = null;
+        target.assetMaskMode = '';
+        if (assetCropTarget === 'selection' && target === meSel) {
+            var dimensions = dimensoesSpriteMapa(target.asset, region);
+            target.w = dimensions.w;
+            target.h = dimensions.h;
+            enviar(target, 'editar');
+            meAtualizarListas();
+            meAtualizarPropsUI();
+        }
+        meAtualizarCropInputs(region);
+        meDesenharRecorteSprite();
+    };
+
+    function mePosicaoNoAtlas(e) {
+        var canvas = document.getElementById('me-recorte-preview');
+        if (!canvas || !assetCropLayout) return null;
+        var rect = canvas.getBoundingClientRect();
+        var px = (e.clientX - rect.left) * canvas.width / rect.width;
+        var py = (e.clientY - rect.top) * canvas.height / rect.height;
+        if (px < assetCropLayout.x || py < assetCropLayout.y ||
+            px > assetCropLayout.x + assetCropLayout.w || py > assetCropLayout.y + assetCropLayout.h) return null;
+        return {
+            x: (px - assetCropLayout.x) / assetCropLayout.w,
+            y: (py - assetCropLayout.y) / assetCropLayout.h
+        };
+    }
+
+    function meAdicionarPontoLaco(ponto, imagem, forcar) {
+        var px = ponto.x * imagem.naturalWidth, py = ponto.y * imagem.naturalHeight;
+        var magnetic = mePontoBordaAlpha(assetCropAsset, imagem, px, py);
+        var points = assetCropDrag.points;
+        var last = points[points.length - 1];
+        if (last && !forcar && Math.hypot(magnetic.x - last.x, magnetic.y - last.y) < 3) return;
+        if (!last || Math.hypot(magnetic.x - last.x, magnetic.y - last.y) >= 3) points.push(magnetic);
+        if (points.length > 220) {
+            var simplified = [points[0]];
+            for (var i = 2; i < points.length - 1; i += 2) simplified.push(points[i]);
+            simplified.push(points[points.length - 1]);
+            assetCropDrag.points = simplified;
+        }
+    }
+
+    function meAplicarRecorteMascara(target, crop) {
+        if (!target || !crop) return;
+        target.assetRect = crop.region;
+        target.assetMask = crop.mask;
+        target.assetMaskRaster = crop.raster || null;
+        target.assetMaskMode = crop.mode === 'auto' ? 'auto' : 'manual';
+        var dimensions = dimensoesSpriteMapa(target.asset, crop.region);
+        target.w = dimensions.w;
+        target.h = dimensions.h;
+        if (assetCropTarget === 'selection' && meSel === target) {
+            enviar(target, 'editar');
+            meAtualizarListas();
+            meAtualizarPropsUI();
+        } else {
+            meAtualizarPainel();
+        }
+        if (target.spriteId) {
+            var paletteItem = spritePaletteItems.find(function (item) { return item.id === target.spriteId; });
+            if (paletteItem) {
+                paletteItem.region = { x: crop.region.x, y: crop.region.y, w: crop.region.w, h: crop.region.h };
+                paletteItem.mask = crop.mask.map(function (point) { return { x: point.x, y: point.y }; });
+                paletteItem.maskRaster = crop.raster || undefined;
+                paletteItem.maskMode = target.assetMaskMode;
+                if (meSalvarSpritePaletteItems(spritePaletteItems)) meMontarSpritePalette();
+            }
+        }
+        lassoDiagnostico('SELECTION', target, obterImagemSpriteMapa(target.asset), null, {
+            detectedPixels: crop.pixels || null,
+            bboxPixels: crop.region.w * crop.region.h,
+            bboxTransparentPixels: crop.raster
+                ? crop.region.w * crop.region.h - (lassoRasterResumo(crop.raster).selectedPixels)
+                : null,
+            exactMaskAvailable: !!crop.raster
+        });
+        meDesenharRecorteSprite();
+    }
+
+    window.meRecortePointerDown = function (e) {
+        var target = meAlvoRecorteSprite();
+        var imagem = target && obterImagemSpriteMapa(assetCropAsset);
+        var ponto = mePosicaoNoAtlas(e);
+        if (!target || !imagem || !ponto) return;
+        if (assetCropMode === 'auto') {
+            try {
+                var crop = meLacoAutomatico(ponto, imagem);
+                if (!crop) {
+                    meToast('Não encontrei uma sprite opaca perto do clique. Clique sobre a imagem da sprite.');
+                    return;
+                }
+                meAplicarRecorteMascara(target, crop);
+                meToast('Laço 2 selecionou automaticamente ' + crop.pixels + ' pixels. Revise e adicione à Palette.');
+            } catch (error) {
+                meToast('Laço 2 não conseguiu selecionar a sprite: ' + error.message);
+            }
+            e.preventDefault();
+            return;
+        }
+        assetCropDrag = { pointerId: e.pointerId, start: ponto, preview: null, mode: assetCropMode, points: [] };
+        if (assetCropMode === 'lasso') {
+            try {
+                meAdicionarPontoLaco(ponto, imagem, true);
+            } catch (error) {
+                assetCropDrag = null;
+                meToast('Laço magnético indisponível para esta imagem: ' + error.message);
+                return;
+            }
+        }
+        e.currentTarget.setPointerCapture(e.pointerId);
+        e.preventDefault();
+    };
+
+    window.meRecortePointerMove = function (e) {
+        if (!assetCropDrag || assetCropDrag.pointerId !== e.pointerId) return;
+        var ponto = mePosicaoNoAtlas(e);
+        if (!ponto) return;
+        var imagem = obterImagemSpriteMapa(assetCropAsset);
+        if (assetCropDrag.mode === 'lasso') {
+            try {
+                meAdicionarPontoLaco(ponto, imagem, false);
+            } catch (error) {
+                assetCropDrag = null;
+                meToast('Falha ao acompanhar a borda transparente do atlas: ' + error.message);
+                meDesenharRecorteSprite();
+                return;
+            }
+            meDesenharRecorteSprite();
+            e.preventDefault();
+            return;
+        }
+        var inicio = assetCropDrag.start;
+        assetCropDrag.preview = {
+            x: Math.min(inicio.x, ponto.x) * imagem.naturalWidth,
+            y: Math.min(inicio.y, ponto.y) * imagem.naturalHeight,
+            w: Math.abs(ponto.x - inicio.x) * imagem.naturalWidth,
+            h: Math.abs(ponto.y - inicio.y) * imagem.naturalHeight
+        };
+        meDesenharRecorteSprite();
+        e.preventDefault();
+    };
+
+    window.meRecortePointerUp = function (e) {
+        if (!assetCropDrag || assetCropDrag.pointerId !== e.pointerId) return;
+        var drag = assetCropDrag;
+        var recorte = drag.preview;
+        var target = meAlvoRecorteSprite();
+        var imagem = target && obterImagemSpriteMapa(assetCropAsset);
+        if (drag.mode === 'lasso' && imagem) {
+            try {
+                var finalPoint = mePosicaoNoAtlas(e);
+                if (finalPoint) meAdicionarPontoLaco(finalPoint, imagem, true);
+                var crop = meCroparMascara(drag.points, imagem);
+                assetCropDrag = null;
+                if (crop) {
+                    meAplicarRecorteMascara(target, crop);
+                }
+            } catch (error) {
+                assetCropDrag = null;
+                meToast('Não foi possível criar o recorte magnético: ' + error.message);
+            }
+        } else if (recorte && imagem && recorte.w >= 4 && recorte.h >= 4) {
+            assetCropDrag = null;
+            recorte = {
+                x: Math.max(0, Math.floor(recorte.x)),
+                y: Math.max(0, Math.floor(recorte.y)),
+                w: Math.min(imagem.naturalWidth, Math.ceil(recorte.x + recorte.w)) - Math.max(0, Math.floor(recorte.x)),
+                h: Math.min(imagem.naturalHeight, Math.ceil(recorte.y + recorte.h)) - Math.max(0, Math.floor(recorte.y))
+            };
+            if (assetCropTarget === 'selection' && meSel && meSel === target) {
+                meSel.assetRect = recorte;
+                meSel.assetMask = null;
+                meSel.assetMaskRaster = null;
+                meSel.assetMaskMode = '';
+                var dimensoes = dimensoesSpriteMapa(meSel.asset, recorte);
+                meSel.w = dimensoes.w;
+                meSel.h = dimensoes.h;
+                enviar(meSel, 'editar');
+                meAtualizarListas();
+                meAtualizarPropsUI();
+            } else {
+                brush.assetRect = recorte;
+                brush.assetMask = null;
+                brush.assetMaskRaster = null;
+                brush.assetMaskMode = '';
+                meAtualizarPainel();
+            }
+        } else {
+            assetCropDrag = null;
+        }
+        meDesenharRecorteSprite();
+    };
+
+    window.meLimparRecorteSprite = function () {
+        var target = meAlvoRecorteSprite();
+        if (!target) return;
+        target.assetRect = null;
+        target.assetMask = null;
+        target.assetMaskRaster = null;
+        target.assetMaskMode = '';
+        if (assetCropTarget === 'selection' && meSel === target) {
+            var dimensoes = dimensoesSpriteMapa(target.asset);
+            target.w = dimensoes.w;
+            target.h = dimensoes.h;
+            enviar(target, 'editar');
+            meAtualizarListas();
+            meAtualizarPropsUI();
+        } else {
+            meAtualizarPainel();
+        }
+        meDesenharRecorteSprite();
+    };
+
+    window.meLimparMascaraSprite = function () {
+        var target = meAlvoRecorteSprite();
+        if (!target) return;
+        target.assetMask = null;
+        target.assetMaskRaster = null;
+        target.assetMaskMode = '';
+        if (assetCropTarget === 'selection' && meSel === target) {
+            enviar(target, 'editar');
+            meAtualizarPropsUI();
+        } else {
+            meAtualizarPainel();
+        }
+        if (target.spriteId) {
+            var paletteItem = spritePaletteItems.find(function (item) { return item.id === target.spriteId; });
+            if (paletteItem) {
+                paletteItem.mask = null;
+                paletteItem.maskRaster = null;
+                paletteItem.maskMode = '';
+                if (meSalvarSpritePaletteItems(spritePaletteItems)) meMontarSpritePalette();
+            }
+        }
+        var status = document.getElementById('me-recorte-status');
+        if (status) status.textContent = 'Laço removido. O recorte retangular atual foi mantido.';
+        meDesenharRecorteSprite();
+    };
+
+    window.meAtualizarSprites = function () {
+        if (!global.ws || global.ws.readyState !== 1) {
+            meToast('Não foi possível atualizar: conexão com o servidor fechada.');
+            return;
+        }
+        global.ws.send(JSON.stringify({ action: 'admin_map_sprites_list' }));
+    };
+
+    window.receberSpritesMapa = function (arquivos) {
+        spritesMapaCatalogo = Array.isArray(arquivos) ? arquivos.filter(function (arquivo) {
+            return arquivo && typeof arquivo.name === 'string' &&
+                /^[^/\\]+\.(?:png|jpe?g|webp)$/i.test(arquivo.name);
+        }) : [];
+        spritesMapaCatalogo.forEach(function (sprite) { obterImagemSpriteMapa(sprite.name); });
+        meMontarPaletaSprites();
+    };
 
     function preencherEfeitosSel() {
         var selEf = document.getElementById('me-efeito');
@@ -2780,7 +5118,11 @@
                 item.style.cssText = 'display:flex;align-items:center;gap:5px;background:#1c241c;border:1px solid ' + (o.id === meSelId ? '#00e5ff' : '#34403a') + ';border-radius:5px;padding:3px 5px;font-size:10px;cursor:pointer;';
                 item.innerHTML = '<label class="me-chk"><input type="checkbox" ' + (o.colisao ? 'checked' : '') + ' onchange="window.meSetSelColisao(this.checked, \'' + o.id + '\')"></label>' +
                     '<span style="flex:1;">' + (def ? def.icone : '⛔') + ' ' + (def ? def.nome : o.tipo) + ' [' + (o.w || 40) + 'x' + (o.h || 40) + ']</span>';
-                item.onclick = function () { meSelId = o.id; meSel = o; meAtualizarListas(); meAtualizarPropsUI(); };
+                item.onclick = function () {
+                    meSelId = o.id; meSel = o;
+                    meDefinirAlvoRecorteSelecao(o);
+                    meAtualizarListas(); meAtualizarPropsUI();
+                };
                 LC.appendChild(item);
             });
             if (!lista.length) LC.innerHTML = '<div style="font-size:10px;color:#7f8c8d;padding:4px;text-align:center;">Nenhum objeto neste mapa.</div>';
@@ -2793,21 +5135,37 @@
                 var def = CATALOGO[o.tipo];
                 var item = document.createElement('div');
                 item.style.cssText = 'display:flex;align-items:center;gap:5px;background:#1c241c;border:1px solid ' + (o.id === meSelId ? '#00e5ff' : '#34403a') + ';border-radius:5px;padding:3px 5px;font-size:10px;cursor:pointer;';
-                var badge = o.camada === 'frente' ? '⬆' : (o.camada === 'chao' ? '⬇' : '➡');
+                var camadaAtual = normalizarCamadaEditor(o.camada);
+                var badge = { ground: '⬇', decoration_behind: '◀', objects: '➡', decoration_front: '▶', buildings: '🏠', foreground: '⬆' }[camadaAtual];
                 item.innerHTML = '<span>' + badge + '</span>' +
                     '<select onchange="window.meSetSelCamada(this.value, \'' + o.id + '\')" style="background:#171f17;border:1px solid #3a4a3c;color:#ecf0f1;font-size:10px;">' +
-                        '<option value="chao"' + (o.camada === 'chao' ? ' selected' : '') + '>Chão</option>' +
-                        '<option value="meio"' + (o.camada === 'meio' ? ' selected' : '') + '>Meio</option>' +
-                        '<option value="frente"' + (o.camada === 'frente' ? ' selected' : '') + '>Frente</option>' +
+                        '<option value="ground"' + (camadaAtual === 'ground' ? ' selected' : '') + '>Chão</option>' +
+                        '<option value="decoration_behind"' + (camadaAtual === 'decoration_behind' ? ' selected' : '') + '>Decoração atrás</option>' +
+                        '<option value="objects"' + (camadaAtual === 'objects' ? ' selected' : '') + '>Objetos</option>' +
+                        '<option value="decoration_front"' + (camadaAtual === 'decoration_front' ? ' selected' : '') + '>Decoração à frente</option>' +
+                        '<option value="buildings"' + (camadaAtual === 'buildings' ? ' selected' : '') + '>Construções</option>' +
+                        '<option value="foreground"' + (camadaAtual === 'foreground' ? ' selected' : '') + '>Primeiro plano</option>' +
                     '</select>' +
                     '<span style="flex:1;">' + (def ? def.icone : '') + ' ' + (def ? def.nome : o.tipo) + '</span>';
                 item.onclick = function (e) {
                     if (e.target.tagName === 'SELECT') return;
-                    meSelId = o.id; meSel = o; meAtualizarListas(); meAtualizarPropsUI();
+                    meSelId = o.id; meSel = o;
+                    meDefinirAlvoRecorteSelecao(o);
+                    meAtualizarListas(); meAtualizarPropsUI();
                 };
                 CAM.appendChild(item);
             });
             if (!lista.length) CAM.innerHTML = '<div style="font-size:10px;color:#7f8c8d;padding:4px;text-align:center;">Nenhum objeto neste mapa.</div>';
+        }
+    }
+
+    function meDefinirAlvoRecorteSelecao(sel) {
+        if (sel && sel.tipo === 'sprite_personalizado') {
+            assetCropTarget = 'selection';
+            assetCropAsset = sel.asset;
+        } else if (assetCropTarget === 'selection') {
+            assetCropTarget = 'brush';
+            assetCropAsset = brush.tipo === 'sprite_personalizado' ? brush.asset : '';
         }
     }
 
@@ -2822,16 +5180,66 @@
         meSel = sel;
         if (!sel) {
             panel.classList.remove('visible');
+            meDefinirAlvoRecorteSelecao(null);
+            meDesenharRecorteSprite();
             return;
         }
         panel.classList.add('visible');
         var def = CATALOGO[sel.tipo];
-        document.getElementById('me-sel-titulo').textContent = (def ? def.icone + ' ' + def.nome : sel.tipo) + ' (' + sel.mapa + ')';
+        document.getElementById('me-sel-titulo').textContent = (def ? def.icone + ' ' + def.nome : (sel.asset || sel.tipo)) + ' (' + sel.mapa + ')';
         document.getElementById('me-sel-pos').textContent = 'X:' + sel.x + '  Y:' + sel.y + '  Colisão: ' + (sel.colisao ? 'SIM' : 'NÃO');
-        document.getElementById('me-sel-w').textContent = sel.w || 40;
-        document.getElementById('me-sel-h').textContent = sel.h || 40;
+        document.getElementById('me-sel-w').textContent = sel.tipo === 'zona_colisao' && Array.isArray(sel.pontos) ? Math.round((sel.raioX || 12) * 2) : (sel.w || 40);
+        document.getElementById('me-sel-h').textContent = sel.tipo === 'zona_colisao' && Array.isArray(sel.pontos) ? Math.round((sel.raioY || 12) * 2) : (sel.h || 40);
+        var escalaSel = document.getElementById('me-sel-escala');
+        if (escalaSel) escalaSel.value = sel.escala || 1;
+        var escalaLabel = document.getElementById('me-sel-escala-label');
+        if (escalaLabel) escalaLabel.textContent = (sel.escala || 1).toFixed(1) + 'x';
+        var escalaXSelecionada = document.getElementById('me-sel-scale-x');
+        if (escalaXSelecionada) escalaXSelecionada.value = sel.escalaX || 1;
+        var escalaYSelecionada = document.getElementById('me-sel-scale-y');
+        if (escalaYSelecionada) escalaYSelecionada.value = sel.escalaY || 1;
+        if (escalaXSelecionada) escalaXSelecionada.disabled = sel.tipo !== 'sprite_personalizado';
+        if (escalaYSelecionada) escalaYSelecionada.disabled = sel.tipo !== 'sprite_personalizado';
+        var rotacaoSelecionada = document.getElementById('me-sel-rotation');
+        if (rotacaoSelecionada) rotacaoSelecionada.value = Math.round(Number(sel.rotacao) || 0);
+        if (rotacaoSelecionada) rotacaoSelecionada.disabled = sel.tipo !== 'sprite_personalizado';
+        var rotacaoLabel = document.getElementById('me-sel-rotation-label');
+        if (rotacaoLabel) rotacaoLabel.textContent = Math.round(Number(sel.rotacao) || 0) + '°';
+        ['me-sel-rotate-left', 'me-sel-rotate-right'].forEach(function (id) {
+            var button = document.getElementById(id);
+            if (button) button.disabled = sel.tipo !== 'sprite_personalizado';
+        });
+        var ordemSelecionada = document.getElementById('me-sel-order');
+        if (ordemSelecionada) ordemSelecionada.value = Math.max(0, Number(sel.ordem) || 0);
+        var animacaoSel = document.getElementById('me-sel-animacao');
+        if (animacaoSel) {
+            animacaoSel.value = ANIMACOES_SPRITE_VALIDAS.indexOf(sel.animacao) !== -1 ? sel.animacao : 'nenhuma';
+            animacaoSel.disabled = sel.tipo !== 'sprite_personalizado';
+        }
+        var areaAnimacaoWrap = document.getElementById('me-area-animacao-wrap');
+        if (areaAnimacaoWrap) areaAnimacaoWrap.style.display = sel.tipo === 'sprite_personalizado' ? 'flex' : 'none';
+        if (sel.tipo === 'sprite_personalizado') {
+            meDesenharAreaAnimacao();
+        }
+        var lassoTools = document.getElementById('me-sel-lasso-tools');
+        if (lassoTools) lassoTools.style.display = sel.tipo === 'sprite_personalizado' &&
+            (window.mapaEditorTab === 'colisao' || window.mapaEditorTab === 'camada') ? 'flex' : 'none';
+        var lassoStatus = document.getElementById('me-sel-lasso-status');
+        if (lassoStatus) lassoStatus.textContent = 'Colisão: ' +
+            (mascaraPoligonoValida(sel.assetCollisionMask) ? 'contorno Laço 1' : 'retângulo') +
+            ' · Y: ' + (Number.isFinite(sel.ySortAnchor) ? Math.round(sel.ySortAnchor * 100) + '% do Laço 1' : 'base da sprite');
+        var splitTools = document.getElementById('me-sel-depth-split-tools');
+        if (splitTools) splitTools.style.display = sel.tipo === 'sprite_personalizado' && assetMaskValida(sel.assetMask) ? 'flex' : 'none';
+        var splitInput = document.getElementById('me-sel-depth-split');
+        var splitLabel = document.getElementById('me-sel-depth-split-label');
+        if (splitInput) {
+            splitInput.value = String(Math.round((divisaoSpriteValida(sel) ? sel.assetDepthSplit : 0.5) * 100));
+            splitInput.disabled = !divisaoSpriteValida(sel);
+        }
+        if (splitLabel) splitLabel.textContent = (divisaoSpriteValida(sel) ? Math.round(sel.assetDepthSplit * 100) : 50) + '%';
+        meDesenharRecorteSprite();
         var cam = document.getElementById('me-sel-camada');
-        if (cam) cam.value = sel.camada || 'meio';
+        if (cam) cam.value = normalizarCamadaEditor(sel.camada);
         var ci = document.getElementById('me-sel-colisao');
         if (ci) ci.checked = !!sel.colisao;
         var ef = document.getElementById('me-sel-efeito');
@@ -2871,12 +5279,14 @@
         meAtualizarPropsUI();
         meAtualizarToolbar();
         meAtualizarPainel();
+        window.meAtualizarSprites();
+        window.meSolicitarSpritePalette();
     };
 
     window.fecharEditorMapa = function () {
         window.mapaEditorAtivo = false;
         meSelId = null; meSel = null;
-        meMoverObj = null; mePintando = false;
+        meMoverObj = null; mePintando = false; meTracoColisao = null;
         var scr = document.getElementById('mapa-editor-screen');
         if (scr) scr.classList.remove('visible');
         var badge = document.getElementById('mapa-editor-hud-badge');
@@ -2891,6 +5301,35 @@
         if (scr) scr.classList.toggle('visible', !window.mapaEditorMinimizado);
     };
 
+    function mePosicionarPainelSelecao(tab) {
+        var panel = document.getElementById('me-sel-panel');
+        var body = document.getElementById('mapa-editor-body');
+        if (!panel || !body) return;
+        if (tab === 'objetos') {
+            var settings = document.getElementById('me-brush-settings');
+            var biomeSelect = document.getElementById('me-bioma-catalogo');
+            var biomeRow = biomeSelect && biomeSelect.parentNode && biomeSelect.parentNode.parentNode;
+            if (settings && biomeRow && biomeRow.parentNode) biomeRow.parentNode.insertBefore(panel, biomeRow);
+            return;
+        }
+        var activePanel = document.getElementById(tab === 'colisao' ? 'me-panel-colisao' : 'me-panel-camada');
+        if (activePanel && activePanel.parentNode) activePanel.parentNode.insertBefore(panel, activePanel.nextSibling);
+    }
+
+    function mePosicionarRecorteSprite(tab) {
+        var wrap = document.getElementById('me-recorte-wrap');
+        if (!wrap) return;
+        if (tab === 'colisao' || tab === 'camada') {
+            var holder = document.getElementById('me-sel-lasso-holder');
+            if (holder && wrap.parentNode !== holder) holder.appendChild(wrap);
+        } else {
+            var palette = document.getElementById('me-sprites-paleta');
+            if (palette && palette.parentNode && wrap.parentNode !== palette.parentNode) {
+                palette.parentNode.insertBefore(wrap, palette);
+            }
+        }
+    }
+
     window.meSetTab = function (tab) {
         window.mapaEditorTab = tab;
         document.getElementById('me-panel-objetos').style.display = tab === 'objetos' ? 'flex' : 'none';
@@ -2899,6 +5338,8 @@
         document.getElementById('me-tab-objetos').classList.toggle('active', tab === 'objetos');
         document.getElementById('me-tab-colisao').classList.toggle('active', tab === 'colisao');
         document.getElementById('me-tab-camada').classList.toggle('active', tab === 'camada');
+        mePosicionarPainelSelecao(tab);
+        mePosicionarRecorteSprite(tab);
         if (tab === 'colisao' || tab === 'camada') {
             meSetFerramenta(tab === 'colisao' ? 'colocar_colisao' : 'colocar_frente');
         } else {
@@ -2909,6 +5350,8 @@
     };
 
     window.meSetFerramenta = function (f) {
+        if (meTracoColisao && f !== 'colocar_colisao') finalizarTracoColisao(meLastX, meLastY);
+        if (f !== 'colocar') stampPlacementArmed = false;
         meFerramenta = f;
         meAtualizarToolbar();
     };
@@ -2939,7 +5382,7 @@
     window.meToggleSnap = function () {
         meSnap = !meSnap;
         var b = document.getElementById('me-snap-btn');
-        if (b) { b.textContent = '🧲 Grade 20: ' + (meSnap ? 'ON' : 'OFF'); b.classList.toggle('active', meSnap); }
+        if (b) { b.textContent = meSnap ? '🧲 GRID SNAP 20' : '🧲 FREE'; b.classList.toggle('active', meSnap); }
     };
 
     window.meRandomVariante = function () {
@@ -2949,7 +5392,73 @@
     };
 
     window.meSetEscala = function (v) {
-        brush.escala = Math.max(0.5, Math.min(3, Number(v) || 1));
+        brush.escala = Math.max(0.2, Math.min(4, Number(v) || 1));
+    };
+
+    window.meSetBrushScaleAxis = function (axis, value) {
+        if (brush.tipo !== 'sprite_personalizado' || (axis !== 'escalaX' && axis !== 'escalaY')) return;
+        brush[axis] = Math.max(0.2, Math.min(4, Number(value) || 1));
+    };
+
+    window.meSetBrushRotation = function (value) {
+        if (brush.tipo !== 'sprite_personalizado') return;
+        brush.rotacao = ((Number(value) || 0) % 360 + 360) % 360;
+        var label = document.getElementById('me-brush-rotation-label');
+        if (label) label.textContent = Math.round(brush.rotacao) + '°';
+    };
+
+    window.meSetAnimacao = function (animacao) {
+        brush.animacao = ANIMACOES_SPRITE_VALIDAS.indexOf(animacao) !== -1 ? animacao : 'nenhuma';
+    };
+
+    window.meSetSelEscala = function (v, persistir) {
+        if (!meSel) return;
+        meSel.escala = Math.max(0.2, Math.min(4, Number(v) || 1));
+        var label = document.getElementById('me-sel-escala-label');
+        if (label) label.textContent = meSel.escala.toFixed(1) + 'x';
+        if (persistir) {
+            enviar(meSel, 'editar');
+            meAtualizarPropsUI();
+            meAtualizarListas();
+        }
+    };
+
+    window.meSetSelScaleAxis = function (axis, value, persistir) {
+        if (!meSel || meSel.tipo !== 'sprite_personalizado' || (axis !== 'escalaX' && axis !== 'escalaY')) return;
+        meSel[axis] = Math.max(0.2, Math.min(4, Number(value) || 1));
+        if (persistir) {
+            enviar(meSel, 'editar');
+            meAtualizarPropsUI();
+            meAtualizarListas();
+        }
+    };
+
+    window.meSetSelRotation = function (value, persistir) {
+        if (!meSel || meSel.tipo !== 'sprite_personalizado') return;
+        meSel.rotacao = ((Number(value) || 0) % 360 + 360) % 360;
+        var slider = document.getElementById('me-sel-rotation');
+        var label = document.getElementById('me-sel-rotation-label');
+        if (slider) slider.value = String(Math.round(meSel.rotacao));
+        if (label) label.textContent = Math.round(meSel.rotacao) + '°';
+        if (persistir) {
+            enviar(meSel, 'editar');
+            meAtualizarPropsUI();
+            meAtualizarListas();
+        }
+    };
+
+    window.meRotateSelected = function (delta) {
+        if (!meSel || meSel.tipo !== 'sprite_personalizado' || window.mapaEditorTravado) return;
+        window.meSetSelRotation((Number(meSel.rotacao) || 0) + Number(delta || 0), true);
+    };
+
+    window.meSetSelOrder = function (value) {
+        if (!meSel) return;
+        var order = Number(value);
+        if (!Number.isFinite(order)) return;
+        meSel.ordem = Math.max(0, Math.min(1000000, Math.round(order)));
+        enviar(meSel, 'editar');
+        meAtualizarPropsUI();
     };
 
     window.meSetVariante = function (d) {
@@ -2959,8 +5468,7 @@
     };
 
     window.meSetCamada = function (v) {
-        var cam = v === 'chao' || v === 'frente' ? v : 'meio';
-        brush.camada = cam;
+        brush.camada = normalizarCamadaEditor(v);
     };
 
     window.meSetColisao = function (b) {
@@ -2988,14 +5496,106 @@
         meAtualizarPropsUI(); meAtualizarListas();
     };
 
+    window.meAplicarLacoColisao = function () {
+        if (!meSel || meSel.tipo !== 'sprite_personalizado') {
+            meToast('Selecione uma sprite personalizada antes de aplicar o Laço 1.');
+            return;
+        }
+        if (meSel.assetMaskMode !== 'manual' || !assetMaskValida(meSel.assetMask)) {
+            meToast('Desenhe primeiro o contorno com o Laço 1 na imagem da sprite.');
+            return;
+        }
+        meSel.assetCollisionMask = meSel.assetMask.map(function (point) { return { x: point.x, y: point.y }; });
+        meSel.colisao = true;
+        enviar(meSel, 'editar');
+        meAtualizarPropsUI();
+        meAtualizarListas();
+        meToast('Laço 1 aplicado à colisão desta sprite.');
+    };
+
+    window.meAplicarDivisaoSprite = function () {
+        if (!meSel || meSel.tipo !== 'sprite_personalizado' || !assetMaskValida(meSel.assetMask)) {
+            meToast('Selecione uma sprite personalizada recortada pelo Laço para dividir copa e tronco.');
+            return;
+        }
+        var limite = divisaoSpriteValida(meSel) ? meSel.assetDepthSplit : 0.5;
+        if (!atualizarDivisaoAutomaticaSprite(meSel, limite)) {
+            meToast('Não foi possível gerar uma colisão inferior válida para esta divisão.');
+            return;
+        }
+        enviar(meSel, 'editar');
+        meAtualizarPropsUI();
+        meToast('Divisão aplicada: parte superior no Y-sort e parte inferior com colisão.');
+    };
+
+    window.meSetSelDepthSplit = function (value, persistir) {
+        if (!meSel || !divisaoSpriteValida(meSel)) return;
+        var limite = Math.max(0.1, Math.min(0.9, Number(value) / 100));
+        if (!atualizarDivisaoAutomaticaSprite(meSel, limite)) {
+            if (persistir) meToast('Essa altura não produz uma máscara de colisão válida.');
+            meAtualizarPropsUI();
+            return;
+        }
+        var label = document.getElementById('me-sel-depth-split-label');
+        if (label) label.textContent = Math.round(limite * 100) + '%';
+        if (persistir) {
+            enviar(meSel, 'editar');
+            meAtualizarPropsUI();
+            meAtualizarListas();
+        }
+    };
+
+    window.meRemoverDivisaoSprite = function () {
+        if (!meSel || !divisaoSpriteValida(meSel)) return;
+        delete meSel.assetDepthSplit;
+        delete meSel.assetCollisionMask;
+        delete meSel.ySortAnchor;
+        meSel.colisao = false;
+        enviar(meSel, 'editar');
+        meAtualizarPropsUI();
+        meAtualizarListas();
+        meToast('Divisão removida; a sprite voltou à ordenação e colisão padrão.');
+    };
+
+    window.meLimparLacoColisao = function () {
+        if (!meSel || meSel.tipo !== 'sprite_personalizado') return;
+        delete meSel.assetCollisionMask;
+        enviar(meSel, 'editar');
+        meAtualizarPropsUI();
+        meAtualizarListas();
+        meToast('Máscara da colisão removida; colisão retangular restaurada.');
+    };
+
+    window.meAplicarLacoCamadaY = function () {
+        if (!meSel || meSel.tipo !== 'sprite_personalizado') {
+            meToast('Selecione uma sprite personalizada antes de aplicar o Laço 1.');
+            return;
+        }
+        if (meSel.assetMaskMode !== 'manual' || !assetMaskValida(meSel.assetMask)) {
+            meToast('Desenhe primeiro o contorno com o Laço 1 na imagem da sprite.');
+            return;
+        }
+        meSel.ySortAnchor = ancoraYDoLaco(meSel.assetMask);
+        enviar(meSel, 'editar');
+        meAtualizarPropsUI();
+        meToast('Referência Y definida pelo ponto inferior central do Laço 1.');
+    };
+
+    window.meLimparLacoCamadaY = function () {
+        if (!meSel || meSel.tipo !== 'sprite_personalizado') return;
+        delete meSel.ySortAnchor;
+        enviar(meSel, 'editar');
+        meAtualizarPropsUI();
+        meToast('Ordenação Y padrão restaurada para a base da sprite.');
+    };
+
     window.meSetSelCamada = function (v, idForcado) {
         var lista = window.mapaObjetos || [];
         var alvo = null;
         if (idForcado) { for (var i = 0; i < lista.length; i++) if (lista[i].id === idForcado) { alvo = lista[i]; break; } }
         else alvo = meSel;
         if (!alvo) return;
-        var cam = v === 'chao' || v === 'frente' ? v : 'meio';
-        alvo.camada = cam;
+        alvo.camada = normalizarCamadaEditor(v);
         enviar(alvo, 'editar');
         meAtualizarPropsUI(); meAtualizarListas();
     };
@@ -3009,6 +5609,20 @@
 
     window.meSetWH = function (prop, d) {
         if (!meSel) return;
+        if (meSel.tipo === 'zona_colisao' && Array.isArray(meSel.pontos) && meSel.pontos.length) {
+            var raioProp = prop === 'w' ? 'raioX' : 'raioY';
+            meSel[raioProp] = Math.max(2, Math.min(100, (Number(meSel[raioProp]) || 12) + d / 2));
+            var xs = meSel.pontos.map(function (ponto) { return ponto.x; });
+            var ys = meSel.pontos.map(function (ponto) { return ponto.y; });
+            meSel.x = Math.floor(Math.min.apply(null, xs) - meSel.raioX);
+            meSel.y = Math.floor(Math.min.apply(null, ys) - meSel.raioY);
+            meSel.w = Math.ceil(Math.max.apply(null, xs) - Math.min.apply(null, xs) + meSel.raioX * 2);
+            meSel.h = Math.ceil(Math.max.apply(null, ys) - Math.min.apply(null, ys) + meSel.raioY * 2);
+            enviar(meSel, 'editar');
+            meAtualizarPropsUI();
+            meAtualizarListas();
+            return;
+        }
         var v = (prop === 'w' ? (meSel.w || 40) : (meSel.h || 40)) + d;
         v = Math.max(4, Math.min(500, v));
         if (prop === 'w') meSel.w = v; else meSel.h = v;
@@ -3053,8 +5667,10 @@
 
     window.meSalvar = function () {
         if (global.ws && global.ws.readyState === 1) {
-            global.ws.send(JSON.stringify({ action: 'admin_map_objetos_sync' }));
-            meToast('💾 Objetos já são salvos automaticamente no servidor. Sincronizando...');
+            var mapa = global.currentMap || 'green';
+            var objetos = obterListaAtual();
+            global.ws.send(JSON.stringify({ action: 'admin_map_objetos_sync', mapa: mapa, objetos: objetos }));
+            meToast('💾 Salvando ' + objetos.length + ' objeto(s) do mapa ' + mapa + '...');
         } else {
             meToast('Erro: conexão fechada.');
         }
@@ -3066,12 +5682,17 @@
         if (!window.confirm('Apagar TODOS os objetos/collisões do mapa ' + mapa.toUpperCase() + '?')) return;
         if (global.ws && global.ws.readyState === 1) {
             global.ws.send(JSON.stringify({ action: 'admin_map_objetos_limpar', mapa: mapa }));
-            meToast('🗑️ Mapa ' + mapa + ' limpo!');
+            meToast('Solicitando limpeza apenas do mapa ' + mapa + '...');
+        } else {
+            meToast('Não foi possível limpar: conexão com o servidor fechada.');
         }
     };
 
     window.meSelecionar = function (id) {
         meSelId = id;
+        var selected = (window.mapaObjetos || []).find(function (object) { return object && object.id === id; }) || null;
+        meSel = selected;
+        meDefinirAlvoRecorteSelecao(selected);
         meAtualizarListas();
         meAtualizarPropsUI();
     };
@@ -3081,17 +5702,23 @@
             meToast('🔒 Editor travado — destrave (🔓) antes de apagar.');
             return;
         }
-        // Remove imediatamente na tela (otimista) e avisa o servidor.
-        // Antes dependia só do broadcast voltar — se o servidor demorasse,
-        // o objeto não sumia. Agora some na hora e o servidor confirma depois.
-        window.mapaObjetos = (window.mapaObjetos || []).filter(function (o) { return o && o.id !== id; });
-        if (global.ws && global.ws.readyState === 1) {
-            global.ws.send(JSON.stringify({ action: 'admin_map_objetos_excluir', id: id }));
+        if (typeof id !== 'string' || !id) {
+            meToast('Não foi possível excluir: identificador do objeto inválido.');
+            return;
         }
-        if (meSelId === id) { meSelId = null; meSel = null; }
-        meAtualizarListas();
-        meAtualizarPropsUI();
-        meToast('🗑️ Objeto excluído!');
+        if (!global.ws || global.ws.readyState !== 1) {
+            meToast('Não foi possível excluir: conexão com o servidor fechada.');
+            return;
+        }
+        var existeLocal = (window.mapaObjetos || []).some(function (objeto) { return objeto && objeto.id === id; });
+        if (!existeLocal) {
+            meToast('Não foi possível excluir: o objeto não está mais na lista atual.');
+            return;
+        }
+        global.ws.send(JSON.stringify({ action: 'admin_map_objetos_excluir', id: id }));
+        meToast(mapaObjetoIdsConfirmados.has(id)
+            ? 'Solicitando exclusão de um objeto...'
+            : 'Objeto ainda não confirmado pelo servidor; sincronizando a exclusão...');
     };
 
     window.meExcluirSel = function () {
@@ -3113,23 +5740,36 @@
         var copia = JSON.parse(JSON.stringify(meSel));
         copia.id = 'obj_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 7);
         copia.x += 20; copia.y += 20;
+        copia.ordem = window.mapaObjetos.reduce(function (maximo, existente) { return Math.max(maximo, Number(existente.ordem) || 0); }, 0) + 1;
         window.mapaObjetos.push(copia);
         meSelId = copia.id; meSel = copia;
-        enviar(copia, 'criar');
+        enviarNovoObjeto(copia);
         meAtualizarListas();
         meAtualizarPropsUI();
     };
 
     function meAtualizarPainel() {
         // sincroniza seletores do brush com o estado atual
+        var transformRow = document.getElementById('me-brush-transform-row');
+        if (transformRow) transformRow.style.display = brush.tipo === 'sprite_personalizado' ? 'flex' : 'none';
         var cam = document.getElementById('me-camada');
-        if (cam) cam.value = brush.camada;
+        if (cam) cam.value = normalizarCamadaEditor(brush.camada);
         var ci = document.getElementById('me-colisao');
         if (ci) ci.checked = !!brush.colisao;
         var ef = document.getElementById('me-efeito');
         if (ef) ef.value = brush.efeito || 'nenhum';
         var esc = document.getElementById('me-escala');
         if (esc) esc.value = brush.escala;
+        var escalaXBrush = document.getElementById('me-brush-scale-x');
+        if (escalaXBrush) escalaXBrush.value = brush.escalaX || 1;
+        var escalaYBrush = document.getElementById('me-brush-scale-y');
+        if (escalaYBrush) escalaYBrush.value = brush.escalaY || 1;
+        var rotacaoBrush = document.getElementById('me-brush-rotation');
+        if (rotacaoBrush) rotacaoBrush.value = Math.round(Number(brush.rotacao) || 0);
+        var rotacaoBrushLabel = document.getElementById('me-brush-rotation-label');
+        if (rotacaoBrushLabel) rotacaoBrushLabel.textContent = Math.round(Number(brush.rotacao) || 0) + '°';
+        var animacao = document.getElementById('me-animacao');
+        if (animacao) animacao.value = brush.animacao;
         var varLb = document.getElementById('me-variante-label');
         if (varLb) varLb.textContent = brush.variante;
         var zbw = document.getElementById('me-zona-w-label');
@@ -3146,5 +5786,6 @@
     injetarEstilos();
     registrarInput();
     montarEditorUI();
+    mePosicionarPainelSelecao('objetos');
     meAtualizarPainel();
 })(window);

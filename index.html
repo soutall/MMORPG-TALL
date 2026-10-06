@@ -7,9 +7,10 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Oswald:wght@500;600;700&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=251">
+    <link rel="stylesheet" href="style.css?v=254">
+    <link rel="stylesheet" href="sistemas/pets/pets-ui.css?v=1">
     <link rel="stylesheet" href="inventario.css?v=171">
-    <link rel="stylesheet" href="skills.css?v=146">
+    <link rel="stylesheet" href="skills.css?v=149">
     <link rel="stylesheet" href="config.css?v=150">
     <link rel="stylesheet" href="atributos.css?v=5">
     <link rel="stylesheet" href="spawn-admin.css?v=2">
@@ -17,7 +18,7 @@
     <link rel="stylesheet" href="dragdrop.css?v=4">
     <link rel="stylesheet" href="ferreiro.css?v=1">
     <link rel="stylesheet" href="intro.css?v=1">
-    <link rel="stylesheet" href="mobile-hud.css?v=6">
+    <link rel="stylesheet" href="mobile-hud.css?v=9">
     <link rel="stylesheet" href="item-admin.css?v=2">
     <link rel="stylesheet" href="personagem-select.css?v=2">
     <style>
@@ -119,17 +120,25 @@
 
     <div id="login-screen">
         <h1>⚔️ ENTRAR NO MUNDO</h1>
-        <p>Entre com sua conta Google verificada:</p>
+        <p id="login-instructions">Entre com sua conta Google verificada:</p>
         <div id="google-login-box" style="display:flex; flex-direction:column; align-items:center; gap:12px; min-height:48px;">
             <div id="google-signin-button"></div>
-            <div id="login-remembered-account" style="display:none; align-items:center; gap:8px; justify-content:center; flex-wrap:wrap; max-width:360px;">
-                <span style="color:#cfe9ff; font-size:12px; opacity:0.85;">Última conta:</span>
-                <button id="login-remembered-email-button" type="button" style="padding:6px 10px; border-radius:999px; border:1px solid rgba(255,255,255,0.25); background:rgba(255,255,255,0.08); color:#fff; cursor:pointer;">conta@exemplo.com</button>
+            <div id="login-remembered-account" style="display:none; flex-direction:column; align-items:center; gap:8px; justify-content:center; max-width:360px;">
+                <span style="color:#cfe9ff; font-size:12px; opacity:0.85;">Última conta: <strong id="login-remembered-email" style="color:#fff;"></strong></span>
             </div>
+            <button id="login-direct-button" type="button" style="display:none; padding:9px 18px; border-radius:999px; border:1px solid rgba(241,196,15,0.7); background:rgba(35,28,8,0.82); color:#ffe17a; cursor:pointer; font:700 15px 'Rajdhani',sans-serif;">Entrar direto com Google</button>
             <div id="google-login-status" role="status" aria-live="polite" style="max-width:320px; color:#ffd27d; text-align:center; font:600 14px 'Rajdhani',sans-serif;">Carregando login Google…</div>
             <button id="login-logout" type="button" onclick="window.logoutGoogleConta && window.logoutGoogleConta()" style="display:none; padding:8px 12px; border-radius:999px; background:rgba(231,76,60,0.2); border:1px solid rgba(231,76,60,0.45); color:#ffd5d5; cursor:pointer; font-weight:700;">Sair da conta</button>
         </div>
-        <div class="game-version-display">v1.75.1</div>
+        <div id="local-id-login-box" style="display:none; flex-direction:column; align-items:center; gap:10px; margin-top:12px;">
+            <label for="local-id-login-input" style="color:#cfe9ff;font:600 14px 'Rajdhani',sans-serif;">ID do personagem (modo local de teste)</label>
+            <input id="local-id-login-input" type="text" maxlength="64" autocomplete="off" spellcheck="false"
+                style="width:min(280px,80vw);padding:10px 12px;border:1px solid rgba(255,255,255,.25);border-radius:8px;background:#101820;color:#fff;">
+            <button id="local-id-login-button" type="button"
+                style="padding:9px 18px;border-radius:999px;background:#1c7c54;border:1px solid #49b989;color:#fff;font-weight:700;cursor:pointer;">Entrar por ID (somente local)</button>
+            <span id="local-id-login-status" role="status" style="max-width:320px;color:#ffd27d;text-align:center;font:600 13px 'Rajdhani',sans-serif;"></span>
+        </div>
+        <div class="game-version-display">v1.75.50</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -186,7 +195,7 @@
     <div id="elite-alert-notice" role="alert" aria-live="assertive">⚠ ATENÇÃO: ELITE ESTÁ NO MAPA</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
     <div id="ping-counter" data-ui="ping">PING: -- ms</div>
-    <div id="hud-version" class="game-version-display">v1.75.1</div>
+    <div id="hud-version" class="game-version-display">v1.75.50</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -405,6 +414,9 @@
             <button class="mobile-sidebar-item" onclick="acionarMenuMobile(toggleInventario)" title="Inventário">
                 <span class="item-ico">🎒</span><span class="item-lbl">Inventário</span>
             </button>
+            <button class="mobile-sidebar-item" onclick="acionarMenuMobile(function () { abrirPets('pets'); })" title="Bestiário e Pets">
+                <span class="item-ico">🐾</span><span class="item-lbl">Pets / Bestiário</span>
+            </button>
             <button class="mobile-sidebar-item" onclick="acionarMenuMobile(toggleSkills)" title="Habilidades">
                 <span class="item-ico">🪄</span><span class="item-lbl">Skills</span>
             </button>
@@ -433,15 +445,15 @@
         </div>
         <button id="btn-dash" class="btn-action btn-dash" ontouchstart="usarDash(); event.stopPropagation();" ontouchend="soltarDash(); event.stopPropagation();" onmouseup="soltarDash();" onclick="usarDash();" title="Dash (1)">💨<span class="key-badge">1</span></button>
         <button id="btn-guerreiro-guardiao" class="btn-action btn-guerreiro-guardiao" ontouchstart="usarPosturaGuardiao(); event.stopPropagation();" onclick="usarPosturaGuardiao();" title="Aura do Vanguarda (1)">🛡️<span class="key-badge">1</span></button>
-        <button id="btn-tornado" class="btn-action btn-tornado" ontouchstart="usarTornado(); event.stopPropagation();" onclick="usarTornado();" title="Giro do Vanguarda (2)">🌪️<span class="key-badge">2</span></button>
+        <button id="btn-tornado" class="btn-action btn-tornado" ontouchstart="usarTornado(); event.stopPropagation();" onclick="usarTornado();" title="Giro do Vanguarda (2)"><img src="imagem/HUD/skills/Slotbar/guerreiro/Giro%20do%20Vanguarda.png" class="btn-action-icon-img" alt="Giro do Vanguarda" draggable="false" /><span class="key-badge">2</span></button>
         <button id="btn-guerreiro-provocacao" class="btn-action btn-guerreiro-provocacao" ontouchstart="usarGritoProvocacao(); event.stopPropagation();" onclick="usarGritoProvocacao();" title="Grito Estrondoso (3)">📢<span class="key-badge">3</span></button>
         <button id="btn-meteoro" class="btn-action btn-meteoro" ontouchstart="ativarMeteoroSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarMeteoroSmartCast();" title="Meteoro (1)">☄️<span class="key-badge">1</span></button>
         <button id="btn-nevasca" class="btn-action btn-nevasca" ontouchstart="ativarNevascaSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarNevascaSmartCast();" title="Nevasca (2)">❄️<span class="key-badge">2</span></button>
         <button id="btn-vulcao" class="btn-action btn-vulcao" ontouchstart="ativarVulcaoSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarVulcaoSmartCast();" title="Vulcão (3)">🌋<span class="key-badge">3</span></button>
-        <button id="btn-ogro-skill" class="btn-action btn-ogro-skill" ontouchstart="usarComandoOgro(); event.stopPropagation();" onclick="usarComandoOgro();" title="Comando Ogro (1)">💥<span class="key-badge">1</span></button>
-        <button id="btn-ogro-salto" class="btn-action btn-ogro-salto" ontouchstart="ativarSaltoSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarSaltoSmartCast();" title="Salto do Ogro (2)">🦘<span class="key-badge">2</span></button>
+        <button id="btn-ogro-skill" class="btn-action btn-ogro-skill" ontouchstart="usarComandoOgro(); event.stopPropagation();" onclick="usarComandoOgro();" title="Esmagamento Sísmico (1)"><img src="imagem/HUD/skills/Slotbar/Summoner/esmagamento-sismico.png" class="btn-action-icon-img" alt="Esmagamento Sísmico" draggable="false" /><span class="key-badge">1</span></button>
+        <button id="btn-ogro-salto" class="btn-action btn-ogro-salto" ontouchstart="ativarSaltoSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarSaltoSmartCast();" title="Salto do Ogro (2)"><img src="imagem/HUD/skills/Slotbar/Summoner/salto-do-ogro.png" class="btn-action-icon-img" alt="Salto do Ogro" draggable="false" /><span class="key-badge">2</span></button>
         <div id="ogro-colossal-wrap" style="position:relative; width:54px; height:54px; display:none;">
-            <button id="btn-ogro-colossal" class="btn-action btn-ogro-colossal" ontouchstart="usarOgroColossal(); event.preventDefault(); event.stopPropagation();" onclick="usarOgroColossal();" title="Golem Colossal (3)">🗿<span class="key-badge">3</span></button>
+            <button id="btn-ogro-colossal" class="btn-action btn-ogro-colossal" ontouchstart="usarOgroColossal(); event.preventDefault(); event.stopPropagation();" onclick="usarOgroColossal();" title="Golem Colossal (3)"><img src="imagem/HUD/skills/Slotbar/Summoner/golem-colossal.png" class="btn-action-icon-img" alt="Golem Colossal" draggable="false" /><span class="key-badge">3</span></button>
             <div id="ogro-modo-ui" class="ogro-modo-ui">
                 <button class="ogro-modo-btn ogro-modo-agressivo active" onclick="setOgroModo('agressivo'); event.stopPropagation();" title="Golem AGRESSIVO: ataca os inimigos que a Summoner focar">🎯</button>
                 <button class="ogro-modo-btn ogro-modo-passivo" onclick="setOgroModo('passivo'); event.stopPropagation();" title="Golem PASSIVO: fica sem atacar, apenas rodeando a Summoner">🛡️</button>
@@ -504,9 +516,9 @@
         <button id="btn-kaledron-redemoinho" class="btn-action btn-kaledron-redemoinho" ontouchstart="usarRedemoinhoKaledron(); event.stopPropagation();" onclick="usarRedemoinhoKaledron();" title="Redemoinho de Aço (3)">🌪️<span class="key-badge">3</span></button>
         <button id="btn-kaledron-brado" class="btn-action btn-kaledron-brado" ontouchstart="usarBradoGuerraKaledron(); event.stopPropagation();" onclick="usarBradoGuerraKaledron();" title="Brado de Guerra Vulcânico (4)">📢<span class="key-badge">4</span></button>
         <!-- NOVAS SKILLS -->
-        <button id="btn-guerreiro-escudo" class="btn-action btn-guerreiro-escudo" ontouchstart="ativarEscudoSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarEscudoSmartCast();" title="Lançamento do Escudo (4)">🛡️<span class="key-badge">4</span></button>
+        <button id="btn-guerreiro-escudo" class="btn-action btn-guerreiro-escudo" ontouchstart="ativarEscudoSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarEscudoSmartCast();" title="Lançamento do Escudo (4)"><img src="imagem/HUD/skills/Slotbar/guerreiro/lancamento%20do%20escudo.png" class="btn-action-icon-img" alt="Lançamento do Escudo" draggable="false" /><span class="key-badge">4</span></button>
         <button id="btn-mago-bola" class="btn-action btn-mago-bola" ontouchstart="ativarBolaElementalSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarBolaElementalSmartCast();" title="Bola Elemental (4)">🔮<span class="key-badge">4</span></button>
-        <button id="btn-summoner-golem" class="btn-action btn-summoner-golem" ontouchstart="usarGolemSismico(); event.stopPropagation();" onclick="usarGolemSismico();" title="Golem Sísmico (4)">⛰️<span class="key-badge">4</span></button>
+        <button id="btn-summoner-golem" class="btn-action btn-summoner-golem" ontouchstart="usarGolemSismico(); event.stopPropagation();" onclick="usarGolemSismico();" title="Golem Sísmico (4)"><img src="imagem/HUD/skills/Slotbar/Summoner/golem-sismico.png" class="btn-action-icon-img" alt="Golem Sísmico" draggable="false" /><span class="key-badge">4</span></button>
         <button id="btn-arqueiro-salto" class="btn-action btn-arqueiro-salto" ontouchstart="usarSaltoArqueiro(); event.stopPropagation();" onclick="usarSaltoArqueiro();" title="Salto + Chuva (4)">🦅<span class="key-badge">4</span></button>
         <button id="btn-curandeiro-cantico" class="btn-action btn-curandeiro-cantico" ontouchstart="usarCanticoCelestial(); event.stopPropagation();" onclick="usarCanticoCelestial();" title="Cântico Celestial (4)">👼<span class="key-badge">4</span></button>
         <button id="btn-barbaro-vinculo" class="btn-action btn-barbaro-vinculo" ontouchstart="usarVinculoBerserker(); event.stopPropagation();" onclick="usarVinculoBerserker();" title="Vínculo Berserker (4)">⛓️<span class="key-badge">4</span></button>
@@ -527,7 +539,26 @@
         <button id="btn-status" class="btn-util btn-status" onclick="toggleAtributos()" title="Status / Atributos (C)">📊<span class="key-badge">C</span></button>
         <button id="btn-skills" class="btn-util btn-skills" onclick="toggleSkills()" title="Habilidades (K)">🪄<span class="key-badge">K</span></button>
         <button id="btn-inventario" class="btn-util btn-inventario" onclick="toggleInventario()" title="Inventário (I)">🎒<span class="key-badge">I</span></button>
+        <button id="btn-pets" class="btn-util" onclick="abrirPets('pets')" title="Bestiário e Pets (B)">🐾<span class="key-badge">B</span></button>
         <button id="btn-config" class="btn-util btn-config" onclick="toggleConfig()" title="Configurações (ESC)">⚙️<span class="key-badge">ESC</span></button>
+    </div>
+
+    <div id="pets-screen" data-ui="true" aria-hidden="true">
+        <section id="pets-window" role="dialog" aria-modal="true" aria-labelledby="pets-title">
+            <header id="pets-header">
+                <h2 id="pets-title">🐾 BESTIÁRIO &amp; MEUS PETS</h2>
+                <div class="pets-header-actions">
+                    <button id="pets-capture" type="button" title="Capturar o monstro normal selecionado">CAPTURAR ALVO</button>
+                    <button id="pets-close" type="button" aria-label="Fechar">✕</button>
+                </div>
+            </header>
+            <nav id="pets-tabs" aria-label="Seções de Pets">
+                <button class="pets-tab ativo" type="button" data-pets-tab="pets">MEUS PETS</button>
+                <button class="pets-tab" type="button" data-pets-tab="bestiary">BESTIÁRIO</button>
+            </nav>
+            <div id="pets-active-summary">Carregando dados do jogador…</div>
+            <main id="pets-content"></main>
+        </section>
     </div>
 
     <!-- MAPA GRANDE (TECLA M) -->
@@ -785,6 +816,7 @@
             <div id="skills-footer">
                 <div id="skills-pontos-bar">🎯 Pontos de habilidade disponíveis: <b>0</b></div>
                 <span id="skills-aviso">⚠️ Upgrade é TESTE — não altera o combate ainda.</span>
+                <a id="skills-icon-credits" href="https://kenney.nl/assets/game-icons" target="_blank" rel="noopener noreferrer" title="Pictogramas Kenney Game Icons — CC0 (domínio público)">Ícones: Kenney Game Icons · CC0</a>
                 <button id="btn-skills-reset-tudo" onclick="resetarTodasSkills()">↺ RESETAR TUDO</button>
             </div>
         </div>
@@ -932,11 +964,8 @@
         </div>
     </div>
 
-    <script src="three.min.js"></script>
-    <script src="GLTFLoader.js"></script>
-    <script src="renderizador_arvore_3d.js?v=2"></script>
     <script src="mapas-registry.js?v=6"></script>
-    <script src="mapas/mapa_mundo.js?v=19"></script>
+    <script src="mapas/mapa_mundo.js?v=21"></script>
     <script src="cartografia_universal.js?v=9"></script>
     <script src="engine_otimizador.js?v=5"></script>
     <script>
@@ -973,7 +1002,7 @@
     <script src="classes/pikeman.js?v=11"></script>
     <script src="classes/florim.js?v=4"></script>
     <script src="classes/guerreiro_kaledron.js?v=1"></script>
-    <script src="efeitos/arqueiro_efeitos.js?v=230"></script>
+    <script src="efeitos/arqueiro_efeitos.js?v=231"></script>
     <script src="efeitos/curandeiro_efeitos.js?v=231"></script>
     <script src="efeitos/barbaro_efeitos.js?v=231"></script>
     <script src="efeitos/guerreiro_efeitos.js?v=236"></script>
@@ -991,7 +1020,7 @@
     <script src="efeitos/vfx_summoner_upgrades.js?v=2"></script>
     <script src="efeitos/vfx_guerreiro_upgrades.js?v=1"></script>
     <script src="efeitos/vfx_mago_upgrades.js?v=3"></script>
-    <script src="efeitos/vfx_arqueiro_salto.js?v=1"></script>
+    <script src="efeitos/vfx_arqueiro_salto.js?v=2"></script>
     <script src="efeitos/vfx_curandeiro_cantico.js?v=1"></script>
     <script src="efeitos/vfx_barbaro_vinculo.js?v=1"></script>
     <script src="efeitos/vfx_astral_buraco.js?v=2"></script>
@@ -1001,28 +1030,28 @@
     <script src="monstros.js?v=2028"></script>
     <script src="inventario.js?v=170"></script>
     <script src="skill_upgrade_tree.js?v=3"></script>
-    <script src="skills.js?v=153"></script>
+    <script src="skills.js?v=156"></script>
     <script src="skill_tree_ui.js?v=5"></script>
-    <script src="config.js?v=145"></script>
+    <script src="config.js?v=146"></script>
     <script src="atributos.js?v=4"></script>
     <script src="spawn-admin.js?v=12"></script>
-    <script src="map-vfx-admin.js?v=2"></script>
+    <script src="map-vfx-admin.js?v=3"></script>
     <script src="mob-editor.js?v=1513"></script>
     <script src="mob-vfx.js?v=1"></script>
     <script src="dragdrop.js?v=6"></script>
     <script src="ferreiro.js?v=2"></script>
-    <script src="colisao-editor.js?v=6"></script>
-    <script src="mapa-editor.js?v=4"></script>
+    <script src="colisao-editor.js?v=8"></script>
+    <script src="mapa-editor.js?v=29"></script>
     <script src="audio-manager.js?v=6"></script>
-    <script src="sonoro.js?v=1582"></script>
+    <script src="sonoro.js?v=1584"></script>
     <script src="intro.js?v=1"></script>
     <script src="mobile-hud.js?v=1"></script>
     <script src="item-admin.js?v=5"></script>
-    <script src="admin-cheats.js?v=5"></script>
+    <script src="admin-cheats.js?v=6"></script>
     <script src="personagens-historias.js?v=2"></script>
-    <script src="personagem-select.js?v=5"></script>
+    <script src="personagem-select.js?v=7"></script>
     <script>
-        const GAME_VERSION = 'v1.75.1';
+        const GAME_VERSION = 'v1.75.50';
         window.GAME_VERSION = GAME_VERSION;
         const WORLD_WIDTH = 190000;
         const WORLD_HEIGHT = 28500;
@@ -1113,6 +1142,9 @@
         const rotateOverlay = document.getElementById("rotate-overlay");
         const googleSignInButton = document.getElementById("google-signin-button");
         const googleLoginStatus = document.getElementById("google-login-status");
+        const localIdLoginBox = document.getElementById("local-id-login-box");
+        const localIdLoginInput = document.getElementById("local-id-login-input");
+        const localIdLoginStatus = document.getElementById("local-id-login-status");
         const charSelectScreen = document.getElementById("char-select-screen");
         const statusText = document.getElementById("status");
         const fpsCounter = document.getElementById("fps-counter");
@@ -1310,6 +1342,10 @@ function usarSaltoArqueiro() {
         return;
     }
 
+    if (window.arqueiroSaltoEmAndamento) {
+        avisoSkillLocal('salto_arqueira');
+        return;
+    }
     if(window.cdArqueiroSalto) return;
     if (!checarSkill('salto_chuva', 25)) return;
     
@@ -1434,24 +1470,63 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             rotateOverlay.style.display = ativo ? 'flex' : 'none';
         }
 
+        let fullscreenInicialPendente = false;
+        function removerListenersFullscreenInicial() {
+            window.removeEventListener('pointerdown', tentarHorizontalAutomatico, true);
+            window.removeEventListener('touchstart', tentarHorizontalAutomatico, true);
+            window.removeEventListener('click', tentarHorizontalAutomatico, true);
+            window.removeEventListener('keydown', tentarHorizontalAutomatico, true);
+        }
+
         function tentarHorizontalAutomatico() {
             try {
-                // PC: só entra em tela cheia se o jogador escolheu "Full Janela"
-                // na aba VISUAL (senão o "Modo Janela" seria ignorado).
-                // MOBILE: sempre tenta (o jogo depende do paisagem).
-                var podeFull = (typeof window.autoFullscreenPermitido !== 'function') || window.autoFullscreenPermitido();
-                if (podeFull && !document.fullscreenElement) { document.documentElement.requestFullscreen().catch(() => {}); }
+                if (!document.fullscreenElement && !fullscreenInicialPendente) {
+                    const elemento = document.documentElement;
+                    const solicitar = elemento.requestFullscreen || elemento.webkitRequestFullscreen ||
+                        elemento.mozRequestFullScreen || elemento.msRequestFullscreen;
+                    if (solicitar) {
+                        fullscreenInicialPendente = true;
+                        let resultado;
+                        try {
+                            resultado = solicitar.call(elemento);
+                        } catch (e) {
+                            fullscreenInicialPendente = false;
+                        }
+                        if (resultado && typeof resultado.then === 'function') {
+                            resultado.then(() => {
+                                fullscreenInicialPendente = false;
+                                if (document.fullscreenElement || document.webkitFullscreenElement) {
+                                    removerListenersFullscreenInicial();
+                                }
+                            }).catch(() => { fullscreenInicialPendente = false; });
+                        } else {
+                            fullscreenInicialPendente = false;
+                            if (document.fullscreenElement || document.webkitFullscreenElement) {
+                                removerListenersFullscreenInicial();
+                            }
+                        }
+                    }
+                } else if (document.fullscreenElement || document.webkitFullscreenElement) {
+                    removerListenersFullscreenInicial();
+                }
                 if (screen.orientation && screen.orientation.lock) { screen.orientation.lock('landscape').catch(() => {}); }
                 setTimeout(atualizarOverlayRotacao, 150);
             } catch (e) {}
         }
-        window.addEventListener("touchstart", function tentaH() { tentarHorizontalAutomatico(); window.removeEventListener("touchstart", tentaH); }, { once: true });
-        window.addEventListener("click", function tentaC() { tentarHorizontalAutomatico(); window.removeEventListener("click", tentaC); }, { once: true });
+        window.addEventListener('pointerdown', tentarHorizontalAutomatico, true);
+        window.addEventListener('touchstart', tentarHorizontalAutomatico, true);
+        window.addEventListener('click', tentarHorizontalAutomatico, true);
+        window.addEventListener('keydown', tentarHorizontalAutomatico, true);
         window.addEventListener('resize', atualizarOverlayRotacao);
         window.addEventListener('orientationchange', atualizarOverlayRotacao);
 
         let meuLoginId = localStorage.getItem("mmorpg_google_account") || "";
         let googleCredentialAtual = null;
+        let localIdLoginAtual = localStorage.getItem("mmorpg_local_test_id") || "";
+        let loginLocalIdPendente = false;
+        const localIdLoginDeTeste = new URLSearchParams(window.location.search).get('local-id-login') === '1' &&
+            (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '::1');
+        const diagnosticoLacoAtivo = new URLSearchParams(window.location.search).get('lasso-diagnostics') === '1';
         window.googleLoginConcluido = false;
 
         function obterEmailGoogleDoToken(token) {
@@ -1472,19 +1547,21 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         function atualizarUiUltimoEmailLogin() {
             const email = localStorage.getItem('mmorpg_last_google_email') || '';
             const bloco = document.getElementById('login-remembered-account');
-            const botao = document.getElementById('login-remembered-email-button');
+            const emailEl = document.getElementById('login-remembered-email');
             const botoesLogout = document.getElementById('login-logout');
             const botaoConfigLogout = document.getElementById('btn-logout-conta');
             if (bloco) bloco.style.display = email ? 'flex' : 'none';
-            if (botao) {
-                botao.textContent = email || 'conta@exemplo.com';
-                botao.title = email || 'Última conta';
-            }
+            if (emailEl) emailEl.textContent = email;
             if (botoesLogout) botoesLogout.style.display = (googleCredentialAtual || email) ? 'inline-flex' : 'none';
             if (botaoConfigLogout) botaoConfigLogout.style.display = (googleCredentialAtual || email) ? 'inline-flex' : 'none';
         }
 
         window.logoutGoogleConta = function () {
+            reconexaoHabilitada = false;
+            if (temporizadorReconexao) {
+                clearTimeout(temporizadorReconexao);
+                temporizadorReconexao = null;
+            }
             try {
                 if (window.ws && window.ws.readyState === WebSocket.OPEN) {
                     window.ws.close();
@@ -1494,6 +1571,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             window.googleLoginConcluido = false;
             localStorage.removeItem('mmorpg_google_account');
             localStorage.removeItem('mmorpg_user_id');
+            localStorage.removeItem('mmorpg_local_test_id');
+            localIdLoginAtual = '';
+            loginLocalIdPendente = false;
             if (window.google && window.google.accounts && window.google.accounts.id) {
                 try { window.google.accounts.id.disableAutoSelect(); } catch (e) {}
             }
@@ -1910,7 +1990,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             if (window.floatingTexts) window.floatingTexts.push({
                 x: window.meuX + 12,
                 y: window.meuY - 34,
-                text: (tipo === 'mana') ? "💧 Sem Mana!" : (tipo === 'stamina' || tipo === 'estamina') ? "⚡ Sem Stamina!" : (tipo === 'pocao_hp') ? "🧪 Sem Poção de Vida!" : (tipo === 'pocao_mp') ? "🔮 Sem Poção de Mana!" : "🎯 Fora de alcance!",
+                text: (tipo === 'mana') ? "💧 Sem Mana!" : (tipo === 'stamina' || tipo === 'estamina') ? "⚡ Sem Stamina!" : (tipo === 'pocao_hp') ? "🧪 Sem Poção de Vida!" : (tipo === 'pocao_mp') ? "🔮 Sem Poção de Mana!" : (tipo === 'salto_arqueira') ? "🦅 Aguarde pousar para usar skills!" : "🎯 Fora de alcance!",
                 color: (tipo === 'mana') ? "#3498db" : (tipo === 'stamina' || tipo === 'estamina') ? "#f39c12" : (tipo === 'pocao_hp' || tipo === 'pocao_mp') ? "#e74c3c" : "#e74c3c",
                 alpha: 1.0
             });
@@ -1932,6 +2012,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         // Verifica mana/alcance ANTES de ativar o cooldown visual da skill.
         // tx/ty/alcanceMax opcionais (skills de mira). Retorna false = falhou (já avisou).
         function checarSkill(skillId, baseMp, tx, ty, alcanceMax) {
+            if (window.minhaClasse === 'arqueiro' && window.arqueiroSaltoEmAndamento) {
+                avisoSkillLocal('salto_arqueira');
+                return false;
+            }
             // DASH v2: Guerreiro com o escudo erguido NÃO USA SKILL.
             // O servidor também bloqueia (dashBloqueiaAcoes) — este é só o
             // feedback instantâneo, para o MP não ser gasto no cliente.
@@ -2596,9 +2680,55 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         let curaCooldownAtivo = false;
         window.ogroSkillCooldown = false; window.ogroSaltoCooldown = false; window.modoMiraSaltoOgro = false; window.impactosSismicos = []; window.saltosOgroAtivos = [];
         window.ogroModoAtivo = 'agressivo'; // modo do Golem: 'agressivo' (ataca alvo focado) ou 'passivo' (só rodeia)
-        let listaLacaios = {}; let ataqueBasicoCooldown = false; const INTERVALO_ATAQUE_BASICO_MS = 350;
+        let listaLacaios = {}; let listaPetsCapturados = {}; let ataqueBasicoCooldown = false; const INTERVALO_ATAQUE_BASICO_MS = 350;
         // ===== ATAQUE BÁSICO AUTOMÁTICO (auto-attack) =====
-        let autoAlvo = null;            // { tipo:'slime'|'boss', id, x, y } — alvo estável
+        let autoAlvo = null;            // { tipo:'slime'|'boss'|'player'|'pet', id, x, y } — alvo estável
+        window.abrirPets = function (tab) {
+            if (window.PetsUI) window.PetsUI.open(tab || 'pets');
+            else if (typeof window.mostrarToast === 'function') window.mostrarToast('A interface de Pets ainda está carregando.');
+        };
+        window.solicitarModoPetUI = function (mode, petInstanceId) {
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                if (typeof window.mostrarToast === 'function') window.mostrarToast('Conecte-se para alterar o modo do Pet.');
+                return;
+            }
+            const profile = window.petProfileAtual;
+            if (!profile || profile.petActiveId !== petInstanceId) {
+                if (typeof window.mostrarToast === 'function') window.mostrarToast('Somente o Pet ativo pode receber comandos.');
+                return;
+            }
+            ws.send(JSON.stringify({ action: 'pet_set_mode', mode: mode }));
+        };
+        window.togglePets = function () {
+            const screen = document.getElementById('pets-screen');
+            if (screen && screen.classList.contains('ativo')) {
+                if (window.PetsUI) window.PetsUI.close();
+            } else {
+                window.abrirPets('pets');
+            }
+        };
+        window.solicitarCapturaPetUI = function () {
+            if (window.estaMorto) return;
+            if (!ws || ws.readyState !== WebSocket.OPEN) {
+                if (typeof window.mostrarToast === 'function') window.mostrarToast('Conecte-se antes de tentar capturar.');
+                return;
+            }
+            if (!autoAlvo || autoAlvo.tipo !== 'slime' || !autoAlvo.id) {
+                if (typeof window.mostrarToast === 'function') window.mostrarToast('Aproxime-se de um monstro normal para selecioná-lo.');
+                return;
+            }
+            ws.send(JSON.stringify({ action: 'pet_capture', targetId: autoAlvo.id }));
+        };
+        window.addEventListener('keydown', function (event) {
+            if ((event.key || '').toLowerCase() !== 'g' && event.code !== 'KeyG') return;
+            if (event.repeat || event.ctrlKey || event.altKey || event.metaKey) return;
+            const activeElement = document.activeElement;
+            if (activeElement && (activeElement.isContentEditable ||
+                /^(INPUT|TEXTAREA|SELECT)$/.test(activeElement.tagName))) return;
+
+            event.preventDefault();
+            window.solicitarCapturaPetUI();
+        });
         let proximoAutoAtaqueEm = 0;    // performance.now() do próximo ataque permitido
         let ultimoAutoAtaqueEm = 0;     // feedback visual de ataque executado
         let historicoDano = []; let danoTotalAcumulado = 0;
@@ -3533,6 +3663,11 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         let ws = null;
         let pingIntervalo = null;
         let classePendente = null;
+        let ultimoToastSalvamentoObjeto = 0;
+        let temporizadorReconexao = null;
+        let tentativasReconexao = 0;
+        let reconexaoHabilitada = true;
+        const MAX_TENTATIVAS_RECONEXAO = 8;
 
         function enviarServidor(obj) { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify(obj)); }
         window.enviarServidor = enviarServidor;
@@ -3551,16 +3686,24 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         }
         window.obterURLWebSocket = obterURLWebSocket;
 
-        function conectarWebSocket(googleCredential) {
+        function conectarWebSocket(credential, reconexaoAutomatica) {
+            const ehReconexao = reconexaoAutomatica === true;
+            if (temporizadorReconexao) {
+                clearTimeout(temporizadorReconexao);
+                temporizadorReconexao = null;
+            }
+            if (!ehReconexao) tentativasReconexao = 0;
+            reconexaoHabilitada = true;
             const wsUrl = obterURLWebSocket();
-            ws = new WebSocket(wsUrl);
-            window.ws = ws;
+            const socket = new WebSocket(wsUrl);
+            ws = socket;
+            window.ws = socket;
 
             // v1.30.3: registra a última skill enviada para cancelar seu cooldown visual
             // quando o servidor rejeitar (Sem Mana / Fora de alcance).
             window.ultimoSkillEnviado = null;
-            const _wsSendOriginal = ws.send.bind(ws);
-            ws.send = function (payload) {
+            const _wsSendOriginal = socket.send.bind(socket);
+            socket.send = function (payload) {
                 try {
                     const obj = (typeof payload === 'string') ? JSON.parse(payload) : payload;
                     if (obj && typeof obj.action === 'string' && typeof ACOES_SKILL_CANCELAVEIS !== 'undefined' && ACOES_SKILL_CANCELAVEIS.indexOf(obj.action) !== -1) {
@@ -3570,7 +3713,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 return _wsSendOriginal(payload);
             };
 
-            ws.onopen = () => {
+            socket.onopen = () => {
                 _enviarErrosPendentes();
                 statusText.innerText = "Status: Conectado!";
                 statusText.style.color = "lightgreen";
@@ -3579,31 +3722,129 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         statusText.classList.add("conectado-oculto");
                     }
                 }, 2000);
-                ws.send(JSON.stringify({ action: 'google_login', credential: googleCredential }));
+                if (credential && typeof credential.localId === 'string') {
+                    socket.send(JSON.stringify({ action: 'login', id: credential.localId }));
+                } else {
+                    socket.send(JSON.stringify({ action: 'google_login', credential: credential }));
+                }
             };
 
-            ws.onerror = () => {
+            socket.onerror = () => {
                 statusText.classList.remove("conectado-oculto");
-                statusText.innerText = "Status: Servidor offline";
+                statusText.innerText = ehReconexao ? "Status: Reconectando ao servidor..." : "Status: Servidor offline";
                 statusText.style.color = "red";
-                if (googleLoginStatus) googleLoginStatus.innerText = "Não foi possível conectar ao servidor.";
-                if (loginScreen) loginScreen.style.display = "flex";
+                if (googleLoginStatus) googleLoginStatus.innerText = ehReconexao
+                    ? "Conexão interrompida. Tentando reconectar..."
+                    : "Não foi possível conectar ao servidor.";
+                if (!ehReconexao && loginScreen) loginScreen.style.display = "flex";
             };
 
-            ws.onmessage = (event) => {
+            socket.onclose = (event) => {
+                if (socket !== ws) return;
+                if (pingIntervalo) {
+                    clearInterval(pingIntervalo);
+                    pingIntervalo = null;
+                }
+                statusText.classList.remove("conectado-oculto");
+
+                if (event.code === 4001) {
+                    reconexaoHabilitada = false;
+                    statusText.innerText = "Status: Personagem conectado em outra sessão.";
+                    statusText.style.color = "orange";
+                    if (googleLoginStatus) googleLoginStatus.innerText = "Esta sessão foi substituída por outra conexão.";
+                    if (loginScreen) loginScreen.style.display = "flex";
+                    return;
+                }
+                if (!reconexaoHabilitada || !credential) return;
+
+                if (window.jogoIniciado && window.meuId && window.PersonagemSelect &&
+                    typeof window.PersonagemSelect.prepararReconexao === 'function') {
+                    window.PersonagemSelect.prepararReconexao(window.meuId);
+                }
+
+                if (tentativasReconexao >= MAX_TENTATIVAS_RECONEXAO) {
+                    statusText.innerText = "Status: Não foi possível reconectar.";
+                    statusText.style.color = "red";
+                    if (googleLoginStatus) googleLoginStatus.innerText = "A conexão não voltou. Tente entrar novamente.";
+                    if (loginScreen) loginScreen.style.display = "flex";
+                    return;
+                }
+
+                const atraso = Math.min(1000 * (2 ** tentativasReconexao), 20000);
+                tentativasReconexao++;
+                statusText.innerText = "Status: Reconectando em " + Math.ceil(atraso / 1000) + "s...";
+                statusText.style.color = "orange";
+                if (googleLoginStatus) googleLoginStatus.innerText = "Conexão interrompida. Tentando reconectar...";
+                temporizadorReconexao = setTimeout(() => {
+                    temporizadorReconexao = null;
+                    if (reconexaoHabilitada && ws === socket) conectarWebSocket(credential, true);
+                }, atraso);
+            };
+
+            socket.onmessage = (event) => {
                 try {
                         let dados = JSON.parse(event.data);
                         window.__msgTipo = (dados && dados.type) || '?';
+                        if (dados.type === 'pet_capture_result') {
+                            if (window.PetsUI && dados.petProfile) window.PetsUI.setProfile(dados.petProfile);
+                            const petName = dados.pet && (dados.pet.nome || dados.pet.species_id);
+                            const messages = {
+                                capture_failed: 'A captura falhou. Enfraqueça o monstro e tente novamente.',
+                                cooldown_active: 'Aguarde antes de tentar capturar novamente.',
+                                distance_invalid: 'Aproxime-se do monstro para tentar capturá-lo.',
+                                species_not_capturable: 'Este monstro não pode ser capturado.',
+                                target_invalid: 'O monstro selecionado não está mais disponível.'
+                            };
+                            const message = dados.success
+                                ? 'Captura realizada: ' + (petName || 'Pet') + '!'
+                                : (messages[dados.reason] || 'Captura recusada: ' + (dados.reason || 'erro desconhecido') + '.');
+                            if (typeof window.mostrarToast === 'function') window.mostrarToast(message);
+                            else console.info(message);
+                            return;
+                        }
+                        if (dados.type === 'pet_mode_result') {
+                            if (dados.success && window.PetsUI) {
+                                window.PetsUI.setMode(dados.mode, dados.petInstanceId);
+                                if (typeof window.mostrarToast === 'function') {
+                                    window.mostrarToast('Modo do Pet alterado para ' + dados.mode + '.');
+                                }
+                            } else if (typeof window.mostrarToast === 'function') {
+                                window.mostrarToast('Não foi possível alterar o modo do Pet (morto, em respawn ou indisponível).');
+                            }
+                            return;
+                        }
                         if (dados.type === 'login_erro') {
+                            if (ehReconexao) {
+                                reconexaoHabilitada = false;
+                                tentativasReconexao = MAX_TENTATIVAS_RECONEXAO;
+                                if (googleLoginStatus) googleLoginStatus.innerText = dados.mensagem || 'A sessão expirou. Entre novamente.';
+                                if (loginScreen) loginScreen.style.display = 'flex';
+                                return;
+                            }
+                            if (loginLocalIdPendente) {
+                                loginLocalIdPendente = false;
+                                if (localIdLoginStatus) localIdLoginStatus.innerText = dados.mensagem || 'Falha no login local.';
+                                return;
+                            }
                             googleCredentialAtual = null;
                             loginScreen.style.display = 'flex';
                             googleLoginStatus.innerText = dados.mensagem || 'Falha no login Google.';
                             return;
                         }
                         if (dados.type === 'personagens_lista' && dados.conta) {
+                            tentativasReconexao = 0;
                             meuLoginId = dados.conta;
-                            localStorage.setItem('mmorpg_google_account', dados.conta);
-                            localStorage.removeItem('mmorpg_user_id');
+                            if (dados.localIdLogin) {
+                                loginLocalIdPendente = false;
+                                localIdLoginAtual = localIdLoginInput ? localIdLoginInput.value.trim() : localIdLoginAtual;
+                                localStorage.setItem('mmorpg_local_test_id', localIdLoginAtual);
+                                if (localIdLoginStatus) localIdLoginStatus.innerText = 'ID local autenticado.';
+                            } else {
+                                localStorage.setItem('mmorpg_google_account', dados.conta);
+                                localStorage.removeItem('mmorpg_user_id');
+                                localStorage.removeItem('mmorpg_local_test_id');
+                                localIdLoginAtual = '';
+                            }
                             loginScreen.style.display = 'none';
                             if (googleLoginStatus) googleLoginStatus.innerText = '';
                         }
@@ -3673,6 +3914,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     }
                     if (dados.type === 'init') {
                         window.meuId = dados.id;
+                        if (window.PetsUI && dados.petProfile) window.PetsUI.setProfile(dados.petProfile);
                         // Fecha a tela de seleção/criação de personagens.
                         if (window.PersonagemSelect) window.PersonagemSelect.tratarInit(dados);
                         // Recarrega os ajustes visuais agora que o ID do personagem
@@ -3725,11 +3967,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         const enviarPingReal = () => { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'ping', t: Date.now() })); };
                         enviarPingReal();
                         pingIntervalo = setInterval(enviarPingReal, 1000);
-                        window.ehAdmin = !!dados.admin ||
-                                         (window.meuId && (window.meuId.toLowerCase() === 'admin' || window.meuId.toLowerCase() === 'heroi_admin')) ||
-                                         (dados.nome && dados.nome.toLowerCase() === 'admin') ||
-                                         (localStorage.getItem('mmorpg_user_id') && localStorage.getItem('mmorpg_user_id').toLowerCase() === 'admin') ||
-                                         (localStorage.getItem('mmorpg_conta_id') && localStorage.getItem('mmorpg_conta_id').toLowerCase() === 'admin');
+                        window.ehAdmin = dados.admin === true;
                         if (window.ehAdmin) {
                             if (typeof mostrarBotaoSpawnAdmin === "function") mostrarBotaoSpawnAdmin();
                             if (typeof window.mostrarBotaoVfxAdmin === "function") window.mostrarBotaoVfxAdmin();
@@ -3826,6 +4064,52 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         if (typeof window.receberMapaObjetos === 'function') window.receberMapaObjetos(dados.objetos || []);
                         else window.mapaObjetos = dados.objetos || [];
                     }
+                    if (dados.type === 'map_objetos_sync_result' && typeof window.mostrarToast === 'function') {
+                        if (!dados.ok) {
+                            window.mostrarToast('Erro ao salvar' +
+                                (dados.objetoId ? ' o objeto ' + dados.objetoId : ' os objetos') +
+                                ': ' + (dados.erro || 'dados inválidos.'));
+                        } else {
+                            const total = Number.isFinite(dados.noMapa) ? dados.noMapa : dados.total;
+                            window.mostrarToast('Salvo: ' + (Number(dados.sincronizados) || 0) +
+                                ' objeto(s) sincronizado(s); ' + total + ' no mapa' +
+                                (dados.mapa ? ' ' + dados.mapa + '.' : '.'));
+                        }
+                    }
+                    if ((dados.type === 'map_objeto_excluido' || dados.type === 'map_objetos_limpos') &&
+                        typeof window.mostrarToast === 'function') {
+                        if (dados.ok) {
+                            window.mostrarToast(dados.type === 'map_objeto_excluido'
+                                ? (dados.removido === false ? 'Objeto local removido; ele não estava salvo no servidor.' : 'Objeto excluído.')
+                                : 'Objetos do mapa ' + dados.mapa + ' excluídos.');
+                        } else {
+                            window.mostrarToast('Ação não concluída: ' + (dados.erro || 'falha no servidor.'));
+                        }
+                    }
+
+                    if (dados.type === 'map_sprites_catalog' && typeof window.receberSpritesMapa === 'function') {
+                        window.receberSpritesMapa(dados.arquivos || []);
+                        if (dados.erro && typeof window.mostrarToast === 'function') window.mostrarToast(dados.erro);
+                    }
+                    if (dados.type === 'map_sprite_palette' && typeof window.receberSpritePalette === 'function') {
+                        window.receberSpritePalette(dados.items || []);
+                        if (dados.erro && typeof window.mostrarToast === 'function') window.mostrarToast(dados.erro);
+                    }
+                    if (dados.type === 'map_sprite_palette_saved') {
+                        if (dados.ok) {
+                            if (typeof window.mostrarToast === 'function') window.mostrarToast('Sprite salva na Palette.');
+                        } else if (typeof window.mostrarToast === 'function') {
+                            window.mostrarToast('Erro ao salvar Palette: ' + (dados.erro || 'dados inválidos.'));
+                        }
+                    }
+                    if (dados.type === 'map_objeto_salvo' && typeof window.mostrarToast === 'function') {
+                        if (!dados.ok) {
+                            window.mostrarToast('Erro ao salvar objeto: ' + (dados.erro || 'dados inválidos.'));
+                        } else if (Date.now() - ultimoToastSalvamentoObjeto >= 1500) {
+                            ultimoToastSalvamentoObjeto = Date.now();
+                            window.mostrarToast('Objeto salvo automaticamente no mapa.');
+                        }
+                    }
 
                     if (dados.type === 'colisoes_iniciais') {
                         if (typeof window.carregarColisoesIniciais === 'function') {
@@ -3852,6 +4136,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         }
                         if (typeof window.atualizarListaColisoesUI === 'function') window.atualizarListaColisoesUI();
                         if (typeof window.atualizarPropriedadesUI === 'function') window.atualizarPropriedadesUI();
+                    }
+                    if (dados.type === 'colisoes_salvas' && typeof window.receberResultadoSalvamentoColisoes === 'function') {
+                        window.receberResultadoSalvamentoColisoes(dados);
                     }
 
                     if (dados.type === 'xp_ganho') {
@@ -4467,6 +4754,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         }
                         
                         listaLacaios = dados.lacaios || {};
+                        listaPetsCapturados = dados.pets || {};
+                        window.listaPetsCapturados = listaPetsCapturados;
+                        if (window.PetsUI) window.PetsUI.setRuntime(listaPetsCapturados);
                         window.listaBandaRoqueiro = dados.bandas || {};
                         listaBosses = dados.bosses || []; window.listaBosses = listaBosses;
                         window.listaDrops = dados.drops || [];
@@ -4776,7 +5066,11 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     if (dados.type === 'action_ogro_sismico') { if(typeof window.criarAnimacaoOgroSismico === "function") window.criarAnimacaoOgroSismico(dados.x, dados.y); }
                     if (dados.type === 'action_ogro_salto') { if(typeof window.criarAnimacaoSaltoOgro === "function") window.criarAnimacaoSaltoOgro(dados.startX, dados.startY, dados.targetX, dados.targetY); }
                     if (dados.type === 'action_ogro_rugido') {
-                        if (typeof tocarSomRugidoOgro === 'function') tocarSomRugidoOgro(dados.x, dados.y);
+                        if (typeof window.tocarSonoroProximidade === 'function') {
+                            window.tocarSonoroProximidade('summoner_agro', dados.x, dados.y);
+                        } else if (typeof window.tocarSonoro === 'function') {
+                            window.tocarSonoro('summoner_agro');
+                        }
                         if (typeof window.criarAnimacaoRugidoOgro === 'function') window.criarAnimacaoRugidoOgro(dados.x, dados.y);
                         window.floatingTexts.push({ x: dados.x, y: dados.y - 45, text: "🦁 RUGIDO!", color: "#9b59b6", alpha: 1.0 });
                     }
@@ -5209,11 +5503,14 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     }
                     if (dados.type === 'action_guerreiro_postura_guardiao') {
                         if (dados.id === window.meuId) {
+                            if (window.tocarSonoro) window.tocarSonoro('guerreiro_aura_vanguarda');
                             window.guerreiroBuffAte = dados.expiraEm || (Date.now() + 10000);
                             if (window.floatingTexts) window.floatingTexts.push({
                                 x: dados.x, y: dados.y - 42, text: '🛡️ Postura do Guardião!',
                                 color: '#74f0b4', alpha: 1.0
                             });
+                        } else if (window.tocarSonoroProximidade) {
+                            window.tocarSonoroProximidade('guerreiro_aura_vanguarda', dados.x, dados.y);
                         }
                         if (typeof window.criarVfxGuerreiroPostura === 'function') window.criarVfxGuerreiroPostura(dados);
                     }
@@ -5584,6 +5881,14 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             if (typeof window.dashRecusado === 'function') window.dashRecusado();
                         }
                     }
+                    if (dados.type === 'acao_bloqueada_salto_arqueiro' && dados.action) {
+                        if (dados.action === 'dash') {
+                            if (typeof window.dashRecusado === 'function') window.dashRecusado();
+                        } else {
+                            cancelarCooldownVisual(dados.action);
+                        }
+                        avisoSkillLocal('salto_arqueira');
+                    }
                     if (dados.type === 'action_dash') {
                         // VFX para TODOS (inclusive o dono, que já fez a predição)
                         if (typeof window.dashAdicionarVfxApos === 'function') {
@@ -5724,6 +6029,19 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         window.monsterSkillImpacts.push({ x: dados.x, y: dados.y, skill: dados.skill, ttl: 24 });
                         window.tremorTela = Math.max(window.tremorTela, dados.skill === 'meteor' ? 12 : 5);
                     }
+                    if (dados.type === 'monster_attack_telegraph') {
+                        window.monsterAttackTelegraphs = window.monsterAttackTelegraphs || [];
+                        window.monsterAttackTelegraphs.push({
+                            x: dados.x,
+                            y: dados.y,
+                            angle: dados.angle,
+                            range: dados.range,
+                            halfAngle: dados.halfAngle,
+                            attackKind: dados.attackKind,
+                            startedAt: Date.now(),
+                            expiresAt: Date.now() + Math.max(0, Number(dados.duration) || 300)
+                        });
+                    }
                     if (dados.type === 'boss_golem_escudo') {
                         if (typeof window.ativarEscudoGolem === 'function') window.ativarEscudoGolem(dados.x, dados.y, dados.tipo);
                         tocarSomEscudoBoss();
@@ -5769,7 +6087,35 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             conectarWebSocket(googleCredentialAtual);
         }
 
+        function inicializarLoginLocalId() {
+            if (!localIdLoginDeTeste) return false;
+            const googleBox = document.getElementById('google-login-box');
+            const instructions = document.getElementById('login-instructions');
+            if (googleBox) googleBox.style.display = 'none';
+            if (localIdLoginBox) localIdLoginBox.style.display = 'flex';
+            if (instructions) instructions.textContent = 'Login local por ID habilitado somente para teste nesta máquina.';
+            if (localIdLoginInput) localIdLoginInput.value = localIdLoginAtual;
+            const button = document.getElementById('local-id-login-button');
+            const entrar = function () {
+                const id = localIdLoginInput ? localIdLoginInput.value.trim() : '';
+                if (!/^[A-Za-z0-9_-]{1,64}$/.test(id)) {
+                    if (localIdLoginStatus) localIdLoginStatus.innerText = 'Informe um ID válido.';
+                    return;
+                }
+                localIdLoginAtual = id;
+                loginLocalIdPendente = true;
+                if (localIdLoginStatus) localIdLoginStatus.innerText = 'Conectando ao servidor local…';
+                conectarWebSocket({ localId: id });
+            };
+            if (button) button.addEventListener('click', entrar);
+            if (localIdLoginInput) localIdLoginInput.addEventListener('keydown', function (event) {
+                if (event.key === 'Enter') entrar();
+            });
+            return true;
+        }
+
         async function inicializarLoginGoogle() {
+            if (inicializarLoginLocalId()) return;
             try {
                 const configResponse = await fetch('/auth/google-config', { cache: 'no-store' });
                 if (!configResponse.ok) throw new Error('Configuração de login indisponível.');
@@ -5787,23 +6133,33 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         googleLoginStatus.innerText = 'Não foi possível carregar o login seguro do Google.';
                         return;
                     }
-                    google.accounts.id.initialize({ client_id: config.clientId, callback: tratarCredencialGoogle });
+                    google.accounts.id.initialize({
+                        client_id: config.clientId,
+                        callback: tratarCredencialGoogle,
+                        auto_select: true
+                    });
                     google.accounts.id.renderButton(googleSignInButton, {
                         type: 'standard', theme: 'filled_blue', size: 'large', shape: 'pill',
                         text: 'continue_with', locale: 'pt_BR', width: 280
                     });
-                    const emailSalvo = localStorage.getItem('mmorpg_last_google_email');
-                    if (emailSalvo) {
-                        const botaoConta = document.getElementById('login-remembered-email-button');
-                        if (botaoConta) {
-                            botaoConta.textContent = emailSalvo;
-                            botaoConta.title = emailSalvo;
-                            botaoConta.addEventListener('click', function () {
-                                if (window.google && window.google.accounts && window.google.accounts.id) {
-                                    window.google.accounts.id.prompt();
+                    const botaoLoginDireto = document.getElementById('login-direct-button');
+                    if (botaoLoginDireto) {
+                        botaoLoginDireto.style.display = 'inline-flex';
+                        botaoLoginDireto.addEventListener('click', function () {
+                            if (!window.google || !window.google.accounts || !window.google.accounts.id) {
+                                googleLoginStatus.innerText = 'O login Google ainda não está disponível. Tente novamente em instantes.';
+                                return;
+                            }
+                            googleLoginStatus.innerText = 'Tentando entrar com a conta Google já conectada…';
+                            window.google.accounts.id.prompt(function (notificacao) {
+                                if (window.googleLoginConcluido || !notificacao) return;
+                                if (notificacao.isNotDisplayed && notificacao.isNotDisplayed()) {
+                                    googleLoginStatus.innerText = 'Não foi possível usar a sessão Google atual. Clique em “Continuar com o Google” para escolher sua conta.';
+                                } else if (notificacao.isSkippedMoment && notificacao.isSkippedMoment()) {
+                                    googleLoginStatus.innerText = 'A entrada direta não foi concluída. Clique em “Continuar com o Google” para entrar.';
                                 }
-                            }, { once: true });
-                        }
+                            });
+                        });
                     }
                     atualizarUiUltimoEmailLogin();
                     googleLoginStatus.innerText = 'Sua conta e seu e-mail serão confirmados pelo Google.';
@@ -5826,12 +6182,12 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 classePendente = classeEscolhida;
                 charSelectScreen.style.display = "none";
                 if (typeof window.soltarFoco === 'function') window.soltarFoco();
-                if (!googleCredentialAtual) {
+                if (!googleCredentialAtual && !localIdLoginAtual) {
                     loginScreen.style.display = 'flex';
                     googleLoginStatus.innerText = 'Entre novamente com sua conta Google para reconectar.';
                     return;
                 }
-                conectarWebSocket(googleCredentialAtual);
+                conectarWebSocket(localIdLoginAtual ? { localId: localIdLoginAtual } : googleCredentialAtual);
                 return;
             }
             charSelectScreen.style.display = "none";
@@ -6400,6 +6756,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 else if (autoAlvo.tipo === 'player' && typeof pvpMeuAtivo === 'function' && pvpMeuAtivo()) {
                     let p = window.todosJogadores && window.todosJogadores[autoAlvo.id];
                     if (p && p.pvpAtivo && p.hp > 0) a = p;
+                } else if (autoAlvo.tipo === 'pet' && typeof pvpMeuAtivo === 'function' && pvpMeuAtivo()) {
+                    let pet = window.listaPetsCapturados && window.listaPetsCapturados[autoAlvo.id];
+                    let owner = pet && window.todosJogadores && window.todosJogadores[pet.owner_id];
+                    if (pet && pet.hp > 0 && owner && owner.pvpAtivo) a = pet;
                 }
                 if (a && a.hp > 0 && Math.hypot(a.x - pX, a.y - pY) <= limite) {
                     autoAlvo.x = a.x; autoAlvo.y = a.y;
@@ -6415,6 +6775,12 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             };
             window.listaSlimes.forEach(s => considerar(s, 'slime'));
             listaBosses.forEach(b => considerar(b, 'boss'));
+            if (typeof pvpMeuAtivo === 'function' && pvpMeuAtivo() && window.listaPetsCapturados) {
+                Object.values(window.listaPetsCapturados).forEach(pet => {
+                    const owner = pet && window.todosJogadores && window.todosJogadores[pet.owner_id];
+                    if (pet && owner && owner.pvpAtivo) considerar(pet, 'pet');
+                });
+            }
             // PvP: só entra jogador com PvP ligado dos dois lados.
             if (typeof pvpMeuAtivo === 'function' && pvpMeuAtivo() && window.todosJogadores) {
                 for (let pid in window.todosJogadores) {
@@ -6972,6 +7338,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     let p = window.todosJogadores && window.todosJogadores[autoAlvo.id];
                     // Sai da mira se o outro desativar o PvP, morrer ou sair do mapa.
                     if (p && p.pvpAtivo && p.hp > 0 && pvpMeuAtivo()) alvoAtual = p;
+                } else if (autoAlvo.tipo === 'pet') {
+                    const pet = window.listaPetsCapturados && window.listaPetsCapturados[autoAlvo.id];
+                    const owner = pet && window.todosJogadores && window.todosJogadores[pet.owner_id];
+                    if (pet && pet.hp > 0 && owner && owner.pvpAtivo && pvpMeuAtivo()) alvoAtual = pet;
                 }
                 if (alvoAtual && alvoAtual.hp > 0) {
                     let px = window.meuX + 12, py = window.meuY + 16;
@@ -7005,6 +7375,12 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             };
             window.listaSlimes.forEach(s => considerar(s, 'slime'));
             listaBosses.forEach(b => considerar(b, 'boss'));
+            if (pvpMeuAtivo() && window.listaPetsCapturados) {
+                Object.values(window.listaPetsCapturados).forEach(pet => {
+                    const owner = pet && window.todosJogadores && window.todosJogadores[pet.owner_id];
+                    if (pet && owner && owner.pvpAtivo) considerar(pet, 'pet');
+                });
+            }
             // PvP: jogadores com PvP ligado entram na mesma disputa por alvo.
             if (pvpMeuAtivo() && window.todosJogadores) {
                 for (let pid in window.todosJogadores) {
@@ -7230,6 +7606,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
         function usarDash() {
             if (window.estaMorto || window.meuStunTimer > 0 || window.canalizandoMeteoro) return;
+            if (window.minhaClasse === 'arqueiro' && window.arqueiroSaltoEmAndamento) {
+                avisoSkillLocal('salto_arqueira');
+                return;
+            }
             const cfg = dashConfig();
 
             // Já segurando o escudo: o segundo toque não faz nada
@@ -8349,6 +8729,11 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 if (typeof fecharAtributos === 'function') fecharAtributos();
                 return;
             }
+            const petsScreen = document.getElementById('pets-screen');
+            if (petsScreen && petsScreen.classList.contains('ativo')) {
+                if (window.PetsUI) window.PetsUI.close();
+                return;
+            }
             if (typeof toggleConfig === 'function') toggleConfig();
         }
 
@@ -8467,6 +8852,11 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             if (key === 'c') {
                 e.preventDefault();
                 if (typeof toggleAtributos === 'function') toggleAtributos();
+                return;
+            }
+            if (key === 'b') {
+                e.preventDefault();
+                if (typeof window.togglePets === 'function') window.togglePets();
                 return;
             }
             if (key === 'l') {
@@ -9138,7 +9528,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                            (window.currentMap === 'mundo' && window.mapaMundo && typeof window.mapaMundo.ehBiomaGelo === 'function' && window.mapaMundo.ehBiomaGelo(window.meuX + 12, window.meuY + 16));
             let movendoEntrada = (moveX !== 0 || moveY !== 0);
 
-            if (!window.transicaoMapaAtiva && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !(window.mapaEditorAtivo && !window.mapaEditorMinimizado) && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo && !window.snAimAtivo && !window.snPosicaoAtivo && ((moveX !== 0 || moveY !== 0) || (noGelo && (Math.abs(window.inerciaGeloX) > 0.08 || Math.abs(window.inerciaGeloY) > 0.08)))) {
+            if (!window.transicaoMapaAtiva && !window.estaMorto && !window.meuStunTimer && !efeitoTravaMovimento && !window.arqueiroRajadaLigada && !window.spawnAdminAberto && !window.teleporteAberto && !window.ferreiroAberto && !window.ladinoEstrelaAtivo && !window.ladinoDancaAtivo && !window.snAimAtivo && !window.snPosicaoAtivo && ((moveX !== 0 || moveY !== 0) || (noGelo && (Math.abs(window.inerciaGeloX) > 0.08 || Math.abs(window.inerciaGeloY) > 0.08)))) {
                 let entradaMoveX = controleInvertido ? -moveX : moveX;
                 let entradaMoveY = controleInvertido ? -moveY : moveY;
                 movendoEntrada = (entradaMoveX !== 0 || entradaMoveY !== 0);
@@ -9438,6 +9828,15 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 }
             }
 
+            for (let petId in listaPetsCapturados) {
+                const pet = listaPetsCapturados[petId];
+                if (!pet || pet.hp <= 0 || pet.state === "DEAD" || pet.state === "RESPAWN") continue;
+                if (pet.x < cameraBounds.minX || pet.x > cameraBounds.maxX || pet.y < cameraBounds.minY || pet.y > cameraBounds.maxY) continue;
+                if (typeof window.desenharSlime === "function") {
+                    spritesSort.push({ y: pet.y, draw: function () { window.desenharSlime(pet); } });
+                }
+            }
+
             listaBosses.forEach(g => {
                 if (!g || g.hp <= 0) return;
                 if (g.x < cameraBounds.minX || g.x > cameraBounds.maxX || g.y < cameraBounds.minY || g.y > cameraBounds.maxY) return;
@@ -9593,22 +9992,6 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                 ctx.restore();
                             }
 
-                            if (pp.nome) {
-                                ctx.save();
-                                ctx.font = "bold 13px 'Rajdhani', 'Segoe UI', Arial, sans-serif";
-                                ctx.textAlign = "center";
-                                ctx.lineJoin = "round";
-                                ctx.lineWidth = 3;
-                                // Nick elevado acima da cabeça de todas as classes para não sobrepor o visual do personagem
-                                let nickY = (classeJogador === 'pikeman' || classeJogador === 'florim') ? -48 : -42;
-                                ctx.strokeText(pp.nome, posX + 12, posY + nickY);
-                                ctx.fillStyle = pp.pvpAtivo ? "#ff4d4d" : "#f1c40f";
-                                ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
-                                ctx.shadowBlur = 4;
-                                ctx.fillText(pp.nome, posX + 12, posY + nickY);
-                                ctx.restore();
-                            }
-
                             if (pp.stunTimer > 0) {
                                 ctx.save();
                                 ctx.font = "16px Arial";
@@ -9733,6 +10116,37 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
             if (typeof window.desenharBandaRoqueiro === "function") window.desenharBandaRoqueiro(window.listaBandaRoqueiro);
             
+            window.monsterAttackTelegraphs = window.monsterAttackTelegraphs || [];
+            for (let i = window.monsterAttackTelegraphs.length - 1; i >= 0; i--) {
+                const aviso = window.monsterAttackTelegraphs[i];
+                const restante = aviso.expiresAt - Date.now();
+                if (restante <= 0) {
+                    window.monsterAttackTelegraphs.splice(i, 1);
+                    continue;
+                }
+                const alcance = Math.max(0, Number(aviso.range) || 0);
+                const abertura = Math.max(0, Number(aviso.halfAngle) || 0);
+                if (!alcance || !abertura || !Number.isFinite(aviso.angle)) continue;
+                ctx.save();
+                ctx.globalAlpha = Math.min(0.8, restante / (aviso.expiresAt - aviso.startedAt));
+                ctx.fillStyle = aviso.attackKind === 'ranged' ? 'rgba(255, 150, 48, 0.28)' : 'rgba(255, 55, 42, 0.3)';
+                ctx.strokeStyle = aviso.attackKind === 'ranged' ? '#ffc35b' : '#ff7164';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(aviso.x, aviso.y);
+                ctx.arc(aviso.x, aviso.y, alcance, aviso.angle - abertura, aviso.angle + abertura);
+                ctx.closePath();
+                ctx.fill();
+                ctx.setLineDash([7, 5]);
+                ctx.stroke();
+                ctx.setLineDash([]);
+                ctx.beginPath();
+                ctx.moveTo(aviso.x, aviso.y);
+                ctx.lineTo(aviso.x + Math.cos(aviso.angle) * alcance, aviso.y + Math.sin(aviso.angle) * alcance);
+                ctx.stroke();
+                ctx.restore();
+            }
+
             window.monsterSkillImpacts = window.monsterSkillImpacts || [];
             for (let i = window.monsterSkillImpacts.length - 1; i >= 0; i--) {
                 let impacto = window.monsterSkillImpacts[i];
@@ -9969,6 +10383,35 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
             if (window.editorColisaoVisivel && typeof window.desenharOverlayColisoes === "function") window.desenharOverlayColisoes(ctx);
             if (window.mapaEditorAtivo && typeof window.desenharOverlayMapaEditor === "function") window.desenharOverlayMapaEditor(ctx);
+
+            // Passagem final dos nicks: overlays de colisão/mapa e objetos de frente já foram desenhados.
+            Object.keys(window.todosJogadores || {}).forEach(function (id) {
+                const jogador = window.todosJogadores[id];
+                if (!jogador || !jogador.nome) return;
+
+                const posX = id === window.meuId ? window.meuX : jogador.x;
+                let posY = id === window.meuId ? window.meuY : jogador.y;
+                if (!Number.isFinite(posX) || !Number.isFinite(posY)) return;
+
+                const classe = id === window.meuId ? window.minhaClasse : (jogador.classe || 'guerreiro');
+                if (window.currentMap === 'tileteste' && window.mapaTileTeste && typeof window.mapaTileTeste.heightAt === 'function') {
+                    posY -= window.mapaTileTeste.heightAt(posX + 12, posY + 16);
+                }
+
+                ctx.save();
+                ctx.font = "bold 13px 'Rajdhani', 'Segoe UI', Arial, sans-serif";
+                ctx.textAlign = "center";
+                ctx.lineJoin = "round";
+                ctx.lineWidth = 3;
+                ctx.strokeStyle = "rgba(0, 0, 0, 0.95)";
+                const nickY = (classe === 'pikeman' || classe === 'florim') ? -48 : -42;
+                ctx.strokeText(jogador.nome, posX + 12, posY + nickY);
+                ctx.fillStyle = jogador.pvpAtivo ? "#ff4d4d" : "#f1c40f";
+                ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
+                ctx.shadowBlur = 4;
+                ctx.fillText(jogador.nome, posX + 12, posY + nickY);
+                ctx.restore();
+            });
 
             // SNIPER: símbolo de alvo (reticle) onde o tiro será dado
             if (window.minhaClasse === 'sniper' && window.snAimAtivo && typeof window.mouseWorldX === 'number') {
@@ -10229,6 +10672,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
         loop();
     </script>
+    <script src="sistemas/pets/pets-ui.js?v=1"></script>
     <!-- FORJADOR ADMIN MODAL -->
     <div id="item-admin-window" class="modal-window" style="display:none;" data-ui="true">
         <div class="modal-header">

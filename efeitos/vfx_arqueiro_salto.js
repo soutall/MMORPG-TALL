@@ -37,6 +37,10 @@ window.vfxListeners.push(function(dados) {
     }
 
     if (dados.type === 'action_arqueiro_salto_chuva_shoot') {
+        if (dados.ownerId === window.meuId) {
+            window.arqueiroSaltoNoAlto = false;
+            window.arqueiroSaltoEmAndamento = true;
+        }
         let arrows = [];
         for (let i = 0; i < 40; i++) {
             let angle = Math.random() * Math.PI * 2;
@@ -76,6 +80,9 @@ window.vfxListeners.push(function(dados) {
         if (dados.ownerId === window.meuId) {
             window.arqueiroSaltoNoAlto = false;
             window.arqueiroSaltoEmAndamento = false;
+            window.modoMiraSaltoChuva = false;
+            let btn = document.getElementById('btn-arqueiro-salto');
+            if (btn) btn.classList.remove('aiming');
         }
 
         let jogador = window.obterPosicaoEntidade(dados.ownerId);

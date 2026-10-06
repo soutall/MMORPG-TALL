@@ -146,10 +146,10 @@
 
 /* Ícones de skills com imagem no slotbar */
 .btn-action-icon-img {
-    width: 84%;
-    height: 84%;
+    width: 100%;
+    height: 100%;
     object-fit: contain;
-    border-radius: 50%;
+    border-radius: 0;
     pointer-events: none;
     display: block;
     user-select: none;

@@ -127,6 +127,28 @@
                 color: #bdc3c7;
                 opacity: 0.85;
             }
+            .ac-time-controls {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 8px;
+                width: 100%;
+            }
+            .ac-time-input {
+                grid-column: 1 / -1;
+                width: 100%;
+                box-sizing: border-box;
+                padding: 8px;
+                color: #fff;
+                background: #21180f;
+                border: 1px solid rgba(243, 156, 18, 0.6);
+                border-radius: 6px;
+                font: inherit;
+            }
+            .ac-time-status {
+                color: #f1c40f;
+                font-size: 12px;
+                text-align: center;
+            }
             .ac-toggle {
                 position: relative;
                 width: 48px;
@@ -320,6 +342,21 @@
                     </div>
                     <button class="ac-btn ac-btn-on" style="width:100%;" onclick="window.adminLiberarFogMapa()">🔓 Revelar mapa inteiro</button>
                 </div>
+
+                <div class="ac-card" style="flex-direction:column; align-items:stretch; gap:10px;">
+                    <div class="ac-info">
+                        <div class="ac-label">🕒 Controle do horário do mundo</div>
+                        <div class="ac-desc">Defina dia/noite ou fixe qualquer horário para testar. Afeta todos os jogadores.</div>
+                    </div>
+                    <div class="ac-time-status" id="ac-time-status">Carregando horário…</div>
+                    <div class="ac-time-controls">
+                        <button class="ac-btn ac-btn-on" onclick="window.adminDefinirHorarioMundo('dia')">☀️ Fixar dia</button>
+                        <button class="ac-btn ac-btn-on" onclick="window.adminDefinirHorarioMundo('noite')">🌙 Fixar noite</button>
+                        <input class="ac-time-input" id="ac-time-input" type="time" value="12:00" aria-label="Horário do mundo">
+                        <button class="ac-btn ac-btn-on" onclick="window.adminDefinirHorarioMundo('fixar')">🔒 Fixar horário</button>
+                        <button class="ac-btn ac-btn-off" onclick="window.adminDefinirHorarioMundo('retomar')">▶ Retomar ciclo</button>
+                    </div>
+                </div>
             </div>
             <div class="ac-footer">
                 <button class="ac-btn ac-btn-on" onclick="window.setTodosAdminCheats(true)">⚡ Ativar Todos</button>
@@ -399,6 +436,35 @@
             });
         }
     };
+
+    window.adminDefinirHorarioMundo = function (modo) {
+        if (!window.ehAdmin) return;
+        const pedido = { action: 'admin_tempo_mundo', modo: modo };
+        if (modo === 'fixar') {
+            const campo = document.getElementById('ac-time-input');
+            if (!campo || !/^(?:[01]\d|2[0-3]):[0-5]\d$/.test(campo.value)) {
+                if (window.floatingTexts) window.floatingTexts.push({
+                    x: (window.meuX || 0) + 12, y: (window.meuY || 0) - 40,
+                    text: '⏰ Horário inválido.', color: '#e74c3c', alpha: 1.0
+                });
+                return;
+            }
+            pedido.horario = campo.value;
+        }
+        if (!window.ws || window.ws.readyState !== WebSocket.OPEN) {
+            console.error('Não foi possível alterar o horário: conexão com o servidor indisponível.');
+            return;
+        }
+        window.ws.send(JSON.stringify(pedido));
+    };
+
+    function atualizarStatusHorarioMundo() {
+        const status = document.getElementById('ac-time-status');
+        const tempo = window.tempoMundo;
+        if (!status || !tempo) return;
+        status.textContent = 'Agora: ' + (tempo.horaFormatada || '--:--') +
+            (tempo.horarioTravado ? ' · HORÁRIO FIXO' : ' · ciclo normal');
+    }
 
     window.atualizarVisualAdminLevel = function () {
         const el = document.getElementById('ac-current-level');
@@ -604,7 +670,18 @@
             window.adminCheats = Object.assign(window.adminCheats, dados.cheats);
             atualizarVisualSwitches();
         }
+        if (dados.type === 'admin_tempo_mundo_result') {
+            const status = document.getElementById('ac-time-status');
+        if (status && !dados.ok) {
+            status.textContent = dados.mensagem || 'Falha ao alterar horário';
+        } else if (status && dados.ok) {
+            status.textContent = dados.controle.travado
+                ? 'Horário fixado em ' + dados.controle.horaFormatada
+                : 'Ciclo natural retomado';
+            }
+        }
     });
+    setInterval(atualizarStatusHorarioMundo, 1000);
 
     // Inicialização da interface
     window.mostrarBotaoAdminCheats = function () {

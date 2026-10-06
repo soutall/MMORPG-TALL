@@ -1,18 +1,5 @@
 [
   {
-    "id": "flag_mut0fenh_peloz",
-    "criadoEm": 1791069318125,
-    "tipo": "slime_elite",
-    "maxQtd": 1,
-    "comportamento": "agressivo",
-    "hpBase": 480,
-    "respawnSeg": 5,
-    "x": 143837,
-    "y": 13392,
-    "temPosicao": true,
-    "timerRespawn": 100
-  },
-  {
     "id": "flag_mut2gknm_ic2fz",
     "criadoEm": 1791072731794,
     "tipo": "besouro_negro_deserto",

@@ -9,7 +9,7 @@ const NIVEL_SKILL_MAX = 10;
 
 const SKILLS_INFO = {
     guerreiro: [
-        { id: 'corte', nome: 'Estocada da Lança', icon: '🔱', categoria: 'ataque',
+        { id: 'corte', nome: 'Estocada da Lança', icon: '🔱', iconImage: 'imagem/HUD/skills/Slotbar/guerreiro/ataque basico.png', categoria: 'ataque',
           desc: 'Golpe perfurante de lança em linha à frente do herói.',
           danoBase: 12, danoUnidade: 'físico', danoNota: null,
           mp: 0, cd: 0.35, escala: 'dano',
@@ -22,7 +22,7 @@ const SKILLS_INFO = {
           area: 'Raio 300px (provocação)', alcance: 'Ao redor do Guerreiro',
           duracao: '10s (provocação 2s)', duracaoBase: 10,
           extras: ['+30% defesa por 10s', '+10% HP máximo por 10s', 'Atrai mobs e bosses próximos por 2s'] },
-        { id: 'tornado', nome: 'Giro do Vanguarda', icon: '🌀', categoria: 'aoe',
+        { id: 'tornado', nome: 'Giro do Vanguarda', icon: '🌀', iconImage: 'imagem/HUD/skills/Slotbar/guerreiro/Giro do Vanguarda.png', categoria: 'aoe',
           desc: 'Gira a lança em um arco devastador, atingindo inimigos próximos com 3 pulsos cortantes durante o giro.',
           danoBase: 25, danoUnidade: 'físico', danoNota: '25 de dano total em 3 pulsos',
           mp: 20, cd: 5, escala: 'dano',
@@ -48,7 +48,7 @@ const SKILLS_INFO = {
           area: 'Próprio', alcance: '—',
           duracao: 'Passiva', duracaoBase: null,
           extras: ['Vida <= 50%: -5% de dano recebido', 'Vida <= 30%: -10% de dano recebido', 'Vida <= 10%: -15% de dano recebido'] },
-        { id: 'escudo_lancamento', nome: 'Lançamento do Escudo', icon: '🛡️', categoria: 'ataque',
+        { id: 'escudo_lancamento', nome: 'Lançamento do Escudo', icon: '🛡️', iconImage: 'imagem/HUD/skills/Slotbar/guerreiro/lancamento do escudo.png', categoria: 'ataque',
           desc: 'Arremessa o escudo à frente: 45 de dano no primeiro inimigo atingido, puxando-o para perto e forçando o foco (provocação) nele.',
           danoBase: 45, danoUnidade: 'físico', danoNota: 'Puxa + Provoca',
           mp: 15, cd: 10, escala: 'dano',
@@ -94,37 +94,37 @@ const SKILLS_INFO = {
           duracao: 'Sempre ativa', duracaoBase: null, extras: ['Cada 5 pontos investidos em Inteligência concede +1 INT', 'Dano mágico escala com a Mana atual'] }
     ],
     summoner: [
-        { id: 'orbe', nome: 'Orbe das Sombras', icon: '👁️', categoria: 'ataque',
+        { id: 'orbe', nome: 'Orbe das Sombras', icon: '👁️', iconImage: 'imagem/HUD/skills/Slotbar/Summoner/orbe-das-sombras.png', categoria: 'ataque',
           desc: 'Orbe arremessado pelo invocador.',
           danoBase: 6, danoUnidade: 'mágico', danoNota: null,
           mp: 0, cd: 0.3, escala: 'dano',
           area: 'Projétil', alcance: 'Vel. 10',
           duracao: null, duracaoBase: null, extras: [] },
-        { id: 'ogro', nome: 'Ogro Guardião (Passiva)', icon: '🦍', categoria: 'invocacao',
+        { id: 'ogro', nome: 'Ogro Guardião (Passiva)', icon: '🦍', iconImage: 'imagem/HUD/skills/Slotbar/Summoner/ogro-guardiao.png', categoria: 'invocacao',
           desc: 'Pet permanente que persegue e golpeia os inimigos.',
           danoBase: 15, danoUnidade: 'físico', danoNota: ' a cada 2s',
           mp: 0, cd: null, escala: 'dano',
           area: 'Corpo a corpo', alcance: 'Persegue o alvo',
           duracao: null, duracaoBase: null, extras: ['Vida 90 do ogro'] },
-        { id: 'esmagamento', nome: 'Esmagamento Sísmico', icon: '💥', categoria: 'aoe',
+        { id: 'esmagamento', nome: 'Esmagamento Sísmico', icon: '💥', iconImage: 'imagem/HUD/skills/Slotbar/Summoner/esmagamento-sismico.png', categoria: 'aoe',
           desc: 'Comando o ogro a bater o chão, danificando ao redor dele.',
           danoBase: 45, danoUnidade: 'físico', danoNota: '+ Stun 1.5s',
           mp: 25, cd: 6, escala: 'dano',
           area: 'Raio 100 (no ogro)', alcance: 'Via pet',
           duracao: null, duracaoBase: null, extras: ['Ogro agressivo 7s'] },
-        { id: 'salto', nome: 'Salto do Ogro', icon: '🦘', categoria: 'mobilidade',
+        { id: 'salto', nome: 'Salto do Ogro', icon: '🦘', iconImage: 'imagem/HUD/skills/Slotbar/Summoner/salto-do-ogro.png', categoria: 'mobilidade',
           desc: 'O ogro salta em arco sobre o inimigo mais próximo.',
           danoBase: 35, danoUnidade: 'físico', danoNota: '+ Stun 0.5s',
           mp: 20, cd: 8, escala: 'dano',
           area: 'Impacto raio 70', alcance: 'Alvo até 350px',
           duracao: null, duracaoBase: null, extras: [] },
-        { id: 'colossal', nome: 'Golem Colossal', icon: '🗿', categoria: 'invocacao',
+        { id: 'colossal', nome: 'Golem Colossal', icon: '🗿', iconImage: 'imagem/HUD/skills/Slotbar/Summoner/golem-colossal.png', categoria: 'invocacao',
           desc: 'Amplifica o golem por alguns segundos, aumentando seu tamanho, dano e disparo de pedras.',
           danoBase: 30, danoUnidade: 'físico', danoNota: ' por pedra / 20s',
           mp: 40, cd: 45, escala: 'dano',
           area: 'Ao redor do golem', alcance: 'Via pet',
           duracao: '20s', duracaoBase: null, extras: ['+50% de vida do pet', 'Aumento de alcance e dano em área'] },
-        { id: 'sismico', nome: 'Golem Sísmico', icon: '⛰️', categoria: 'aoe',
+        { id: 'sismico', nome: 'Golem Sísmico', icon: '⛰️', iconImage: 'imagem/HUD/skills/Slotbar/Summoner/golem-sismico.png', categoria: 'aoe',
           desc: 'Golem trava no lugar e libera ondas sísmicas por 8s: dano em área crescente (raio 260), lentidão 50% e tremores cada vez mais rápidos.',
           danoBase: 55, danoUnidade: 'físico', danoNota: 'pulso crescente',
           mp: 40, cd: 30, escala: 'dano',
@@ -635,6 +635,8 @@ function renderizarSkills() {
         let nomeClasse = (NOMES_CLASSES[classe] || classe).toUpperCase();
         tag.innerHTML = '<span class="star-ico">✦</span> ' + nomeClasse + ' <span class="star-ico">✦</span>';
     }
+    let creditosIcones = document.getElementById("skills-icon-credits");
+    if (creditosIcones) creditosIcones.style.display = classe === 'summoner' ? 'inline-flex' : 'none';
 
     // Saldo de pontos no rodapé
     let pontos = window.pontosHabilidade || 0;
@@ -696,7 +698,7 @@ function renderizarSkills() {
 
             card.innerHTML = 
                 diamondHtml +
-                '<div class="skill-slot-moldura">' + skill.icon + '</div>' +
+                '<div class="skill-slot-moldura">' + skillIconeHtml(skill) + '</div>' +
                 '<span class="skill-slot-nv">Nv ' + nivel + '</span>' +
                 '<div class="skill-slot-nome">' + skill.nome + '</div>' +
                 pipsHtml;
@@ -810,7 +812,7 @@ function renderizarSkills() {
         detalheEl.innerHTML =
         '<div class="skill-det-titulo">DETALHES DA HABILIDADE</div>' +
         '<div class="skill-det-header">' +
-            '<div class="skill-det-ico-wrap">' + skillSel.icon + '</div>' +
+            '<div class="skill-det-ico-wrap">' + skillIconeHtml(skillSel) + '</div>' +
             '<div class="skill-det-info">' +
                 '<div class="skill-det-nome-row">' +
                     '<span class="skill-det-nome">' + skillSel.nome + '</span>' +
@@ -841,6 +843,14 @@ function renderizarSkills() {
         '</div>' +
         btnArvoreHtml +
         proximoNivelHtml;
+}
+
+function skillIconeHtml(skill) {
+    if (skill && skill.iconImage) {
+        return '<img class="skill-icon-img" src="' + encodeURI(skill.iconImage) +
+            '" alt="' + skill.nome + '" draggable="false">';
+    }
+    return skill ? skill.icon : '';
 }
 
 function melhorarSkill(id) {

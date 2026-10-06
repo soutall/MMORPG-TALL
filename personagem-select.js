@@ -4,7 +4,7 @@
 (function () {
     'use strict';
 
-    var MAX_SLOTS = 5;
+    var MAX_SLOTS = 10;
     var HISTORIA_PADRAO = 'História ainda não criada.';
     var FOTO_RETRY = '?v=perfil3';
 
@@ -29,7 +29,8 @@
         forcarTrocaClasse: false,
         autoClasse: false,
         aguardandoSelecionar: false,
-        aguardandoCriar: false
+        aguardandoCriar: false,
+        reconexaoPendente: null
     };
     var _timerNome = null;
     var _ultimoNomeVerificado = null;
@@ -511,6 +512,21 @@
             estado.conta = dados.conta || estado.conta;
             estado.maximo = dados.maximo || MAX_SLOTS;
             estado.personagens = Array.isArray(dados.personagens) ? dados.personagens : [];
+            if (estado.reconexaoPendente) {
+                var personagemReconectado = estado.personagens.find(function (p) {
+                    return p.personagem === estado.reconexaoPendente;
+                });
+                var nomeReconectado = estado.reconexaoPendente;
+                estado.reconexaoPendente = null;
+                if (personagemReconectado) {
+                    estado.escolhido = nomeReconectado;
+                    estado.aguardandoSelecionar = true;
+                    estado.entrouSelecionado = true;
+                    enviar({ action: 'personagem_selecionar', personagem: nomeReconectado });
+                    fecharTudo();
+                    return;
+                }
+            }
             if (!estado.escolhido || !estado.personagens.some(function (p) { return p.personagem === estado.escolhido; })) {
                 estado.escolhido = estado.personagens.length ? estado.personagens[0].personagem : null;
             }
@@ -586,6 +602,10 @@
         return v;
     }
 
+    function prepararReconexao(nome) {
+        estado.reconexaoPendente = (typeof nome === 'string' && nome.trim()) ? nome.trim() : null;
+    }
+
     garantirTelas();
 
     // Gira entre PC (3 colunas com história à direita) e celular horizontal
@@ -615,6 +635,7 @@
     window.PersonagemSelect = {
         onMessage: aoReceber,
         tratarInit: tratarInit,
-        autoEntrarComClasse: autoEntrarComClasse
+        autoEntrarComClasse: autoEntrarComClasse,
+        prepararReconexao: prepararReconexao
     };
 })();

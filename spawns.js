@@ -21,7 +21,8 @@ const TAGS_MONSTRO = Object.freeze({
     buffers: { nome: 'Buffers', descricao: 'Aplica benefícios a outros monstros.' },
     debuffers: { nome: 'Debuffers', descricao: 'Aplica efeitos negativos aos jogadores.' },
     elite: { nome: 'Elite', descricao: 'Exibe a barra de vida de elite na interface.' },
-    boss: { nome: 'Boss', descricao: 'Exibe a barra de vida de boss na interface.' }
+    boss: { nome: 'Boss', descricao: 'Exibe a barra de vida de boss na interface.' },
+    voadores: { nome: 'Voadores', descricao: 'Monstros que voam e podem atravessar colisões do mapa.' }
 });
 
 // ============ CARGOS / PERMISSÃO DE ADMIN ============
@@ -183,6 +184,12 @@ const TIPOS_MONSTROS = {
         distanciaPreferida: 280,
         velocidade: 1.35,
         cadenciaAtk: 65,
+        petAttackSkill: {
+            projectileType: 'cogumelo_veneno',
+            projectileSpeed: 8,
+            projectileLife: 80,
+            cooldownMs: 3250
+        },
         xpBase: 180,
         cor: '#ba59d1',
         bioma: 'Selva Proibida',
@@ -244,6 +251,12 @@ const TIPOS_MONSTROS = {
         distanciaPreferida: 280,
         velocidade: 1.9,
         cadenciaAtk: 42,
+        petAttackSkill: {
+            projectileType: 'louva_folha',
+            projectileSpeed: 11,
+            projectileLife: 80,
+            cooldownMs: 2100
+        },
         xpBase: 205,
         cor: '#76a63b',
         bioma: 'Selva Proibida',
@@ -442,9 +455,10 @@ function criarMonstroBandeira(flag) {
         skillRange: conf.skillRange || null,
         skillCooldownMax: conf.skillCooldown || 200,
         skillCooldown: Math.floor(30 + Math.random() * 90),
+        petAttackSkill: conf.petAttackSkill ? Object.assign({}, conf.petAttackSkill) : null,
         fleeDistance: conf.fleeDistance || null,
         poisonDuration: conf.poisonDuration || 400,
-        ignoreMapCollision: !!conf.ignoreMapCollision,
+        ignoreMapCollision: Array.isArray(conf.tags) && conf.tags.includes('voadores'),
         imuneControle: !!conf.imuneControle,
         resistenciaControle: conf.resistenciaControle || 0,
         invisivel: false,
@@ -468,6 +482,7 @@ function criarMonstroBandeira(flag) {
         efeitoVisual: conf.efeitoVisual || 'none',
         vfxCor: conf.vfxCor || conf.cor || '#ffffff',
         vfxIntensidade: conf.vfxIntensidade || 1,
+        tags: Array.isArray(conf.tags) ? conf.tags.slice() : [],
         drops: Array.isArray(conf.drops) ? conf.drops.slice() : []
     };
     if (conf.maxQtd) mob.maxSpawnQtd = conf.maxQtd;
@@ -539,6 +554,7 @@ function criarBossBandeira(flag) {
         id: 'band_' + flag.id + '_' + Math.random().toString(36).slice(2, 10),
         tipo: 'golem_pedra',
         nome: conf.nome || 'GOLEM DE PEDRA',
+        tags: Array.isArray(conf.tags) ? conf.tags.slice() : [],
         x: flag.x,
         y: flag.y,
         angulo: 0,

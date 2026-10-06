@@ -1,0 +1,16 @@
+Summoner skill pictograms
+
+Source: Kenney Game Icons (https://kenney.nl/assets/game-icons)
+Creator: Kenney Vleugels (https://www.kenney.nl/)
+License: Creative Commons CC0 1.0 Universal (public domain)
+License text: https://creativecommons.org/publicdomain/zero/1.0/
+
+Pictograms used:
+- Orbe das Sombras — star
+- Ogro Guardião — singleplayer
+- Esmagamento Sísmico — target
+- Salto do Ogro — arrowUp
+- Golem Colossal — massiveMultiplayer
+- Golem Sísmico — warning
+
+Kenney assets are CC0 and attribution is not required. The game adds original colored gradients and borders to these pictograms.

@@ -24,18 +24,32 @@
     // Cada mapa pode registrar um renderizador específico. Quando não houver,
     // usamos o snapshot genérico do terreno capturado pelo loop principal.
     window.desenharCamadaMapaAtivoPorMapa = window.desenharCamadaMapaAtivoPorMapa || {};
-    window.mapaEdicaoAtivo = window.mapaEdicaoAtivo || 'cidade';
+    window.mapaEdicaoAtivo = window.mapaEdicaoAtivo || 'mundo';
 
     function obterConfigMapaAtivo() {
-        return MAPAS_CONFIG[window.mapaEdicaoAtivo] || MAPAS_CONFIG.cidade;
+        return MAPAS_CONFIG[window.mapaEdicaoAtivo] || MAPAS_CONFIG.mundo;
     }
 
     function modoCamadaAtivo() {
         return window.modoEdicaoMapa === 'camada';
     }
 
+    function normalizarLinhasEditor(lista) {
+        if (!Array.isArray(lista)) return;
+        lista.forEach(function (item) {
+            if (!item || item.tipo !== 'line' || !Array.isArray(item.pontos) || item.pontos.length < 2) return;
+            const xs = item.pontos.map(function (ponto) { return ponto.x; });
+            const ys = item.pontos.map(function (ponto) { return ponto.y; });
+            item.x = Math.min.apply(null, xs);
+            item.y = Math.min.apply(null, ys);
+            item.w = Math.max(1, Math.max.apply(null, xs) - item.x);
+            item.h = Math.max(1, Math.max.apply(null, ys) - item.y);
+            item.baseY = Math.max.apply(null, ys);
+        });
+    }
+
     function obterListaEditor() {
-        const mapa = window.mapaEdicaoAtivo || 'cidade';
+        const mapa = window.mapaEdicaoAtivo || 'mundo';
         if (modoCamadaAtivo()) {
             if (!Array.isArray(window.camadasPorMapa[mapa])) {
                 if (mapa === 'cidade' && global.mapaCidade && typeof global.mapaCidade.obterCamadas === 'function') {
@@ -58,7 +72,8 @@
     }
 
     function carregarListaEditor(lista) {
-        const mapa = window.mapaEdicaoAtivo || 'cidade';
+        normalizarLinhasEditor(lista);
+        const mapa = window.mapaEdicaoAtivo || 'mundo';
         if (modoCamadaAtivo()) {
             window.camadasPorMapa[mapa] = lista;
             if (mapa === 'cidade' && global.mapaCidade && typeof global.mapaCidade.carregarCamadas === 'function') {
@@ -98,7 +113,7 @@
     };
 
     window.obterMapaEdicao = function () {
-        return window.mapaEdicaoAtivo || 'cidade';
+        return window.mapaEdicaoAtivo || 'mundo';
     };
 
     // Converte Coordenadas de Tela (Mouse/Touch) para Coordenadas Locais do Mapa Ativo
@@ -106,7 +121,10 @@
         const cv = global.canvas;
         if (!cv) return { lx: 0, ly: 0, wx: 0, wy: 0 };
         const rect = cv.getBoundingClientRect();
-        const zoom = (typeof global.ZOOM_CAMERA === 'number' && global.ZOOM_CAMERA > 0) ? global.ZOOM_CAMERA : 0.92;
+        const zoom = (typeof global.cameraZoomAtual === 'number' && global.cameraZoomAtual > 0)
+            ? global.cameraZoomAtual
+            : ((typeof global.ZOOM_CAMERA === 'number' && global.ZOOM_CAMERA > 0) ? global.ZOOM_CAMERA : 0.92);
+        const tilt = global.CAMERA_25D ? (Number(global.CAMERA_TILT_Y) || 0.88) : 1;
         const camX = global.camX || 0;
         const camY = global.camY || 0;
 
@@ -116,7 +134,7 @@
         const rTop = rect.top !== undefined ? rect.top : 0;
 
         const screenX = ((clientX - rLeft) / rw * cv.width) / zoom;
-        const screenY = ((clientY - rTop) / rh * cv.height) / zoom;
+        const screenY = ((clientY - rTop) / rh * cv.height) / (zoom * tilt);
 
         const wx = camX + screenX;
         const wy = camY + screenY;
@@ -136,6 +154,24 @@
         let t = ((px - x1) * dx + (py - y1) * dy) / lenSq;
         t = Math.max(0, Math.min(1, t));
         return Math.hypot(px - (x1 + t * dx), py - (y1 + t * dy));
+    }
+
+    function acrescentarPontosLinha(pontos, x, y, espacamentoMaximo) {
+        if (!pontos.length) {
+            pontos.push({ x: Math.round(x), y: Math.round(y) });
+            return;
+        }
+        const ultimo = pontos[pontos.length - 1];
+        const dx = x - ultimo.x, dy = y - ultimo.y;
+        const distancia = Math.hypot(dx, dy);
+        if (!distancia) return;
+        const segmentos = Math.ceil(distancia / espacamentoMaximo);
+        for (let i = 1; i <= segmentos; i++) {
+            const fracao = i / segmentos;
+            const proximo = { x: Math.round(ultimo.x + dx * fracao), y: Math.round(ultimo.y + dy * fracao) };
+            const anterior = pontos[pontos.length - 1];
+            if (anterior.x !== proximo.x || anterior.y !== proximo.y) pontos.push(proximo);
+        }
     }
 
     // Hit-Test de Handles de Redimensionamento (apenas para a colisão selecionada)
@@ -255,15 +291,7 @@
                     '<div class="col-map-bar">' +
                         '<label>🗺️ MAPA:</label>' +
                         '<select id="col-map-select" onchange="window.setMapaEdicao(this.value)">' +
-                            '<option value="cidade">🏰 Cidade de Davahl</option>' +
-                            '<option value="green">🌿 Campo Verde</option>' +
-                            '<option value="desert">🏜️ Deserto com Oásis</option>' +
-                            '<option value="pantano">🌿 Pantanal</option>' +
-                            '<option value="caverna">🕳️ Caverna Sombria</option>' +
-                            '<option value="solari">⚔️ Arena de Solari</option>' +
-                            '<option value="cidadeperdida">🏛️ Cidade Perdida</option>' +
-                            '<option value="testevisual">🌿 Arena Visual Teste</option>' +
-                            '<option value="bemvindo">Ilha BemVindo</option>' +
+                            '<option value="mundo">🌍 Continente de Gaia (Biomas)</option>' +
                         '</select>' +
                     '</div>' +
                     '<div class="col-toolbar">' +
@@ -669,7 +697,7 @@
     function atualizarOpcoesMapaSelect() {
         const sel = document.getElementById('col-map-select');
         if (!sel) return;
-        const valorAtual = window.mapaEdicaoAtivo || 'cidade';
+        const valorAtual = window.mapaEdicaoAtivo || 'mundo';
         let html = '';
         Object.keys(MAPAS_CONFIG).forEach(function (key) {
             const cfg = MAPAS_CONFIG[key];
@@ -808,7 +836,7 @@
             alert('Erro: Conexão com o servidor não está aberta.');
             return;
         }
-        const mapa = window.mapaEdicaoAtivo || 'cidade';
+        const mapa = window.mapaEdicaoAtivo || 'mundo';
         const obstaculos = (window.colisoesPorMapa && window.colisoesPorMapa[mapa]) || (mapa === 'cidade' && global.mapaCidade && global.mapaCidade.obterObstaculos ? global.mapaCidade.obterObstaculos() : []);
         const camadas = (window.camadasPorMapa && window.camadasPorMapa[mapa]) || (mapa === 'cidade' && global.mapaCidade && global.mapaCidade.obterCamadas ? global.mapaCidade.obterCamadas() : []);
 
@@ -819,7 +847,16 @@
             camadas: camadas
         }));
         const nomeMapa = (MAPAS_CONFIG[mapa] && MAPAS_CONFIG[mapa].nome) || mapa;
-        window.mostrarToast('💾 ' + obstaculos.length + ' colisões e ' + camadas.length + ' camadas salvas em ' + nomeMapa + '!');
+        window.mostrarToast('Enviando ' + obstaculos.length + ' colisões e ' + camadas.length + ' camadas para ' + nomeMapa + '...');
+    };
+
+    window.receberResultadoSalvamentoColisoes = function (dados) {
+        if (!dados || dados.type !== 'colisoes_salvas') return;
+        if (dados.sucesso) {
+            window.mostrarToast('💾 Colisões e camadas salvas no servidor.');
+        } else {
+            window.mostrarToast('Erro ao salvar colisões: ' + (dados.erro || 'falha no servidor.'));
+        }
     };
 
     window.mostrarToast = function (msg) {
@@ -845,7 +882,7 @@
 
         ctx.save();
 
-        const mapasParaDesenhar = [window.mapaEdicaoAtivo || 'cidade'];
+        const mapasParaDesenhar = [window.mapaEdicaoAtivo || 'mundo'];
         if (global.currentMap && mapasParaDesenhar.indexOf(global.currentMap) === -1) {
             mapasParaDesenhar.push(global.currentMap);
         }
@@ -1165,13 +1202,13 @@
             return;
         }
 
-        cv.addEventListener('mousedown', onPointerDown);
+        cv.addEventListener('mousedown', onPointerDown, true);
         window.addEventListener('mousemove', onPointerMove);
         window.addEventListener('mouseup', onPointerUp);
 
-        cv.addEventListener('touchstart', onTouchStart, { passive: false });
-        window.addEventListener('touchmove', onTouchMove, { passive: false });
-        window.addEventListener('touchend', onTouchEnd, { passive: false });
+        cv.addEventListener('touchstart', onTouchStart, { capture: true, passive: false });
+        window.addEventListener('touchmove', onTouchMove, { capture: true, passive: false });
+        window.addEventListener('touchend', onTouchEnd, { capture: true, passive: false });
 
         window.addEventListener('keydown', function (e) {
             if (!window.colisaoEditorAtivo) return;
@@ -1203,6 +1240,8 @@
 
     function onPointerDown(e) {
         if (!window.colisaoEditorAtivo) return;
+        e.preventDefault();
+        e.stopPropagation();
         const pos = telaParaLocalCidade(e.clientX, e.clientY);
         iniciarInteracao(pos.lx, pos.ly, pos.wx, pos.wy, e);
     }
@@ -1210,11 +1249,11 @@
     function onTouchStart(e) {
         if (!window.colisaoEditorAtivo) return;
         if (e.touches.length !== 1) return;
+        e.preventDefault();
+        e.stopPropagation();
         const t = e.touches[0];
         const pos = telaParaLocalCidade(t.clientX, t.clientY);
-        if (iniciarInteracao(pos.lx, pos.ly, pos.wx, pos.wy, e)) {
-            e.preventDefault();
-        }
+        iniciarInteracao(pos.lx, pos.ly, pos.wx, pos.wy, e);
     }
 
     function iniciarInteracao(lx, ly, wx, wy, e) {
@@ -1313,13 +1352,7 @@
         if (de.tipo === 'drawing_line') {
             de.currLx = Math.round(lx);
             de.currLy = Math.round(ly);
-            const pts = de.pontos;
-            const last = pts[pts.length - 1];
-            const dist = Math.hypot(lx - last.x, ly - last.y);
-            // Captura pontos a cada 12px de distância percorrida
-            if (dist >= 12) {
-                pts.push({ x: Math.round(lx), y: Math.round(ly) });
-            }
+            acrescentarPontosLinha(de.pontos, lx, ly, 12);
             return;
         }
 
@@ -1400,32 +1433,48 @@
     }
 
     function onPointerUp(e) {
-        finalizarInteracao();
+        finalizarInteracao(e);
     }
 
     function onTouchEnd(e) {
-        finalizarInteracao();
+        finalizarInteracao(e);
     }
 
-    function finalizarInteracao() {
+    function finalizarInteracao(e) {
         if (!window.dragEstado) return;
         const de = window.dragEstado;
+        if (de.tipo === 'drawing_line' && e) {
+            const touch = e.changedTouches && e.changedTouches.length ? e.changedTouches[0] : null;
+            const clientX = touch ? touch.clientX : e.clientX;
+            const clientY = touch ? touch.clientY : e.clientY;
+            if (Number.isFinite(clientX) && Number.isFinite(clientY)) {
+                const pos = telaParaLocalCidade(clientX, clientY);
+                de.currLx = pos.lx;
+                de.currLy = pos.ly;
+                acrescentarPontosLinha(de.pontos, pos.lx, pos.ly, 12);
+            }
+        }
         window.dragEstado = null;
         if (global.canvas) global.canvas.style.cursor = 'default';
 
         if (de.tipo === 'drawing_line') {
             const pts = de.pontos;
             if (de.currLx !== undefined && de.currLy !== undefined) {
-                const last = pts[pts.length - 1];
-                if (Math.hypot(de.currLx - last.x, de.currLy - last.y) >= 4) {
-                    pts.push({ x: Math.round(de.currLx), y: Math.round(de.currLy) });
-                }
+                acrescentarPontosLinha(pts, de.currLx, de.currLy, 12);
             }
             if (pts.length >= 2) {
+                const minX = Math.min.apply(null, pts.map(function (pt) { return pt.x; }));
+                const maxX = Math.max.apply(null, pts.map(function (pt) { return pt.x; }));
+                const minY = Math.min.apply(null, pts.map(function (pt) { return pt.y; }));
+                const maxY = Math.max.apply(null, pts.map(function (pt) { return pt.y; }));
                 const novo = {
                     id: (modoCamadaAtivo() ? 'camada_line_' : 'line_') + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 6),
                     tipo: 'line',
                     nome: modoCamadaAtivo() ? 'Foreground Curvo ' + (obterListaEditor().length + 1) : 'Linha Curva ' + (obterListaEditor().length + 1),
+                    x: minX,
+                    y: minY,
+                    w: Math.max(1, maxX - minX),
+                    h: Math.max(1, maxY - minY),
                     espessura: de.espessura || 16,
                     pontos: pts,
                     baseY: Math.max.apply(null, pts.map(function (pt) { return pt.y; })),
@@ -1498,8 +1547,14 @@
         if (!mapa) return;
         window.colisoesPorMapa = window.colisoesPorMapa || {};
         window.camadasPorMapa = window.camadasPorMapa || {};
-        if (Array.isArray(obstaculos)) window.colisoesPorMapa[mapa] = obstaculos;
-        if (Array.isArray(camadas)) window.camadasPorMapa[mapa] = camadas;
+        if (Array.isArray(obstaculos)) {
+            normalizarLinhasEditor(obstaculos);
+            window.colisoesPorMapa[mapa] = obstaculos;
+        }
+        if (Array.isArray(camadas)) {
+            normalizarLinhasEditor(camadas);
+            window.camadasPorMapa[mapa] = camadas;
+        }
         if (window.colisaoEditorAtivo && window.mapaEdicaoAtivo === mapa) {
             window.atualizarListaColisoesUI();
             window.atualizarPropriedadesUI();
@@ -1509,6 +1564,8 @@
     window.carregarColisoesIniciais = function (colisoes, camadas) {
         window.colisoesPorMapa = colisoes || {};
         window.camadasPorMapa = camadas || {};
+        Object.keys(window.colisoesPorMapa).forEach(function (mapa) { normalizarLinhasEditor(window.colisoesPorMapa[mapa]); });
+        Object.keys(window.camadasPorMapa).forEach(function (mapa) { normalizarLinhasEditor(window.camadasPorMapa[mapa]); });
         if (window.colisaoEditorAtivo) {
             window.atualizarListaColisoesUI();
             window.atualizarPropriedadesUI();
@@ -1531,6 +1588,18 @@
 
             const ox = (o.cx !== undefined) ? o.cx : ((o.x !== undefined) ? (o.x + (o.w ? o.w / 2 : 0)) : 0);
             const oy = (o.cy !== undefined) ? o.cy : ((o.y !== undefined) ? (o.y + (o.h ? o.h / 2 : 0)) : 0);
+            if (o.tipo === 'line' && o.pontos && o.pontos.length >= 2) {
+                const esp = (o.espessura ? o.espessura / 2 : 8) + r;
+                if (lx < o.x - esp || lx > o.x + o.w + esp ||
+                    ly < o.y - esp || ly > o.y + o.h + esp) continue;
+                for (let j = 0; j < o.pontos.length - 1; j++) {
+                    const p1 = o.pontos[j], p2 = o.pontos[j + 1];
+                    if (lx < Math.min(p1.x, p2.x) - esp || lx > Math.max(p1.x, p2.x) + esp ||
+                        ly < Math.min(p1.y, p2.y) - esp || ly > Math.max(p1.y, p2.y) + esp) continue;
+                    if (distPontoSegmento(lx, ly, p1.x, p1.y, p2.x, p2.y) <= esp) return true;
+                }
+                continue;
+            }
             if (Math.abs(lx - ox) > 160 || Math.abs(ly - oy) > 160) continue;
 
             if (o.tipo === 'rect' || o.tipo === 'caixa' || o.tipo === 'box') {
@@ -1544,28 +1613,6 @@
                 const dy = ly - (o.cy !== undefined ? o.cy : (o.y || 0));
                 const rTotal = (o.r || 20) + r;
                 if ((dx * dx + dy * dy) <= rTotal * rTotal) return true;
-            } else if (o.tipo === 'line') {
-                if (o.pontos && o.pontos.length >= 2) {
-                    const esp = (o.espessura ? o.espessura / 2 : 8) + r;
-                    const minBoxX = (o.x !== undefined ? o.x : 0) - esp;
-                    const maxBoxX = (o.x !== undefined && o.w !== undefined ? o.x + o.w : 100000) + esp;
-                    const minBoxY = (o.y !== undefined ? o.y : 0) - esp;
-                    const maxBoxY = (o.y !== undefined && o.h !== undefined ? o.y + o.h : 100000) + esp;
-
-                    if (lx >= minBoxX && lx <= maxBoxX && ly >= minBoxY && ly <= maxBoxY) {
-                        for (let j = 0; j < o.pontos.length - 1; j++) {
-                            const p1 = o.pontos[j];
-                            const p2 = o.pontos[j + 1];
-                            const minSegX = Math.min(p1.x, p2.x) - esp;
-                            const maxSegX = Math.max(p1.x, p2.x) + esp;
-                            const minSegY = Math.min(p1.y, p2.y) - esp;
-                            const maxSegY = Math.max(p1.y, p2.y) + esp;
-                            if (lx >= minSegX && lx <= maxSegX && ly >= minSegY && ly <= maxSegY) {
-                                if (distPontoSegmento(lx, ly, p1.x, p1.y, p2.x, p2.y) <= esp) return true;
-                            }
-                        }
-                    }
-                }
             }
         }
         return false;
@@ -1587,14 +1634,31 @@
         ctx.setTransform(1, 0, 0, 1, 0, 0);
         ctx.beginPath();
         if (camada.tipo === 'line' && Array.isArray(camada.pontos) && camada.pontos.length > 1) {
-            ctx.lineCap = 'round';
-            ctx.lineJoin = 'round';
-            ctx.moveTo((cfg.x0 + camada.pontos[0].x - camX) * zoom, (cfg.y0 + camada.pontos[0].y - camY) * zoom);
+            const raio = Math.max(4, camada.espessura || 16) * zoom / 2;
             for (let i = 1; i < camada.pontos.length; i++) {
-                ctx.lineTo((cfg.x0 + camada.pontos[i].x - camX) * zoom, (cfg.y0 + camada.pontos[i].y - camY) * zoom);
+                const anterior = camada.pontos[i - 1];
+                const atual = camada.pontos[i];
+                const x1 = (cfg.x0 + anterior.x - camX) * zoom;
+                const y1 = (cfg.y0 + anterior.y - camY) * zoom;
+                const x2 = (cfg.x0 + atual.x - camX) * zoom;
+                const y2 = (cfg.y0 + atual.y - camY) * zoom;
+                const dx = x2 - x1, dy = y2 - y1;
+                const comprimento = Math.hypot(dx, dy);
+                if (!comprimento) {
+                    ctx.moveTo(x1 + raio, y1);
+                    ctx.arc(x1, y1, raio, 0, Math.PI * 2);
+                    continue;
+                }
+                const px = -dy / comprimento * raio;
+                const py = dx / comprimento * raio;
+                const angulo = Math.atan2(dy, dx);
+                ctx.moveTo(x1 + px, y1 + py);
+                ctx.lineTo(x2 + px, y2 + py);
+                ctx.arc(x2, y2, raio, angulo + Math.PI / 2, angulo - Math.PI / 2, true);
+                ctx.lineTo(x1 - px, y1 - py);
+                ctx.arc(x1, y1, raio, angulo - Math.PI / 2, angulo + Math.PI / 2, true);
+                ctx.closePath();
             }
-            ctx.lineWidth = Math.max(4, camada.espessura || 16) * zoom;
-            ctx.stroke();
             ctx.clip();
             ctx.drawImage(snap.canvas, 0, 0);
         } else {
@@ -1646,7 +1710,7 @@
     function encadearColisaoCliente() {
         const prevColide = global.colideMapaAtivo;
         global.colideMapaAtivo = function (x, y, raio) {
-            const mapa = global.currentMap || window.mapaEdicaoAtivo || 'cidade';
+            const mapa = global.currentMap || window.mapaEdicaoAtivo || 'mundo';
             if (mapa === 'castelo' && (global.mapaCastelo || window.mapaCastelo)) {
                 const mc = global.mapaCastelo || window.mapaCastelo;
                 if (typeof mc.colideCastelo === 'function' && mc.colideCastelo(x, y)) return true;

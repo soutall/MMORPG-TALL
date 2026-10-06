@@ -405,6 +405,10 @@ if (document.addEventListener) {
     document.addEventListener('webkitfullscreenchange', sincronizarTelaReal);
 }
 
+// Fullscreen é a preferência inicial; a entrada efetiva ocorre no primeiro
+// gesto do usuário, como exigido pelos navegadores.
+salvarTelaPreferida('fullscreen');
+
 function preencherAbaVisual() {
     var cfg = window.configVisual || {};
     var sh = document.getElementById("vis-hp-modo");

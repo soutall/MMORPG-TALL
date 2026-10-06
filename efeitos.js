@@ -1263,6 +1263,7 @@ window.desenharPlayerProjetil = function(pp) {
     if (!window.ctx || !pp) return;
     let ctx = window.ctx;
     let tipo = pp.tipo || ('normal');
+    if (tipo === 'arqueiro_perfurante') return;
     let ang = Math.atan2(pp.vy || 0, pp.vx || 1);
 
     let corRastro = (tipo === 'magia') ? '#9b59b6' : (tipo === 'orbe') ? '#2ecc71' : (tipo === 'sagrado') ? '#f1c40f' : (tipo === 'riff') ? '#e67e22' : (tipo === 'dm_laser' || tipo === 'dm_tita_laser') ? '#00ffff' : (tipo === 'sniper_tiro' || tipo === 'sniper_super') ? '#ffe08a' : (tipo === 'flecha_arcana') ? '#f39c12' : '#f39c12';

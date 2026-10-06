@@ -84,15 +84,22 @@ function _desenharSpriteSlime(ctx, slime, est) {
     var direcao = Math.round(Math.atan2(-Math.sin(est.face || 0), Math.cos(est.face || 0)) / (Math.PI / 4));
     direcao = ((direcao % 8) + 8) % 8;
     var nomesDirecao = ['E', 'NE', 'N', 'NW', 'W', 'SW', 'S', 'SE'];
-    var emAtaque = (slime.aiAtacandoAte || 0) > agora || est.atkT > 0;
-    var emHit = (est.slimeHitAte || 0) > agora;
+    var emAtaque = (slime.aiAtacandoAte || 0) > agora || est.atkT > 0 ||
+        (slime.animationState === 'ATTACK' &&
+            (!slime.animationUntil || slime.animationUntil > agora));
+    var emHit = (est.slimeHitAte || 0) > agora ||
+        (slime.animationState === 'HIT' &&
+            (!slime.animationUntil || slime.animationUntil > agora));
     var estadoMovimento = slime.aiEstado === 'walk' || slime.aiEstado === 'run' ||
-        slime.aiEstado === 'kite' || slime.aiEstado === 'dodge' || est.movendo;
-    var estadoDesejado = slime.aiDormindo && slime.aiEstado === 'rest_enter' ? 'rest_enter' :
-        (slime.aiDormindo ? 'sleep' :
-            (slime.aiEstado === 'rest_exit' ? 'rest_exit' :
-                (estadoMovimento ? (slime.aiEstado === 'run' || slime.aiEstado === 'kite' ? 'run' : 'walk') :
-                    (emHit ? 'hit' : (emAtaque ? 'action' : 'idle')))));
+        slime.aiEstado === 'kite' || slime.aiEstado === 'dodge' || est.movendo ||
+        slime.animationState === 'WALK';
+    var estadoDesejado = slime.animationState === 'DEAD' ? 'dead' :
+        (emHit ? 'hit' :
+            (slime.aiDormindo && slime.aiEstado === 'rest_enter' ? 'rest_enter' :
+                (slime.aiDormindo ? 'sleep' :
+                    (slime.aiEstado === 'rest_exit' ? 'rest_exit' :
+                        (estadoMovimento ? (slime.aiEstado === 'run' || slime.aiEstado === 'kite' ? 'run' : 'walk') :
+                            (emAtaque ? 'action' : 'idle'))))));
     var nomeClipe = estadoDesejado + '_' + nomesDirecao[direcao];
     var clipe = sprite.clipsByName[nomeClipe];
     if (!clipe || !clipe.frames || !clipe.frames.length) return false;
@@ -197,6 +204,12 @@ function _atualizarEstado(slime, est) {
         est.movendo = false;
     }
     if ((slime.attackCooldown === 0 || slime.attackCooldown == null) && est.prevCd > 0) {
+        est.atkT = 24;
+        est.flash = 10;
+    }
+    if (slime.animationState === 'ATTACK' &&
+        est.petAnimationStartedAt !== slime.animationStartedAt) {
+        est.petAnimationStartedAt = slime.animationStartedAt;
         est.atkT = 24;
         est.flash = 10;
     }

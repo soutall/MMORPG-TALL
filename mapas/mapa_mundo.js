@@ -537,14 +537,6 @@
             return true; // Oceano profundo bloqueia
         }
 
-        // Colisão com props sólidos
-        const ci = Math.floor(x / CELL), cj = Math.floor(y / CELL);
-        for (let a = -1; a <= 1; a++) {
-            for (let b = -1; b <= 1; b++) {
-                const p = propEm(ci + a, cj + b);
-                if (p && p.r > 0 && Math.hypot(x - p.x, y - p.y) < p.r * 0.7 + raio * 0.6) return true;
-            }
-        }
         return false;
     }
 
@@ -1524,10 +1516,6 @@
 
                 // Árvores Clássicas do Núcleo Gaia
                 case 'arvore': case 'salgueiro':
-                    if (global.Arvore3D && global.Arvore3D.pronto && global.Arvore3D.desenhar(ctx, x, y, e, vento, p.v || 0)) {
-                        ctx.restore();
-                        return;
-                    }
                     elip(ctx, x + 4, y, 26 * e, 8 * e, 'rgba(0,0,0,0.3)');
                     ctx.fillStyle = '#5a3f2a'; ctx.fillRect(x - 7 * e, y - 52 * e, 14 * e, 52 * e);
                     ctx.fillStyle = '#7a5a3a'; ctx.fillRect(x - 7 * e, y - 52 * e, 5 * e, 52 * e);
@@ -1764,25 +1752,8 @@
             }
         ];
 
-        function coletarMundoSortables(t, lista) {
-            if (!lista) return;
-            const v = vista();
-            const i0 = Math.floor((v.x - 120) / CELL), i1 = Math.floor((v.x + v.w + 120) / CELL);
-            const j0 = Math.floor((v.y - 60) / CELL), j1 = Math.floor((v.y + v.h + 200) / CELL);
-            for (let j = j0; j <= j1; j++) {
-                for (let i = i0; i <= i1; i++) {
-                    const p = propEm(i, j);
-                    if (p) lista.push({ y: p.y, draw: function () { desenharProp(global.ctx, p, t); } });
-                }
-            }
-            for (let k = 0; k < ESTRUTURAS_MUNDO.length; k++) {
-                const est = ESTRUTURAS_MUNDO[k];
-                if (Math.abs(est.x - v.x - v.w * 0.5) < (v.w * 0.5 + 200) &&
-                    Math.abs(est.y - v.y - v.h * 0.5) < (v.h * 0.5 + 200)) {
-                    lista.push({ y: est.y, draw: function () { est.draw(global.ctx, t); } });
-                }
-            }
-            lista.push({ y: 1e9, draw: function () { desenharAmbiente(global.ctx, t); } });
+        function coletarMundoSortables() {
+            // Gaia fornece somente o terreno; a decoração fica a cargo do Editor.
         }
 
         const prevColide = global.colideMapaAtivo;

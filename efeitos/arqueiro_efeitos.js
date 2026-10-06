@@ -430,6 +430,7 @@ window.criarAnimacaoDisparoPerfurante = function(x, y, vx, vy, angulo) {
         folhas: folhas,
         ventoFase: Math.random() * Math.PI * 2,
         distanciaTotal: 0,
+        rastroAcumulado: 0,
         flashPerfuracao: 10
     });
 };
@@ -651,15 +652,19 @@ window.desenharEfeitosArqueiro = function() {
     // =====================================================================
     for (let i = window.flechasPerfurantes.length - 1; i >= 0; i--) {
         const f = window.flechasPerfurantes[i];
-        f.x += f.vx * frameScale;
-        f.y += f.vy * frameScale;
-        f.vida -= frameScale;
-        f.distanciaTotal += Math.hypot(f.vx, f.vy) * frameScale;
-        f.ventoFase += 0.17 * frameScale;
-        if (f.flashPerfuracao > 0) f.flashPerfuracao -= frameScale;
+        const tempoServidor = frameScale / 3;
+        f.x += f.vx * tempoServidor;
+        f.y += f.vy * tempoServidor;
+        f.vida -= tempoServidor;
+        f.distanciaTotal += Math.hypot(f.vx, f.vy) * tempoServidor;
+        f.ventoFase += 0.17 * tempoServidor;
+        if (f.flashPerfuracao > 0) f.flashPerfuracao -= tempoServidor;
 
-        // Rastro compacto da flecha.
-        f.rastro.push({ x: f.x, y: f.y, alpha: 0.72 });
+        f.rastroAcumulado += frameScale;
+        if (f.rastroAcumulado >= 3) {
+            f.rastro.push({ x: f.x, y: f.y, alpha: 0.72 });
+            f.rastroAcumulado %= 3;
+        }
         if (f.rastro.length > 10) f.rastro.shift();
 
         const visivel = rajadaEstaVisivel(f.x, f.y, 90);
@@ -670,7 +675,7 @@ window.desenharEfeitosArqueiro = function() {
             // Rastro de vento.
             for (let r = 0; r < f.rastro.length; r++) {
                 const ponto = f.rastro[r];
-                ponto.alpha -= 0.085 * frameScale;
+                ponto.alpha -= 0.085 * tempoServidor;
                 if (ponto.alpha <= 0) continue;
                 ctx.globalAlpha = ponto.alpha * 0.55;
                 ctx.strokeStyle = '#b9f7ff';
@@ -689,7 +694,7 @@ window.desenharEfeitosArqueiro = function() {
                 const lateral = folha.offset + Math.sin(f.ventoFase * 2 + folha.fase) * 5;
                 const px = f.x - cos * distancia - sin * lateral;
                 const py = f.y - sin * distancia + cos * lateral;
-                folha.rotacao += folha.velocidadeRotacao * frameScale;
+                folha.rotacao += folha.velocidadeRotacao * tempoServidor;
 
                 ctx.save();
                 ctx.translate(px, py);
@@ -756,7 +761,7 @@ window.desenharEfeitosArqueiro = function() {
             ctx.restore();
         } else {
             // Mesmo fora da câmera, preserva apenas a atualização do estado.
-            for (let r = 0; r < f.rastro.length; r++) f.rastro[r].alpha -= 0.085 * frameScale;
+            for (let r = 0; r < f.rastro.length; r++) f.rastro[r].alpha -= 0.085 * tempoServidor;
         }
 
         if (f.vida <= 0) window.flechasPerfurantes.splice(i, 1);

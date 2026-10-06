@@ -1,5 +1,299 @@
 # INFO DO PROJETO - MMORPG Mobile
 
+## Registro v1.75.50 - Ícones sem Fundo Extra na Slotbar
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.50 | 05/10/2026 | Removidos fundo circular, borda, sombra e padding extras aplicados sobre os pictogramas do Summoner na slotbar. Cada ícone ocupa 90% do botão original, sem substituir o fundo/círculo da skill nem a indicação de cooldown; comportamento consistente no PC e mobile. | style.css, mobile-hud.css, index.html, tests/summoner-skill-icons.test.js, tests/warrior-skill-icons.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.49 - Pictogramas Kenney para Habilidades do Summoner
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.49 | 05/10/2026 | Substituídos os ícones SVG anteriores por pictogramas PNG do pack Kenney Game Icons (CC0), eliminando falhas no carregamento. Fundo em gradiente e brilho individual para os seis ícones; os quatro botões ativos mantêm handlers/atalhos e o acabamento também se aplica no mobile. | imagem/HUD/skills/Slotbar/Summoner/, skills.js, skills.css, style.css, mobile-hud.css, index.html, tests/summoner-skill-icons.test.js, tests/warrior-skill-icons.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.48 - Ícones de Habilidades do Summoner
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.48 | 05/10/2026 | Primeira integração dos ícones próprios do Summoner (posteriormente substituídos pelos pictogramas Kenney PNG na v1.75.49). | imagem/HUD/skills/Slotbar/Summoner/, skills.js, index.html, tests/summoner-skill-icons.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.47 - Velocidade e Avisos de Ataque dos Inimigos
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.47 | 05/10/2026 | A movimentação dos inimigos foi acelerada em 25%. Ataques básicos corpo a corpo e à distância passam a exibir um cone por 300 ms antes de acertar/disparar; sair do alcance ou da direção sinalizada evita o ataque, e os projéteis são lançados no rumo telegráfico. | server.js, index.html, tests/monster-combat-telegraph.test.js, tests/monster-map-collision.test.js, tests/warrior-skill-icons.test.js, tests/websocket-reconnect.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.46 - Icones completos nos Slots da HUD
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.46 | 05/10/2026 | Os ícones de imagem das habilidades passam a ocupar toda a área dos slots circulares da HUD, preservando a imagem inteira com `object-fit: contain` e removendo o recorte circular aplicado à própria imagem. Atualizados estilos comuns/mobile da HUD e cache-busters. | style.css, mobile-hud.css, index.html, tests/warrior-skill-icons.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.45 - Entrada Direta com Conta Google Lembrada
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.45 | 05/10/2026 | A tela sempre oferece “Entrar direto com Google” e exibe a última conta usada quando disponível. O Google Identity Services tenta selecionar automaticamente uma sessão já conectada; se não houver uma sessão elegível, uma mensagem direciona para “Continuar com o Google”. A verificação da credencial do lado do servidor não foi alterada. | index.html, tests/google-direct-login.test.js, tests/warrior-skill-icons.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.44 - Icones de Habilidades do Guerreiro
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.44 | 05/10/2026 | Os PNGs de ataque basico, Giro do Vanguarda e Lancamento do Escudo sao usados nas cartas e detalhes de habilidades do Guerreiro. Giro e Lancamento tambem usam os PNGs correspondentes nos botoes da barra; handlers e teclas permanecem iguais. Passivas sem arte dedicada mantem seus emojis. | skills.js, index.html, tests/warrior-skill-icons.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.43 - Correcao do Salvamento de Sprites e Queda do WebSocket
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.43 | 05/10/2026 | O cliente passa a serializar a máscara inferior de colisão e o ponto Y usados pela divisão automática de sprites, que eram exigidos pelo servidor mas ausentes no payload de criação. Aumentado o limite máximo de mensagem WebSocket para 8 MiB, preservando um teto rígido e evitando que máscaras raster válidas fechem a sessão durante a colocação ou salvamento. | mapa-editor.js, server.js, index.html, tests/map-object-mutations.test.js, tests/websocket-reconnect.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.42 - Salvamento Automatico de Objetos
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.42 | 05/10/2026 | Objetos colocados, duplicados e colisões desenhadas são enviados para persistência imediatamente, sem depender do botão Salvar. O cliente confirma visualmente o sucesso, avisa se a conexão estiver fechada e o servidor restaura os dados em memória quando a gravação falha. | mapa-editor.js, server.js, index.html, tests/map-object-mutations.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.41 - Reconexao Automatica do Cliente
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.41 | 05/10/2026 | O cliente tenta restabelecer o WebSocket com espera progressiva quando a conexão cai e retoma o personagem ativo após autenticar novamente. Logout, conexão substituída, credencial rejeitada e limite de tentativas encerram a recuperação com mensagem clara. | index.html, personagem-select.js, tests/websocket-reconnect.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.40 - Correcao do Salvar e Delete no Editor
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.40 | 05/10/2026 | O botão Salvar transmite a lista do mapa atual e o servidor valida/mescla objetos por ID em transação, preservando outros mapas e restaurando o estado anterior se a gravação falhar. A exclusão de objeto local ainda não confirmado solicita reconciliação pelo ID. Delete e Backspace funcionam com controles não textuais focados, sem apagar texto de campos editáveis. Atualizado o cache-buster do editor. | mapa-editor.js, server.js, index.html, tests/map-object-mutations.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.39 - Protecao de Exclusao e Sincronizacao do Editor
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.39 | 05/10/2026 | A exclusao de objeto valida o ID, remove somente um item e aguarda confirmacao do servidor; a limpeza requer um mapa valido e nao pode limpar todos os mapas por parametro ausente. Alteracoes em memoria sao revertidas se a persistencia falhar. O botao Salvar informa a quantidade de objetos sincronizados. | mapa-editor.js, server.js, index.html, tests/map-object-mutations.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.38 - Divisao de Sprite do Laco
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.38 | 05/10/2026 | Sprites personalizadas com mascara de laco recebem divisao inicial em 50%: a parte superior e ordenada pelo Y-sort na linha divisoria, a parte inferior e ordenada pela base, e a colisao e derivada somente do poligono selecionado abaixo da divisao. A altura e ajustavel no painel e validada/persistida no servidor. | mapa-editor.js, server.js, tests/map-sprite-palette.test.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.37 - IA de Monstros e Colisoes do Mapa
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.37 | 05/10/2026 | O movimento de monstros verifica as colisões do Editor e usa desvio lateral persistente para procurar uma rota ao redor de obstáculos, inclusive ao retornar à origem e durante deslocamentos forçados. A nova tag `voadores` é validada no Editor de Monstros, atualizada nos monstros vivos e é a única que permite atravessar colisões; limites do mapa e áreas perigosas continuam valendo. | server.js, spawns.js, tests/monster-map-collision.test.js, CHANGELOG.md, INFO_PROJETO.md, index.html |
+
+## Registro v1.75.36 - Nickname acima de Texturas e Colisoes
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.36 | 05/10/2026 | Os nicks são desenhados em uma passada final depois das camadas frontais e dos overlays dos editores de colisão e mapa, evitando que texturas ou visualizações de colisão os cubram. Mantidos o posicionamento por classe e a cor PvP. | index.html, tests/player-nickname-layer.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.35 - Correcao da Linha Curva no Editor de Colisoes
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.35 | 05/10/2026 | O mapeamento da ponta do mouse usa o zoom ativo e o tilt da câmera 2.5D. Traços rápidos interpolam pontos com espaçamento máximo de 12 unidades e incluem a posição final no mouse-up/toque. Cliente e servidor verificam colisões em toda a extensão da linha com bounds por segmento, removendo o filtro fixo que descartava partes distantes do centro. | colisao-editor.js, server.js, tests/map-editor-collision.test.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.34 - Laço 1 para Colisao e Referencia Y
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.34 | 05/10/2026 | O Laço 1 manual pode ser editado no painel da sprite selecionada nas abas Colisão/Camada. O polígono pode ser aplicado independentemente à colisão (incluindo rotação, escala e margem do jogador) ou à referência Y-sort; ambos os dados são validados e persistidos pelo servidor. Colisão retangular e Y-sort pela base continuam como padrão quando as máscaras não foram aplicadas. | mapa-editor.js, server.js, tests/map-sprite-palette.test.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.33 - Cache LRU com Limite de Memoria para Sprites Mascaradas
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.33 | 05/10/2026 | Substituído o limite fixo de 8 texturas mascaradas por cache LRU com orçamento estimado de 32 MiB em RGBA. Sprites além da oitava permanecem em cache enquanto couberem no orçamento; texturas antigas são expulsas por uso, e uma textura individual acima do orçamento permanece sozinha para evitar recomposição a cada frame. | mapa-editor.js, tests/map-sprite-palette.test.js, index.html, server.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.32 - Correção do Índice da Máscara do Laço 2
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.32 | 05/10/2026 | Corrigido o índice da máscara quando textura e raster têm dimensões iguais: os pixels usam coordenadas inteiras diretas, evitando erros de ponto flutuante que podiam apagar pixels selecionados ou deixar passar pixels externos. Incluído teste de regressão 105×180 e confirmado no navegador o fluxo de colocação, persistência, recarga e renderização final. | mapa-editor.js, tests/map-sprite-palette.test.js, index.html, server.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.31 - Rastreio Real do Lasso e Login Local
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.31 | 05/10/2026 | Adicionado diagnóstico opt-in do pipeline do Laço 2 (seleção, textura mascarada, colocação, payload, save/load e render final) e exportação PNG do canvas final para inspeção. Login temporário por ID existente foi adicionado somente em desenvolvimento e com conexão loopback; nesta instância local o Google é desativado sem remover a integração original. O navegador anterior mostrava cliente v1.75.30 com processo Node ainda iniciado antes dessas alterações (SERVER_VERSION v1.75.28), exigindo reinício para testar o código real do servidor. | mapa-editor.js, server.js, index.html, tests/map-sprite-palette.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.30 - Correção do Pipeline do Laço 2
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.30 | 05/10/2026 | O Laço 2 exige e persiste sua máscara raster exata; o pipeline cria a textura mascarada em resolução original, preserva RGBA interno e zera RGB/alpha externo. Palette, ghost e mapa usam a mesma rotina; seleção automática sem raster válido falha fechado para evitar fallback ao bbox ou contorno simplificado. Servidor valida seleções automáticas, limite de 2 milhões de pixels e rejeita máscara ausente; cache de textura temporária limitado a 8 entradas. | mapa-editor.js, server.js, tests/map-sprite-palette.test.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.29 - Máscara Raster Exata do Laço 2
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.29 | 05/10/2026 | A seleção automática do Laço 2 persiste os pixels visitados como máscara raster compacta, validada no servidor e aplicada à Palette, prévia do carimbo e instâncias no mapa. A máscara é removida ao limpar o laço ou usar recorte retangular; texturas mascaradas em memória ficam limitadas a 48 entradas. | mapa-editor.js, server.js, tests/map-sprite-palette.test.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.28 - Correção do Recorte Alfa e do Fantasma do Laço
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.28 | 05/10/2026 | A máscara é aplicada pelo modo de composição alfa `destination-in`, descartando pixels externos ao laço. O cálculo de recortes também reconhece dimensões de canvas, fazendo a textura mascarada aparecer corretamente no preview de colocação e na renderização do mapa. | mapa-editor.js, index.html, server.js, tests/map-sprite-palette.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.27 - Máscara de Atlas Aplicada Antes da Instância
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.27 | 05/10/2026 | A máscara é aplicada em um canvas temporário em memória sobre a região do atlas antes de desenhar/animação da instância, bloqueando pixels vizinhos fora do laço. Canvas limitado a 500 px por dimensão máxima e cache limitado a 48 recortes; nenhuma imagem de origem é alterada. | mapa-editor.js, index.html, server.js, tests/map-sprite-palette.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.26 - Recorte Visual pelo Laço, sem Quadrado Extra
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.26 | 05/10/2026 | Preview e seleção de sprites com máscara passam a desenhar o contorno do laço em vez da moldura retangular. A textura já era renderizada com clip pela máscara; os limites retangulares internos permanecem para escala e posicionamento. | mapa-editor.js, index.html, server.js, tests/map-sprite-palette.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.25 - Movimento WASD com Editor Aberto
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.25 | 05/10/2026 | WASD e setas voltam a mover o personagem com o Editor de Mapas aberto; os demais bloqueios de gameplay e a captura de teclas em campos de texto permanecem inalterados. | index.html, server.js, tests/map-sprite-palette.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.24 - Correção do Alvo do Laço
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.24 | 05/10/2026 | Atualizações de propriedades do editor não alteram mais o alvo atual do recorte. O modo de recorte muda para uma instância apenas ao selecioná-la explicitamente; novas sprites permanecem associadas ao pincel, sem modificar instâncias já colocadas. | mapa-editor.js, index.html, server.js, tests/map-sprite-palette.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.23 - Controles do Editor Acima do Menu de Bioma
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.23 | 05/10/2026 | Controles de transformação e painel do objeto selecionado foram movidos para depois da área de sprites/imagem e antes de “Conjunto do bioma”, sem alterar seus identificadores nem seus eventos. Nas abas de colisão e camada, o painel continua disponível abaixo dos controles da aba. | mapa-editor.js, index.html, server.js, tests/map-sprite-palette.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.22 - Identificação e Persistência do Laço 2
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.22 | 05/10/2026 | A janela de recorte informa quando a máscara veio do Laço 2 automático ou do laço magnético manual. O modo é persistido na Palette e nas instâncias; editar um item existente sincroniza seu novo recorte e máscara na Palette. | mapa-editor.js, server.js, index.html, tests/map-sprite-palette.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.21 - Laço 2 Automático e Limpeza
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.21 | 05/10/2026 | Laço 2 usa um clique na região opaca do atlas para identificar o componente conectado, traçar seu contorno e criar a máscara virtual automaticamente; o laço manual continua disponível. Limpar laço remove a máscara e salva a alteração no objeto e no item da palette sem apagar o retângulo do recorte. | mapa-editor.js, index.html, server.js, tests/map-sprite-palette.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.20 - Laço Magnético para Atlas
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.20 | 05/10/2026 | Laço magnético traça o contorno do sprite usando a transparência do atlas, guarda a máscara poligonal virtual com seu retângulo mínimo na palette e nos objetos e aplica recorte na renderização/miniatura. Nenhum PNG derivado é gerado; servidor valida e persiste as coordenadas normalizadas do polígono. | mapa-editor.js, server.js, index.html, tests/map-sprite-palette.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.19 - Janela do Atlas e Ponteiro do Editor
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.19 | 05/10/2026 | Ampliada a janela do Editor de Mapas e a prévia de recorte dos atlas, preservando a proporção do canvas para alinhar o retângulo de seleção ao cursor. Conversão de mouse/toque para coordenadas do mundo passou a considerar a posição e as dimensões reais do canvas. | mapa-editor.js, index.html, server.js, tests/map-sprite-palette.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.18 - Sprite Palette e Ferramenta de Carimbo
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.18 | 05/10/2026 | Editor de Mapas cria itens categorizados da palette a partir de recortes virtuais de atlas PNG, persiste o catálogo em map_sprite_palette.json e permite carimbar instâncias independentes com edição de escala, rotação, ordem, snapping, seleção, movimento, duplicação e exclusão. Seis camadas (chão, decoração atrás, objetos, decoração à frente, construções e primeiro plano) são renderizadas e persistidas com compatibilidade com os nomes antigos; servidor valida a textura e os limites dos recortes. | mapa-editor.js, server.js, index.html, tests/map-sprite-palette.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.17 - Remoção da Vila Central
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.17 | 05/10/2026 | Removidos os 84 objetos da vila criados na atualização anterior e apagadas suas cópias PNG extraídas. Os 93 objetos preexistentes, os atlases originais e as ferramentas gerais do Editor de Mapa foram preservados. | map_objetos.json, sprites/Objetos/editor/Vila_Central_*.png, index.html, server.js, tests/map-village.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.16 - Sprites Individuais da Vila no Editor
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.16 | 05/10/2026 | Exportados 84 elementos da vila central como PNGs individuais em sprites/Objetos/editor, mantendo os atlases originais e atualizando o mapa para usar os novos arquivos diretamente pela galeria do Editor. | sprites/Objetos/editor/Vila_Central_*.png, map_objetos.json, index.html, server.js, tests/map-village.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.15 - Vila Central Construída no Mapa
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.15 | 04/10/2026 | Montada uma vila junto ao spawn existente do mapa mundo usando 84 objetos individuais e recortes dos PNGs originais: praça, fonte, residências, ferraria, mercado, carroça, poço, pavimentação, bancos, placas, lanternas, cercas e vegetação. O Editor de Mapa permite selecionar e persistir retângulos de atlas; spawn e objetos preexistentes são preservados. | map_objetos.json, mapa-editor.js, server.js, index.html, tests/map-village.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.14 - Biomas sem Decoração Automática e Editor Expandido
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.14 | 04/10/2026 | Biomas do Mundo ficam sem props/monumentos/partículas decorativas gerados automaticamente; textura de terreno, áreas perigosas e objetos já salvos no Editor são preservados. Catálogo ganha conjuntos de árvores, montanhas, vegetação e paredes direcionais com filtro por bioma; seleção retangular permite animar só uma parte do sprite e persiste no servidor. | mapas/mapa_mundo.js, mapa-editor.js, server.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.13 - Animações de Sprites e Pincel de Colisão
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.13 | 04/10/2026 | Removido do mapa Mundo o modelo 3D de árvore da imagem (preservadas as árvores 2D); Editor permite testar 30 animações nos sprites personalizados e salvá-las; pincel desenha uma única colisão contínua por traço, aplicada no cliente e servidor. | mapas/mapa_mundo.js, mapa-editor.js, index.html, server.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.12 - Reforma Visual do Editor de VFX
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.12 | 04/10/2026 | Efeitos do mapa passam a ter desenhos específicos e animados; fogo usa labaredas com núcleo e brasas, folhas e pétalas caem com movimento de vento, e o catálogo ganha novas variações e prévia animada ajustável no editor. | map-vfx-admin.js, spawn-admin.css, index.html, server.js, CHANGELOG.md, INFO_PROJETO.md, tests/map-vfx-render.test.js |
+
+## Registro v1.75.11 - Correção das Abas do Editor de Mapa
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.11 | 04/10/2026 | Painéis de Objetos, Colisão e Camada mantêm o layout vertical ao alternar entre abas; sprites personalizados são colocados sem colisão automática, permitindo configurar colisão e camada manualmente. | mapa-editor.js, index.html, server.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.10 - Correção da Galeria do Editor
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.10 | 04/10/2026 | Corrigido o filtro de extensões da galeria que rejeitava nomes de imagem, ampliada a janela do Editor de Mapa nos dois eixos e reorganizados os previews reais em uma grade responsiva. | mapa-editor.js, index.html, server.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.9 - Sprites e Editor de Colisões do Mapa
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.9 | 04/10/2026 | Editor de mapa lista imagens seguras de sprites/Objetos/editor, permite posicionar sprites inteiros e alterar escala, colisão e camada com persistência e sincronização no servidor; editor de colisões passa a usar o mapa unificado mundo, corrige linhas curvas/pincel e informa o resultado do salvamento. | mapa-editor.js, colisao-editor.js, server.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.8 - Controle de Dia/Noite pelo Painel Admin
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.8 | 04/10/2026 | Painel da coroa pode fixar dia, noite ou horário personalizado e retomar ciclo natural; horário simulado sincronizado globalmente pelo servidor. Interface administrativa depende apenas do sinal autenticado do servidor. | sistema_dia_noite.js, admin-cheats.js, index.html, server.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.7 - Fullscreen, Slots de Personagem e Admin por E-mail
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.7 | 04/10/2026 | Preferência de tela cheia no início com solicitação após gesto do usuário; limite de personagens por conta aumentado de 5 para 10 no cliente e servidor; e-mail Google verificado autorizado como administrador. | config.js, index.html, personagem-select.js, server.js, admins.json, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.6 - Bloqueio de Skills no Salto da Arqueira
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.6 | 04/10/2026 | Skills da Arqueira e dash ficam bloqueados desde a subida da skill Salto + Chuva até o pouso; a chuva disparada do alto continua permitida. O servidor valida o bloqueio e o cliente evita ativar cooldowns enquanto estiver no ar. | index.html, server.js, efeitos/vfx_arqueiro_salto.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.5 - Som da Aura do Guerreiro e Disparo Perfurante
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.5 | 04/10/2026 | Áudio novo da Postura do Guardião do Guerreiro; VFX da flecha perfurante sincronizado com a cadência do servidor e colisão deslocada para a ponta visual, removendo a esfera azul duplicada. | Sonoro/Guerreiro/guerreiro_Aura_vanguarda.wav, sonoro.js, efeitos.js, efeitos/arqueiro_efeitos.js, server.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.4 - Novo Som da Passiva de Agro do Golem
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.4 | 04/10/2026 | Rugido de agro do Golem usa o novo áudio `Sonoro/Summoner/summoner_agro.ogg` com reprodução espacial por proximidade; atualizado o cache do script de sons. | Sonoro/Summoner/summoner_agro.ogg, sonoro.js, index.html, server.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.3 - Correção do Agro do Golem nos Biomas
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.3 | 04/10/2026 | IA dos monstros naturais respeita o taunt do rugido passivo e persegue/ataca o Golem enquanto a provocação estiver ativa; monstros passivos e entidades incompatíveis por mapa/instância são ignorados. | server.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.2 - Correção do Pet do Summoner nos Biomas
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.2 | 04/10/2026 | Golem valida primeiro a colisão do mapa unificado, antes das faixas legadas; salto respeita as dimensões atuais do continente e usa a posição inicial caso não encontre local seguro para pousar, evitando travamento e desaparecimento do pet. | server.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
 ## Registro v1.75.1 - Login, Configurações, Desempenho e Correções de Combate
 
 | Versao | Data | O que foi feito | Arquivos |
