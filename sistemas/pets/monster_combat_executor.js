@@ -7,12 +7,21 @@ function executeAttack(options) {
         return { valid: false, reason: 'entity_dead' };
     }
 
-    const distance = Math.hypot(
-        Number(attacker.x || 0) - Number(target.x || 0),
-        Number(attacker.y || 0) - Number(target.y || 0)
-    );
+    const ax = Number.isFinite(config.attackerX) ? Number(config.attackerX) : Number(attacker.x || 0);
+    const ay = Number.isFinite(config.attackerY) ? Number(config.attackerY) : Number(attacker.y || 0);
+
+    const isPlayer = !!(target.classe && !target.pet_instance_id && !target.owner_id);
+    const defaultTx = Number(target.x || 0) + (isPlayer ? 12 : 0);
+    const defaultTy = Number(target.y || 0) + (isPlayer ? 16 : 0);
+    const tx = Number.isFinite(config.targetX) ? Number(config.targetX) : defaultTx;
+    const ty = Number.isFinite(config.targetY) ? Number(config.targetY) : defaultTy;
+
+    const distance = Math.hypot(ax - tx, ay - ty);
+    const tolerance = Number.isFinite(config.tolerance)
+        ? Math.max(0, Number(config.tolerance))
+        : (config.isMelee || config.attackKind === 'melee' ? 14 : 0);
     const range = Number(config.range);
-    if (Number.isFinite(range) && distance > range) {
+    if (Number.isFinite(range) && distance > (range + tolerance)) {
         return { valid: false, reason: 'target_out_of_range' };
     }
     if (typeof config.validate === 'function') {

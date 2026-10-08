@@ -144,7 +144,7 @@ window.vfxListeners.push(function(dados) {
         }
 
         // Tremor de tela de impacto inicial da ancoragem
-        window.tremorTela = Math.max(window.tremorTela || 0, 16);
+        window.tremorTela = Math.max(window.tremorTela || 0, 11);
 
         // Inicializa o estado da Super Rocha
         window.vfxSummonerGolems[ownerId] = {
@@ -154,7 +154,7 @@ window.vfxListeners.push(function(dados) {
             startTime: Date.now(),
             duration: dados.duration || 8000,
             emergeDuration: 1400, // 1.4s para cravar e fixar no solo
-            cracks: _obterRachadurasSismicas(165, 12),
+            cracks: _obterRachadurasSismicas(116, 12),
             dust: [],
             boulders: [],
             spikes: []
@@ -165,7 +165,7 @@ window.vfxListeners.push(function(dados) {
         // Lajes e pedregulhos de ancoragem profunda cravados na base
         for (let i = 0; i < 11; i++) {
             let a = (i / 11) * Math.PI * 2 + (Math.random() - 0.5) * 0.45;
-            let dist = 22 + Math.random() * 26;
+            let dist = 15 + Math.random() * 19;
             g.boulders.push({
                 x: Math.cos(a) * dist,
                 y: Math.sin(a) * dist * 0.65,
@@ -177,13 +177,13 @@ window.vfxListeners.push(function(dados) {
         }
 
         // Espinhos de rocha pontuda iniciais irrompendo ao redor da rocha
-        let espinhosIniciais = _criarLoteEspinhosTeluricos(x, y, 8, 38, 90, 80);
+        let espinhosIniciais = _criarLoteEspinhosTeluricos(x, y, 8, 27, 63, 80);
         espinhosIniciais.forEach(sp => window.vfxSummonerGolemSpikes.push(sp));
 
         // Poeira e terra revolvida na quebra e ancoragem do chão
         for (let i = 0; i < 50; i++) {
             let a = Math.random() * Math.PI * 2;
-            let d = Math.random() * 55;
+            let d = Math.random() * 38;
             g.dust.push({
                 x: Math.cos(a) * d,
                 y: Math.sin(a) * d * 0.65,
@@ -204,10 +204,10 @@ window.vfxListeners.push(function(dados) {
         let x = dados.x, y = dados.y;
         let progress = dados.progress || 0;
         let intensity = dados.intensity || 1;
-        let radius = dados.radius || 260;
+        let radius = dados.radius || 182;
 
         // Tremor de tela crescente com o clímax da skill
-        let shakePower = 6.0 + progress * 10.0;
+        let shakePower = (6.0 + progress * 10.0) * 0.7;
         window.tremorTela = Math.max(window.tremorTela || 0, shakePower);
 
         // Áudio da batida sísmica
@@ -270,10 +270,10 @@ window.vfxListeners.push(function(dados) {
         // Erupção de espigões de rocha pontuda 3D a cada batida da skill
         // -------------------------------------------------------------------
         let espinhosBatida = _criarLoteEspinhosTeluricos(
-            x, y, 
+            x, y,
             7 + Math.floor(Math.random() * 3), // 7 a 9 espigões por pulso
-            45 + progress * 20, 
-            110 + progress * 60, 
+            32 + progress * 14,
+            77 + progress * 42,
             0
         );
         espinhosBatida.forEach(sp => window.vfxSummonerGolemSpikes.push(sp));
@@ -317,7 +317,7 @@ window.vfxListeners.push(function(dados) {
                     cor: i % 3 === 0 ? SUPER_ROCHA_COR.faceClara : (i % 3 === 1 ? SUPER_ROCHA_COR.faceMedia : SUPER_ROCHA_COR.faceEscura)
                 });
             }
-            window.tremorTela = Math.max(window.tremorTela || 0, 14);
+            window.tremorTela = Math.max(window.tremorTela || 0, 10);
         }
 
         if (ownerId === window.meuId) {

@@ -12,6 +12,7 @@ const weaponsConfig = require('./definitions/weapons.json');
 const equipmentConfig = require('./definitions/equipment.json');
 
 const WEAPON_SLOTS = new Set(['arma', 'armaSecundaria']);
+const LEGACY_EQUIPMENT_ICON = '🎒';
 const ITEM_LEVEL_CAP = tiersConfig.itemLevelCap;
 const RARITIES = new Map(raritiesConfig.rarities.map(function (rarity) {
     return [rarity.id, rarity];
@@ -564,7 +565,9 @@ function validateDefinitionAndInstance(instance) {
         instance.nome !== (instance.adminCustom ? instance.adminCustom.name :
             definition.name + (instance.raridade === 'comum' ? '' : ' ' + RARITIES.get(instance.raridade).name)) ||
         instance.cor !== RARITIES.get(instance.raridade).color ||
-        instance.icon !== (definition.icon || (definition.slot === 'peitoral' ? '🛡️' : '🎒'))) {
+        (instance.icon !== (definition.icon || LEGACY_EQUIPMENT_ICON) &&
+            !(EQUIPMENT.has(definition.id) &&
+                instance.icon === (definition.slot === 'peitoral' ? '🛡️' : LEGACY_EQUIPMENT_ICON)))) {
         return { valid: false, reason: 'invalid_identity' };
     }
     if (instance.customVisual !== undefined) {

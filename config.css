@@ -210,3 +210,356 @@
 
     #settings-roda-pe { display: none; }
 }
+
+#settings-window.visual-ativa {
+    width: min(1000px, 94vw);
+    max-width: 94vw;
+    max-height: 92vh;
+    padding: 18px 22px 14px;
+    border: 1px solid rgba(117, 156, 188, 0.58);
+    border-radius: 16px;
+    background:
+        radial-gradient(ellipse at 8% 0%, rgba(34, 83, 113, 0.25), transparent 48%),
+        linear-gradient(150deg, #172638 0%, #0d1723 72%, #0a121c 100%);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, 0.58), inset 0 1px rgba(255, 255, 255, 0.07);
+    text-align: left;
+}
+
+#settings-window.visual-ativa #settings-header {
+    margin-bottom: 12px;
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(138, 167, 193, 0.2);
+}
+
+#settings-window.visual-ativa #settings-titulo {
+    color: #f3d58e;
+    font-size: 20px;
+    letter-spacing: 2px;
+}
+
+#settings-window.visual-ativa #settings-abas { gap: 8px; }
+#settings-window.visual-ativa .settings-aba {
+    border: 1px solid rgba(124, 155, 185, 0.28);
+    border-radius: 8px;
+    background: rgba(23, 39, 55, 0.82);
+    box-shadow: none;
+}
+
+#settings-window.visual-ativa .settings-aba.ativo {
+    border-color: #e5b95e;
+    background: linear-gradient(135deg, #9c712e, #62471f);
+    color: #fff0c7;
+}
+
+#settings-window.visual-ativa #settings-conteudo { margin-top: 12px; }
+#settings-window.visual-ativa #settings-tab-visual {
+    display: grid !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+    align-items: stretch;
+}
+
+#settings-window.visual-ativa #settings-tab-visual .settings-linha {
+    display: flex;
+    min-width: 0;
+    min-height: 102px;
+    flex-direction: column;
+    justify-content: flex-start;
+    gap: 10px;
+    margin: 0;
+    padding: 12px;
+    border: 1px solid rgba(113, 147, 177, 0.25);
+    border-radius: 10px;
+    background: linear-gradient(145deg, rgba(28, 47, 65, 0.9), rgba(14, 25, 37, 0.95));
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
+}
+
+#settings-window.visual-ativa .settings-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: #b8cadb;
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+#settings-window.visual-ativa .settings-ico {
+    display: grid;
+    width: 27px;
+    height: 27px;
+    flex: 0 0 27px;
+    place-items: center;
+    border: 1px solid rgba(224, 184, 94, 0.32);
+    border-radius: 8px;
+    background: rgba(172, 122, 43, 0.16);
+    font-size: 15px;
+}
+
+#settings-window.visual-ativa .settings-select {
+    min-height: 36px;
+    padding: 6px 9px;
+    border: 1px solid rgba(116, 151, 180, 0.35);
+    border-radius: 7px;
+    background: #101c29;
+    box-shadow: none;
+    color: #f2d58e;
+}
+
+#settings-window.visual-ativa .settings-dica {
+    margin: -3px 0 0;
+    color: #8499ac;
+    font-size: 10px;
+    line-height: 1.3;
+}
+
+#settings-window.visual-ativa #vis-tela-linha {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(155px, 0.8fr);
+    align-content: start;
+    align-items: center;
+    gap: 9px 12px;
+}
+
+#settings-window.visual-ativa #vis-tela-linha > div:first-of-type {
+    grid-column: 2;
+    grid-row: 1;
+}
+
+#settings-window.visual-ativa #vis-tela-modo {
+    grid-column: 1 / -1;
+}
+
+#settings-window.visual-ativa #vis-tela-linha .settings-dica {
+    grid-column: 1 / -1;
+}
+
+#settings-window.visual-ativa #settings-acoes {
+    display: flex;
+    flex-direction: row;
+    gap: 9px;
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(138, 167, 193, 0.2);
+}
+
+#settings-window.visual-ativa .btn-config-acao {
+    display: flex;
+    min-height: 40px;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 8px;
+    box-shadow: none;
+    font-size: 11px;
+    letter-spacing: 0.7px;
+}
+
+#settings-window.visual-ativa .btn-sair { margin-top: 0; }
+#settings-window.visual-ativa #settings-roda-pe {
+    margin-top: 9px;
+    color: #71869a;
+    text-align: right;
+}
+
+@media (max-width: 1024px) and (orientation: landscape), (max-width: 900px), (pointer: coarse) {
+    #settings-window.visual-ativa {
+        width: min(96vw, calc(var(--cfg-altura) * 2.15));
+        max-width: 96vw;
+        max-height: 94vh;
+        padding: 0.75rem 0.9rem;
+        border-radius: 12px;
+    }
+
+    #settings-window.visual-ativa #settings-header { padding-bottom: 0.35rem; }
+    #settings-window.visual-ativa #settings-titulo { font-size: 1rem; }
+    #settings-window.visual-ativa #settings-conteudo { overflow-y: auto; }
+    #settings-window.visual-ativa #settings-tab-visual {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 0.4rem;
+    }
+
+    #settings-window.visual-ativa #settings-tab-visual .settings-linha {
+        min-height: 0;
+        gap: 0.4rem;
+        padding: 0.5rem;
+    }
+
+    #settings-window.visual-ativa .settings-label { font-size: 0.62rem; }
+    #settings-window.visual-ativa .settings-ico { width: 1.5rem; height: 1.5rem; flex-basis: 1.5rem; font-size: 0.85rem; }
+    #settings-window.visual-ativa .settings-select { min-height: 2rem; font-size: 0.72rem; padding: 0.35rem; }
+    #settings-window.visual-ativa .settings-dica { font-size: 0.57rem; }
+    #settings-window.visual-ativa #vis-tela-linha { grid-template-columns: minmax(0, 1fr) minmax(7rem, 0.8fr); }
+    #settings-window.visual-ativa #settings-acoes { flex-direction: row; gap: 0.35rem; }
+    #settings-window.visual-ativa .btn-config-acao { min-height: 2rem; height: auto; font-size: 0.6rem; padding: 0.3rem; }
+}
+
+@media (max-width: 560px) and (orientation: portrait) {
+    #settings-window.visual-ativa #settings-tab-visual { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    #settings-window.visual-ativa #vis-tela-linha { grid-column: span 2; }
+    #settings-window.visual-ativa #settings-acoes { flex-wrap: wrap; }
+    #settings-window.visual-ativa .btn-config-acao { flex: 1 1 calc(50% - 0.35rem); }
+}
+
+@media (min-width: 1025px) and (pointer: fine) {
+    #settings-window.audio-ativa {
+        display: flex;
+        width: min(900px, 92vw);
+        max-width: 92vw;
+        max-height: 92vh;
+        flex-direction: column;
+        gap: 12px;
+        padding: 18px 22px 14px;
+        overflow-y: auto;
+        border: 1px solid rgba(117, 156, 188, 0.58);
+        border-radius: 16px;
+        background:
+            radial-gradient(ellipse at 8% 0%, rgba(34, 83, 113, 0.25), transparent 48%),
+            linear-gradient(150deg, #172638 0%, #0d1723 72%, #0a121c 100%);
+        box-shadow: 0 24px 70px rgba(0, 0, 0, 0.58), inset 0 1px rgba(255, 255, 255, 0.07);
+        text-align: left;
+    }
+
+    #settings-window.audio-ativa #settings-header {
+        margin: 0;
+        padding-bottom: 10px;
+        border-bottom: 1px solid rgba(138, 167, 193, 0.2);
+    }
+
+    #settings-window.audio-ativa #settings-titulo {
+        color: #f3d58e;
+        font-size: 20px;
+        letter-spacing: 2px;
+    }
+
+    #settings-window.audio-ativa #settings-abas { gap: 8px; margin: 0; }
+    #settings-window.audio-ativa .settings-aba {
+        border: 1px solid rgba(124, 155, 185, 0.28);
+        border-radius: 8px;
+        background: rgba(23, 39, 55, 0.82);
+        box-shadow: none;
+    }
+
+    #settings-window.audio-ativa .settings-aba.ativo {
+        border-color: #e5b95e;
+        background: linear-gradient(135deg, #9c712e, #62471f);
+        color: #fff0c7;
+    }
+
+    #settings-window.audio-ativa #settings-conteudo { margin: 0; }
+    #settings-window.audio-ativa #settings-tab-audio {
+        display: grid !important;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+    }
+
+    #settings-window.audio-ativa #settings-tab-audio .settings-linha {
+        display: flex;
+        min-width: 0;
+        min-height: 118px;
+        flex-direction: column;
+        justify-content: center;
+        gap: 18px;
+        margin: 0;
+        padding: 16px;
+        border: 1px solid rgba(113, 147, 177, 0.25);
+        border-radius: 10px;
+        background: linear-gradient(145deg, rgba(28, 47, 65, 0.9), rgba(14, 25, 37, 0.95));
+        box-shadow: inset 0 1px rgba(255, 255, 255, 0.035);
+    }
+
+    #settings-window.audio-ativa .settings-label {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        margin: 0;
+        color: #b8cadb;
+        font-size: 12px;
+        letter-spacing: 1px;
+    }
+
+    #settings-window.audio-ativa .settings-ico {
+        display: grid;
+        width: 30px;
+        height: 30px;
+        flex: 0 0 30px;
+        place-items: center;
+        border: 1px solid rgba(224, 184, 94, 0.32);
+        border-radius: 8px;
+        background: rgba(172, 122, 43, 0.16);
+        font-size: 16px;
+    }
+
+    #settings-window.audio-ativa .volume-row { gap: 10px; }
+    #settings-window.audio-ativa .vol-icone { font-size: 18px; }
+    #settings-window.audio-ativa #volume-valor,
+    #settings-window.audio-ativa #volume-bgm-valor,
+    #settings-window.audio-ativa #volume-sfx-valor {
+        min-width: 42px;
+        color: #f2d58e;
+        font-size: 15px;
+    }
+
+    #settings-window.audio-ativa #volume-slider,
+    #settings-window.audio-ativa #volume-bgm-slider,
+    #settings-window.audio-ativa #volume-sfx-slider {
+        height: 7px;
+        border: 1px solid rgba(116, 151, 180, 0.45);
+        border-radius: 99px;
+        background: #0b1520;
+    }
+
+    #settings-window.audio-ativa #volume-slider::-webkit-slider-thumb,
+    #settings-window.audio-ativa #volume-bgm-slider::-webkit-slider-thumb,
+    #settings-window.audio-ativa #volume-sfx-slider::-webkit-slider-thumb {
+        width: 17px;
+        height: 17px;
+        border: 2px solid #f2d58e;
+        border-radius: 50%;
+        background: #9c712e;
+        box-shadow: 0 0 10px rgba(229, 185, 94, 0.3);
+    }
+
+    #settings-window.audio-ativa #volume-slider::-moz-range-thumb,
+    #settings-window.audio-ativa #volume-bgm-slider::-moz-range-thumb,
+    #settings-window.audio-ativa #volume-sfx-slider::-moz-range-thumb {
+        width: 13px;
+        height: 13px;
+        border: 2px solid #f2d58e;
+        border-radius: 50%;
+        background: #9c712e;
+    }
+
+    #settings-window.audio-ativa #settings-acoes {
+        display: flex;
+        flex-direction: row;
+        gap: 9px;
+        margin: 0;
+        padding-top: 12px;
+        border-top: 1px solid rgba(138, 167, 193, 0.2);
+    }
+
+    #settings-window.audio-ativa .btn-config-acao {
+        display: flex;
+        min-height: 40px;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        padding: 7px 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 8px;
+        box-shadow: none;
+        font-size: 11px;
+        letter-spacing: 0.7px;
+    }
+
+    #settings-window.audio-ativa .btn-sair { margin-top: 0; }
+    #settings-window.audio-ativa #settings-roda-pe {
+        margin: -5px 0 0;
+        color: #71869a;
+        text-align: right;
+    }
+}

@@ -1,5 +1,71 @@
 # INFO DO PROJETO - MMORPG Mobile
 
+## Registro v1.75.88 - Redesign visual completo da Florin (Classe das Rosas)
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.88 | 07/10/2026 | Redesign visual completo da Florin baseado na imagem de referência oficial: donzela elegante de cabelos loiros-caramelo longos e ondulados com tiara de rosas carmesim e espinhos dourados, vestido de folhas esmeralda sobrepostas com fenda, trepadeiras douradas nas pernas e calçados com espinhos. Grande Cajado das Rosas (Staff) flutuante com coroa solar de espinhos dourados, rosa central, 3 pingentes de rubi oscilantes e ponta de cristal de rubi. Todos os efeitos das habilidades aprimorados: projétil de rosa giratória com dardo dourado, Roseira Ancestral com anéis sagrados de pétalas, Semente com botão dourado / Flor Carnívora Predadora com mandíbulas de espinhos dourados / Rosa de Mana celeste e carmesim, Espinhos de Rosa com estalagmites douradas e Parede de Espinhos fortificada. | classes/florim.js, efeitos/florim_efeitos.js, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.60 - Alcance do ataque básico restaurado
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.60 | 06/10/2026 | Alcance do ataque básico do Malakar restaurado de 520 para 650 px; Vínculo Mortal permanece em 260 px. | sistemas/lord_malakar.js, index.html, tests/lord-malakar.test.js, CHANGELOG.md, INFO_PROJETO.md, LORD_MALAKAR_IMPLEMENTATION.md |
+
+## Registro v1.75.59 - Foco de alvo e cura do Clérigo
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.59 | 06/10/2026 | Malakar troca o foco do ataque básico e dos lacaios ao clicar em um monstro ou boss, com alcance de seleção igual ao limite do servidor (520 px). Clérigo cura Malakar, aliados do grupo e caveiras sempre que houver vida recuperável, sem o antigo limiar de 75%. | index.html, server.js, CHANGELOG.md, INFO_PROJETO.md, LORD_MALAKAR_IMPLEMENTATION.md |
+
+## Registro v1.75.58 - Cura do Vínculo Mortal
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.58 | 06/10/2026 | Corrigida a cura da skill 2: golpes de caveiras, lacaios e área do Ceifador em inimigos vinculados curam Malakar em 10% do dano, com mínimo de 1 HP por acerto positivo. Evita cura zero causada pelo arredondamento para baixo após a redução do dano dos lacaios. | server.js, sistemas/lord_malakar.js, skills.js, index.html, tests/lord-malakar.test.js, CHANGELOG.md, INFO_PROJETO.md, LORD_MALAKAR_IMPLEMENTATION.md |
+
+## Registro v1.75.57 - Alcance e lacaios do Lord Malakar
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.57 | 06/10/2026 | Alcance corpo a corpo de slimes e demais monstros aumentado em 50%, sem afetar ataques à distância; lacaios do Malakar aplicam dano base 2 (Melee/Ceifador), 3 (Arqueiro/Sniper) e 5 (Mago). A skill 4 move-se com passo 3 (20% mais que o passo anterior) e ganhou detalhes, efeitos de ataque e um novo sigilo roxo/dourado para o buff. A busca e o limite de quebra do Vínculo Mortal foram reduzidos de 520 para 260 px. | server.js, sistemas/lord_malakar.js, classes/lord_malakar.js, skills.js, index.html, tests/lord-malakar.test.js, CHANGELOG.md, INFO_PROJETO.md, LORD_MALAKAR_IMPLEMENTATION.md |
+
+## Registro v1.75.56 - Balanceamento e HUD do Lord Malakar
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.56 | 06/10/2026 | Alcance do ataque básico reduzido de 650 para 520 px; Vínculo Mortal compartilha esse limite. Dano do Ceifador, giro do Ceifador e Sniper reduzido. Lacaios da skill 4 recebem HP e podem morrer para monstros e projéteis; expiração também remove a entidade e notifica o cliente. Caveiras são posicionadas em formação sem sobreposição e bloqueiam o movimento umas das outras. Dano dos lacaios exibe número roxo com animação de salto e queda. Parte petrificada da Vida Máxima aparece em cinza na HUD. Quatro slots do Malakar usam o cooldown server-authoritative com anel horário e brilho quando prontos. Passiva de redução de dano adicionada às informações de skills. | server.js, index.html, skills.js, sistemas/lord_malakar.js, tests/lord-malakar.test.js, CHANGELOG.md, INFO_PROJETO.md, LORD_MALAKAR_IMPLEMENTATION.md |
+
+## Registro v1.75.55 - Efeitos e corrente de sangue do Lord Malakar
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.55 | 06/10/2026 | Lacaios voltaram ao passo anterior (2,5 unidades por atualização). Ataque básico prende o alvo numa corrente de sangue que causa 1 de dano a cada 300 ms enquanto válido. Adicionadas animações de ataques físicos, flecha da caveira arqueira, energia sanguínea da caveira maga, partículas de sangue no Vínculo Mortal, aura do buff e efeito de Vida Petrificada na barra de HP. Fluxo de cura do Clérigo revisado e feedback visual de cura integrado. | server.js, index.html, classes/lord_malakar.js, sistemas/lord_malakar.js, tests/lord-malakar.test.js, CHANGELOG.md, INFO_PROJETO.md, LORD_MALAKAR_IMPLEMENTATION.md |
+
+## Registro v1.75.54 - Revisão de movimento do Lord Malakar
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.54 | 06/10/2026 | Revertido o aumento de velocidade dos lacaios; passo voltou ao ritmo anterior. Ajustados ataque básico e perseguição das caveiras. | server.js, sistemas/lord_malakar.js, tests/lord-malakar.test.js, index.html, CHANGELOG.md, INFO_PROJETO.md, LORD_MALAKAR_IMPLEMENTATION.md |
+
+## Registro v1.75.53 - Ajuste de combate e IA do Lord Malakar
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.53 | 06/10/2026 | Dano base do ataque básico fixado em 1, sem multiplicador de nível. Caveiras agora patrulham posições aleatórias e perseguem alvos; lacaios se movimentam à mesma velocidade máxima calculada para Malakar. | server.js, sistemas/lord_malakar.js, tests/lord-malakar.test.js, index.html, CHANGELOG.md, INFO_PROJETO.md, LORD_MALAKAR_IMPLEMENTATION.md |
+
+## Registro v1.75.52 - Redesenho visual do Lord Malakar
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.52 | 06/10/2026 | Malakar, caveiras e lacaios receberam arte procedural detalhada; torso com respiração, grimório flutuante orientado pelo cursor, gotas de sangue no Sofrimento Eterno, efeitos e círculos de alcance, vínculos animados e indicadores do buff nos beneficiados. Balões de fala das caveiras têm duração máxima de 4 segundos. | classes/lord_malakar.js, index.html, server.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.51 - Lord Malakar (integração jogável inicial)
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.51 | 06/10/2026 | Lord Malakar foi integrado ao seletor, combate, catálogo de skills/itens e HUD responsiva. O servidor autoriza o ataque básico por Afinidade, quatro ações, Vida Petrificada, limites de summons, Vínculo Mortal, Sofrimento Eterno, invocação temporária aleatória, redução passiva de dano, cura limitada e limpeza de sessão. Os summons usam o armazenamento runtime comum de pets e não são persistidos. Valores de combate ainda sem definição explícita na especificação estão listados como provisórios em LORD_MALAKAR_IMPLEMENTATION.md; veja também as limitações registradas nesse documento. | server.js, index.html, skills.js, style.css, sistemas/lord_malakar.js, classes/lord_malakar.js, items/config/classes.json, items/definitions/weapons.json, personagem-select.js, personagens-historias.js, imagem/HUD/Perfil/Malakar.svg, tests/lord-malakar.test.js, LORD_MALAKAR_IMPLEMENTATION.md, CHANGELOG.md, INFO_PROJETO.md |
+
 ## Registro v1.75.50 - Ícones sem Fundo Extra na Slotbar
 
 | Versao | Data | O que foi feito | Arquivos |

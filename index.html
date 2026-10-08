@@ -7,12 +7,12 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Oswald:wght@500;600;700&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=254">
-    <link rel="stylesheet" href="sistemas/pets/pets-ui.css?v=2">
-    <link rel="stylesheet" href="inventario.css?v=171">
+    <link rel="stylesheet" href="style.css?v=256">
+    <link rel="stylesheet" href="sistemas/pets/pets-ui.css?v=5">
+    <link rel="stylesheet" href="inventario.css?v=174">
     <link rel="stylesheet" href="skills.css?v=149">
-    <link rel="stylesheet" href="config.css?v=150">
-    <link rel="stylesheet" href="atributos.css?v=5">
+    <link rel="stylesheet" href="config.css?v=152">
+    <link rel="stylesheet" href="atributos.css?v=6">
     <link rel="stylesheet" href="spawn-admin.css?v=2">
     <link rel="stylesheet" href="colisao-editor.css?v=3">
     <link rel="stylesheet" href="dragdrop.css?v=4">
@@ -129,7 +129,7 @@
                 if (b) b.classList.remove('intro-ativa');
                 console.warn('[bootstrap] watchdog desfez intro-ativa após timeout');
             }
-            
+
             if (h) h.classList.add('intro-ativa');
             if (b) b.classList.add('intro-ativa');
             
@@ -161,7 +161,7 @@
 
     <div id="login-screen">
         <h1>⚔️ ENTRAR NO MUNDO</h1>
-        <p id="login-instructions">Entre com sua conta Google verificada:</p>
+        <p id="login-instructions">Acesse com Google ou entre como visitante:</p>
         <div id="google-login-box" style="display:flex; flex-direction:column; align-items:center; gap:12px; min-height:48px;">
             <div id="google-signin-button"></div>
             <div id="login-remembered-account" style="display:none; flex-direction:column; align-items:center; gap:8px; justify-content:center; max-width:360px;">
@@ -171,6 +171,8 @@
             <div id="google-login-status" role="status" aria-live="polite" style="max-width:320px; color:#ffd27d; text-align:center; font:600 14px 'Rajdhani',sans-serif;">Carregando login Google…</div>
             <button id="login-logout" type="button" onclick="window.logoutGoogleConta && window.logoutGoogleConta()" style="display:none; padding:8px 12px; border-radius:999px; background:rgba(231,76,60,0.2); border:1px solid rgba(231,76,60,0.45); color:#ffd5d5; cursor:pointer; font-weight:700;">Sair da conta</button>
         </div>
+        <button id="guest-login-button" type="button">ENTRAR COMO VISITANTE</button>
+        <small id="guest-login-note">Conta temporária para testes, sem vínculo com o Google.</small>
         <div id="local-id-login-box" style="display:none; flex-direction:column; align-items:center; gap:10px; margin-top:12px;">
             <label for="local-id-login-input" style="color:#cfe9ff;font:600 14px 'Rajdhani',sans-serif;">ID do personagem (modo local de teste)</label>
             <input id="local-id-login-input" type="text" maxlength="64" autocomplete="off" spellcheck="false"
@@ -179,7 +181,7 @@
                 style="padding:9px 18px;border-radius:999px;background:#1c7c54;border:1px solid #49b989;color:#fff;font-weight:700;cursor:pointer;">Entrar por ID (somente local)</button>
             <span id="local-id-login-status" role="status" style="max-width:320px;color:#ffd27d;text-align:center;font:600 13px 'Rajdhani',sans-serif;"></span>
         </div>
-        <div class="game-version-display">v1.75.50</div>
+        <div class="game-version-display">v1.75.95</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -229,6 +231,9 @@
             <div class="class-card guerreiro_kaledron" onclick="selecionarClasse('guerreiro_kaledron')">
                 <div class="icon">🔥</div><div class="title" style="color:#e67e22;">Guerreiro Kaledron</div><div class="desc">Montante Colossal Flutuante, Magma e Erupções.</div>
             </div>
+            <div class="class-card lord_malakar" onclick="selecionarClasse('lord_malakar')">
+                <div class="icon">💀</div><div class="title" style="color:#bb6cff;">Lord Malakar</div><div class="desc">Invocador sombrio: comanda caveiras e lacaios sacrificando a própria Vida.</div>
+            </div>
         </div>
     </div>
 
@@ -236,7 +241,7 @@
     <div id="elite-alert-notice" role="alert" aria-live="assertive">⚠ ATENÇÃO: ELITE ESTÁ NO MAPA</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
     <div id="ping-counter" data-ui="ping">PING: -- ms</div>
-    <div id="hud-version" class="game-version-display">v1.75.50</div>
+    <div id="hud-version" class="game-version-display">v1.75.95</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -559,6 +564,10 @@
         <button id="btn-kaledron-impacto" class="btn-action btn-kaledron-impacto" ontouchstart="usarImpactoTerrestreKaledron(); event.stopPropagation();" onclick="usarImpactoTerrestreKaledron();" title="Impacto Terrestre (2)">💥<span class="key-badge">2</span></button>
         <button id="btn-kaledron-redemoinho" class="btn-action btn-kaledron-redemoinho" ontouchstart="usarRedemoinhoKaledron(); event.stopPropagation();" onclick="usarRedemoinhoKaledron();" title="Redemoinho de Aço (3)">🌪️<span class="key-badge">3</span></button>
         <button id="btn-kaledron-brado" class="btn-action btn-kaledron-brado" ontouchstart="usarBradoGuerraKaledron(); event.stopPropagation();" onclick="usarBradoGuerraKaledron();" title="Brado de Guerra Vulcânico (4)">📢<span class="key-badge">4</span></button>
+        <button id="btn-malakar-skull" class="btn-action btn-malakar" onclick="usarSkillLordMalakar('lord_malakar_evocacao_demoníaca')" title="Evocação Demoníaca (1)">💀<span class="key-badge">1</span></button>
+        <button id="btn-malakar-link" class="btn-action btn-malakar" onclick="usarSkillLordMalakar('lord_malakar_vinculo_mortal')" title="Vínculo Mortal (2)">⛓️<span class="key-badge">2</span></button>
+        <button id="btn-malakar-suffering" class="btn-action btn-malakar" onclick="usarSkillLordMalakar('lord_malakar_sofrimento_eterno')" title="Sofrimento Eterno (3)">🩸<span class="key-badge">3</span></button>
+        <button id="btn-malakar-minion" class="btn-action btn-malakar" onclick="usarSkillLordMalakar('lord_malakar_invocacao_aleatoria')" title="Invocação Aleatória (4)">🕯️<span class="key-badge">4</span></button>
         <!-- NOVAS SKILLS -->
         <button id="btn-guerreiro-escudo" class="btn-action btn-guerreiro-escudo" ontouchstart="ativarEscudoSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarEscudoSmartCast();" title="Lançamento do Escudo (4)"><img src="imagem/HUD/skills/Slotbar/guerreiro/lancamento%20do%20escudo.png" class="btn-action-icon-img" alt="Lançamento do Escudo" draggable="false" /><span class="key-badge">4</span></button>
         <button id="btn-mago-bola" class="btn-action btn-mago-bola" ontouchstart="ativarBolaElementalSmartCast(); event.preventDefault(); event.stopPropagation();" onclick="ativarBolaElementalSmartCast();" title="Bola Elemental (4)">🔮<span class="key-badge">4</span></button>
@@ -666,8 +675,8 @@
     <div id="inventory-screen">
         <div id="inv-window" role="dialog" aria-label="Inventário">
             <div id="inv-artboard">
-                <img id="inv-artwork" src="imagem/HUD/InventoryHUD.png?v=170" alt="" draggable="false">
                 <div id="inv-overlay">
+                    <header id="inv-title"><span class="inv-title-ico" aria-hidden="true">🎒</span><span>INVENTÁRIO</span></header>
                     <button id="btn-inv-fechar" onclick="fecharInventario()" title="Fechar inventário" aria-label="Fechar inventário">✕</button>
 
                     <section id="inv-col-esquerda" aria-label="Equipamento do personagem">
@@ -708,37 +717,32 @@
                         <span class="inv-botoes-ajuda" aria-live="polite"></span>
                         <button id="btn-inv-acao-principal" type="button" title="Equipar ou usar item" aria-label="Equipar ou usar item" onclick="executarAcaoItemSelecionado()"></button>
                         <button id="btn-inv-comparacao-equipar" type="button" title="Equipar o item comparado" aria-label="Equipar o item comparado" onclick="equiparItemComparado()"></button>
-                        <button id="btn-inv-destruir" type="button" onclick="destruirItemSelecionado()" title="Destruir item" aria-label="Destruir item">🗑️</button>
+                        <button id="btn-inv-destruir" type="button" onclick="destruirItemSelecionado()" title="Selecionar itens para descarte" aria-label="Selecionar itens para descarte" aria-pressed="false">🗑️</button>
                         <button id="btn-inv-bloquear" type="button" onclick="alternarBloqueioItemSelecionado()" title="Bloquear item" aria-label="Bloquear item">🔒</button>
                     </div>
 
                     <section id="inv-col-direita" aria-label="Mochila">
                         <div id="mochila-abas" role="tablist" aria-label="Categorias da mochila">
-                            <button class="mochila-aba ativa" data-aba="todos" title="Todos os itens" aria-label="Todos os itens"></button>
-                            <button class="mochila-aba" data-aba="itens" title="Itens diversos" aria-label="Itens diversos"></button>
-                            <button class="mochila-aba" data-aba="consumiveis" title="Consumíveis" aria-label="Consumíveis"></button>
-                            <button class="mochila-aba" data-aba="pedras" title="Pedras de upgrade" aria-label="Pedras"></button>
-                            <button id="btn-inv-categorias-extra" type="button" title="Mais categorias" aria-label="Mais categorias"></button>
-                            <div id="inv-menu-categorias" role="menu" hidden>
-                                <button type="button" data-aba-extra="quest">Itens de missão</button>
-                                <button type="button" data-aba-extra="cosmeticos">Itens visuais</button>
-                            </div>
+                            <button class="mochila-aba ativa" data-aba="todos" title="Todos os itens" aria-label="Todos os itens"><span class="aba-ico" aria-hidden="true">🎒</span><span class="aba-rotulo">Todos</span></button>
+                            <button class="mochila-aba" data-aba="equipamentos" title="Equipamentos" aria-label="Equipamentos"><span class="aba-ico" aria-hidden="true">⚔️</span><span class="aba-rotulo">Equip.</span></button>
+                            <button class="mochila-aba" data-aba="itens" title="Itens diversos" aria-label="Itens diversos"><span class="aba-ico" aria-hidden="true">📦</span><span class="aba-rotulo">Itens</span></button>
+                            <button class="mochila-aba" data-aba="consumiveis" title="Consumíveis" aria-label="Consumíveis"><span class="aba-ico" aria-hidden="true">🧪</span><span class="aba-rotulo">Poções</span></button>
+                            <button class="mochila-aba" data-aba="pedras" title="Pedras de upgrade" aria-label="Pedras"><span class="aba-ico" aria-hidden="true">💎</span><span class="aba-rotulo">Pedras</span></button>
+                            <button class="mochila-aba" data-aba="quest" title="Itens de missão" aria-label="Itens de missão"><span class="aba-ico" aria-hidden="true">📜</span><span class="aba-rotulo">Missão</span></button>
+                            <button class="mochila-aba" data-aba="cosmeticos" title="Itens visuais" aria-label="Itens visuais"><span class="aba-ico" aria-hidden="true">✨</span><span class="aba-rotulo">Visuais</span></button>
                         </div>
                         <div id="mochila-filtros-slot" role="tablist" aria-label="Filtrar equipamentos">
-                            <button class="mochila-filtro-slot ativo" data-slot-filtro="" title="Todas as categorias" aria-label="Todas as categorias"></button>
-                            <button class="mochila-filtro-slot" data-slot-filtro="arma" title="Armas" aria-label="Armas"></button>
-                            <button class="mochila-filtro-slot" data-slot-filtro="armadura" title="Armaduras" aria-label="Armaduras"></button>
-                            <button class="mochila-filtro-slot" data-slot-filtro="anel" title="Anéis" aria-label="Anéis"></button>
-                            <button class="mochila-filtro-slot" data-slot-filtro="bota" title="Botas" aria-label="Botas"></button>
-                            <button id="btn-inv-slot-extra" type="button" title="Mais filtros de equipamento" aria-label="Mais filtros de equipamento"></button>
-                            <div id="inv-menu-slots" role="menu" hidden>
-                                <button type="button" data-slot-filtro-extra="capacete">Capacetes</button>
-                                <button type="button" data-slot-filtro-extra="peitoral">Peitorais</button>
-                                <button type="button" data-slot-filtro-extra="capa">Capas</button>
-                                <button type="button" data-slot-filtro-extra="luva">Luvas</button>
-                                <button type="button" data-slot-filtro-extra="colar">Colares</button>
-                                <button type="button" data-slot-filtro-extra="armaSecundaria">Armas secundárias</button>
-                            </div>
+                            <button class="mochila-filtro-slot ativo" data-slot-filtro="" title="Todos os equipamentos" aria-label="Todos os equipamentos"><span class="filtro-slot-ico" aria-hidden="true">✦</span><span>Todos</span></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="arma" title="Armas" aria-label="Armas"><span class="filtro-slot-ico" aria-hidden="true">⚔️</span><span>Armas</span></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="armaSecundaria" title="Armas secundárias" aria-label="Armas secundárias"><span class="filtro-slot-ico" aria-hidden="true">🗡️</span><span>Secundária</span></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="armadura" title="Armaduras" aria-label="Armaduras"><span class="filtro-slot-ico" aria-hidden="true">🛡️</span><span>Armaduras</span></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="capacete" title="Capacetes" aria-label="Capacetes"><span class="filtro-slot-ico" aria-hidden="true">🪖</span><span>Capacete</span></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="peitoral" title="Peitorais" aria-label="Peitorais"><span class="filtro-slot-ico" aria-hidden="true">🛡️</span><span>Peitoral</span></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="capa" title="Capas" aria-label="Capas"><span class="filtro-slot-ico" aria-hidden="true">🧥</span><span>Capa</span></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="luva" title="Luvas" aria-label="Luvas"><span class="filtro-slot-ico" aria-hidden="true">🧤</span><span>Luva</span></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="colar" title="Colares" aria-label="Colares"><span class="filtro-slot-ico" aria-hidden="true">📿</span><span>Colar</span></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="anel" title="Anéis" aria-label="Anéis"><span class="filtro-slot-ico" aria-hidden="true">💍</span><span>Anel</span></button>
+                            <button class="mochila-filtro-slot" data-slot-filtro="bota" title="Botas" aria-label="Botas"><span class="filtro-slot-ico" aria-hidden="true">🥾</span><span>Bota</span></button>
                         </div>
                         <div id="mochila-filtros">
                             <label class="mochila-busca-wrap" for="mochila-busca"><input id="mochila-busca" type="search" placeholder="Buscar item..." autocomplete="off" aria-label="Buscar item"></label>
@@ -1026,42 +1030,43 @@
         })();
     </script>
     <!-- SISTEMA DE CICLO DIA/NOITE & ILUMINAÇÃO DINÂMICA (v1.52.1) -->
-    <script src="sistema_dia_noite_cliente.js?v=1521"></script>
+    <script src="sistema_dia_noite_cliente.js?v=1525"></script>
     <!-- DASH v2: módulo ISOMÓRFICO (o MESMO arquivo é require() no server.js).
          Precisa vir antes das classes porque elas podem consultar window.DASH. -->
     <script src="dash.js?v=1501"></script>
     <script src="dash-vfx.js?v=1500"></script>
-    <script src="classes/comum.js?v=1006"></script>
+    <script src="classes/comum.js?v=1007"></script>
     <script src="classes/guerreiro.js?v=1502"></script>
     <script src="classes/mago.js?v=1002"></script>
-    <script src="classes/summoner.js?v=1002"></script>
+    <script src="classes/summoner.js?v=1003"></script>
     <script src="classes/arqueiro.js?v=1002"></script>
     <script src="classes/curandeiro.js?v=1002"></script>
-    <script src="classes/barbaro.js?v=1002"></script>
-    <script src="classes/roqueiro.js?v=1002"></script>
+    <script src="classes/barbaro.js?v=1005"></script>
+    <script src="classes/roqueiro.js?v=1003"></script>
     <script src="classes/ladino.js?v=1301"></script>
     <script src="classes/dronemaster.js?v=1008"></script>
     <script src="classes/arqueiro_arcano.js?v=1002"></script>
     <script src="classes/sniper.js?v=1500"></script>
-    <script src="classes/pikeman.js?v=11"></script>
-    <script src="classes/florim.js?v=4"></script>
+    <script src="classes/pikeman.js?v=14"></script>
+    <script src="classes/florim.js?v=7"></script>
     <script src="classes/guerreiro_kaledron.js?v=1"></script>
+    <script src="classes/lord_malakar.js?v=9"></script>
     <script src="efeitos/arqueiro_efeitos.js?v=231"></script>
     <script src="efeitos/curandeiro_efeitos.js?v=231"></script>
-    <script src="efeitos/barbaro_efeitos.js?v=231"></script>
+    <script src="efeitos/barbaro_efeitos.js?v=232"></script>
     <script src="efeitos/guerreiro_efeitos.js?v=236"></script>
     <script src="efeitos/mago_efeitos.js?v=1553"></script>
-    <script src="efeitos/roqueiro_efeitos.js?v=231"></script>
+    <script src="efeitos/roqueiro_efeitos.js?v=232"></script>
     <script src="efeitos/ladino_efeitos.js?v=1300"></script>
-    <script src="efeitos/pikeman_efeitos.js?v=2"></script>
-    <script src="efeitos/florim_efeitos.js?v=3"></script>
+    <script src="efeitos/pikeman_efeitos.js?v=3"></script>
+    <script src="efeitos/florim_efeitos.js?v=6"></script>
     <script src="efeitos/kaledron_efeitos.js?v=1"></script>
     <script src="efeitos.js?v=236"></script>
     <script src="efeitos/vfx_master.js?v=1"></script>
     <script src="efeitos/vfx_guerreiro_escudo.js?v=3"></script>
     <script src="efeitos/vfx_mago_bola.js?v=3"></script>
-    <script src="efeitos/vfx_summoner_golem.js?v=4"></script>
-    <script src="efeitos/vfx_summoner_upgrades.js?v=2"></script>
+    <script src="efeitos/vfx_summoner_golem.js?v=5"></script>
+    <script src="efeitos/vfx_summoner_upgrades.js?v=3"></script>
     <script src="efeitos/vfx_guerreiro_upgrades.js?v=1"></script>
     <script src="efeitos/vfx_mago_upgrades.js?v=3"></script>
     <script src="efeitos/vfx_arqueiro_salto.js?v=2"></script>
@@ -1071,12 +1076,12 @@
     <script src="debuffs.js?v=1502"></script>
     <script src="efeitos/boss_golem.js?v=230"></script>
     <script src="soldado_lanceiro.js?v=1"></script>
-    <script src="monstros.js?v=2030"></script>
-    <script src="inventario.js?v=170"></script>
+    <script src="monstros.js?v=2031"></script>
+    <script src="inventario.js?v=172"></script>
     <script src="skill_upgrade_tree.js?v=3"></script>
-    <script src="skills.js?v=156"></script>
+    <script src="skills.js?v=157"></script>
     <script src="skill_tree_ui.js?v=5"></script>
-    <script src="config.js?v=146"></script>
+    <script src="config.js?v=147"></script>
     <script src="atributos.js?v=4"></script>
     <script src="spawn-admin.js?v=12"></script>
     <script src="map-vfx-admin.js?v=3"></script>
@@ -1086,16 +1091,16 @@
     <script src="ferreiro.js?v=2"></script>
     <script src="colisao-editor.js?v=8"></script>
     <script src="mapa-editor.js?v=29"></script>
-    <script src="audio-manager.js?v=6"></script>
-    <script src="sonoro.js?v=1584"></script>
+    <script src="audio-manager.js?v=12"></script>
+    <script src="sonoro.js?v=1585"></script>
     <script src="intro.js?v=1"></script>
     <script src="mobile-hud.js?v=1"></script>
     <script src="item-admin.js?v=5"></script>
     <script src="admin-cheats.js?v=6"></script>
     <script src="personagens-historias.js?v=2"></script>
-    <script src="personagem-select.js?v=7"></script>
+    <script src="personagem-select.js?v=8"></script>
     <script>
-        const GAME_VERSION = 'v1.75.50';
+        const GAME_VERSION = 'v1.75.95';
         window.GAME_VERSION = GAME_VERSION;
         const WORLD_WIDTH = 190000;
         const WORLD_HEIGHT = 28500;
@@ -1186,10 +1191,21 @@
         const rotateOverlay = document.getElementById("rotate-overlay");
         const googleSignInButton = document.getElementById("google-signin-button");
         const googleLoginStatus = document.getElementById("google-login-status");
+        const visitorLoginButton = document.getElementById("guest-login-button");
         const localIdLoginBox = document.getElementById("local-id-login-box");
         const localIdLoginInput = document.getElementById("local-id-login-input");
         const localIdLoginStatus = document.getElementById("local-id-login-status");
         const charSelectScreen = document.getElementById("char-select-screen");
+
+        if (visitorLoginButton) {
+            visitorLoginButton.addEventListener('click', function () {
+                visitorLoginPendente = true;
+                if (googleLoginStatus) googleLoginStatus.innerText = 'Conectando como visitante…';
+                tentarHorizontalAutomatico();
+                iniciarAudio();
+                conectarWebSocket({ guestToken: visitorTokenAtual });
+            });
+        }
         const statusText = document.getElementById("status");
         const fpsCounter = document.getElementById("fps-counter");
         window.canvas = document.getElementById("jogoCanvas");
@@ -1206,6 +1222,8 @@ const xpBarFill = document.getElementById("xp-bar-fill");
         const mpBarTexto = document.getElementById("mp-bar-texto");
         const xpBarTexto = document.getElementById("xp-bar-texto");
         const mpBarFill = document.getElementById("mp-bar-fill");
+        const mpBarContainer = document.getElementById("mp-bar-container");
+        const mpPotionButton = document.getElementById("btn-pocao-mp");
         const hpBarFill = document.getElementById("hp-bar-fill");
         window.hpBarFill = hpBarFill;
         const staminaBarFill = document.getElementById("stamina-bar-fill");
@@ -1463,6 +1481,10 @@ const btnKaledronGolpe = document.getElementById("btn-kaledron-golpe");
 const btnKaledronImpacto = document.getElementById("btn-kaledron-impacto");
 const btnKaledronRedemoinho = document.getElementById("btn-kaledron-redemoinho");
 const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
+const btnMalakarSkull = document.getElementById("btn-malakar-skull");
+const btnMalakarLink = document.getElementById("btn-malakar-link");
+const btnMalakarSuffering = document.getElementById("btn-malakar-suffering");
+const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         const btnAttack = document.getElementById("btn-attack");
         const dpsValorEl = null;
         const dpsTotalEl = null;
@@ -1567,6 +1589,8 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         let meuLoginId = localStorage.getItem("mmorpg_google_account") || "";
         let googleCredentialAtual = null;
         let localIdLoginAtual = localStorage.getItem("mmorpg_local_test_id") || "";
+        let visitorTokenAtual = localStorage.getItem("mmorpg_visitor_token") || "";
+        let visitorLoginPendente = false;
         let loginLocalIdPendente = false;
         const localIdLoginDeTeste = new URLSearchParams(window.location.search).get('local-id-login') === '1' &&
             (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.hostname === '::1');
@@ -1616,7 +1640,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             localStorage.removeItem('mmorpg_google_account');
             localStorage.removeItem('mmorpg_user_id');
             localStorage.removeItem('mmorpg_local_test_id');
+            localStorage.removeItem('mmorpg_visitor_token');
             localIdLoginAtual = '';
+            visitorTokenAtual = '';
+            visitorLoginPendente = false;
             loginLocalIdPendente = false;
             if (window.google && window.google.accounts && window.google.accounts.id) {
                 try { window.google.accounts.id.disableAutoSelect(); } catch (e) {}
@@ -1782,6 +1809,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 const decorrido = performance.now() - inicio;
                 if ((pronto && decorrido >= tempoMinimo) || decorrido >= limiteMs) {
                     if (!pronto) console.error('[mapa] Tempo limite aguardando geração do terreno no destino.');
+                    if (window.ws && window.ws.readyState === WebSocket.OPEN) {
+                        window.ws.send(JSON.stringify({ action: 'mapa_carregamento_pronto' }));
+                    }
                     window.carregandoMapaMundo = false;
                     window.transicaoMapaAtiva = false;
                     if (teleporteLoadingWatchdog) clearTimeout(teleporteLoadingWatchdog);
@@ -2725,6 +2755,8 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         window.ogroSkillCooldown = false; window.ogroSaltoCooldown = false; window.modoMiraSaltoOgro = false; window.impactosSismicos = []; window.saltosOgroAtivos = [];
         window.ogroModoAtivo = 'agressivo'; // modo do Golem: 'agressivo' (ataca alvo focado) ou 'passivo' (só rodeia)
         let listaLacaios = {}; let listaPetsCapturados = {}; let ataqueBasicoCooldown = false; const INTERVALO_ATAQUE_BASICO_MS = 350;
+        window.listaLordMalakarInvocacoes = {};
+        window.lordMalakarVfx = [];
         // ===== ATAQUE BÁSICO AUTOMÁTICO (auto-attack) =====
         let autoAlvo = null;            // { tipo:'slime'|'boss'|'player'|'pet', id, x, y } — alvo estável
         window.abrirPets = function (tab) {
@@ -3465,7 +3497,8 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 curandeiro:         'curandeiro',
                 guerreiro_kaledron: 'Kaledron',
                 kaledron:           'Kaledron',
-                florim:             'Frorin'
+                florim:             'Frorin',
+                lord_malakar:       'Malakar'
             };
             var _perfilCache = {};
             function _perfilDaClasse(classe) {
@@ -3475,7 +3508,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 if (!nome) return null;
                 if (!_perfilCache[nome]) {
                     var im = new Image();
-                    im.src = 'imagem/HUD/Perfil/' + nome + '.png?v=perfil4';
+                    im.src = 'imagem/HUD/Perfil/' + nome + '.png?v=perfil5';
                     _perfilCache[nome] = im;
                 }
                 return _perfilCache[nome];
@@ -3504,6 +3537,143 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 c.stroke();
             }
 
+            function animarPreenchimentoVida(c, x, y, w, h, agora) {
+                if (w <= 0 || h <= 0) return;
+                var fase = (agora % 1900) / 1900;
+                var brilhoX = x + fase * (w + h * 3) - h * 3;
+                c.save();
+                c.globalAlpha = 0.34;
+                var brilho = c.createLinearGradient(brilhoX - h, 0, brilhoX + h, 0);
+                brilho.addColorStop(0, 'rgba(255,90,90,0)');
+                brilho.addColorStop(0.5, 'rgba(255,190,175,0.72)');
+                brilho.addColorStop(1, 'rgba(255,60,60,0)');
+                c.fillStyle = brilho;
+                c.fillRect(brilhoX - h, y, h * 2, h);
+
+                for (var i = 0; i < 3; i++) {
+                    var gotaFase = ((agora / (1050 + i * 170) + i * 0.37) % 1);
+                    var gotaX = x + w * (0.2 + i * 0.29) + Math.sin(agora / 520 + i) * h * 0.35;
+                    var gotaY = y + h * (0.25 + gotaFase * 0.62);
+                    c.globalAlpha = 0.38 * (1 - gotaFase * 0.45);
+                    c.fillStyle = i === 1 ? '#ff8b82' : '#b51c25';
+                    c.beginPath();
+                    c.ellipse(gotaX, gotaY, Math.max(1, h * 0.035), Math.max(1, h * 0.11), 0, 0, Math.PI * 2);
+                    c.fill();
+                }
+                c.restore();
+            }
+
+            function animarPreenchimentoStamina(c, x, y, w, h, agora) {
+                if (w <= 0 || h <= 0) return;
+                var fase = (agora % 1450) / 1450;
+                var brilhoX = x + fase * (w + h * 4) - h * 4;
+                c.save();
+                c.globalAlpha = 0.46;
+                var brilho = c.createLinearGradient(brilhoX - h * 2, 0, brilhoX + h * 2, 0);
+                brilho.addColorStop(0, 'rgba(255,230,130,0)');
+                brilho.addColorStop(0.5, 'rgba(255,248,190,0.9)');
+                brilho.addColorStop(1, 'rgba(255,190,60,0)');
+                c.fillStyle = brilho;
+                c.fillRect(brilhoX - h * 2, y, h * 4, h);
+
+                for (var i = 0; i < 3; i++) {
+                    var sparkX = x + ((fase + i / 3) % 1) * w;
+                    var sparkY = y + h * (0.3 + (i % 2) * 0.4);
+                    c.globalAlpha = 0.45 + Math.sin(agora / 100 + i * 2) * 0.2;
+                    c.fillStyle = '#fff2b0';
+                    c.fillRect(sparkX, sparkY, Math.max(1, h * 0.06), Math.max(1, h * 0.18));
+                }
+                c.restore();
+            }
+
+            function desenharIconesLacaiosMalakar(ctx, e, x, y, agora) {
+                if (window.minhaClasse !== 'lord_malakar' || !window.meuId) return;
+                var invocacoes = Object.values(window.listaLordMalakarInvocacoes || {}).filter(function (entity) {
+                    return entity && entity.hp > 0 &&
+                        String(entity.owner_id || entity.ownerId || '') === String(window.meuId);
+                });
+                var tipos = [
+                    { id: 'skull_warrior', cor: '#e4c89f', brilho: '#ff4846', detalhe: '#85313b' },
+                    { id: 'skull_archer', cor: '#bfd9d0', brilho: '#58ecff', detalhe: '#2a5560' },
+                    { id: 'skull_mage', cor: '#d3b4e8', brilho: '#c575ff', detalhe: '#51316d' },
+                    { id: 'reaper', cor: '#d6cbd0', brilho: '#ff405c', detalhe: '#57121e' },
+                    { id: 'sniper', cor: '#cad9e9', brilho: '#61bdff', detalhe: '#203d69' },
+                    { id: 'cleric', cor: '#eee0c3', brilho: '#ffd46d', detalhe: '#695033' }
+                ];
+                var ativos = tipos.map(function (tipo) {
+                    return {
+                        tipo: tipo,
+                        quantidade: invocacoes.filter(function (entity) { return entity.type === tipo.id; }).length
+                    };
+                }).filter(function (item) { return item.quantidade > 0; });
+                if (!ativos.length) return;
+
+                var tamanho = Math.max(14.52, 38.72 * e);
+                var passo = Math.max(25.41, 75.02 * e);
+                var hudOffsetX = Math.round(ctx.canvas.width * 0.012);
+                var hudOffsetY = 8;
+                var startX = hudOffsetX + x * e + 2;
+                var iconY = hudOffsetY + (y + window.HUD_BARS.stamina.h + 18) * e;
+                ctx.save();
+                ctx.font = '700 ' + Math.max(8, 30 * e) + 'px Arial, sans-serif';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ativos.forEach(function (item, index) {
+                    var cx = startX + index * passo + tamanho * .48;
+                    var cy = iconY + tamanho * .48;
+                    var pulse = .8 + (Math.sin(agora / 240 + index) + 1) * .1;
+                    var r = tamanho * .43;
+
+                    ctx.save();
+                    ctx.globalAlpha = pulse;
+                    ctx.fillStyle = 'rgba(8, 10, 15, .92)';
+                    ctx.strokeStyle = item.tipo.brilho;
+                    ctx.lineWidth = Math.max(1, e * 5);
+                    ctx.shadowColor = item.tipo.brilho;
+                    ctx.shadowBlur = e * 22;
+                    ctx.beginPath();
+                    ctx.arc(cx, cy, r, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.shadowBlur = 0;
+
+                    ctx.fillStyle = item.tipo.detalhe;
+                    ctx.beginPath();
+                    ctx.ellipse(cx, cy + r * .13, r * .62, r * .51, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = item.tipo.cor;
+                    ctx.beginPath();
+                    ctx.ellipse(cx, cy - r * .12, r * .5, r * .53, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = '#101017';
+                    ctx.beginPath();
+                    ctx.ellipse(cx - r * .2, cy - r * .12, r * .12, r * .17, 0, 0, Math.PI * 2);
+                    ctx.ellipse(cx + r * .2, cy - r * .12, r * .12, r * .17, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.fillStyle = item.tipo.brilho;
+                    ctx.fillRect(cx - r * .27, cy - r * .18, r * .13, Math.max(1, r * .09));
+                    ctx.fillRect(cx + r * .14, cy - r * .18, r * .13, Math.max(1, r * .09));
+                    ctx.strokeStyle = item.tipo.detalhe;
+                    ctx.lineWidth = Math.max(1, r * .12);
+                    ctx.beginPath();
+                    ctx.moveTo(cx - r * .22, cy + r * .25);
+                    ctx.lineTo(cx + r * .22, cy + r * .25);
+                    ctx.stroke();
+
+                    ctx.fillStyle = '#090a0e';
+                    ctx.strokeStyle = 'rgba(242, 220, 183, .9)';
+                    ctx.lineWidth = Math.max(1, e * 3);
+                    ctx.beginPath();
+                    ctx.arc(cx + r * .7, cy + r * .66, Math.max(5, e * 17), 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.fillStyle = '#fff4df';
+                    ctx.fillText('x' + item.quantidade, cx + r * .7, cy + r * .66);
+                    ctx.restore();
+                });
+                ctx.restore();
+            }
+
             // Desenho da HUD Canvas — chamado a cada frame no loop()
             window.desenharHudCanvas = function () {
                 var ctx = window.ctx, canvas = window.canvas;
@@ -3511,6 +3681,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
                 var W = canvas.width;
                 var B = window.HUD_BARS;
+                var animacaoAgora = Date.now();
 
                 // --- Valores reais do jogador (fallbacks) ---
                 var maxHp = window.meuMaxHp || 100; if (maxHp <= 0) maxHp = 100;
@@ -3533,6 +3704,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
                 // --- Ratios de preenchimento (0→1) ---
                 var hpR = Math.max(0, Math.min(1, window._displayHp / maxHp));
+                var malakarPetrifiedRatio = window.minhaClasse === 'lord_malakar'
+                    ? Math.max(0, Math.min(1, Number(window.meuMalakarPetrifiedPercent) || 0))
+                    : 0;
                 var manaR = Math.max(0, Math.min(1, window._displayMana / maxMana));
                 var stR = Math.max(0, Math.min(1, window._displayStamina / 100));
 
@@ -3615,6 +3789,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             ctx.fillStyle = g;
                             ctx.fillRect(bx, by, fillW, bh);
 
+                            if (i === 0) animarPreenchimentoVida(ctx, bx, by, fillW, bh, animacaoAgora);
+                            if (i === 2) animarPreenchimentoStamina(ctx, bx, by, fillW, bh, animacaoAgora);
+
                             // Escudo: camada branca proporcional sobre o HP
                             if (i === 0 && window.meuEscudoAbsoluto > 0) {
                                 var sR = Math.max(0, Math.min(1, window.meuEscudoAbsoluto / maxHp));
@@ -3626,6 +3803,37 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             }
                             ctx.restore();
                         }
+                    }
+
+                    if (i === 0 && malakarPetrifiedRatio > 0) {
+                        var petrifiedWidth = Math.min(bw, Math.max(1, bw * malakarPetrifiedRatio));
+                        var petrifiedX = bx + bw - petrifiedWidth;
+                        ctx.save();
+                        caminhoRedondo(ctx, bx, by, bw, bh, raio);
+                        ctx.clip();
+                        var stone = ctx.createLinearGradient(0, by, 0, by + bh);
+                        stone.addColorStop(0, '#b5bbc0');
+                        stone.addColorStop(0.48, '#858c92');
+                        stone.addColorStop(1, '#50565c');
+                        ctx.fillStyle = stone;
+                        ctx.fillRect(petrifiedX, by, petrifiedWidth, bh);
+                        ctx.strokeStyle = 'rgba(34, 39, 44, 0.9)';
+                        ctx.lineWidth = Math.max(1, bh * 0.1);
+                        ctx.beginPath();
+                        ctx.moveTo(petrifiedX + petrifiedWidth * 0.25, by);
+                        ctx.lineTo(petrifiedX + petrifiedWidth * 0.34, by + bh * 0.46);
+                        ctx.lineTo(petrifiedX + petrifiedWidth * 0.22, by + bh);
+                        ctx.moveTo(petrifiedX + petrifiedWidth * 0.72, by);
+                        ctx.lineTo(petrifiedX + petrifiedWidth * 0.63, by + bh * 0.55);
+                        ctx.lineTo(petrifiedX + petrifiedWidth * 0.8, by + bh);
+                        ctx.stroke();
+                        ctx.strokeStyle = 'rgba(224, 229, 232, 0.65)';
+                        ctx.lineWidth = Math.max(1, bh * 0.07);
+                        ctx.beginPath();
+                        ctx.moveTo(petrifiedX + petrifiedWidth * 0.25, by + bh * 0.05);
+                        ctx.lineTo(petrifiedX + petrifiedWidth * 0.34, by + bh * 0.46);
+                        ctx.stroke();
+                        ctx.restore();
                     }
 
                     // Linha fina amarela em volta
@@ -3645,6 +3853,9 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         ctx.fillStyle = '#ffffff';
                         ctx.fillText(texto, bx + bw / 2, by + bh / 2);
                     }
+                }
+                if (window.minhaClasse === 'lord_malakar') {
+                    desenharIconesLacaiosMalakar(ctx, e, B.stamina.x, B.stamina.y, animacaoAgora);
                 }
             };
         })();
@@ -3717,6 +3928,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 else if (cls === 'arqueiro_arcano' && window.desenharArqueiroArcano) window.desenharArqueiroArcano(px, py, mov, ang, hpVal, maxHpVal, { eu: true, pp: null });
                 else if (cls === 'sniper' && window.desenharSniper) window.desenharSniper(px, py, mov, ang, hpVal, maxHpVal, { eu: true, pp: null });
                 else if (cls === 'guerreiro_kaledron' && window.desenharKaledron) window.desenharKaledron(px, py, mov, ang, hpVal, maxHpVal, pid);
+                else if (cls === 'lord_malakar' && window.desenharLordMalakar) window.desenharLordMalakar(px, py, mov, ang, hpVal, maxHpVal, pid);
                 else if (window.desenharGuerreiro) window.desenharGuerreiro(px, py, "#c0392b", mov, ang, hpVal, maxHpVal, false, 0, pid);
             } catch (e) { /* ignorar falha de desenho do retrato */ }
             finally { window.ctx = oldCtx; }
@@ -3748,6 +3960,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
         }
         function usarPocao(tipo) {
             if (window.estaMorto) return;
+            if (tipo === 'mp' && window.minhaClasse === 'lord_malakar') return;
             let c = contarPocoes();
             if (tipo === 'hp' && c.hp <= 0) { avisoSkillLocal('pocao_hp'); return; }
             if (tipo === 'mp' && c.mp <= 0) { avisoSkillLocal('pocao_mp'); return; }
@@ -3804,7 +4017,11 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 ['btn-pikeman-giro', () => window.giroPikemanCooldown, 7],
                 ['btn-pikeman-pirueta', () => window.piruetaPikemanCooldown, 10],
                 ['btn-pikeman-geada', () => window.geadaPikemanCooldown, 12],
-                ['btn-pikeman-execucao', () => window.execucaoPikemanCooldown, 30]
+                ['btn-pikeman-execucao', () => window.execucaoPikemanCooldown, 30],
+                ['btn-malakar-skull', () => false, 4],
+                ['btn-malakar-link', () => false, 15],
+                ['btn-malakar-suffering', () => false, 13],
+                ['btn-malakar-minion', () => false, 20]
             ];
             map.forEach(function ([btnId, ativo, padrao]) {
                 const btn = document.getElementById(btnId);
@@ -3961,6 +4178,8 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 }, 2000);
                 if (credential && typeof credential.localId === 'string') {
                     socket.send(JSON.stringify({ action: 'login', id: credential.localId }));
+                } else if (credential && typeof credential.guestToken === 'string') {
+                    socket.send(JSON.stringify({ action: 'guest_login', token: credential.guestToken }));
                 } else {
                     socket.send(JSON.stringify({ action: 'google_login', credential: credential }));
                 }
@@ -4021,6 +4240,40 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     if (reconexaoHabilitada && ws === socket) conectarWebSocket(credential, true);
                 }, atraso);
             };
+
+            function atualizarAudioSonoTundraDragon(mob, activeLoops) {
+                if (!mob || mob.tipo !== 'tundra_dragon_elite' || !window.AudioManager ||
+                    typeof window.AudioManager.startSpatialLoop !== 'function') return;
+                window._tundraDragonSleepLoops = window._tundraDragonSleepLoops || Object.create(null);
+                var key = 'tundra_dragon_sleep:' + mob.id;
+                var playerX = Number(window.meuX);
+                var playerY = Number(window.meuY);
+                var perto = Number.isFinite(playerX) && Number.isFinite(playerY) &&
+                    Math.hypot(mob.x - (playerX + 12), mob.y - (playerY + 16)) < 300;
+                var deveTocar = mob.hp > 0 && mob.aiDormindo === true && perto;
+                if (deveTocar) {
+                    activeLoops[key] = true;
+                    var position = { x: mob.x, y: mob.y, mapa: window.currentMap };
+                    if (!window._tundraDragonSleepLoops[key]) {
+                        window.AudioManager.startSpatialLoop('tundra_dragon_sleep',
+                            Object.assign({ key: key }, position));
+                        window._tundraDragonSleepLoops[key] = true;
+                    } else if (typeof window.AudioManager.updateSpatialLoop === 'function') {
+                        window.AudioManager.updateSpatialLoop(key, position);
+                    }
+                } else if (window._tundraDragonSleepLoops[key]) {
+                    if (typeof window.AudioManager.stopSpatialLoop === 'function') {
+                        window.AudioManager.stopSpatialLoop(key);
+                    }
+                    delete window._tundraDragonSleepLoops[key];
+                }
+            }
+
+            function atualizarAudioMovimentoMonstros(mob, anterior, activeLoops) {
+                if (!mob || !window.AudioManager ||
+                    typeof window.AudioManager.updateMonsterMovementSound !== 'function') return;
+                window.AudioManager.updateMonsterMovementSound(mob, anterior, activeLoops);
+            }
 
             socket.onmessage = (event) => {
                 try {
@@ -4124,12 +4377,21 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             return;
                         }
                         if (dados.type === 'login_erro') {
+                            if (credential && typeof credential.guestToken === 'string') {
+                                visitorTokenAtual = '';
+                                localStorage.removeItem('mmorpg_visitor_token');
+                            }
                             if (ehReconexao) {
                                 reconexaoHabilitada = false;
                                 tentativasReconexao = MAX_TENTATIVAS_RECONEXAO;
                                 if (googleLoginStatus) googleLoginStatus.innerText = dados.mensagem || 'A sessão expirou. Entre novamente.';
                                 if (loginScreen) loginScreen.style.display = 'flex';
                                 return;
+                            }
+                            if (visitorLoginPendente) {
+                                visitorLoginPendente = false;
+                                visitorTokenAtual = '';
+                                localStorage.removeItem('mmorpg_visitor_token');
                             }
                             if (loginLocalIdPendente) {
                                 loginLocalIdPendente = false;
@@ -4144,7 +4406,15 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         if (dados.type === 'personagens_lista' && dados.conta) {
                             tentativasReconexao = 0;
                             meuLoginId = dados.conta;
-                            if (dados.localIdLogin) {
+                            if (dados.visitorLogin) {
+                                visitorLoginPendente = false;
+                                visitorTokenAtual = dados.guestToken;
+                                localStorage.setItem('mmorpg_visitor_token', visitorTokenAtual);
+                                localStorage.removeItem('mmorpg_google_account');
+                                localStorage.removeItem('mmorpg_user_id');
+                                localStorage.removeItem('mmorpg_local_test_id');
+                                localIdLoginAtual = '';
+                            } else if (dados.localIdLogin) {
                                 loginLocalIdPendente = false;
                                 localIdLoginAtual = localIdLoginInput ? localIdLoginInput.value.trim() : localIdLoginAtual;
                                 localStorage.setItem('mmorpg_local_test_id', localIdLoginAtual);
@@ -4473,6 +4743,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
                     if (dados.type === 'ponto_distribuido') {
                         if (dados.atributos) window.meusAtributos = dados.atributos;
+                        if (dados.atributosTotais) window.atributosTotais = dados.atributosTotais;
                         if (dados.pontos !== undefined) window.pontosDisponiveis = dados.pontos;
                         if (dados.maxHp) window.meuMaxHp = dados.maxHp;
                         if (dados.maxMp) window.meuMaxMp = dados.maxMp;
@@ -4481,8 +4752,14 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         if (typeof renderizarAtributos === "function") renderizarAtributos();
                     }
 
+                    if (dados.type === 'atributo_limite') {
+                        if (statusText) statusText.innerText = "⚠️ " + dados.mensagem;
+                        if (typeof renderizarAtributos === "function") renderizarAtributos();
+                    }
+
                     if (dados.type === 'atributos_resetados') {
                         if (dados.atributos) window.meusAtributos = dados.atributos;
+                        if (dados.atributosTotais) window.atributosTotais = dados.atributosTotais;
                         if (dados.pontos !== undefined) window.pontosDisponiveis = dados.pontos;
                         if (dados.maxHp) window.meuMaxHp = dados.maxHp;
                         if (dados.maxMp) window.meuMaxMp = dados.maxMp;
@@ -4890,6 +5167,110 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         if (typeof abrirDialogoNPC === 'function') abrirDialogoNPC(dados.npc);
                     }
 
+                    if (dados.type === 'lord_malakar_skill_result' && dados.ok) {
+                        const malakarSkillButtons = {
+                            lord_malakar_evocacao_demoníaca: btnMalakarSkull,
+                            lord_malakar_vinculo_mortal: btnMalakarLink,
+                            lord_malakar_sofrimento_eterno: btnMalakarSuffering,
+                            lord_malakar_invocacao_aleatoria: btnMalakarMinion
+                        };
+                        const skillButton = malakarSkillButtons[dados.skill];
+                        const cooldownMs = Number(dados.cooldownMs) || 0;
+                        if (skillButton) {
+                            if (cooldownMs > 0 && !(window.adminCheats && window.adminCheats.semCooldown)) {
+                                registrarCooldownBotao(skillButton, cooldownMs);
+                                skillButton.classList.add('cooldown');
+                                setTimeout(function () {
+                                    if (Number(skillButton.dataset.cdUntil || 0) <= Date.now()) {
+                                        skillButton.classList.remove('cooldown');
+                                        skillButton.dataset.cdUntil = '';
+                                    }
+                                }, cooldownMs);
+                            } else if (window.adminCheats && window.adminCheats.semCooldown) {
+                                skillButton.classList.remove('cooldown');
+                            }
+                        }
+                        if (dados.skill === 'lord_malakar_sofrimento_eterno' &&
+                            btnMalakarSuffering) {
+                            btnMalakarSuffering.classList.toggle('active', !!dados.active);
+                            const localPlayer = window.todosJogadores && window.todosJogadores[window.meuId];
+                            if (dados.active && localPlayer) {
+                                window.lordMalakarVfx.push({
+                                    skill: 'suffering', x: localPlayer.x + 12, y: localPlayer.y + 16,
+                                    startedAt: Date.now(), duration: 1400, radius: 82,
+                                    color: '#ff3155', expand: true
+                                });
+                            }
+                        }
+                        if (statusText) {
+                            statusText.innerText = '🩸 Vida petrificada: ' +
+                                Math.round((dados.petrifiedPercent || 0) * 100) + '%';
+                        }
+                    }
+                    if (dados.type === 'lord_malakar_link' && dados.link) {
+                        const targetIds = new Set(dados.link.targetIds || []);
+                        (window.listaSlimes || []).forEach(function (target) {
+                            if (!target || !targetIds.has(target.id)) return;
+                            window.lordMalakarVfx.push({
+                                skill: 'link', x: target.x, y: target.y,
+                                startedAt: Date.now(), duration: 1200, radius: 46,
+                                color: '#ff3155', expand: true
+                            });
+                        });
+                    }
+                    if (dados.type === 'lord_malakar_attack') {
+                        if (Array.isArray(dados.targets)) {
+                            dados.targets.forEach(function (target) {
+                                if (target && target.damage > 0 && window.petDamageTexts) {
+                                    window.petDamageTexts.push({
+                                        x: target.x, y: target.y - 18,
+                                        dano: Math.round(target.damage), startedAt: Date.now(),
+                                        duration: 1000, isMalakar: true
+                                    });
+                                }
+                            });
+                        } else if (dados.damage > 0 && window.petDamageTexts) {
+                            window.petDamageTexts.push({
+                                x: dados.targetX, y: dados.targetY - 18,
+                                dano: Math.round(dados.damage), startedAt: Date.now(),
+                                duration: 1000, isMalakar: true
+                            });
+                        }
+                        window.lordMalakarVfx.push({
+                            skill: 'summonAttack', attack: dados.attack,
+                            x: dados.x, y: dados.y, targetX: dados.targetX, targetY: dados.targetY,
+                            critical: dados.critical, fifthShot: dados.fifthShot,
+                            startedAt: Date.now(), duration: dados.attack === 'skull_warrior' ? 430 : 680,
+                            radius: 38, color: dados.attack === 'sniper' ? '#56baff' :
+                                dados.attack === 'skull_mage' ? '#cf7cff' : '#ff3155',
+                            expand: true
+                        });
+                    }
+                    if (dados.type === 'lord_malakar_heal') {
+                        window.lordMalakarVfx.push({
+                            skill: 'heal', x: dados.targetX || dados.x, y: dados.targetY || dados.y,
+                            fromX: dados.fromX || dados.x, fromY: dados.fromY || dados.y,
+                            startedAt: Date.now(), duration: 1000, radius: 38,
+                            color: '#df9cff', expand: true
+                        });
+                    }
+                    if (dados.type === 'lord_malakar_summon' && dados.entity) {
+                        window.lordMalakarVfx.push({
+                            skill: 'summon', x: dados.entity.x, y: dados.entity.y,
+                            startedAt: Date.now(), duration: 1000, radius: 54,
+                            color: dados.entity.type === 'skull_mage' ? '#d568ff' : '#ff3155',
+                            expand: true
+                        });
+                    }
+                    if (dados.type === 'action_lord_malakar_basic') {
+                        window.lordMalakarVfx.push({
+                            skill: 'blood_tether', x: dados.x, y: dados.y,
+                            targetX: dados.targetX, targetY: dados.targetY,
+                            startedAt: Date.now(), duration: 650, radius: 28,
+                            color: '#ff314e', expand: true
+                        });
+                    }
+
                     if (dados.type === 'world_update') {
                         window.ultimoWorldUpdateAt = Date.now();
                         if (typeof tutorialAplicarEstado === 'function' && dados.tutorial) tutorialAplicarEstado(dados.tutorial);
@@ -4947,54 +5328,40 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         });
                         window._slimeEliteMovementLoops = window._slimeEliteMovementLoops || Object.create(null);
                         var activeEliteLoops = Object.create(null);
-                        window._selvaMovementLoops = window._selvaMovementLoops || Object.create(null);
-                        var activeSelvaLoops = Object.create(null);
-                        var sonsMonstrosSelva = {
-                            cogumelo_proibido: { ataque: 'jungle_mushroom_attack', skill: 'jungle_mushroom_skill' },
-                            anaconda_selvagem: { ataque: 'jungle_snake_attack' },
-                            jararaca: { ataque: 'jungle_snake_attack' },
-                            louvadermi: { ataque: 'jungle_mantis_attack', skill: 'jungle_mantis_skill' }
-                        };
+                        window._tundraDragonMovementLoops = window._tundraDragonMovementLoops || Object.create(null);
+                        var activeTundraDragonLoops = Object.create(null);
+                        window._tundraDragonSleepLoops = window._tundraDragonSleepLoops || Object.create(null);
+                        var activeTundraDragonSleepLoops = Object.create(null);
+                        window._monsterAudioLoops = window._monsterAudioLoops || Object.create(null);
+                        var activeMonsterAudioLoops = Object.create(null);
                         (dados.slimes || []).forEach(function (mob) {
                             var anterior = mob && slimesAnteriores[mob.id];
-                            var sonsMob = mob && sonsMonstrosSelva[mob.tipo];
-                            if (sonsMob && anterior && mob.bioma === 'Selva Proibida') {
-                                var dxSelva = mob.x - anterior.x;
-                                var dySelva = mob.y - anterior.y;
-                                var movendoSelva = mob.hp > 0 &&
-                                    (mob.aiEstado === 'walk' || mob.aiEstado === 'run' || mob.aiEstado === 'combat' || mob.aiEstado === 'kite' || mob.aiEstado === 'dodge') &&
-                                    dxSelva * dxSelva + dySelva * dySelva > 0.25;
-                                var loopSelva = 'selva_mob_' + mob.id;
-                                if (movendoSelva) {
-                                    activeSelvaLoops[loopSelva] = true;
-                                    if (!window._selvaMovementLoops[loopSelva] &&
+                            atualizarAudioMovimentoMonstros(mob, anterior, activeMonsterAudioLoops);
+                            atualizarAudioSonoTundraDragon(mob, activeTundraDragonSleepLoops);
+                            if (mob && mob.tipo === 'tundra_dragon_elite' &&
+                                (anterior || mob.eliteBerserk === true)) {
+                                var dxDragon = anterior ? mob.x - anterior.x : 0;
+                                var dyDragon = anterior ? mob.y - anterior.y : 0;
+                                var dragonMovendo = mob.hp > 0 && (mob.eliteBerserk === true ||
+                                    ((mob.aiEstado === 'walk' || mob.aiEstado === 'run' || mob.aiEstado === 'combat' ||
+                                        mob.aiEstado === 'kite' || mob.aiEstado === 'dodge') &&
+                                        dxDragon * dxDragon + dyDragon * dyDragon > 0.04));
+                                var loopDragon = 'tundra_dragon_flight:' + mob.id;
+                                if (dragonMovendo) {
+                                    activeTundraDragonLoops[loopDragon] = true;
+                                    if (!window._tundraDragonMovementLoops[loopDragon] &&
                                         window.AudioManager && typeof window.AudioManager.startSpatialLoop === 'function') {
-                                        window.AudioManager.startSpatialLoop('jungle_monster_move', {
-                                            key: loopSelva, x: mob.x, y: mob.y, mapa: window.currentMap
+                                        window.AudioManager.startSpatialLoop('tundra_dragon_flight', {
+                                            key: loopDragon, x: mob.x, y: mob.y, mapa: window.currentMap
                                         });
-                                        window._selvaMovementLoops[loopSelva] = true;
+                                        window._tundraDragonMovementLoops[loopDragon] = true;
                                     }
-                                    if (window._selvaMovementLoops[loopSelva] && window.AudioManager &&
+                                    if (window._tundraDragonMovementLoops[loopDragon] && window.AudioManager &&
                                         typeof window.AudioManager.updateSpatialLoop === 'function') {
-                                        window.AudioManager.updateSpatialLoop(loopSelva, {
+                                        window.AudioManager.updateSpatialLoop(loopDragon, {
                                             x: mob.x, y: mob.y, mapa: window.currentMap
                                         });
                                     }
-                                }
-                                if (mob.hp < anterior.hp && window.AudioManager) {
-                                    window.AudioManager.playSpatialSound('jungle_monster_hit', {
-                                        x: mob.x, y: mob.y, mapa: window.currentMap
-                                    });
-                                }
-                                var habilidadeNova = mob.aiSkillAt > (anterior.aiSkillAt || 0);
-                                if (habilidadeNova && sonsMob.skill && window.AudioManager) {
-                                    window.AudioManager.playSpatialSound(sonsMob.skill, {
-                                        x: mob.x, y: mob.y, mapa: window.currentMap
-                                    });
-                                } else if (mob.aiAtacandoAte > (anterior.aiAtacandoAte || 0) && window.AudioManager) {
-                                    window.AudioManager.playSpatialSound(sonsMob.ataque, {
-                                        x: mob.x, y: mob.y, mapa: window.currentMap
-                                    });
                                 }
                             }
                             var elite = mob && (mob.elite || (Array.isArray(mob.tags) && mob.tags.indexOf('elite') !== -1));
@@ -5040,12 +5407,15 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                 }
                             }
                         });
-                        Object.keys(window._selvaMovementLoops).forEach(function (loopKey) {
-                            if (activeSelvaLoops[loopKey]) return;
+                        Object.keys(activeMonsterAudioLoops).forEach(function (loopKey) {
+                            window._monsterAudioLoops[loopKey] = true;
+                        });
+                        Object.keys(window._monsterAudioLoops).forEach(function (loopKey) {
+                            if (activeMonsterAudioLoops[loopKey]) return;
                             if (window.AudioManager && typeof window.AudioManager.stopSpatialLoop === 'function') {
                                 window.AudioManager.stopSpatialLoop(loopKey);
                             }
-                            delete window._selvaMovementLoops[loopKey];
+                            delete window._monsterAudioLoops[loopKey];
                         });
                         Object.keys(window._slimeEliteMovementLoops).forEach(function (loopKey) {
                             if (activeEliteLoops[loopKey]) return;
@@ -5053,6 +5423,20 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                 window.AudioManager.stopSpatialLoop(loopKey);
                             }
                             delete window._slimeEliteMovementLoops[loopKey];
+                        });
+                        Object.keys(window._tundraDragonMovementLoops).forEach(function (loopKey) {
+                            if (activeTundraDragonLoops[loopKey]) return;
+                            if (window.AudioManager && typeof window.AudioManager.stopSpatialLoop === 'function') {
+                                window.AudioManager.stopSpatialLoop(loopKey);
+                            }
+                            delete window._tundraDragonMovementLoops[loopKey];
+                        });
+                        Object.keys(window._tundraDragonSleepLoops).forEach(function (loopKey) {
+                            if (activeTundraDragonSleepLoops[loopKey]) return;
+                            if (window.AudioManager && typeof window.AudioManager.stopSpatialLoop === 'function') {
+                                window.AudioManager.stopSpatialLoop(loopKey);
+                            }
+                            delete window._tundraDragonSleepLoops[loopKey];
                         });
                         window.listaSlimes = dados.slimes || [];
                         listaProjeteis = dados.projeteis || [];
@@ -5062,6 +5446,8 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         if (typeof atualizarCustosMana === 'function') atualizarCustosMana();
                         
                         let meuP = window.todosJogadores[window.meuId];
+                        window.meuMalakarPetrifiedPercent = meuP && meuP.classe === 'lord_malakar'
+                            ? Number(meuP.lordMalakarPetrifiedPercent) || 0 : 0;
                         let btnPvp = document.getElementById("btn-pvp");
                         if (meuP && btnPvp) {
                             if (meuP.pvpAtivo) {
@@ -5074,6 +5460,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         }
                         
                         listaLacaios = dados.lacaios || {};
+                        window.listaLordMalakarInvocacoes = dados.lordMalakarEntities || {};
                         listaPetsCapturados = dados.pets || {};
                         window.listaPetsCapturados = listaPetsCapturados;
                         if (window.PetsUI) window.PetsUI.setRuntime(listaPetsCapturados);
@@ -5159,7 +5546,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                 let danoRecebido = window.meuHp - hpServidor;
                                 window.meuHp = hpServidor;
                                 window.danoFlashTimer = 10;
-                                window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 15, text: "-" + danoRecebido, color: "#e74c3c", alpha: 1.0 });
+                                window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 15, text: "-" + Math.round(danoRecebido), color: "#e74c3c", alpha: 1.0 });
                                 if (window.minhaClasse === 'pikeman' && Math.random() < 0.40) {
                                     if (window.tocarSonoro) window.tocarSonoro('pikeman_damage');
                                 } else if (window.minhaClasse === 'mago') {
@@ -5178,7 +5565,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             } else if (hpServidor > window.meuHp) {
                                 let curado = hpServidor - window.meuHp;
                                 window.meuHp = hpServidor;
-                                window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 15, text: "+" + curado, color: "#2ecc71", alpha: 1.0 });
+                                window.floatingTexts.push({ x: window.meuX + 12, y: window.meuY - 15, text: "+" + Math.round(curado), color: "#2ecc71", alpha: 1.0 });
                             } else { window.meuHp = hpServidor; }
                             if (window.atualizarHudHp) window.atualizarHudHp();
 
@@ -5333,6 +5720,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         if (window.atualizarHudPocoes) window.atualizarHudPocoes();
                         if (dados.ouro !== undefined) { window.meuOuro = dados.ouro; if (window.atualizarHudOuro) window.atualizarHudOuro(); }
                         if (dados.atributosTotais) window.atributosTotais = dados.atributosTotais;
+                        if (window._descarteMochilaPendente &&
+                            typeof window.finalizarDescarteMochila === 'function') {
+                            window.finalizarDescarteMochila(true);
+                        }
                         if (typeof renderizarInventario === "function") renderizarInventario();
                         if (typeof renderizarMochila === "function") renderizarMochila();
                         if (typeof renderizarAtributos === "function") renderizarAtributos();
@@ -5344,6 +5735,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                         if (window.floatingTexts) window.floatingTexts.push({ x: (window.meuX || 0) + 12, y: (window.meuY || 0) - 30, text: "⚠️ " + dados.motivo, color: "#f39c12", alpha: 1.0 });
                     }
                     if (dados.type === 'inventario_erro' && dados.motivo) {
+                        if (window._descarteMochilaPendente &&
+                            typeof window.finalizarDescarteMochila === 'function') {
+                            window.finalizarDescarteMochila(false);
+                        }
                         if (typeof mostrarMensagemInv === "function") mostrarMensagemInv("⚠️ " + dados.motivo, "#ff7676");
                         if (statusText) statusText.innerText = "⚠️ " + dados.motivo;
                     }
@@ -5871,7 +6266,14 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             window.criarAnimacaoImpactoGolem(dados.x, dados.y);
                         }
                         let dmg = (dados.dano !== undefined && dados.dano !== null) ? dados.dano : 15;
-                        window.floatingTexts.push({ x: dados.x, y: dados.y - 18, text: "-" + dmg, color: "#9b59b6", alpha: 1.0 });
+                        window.petDamageTexts.push({
+                            x: dados.x,
+                            y: dados.y - 18,
+                            dano: Math.round(dmg),
+                            startedAt: Date.now(),
+                            duration: 1000,
+                            isSummoner: true
+                        });
                         registrarDanoCausado(dmg);
                     }
                     if (dados.type === 'action_lacaio_dano') {
@@ -6346,8 +6748,98 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     if (dados.type === 'boss_golem_morte') { if (typeof window.criarMorteGolem === 'function') window.criarMorteGolem(dados.x, dados.y); }
                     if (dados.type === 'monster_skill_impact') {
                         window.monsterSkillImpacts = window.monsterSkillImpacts || [];
-                        window.monsterSkillImpacts.push({ x: dados.x, y: dados.y, skill: dados.skill, ttl: 24 });
+                        window.monsterSkillImpacts.push({
+                            x: dados.x, y: dados.y, skill: dados.skill,
+                            radius: dados.radius, ttl: 24
+                        });
                         window.tremorTela = Math.max(window.tremorTela, dados.skill === 'meteor' ? 12 : 5);
+                    }
+                    if (dados.type === 'monster_elite_leap_telegraph') {
+                        window.monsterEliteLeapEffects = window.monsterEliteLeapEffects || [];
+                        window.monsterEliteLeapEffects = window.monsterEliteLeapEffects.filter(function (effect) {
+                            return effect.id !== dados.id;
+                        });
+                        window.monsterEliteLeapEffects.push({
+                            id: dados.id, phase: 'telegraph',
+                            x: dados.targetX, y: dados.targetY,
+                            sourceX: dados.x, sourceY: dados.y,
+                            radius: dados.radius, startedAt: Date.now(),
+                            expiresAt: Date.now() + Math.max(0, Number(dados.duration) || 1000)
+                        });
+                    }
+                    if (dados.type === 'monster_elite_leap_jump') {
+                        window.monsterEliteLeapEffects = window.monsterEliteLeapEffects || [];
+                        var eliteLeapEffect = window.monsterEliteLeapEffects.find(function (effect) {
+                            return effect.id === dados.id;
+                        });
+                        if (eliteLeapEffect) {
+                            eliteLeapEffect.phase = 'jump';
+                            eliteLeapEffect.sourceX = dados.x;
+                            eliteLeapEffect.sourceY = dados.y;
+                            eliteLeapEffect.x = dados.targetX;
+                            eliteLeapEffect.y = dados.targetY;
+                            eliteLeapEffect.startedAt = Date.now();
+                            eliteLeapEffect.expiresAt = Date.now() + Math.max(0, Number(dados.duration) || 600);
+                        }
+                    }
+                    if (dados.type === 'monster_elite_leap_cancel') {
+                        window.monsterEliteLeapEffects = (window.monsterEliteLeapEffects || []).filter(function (effect) {
+                            return effect.id !== dados.id;
+                        });
+                    }
+                    if (dados.type === 'monster_elite_berserk') {
+                        var elite = (window.listaSlimes || []).find(function (mob) { return mob && mob.id === dados.id; });
+                        if (elite) elite.eliteBerserk = !!dados.active;
+                    }
+                    if (dados.type === 'tundra_dragon_vortex_start') {
+                        window.tundraDragonEffects = window.tundraDragonEffects || [];
+                        window.tundraDragonEffects = window.tundraDragonEffects.filter(function (effect) {
+                            return effect.id !== dados.id || effect.kind !== 'vortex';
+                        });
+                        window.tundraDragonEffects.push({
+                            id: dados.id, kind: 'vortex', x: dados.x, y: dados.y,
+                            radius: dados.radius, startedAt: Date.now(),
+                            expiresAt: Date.now() + Math.max(0, Number(dados.duration) || 5000)
+                        });
+                    }
+                    if (dados.type === 'tundra_dragon_vortex_end') {
+                        window.tundraDragonEffects = (window.tundraDragonEffects || []).filter(function (effect) {
+                            return effect.id !== dados.id || effect.kind !== 'vortex';
+                        });
+                    }
+                    if (dados.type === 'tundra_dragon_dash_telegraph') {
+                        window.tundraDragonEffects = window.tundraDragonEffects || [];
+                        window.tundraDragonEffects = window.tundraDragonEffects.filter(function (effect) {
+                            return effect.id !== dados.id || effect.kind !== 'dash';
+                        });
+                        window.tundraDragonEffects.push({
+                            id: dados.id, kind: 'dash', phase: 'telegraph',
+                            fromX: dados.fromX, fromY: dados.fromY, toX: dados.toX, toY: dados.toY,
+                            startedAt: Date.now(), expiresAt: Date.now() + Math.max(0, Number(dados.duration) || 1500)
+                        });
+                    }
+                    if (dados.type === 'tundra_dragon_dash') {
+                        var dragonDashEffect = (window.tundraDragonEffects || []).find(function (effect) {
+                            return effect.id === dados.id && effect.kind === 'dash';
+                        });
+                        if (dragonDashEffect) {
+                            dragonDashEffect.phase = 'dash';
+                            dragonDashEffect.startedAt = Date.now();
+                            dragonDashEffect.expiresAt = Date.now() + Math.max(0, Number(dados.duration) || 450);
+                        }
+                    }
+                    if (dados.type === 'tundra_dragon_dash_cancel') {
+                        window.tundraDragonEffects = (window.tundraDragonEffects || []).filter(function (effect) {
+                            return effect.id !== dados.id || effect.kind !== 'dash';
+                        });
+                    }
+                    if (dados.type === 'tundra_dragon_breath') {
+                        window.tundraDragonEffects = window.tundraDragonEffects || [];
+                        window.tundraDragonEffects.push({
+                            id: dados.id, kind: 'breath', x: dados.x, y: dados.y,
+                            angle: dados.angle, range: dados.range, halfAngle: dados.halfAngle,
+                            startedAt: Date.now(), expiresAt: Date.now() + Math.max(0, Number(dados.duration) || 650)
+                        });
                     }
                     if (dados.type === 'monster_attack_telegraph') {
                         window.monsterAttackTelegraphs = window.monsterAttackTelegraphs || [];
@@ -6502,12 +6994,15 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 classePendente = classeEscolhida;
                 charSelectScreen.style.display = "none";
                 if (typeof window.soltarFoco === 'function') window.soltarFoco();
-                if (!googleCredentialAtual && !localIdLoginAtual) {
+                if (!googleCredentialAtual && !localIdLoginAtual && !visitorTokenAtual) {
                     loginScreen.style.display = 'flex';
-                    googleLoginStatus.innerText = 'Entre novamente com sua conta Google para reconectar.';
+                    googleLoginStatus.innerText = 'Entre novamente para reconectar.';
                     return;
                 }
-                conectarWebSocket(localIdLoginAtual ? { localId: localIdLoginAtual } : googleCredentialAtual);
+                const credencialReconexao = localIdLoginAtual
+                    ? { localId: localIdLoginAtual }
+                    : (visitorTokenAtual ? { guestToken: visitorTokenAtual } : googleCredentialAtual);
+                conectarWebSocket(credencialReconexao);
                 return;
             }
             charSelectScreen.style.display = "none";
@@ -6535,6 +7030,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             btnPikemanGiro.style.display = "none"; btnPikemanPirueta.style.display = "none"; btnPikemanGeada.style.display = "none"; btnPikemanExecucao.style.display = "none";
             btnFlorimArvore.style.display = "none"; btnFlorimSemente.style.display = "none"; btnFlorimEspinhos.style.display = "none"; btnFlorimParede.style.display = "none";
             btnKaledronGolpe.style.display = "none"; btnKaledronImpacto.style.display = "none"; btnKaledronRedemoinho.style.display = "none"; btnKaledronBrado.style.display = "none";
+            btnMalakarSkull.style.display = "none"; btnMalakarLink.style.display = "none";
+            btnMalakarSuffering.style.display = "none"; btnMalakarMinion.style.display = "none";
+            if (mpBarContainer) mpBarContainer.style.display = window.minhaClasse === 'lord_malakar' ? 'none' : '';
+            if (mpPotionButton) mpPotionButton.style.display = window.minhaClasse === 'lord_malakar' ? 'none' : '';
 
             if(btnGuerreiroEscudo) btnGuerreiroEscudo.style.display = "none";
             if(btnMagoBola) btnMagoBola.style.display = "none";
@@ -6594,6 +7093,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             } else if (window.minhaClasse === 'guerreiro_kaledron') {
                 btnKaledronGolpe.style.display = "block"; btnKaledronImpacto.style.display = "block"; btnKaledronRedemoinho.style.display = "block"; btnKaledronBrado.style.display = "block";
                 btnAttack.innerText = "🔥"; btnAttack.style.background = "#d35400";
+            } else if (window.minhaClasse === 'lord_malakar') {
+                btnMalakarSkull.style.display = "block"; btnMalakarLink.style.display = "block";
+                btnMalakarSuffering.style.display = "block"; btnMalakarMinion.style.display = "block";
+                btnAttack.innerText = "🕯️"; btnAttack.style.background = "#542a73";
             } else {
                 if (btnGuerreiroEscudo) btnGuerreiroEscudo.style.display = "block";
                 btnTornado.style.display = "block";
@@ -7549,21 +8052,22 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
         function alcanceBuscaClasse() {
             let c = window.minhaClasse;
-            if (c === 'arqueiro') return 250;
-            if (c === 'roqueiro') return 200;
-            if (c === 'guerreiro') return 50;
-            if (c === 'barbaro') return 50;
-            if (c === 'mago') return 200;
-            if (c === 'summoner') return 190;
-            if (c === 'curandeiro') return 200;
+            if (c === 'lord_malakar') return 242;
+            if (c === 'arqueiro') return 303;
+            if (c === 'roqueiro') return 242;
+            if (c === 'guerreiro') return 61;
+            if (c === 'barbaro') return 61;
+            if (c === 'mago') return 242;
+            if (c === 'summoner') return 230;
+            if (c === 'curandeiro') return 242;
             if (c === 'ladino') return 44;
-            if (c === 'dronemaster') return (window.dmTitaAtivo ? 242 : 124); // v1.32: alcance +15% (108→124; Tita 210→242)
-            if (c === 'arqueiro_arcano') return 260;
-            if (c === 'sniper') return 384;
-            if (c === 'pikeman') return 50;
-            if (c === 'florim') return 320;
-            if (c === 'guerreiro_kaledron') return 55;
-            return 300;
+            if (c === 'dronemaster') return (window.dmTitaAtivo ? 293 : 150);
+            if (c === 'arqueiro_arcano') return 363;
+            if (c === 'sniper') return 464;
+            if (c === 'pikeman') return 61;
+            if (c === 'florim') return 387;
+            if (c === 'guerreiro_kaledron') return 67;
+            return 363;
         }
 
         function obterAlvoNaMira() {
@@ -7732,6 +8236,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             let alvoTipo = autoAlvo.tipo, alvoId = autoAlvo.id;
             if (window.minhaClasse === 'mago') { enviarAtaqueMago(ang, alvoTipo, alvoId); }
             else if (window.minhaClasse === 'summoner') { enviarAtaqueSummoner(ang, alvoTipo, alvoId); }
+            else if (window.minhaClasse === 'lord_malakar') { enviarAtaqueLordMalakar(ang, alvoTipo, alvoId); }
             else if (window.minhaClasse === 'arqueiro') { enviarAtaqueArqueiro(ang, alvoTipo, alvoId); }
             else if (window.minhaClasse === 'curandeiro') { enviarAtaqueCurandeiro(ang, alvoTipo, alvoId); }
             else if (window.minhaClasse === 'barbaro') { enviarAtaqueBarbaro(ang, alvoTipo, alvoId); }
@@ -7838,6 +8343,26 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             if (window.estaMorto) return; tocarSomOrbe(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = (anguloForcado !== undefined) ? anguloForcado : (alvoDetectado ? alvoDetectado.angulo : window.meuAngulo);
             if (ws && ws.readyState === WebSocket.OPEN) { let msg = { action: 'ataque_summoner', angulo: anguloDisparo }; if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; } ws.send(JSON.stringify(msg)); }
         }
+
+        function enviarAtaqueLordMalakar(anguloForcado, alvoTipo, alvoId) {
+            if (window.estaMorto) return;
+            if (window.tocarSonoro) window.tocarSonoro('summoner_atk'); else tocarSomOrbe();
+            const alvoDetectado = obterAlvoNaMira();
+            const anguloDisparo = anguloForcado !== undefined ? anguloForcado :
+                alvoDetectado ? alvoDetectado.angulo : window.meuAngulo;
+            if (ws && ws.readyState === WebSocket.OPEN) {
+                const msg = { action: 'ataque_lord_malakar', angulo: anguloDisparo };
+                if (alvoTipo && alvoId) { msg.alvoTipo = alvoTipo; msg.alvoId = alvoId; }
+                ws.send(JSON.stringify(msg));
+            }
+        }
+
+        function usarSkillLordMalakar(skillId) {
+            if (window.estaMorto || window.minhaClasse !== 'lord_malakar' ||
+                !ws || ws.readyState !== WebSocket.OPEN) return;
+            ws.send(JSON.stringify({ action: skillId }));
+        }
+        window.usarSkillLordMalakar = usarSkillLordMalakar;
 
         function enviarAtaqueArqueiro(anguloForcado, alvoTipo, alvoId) {
             if (window.estaMorto || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) return; tocarSomFlecha(); window.arqueiroTiroEm = Date.now(); let alvoDetectado = obterAlvoNaMira(); let anguloDisparo = (anguloForcado !== undefined) ? anguloForcado : (alvoDetectado ? alvoDetectado.angulo : window.meuAngulo);
@@ -7960,7 +8485,16 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             }
 
             if (typeof window.atualizarMiraMouse === 'function') window.atualizarMiraMouse();
-            const ang = window.meuAngulo || 0;
+            let ang = window.meuAngulo || 0;
+            const ponteiroFino = window.matchMedia &&
+                window.matchMedia('(pointer: fine)').matches;
+            if (ponteiroFino && window.mouseJaMoveu &&
+                Number.isFinite(window.mouseWorldX) && Number.isFinite(window.mouseWorldY)) {
+                ang = Math.atan2(
+                    window.mouseWorldY - (window.meuY + 16),
+                    window.mouseWorldX - (window.meuX + 12)
+                );
+            }
 
             // Ativa a escotilha visual do cooldown imediatamente (resposta instantânea).
             // O valor REAL vem do servidor em `dash_confirmado`.
@@ -9061,7 +9595,8 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
         function acionarSkillSlot1() {
             if (window.estaMorto) return;
-            if (window.minhaClasse === 'florim') ativarArvoreFlorimSmartCast();
+            if (window.minhaClasse === 'lord_malakar') usarSkillLordMalakar('lord_malakar_evocacao_demoníaca');
+            else if (window.minhaClasse === 'florim') ativarArvoreFlorimSmartCast();
             else if (window.minhaClasse === 'mago') ativarMeteoroSmartCast();
             else if (window.minhaClasse === 'summoner') usarComandoOgro();
             else if (window.minhaClasse === 'arqueiro') ativarChuvaSmartCast();
@@ -9080,7 +9615,8 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
         function acionarSkillSlot2() {
             if (window.estaMorto) return;
-            if (window.minhaClasse === 'florim') ativarSementeFlorimSmartCast();
+            if (window.minhaClasse === 'lord_malakar') usarSkillLordMalakar('lord_malakar_vinculo_mortal');
+            else if (window.minhaClasse === 'florim') ativarSementeFlorimSmartCast();
             else if (window.minhaClasse === 'mago') ativarNevascaSmartCast();
             else if (window.minhaClasse === 'summoner') ativarSaltoSmartCast();
             else if (window.minhaClasse === 'arqueiro') usarDisparoPerfurante();
@@ -9098,7 +9634,8 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
         function acionarSkillSlot3() {
             if (window.estaMorto) return;
-            if (window.minhaClasse === 'florim') ativarEspinhosFlorimSmartCast();
+            if (window.minhaClasse === 'lord_malakar') usarSkillLordMalakar('lord_malakar_sofrimento_eterno');
+            else if (window.minhaClasse === 'florim') ativarEspinhosFlorimSmartCast();
             else if (window.minhaClasse === 'mago') ativarVulcaoSmartCast();
             else if (window.minhaClasse === 'summoner') usarOgroColossal();
             else if (window.minhaClasse === 'arqueiro') usarRajadaFlechas();
@@ -9267,6 +9804,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 }
                 if (window.minhaClasse === 'ladino') {
                     ativarEstrelaSmartCast();
+                    return;
+                }
+                if (window.minhaClasse === 'lord_malakar') {
+                    usarSkillLordMalakar('lord_malakar_invocacao_aleatoria');
                     return;
                 }
                 if (window.minhaClasse === 'dronemaster') {
@@ -9685,6 +10226,42 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 return;
             }
 
+            if (window.minhaClasse === 'lord_malakar') {
+                const playerX = window.meuX + 12;
+                const playerY = window.meuY + 16;
+                let clickedTarget = null;
+                let nearestClickDistance = Infinity;
+                const considerClickedTarget = function (target, type, radius) {
+                    if (!target || target.hp <= 0) return;
+                    const clickDistance = Math.hypot(target.x - mx, target.y - my);
+                    if (clickDistance > radius || clickDistance >= nearestClickDistance) return;
+                    if (Math.hypot(target.x - playerX, target.y - playerY) > alcanceBuscaClasse()) return;
+                    nearestClickDistance = clickDistance;
+                    clickedTarget = { tipo: type, id: target.id, x: target.x, y: target.y };
+                };
+                (window.listaSlimes || []).forEach(function (monster) {
+                    considerClickedTarget(monster, 'slime',
+                        Math.max(32, Number(monster.raioColisao) || 0));
+                });
+                (window.listaBosses || listaBosses || []).forEach(function (boss) {
+                    considerClickedTarget(boss, 'boss',
+                        Math.max(64, Number(boss.raioColisao) || 0));
+                });
+                if (clickedTarget) {
+                    autoAlvo = clickedTarget;
+                    window.meuAngulo = Math.atan2(clickedTarget.y - playerY, clickedTarget.x - playerX);
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({
+                            action: 'lord_malakar_focus_target',
+                            alvoTipo: clickedTarget.tipo,
+                            alvoId: clickedTarget.id
+                        }));
+                    }
+                    e.preventDefault();
+                    return;
+                }
+            }
+
             // Ataque básico manual desativado (v1.30.2): apenas orienta o personagem para o cursor.
             // O dano vem exclusivamente do auto-attack (atualizarAutoAtaque) com alvo validado no servidor.
             let cdx = mx - (window.meuX + 12);
@@ -9768,7 +10345,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
             // Bárbaro em Fúria corre 30% mais rápido!
             let bonusVelocidadeFuria = (window.minhaClasse === 'barbaro' && furiaCooldownAtivo) ? 1.3 : 1.0;
             // AGILIDADE: +3% de velocidade por ponto (atributo)
-            let bonusVelocidadeAgilidade = (window.meusAtributos && window.meusAtributos.agilidade) ? (1 + (window.meusAtributos.agilidade - 1) * 0.03) : 1;
+            let agilidadeMovimento = window.atributosTotais && Number.isFinite(Number(window.atributosTotais.agilidade))
+                ? Number(window.atributosTotais.agilidade)
+                : (window.meusAtributos && window.meusAtributos.agilidade) || 1;
+            let bonusVelocidadeAgilidade = Math.min(1.5, 1 + Math.max(0, agilidadeMovimento - 1) * 0.03);
             // EFEITOS: lentidão (-50%) e velocidade (+50%) afetam o passo
             let efeitosMove = window.meusEfeitos || [];
             let temEf = function (id) { return efeitosMove.some(function (e) { return e && e.id === id && e.tempo > 0; }); };
@@ -10123,6 +10703,47 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
             // ===== Y-SORT: profundidade entre cenário decorado, monstros e jogadores =====
             let spritesSort = [];
+            window.lordMalakarVfx = (window.lordMalakarVfx || []).filter(function (effect) {
+                if (Date.now() - effect.startedAt >= effect.duration) return false;
+                if (typeof window.desenharLordMalakarEfeito === 'function') {
+                    window.desenharLordMalakarEfeito(effect);
+                }
+                return true;
+            });
+            Object.keys(window.todosJogadores || {}).forEach(function (pid) {
+                const player = window.todosJogadores[pid];
+                if (!player || player.classe !== 'lord_malakar' ||
+                    (!player.lordMalakarLink && !player.lordMalakarBasicTether)) return;
+                const x = pid === window.meuId ? window.meuX : player.x;
+                const y = pid === window.meuId ? window.meuY : player.y;
+                if (x < cameraBounds.minX || x > cameraBounds.maxX ||
+                    y < cameraBounds.minY || y > cameraBounds.maxY) return;
+                spritesSort.push({ y: y + 16, draw: function () {
+                    if (typeof window.desenharLordMalakarVinculos === 'function') {
+                        window.desenharLordMalakarVinculos(player, window.listaSlimes || [], x, y);
+                    }
+                    const tether = player.lordMalakarBasicTether;
+                    if (!tether || tether.expiresAt <= Date.now() ||
+                        typeof window.desenharLordMalakarCorrenteSangue !== 'function') return;
+                    let target = null;
+                    if (tether.targetType === 'slime') {
+                        target = (window.listaSlimes || []).find(function (item) { return item && item.id === tether.targetId; });
+                    } else if (tether.targetType === 'boss') {
+                        target = (window.listaBosses || []).find(function (item) { return item && item.id === tether.targetId; });
+                    } else if (tether.targetType === 'player') {
+                        const targetPlayer = window.todosJogadores[tether.targetId];
+                        if (targetPlayer) target = { x: targetPlayer.x + 12, y: targetPlayer.y + 16 };
+                    } else if (tether.targetType === 'pet') {
+                        target = (window.listaPetsCapturados && window.listaPetsCapturados[tether.targetId]) ||
+                            (window.listaLordMalakarInvocacoes && window.listaLordMalakarInvocacoes[tether.targetId]);
+                    } else if (tether.targetType === 'malakar_summon') {
+                        target = window.listaLordMalakarInvocacoes && window.listaLordMalakarInvocacoes[tether.targetId];
+                    }
+                    if (target && target.hp > 0) {
+                        window.desenharLordMalakarCorrenteSangue(x + 12, y + 16, target.x, target.y);
+                    }
+                } });
+            });
             if (typeof window.coletarMundoSortables === "function") window.coletarMundoSortables(tempoAnimacao, spritesSort);
             if (typeof window.coletarObjetosMapa === "function") window.coletarObjetosMapa(tempoAnimacao, spritesSort);
             if (typeof window.coletarCamadasMapaAtivo === "function") window.coletarCamadasMapaAtivo(tempoAnimacao, spritesSort);
@@ -10170,6 +10791,17 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     } });
                 }
             }
+
+            Object.values(window.listaLordMalakarInvocacoes || {}).forEach(function (entity) {
+                if (!entity || entity.hp <= 0 ||
+                    entity.x < cameraBounds.minX || entity.x > cameraBounds.maxX ||
+                    entity.y < cameraBounds.minY || entity.y > cameraBounds.maxY) return;
+                spritesSort.push({ y: entity.y, draw: function () {
+                    if (typeof window.desenharLordMalakarInvocacao === 'function') {
+                        window.desenharLordMalakarInvocacao(entity);
+                    }
+                } });
+            });
 
             listaBosses.forEach(g => {
                 if (!g || g.hp <= 0) return;
@@ -10219,6 +10851,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                     spritesSort.push({
                         y: basePosY + 16 - elevSort,
                         draw: function () {
+                            if (pid === window.meuId && window.carregandoMapaMundo) return;
                             let pp = window.todosJogadores[pid];
                             if (!pp) return;
                             let isSpinningPlayer = ((window.tornadoTimers[pid] || 0) > 0);
@@ -10230,6 +10863,10 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             }
                             let mov = (pid === window.meuId) ? isMoving : pp.moving; let ang = (pid === window.meuId) ? window.meuAngulo : pp.angulo;
                             let hpVal = (pid === window.meuId) ? window.meuHp : pp.hp; let maxHpVal = pp.maxHp || 100;
+                            if (classeJogador === 'lord_malakar' && window.desenharLordMalakarAlcance) {
+                                window.desenharLordMalakarAlcance(pp, posX, posY, pid === window.meuId,
+                                    pid === window.meuId && !!autoAlvo, autoAlvo);
+                            }
 
                             // LADINO — CAMUFLAGEM SOMBRIA: silhueta semi-transparente
                             let efeitosInvis = (pid === window.meuId) ? window.meusEfeitos : pp.efeitos;
@@ -10240,6 +10877,15 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             window.personagemInvisivelAtual = invisPorEfeito || invisAgilidadeLocal ||
                                 (pid === window.meuId && classeJogador === 'ladino' && !!window.ladinoInvisivelAtivo);
 
+                            ctx.save();
+                            if (classeJogador !== 'lord_malakar') {
+                                const escalaVisualClasse = 1.3;
+                                const pontoApoioX = posX + 12;
+                                const pontoApoioY = posY + 30;
+                                ctx.translate(pontoApoioX, pontoApoioY);
+                                ctx.scale(escalaVisualClasse, escalaVisualClasse);
+                                ctx.translate(-pontoApoioX, -pontoApoioY);
+                            }
                             if (classeJogador === 'mago') { if (typeof window.desenharMago === "function") window.desenharMago(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'summoner') { if (typeof window.desenharSummoner === "function") window.desenharSummoner(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'arqueiro') { 
@@ -10253,14 +10899,6 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                                          ctx.translate(-(posX + 12), -(posY + 16));
                                          ctx.globalAlpha = 0.95;
                                          window.desenharArqueiro(posX, posY, false, ang, hpVal, maxHpVal, pid);
-                                         ctx.restore();
-                                         // Sombra no chão
-                                         ctx.save();
-                                         ctx.globalAlpha = 0.35;
-                                         ctx.fillStyle = '#000000';
-                                         ctx.beginPath();
-                                         ctx.ellipse(posX + 12, posY + 28, 20, 7, 0, 0, Math.PI * 2);
-                                         ctx.fill();
                                          ctx.restore();
                                      } else {
                                          window.desenharArqueiro(posX, posY, mov, ang, hpVal, maxHpVal, pid);
@@ -10277,7 +10915,38 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                             else if (classeJogador === 'pikeman') { if (typeof window.desenharPikeman === "function") window.desenharPikeman(posX, posY, mov, ang, hpVal, maxHpVal, { eu: (pid === window.meuId), pp: pp }, pid); }
                             else if (classeJogador === 'florim') { if (typeof window.desenharFlorim === "function") window.desenharFlorim(posX, posY, mov, ang, hpVal, maxHpVal); }
                             else if (classeJogador === 'guerreiro_kaledron') { if (typeof window.desenharKaledron === "function") window.desenharKaledron(posX, posY, mov, ang, hpVal, maxHpVal, pid); }
+                            else if (classeJogador === 'lord_malakar') { if (typeof window.desenharLordMalakar === "function") window.desenharLordMalakar(posX, posY, mov, ang, hpVal, maxHpVal, pid); }
                             else { if (typeof window.desenharGuerreiro === "function") window.desenharGuerreiro(posX, posY, (pid === window.meuId ? "#c0392b" : "#2980b9"), mov, ang, hpVal, maxHpVal, isSpinningPlayer, window.tornadoTimers[pid] || 0, pid); }
+                            ctx.restore();
+                            if (pp.druaaseHemorragiaAte > Date.now()) {
+                                const gotaX = posX + 12;
+                                const gotaY = posY - 29;
+                                ctx.save();
+                                ctx.translate(gotaX, gotaY);
+                                ctx.fillStyle = '#a60016';
+                                ctx.strokeStyle = '#3c0710';
+                                ctx.lineWidth = 1.5;
+                                ctx.shadowColor = '#ff263d';
+                                ctx.shadowBlur = 7;
+                                ctx.beginPath();
+                                ctx.moveTo(0, -8);
+                                ctx.bezierCurveTo(-2, -4, -7, 1, -7, 4);
+                                ctx.bezierCurveTo(-7, 8, -4, 10, 0, 10);
+                                ctx.bezierCurveTo(4, 10, 7, 8, 7, 4);
+                                ctx.bezierCurveTo(7, 1, 2, -4, 0, -8);
+                                ctx.closePath();
+                                ctx.fill();
+                                ctx.stroke();
+                                ctx.shadowBlur = 0;
+                                ctx.fillStyle = 'rgba(255, 210, 215, 0.85)';
+                                ctx.beginPath();
+                                ctx.ellipse(-2, 4, 1.5, 2.5, -0.3, 0, Math.PI * 2);
+                                ctx.fill();
+                                ctx.restore();
+                            }
+                            if (classeJogador === 'lord_malakar' && window.desenharLordMalakarBuff) {
+                                window.desenharLordMalakarBuff(posX, posY, pp);
+                            }
 
                             if (pid === window.meuId && window.petCaptureChallengePending &&
                                 typeof window.desenharIndicadorCapturaPet === 'function') {
@@ -10493,9 +11162,169 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 if (impacto.ttl <= 0) { window.monsterSkillImpacts.splice(i, 1); continue; }
                 ctx.save();
                 ctx.globalAlpha = impacto.ttl / 24;
-                ctx.strokeStyle = impacto.skill === 'web' ? '#d9f7ff' : (impacto.skill === 'void_laser' ? '#b56cff' : '#ff9f43');
+                ctx.strokeStyle = impacto.skill === 'slime_elite_leap' ? '#ff2525' :
+                    (impacto.skill === 'web' ? '#d9f7ff' : (impacto.skill === 'void_laser' ? '#b56cff' : '#ff9f43'));
                 ctx.lineWidth = 3;
-                ctx.beginPath(); ctx.arc(impacto.x, impacto.y, 24 + (24 - impacto.ttl) * 4, 0, Math.PI * 2); ctx.stroke();
+                const impactoRaio = impacto.skill === 'slime_elite_leap'
+                    ? (Number(impacto.radius) || 155) * (1 + (24 - impacto.ttl) / 24 * .12)
+                    : 24 + (24 - impacto.ttl) * 4;
+                ctx.beginPath(); ctx.arc(impacto.x, impacto.y, impactoRaio, 0, Math.PI * 2); ctx.stroke();
+                ctx.restore();
+            }
+            window.monsterEliteLeapEffects = window.monsterEliteLeapEffects || [];
+            for (let i = window.monsterEliteLeapEffects.length - 1; i >= 0; i--) {
+                const leap = window.monsterEliteLeapEffects[i];
+                const remaining = leap.expiresAt - Date.now();
+                if (remaining <= 0) {
+                    window.monsterEliteLeapEffects.splice(i, 1);
+                    continue;
+                }
+                ctx.save();
+                if (leap.phase === 'telegraph') {
+                    const pulse = .5 + Math.sin(Date.now() / 75) * .18;
+                    const progress = 1 - remaining / Math.max(1, leap.expiresAt - leap.startedAt);
+                    ctx.globalAlpha = pulse;
+                    ctx.fillStyle = 'rgba(255, 20, 35, .28)';
+                    ctx.strokeStyle = '#ff2638';
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(leap.x, leap.y, leap.radius * (1 + progress * .035), 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.setLineDash([12, 7]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                } else {
+                    const progress = Math.max(0, Math.min(1,
+                        1 - remaining / Math.max(1, leap.expiresAt - leap.startedAt)));
+                    const inverse = 1 - progress;
+                    const lift = Math.sin(progress * Math.PI) * 150;
+                    const x = inverse * inverse * leap.sourceX +
+                        2 * inverse * progress * ((leap.sourceX + leap.x) / 2) +
+                        progress * progress * leap.x;
+                    const y = inverse * inverse * leap.sourceY +
+                        2 * inverse * progress * ((leap.sourceY + leap.y) / 2) +
+                        progress * progress * leap.y - lift;
+                    ctx.globalAlpha = .8;
+                    ctx.fillStyle = 'rgba(255, 28, 35, .2)';
+                    ctx.beginPath();
+                    ctx.ellipse(leap.x, leap.y, 28, 10, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.shadowColor = '#ff1c2d';
+                    ctx.shadowBlur = 28;
+                    ctx.fillStyle = '#ff3945';
+                    ctx.beginPath();
+                    ctx.ellipse(x, y, 28 + Math.sin(progress * Math.PI) * 8,
+                        20 + Math.sin(progress * Math.PI) * 9, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+                ctx.restore();
+            }
+
+            window.tundraDragonEffects = window.tundraDragonEffects || [];
+            for (let i = window.tundraDragonEffects.length - 1; i >= 0; i--) {
+                const effect = window.tundraDragonEffects[i];
+                const now = Date.now();
+                const remaining = effect.expiresAt - now;
+                if (remaining <= 0) {
+                    window.tundraDragonEffects.splice(i, 1);
+                    continue;
+                }
+                const progress = 1 - remaining / Math.max(1, effect.expiresAt - effect.startedAt);
+                ctx.save();
+                if (effect.kind === 'vortex') {
+                    const dragon = (window.listaSlimes || []).find(function (mob) {
+                        return mob && mob.id === effect.id && mob.hp > 0;
+                    });
+                    const x = dragon ? dragon.x : effect.x;
+                    const y = dragon ? dragon.y : effect.y;
+                    const radius = Number(effect.radius) || 360;
+                    const rotation = now / 360;
+                    const pulse = .8 + Math.sin(now / 120) * .08;
+                    ctx.globalAlpha = .34 * pulse;
+                    ctx.fillStyle = 'rgba(15, 79, 153, .72)';
+                    ctx.beginPath();
+                    ctx.arc(x, y, radius, 0, Math.PI * 2);
+                    ctx.fill();
+                    for (let ring = 0; ring < 3; ring++) {
+                        ctx.globalAlpha = .92 - ring * .16;
+                        ctx.strokeStyle = ring === 0 ? '#123a78' : (ring === 1 ? '#087fbd' : '#00c8e8');
+                        ctx.shadowColor = '#087fbd';
+                        ctx.shadowBlur = 12;
+                        ctx.lineWidth = 7 - ring * 1.5;
+                        ctx.setLineDash([24, 18]);
+                        ctx.beginPath();
+                        ctx.arc(x, y, radius * (.55 + ring * .17), rotation * (ring % 2 ? -1 : 1),
+                            rotation * (ring % 2 ? -1 : 1) + Math.PI * 1.55);
+                        ctx.stroke();
+                    }
+                    ctx.setLineDash([]);
+                    for (let mote = 0; mote < 64; mote++) {
+                        const angle = rotation * (mote % 2 ? 1 : -1) + mote * 2.399963;
+                        const orbit = radius * (.18 + ((mote * 37) % 100) / 125);
+                        const xMote = x + Math.cos(angle) * orbit;
+                        const yMote = y + Math.sin(angle) * orbit * .7;
+                        ctx.globalAlpha = .72 + ((mote * 13) % 28) / 100;
+                        ctx.fillStyle = mote % 3 ? '#00a8d6' : '#143c79';
+                        ctx.strokeStyle = '#d8fbff';
+                        ctx.lineWidth = 1.5;
+                        ctx.shadowColor = '#008ac7';
+                        ctx.shadowBlur = 8;
+                        ctx.beginPath();
+                        ctx.arc(xMote, yMote, 2 + (mote % 4), 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+                    }
+                } else if (effect.kind === 'dash') {
+                    ctx.globalAlpha = effect.phase === 'telegraph'
+                        ? .82 + Math.sin(now / 80) * .12
+                        : Math.max(.3, 1 - progress);
+                    ctx.strokeStyle = '#102e68';
+                    ctx.shadowColor = '#087fbd';
+                    ctx.shadowBlur = effect.phase === 'telegraph' ? 20 : 30;
+                    ctx.lineWidth = effect.phase === 'telegraph' ? 15 : 30;
+                    ctx.setLineDash(effect.phase === 'telegraph' ? [20, 12] : []);
+                    ctx.beginPath();
+                    ctx.moveTo(effect.fromX, effect.fromY);
+                    ctx.lineTo(effect.toX, effect.toY);
+                    ctx.stroke();
+                    ctx.strokeStyle = effect.phase === 'telegraph' ? '#00c9e8' : '#37e9ff';
+                    ctx.lineWidth = effect.phase === 'telegraph' ? 6 : 15;
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+                } else if (effect.kind === 'breath') {
+                    const range = Number(effect.range) || 500;
+                    const halfAngle = Number(effect.halfAngle) || Math.PI / 4;
+                    ctx.globalAlpha = Math.max(.25, 1 - progress);
+                    ctx.fillStyle = 'rgba(0, 126, 202, .48)';
+                    ctx.strokeStyle = '#102e68';
+                    ctx.shadowColor = '#00b9e8';
+                    ctx.shadowBlur = 18;
+                    ctx.lineWidth = 12;
+                    ctx.beginPath();
+                    ctx.moveTo(effect.x, effect.y);
+                    ctx.arc(effect.x, effect.y, range, effect.angle - halfAngle, effect.angle + halfAngle);
+                    ctx.closePath();
+                    ctx.fill();
+                    ctx.stroke();
+                    ctx.strokeStyle = '#00d9f2';
+                    ctx.lineWidth = 5;
+                    ctx.stroke();
+                    for (let flake = 0; flake < 26; flake++) {
+                        const angle = effect.angle - halfAngle +
+                            ((flake * 17 + progress * 90) % 100) / 100 * halfAngle * 2;
+                        const distance = range * (((flake * 29 + progress * 100) % 100) / 100);
+                        ctx.fillStyle = flake % 2 ? '#00a8d6' : '#143c79';
+                        ctx.strokeStyle = '#e8fcff';
+                        ctx.lineWidth = 1.5;
+                        ctx.shadowColor = '#007db8';
+                        ctx.shadowBlur = 8;
+                        ctx.beginPath();
+                        ctx.arc(effect.x + Math.cos(angle) * distance,
+                            effect.y + Math.sin(angle) * distance, 2 + flake % 3, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+                    }
+                }
                 ctx.restore();
             }
 
@@ -10725,7 +11554,11 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 const progress = Math.max(0, Math.min(1, elapsed / petText.duration));
                 const jump = Math.sin(Math.min(1, progress * 1.35) * Math.PI);
                 const fade = progress < 0.58 ? 1 : Math.max(0, 1 - (progress - 0.58) / 0.42);
-                const y = petText.y - progress * 18 - jump * 20;
+                const petFallProgress = Math.max(0, (progress - 0.48) / 0.52);
+                const y = petText.isMalakar || petText.isSummoner
+                    ? petText.y - Math.sin(Math.min(1, progress / 0.48) * Math.PI) * 34 +
+                        petFallProgress * petFallProgress * 30
+                    : petText.y - progress * 18 - jump * 20;
                 const text = '-' + petText.dano;
                 ctx.save();
                 ctx.globalAlpha = fade;
@@ -10735,7 +11568,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 ctx.lineJoin = 'round';
                 ctx.lineWidth = 3;
                 const numberWidth = ctx.measureText(text).width;
-                const pawWidth = 15;
+                const pawWidth = petText.isMalakar || petText.isSummoner ? 19 : 15;
                 const gap = 3;
                 const totalWidth = numberWidth + gap + pawWidth;
                 const startX = petText.x - totalWidth / 2;
@@ -10745,9 +11578,12 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 ctx.shadowColor = '#a855f7';
                 ctx.shadowBlur = 7;
                 ctx.fillText(text, startX, y);
-                ctx.font = "13px 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif";
-                ctx.strokeText('🐾', startX + numberWidth + gap, y + 1);
-                ctx.fillText('🐾', startX + numberWidth + gap, y + 1);
+                ctx.font = petText.isMalakar || petText.isSummoner
+                    ? "16px 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif"
+                    : "13px 'Segoe UI Emoji', 'Apple Color Emoji', sans-serif";
+                const damageIcon = petText.isMalakar ? '💀' : (petText.isSummoner ? '🪨' : '🐾');
+                ctx.strokeText(damageIcon, startX + numberWidth + gap, y + 1);
+                ctx.fillText(damageIcon, startX + numberWidth + gap, y + 1);
                 ctx.restore();
             }
             for (let i = blockEffects.length - 1; i >= 0; i--) { let b = blockEffects[i]; b.y -= 0.8; b.alpha -= 0.03; if (b.alpha <= 0) { blockEffects.splice(i, 1); } else { ctx.save(); ctx.translate(b.x, b.y); ctx.globalAlpha = b.alpha; ctx.font = "bold 18px 'Rajdhani', Arial, sans-serif"; ctx.lineJoin = "round"; ctx.lineWidth = 3; ctx.strokeStyle = "rgba(0, 0, 0, 0.9)"; ctx.strokeText("🛡️ BLOCK!", -30, 0); ctx.fillStyle = "#f1c40f"; ctx.fillText("🛡️ BLOCK!", -30, 0); ctx.restore(); } }
@@ -10778,7 +11614,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
                 ctx.lineJoin = "round";
                 ctx.lineWidth = 3;
                 ctx.strokeStyle = "rgba(0, 0, 0, 0.95)";
-                const nickY = (classe === 'pikeman' || classe === 'florim') ? -48 : -42;
+                const nickY = (classe === 'pikeman') ? -48 : -42;
                 ctx.strokeText(jogador.nome, posX + 12, posY + nickY);
                 ctx.fillStyle = jogador.pvpAtivo ? "#ff4d4d" : "#f1c40f";
                 ctx.shadowColor = "rgba(0, 0, 0, 0.9)";
@@ -10817,7 +11653,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
             // v1.52.0: CICLO DIA/NOITE & ILUMINAÇÃO DINÂMICA (véu de escuridão com recortes de luz)
             if (typeof window.renderizarCicloDiaNoite === 'function' && window.currentMap !== 'testevisual') {
-                window.renderizarCicloDiaNoite(ctx, cameraX, cameraY, shakeX, shakeY, (window.cameraZoomAtual || ZOOM_CAMERA));
+                window.renderizarCicloDiaNoite(ctx, cameraX, cameraY, shakeX, shakeY, (window.cameraZoomAtual || ZOOM_CAMERA), cameraTiltY);
             }
 
             // ======= NOVO MINIMAPA FUNCIONAL (COM RADAR DE ZOOM, MONSTROS, PLAYERS E DROPS) =======
@@ -11046,7 +11882,7 @@ const btnKaledronBrado = document.getElementById("btn-kaledron-brado");
 
         loop();
     </script>
-    <script src="sistemas/pets/pets-ui.js?v=3"></script>
+    <script src="sistemas/pets/pets-ui.js?v=6"></script>
     <!-- FORJADOR ADMIN MODAL -->
     <div id="item-admin-window" class="modal-window" style="display:none;" data-ui="true">
         <div class="modal-header">

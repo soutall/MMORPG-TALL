@@ -13,9 +13,9 @@
 const BARBARO_COR = {
     pele: '#d7996c',
     peleSombra: '#b07050',
-    cabelo: '#3a1709',
-    cabeloClaro: '#5c2a12',
-    barba: '#2c1206',
+    cabelo: '#7f1020',
+    cabeloClaro: '#d32b3f',
+    barba: '#241116',
     couro: '#4a2311',
     couroClaro: '#784212',
     peloLobo: '#8a6a4a',
@@ -116,14 +116,16 @@ window.desenharBarbaro = function (x, y, isMoving, angulo, hp, maxHp, pid) {
         ctx.restore();
     }
 
-    // ---------- MACHADO DE GUERRA (atrás do corpo; mãos desenhadas na função) ----------
+    // ---------- MACHADO DE GUERRA FLUTUANTE ----------
     ctx.save();
+    const ladoArma = Math.cos(angulo || 0) < 0 ? -1 : 1;
     if (giroSpin > 0) {
         ctx.translate(12, 16);
         ctx.rotate((angulo || 0) + giroSpin);
     } else {
-        ctx.translate(22, 13);
-        ctx.rotate(angulo || 0);
+        const avancarGolpe = swingT > 0 ? (1 - swingT) * 12 : 0;
+        ctx.translate(12 + ladoArma * (27 + avancarGolpe), 8 + Math.sin(t * 2.4) * 2);
+        ctx.rotate(ladoArma * (-0.35 + Math.sin(t * 1.7) * 0.08));
     }
 
     let swing = 0;
@@ -135,7 +137,7 @@ window.desenharBarbaro = function (x, y, isMoving, angulo, hp, maxHp, pid) {
         swing = -2.1 + ease * 2.9;
     } else {
         let sway = isMoving ? Math.sin(ciclo) * 0.16 : Math.sin(t * 2.0) * 0.05;
-        swing = -0.9 + sway;
+        swing = giroSpin > 0 ? sway : (swingT > 0 ? -1.8 + (1 - swingT) * 2.3 : sway);
         if (furyStage === 3) swing += Math.sin(t * 9) * 0.06;
     }
     ctx.rotate(swing);
@@ -146,37 +148,6 @@ window.desenharBarbaro = function (x, y, isMoving, angulo, hp, maxHp, pid) {
         if (wp && wp.customVisual) armaV = wp;
     }
     if (typeof window.desenharMachadoExposta === 'function') window.desenharMachadoExposta(ctx, armaV);
-
-    // ---------- BRAÇOS que seguram o cabo ----------
-    ctx.lineCap = 'round';
-    // braço direito (segura o cabo perto da lâmina)
-    ctx.strokeStyle = BARBARO_COR.pele;
-    ctx.lineWidth = 5;
-    ctx.beginPath();
-    ctx.moveTo(-12, -5);
-    ctx.quadraticCurveTo(-6, -4, 0, -4);
-    ctx.stroke();
-    // braço esquerdo (segura mais embaixo)
-    ctx.lineWidth = 4.6;
-    ctx.beginPath();
-    ctx.moveTo(-10, 7);
-    ctx.quadraticCurveTo(-4, 7, 0, 7);
-    ctx.stroke();
-    // punhos de couro + mãos
-    ctx.fillStyle = BARBARO_COR.couroClaro;
-    ctx.fillRect(-1.2, -5.6, 2.6, 3.2);
-    ctx.fillRect(-1.2, 5.8, 2.6, 2.8);
-    ctx.fillStyle = BARBARO_COR.pele;
-    ctx.beginPath(); ctx.arc(0, -4, 2.7, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.arc(0, 7, 2.5, 0, Math.PI * 2); ctx.fill();
-    // dedos apertando o cabo
-    ctx.strokeStyle = 'rgba(60,30,15,0.7)';
-    ctx.lineWidth = 0.8;
-    for (let d = 0; d < 3; d++) {
-        ctx.beginPath();
-        ctx.arc(0, -4, 2.7, Math.PI * 0.2 + d * 0.5, Math.PI * 0.8 + d * 0.5);
-        ctx.stroke();
-    }
 
     ctx.restore();
 
@@ -227,6 +198,32 @@ window.desenharBarbaro = function (x, y, isMoving, angulo, hp, maxHp, pid) {
     ctx.moveTo(4, 15); ctx.lineTo(20, 15); ctx.lineTo(12, 18);
     ctx.closePath();
     ctx.fill();
+
+    // Peitoral de placas negras e tiras carmesim inspirado no equipamento de guerra.
+    ctx.fillStyle = '#171820';
+    ctx.strokeStyle = '#66505a';
+    ctx.lineWidth = 0.9;
+    ctx.beginPath();
+    ctx.moveTo(3, 9); ctx.lineTo(8, 10); ctx.lineTo(12, 13);
+    ctx.lineTo(16, 10); ctx.lineTo(21, 9); ctx.lineTo(19, 18);
+    ctx.lineTo(15, 20); ctx.lineTo(12, 17); ctx.lineTo(9, 20);
+    ctx.lineTo(5, 18); ctx.closePath();
+    ctx.fill(); ctx.stroke();
+    ctx.strokeStyle = '#a51e33';
+    ctx.lineWidth = 1.25;
+    ctx.beginPath();
+    ctx.moveTo(5, 11); ctx.lineTo(10, 14); ctx.lineTo(12, 16);
+    ctx.lineTo(14, 14); ctx.lineTo(19, 11);
+    ctx.stroke();
+    ctx.fillStyle = '#c6a9a2';
+    for (const spike of [[2, 9], [4, 7], [20, 9], [18, 7]]) {
+        ctx.beginPath();
+        ctx.moveTo(spike[0] - 1.4, spike[1] + 1);
+        ctx.lineTo(spike[0], spike[1] - 3.2);
+        ctx.lineTo(spike[0] + 1.4, spike[1] + 1);
+        ctx.closePath(); ctx.fill();
+    }
+
     ctx.strokeStyle = 'rgba(240,220,200,0.5)';
     ctx.lineWidth = 0.8;
     ctx.beginPath();
@@ -296,7 +293,7 @@ window.desenharBarbaro = function (x, y, isMoving, angulo, hp, maxHp, pid) {
     ctx.stroke();
 
     // cabelo selvagem espetado
-    ctx.fillStyle = cor(BARBARO_COR.cabelo, '#8a4a22');
+    ctx.fillStyle = cor(BARBARO_COR.cabelo, '#ff775f');
     ctx.beginPath();
     ctx.moveTo(5, 6);
     ctx.lineTo(4, 0); ctx.lineTo(7, 3);
@@ -306,7 +303,7 @@ window.desenharBarbaro = function (x, y, isMoving, angulo, hp, maxHp, pid) {
     ctx.lineTo(19, 8);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = cor(BARBARO_COR.cabeloClaro, '#a96430');
+    ctx.fillStyle = cor(BARBARO_COR.cabeloClaro, '#ffbd87');
     ctx.beginPath();
     ctx.moveTo(6, 4); ctx.lineTo(18, 4); ctx.lineTo(16, 1); ctx.lineTo(8, 1);
     ctx.closePath();
@@ -374,7 +371,7 @@ window.desenharMachadoExposta = function(ctx, armaVisualCustom) {
     }
 
     ctx.save();
-    ctx.scale(tamanho, largura);
+    ctx.scale(tamanho * 0.84, largura * 0.84);
 
     // ---------- CABO de madeira ----------
     const gCabo = ctx.createLinearGradient(-2, -6, 2, 26);
@@ -402,17 +399,17 @@ window.desenharMachadoExposta = function(ctx, armaVisualCustom) {
     ctx.arc(0, 26, 1.6, 0, Math.PI * 2);
     ctx.fill();
 
-    // colar de metal entre cabo e l�mina
+    // colar de metal entre cabo e l�mina
     ctx.fillStyle = BARBARO_COR.ferro;
     ctx.fillRect(-4, -7, 8, 3.5);
     ctx.fillStyle = BARBARO_COR.ferroClaro;
     ctx.fillRect(-4, -7, 8, 1.2);
 
-    // ---------- L�MINA em meia-lua gigante ----------
+    // ---------- Lâmina tripla integrada ao encaixe do cabo ----------
     ctx.save();
     ctx.shadowColor = 'rgba(20,25,35,0.7)';
-    ctx.shadowBlur = 10;
-    const gLamin = ctx.createLinearGradient(0, -42, 0, -8);
+    ctx.shadowBlur = 7;
+    const gLamin = ctx.createLinearGradient(0, -22, 0, 9);
     gLamin.addColorStop(0, cFio);
     gLamin.addColorStop(0.5, cMeio);
     gLamin.addColorStop(1, cPonta);
@@ -420,13 +417,17 @@ window.desenharMachadoExposta = function(ctx, armaVisualCustom) {
     ctx.strokeStyle = cPonta;
     ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.moveTo(0, -8);
-    ctx.quadraticCurveTo(-22, -14, -26, -26);
-    ctx.quadraticCurveTo(-28, -38, -14, -40);
-    ctx.quadraticCurveTo(-4, -42, 2, -40);
-    ctx.quadraticCurveTo(10, -41, 18, -37);
-    ctx.quadraticCurveTo(25, -32, 23, -22);
-    ctx.quadraticCurveTo(20, -12, 0, -8);
+    ctx.moveTo(-1, -8);
+    ctx.lineTo(7, -13);
+    ctx.lineTo(13, -22);
+    ctx.lineTo(17, -14);
+    ctx.lineTo(27, -10);
+    ctx.lineTo(20, -4);
+    ctx.lineTo(24, 5);
+    ctx.lineTo(14, 2);
+    ctx.lineTo(8, 9);
+    ctx.lineTo(5, 1);
+    ctx.lineTo(-1, -2);
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
@@ -434,24 +435,35 @@ window.desenharMachadoExposta = function(ctx, armaVisualCustom) {
 
     // brilho dos fios de corte (superior esquerdo e direito)
     ctx.strokeStyle = cFio;
-    ctx.lineWidth = 1.6;
+    ctx.lineWidth = 1.4;
     ctx.beginPath();
-    ctx.moveTo(2, -40);
-    ctx.quadraticCurveTo(-4, -41, -14, -39);
-    ctx.quadraticCurveTo(-27, -37, -25, -26);
+    ctx.moveTo(13, -21);
+    ctx.lineTo(17, -14);
+    ctx.lineTo(26, -10);
     ctx.stroke();
     ctx.beginPath();
-    ctx.moveTo(2, -40);
-    ctx.quadraticCurveTo(10, -40, 18, -36);
-    ctx.quadraticCurveTo(24, -31, 22, -22);
+    ctx.moveTo(26, -10);
+    ctx.lineTo(20, -4);
+    ctx.lineTo(23, 4);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(-1, -8);
+    ctx.lineTo(7, -13);
+    ctx.lineTo(13, -21);
     ctx.stroke();
 
-    // respingos de sangue antigos na l�mina
-    ctx.fillStyle = 'rgba(150,20,20,0.55)';
+    ctx.fillStyle = cPonta;
     ctx.beginPath();
-    ctx.ellipse(-12, -20, 2.4, 1.3, 0.6, 0, Math.PI * 2);
-    ctx.ellipse(14, -14, 2, 1.1, -0.4, 0, Math.PI * 2);
+    ctx.moveTo(-3, -10);
+    ctx.lineTo(5, -12);
+    ctx.lineTo(11, -7);
+    ctx.lineTo(5, -2);
+    ctx.lineTo(-3, -4);
+    ctx.closePath();
     ctx.fill();
+    ctx.strokeStyle = cFio;
+    ctx.lineWidth = 0.8;
+    ctx.stroke();
     ctx.restore();
 
     ctx.restore();

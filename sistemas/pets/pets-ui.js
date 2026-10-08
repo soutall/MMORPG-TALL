@@ -81,6 +81,12 @@
         let selectedPetId = null;
         let lastRenderSignature = '';
         let renderTimer = null;
+        let profileRevision = 0;
+        let runtimeRevision = 0;
+        let speciesRowsCache = null;
+        let speciesListNode = null;
+        let speciesLayoutNode = null;
+        let speciesDetailsNode = null;
         let onModeRequest = function () {};
         let onActivateRequest = function () {};
 
@@ -95,11 +101,12 @@
             const stat = el('div', 'pets-stat');
             const title = el('strong', '', label + ': ');
             stat.appendChild(title);
-            stat.appendChild(doc.createTextNode(value === null || value === undefined || value === '' ? '—' : String(value)));
+            stat.appendChild(el('span', 'pets-stat-value',
+                value === null || value === undefined || value === '' ? '—' : String(value)));
             parent.appendChild(stat);
         }
 
-        function drawPreview(canvas, species, pet) {
+        function drawPreview(canvas, species, pet, retryCount, scaleMultiplier) {
             if (!canvas || !species || typeof win.desenharSlime !== 'function') return;
             if (pet && (pet.state === 'DEAD' || pet.state === 'RESPAWN' || Number(pet.hp) <= 0)) return;
             const context = canvas.getContext('2d');
@@ -112,12 +119,15 @@
             try {
                 win.desenharSlime(Object.assign({}, pet || {}, {
                     id: (pet && pet.pet_instance_id) || species.species_id,
-                    tipo: species.tipo || species.species_id,
+                    tipo: species.tipo || (pet && pet.tipo) || species.species_id,
+                    asset: (pet && pet.asset) || species.asset,
                     x: width / 2,
                     y: height * 0.76,
                     hp: Math.max(1, Number((pet && pet.hp) || 100)),
                     maxHp: Math.max(1, Number((pet && pet.maxHp) || 100)),
-                    escala: Math.min(1, Number((pet && pet.escala) || 1)),
+                    escala: (Number((pet && pet.escala) || species.escala) || 1) *
+                        (Number(scaleMultiplier) || 1),
+                    preview: true,
                     aiEstado: 'idle'
                 }));
             } catch (error) {
@@ -125,13 +135,41 @@
             } finally {
                 win.ctx = oldContext;
             }
+            const attempts = Number(retryCount) || 0;
+            const sprite = win._slimeSprites && win._slimeSprites[(pet && pet.asset) || species.asset];
+            if (attempts < 20 && !(sprite && sprite.loadFailed) &&
+                !(sprite && sprite.metadata && sprite.image) && typeof win.setTimeout === 'function') {
+                win.setTimeout(function () {
+                    if (canvas.isConnected) {
+                        drawPreview(canvas, species, pet, attempts + 1, scaleMultiplier);
+                    }
+                }, 160);
+            }
         }
 
-        function makePreview(species, pet, className) {
+        function makePreview(species, pet, className, lazy) {
             const canvas = el('canvas', 'pets-preview' + (className ? ' ' + className : ''));
-            canvas.width = 128;
-            canvas.height = 128;
-            drawPreview(canvas, species, pet);
+            const featured = String(className || '').split(/\s+/).indexOf('pets-preview-featured') !== -1;
+            canvas.width = featured ? 256 : 128;
+            canvas.height = featured ? 256 : 128;
+            if (lazy && typeof win.IntersectionObserver === 'function') {
+                const observer = new win.IntersectionObserver(function (entries) {
+                    if (!entries.some(function (entry) { return entry.isIntersecting; })) return;
+                    observer.disconnect();
+                    drawPreview(canvas, species, pet, 0, featured ? 3 : 1);
+                }, { root: speciesListNode || null, rootMargin: '96px' });
+                observer.observe(canvas);
+            } else if (lazy && typeof win.requestIdleCallback === 'function') {
+                win.requestIdleCallback(function () {
+                    if (canvas.isConnected) drawPreview(canvas, species, pet, 0, featured ? 3 : 1);
+                });
+            } else if (lazy && typeof win.setTimeout === 'function') {
+                win.setTimeout(function () {
+                    if (canvas.isConnected) drawPreview(canvas, species, pet, 0, featured ? 3 : 1);
+                }, 0);
+            } else {
+                drawPreview(canvas, species, pet, 0, featured ? 3 : 1);
+            }
             return canvas;
         }
 
@@ -164,8 +202,8 @@
                     return order.indexOf(String(b).toLowerCase()) - order.indexOf(String(a).toLowerCase());
                 })[0];
             const header = el('div', 'pets-detail-header');
-            header.appendChild(makePreview(species, null));
-            const titleGroup = el('div');
+            header.appendChild(makePreview(species, null, 'pets-preview-featured'));
+            const titleGroup = el('div', 'pets-detail-heading');
             titleGroup.appendChild(el('h3', 'pets-detail-name', species.nome));
             titleGroup.appendChild(el('div', 'pets-detail-subtitle', species.habitat || 'Habitat não registrado'));
             header.appendChild(titleGroup);
@@ -230,41 +268,62 @@
 
         function renderSpecies() {
             const data = getProfile();
-            const rows = buildSpeciesRows(data.species, data.bestiario);
-            const layout = el('div', 'pets-layout');
-            const list = el('div', 'pets-list');
+            if (!speciesRowsCache) {
+                speciesRowsCache = buildSpeciesRows(data.species, data.bestiario);
+                speciesListNode = el('div', 'pets-list');
+                speciesRowsCache.forEach(function (row) {
+                    const button = el('button', 'pets-list-row' + (row.discovered ? '' : ' desconhecida'));
+                    button.type = 'button';
+                    button.dataset.speciesId = row.species.species_id;
+                    if (row.discovered) {
+                        button.appendChild(makePreview(row.species, null, '', true));
+                        const title = el('span', 'pets-row-title', row.species.nome);
+                        const knowledgeLevel = Number((row.record && row.record.nivelConhecimento) || 0);
+                        title.appendChild(el('span', 'pets-row-meta',
+                            'Capturas: ' + Number((row.record && row.record.capturas) || 0) +
+                            ' · Conhecimento Lv. ' + knowledgeLevel));
+                        button.appendChild(title);
+                    } else {
+                        button.appendChild(el('span', 'pets-preview', '❔'));
+                        button.appendChild(el('span', 'pets-row-title', 'Espécie desconhecida'));
+                    }
+                    button.addEventListener('click', function () {
+                        if (!row.discovered) return;
+                        selectedSpeciesId = row.species.species_id;
+                        atualizarSelecaoEspecie();
+                    });
+                    speciesListNode.appendChild(button);
+                });
+                speciesLayoutNode = el('div', 'pets-layout');
+                speciesDetailsNode = el('section', 'pets-details');
+                speciesLayoutNode.appendChild(speciesListNode);
+                speciesLayoutNode.appendChild(speciesDetailsNode);
+            }
+            const rows = speciesRowsCache;
             let selected = rows.find(function (row) { return row.species.species_id === selectedSpeciesId && row.discovered; });
             if (!selected) selected = rows.find(function (row) { return row.discovered; }) || null;
             selectedSpeciesId = selected ? selected.species.species_id : null;
 
-            rows.forEach(function (row) {
-                const button = el('button', 'pets-list-row' +
-                    (row.discovered ? '' : ' desconhecida') +
-                    (selected && selected.species.species_id === row.species.species_id ? ' ativo' : ''));
-                button.type = 'button';
-                button.dataset.speciesId = row.species.species_id;
-                if (row.discovered) {
-                    button.appendChild(makePreview(row.species, null));
-                    const title = el('span', 'pets-row-title', row.species.nome);
-                    const knowledgeLevel = Number((row.record && row.record.nivelConhecimento) || 0);
-                    title.appendChild(el('span', 'pets-row-meta',
-                        'Capturas: ' + Number((row.record && row.record.capturas) || 0) +
-                        ' · Conhecimento Lv. ' + knowledgeLevel));
-                    button.appendChild(title);
-                } else {
-                    button.appendChild(el('span', 'pets-preview', '❔'));
-                    button.appendChild(el('span', 'pets-row-title', 'Espécie desconhecida'));
-                }
-                button.addEventListener('click', function () {
-                    if (!row.discovered) return;
-                    selectedSpeciesId = row.species.species_id;
-                    render(true);
-                });
-                list.appendChild(button);
+            atualizarSelecaoEspecie();
+            if (content.firstChild !== speciesLayoutNode) content.replaceChildren(speciesLayoutNode);
+        }
+
+        function atualizarSelecaoEspecie() {
+            if (!speciesRowsCache || !speciesListNode || !speciesDetailsNode) return;
+            const selected = speciesRowsCache.find(function (row) {
+                return row.species.species_id === selectedSpeciesId && row.discovered;
+            }) || null;
+            speciesListNode.querySelectorAll('[data-species-id]').forEach(function (button) {
+                button.classList.toggle('ativo', button.dataset.speciesId === selectedSpeciesId);
             });
-            layout.appendChild(list);
-            layout.appendChild(renderSpeciesDetails(selected));
-            content.replaceChildren(layout);
+            speciesDetailsNode.replaceChildren(renderSpeciesDetails(selected));
+        }
+
+        function invalidarCacheBestiario() {
+            speciesRowsCache = null;
+            speciesListNode = null;
+            speciesLayoutNode = null;
+            speciesDetailsNode = null;
         }
 
         function renderPetDetails(item) {
@@ -394,7 +453,7 @@
                     (selected && selected.pet.pet_instance_id === pet.pet_instance_id ? ' ativo' : ''));
                 button.type = 'button';
                 button.dataset.petInstanceId = pet.pet_instance_id;
-                button.appendChild(makePreview(species, pet));
+                button.appendChild(makePreview(species, pet, '', true));
                 const title = el('span', 'pets-row-title', pet.nome || species.nome);
                 title.appendChild(el('span', 'pets-row-meta',
                     rarityLabel(pet.rarity) + ' · Lv. ' + Number(pet.level || pet.pet_level || 1) +
@@ -413,29 +472,23 @@
 
         function render(force) {
             if (!profile || !screen.classList.contains('ativo')) return;
-            const activePet = buildPetRows(profile.pets, profile.petActiveId, runtimePets)
-                .find(function (item) { return item.active; });
+            const activePetInstance = (profile.pets || []).find(function (pet) {
+                return pet.pet_instance_id === profile.petActiveId;
+            });
+            const activePet = activePetInstance ? Object.assign({}, activePetInstance,
+                runtimePets[activePetInstance.pet_instance_id] || {}) : null;
             summary.textContent = activePet
-                ? 'Pet ativo: ' + (activePet.pet.nome || activePet.pet.species_id) +
-                    ' · ' + (activePet.pet.state || 'INATIVO') + ' · ' + (activePet.pet.mode || '—')
+                ? 'Pet ativo: ' + (activePet.nome || activePet.species_id) +
+                    ' · ' + (activePet.state || 'INATIVO') + ' · ' + (activePet.mode || '—')
                 : 'Nenhum Pet ativo';
 
-            const signature = JSON.stringify({
-                tab: activeTab,
-                profile: profile,
-                runtime: buildPetRows(profile.pets, profile.petActiveId, runtimePets).map(function (item) {
-                    return {
-                        id: item.pet.pet_instance_id,
-                        hp: item.pet.hp,
-                        maxHp: item.pet.maxHp,
-                        state: item.pet.state,
-                        mode: item.pet.mode,
-                        level: item.pet.level
-                    };
-                }),
-                selectedSpeciesId: selectedSpeciesId,
-                selectedPetId: selectedPetId
-            });
+            const signature = [
+                activeTab,
+                profileRevision,
+                activeTab === 'pets' ? runtimeRevision : 0,
+                selectedSpeciesId || '',
+                selectedPetId || ''
+            ].join('|');
             if (!force && signature === lastRenderSignature) return;
             lastRenderSignature = signature;
             if (activeTab === 'bestiary') renderSpecies();
@@ -467,6 +520,8 @@
                 species: [],
                 petActiveId: null
             }, value);
+            profileRevision++;
+            invalidarCacheBestiario();
             win.petProfileAtual = profile;
             selectedPetId = profile.petActiveId || selectedPetId;
             lastRenderSignature = '';
@@ -475,6 +530,7 @@
 
         function setRuntime(pets) {
             runtimePets = pets && typeof pets === 'object' ? pets : {};
+            runtimeRevision++;
             if (!screen.classList.contains('ativo')) return;
             if (renderTimer) return;
             renderTimer = win.setTimeout(function () {
@@ -488,6 +544,7 @@
             const pet = profile.pets.find(function (entry) { return entry.pet_instance_id === petInstanceId; });
             if (!pet || profile.petActiveId !== petInstanceId) return;
             pet.mode = mode;
+            profileRevision++;
             lastRenderSignature = '';
             render(true);
         }

@@ -15,7 +15,8 @@ window.historiasPersonagens = {
     sniper: "História ainda não criada.",
     pikeman: "História ainda não criada.",
     florim: "Nascida das raízes mais profundas da Floresta Ancestral, Florim é uma entidade vegetal feminina que despertou quando a corrupção ameaçou destruir o equilíbrio do bosque. Seu corpo entrelaçado de cipós, espinhos e rosas carrega o poder primordial da natureza. Onde pisa, árvores curativas brotam para proteger aliados; suas sementes transformam-se em plantas carnívoras famintas ou rosas regenerativas. Espinhos de rosa emergem do solo para enfraquecer inimigos, e sua parede vegetal impede qualquer avanço. Uma aura florescente emana de seu ser, nutrindo a mana dos companheiros enquanto faz sangrar os inimigos próximos.",
-    guerreiro_kaledron: "Forjado nas entranhas das forjas vulcânicas de Solari, Kaledron domina a arte ancestral dos Cavaleiros de Magma. Ele não precisa empunhar sua arma com as mãos: um montante colossal de fogo e aço flutua ao seu lado por puro poder telecinético. Suas manoplas de rocha vulcânica canalizam a fúria das profundezas para esmagar exércitos e rachar a terra com crateras de fogo."
+    guerreiro_kaledron: "Forjado nas entranhas das forjas vulcânicas de Solari, Kaledron domina a arte ancestral dos Cavaleiros de Magma. Ele não precisa empunhar sua arma com as mãos: um montante colossal de fogo e aço flutua ao seu lado por puro poder telecinético. Suas manoplas de rocha vulcânica canalizam a fúria das profundezas para esmagar exércitos e rachar a terra com crateras de fogo.",
+    lord_malakar: "Senhor de um pacto antigo, Lord Malakar converte a própria força vital em Vida Petrificada para convocar caveiras guerreiras, arqueiras e magas. Entre correntes de sangue e espíritos obedientes, ele transforma cada risco em proteção e comanda seu exército sem jamais lutar sozinho."
 };
 
 window.historiaPadraoPersonagem = "História ainda não criada.";

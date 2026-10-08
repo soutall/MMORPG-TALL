@@ -758,8 +758,23 @@
             volume: 0.19
         },
         desert: {
-            dia:    'Sonoro/Cidade/deserto-1/Deserto_dia.mp3',
-            noite:  'Sonoro/Cidade/deserto-1/Deserto_noite.mp3',
+            dia:    'sprites/mapas/deserto%20escaldante/Deserto_dia.mp3',
+            noite:  'sprites/mapas/deserto%20escaldante/Deserto_noite.mp3',
+            volume: 0.19
+        },
+        planice: {
+            dia:    'sprites/mapas/planice/planice_dia.mp3',
+            noite:  'sprites/mapas/planice/planice_noite.mp3',
+            volume: 0.19
+        },
+        tundra: {
+            dia:    'sprites/mapas/Tundra/tundra-dia.mp3',
+            noite:  'sprites/mapas/Tundra/tundra-noite.mp3',
+            volume: 0.19
+        },
+        selva: {
+            dia:    'sprites/mapas/Selva%20proibida/selva_proibida_dia.mp3',
+            noite:  'sprites/mapas/Selva%20proibida/selva_proibida_noite.mp3',
             volume: 0.19
         },
         pantano: {
@@ -785,18 +800,26 @@
 
     function mapaAtual() {
         if (global.solariAtivo || global.currentMap === 'solari') return 'solari';
-        return global.currentMap || 'green';
+        var mapa = global.currentMap || 'green';
+        if (mapa !== 'mundo' || !global.mapaMundo ||
+            typeof global.mapaMundo.biomaNome !== 'function') return mapa;
+        var bioma = global.mapaMundo.biomaNome(Number(global.meuX) || 0, Number(global.meuY) || 0);
+        if (bioma === 'Tundra Gélida') return 'tundra';
+        if (bioma === 'Selva Proibida') return 'selva';
+        if (bioma === 'Deserto Escaldante') return 'desert';
+        if (bioma === 'Planície das Plantas (Santuário)') return 'planice';
+        return 'green';
     }
 
     /**
      * Retorna 'noite' ou 'dia'.
-     * Regra oficial: às 23:50 (23.8333h) inicia a música da noite, permanecendo até 04:00 (4.0h).
+     * A música noturna começa às 22:01 e permanece até 05:59.
      */
     function obterPeriodoDiaNoite() {
         var tm = global.tempoMundo;
         if (!tm || typeof tm.horaDecimal !== 'number') return 'dia';
         var h = tm.horaDecimal;
-        if (h >= 23.8333 || h < 4.0) return 'noite';
+        if (h >= 22 + 1 / 60 || h < 6.0) return 'noite';
         return 'dia';
     }
 
@@ -844,7 +867,7 @@
 
     /**
      * Loop principal de BGM (chamado a cada frame no index.html).
-     * Controla transição suave (Crossfade) ao trocar de mapa ou entre Dia/Noite (23:50 às 04:00).
+     * Controla transição suave (Crossfade) ao trocar de bioma ou entre Dia/Noite (22:01 às 05:59).
      */
     global.atualizarBgmCidade = function () {
         try {

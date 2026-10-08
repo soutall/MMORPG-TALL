@@ -31,6 +31,25 @@
         skill_arqueiro_perfurante:      { category: CATEGORY.PLAYER, volume: 0.6, maxDistance: 600, rolloff: 1.1, priority: 5, src: 'Sonoro/arqueira/disparo%20perfurante.ogg' },
         skill_arqueiro_chuva_lancar:    { category: CATEGORY.SKILL, volume: 0.65, maxDistance: 1200, rolloff: 1.0, priority: 5, src: 'Sonoro/arqueira/chuva%20de%20flacha.ogg' },
         skill_arqueiro_ataque_basico:   { category: CATEGORY.PLAYER, volume: 0.5, maxDistance: 500, rolloff: 1.2, priority: 3, src: 'Sonoro/arqueira/atk_basico.ogg' },
+        malakar_basic_attack: { category: CATEGORY.PLAYER, volume: 0.5, maxDistance: 650, rolloff: 1.2, priority: 4, src: 'Sonoro/Malakar/malakar-atk-basico-malakar.mp3' },
+        malakar_skill_1: { category: CATEGORY.SKILL, volume: 0.8, maxDistance: 750, rolloff: 1.1, priority: 6, src: 'Sonoro/Malakar/malakar-skill-1.mp3' },
+        malakar_skill_2: { category: CATEGORY.SKILL, volume: 0.8, maxDistance: 750, rolloff: 1.1, priority: 6, loop: true, src: 'Sonoro/Malakar/malakar-skill-2.mp3' },
+        malakar_skill_3: { category: CATEGORY.SKILL, volume: 0.8, maxDistance: 750, rolloff: 1.1, priority: 6, loop: true, src: 'Sonoro/Malakar/malakar-skill-3.mp3' },
+        malakar_skill_4: { category: CATEGORY.SKILL, volume: 0.8, maxDistance: 750, rolloff: 1.1, priority: 6, src: 'Sonoro/Malakar/malakar-skill-4.mp3' },
+        malakar_suffering_voice: { category: CATEGORY.SKILL, volume: 0.65, maxDistance: 700, rolloff: 1.1, priority: 5, src: 'Sonoro/Malakar/phatphrogstudio-oni-demon-voice-demonic-laughter-477923.mp3' },
+        malakar_warrior_attack: { category: CATEGORY.PLAYER, volume: 0.315, maxDistance: 520, rolloff: 1.2, priority: 3, src: 'Sonoro/Malakar/malakar-gurreiro-atk-basico.mp3' },
+        malakar_archer_attack: { category: CATEGORY.PLAYER, volume: 0.315, maxDistance: 600, rolloff: 1.2, priority: 3, src: 'Sonoro/Malakar/malakar-arqueiro-atk-basico.mp3' },
+        malakar_mage_attack: { category: CATEGORY.PLAYER, volume: 0.315, maxDistance: 750, rolloff: 1.2, priority: 3, src: 'Sonoro/Malakar/malakar-mago-atk-basico.mp3' },
+        malakar_reaper_attack: { category: CATEGORY.PLAYER, volume: 0.315, maxDistance: 520, rolloff: 1.2, priority: 3, src: 'Sonoro/Malakar/malakar-ceifador-atk-basico.mp3' },
+        malakar_reaper_skill: { category: CATEGORY.SKILL, volume: 0.56, maxDistance: 650, rolloff: 1.1, priority: 4, src: 'Sonoro/Malakar/malakar-ceifador-skill1.mp3' },
+        malakar_sniper_attack: { category: CATEGORY.PLAYER, volume: 0.315, maxDistance: 850, rolloff: 1.2, priority: 3, src: 'Sonoro/Malakar/malakar-sniper-atk-basico.mp3' },
+        malakar_sniper_skill: { category: CATEGORY.SKILL, volume: 0.56, maxDistance: 900, rolloff: 1.1, priority: 4, src: 'Sonoro/Malakar/malakar-sniper-skill.mp3' },
+        malakar_cleric_heal: { category: CATEGORY.SKILL, volume: 0.8, maxDistance: 650, rolloff: 1.1, priority: 4, src: 'Sonoro/Malakar/malakar-clerigo-cura.mp3' },
+        tundra_dragon_basic: { category: CATEGORY.BOSS, volume: 0.72, maxDistance: 700, rolloff: 1.1, priority: 6, src: 'sprites/monstros/dragon%20negro_aeecf00d/dragon-tundra-atk%20basico.mp3' },
+        tundra_dragon_skill_1: { category: CATEGORY.SKILL, volume: 0.72, maxDistance: 850, rolloff: 1.1, loop: true, priority: 7, src: 'sprites/monstros/dragon%20negro_aeecf00d/dragon-tundra-skill%201.mp3' },
+        tundra_dragon_skill_2: { category: CATEGORY.SKILL, volume: 0.78, maxDistance: 850, rolloff: 1.1, priority: 7, src: 'sprites/monstros/dragon%20negro_aeecf00d/Dragon-tundra-skill%202.mp3' },
+        tundra_dragon_flight: { category: CATEGORY.MONSTER, volume: 0.16, maxDistance: 360, rolloff: 1.25, loop: true, priority: 2, src: 'sprites/monstros/dragon%20negro_aeecf00d/dragon-tundra-voando.mp3' },
+        tundra_dragon_sleep: { category: CATEGORY.MONSTER, volume: 0.24, maxDistance: 300, rolloff: 1.2, loop: true, priority: 2, src: 'sprites/monstros/dragon%20negro_aeecf00d/dragon-tundra-dormindo.mp3' },
         boss_attack: { category: CATEGORY.BOSS, volume: 0.9, maxDistance: 200, rolloff: 1.0, priority: 8 },
            boss_impact: { category: CATEGORY.BOSS, volume: 0.9, maxDistance: 200, rolloff: 1.0, priority: 8 },
            boss_death: { category: CATEGORY.IMPORTANT, volume: 1, maxDistance: 2400, rolloff: 0.9, priority: 10 },
@@ -44,6 +63,24 @@
            jungle_mantis_attack: { category: CATEGORY.MONSTER, volume: 0.4, maxDistance: 480, rolloff: 1.2, priority: 4, src: 'Sonoro/Monstros/ataque_louva_cc0.ogg' },
            jungle_mushroom_skill: { category: CATEGORY.SKILL, volume: 0.48, maxDistance: 520, rolloff: 1.1, priority: 5, src: 'Sonoro/Monstros/ataque_cogumelo_cc0.ogg' },
            jungle_mantis_skill: { category: CATEGORY.SKILL, volume: 0.42, maxDistance: 500, rolloff: 1.1, priority: 5, src: 'Sonoro/Monstros/ataque_louva_cc0.ogg' },
+           monster_slime_walk: { category: CATEGORY.MONSTER, volume: 0.16, maxDistance: 300, rolloff: 1.25, loop: true, priority: 2, src: 'sprites/monstros/slime/slime-andando.mp3' },
+           monster_slime_attack: { category: CATEGORY.MONSTER, volume: 0.42, maxDistance: 460, rolloff: 1.15, priority: 4, src: 'sprites/monstros/slime/slime-atacando.mp3' },
+           monster_mushroom_attack: { category: CATEGORY.MONSTER, volume: 0.4, maxDistance: 480, rolloff: 1.15, priority: 4, src: 'sprites/monstros/cogumelo_50cc70dc/cogumelo-atk.mp3' },
+           monster_mushroom_hit: { category: CATEGORY.MONSTER, volume: 0.48, maxDistance: 420, rolloff: 1.1, loop: true, priority: 5, src: 'sprites/monstros/cogumelo_50cc70dc/cogumelo-acertou-efeito.mp3' },
+           monster_beetle_attack: { category: CATEGORY.MONSTER, volume: 0.42, maxDistance: 460, rolloff: 1.15, priority: 4, src: 'sprites/monstros/besouro%20dourado_f71ed54d/besouro-atk.mp3' },
+           monster_beetle_flight: { category: CATEGORY.MONSTER, volume: 0.16, maxDistance: 340, rolloff: 1.25, loop: true, priority: 2, src: 'sprites/monstros/besouro%20dourado_f71ed54d/besouro-voando.mp3' },
+           monster_beetle_skill: { category: CATEGORY.MONSTER, volume: 0.48, maxDistance: 520, rolloff: 1.1, priority: 5, src: 'sprites/monstros/besouro%20dourado_f71ed54d/besouro_skill.mp3' },
+           monster_anaconda_brown_walk: { category: CATEGORY.MONSTER, volume: 0.15, maxDistance: 300, rolloff: 1.25, loop: true, priority: 2, src: 'sprites/monstros/anaconda_marrom_53b6e531/anaconda-marrom-andando.mp3' },
+           monster_anaconda_brown_attack: { category: CATEGORY.MONSTER, volume: 0.42, maxDistance: 460, rolloff: 1.15, priority: 4, src: 'sprites/monstros/anaconda_marrom_53b6e531/anaconda-marrom-atk.mp3' },
+           monster_anaconda_walk: { category: CATEGORY.MONSTER, volume: 0.15, maxDistance: 300, rolloff: 1.25, loop: true, priority: 2, src: 'sprites/monstros/anaconda_b42dd2b8/anaconda-andando.mp3' },
+           monster_anaconda_attack: { category: CATEGORY.MONSTER, volume: 0.42, maxDistance: 460, rolloff: 1.15, priority: 4, src: 'sprites/monstros/anaconda_b42dd2b8/anaconda_atacando.mp3' },
+           monster_hawk_attack: { category: CATEGORY.MONSTER, volume: 0.42, maxDistance: 480, rolloff: 1.15, priority: 4, src: 'sprites/monstros/gaviao_335f3d57/gaviao-atk.mp3' },
+           monster_hawk_flight: { category: CATEGORY.MONSTER, volume: 0.16, maxDistance: 380, rolloff: 1.25, loop: true, priority: 2, src: 'sprites/monstros/gaviao_335f3d57/gaviao-voando.mp3' },
+           monster_druaase_attack: { category: CATEGORY.MONSTER, volume: 0.42, maxDistance: 460, rolloff: 1.15, priority: 4, src: 'sprites/monstros/druaerussa_tundra_eb93f50d/druaerussa-atk.mp3' },
+           monster_owl_attack: { category: CATEGORY.MONSTER, volume: 0.42, maxDistance: 460, rolloff: 1.15, priority: 4, src: 'sprites/monstros/coruja%20branca_2fe25484/coruja-ataque.mp3' },
+           monster_owl_skill: { category: CATEGORY.MONSTER, volume: 0.48, maxDistance: 520, rolloff: 1.1, priority: 5, src: 'sprites/monstros/coruja%20branca_2fe25484/coruja-skill.mp3' },
+           monster_owl_flight: { category: CATEGORY.MONSTER, volume: 0.16, maxDistance: 360, rolloff: 1.25, loop: true, priority: 2, src: 'sprites/monstros/coruja%20branca_2fe25484/coruja-voando.mp3' },
+           monster_ant_attack: { category: CATEGORY.MONSTER, volume: 0.4, maxDistance: 430, rolloff: 1.15, priority: 4, src: 'sprites/monstros/formiga%20a_4f74a16a/formiga-atacando.mp3' },
            monster_attack: { category: CATEGORY.MONSTER, volume: 0.55, maxDistance: 500, rolloff: 1.2, priority: 3 },
            player_attack: { category: CATEGORY.PLAYER, volume: 0.45, maxDistance: 500, rolloff: 1.2, priority: 3 },
            impact: { category: CATEGORY.SKILL, volume: 0.7, maxDistance: 500, rolloff: 1.1, priority: 5 }
@@ -56,7 +93,9 @@
     let categoryGains = {};
     let muted = { master: false, sfx: false, ambient: false };
     const loops = new Map();
+    const timedLoopTimers = new Map();
     const voices = [];
+    const malakarAttackLastPlayed = new Map();
     let lastUpdate = 0;
 
     function definition(id, options) {
@@ -98,6 +137,12 @@
 
     function mapFromX(x) {
         const value = Number(x) || 0;
+        const maps = global.MAPAS_REGISTRY || {};
+        const mapIds = Object.keys(maps);
+        for (let i = 0; i < mapIds.length; i++) {
+            const map = maps[mapIds[i]];
+            if (value >= map.x0 && value < map.x0 + map.w) return map.id || mapIds[i];
+        }
         if (value >= (global.LARGURA_CIDADE_PERDIDA || 65040)) return 'cidadeperdida';
         if (value >= (global.LARGURA_SOLARI || 63800)) return 'solari';
         if (value >= (global.LARGURA_CIDADE || 59800) && value < (global.FIM_CIDADE || 61174)) return 'cidade';
@@ -202,10 +247,30 @@
         return key;
     }
 
+    function startTimedLoop(id, options, durationMs) {
+        options = options || {};
+        const key = options.key || id;
+        const previousTimer = timedLoopTimers.get(key);
+        if (previousTimer) global.clearTimeout(previousTimer);
+        startLoop(id, Object.assign({}, options, { key }));
+        const timer = global.setTimeout(function () {
+            timedLoopTimers.delete(key);
+            stopLoop(key);
+        }, Math.max(0, Number(durationMs) || 0));
+        timedLoopTimers.set(key, timer);
+        return key;
+    }
+
     function updateLoop(loop) {
         if (!loop || loop.stopped) return;
         if (!loop.config.src) return;
         const options = loop.options;
+        const followedPlayer = options.followPlayerId && global.todosJogadores
+            ? global.todosJogadores[options.followPlayerId] : null;
+        if (followedPlayer) {
+            options.x = followedPlayer.x + 12;
+            options.y = followedPlayer.y + 16;
+        }
         if (options.mapa && options.mapa !== currentMap()) {
             if (loop.voice) stopVoice(loop.voice);
             loop.voice = null;
@@ -224,6 +289,11 @@
 
     function stopLoop(key) {
         const loop = loops.get(key);
+        const timer = timedLoopTimers.get(key);
+        if (timer) {
+            global.clearTimeout(timer);
+            timedLoopTimers.delete(key);
+        }
         if (!loop) return;
         loop.stopped = true;
         if (loop.voice) stopVoice(loop.voice);
@@ -266,18 +336,270 @@
     function eventPosition(data) {
         if (typeof data.x === 'number' && typeof data.y === 'number') return { x: data.x, y: data.y };
         if (typeof data.targetX === 'number' && typeof data.targetY === 'number') return { x: data.targetX, y: data.targetY };
-        const player = data.id && global.todosJogadores ? global.todosJogadores[data.id] : null;
+        const playerId = data.id || data.ownerId;
+        const player = playerId && global.todosJogadores ? global.todosJogadores[playerId] : null;
         return player ? { x: player.x + 12, y: player.y + 16 } : null;
+    }
+
+    function playMalakarAttackSound(data) {
+        const soundByAttack = {
+            skull_warrior: 'malakar_warrior_attack',
+            skull_archer: 'malakar_archer_attack',
+            skull_mage: 'malakar_mage_attack',
+            reaper: 'malakar_reaper_attack',
+            reaper_spin: 'malakar_reaper_skill',
+            sniper: data.fifthShot ? 'malakar_sniper_skill' : 'malakar_sniper_attack'
+        };
+        const soundId = soundByAttack[data.attack];
+        if (!soundId || (Array.isArray(data.targets) && data.targets.length === 0)) return;
+
+        const now = Date.now();
+        const ownerKey = String(data.ownerId || 'unknown');
+        const previous = malakarAttackLastPlayed.get(ownerKey) || 0;
+        if (now - previous < 140) return;
+        malakarAttackLastPlayed.set(ownerKey, now);
+        if (malakarAttackLastPlayed.size > 300) {
+            malakarAttackLastPlayed.forEach(function (playedAt, key) {
+                if (now - playedAt > 10000) malakarAttackLastPlayed.delete(key);
+            });
+        }
+        playSpatial(soundId, {
+            x: data.x,
+            y: data.y,
+            mapa: data.mapa || mapFromX(data.x)
+        });
+    }
+
+    function playMalakarOwnerSound(soundId, position, data, includeVoice) {
+        if (!position) return;
+        const options = { x: position.x, y: position.y, mapa: data.mapa || mapFromX(position.x) };
+        playSpatial(soundId, options);
+        if (includeVoice) playSpatial('malakar_suffering_voice', options);
+    }
+
+    function malakarLoopKey(soundId, ownerId) {
+        return soundId + ':' + String(ownerId || 'unknown');
+    }
+
+    function tundraDragonLoopKey(soundId, dragonId) {
+        return soundId + ':' + String(dragonId || 'unknown');
+    }
+
+    const MONSTER_SOUND_PROFILES = {
+        slime: { attack: 'monster_slime_attack', movement: 'monster_slime_walk' },
+        cogumelo_proibido: { attack: 'monster_mushroom_attack' },
+        besouro_dourado: { attack: 'monster_beetle_attack', movement: 'monster_beetle_flight' },
+        anaconda_selvagem: { attack: 'monster_anaconda_attack', movement: 'monster_anaconda_walk' },
+        jararaca: { attack: 'monster_anaconda_brown_attack', movement: 'monster_anaconda_brown_walk' },
+        gaviao: { attack: 'monster_hawk_attack', movement: 'monster_hawk_flight' },
+        druaase_tundra: { attack: 'monster_druaase_attack' },
+        coruja_branca_tundra: { attack: 'monster_owl_attack', skill: 'monster_owl_skill', movement: 'monster_owl_flight' },
+        formiga_sauva: { attack: 'monster_ant_attack' },
+        louvadermi: {
+            attack: 'jungle_mantis_attack',
+            skill: 'jungle_mantis_skill',
+            movement: 'jungle_monster_move',
+            hit: 'jungle_monster_hit',
+            snapshotAttack: true
+        },
+        'gaviao_335f3d57': { attack: 'monster_hawk_attack', movement: 'monster_hawk_flight' },
+        'besouro dourado_f71ed54d': { attack: 'monster_beetle_attack', movement: 'monster_beetle_flight' },
+        'anaconda_marrom_53b6e531': { attack: 'monster_anaconda_brown_attack', movement: 'monster_anaconda_brown_walk' },
+        anaconda_b42dd2b8: { attack: 'monster_anaconda_attack', movement: 'monster_anaconda_walk' },
+        'druaerussa_tundra_eb93f50d': { attack: 'monster_druaase_attack' },
+        'coruja branca_2fe25484': { attack: 'monster_owl_attack', skill: 'monster_owl_skill', movement: 'monster_owl_flight' },
+        'formiga a_4f74a16a': { attack: 'monster_ant_attack' }
+    };
+
+    function monsterSoundProfile(monster) {
+        return monster && (MONSTER_SOUND_PROFILES[monster.asset] || MONSTER_SOUND_PROFILES[monster.tipo]) || null;
+    }
+
+    function updateMonsterMovementSound(monster, previous, activeLoops) {
+        if (!monster || !activeLoops) return;
+        const profile = monsterSoundProfile(monster);
+        if (!profile) return;
+        if (previous) {
+            const position = { x: monster.x, y: monster.y, mapa: currentMap() };
+            if (profile.hit && monster.hp < previous.hp) playSpatial(profile.hit, position);
+            if (profile.skill && monster.aiSkillAt > (previous.aiSkillAt || 0)) {
+                playSpatial(profile.skill, position);
+            } else if (profile.snapshotAttack && profile.attack &&
+                monster.aiAtacandoAte > (previous.aiAtacandoAte || 0)) {
+                playSpatial(profile.attack, position);
+            }
+        }
+        if (!monster.id || !profile.movement) return;
+        const dx = previous ? Number(monster.x) - Number(previous.x) : 0;
+        const dy = previous ? Number(monster.y) - Number(previous.y) : 0;
+        const movingState = monster.aiEstado === 'walk' || monster.aiEstado === 'run' ||
+            monster.aiEstado === 'combat' || monster.aiEstado === 'kite' || monster.aiEstado === 'dodge';
+        if (monster.hp <= 0 || !movingState || dx * dx + dy * dy <= 0.25) return;
+        const key = 'monster_move:' + monster.id;
+        activeLoops[key] = true;
+        const position = { x: monster.x, y: monster.y, mapa: currentMap() };
+        if (loops.has(key)) updateSpatialLoop(key, position);
+        else startLoop(profile.movement, Object.assign({ key }, position));
+    }
+
+    function playMonsterAttack(data) {
+        const profile = monsterSoundProfile({ tipo: data.monsterType, asset: data.asset });
+        const position = eventPosition(data);
+        if (!profile || !profile.attack || !position) return false;
+        playSpatial(profile.attack, {
+            x: position.x,
+            y: position.y,
+            mapa: data.mapa || currentMap()
+        });
+        return true;
+    }
+
+    function startMalakarLoop(soundId, data) {
+        const owner = data.ownerId && global.todosJogadores ? global.todosJogadores[data.ownerId] : null;
+        const position = owner ? { x: owner.x + 12, y: owner.y + 16 } : eventPosition(data);
+        if (!position) return;
+        startLoop(soundId, {
+            key: malakarLoopKey(soundId, data.ownerId),
+            followPlayerId: data.ownerId,
+            x: position.x,
+            y: position.y,
+            mapa: data.mapa || mapFromX(position.x)
+        });
     }
 
     function handleGameEvent(data) {
         if (!data || !data.type) return false;
+        if (data.type === 'monster_audio_attack') {
+            playMonsterAttack(data);
+            return true;
+        }
+        if (data.type === 'cogumelo_veneno_acerto') {
+            const position = eventPosition(data);
+            if (position) {
+                startTimedLoop('monster_mushroom_hit', {
+                    key: data.soundKey || ('monster_mushroom_hit:' + String(data.id || 'mushroom')),
+                    x: position.x,
+                    y: position.y,
+                    mapa: data.mapa || currentMap()
+                }, data.duration);
+            }
+            return true;
+        }
+        if (data.type === 'action_besouro_decolagem') {
+            const position = eventPosition(data);
+            if (position) {
+                playSpatial('monster_beetle_skill', {
+                    x: position.x,
+                    y: position.y,
+                    mapa: data.mapa || currentMap()
+                });
+            }
+            return true;
+        }
+        if (data.type === 'tundra_dragon_vortex_start') {
+            const position = eventPosition(data);
+            if (position) {
+                startLoop('tundra_dragon_skill_1', {
+                    key: tundraDragonLoopKey('tundra_dragon_skill_1', data.id),
+                    x: position.x,
+                    y: position.y,
+                    mapa: data.mapa || mapFromX(position.x)
+                });
+            }
+            return true;
+        }
+        if (data.type === 'tundra_dragon_vortex_end') {
+            stopLoop(tundraDragonLoopKey('tundra_dragon_skill_1', data.id));
+            return true;
+        }
+        if (data.type === 'tundra_dragon_dash') {
+            const position = typeof data.fromX === 'number' && typeof data.fromY === 'number'
+                ? { x: data.fromX, y: data.fromY } : eventPosition(data);
+            if (position) {
+                playSpatial('tundra_dragon_skill_2', {
+                    x: position.x,
+                    y: position.y,
+                    mapa: data.mapa || mapFromX(position.x)
+                });
+            }
+            return true;
+        }
+        if (data.type === 'tundra_dragon_dash_cancel') {
+            return true;
+        }
+        if (data.type === 'tundra_dragon_breath') {
+            const position = eventPosition(data);
+            if (position) {
+                playSpatial('tundra_dragon_basic', {
+                    x: position.x,
+                    y: position.y,
+                    mapa: data.mapa || mapFromX(position.x)
+                });
+            }
+            return true;
+        }
+        if (data.type === 'tundra_owl_scream_start') {
+            const position = eventPosition(data);
+            if (position) {
+                playSpatial('monster_owl_skill', {
+                    x: position.x,
+                    y: position.y,
+                    mapa: data.mapa || currentMap()
+                });
+            }
+            return true;
+        }
         if (data.type === 'sound_event' && data.action === 'stop' && data.soundId) {
             stopLoop(data.soundId);
             return true;
         }
         if (data.type === 'action_barbaro_giro_end') {
             stopLoop('giro_' + data.id);
+            return true;
+        }
+        if (data.type === 'lord_malakar_attack') {
+            playMalakarAttackSound(data);
+            return true;
+        }
+        if (data.type === 'lord_malakar_link_end') {
+            stopLoop(malakarLoopKey('malakar_skill_2', data.ownerId));
+            return true;
+        }
+        if (data.type === 'lord_malakar_heal') {
+            playMalakarOwnerSound('malakar_cleric_heal', eventPosition(data), data, false);
+            return true;
+        }
+        if (data.type === 'lord_malakar_summon' && data.entity) {
+            const soundId = String(data.entity.type || '').indexOf('skull_') === 0
+                ? 'malakar_skill_1' : 'malakar_skill_4';
+            playMalakarOwnerSound(soundId, { x: data.entity.x, y: data.entity.y }, data, false);
+            return true;
+        }
+        if (data.type === 'lord_malakar_link') {
+            startMalakarLoop('malakar_skill_2', data);
+            return true;
+        }
+        if (data.type === 'lord_malakar_suffering') {
+            const key = malakarLoopKey('malakar_skill_3', data.ownerId);
+            if (!data.active) {
+                stopLoop(key);
+                return true;
+            }
+            const owner = data.ownerId && global.todosJogadores ? global.todosJogadores[data.ownerId] : null;
+            startMalakarLoop('malakar_skill_3', data);
+            if (owner) {
+                playSpatial('malakar_suffering_voice', {
+                    x: owner.x + 12,
+                    y: owner.y + 16,
+                    mapa: data.mapa || mapFromX(owner.x + 12)
+                });
+            }
+            return true;
+        }
+        if (data.type === 'lord_malakar_blood_tether_hit' || data.type === 'action_lord_malakar_basic') {
+            const owner = data.ownerId && global.todosJogadores ? global.todosJogadores[data.ownerId] : null;
+            playMalakarOwnerSound('malakar_basic_attack',
+                owner ? { x: owner.x + 12, y: owner.y + 16 } : eventPosition(data), data, false);
             return true;
         }
         const position = eventPosition(data);
@@ -350,6 +672,7 @@
         startSpatialLoop: startLoop,
         stopSpatialLoop: stopLoop,
         updateSpatialLoop,
+        updateMonsterMovementSound,
         updateListener: update,
         updateSpatialSounds: update,
         handleGameEvent,

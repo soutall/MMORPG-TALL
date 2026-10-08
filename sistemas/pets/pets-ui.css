@@ -188,32 +188,57 @@
     height: 64px;
     flex: 0 0 64px;
     background: radial-gradient(circle, rgba(100, 128, 145, 0.16), rgba(0, 0, 0, 0));
+    image-rendering: pixelated;
 }
 
 .pets-detail-header {
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: 14px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid rgba(120, 153, 180, 0.25);
+    gap: 10px;
+    padding: 12px 10px 15px;
+    text-align: center;
+    border: 1px solid rgba(207, 171, 87, 0.35);
+    border-radius: 9px;
+    background: radial-gradient(ellipse at 50% 0%, rgba(132, 97, 35, 0.22), rgba(5, 10, 16, 0.24) 72%);
 }
 
-.pets-detail-header .pets-preview {
-    width: 96px;
-    height: 96px;
-    flex-basis: 96px;
+.pets-detail-header .pets-preview-featured {
+    width: clamp(148px, 24vw, 216px);
+    height: clamp(148px, 24vw, 216px);
+    flex: 0 0 auto;
+    border: 1px solid rgba(244, 208, 111, 0.62);
+    border-radius: 12px;
+    background: radial-gradient(circle, rgba(244, 208, 111, 0.16), rgba(9, 15, 22, 0.72) 72%);
+    box-shadow: 0 0 22px rgba(244, 184, 63, 0.18), inset 0 0 16px rgba(0, 0, 0, 0.48);
+}
+
+.pets-detail-heading {
+    display: grid;
+    gap: 5px;
 }
 
 .pets-detail-name {
     margin: 0 0 4px;
-    color: #f4d06f;
-    font: 800 21px 'Cinzel', Georgia, serif;
+    color: #ffe18a;
+    font: 900 clamp(20px, 2.4vw, 27px) 'Cinzel', Georgia, serif;
+    text-shadow: 0 2px 8px #000, 0 0 12px rgba(244, 208, 111, 0.28);
 }
 
 .pets-detail-subtitle,
 .pets-muted {
     color: #aebdca;
     font-size: 14px;
+}
+
+.pets-knowledge-meter + .pets-detail-subtitle {
+    color: #a9e9bd;
+    font-weight: 900;
+    text-shadow: 0 0 8px rgba(92, 212, 127, 0.26);
+}
+
+.pets-knowledge-meter + .pets-detail-subtitle::first-line {
+    color: #fff0a8;
 }
 
 .pets-detail-grid {
@@ -231,13 +256,22 @@
 }
 
 .pets-stat strong {
-    color: #f4d06f;
+    color: #f0c96a;
+}
+
+.pets-stat-value {
+    color: #9de6ad;
+    font-weight: 900;
+    text-shadow: 0 0 8px rgba(92, 212, 127, 0.2);
 }
 
 .pets-section-title {
     margin: 13px 0 5px;
-    color: #d7e6f2;
+    padding-left: 8px;
+    color: #82d9f2;
     font: 800 15px 'Cinzel', Georgia, serif;
+    border-left: 3px solid #55bddb;
+    text-shadow: 0 1px 5px #000;
 }
 
 .pets-meter {
@@ -327,7 +361,8 @@
     }
 
     .pets-layout {
-        grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.2fr);
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: minmax(110px, 0.55fr) minmax(0, 1fr);
         gap: 6px;
     }
 
@@ -348,14 +383,13 @@
         flex-basis: 46px;
     }
 
-    .pets-detail-header .pets-preview {
-        width: 60px;
-        height: 60px;
-        flex-basis: 60px;
+    .pets-detail-header .pets-preview-featured {
+        width: clamp(132px, 42vw, 180px);
+        height: clamp(132px, 42vw, 180px);
     }
 
     .pets-detail-name {
-        font-size: 16px;
+        font-size: 19px;
     }
 
     .pets-detail-grid {

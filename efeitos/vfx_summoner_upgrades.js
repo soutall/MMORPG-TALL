@@ -283,12 +283,12 @@
 
     // 11. COLAPSO FINAL (Sísmico 4B)
     window.criarVfxSummonerColapsoFinal = function (x, y, raio) {
-        raio = raio || 260;
-        window.tremorTela = Math.max(window.tremorTela || 0, 32);
+        raio = raio || 182;
+        window.tremorTela = Math.max(window.tremorTela || 0, 22);
         const estilhaços = [];
         for (let i = 0; i < 45; i++) {
             const a = Math.random() * Math.PI * 2;
-            const spd = 4.0 + Math.random() * 7.5;
+            const spd = 2.8 + Math.random() * 5.25;
             estilhaços.push({
                 x: x,
                 y: y,

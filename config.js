@@ -211,6 +211,9 @@ function salvarConfigVisual() {
 carregarConfigVisual();
 
 window.mudarAbaConfig = function (aba) {
+    var settingsWindow = document.getElementById("settings-window");
+    if (settingsWindow) settingsWindow.classList.toggle("visual-ativa", aba === 'visual');
+    if (settingsWindow) settingsWindow.classList.toggle("audio-ativa", aba === 'audio' && plataformaEhPC());
     var bA = document.getElementById("btn-aba-audio");
     var bV = document.getElementById("btn-aba-visual");
     if (bA) bA.classList.toggle("ativo", aba === 'audio');

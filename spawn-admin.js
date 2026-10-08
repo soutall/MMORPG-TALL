@@ -10,6 +10,9 @@ window.ehAdmin = false;
 var SPAWN_TIPOS = [
     { key: 'slime', nome: '🟢 Slime (Nível 1 · Planície das Plantas)', baseHp: 80, boss: false, cor: '#7fcf45' },
     { key: 'slime_elite', nome: '👑 Slime Elite (Planície das Plantas)', baseHp: 8000, boss: false, cor: '#b6ff55' },
+    { key: 'coruja_branca_tundra', nome: '🦉 Coruja de Tundra (Tundra Gélida)', baseHp: 2600, boss: false, cor: '#dce9f5' },
+    { key: 'druaase_tundra', nome: '🐺 Druaase (Tundra Gélida)', baseHp: 5200, boss: false, cor: '#8b2635' },
+    { key: 'tundra_dragon_elite', nome: '🐉 Tundra of Dragon (Elite · Tundra Gélida)', baseHp: 50000, boss: false, cor: '#a9e9ff' },
     { key: 'besouro_dourado', nome: '🪲 Besouro Dourado (Deserto Escaldante)', baseHp: 1800, boss: false, cor: '#d6ad35' },
     { key: 'escorpiao_escaldante', nome: '🦂 Escorpião Escaldante (Deserto Escaldante)', baseHp: 2200, boss: false, cor: '#b87545' },
     { key: 'formiga_sauva', nome: '🐜 Formiga Saúva (Deserto Escaldante)', baseHp: 1100, boss: false, cor: '#815033' },

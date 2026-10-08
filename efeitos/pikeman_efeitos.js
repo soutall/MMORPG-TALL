@@ -166,6 +166,26 @@
                 ctx.lineWidth = Math.max(1, r.larg * 0.4);
                 ctx.stroke();
             }
+            // Arcos em forma de foice deixam a volta visualmente ligada a arma da classe.
+            for (let lamina = 0; lamina < 3; lamina++) {
+                const rot = angEspiral + lamina * Math.PI * 2 / 3;
+                ctx.save();
+                ctx.rotate(rot);
+                ctx.beginPath();
+                ctx.arc(0, -8, 47 + lamina * 5, -0.88, 0.18);
+                ctx.strokeStyle = 'rgba(42, 18, 31, ' + (0.55 * (1 - p * 0.35)) + ')';
+                ctx.lineWidth = 8 - lamina;
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.arc(0, -8, 47 + lamina * 5, -0.82, 0.1);
+                ctx.strokeStyle = 'rgba(220, 47, 78, ' + (0.82 * (1 - p * 0.45)) + ')';
+                ctx.lineWidth = 2.2;
+                ctx.shadowColor = '#c51e43';
+                ctx.shadowBlur = 8;
+                ctx.stroke();
+                ctx.restore();
+            }
+            ctx.shadowBlur = 0;
             // onda circular ao completar o giro
             if (p > 0.82) {
                 let o = (p - 0.82) / 0.18;

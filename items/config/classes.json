@@ -14,6 +14,7 @@
     "sniper": { "name": "Sniper", "primaryWeapon": "barrett_antimateria", "secondaryWeapon": "luneta_tatica" },
     "florim": { "name": "Florim", "primaryWeapon": "staff_de_rosa", "secondaryWeapon": "coroa_de_espinho" },
     "pikeman": { "name": "Pikeman", "primaryWeapon": "foice_da_morte", "secondaryWeapon": "foice_curta" },
-    "guerreiro_kaledron": { "name": "Guerreiro Kaledron", "primaryWeapon": "montante_de_lava", "secondaryWeapon": "carapaca_de_aco" }
+    "guerreiro_kaledron": { "name": "Guerreiro Kaledron", "primaryWeapon": "montante_de_lava", "secondaryWeapon": "carapaca_de_aco" },
+    "lord_malakar": { "name": "Lord Malakar", "primaryWeapon": "livro_amaldicoado", "secondaryWeapon": "lanterna_de_almas" }
   }
 }

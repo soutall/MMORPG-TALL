@@ -120,9 +120,70 @@
         return Math.max(0, Math.min(1, base));
     }
 
-    function renderizarCicloDiaNoite(ctx, camX, camY, shakeX, shakeY, zoom) {
+    function calcularFeixeLanterna(x, y, alvoX, alvoY, anguloFallback, alcanceMaximo, inclinacaoY) {
+        var alcance = Number.isFinite(alcanceMaximo) && alcanceMaximo > 0 ? alcanceMaximo : 220;
+        var tiltY = Number.isFinite(inclinacaoY) && inclinacaoY > 0 ? inclinacaoY : 1;
+        var dx = Number(alvoX) - x;
+        var dy = Number(alvoY) - y;
+        var distanciaMundo = Math.hypot(dx, dy);
+        var temAlvo = Number.isFinite(distanciaMundo) && distanciaMundo > 1;
+        var anguloMundo = temAlvo
+            ? Math.atan2(dy, dx)
+            : (Number.isFinite(anguloFallback) ? anguloFallback : 0);
+        var alcanceMundo = temAlvo ? Math.min(alcance, distanciaMundo) : alcance * 0.82;
+        var fatorProjecao = Math.hypot(Math.cos(anguloMundo), Math.sin(anguloMundo) * tiltY);
+
+        return {
+            x: x,
+            y: y,
+            angulo: Math.atan2(Math.sin(anguloMundo) * tiltY, Math.cos(anguloMundo)),
+            distancia: alcanceMundo * fatorProjecao,
+            larguraInicio: 10,
+            larguraFim: Math.min(74, 18 + alcanceMundo * 0.25 * fatorProjecao)
+        };
+    }
+
+    function recortarFeixeLanterna(ctx, sx, sy, geometria, zoom, forca) {
+        var comprimento = geometria.distancia * zoom;
+        if (comprimento <= 1) return;
+
+        ctx.save();
+        ctx.translate(sx, sy);
+        ctx.rotate(geometria.angulo);
+
+        function desenharCone(escala, alpha, desfoque) {
+            var inicio = geometria.larguraInicio * zoom * escala;
+            var fim = geometria.larguraFim * zoom * escala;
+            var gradiente = ctx.createLinearGradient(0, 0, comprimento, 0);
+            gradiente.addColorStop(0, 'rgba(0, 0, 0, ' + (alpha * forca).toFixed(3) + ')');
+            gradiente.addColorStop(0.28, 'rgba(0, 0, 0, ' + (alpha * forca * 0.82).toFixed(3) + ')');
+            gradiente.addColorStop(0.62, 'rgba(0, 0, 0, ' + (alpha * forca * 0.48).toFixed(3) + ')');
+            gradiente.addColorStop(0.88, 'rgba(0, 0, 0, ' + (alpha * forca * 0.14).toFixed(3) + ')');
+            gradiente.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 0, 0, ' + (alpha * forca * 0.32).toFixed(3) + ')';
+            ctx.shadowBlur = desfoque * zoom;
+            ctx.fillStyle = gradiente;
+            ctx.beginPath();
+            ctx.moveTo(0, -inicio);
+            ctx.bezierCurveTo(comprimento * 0.28, -fim * 0.42, comprimento * 0.72, -fim * 0.82, comprimento, -fim);
+            ctx.lineTo(comprimento, fim);
+            ctx.bezierCurveTo(comprimento * 0.72, fim * 0.82, comprimento * 0.28, fim * 0.42, 0, inicio);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+        }
+
+        desenharCone(1.2, 0.34, 12);
+        desenharCone(0.76, 0.72, 5);
+        ctx.restore();
+    }
+
+    function renderizarCicloDiaNoite(ctx, camX, camY, shakeX, shakeY, zoom, inclinacaoY) {
         var tm = global.tempoMundo;
         if (!tm) return;
+        var tiltY = Number.isFinite(inclinacaoY) && inclinacaoY > 0 ? inclinacaoY : 1;
         var escuridao = obterEscuridaoEficaz(tm, global.minhaClasse || global.meuClasse || (global.meuPersonagem && global.meuPersonagem.classe));
 
         // Otimização crucial: Durante pleno dia (escuridao <= 0.005), nada é executado. 0ms overhead!
@@ -208,7 +269,7 @@
         function paraTela(wx, wy) {
             return {
                 x: (wx - camX + shakeX) * zoom,
-                y: (wy - camY + shakeY) * zoom
+                y: (wy - camY + shakeY) * zoom * tiltY
             };
         }
 
@@ -237,10 +298,23 @@
             var meusEfeitos = Array.isArray(global.meusEfeitos) ? global.meusEfeitos : [];
             var invisivelLocal = meusEfeitos.some(function (ef) { return ef && ef.id === 'invisivel' && Number(ef.tempo) > 0; });
             if (!invisivelLocal) {
-                var pLocal = paraTela(global.meuX + 12, global.meuY + 16);
-                // Na madrugada de breu total (00h às 04h), a lanterna pessoal fica concentrada ao redor do herói (~140px)
-                var raioHeroi = (fase === 'madrugada' || escuridao >= 0.95) ? 140 : 160;
-                cortarLuz(pLocal.x, pLocal.y, raioHeroi + pulsoFogo * 0.5, 1.0, 0.35);
+                var playerX = global.meuX + 12;
+                var playerY = global.meuY + 16;
+                var pLocal = paraTela(playerX, playerY);
+                cortarLuz(pLocal.x, pLocal.y, 68 + pulsoFogo * 0.25, 0.78, 0.20);
+
+                var miraX = Number.isFinite(global.mouseWorldX) ? global.mouseWorldX : NaN;
+                var miraY = Number.isFinite(global.mouseWorldY) ? global.mouseWorldY : NaN;
+                var feixe = calcularFeixeLanterna(
+                    playerX,
+                    playerY,
+                    miraX,
+                    miraY,
+                    Number(global.meuAngulo) || 0,
+                    330,
+                    tiltY
+                );
+                recortarFeixeLanterna(luzCtx, pLocal.x, pLocal.y, feixe, zoom, escuridao);
             }
         }
 
@@ -456,7 +530,8 @@
             renderizarCicloDiaNoite: renderizarCicloDiaNoite,
             isLuzMapaAtiva: isLuzMapaAtiva,
             obterFatorLuzDiaNoite: obterFatorLuzDiaNoite,
-            isEfeitoLuz: isEfeitoLuz
+            isEfeitoLuz: isEfeitoLuz,
+            calcularFeixeLanterna: calcularFeixeLanterna
         };
     }
 

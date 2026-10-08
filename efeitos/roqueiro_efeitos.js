@@ -1,11 +1,11 @@
 window.roqueiroEfeitosAtivos = [];
 window.bandaRoqueiroEfeitos = [];
 
-const CORES_BANDA_ROQUEIRO = ['#ff3355', '#ff7a18', '#ffd23f', '#a855f7', '#36a2ff', '#00e5ff'];
+const CORES_BANDA_ROQUEIRO = ['#d92d45', '#f05a48', '#f0bd67', '#f2e4cc', '#8f233d', '#ff8064'];
 const NOTAS_ROQUEIRO = ['♪', '♫', '♬'];
 
 // Paleta usada pelo palco da Bateria Solo.
-const CORES_PALCO_BATERIA = ['#ff3b30', '#36a2ff', '#a855f7', '#32d74b', '#ffd60a', '#00d9ff', '#ff2d92', '#ff7a18'];
+const CORES_PALCO_BATERIA = ['#e8324b', '#ff7957', '#edbd5a', '#f3e8d6', '#a52c48', '#db4962', '#ffb35c', '#8d233f'];
 
 window.criarAnimacaoBateriaSolo = function(x, y) {
     // A Bateria Solo acontece em batidas periódicas (~500ms).
@@ -98,7 +98,7 @@ window.criarAnimacaoGritoGuerra = function(id, x, y, raio, alvos) {
     window.tremorTela = Math.max(window.tremorTela || 0, 6);
 };
 
-// Skill 3 — Chamar a Banda: visual do guitarrista + entrada de palco.
+// Skill 3 — Chamar a Banda: entrada de palco do lacaio vocalista.
 // O desenho visual do membro real continua sendo responsabilidade do renderer
 // da classe; esta função fornece um overlay de guitarrista e efeitos sem alterar lógica.
 window.criarAnimacaoBandaRoqueiro = function(x, y, id) {
@@ -389,7 +389,7 @@ window.desenharEfeitosRoqueiro = function() {
     }
 };
 
-// Desenha o guitarrista da Banda como overlay leve: silhueta + guitarra + palco.
+// Desenha a entrada do vocalista como uma silhueta de palco com microfone.
 function desenharGuitarristaRoqueiro(ctx) {
     const agora = Date.now();
     if (!Array.isArray(window.bandaRoqueiroEfeitos)) window.bandaRoqueiroEfeitos = [];
@@ -437,7 +437,7 @@ function desenharGuitarristaRoqueiro(ctx) {
         ctx.arc(x, y, 34 * s, 0, Math.PI * 2);
         ctx.fill();
 
-        // Instrumento e corpo estilizados, desenhados com poucos paths.
+        // Figurino de palco em vinho e carvão.
         ctx.translate(x, y);
         ctx.rotate(sway);
         ctx.scale(s, s);
@@ -452,7 +452,7 @@ function desenharGuitarristaRoqueiro(ctx) {
         ctx.fillRect(3, 24, 10, 4);
 
         // Jaqueta.
-        ctx.fillStyle = '#20212b';
+        ctx.fillStyle = '#211923';
         ctx.beginPath();
         ctx.moveTo(-15, -7);
         ctx.lineTo(15, -7);
@@ -463,9 +463,15 @@ function desenharGuitarristaRoqueiro(ctx) {
         ctx.lineTo(-18, 10);
         ctx.closePath();
         ctx.fill();
+        ctx.strokeStyle = '#9f2940';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.moveTo(-14, 9); ctx.lineTo(-8, -4); ctx.lineTo(0, 5);
+        ctx.lineTo(8, -4); ctx.lineTo(14, 9);
+        ctx.stroke();
 
-        // Camisa brilhante.
-        ctx.fillStyle = '#d9d3e5';
+        // Camisa escura com broche dourado.
+        ctx.fillStyle = '#4d1727';
         ctx.beginPath();
         ctx.moveTo(-5, -6);
         ctx.lineTo(5, -6);
@@ -480,10 +486,12 @@ function desenharGuitarristaRoqueiro(ctx) {
         ctx.arc(0, -18, 8.2, 0, Math.PI * 2);
         ctx.fill();
 
-        // Cabelo do guitarrista.
-        ctx.fillStyle = '#211a28';
+        // Cabelo vermelho, levantado pelo movimento do palco.
+        ctx.fillStyle = '#9b2036';
         ctx.beginPath();
         ctx.arc(-1, -21, 9.4, Math.PI * 0.98, Math.PI * 2.02);
+        ctx.lineTo(7, -27); ctx.lineTo(2, -25); ctx.lineTo(-1, -31);
+        ctx.lineTo(-4, -25); ctx.lineTo(-10, -27);
         ctx.lineTo(7, -15);
         ctx.lineTo(4, -17);
         ctx.lineTo(0, -15);
@@ -491,40 +499,44 @@ function desenharGuitarristaRoqueiro(ctx) {
         ctx.closePath();
         ctx.fill();
 
-        // Braços segurando a guitarra.
+        // Brilho nos olhos e boca aberta durante a nota.
+        ctx.fillStyle = '#f5c779';
+        ctx.fillRect(-3.5, -19, 2, 1.1);
+        ctx.fillRect(1.5, -19, 2, 1.1);
+        ctx.fillStyle = '#35101e';
+        ctx.beginPath();
+        ctx.ellipse(0, -13, 1.7, 2.4 + pulse, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Um braço ergue o microfone; o outro abre a silhueta do palco.
         ctx.strokeStyle = '#c9875d';
-        ctx.lineWidth = 4.2;
+        ctx.lineWidth = 4;
         ctx.lineCap = 'round';
         ctx.beginPath();
-        ctx.moveTo(-13, -2);
-        ctx.lineTo(2, 5);
-        ctx.lineTo(13, -3);
+        ctx.moveTo(-12, -2); ctx.lineTo(-18, -12); ctx.lineTo(-20, -20);
+        ctx.moveTo(12, -2); ctx.lineTo(17, -8); ctx.lineTo(18, -13);
         ctx.stroke();
-
-        // Pescoço e corpo da guitarra.
-        ctx.strokeStyle = '#8e5b3f';
-        ctx.lineWidth = 3.2;
+        ctx.strokeStyle = '#dce2e8';
+        ctx.lineWidth = 2.3;
         ctx.beginPath();
-        ctx.moveTo(-2, -2);
-        ctx.lineTo(13, -9);
+        ctx.moveTo(-20, -20); ctx.lineTo(-22, -28);
         ctx.stroke();
-
-        ctx.fillStyle = '#8f2f55';
+        ctx.fillStyle = '#20232d';
         ctx.beginPath();
-        ctx.ellipse(-1, 8, 9, 6.5, -0.35, 0, Math.PI * 2);
+        ctx.ellipse(-22, -29, 3.2, 4.2, -0.18, 0, Math.PI * 2);
         ctx.fill();
-        ctx.fillStyle = '#ffd56a';
+        ctx.fillStyle = '#d6aa52';
         ctx.beginPath();
-        ctx.arc(-1, 8, 2.2, 0, Math.PI * 2);
+        ctx.arc(0, 1, 1.5, 0, Math.PI * 2);
         ctx.fill();
 
-        // Faixas de energia musical.
+        // Ondas vocais direcionadas a partir do microfone.
         ctx.globalAlpha = g.alpha * 0.9;
-        ctx.strokeStyle = g.cor;
-        ctx.lineWidth = 1.8;
-        for (let a = 0; a < 3; a++) {
+        ctx.strokeStyle = '#ff4c70';
+        ctx.lineWidth = 2.2;
+        for (let a = 0; a < 4; a++) {
             ctx.beginPath();
-            ctx.arc(0, -2, 22 + a * 6 + Math.sin(agora * 0.005 + a) * 2, -2.2, -0.5);
+            ctx.arc(-25, -29, 8 + a * 5 + Math.sin(agora * 0.005 + a) * 2, -1.15, 1.1);
             ctx.stroke();
         }
 

@@ -14,6 +14,7 @@ const EFEITOS = {
     deserto_reducao_defesa: { nome: 'Defesa Reduzida', classe: 'debuff', icon: '🛡️', cor: '#bd8be8', desc: 'Dano recebido aumentado em 10%.', formato: (ef) => Math.ceil((ef.tempo || 0) / 20) + 's' },
     confusao: { nome: 'Confusão', classe: 'debuff', icon: '🤪', cor: '#e879f9', desc: 'Controles de movimento invertidos e visão psicodélica.', formato: (ef) => Math.ceil((ef.tempo || 0) / 20) + 's' },
     selva_ataque_lento: { nome: 'Ataque Lentificado', classe: 'debuff', icon: '🦗', cor: '#a3e635', desc: 'Velocidade de ataque reduzida em 40%.', formato: (ef) => Math.ceil((ef.tempo || 0) / 20) + 's' },
+    tundra_sopro_gelido: { nome: 'Sopro Gélido', classe: 'debuff', icon: '❄️', cor: '#8ee8ff', desc: 'Velocidade de movimento reduzida em 50% e intervalo de ataque aumentado em 50%.', formato: (ef) => Math.ceil((ef.tempo || 0) / 20) + 's' },
     paralisia:  { nome: 'Paralisia',     classe: 'debuff', icon: '⛓️', cor: '#9b59b6', desc: 'Não pode se mover (skills ainda sim).', formato: (ef) => '' + ef.tempo },
     sono:       { nome: 'Sono',          classe: 'debuff', icon: '💤', cor: '#5d6d7e', desc: 'Não pode agir nem se mover. Qualquer dano acorda.', formato: (ef) => '' + ef.tempo },
     cortaCura:  { nome: 'Corta-cura',    classe: 'debuff', icon: '🩹', cor: '#c0392b', desc: 'Cura recebida reduzida em 50%.', formato: (ef) => ('' + Math.round(ef.intensidade * 100) + '%') },

@@ -8,6 +8,8 @@ const WebSocket = require('ws');
 const itemSystem = require('./items/item-system.js');
 const { verificarGoogleCredential } = require('./google-auth.js');
 const { executeAttack: executeSharedMonsterAttack } = require('./sistemas/pets/monster_combat_executor.js');
+const lordMalakar = require('./sistemas/lord_malakar.js');
+const progressaoAtributos = require('./sistemas/progressao_atributos.js');
 const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || '683484909196-v0a7ed8fthbh7imsk61le98jf17gaksu.apps.googleusercontent.com').trim();
 const LOCAL_ID_LOGIN_ENABLED = process.env.NODE_ENV !== 'production' && process.env.LOCAL_ID_LOGIN_ENABLED === '1';
 const LOCAL_LASSO_DIAGNOSTICS = process.env.LOCAL_LASSO_DIAGNOSTICS === '1';
@@ -43,7 +45,6 @@ try {
 } catch (e) {
     console.error("Aviso: mapas/mapa_mundo.js não carregado: " + e.message);
 }
-
 let SkillUpgradeTree = null;
 try {
     SkillUpgradeTree = require('./skill_upgrade_tree.js');
@@ -288,6 +289,13 @@ function calcularHpElite(hpBase, ehElite) {
     return ehElite ? Math.floor(hp * 1.8) : hp;
 }
 
+function calcularHpMonstro(tipo, hpBase, ehElite) {
+    if (tipo === 'tundra_dragon_elite') {
+        return Math.max(10, Math.floor(Number(hpBase) || 10));
+    }
+    return calcularHpElite(hpBase, ehElite);
+}
+
 function notificarSpawnElite(elite) {
     if (!entidadeEhElite(elite)) return;
     const mapaElite = mapaPorCoordenada(elite.x);
@@ -511,6 +519,7 @@ let vulcoes = colecaoCombate('vulcoes');
 let chuvasServidor = colecaoCombate('chuvasServidor');
 let lacaios = {};
 let petsAtivos = Object.create(null);
+let lordMalakarEntities = petsAtivos;
 let petRespawnTimer = {};
 let bandas = {};
 let bateriaCanal = {};
@@ -1134,7 +1143,7 @@ const XP_TETO_ABSOLUTO = tabelaXp[NIVEL_MAXIMO];
 // Whitelist ÚNICA de classes do servidor. Usada na criação do personagem E em
 // 'escolher_classe' — antes esse segundo caminho aceitava qualquer string e a
 // gravava em jogadores.json (bypass de 'classePodeEquipar' e poluição do banco).
-const CLASSES_VALIDAS = ['guerreiro', 'mago', 'summoner', 'arqueiro', 'curandeiro', 'barbaro', 'roqueiro', 'ladino', 'dronemaster', 'arqueiro_arcano', 'sniper', 'pikeman', 'florim', 'guerreiro_kaledron'];
+const CLASSES_VALIDAS = ['guerreiro', 'mago', 'summoner', 'arqueiro', 'curandeiro', 'barbaro', 'roqueiro', 'ladino', 'dronemaster', 'arqueiro_arcano', 'sniper', 'pikeman', 'florim', 'guerreiro_kaledron', 'lord_malakar'];
 function classeValida(c) {
     return typeof c === 'string' && CLASSES_VALIDAS.indexOf(c) !== -1;
 }
@@ -1192,6 +1201,8 @@ function concederXpSeguro(jogador, quantidade) {
 const ATRIBUTOS = ['forca', 'inteligencia', 'agilidade', 'destreza', 'vida', 'profanidade', 'divindade', 'afinidade'];
 const PONTOS_INICIAIS = 3; // pontos ganhos ao criar o personagem pela 1ª vez
 const PONTOS_POR_LEVEL = 1; // +1 ponto a cada level up
+const AGILIDADE_MOVIMENTO_BONUS_POR_PONTO = 0.03;
+const AGILIDADE_MOVIMENTO_BONUS_MAXIMO = 0.50;
 
 function atributosIniciais() {
     return { forca: 1, inteligencia: 1, agilidade: 1, destreza: 1, vida: 1, profanidade: 1, divindade: 1, afinidade: 1 };
@@ -1434,13 +1445,14 @@ function gerarDropsConfigurados(slime) {
     });
 }
 
-// VIDA máxima: base 100 + (vida-1)*20 + (forca-1)*4
+// VIDA máxima: base 100 + 5 por ponto efetivo de Vida acima do inicial.
 function calcularMaxHp(player) {
-    return 100 + (getAtr(player, 'vida') - 1) * 20 + (getAtr(player, 'forca') - 1) * 4;
+    return progressaoAtributos.calcularVidaMaxima(getAtr(player, 'vida'));
 }
 
 // MANA máxima: base 50 + (inteligencia-1)*10
 function calcularMaxMp(player) {
+    if (player && player.classe === lordMalakar.CONFIG.classId) return 0;
     return 50 + (getAtr(player, 'inteligencia') - 1) * 10;
 }
 
@@ -1470,7 +1482,8 @@ function mpSkill(p, skillId, baseMp) {
 
 function tempoAtaqueBasico(p, baseMs) {
     if (!baseMs || baseMs <= 0) return 0;
-    return Math.max(120, Math.round(baseMs * multiplicadorVelocidadeAtaque(p)));
+    const sofrimentoMult = lordMalakarSofrimentoBuffAtivo(p, false) ? (1 / 1.5) : 1;
+    return Math.max(120, Math.round(baseMs * multiplicadorVelocidadeAtaque(p) * sofrimentoMult));
 }
 
 // ===== VELOCIDADE DE ATAQUE (fonte central ÚNICA do attack speed) =====
@@ -1495,6 +1508,7 @@ function multiplicadorVelocidadeAtaque(p) {
         }
     }
     if (efeitos && efeitos.temEfeito(p, 'selva_ataque_lento')) mult *= 1.4;
+    if (efeitos && efeitos.temEfeito(p, 'tundra_sopro_gelido')) mult *= 1.5;
     if (!Number.isFinite(mult) || mult <= 0) mult = 0.4;
     return Math.max(0.4, Math.min(1.6, mult));
 }
@@ -1504,21 +1518,23 @@ function multiplicadorVelocidadeAtaque(p) {
 // servidor valida existência, vida, mesmo mapa e distância REAL (quadrada) antes
 // de aplicar dano. Alvo 'player' exige PvP ligado dos DOIS lados.
 function alcanceAtaqueBasicoClasse(p) {
-    if (!p) return 300;
-    if (p.classe === 'arqueiro') return 250;
-    if (p.classe === 'roqueiro') return 200;
-    if (p.classe === 'guerreiro') return 50;
-    if (p.classe === 'barbaro') return 50;
-    if (p.classe === 'mago') return 200;
-    if (p.classe === 'summoner') return 190;
-    if (p.classe === 'curandeiro') return 200;
+    if (!p) return 363;
+    if (p.classe === 'arqueiro') return 303;
+    if (p.classe === 'roqueiro') return 242;
+    if (p.classe === 'guerreiro') return 61;
+    if (p.classe === 'barbaro') return 61;
+    if (p.classe === 'mago') return 242;
+    if (p.classe === 'summoner') return 230;
+    if (p.classe === 'curandeiro') return 242;
     if (p.classe === 'ladino') return 44;
-    if (p.classe === 'pikeman') return 50;
-    if (p.classe === 'guerreiro_kaledron') return 55;
-    if (p.classe === 'dronemaster') return (p.dmTitaAtivo ? 242 : 124); // +15% (108→124; Tita 210→242)
-    if (p.classe === 'sniper') return 384; // range reduzido em 20% (480 -> 384)
-    if (p.classe === 'florim') return 180;
-    return 300;
+    if (p.classe === 'pikeman') return 61;
+    if (p.classe === 'guerreiro_kaledron') return 67;
+    if (p.classe === 'dronemaster') return (p.dmTitaAtivo ? 293 : 150);
+    if (p.classe === 'sniper') return 464;
+    if (p.classe === 'florim') return 387;
+    if (p.classe === 'arqueiro_arcano') return 363;
+    if (p.classe === lordMalakar.CONFIG.classId) return lordMalakar.CONFIG.basicAttackRange;
+    return 363;
 }
 
 // Tabela de tempo base do ataque básico por classe (espelha o cliente).
@@ -1538,6 +1554,7 @@ function tempoBaseAtaqueBasico(p) {
     if (p.classe === 'pikeman') return 520;
     if (p.classe === 'florim') return 420;
     if (p.classe === 'guerreiro_kaledron') return 840;
+    if (p.classe === lordMalakar.CONFIG.classId) return lordMalakar.CONFIG.basicAttackCooldownMs;
     return 300;
 }
 
@@ -1583,6 +1600,10 @@ function obterAlvoAtaqueServidor(alvoTipo, alvoId) {
             pet.state !== petAi.PET_STATES.RESPAWN) return pet;
         return null;
     }
+    if (alvoTipo === 'malakar_summon') {
+        const summon = lordMalakarEntities[alvoId];
+        return summon && summon.type === 'skull_warrior' && summon.hp > 0 ? summon : null;
+    }
     return null;
 }
 
@@ -1600,6 +1621,8 @@ function validarAtaqueBasicoAlvo(playerId, p, alvoTipo, alvoId) {
     if (alvoTipo === 'player' && !pvpPodeAtacar(playerId, alvoId)) return null;
     if (alvoTipo === 'pet' && (!players[alvo.owner_id] ||
         !pvpPodeAtacar(playerId, alvo.owner_id) || !validarOwnerPet(alvo.owner_id, alvo))) return null;
+    if (alvoTipo === 'malakar_summon' && (!players[alvo.owner_id] ||
+        !pvpPodeAtacar(playerId, alvo.owner_id))) return null;
     let alc = alcanceAtaqueBasicoClasse(p);
     let dx = alvo.x - px;
     let dy = alvo.y - py;
@@ -1622,6 +1645,11 @@ function aplicarDanoAtaqueBasicoAlvo(playerId, alvoTipo, alvoId, dano, tipoPvP) 
         if (!pvpPodeAtacar(playerId, alvo.owner_id) || !validarOwnerPet(alvo.owner_id, alvo)) return false;
         const danoCalculado = calcularDanoJogador(playerId, dano, 'player', alvo).dano;
         return applyDamageToCapturedPet(alvo, danoCalculado, playerId);
+    }
+    if (alvoTipo === 'malakar_summon') {
+        if (!pvpPodeAtacar(playerId, alvo.owner_id)) return false;
+        const danoCalculado = calcularDanoJogador(playerId, dano, 'player', alvo).dano;
+        return aplicarDanoEntidadeLordMalakar(alvo.id, danoCalculado, playerId);
     }
     if (alvoTipo === 'boss') {
         return registrarDanoBoss(alvo, playerId, dano, 'basico', 'player').dano > 0;
@@ -2339,23 +2367,76 @@ function calcularVidaPet(player) {
     return base;
 }
 
-// Calcula dano final do autor, aplicando multiplicadores de atributo + crítico
-// tipoOrigem: 'player' (força/inteligência por classe + crítico), 'pet' (atributos herdados pela Afinidade), 'dot' (profanidade)
-function calcularDanoJogador(autorId, quantidade, tipoOrigem, alvo) {
+function aplicarHerancaAtributosLordMalakar(entity, owner) {
+    entity.inheritedAttributes = progressaoAtributos.snapshotAtributosHerdados(atributosTotais(owner));
+    entity.maxHp = progressaoAtributos.calcularVidaMaximaLacaio(entity.inheritedAttributes.vida);
+    entity.hp = entity.maxHp;
+}
+
+function lordMalakarSofrimentoBuffAtivo(player, summonAttack) {
+    if (!player) return false;
+    if (player.classe === lordMalakar.CONFIG.classId) {
+        const state = lordMalakar.getState(player);
+        return !!(summonAttack && state && state.sufferingActive);
+    }
+    if (!player.partyId) return false;
+    const map = mapaPorCoordenada(player.x + PLAYER_OFFSET_X);
+    return Object.keys(players).some(function (ownerId) {
+        const owner = players[ownerId];
+        if (!owner || owner.classe !== lordMalakar.CONFIG.classId ||
+            owner.partyId !== player.partyId || map !== mapaPorCoordenada(owner.x + PLAYER_OFFSET_X) ||
+            !instanciaCompativel(owner, player)) return false;
+        const state = lordMalakar.getState(owner);
+        return !!(state && state.sufferingActive);
+    });
+}
+
+// Calcula dano final do autor, aplicando atributos, buffs e crítico.
+// Summons do Malakar combinam seus atributos herdados com o bônus atual da Afinidade.
+function calcularDanoJogador(autorId, quantidade, tipoOrigem, alvo, entidadeOrigem, multiplicadorFinal = 1) {
+    if (tipoOrigem === 'fixed') {
+        return { dano: Math.max(0, Math.round(quantidade)), critico: false };
+    }
     let p = players[autorId];
     if (!p) return { dano: Math.round(quantidade), critico: false };
     let mult = 1;
     let critMult = 1;
+    let bonusDanoAtributo = 0;
+    const recebeSofrimentoEterno = tipoOrigem !== 'dot' &&
+        lordMalakarSofrimentoBuffAtivo(p, tipoOrigem === 'pet' || tipoOrigem === 'malakar_summon');
     if (tipoOrigem === 'pet') {
         const herdadosPet = afinidadePets.getPetInheritedAttributes(p, atributosTotais(p));
         mult += (herdadosPet.forca + herdadosPet.inteligencia) * 0.05;
+        if (recebeSofrimentoEterno && Math.random() < 0.20) critMult = 1.8;
+    } else if (tipoOrigem === 'malakar_summon') {
+        const herdadosPet = afinidadePets.getPetInheritedAttributes(p, atributosTotais(p));
+        const herdados = entidadeOrigem && entidadeOrigem.inheritedAttributes || {};
+        mult += (herdadosPet.forca + herdadosPet.inteligencia) * 0.05;
+        const atributoSummon = entidadeOrigem && entidadeOrigem.type === 'skull_mage'
+            ? 'inteligencia' : 'forca';
+        bonusDanoAtributo = progressaoAtributos.bonusDanoAtributo(
+            atributoSummon, 1 + Math.max(0, Number(herdados[atributoSummon]) || 0)
+        );
+        let chanceCritico = progressaoAtributos.chanceCriticaDestreza(
+            1 + Math.max(0, Number(herdados.destreza) || 0)
+        );
+        if (recebeSofrimentoEterno) chanceCritico += 0.20;
+        if (Math.random() < chanceCritico) critMult = 2.0;
     } else if (tipoOrigem === 'dot') {
-        mult += (getAtr(p, 'profanidade') - 1) * 0.05;
+        mult *= progressaoAtributos.multiplicadorDanoPeriodico(getAtr(p, 'profanidade'));
     } else {
-        let ehMagico = ['mago', 'summoner', 'curandeiro', 'roqueiro', 'arqueiro_arcano', 'arqueiro_astral', 'florim'].indexOf(p.classe) !== -1;
-        mult += (getAtr(p, ehMagico ? 'inteligencia' : 'forca') - 1) * 0.05;
-        // DESTREZA: 5% base + 1% por ponto de chance; 1.5x + 3% por ponto de multiplicador
-        let chanceCritico = 0.05 + (getAtr(p, 'destreza') - 1) * 0.01;
+        let atributoDano = p.classe === lordMalakar.CONFIG.classId
+            ? 'afinidade'
+            : (['mago', 'summoner', 'curandeiro', 'roqueiro', 'arqueiro_arcano', 'arqueiro_astral', 'florim'].indexOf(p.classe) !== -1
+                ? 'inteligencia' : 'forca');
+        if (atributoDano === 'afinidade') {
+            mult += (getAtr(p, atributoDano) - 1) * 0.05;
+        } else {
+            bonusDanoAtributo = progressaoAtributos.bonusDanoAtributo(atributoDano, getAtr(p, atributoDano));
+        }
+        // Destreza concede 1% de chance por ponto, limitada a 70%; o crítico base é 2x.
+        let chanceCritico = progressaoAtributos.chanceCriticaDestreza(getAtr(p, 'destreza'));
+        if (recebeSofrimentoEterno) chanceCritico += 0.20;
         if (efeitos && efeitos.temEfeito(p, 'gritoDeGuerra')) {
             chanceCritico += 0.30;
         }
@@ -2381,8 +2462,10 @@ function calcularDanoJogador(autorId, quantidade, tipoOrigem, alvo) {
             mult *= 2.0;
             chanceCritico += 1.0;
         }
+        chanceCritico = Math.min(1, Math.max(0, chanceCritico));
         if (Math.random() < chanceCritico) {
-            critMult = (1.5 + (getAtr(p, 'destreza') - 1) * 0.03) * critMultExtra;
+            critMult = (2.0 +
+                (recebeSofrimentoEterno ? 0.30 : 0)) * critMultExtra;
             if (efeitos && efeitos.temEfeito(p, 'gritoDeGuerra')) {
                 critMult *= 1.5;
             }
@@ -2415,8 +2498,8 @@ function calcularDanoJogador(autorId, quantidade, tipoOrigem, alvo) {
         mult *= 2;
         finalizarInvisibilidadeLadino(p, autorId);
     }
-    const attackBonus = tipoOrigem === 'pet' || tipoOrigem === 'dot' ? 0 : ataqueEquipado(p);
-    return { dano: Math.round((quantidade + attackBonus) * mult * critMult), critico: critMult > 1 };
+    const attackBonus = tipoOrigem === 'pet' || tipoOrigem === 'malakar_summon' || tipoOrigem === 'dot' ? 0 : ataqueEquipado(p);
+    return { dano: Math.round((quantidade + attackBonus + bonusDanoAtributo) * mult * critMult * multiplicadorFinal), critico: critMult > 1 };
 }
 
 // ===== LADINO: máquina de estados e helpers compartilhados =====
@@ -2645,6 +2728,8 @@ function moverMonstroDirecionalComDesvio(monstro, dx, dy, passo, opcoes) {
     const anguloAlvo = Math.atan2(dy, dx);
     const podeOcupar = function (x, y) {
         return podeAndar(x, y, monstro) &&
+            (!posicaoNoNucleoCidade(x, y, monstro.raioColisao || MONSTER_COLLISION_RADIUS) ||
+                posicaoNoNucleoCidade(monstro.x, monstro.y, monstro.raioColisao || MONSTER_COLLISION_RADIUS)) &&
             !(opcoes && opcoes.bloquearPets && petBloqueiaMonstro(monstro, x, y));
     };
     const moverNaDirecao = function (angulo) {
@@ -3031,7 +3116,28 @@ function distanciaEntidadesQuadrada(a, b) {
 }
 
 const DISTANCIA_RETORNO_INIMIGO = 720;
+const DISTANCIA_MAXIMA_PERSEGUICAO_MONSTRO = 420;
 const DISTANCIA_TOLERANCIA_ORIGEM = 28;
+const REGENERACAO_HP_APOS_PERDER_AGRO = 0.01;
+
+function iniciarRegeneracaoMonstroAposPerderAgro(monstro, agora) {
+    if (!monstro || monstro.hp >= monstro.maxHp) return;
+    monstro.aiHpRegenUltimaAtualizacao = agora;
+}
+
+function atualizarRegeneracaoMonstroAposPerderAgro(monstro, agora) {
+    if (!monstro || !Number.isFinite(monstro.aiHpRegenUltimaAtualizacao)) return;
+    if (monstro.targetId) {
+        monstro.aiHpRegenUltimaAtualizacao = null;
+        return;
+    }
+    const maxHp = Number(monstro.maxHp);
+    if (!Number.isFinite(maxHp) || maxHp <= 0) return;
+    const decorrido = Math.max(0, agora - monstro.aiHpRegenUltimaAtualizacao);
+    monstro.hp = Math.min(maxHp,
+        monstro.hp + maxHp * REGENERACAO_HP_APOS_PERDER_AGRO * decorrido / 1000);
+    monstro.aiHpRegenUltimaAtualizacao = monstro.hp >= maxHp ? null : agora;
+}
 
 function garantirOrigemInimigo(inimigo) {
     if (!inimigo) return;
@@ -3049,6 +3155,9 @@ function monstroPertenceABiomaDoMundo(monstro) {
 
 function resetarMonstroNoBiomaNatal(monstro) {
     garantirOrigemInimigo(monstro);
+    if (monstro.eliteLeapState) {
+        enviarEventoSlimeElite(monstro, 'monster_elite_leap_cancel', { reason: 'reset' });
+    }
     monstro.x = monstro.origemX;
     monstro.y = monstro.origemY;
     if (Number.isFinite(monstro.maxHp) && monstro.maxHp > 0) monstro.hp = monstro.maxHp;
@@ -3063,6 +3172,10 @@ function resetarMonstroNoBiomaNatal(monstro) {
     monstro.venenoAlvoY = null;
     monstro.attackCooldown = 0;
     monstro.ataqueTelegraph = null;
+    monstro.eliteLeapState = null;
+    delete monstro.eliteLeapJump;
+    monstro.eliteLeapCooldownAt = 0;
+    monstro.eliteBerserk = false;
     monstro.stunTimer = 0;
     monstro.slowTimer = 0;
     monstro.skillCharging = false;
@@ -3141,13 +3254,328 @@ function monstroPodeAtacar(entidade) {
     return true;
 }
 
+function monstroUsaAtaqueMeleeBasico(monstro) {
+    if (!monstro) return false;
+    if (monstro.tipo === 'melee' || monstro.tipo === 'globin' ||
+        (monstro.tipo === 'ranged' && monstro.ehMelee)) return true;
+    if (!monstro.aiManaged || monstro.ehMelee !== true) return false;
+    return !['zumbi', 'besouro_negro', 'morcego', 'morcegote'].includes(monstro.tipo);
+}
+
 const MONSTER_MOVEMENT_SPEED_MULTIPLIER = 1.25;
 const MONSTER_ATTACK_WARNING_MS = 300;
 const MONSTER_ATTACK_WARNING_HALF_ANGLE = Math.PI / 5;
+const SLIME_ELITE_LEAP_RANGE = 1800;
+const SLIME_ELITE_LEAP_CHANCE = 0.30;
 
 function velocidadeMovimentoMonstro(velocidade) {
     const valor = Number(velocidade);
     return Number.isFinite(valor) ? Math.max(0, valor) * MONSTER_MOVEMENT_SPEED_MULTIPLIER : 0;
+}
+
+function multiplicadorVelocidadeSlimeElite(slime) {
+    if (!slime || slime.tipo !== 'slime_elite') return 1;
+    return slime.eliteBerserk ? 3 : 1.5;
+}
+
+function classeValidaAlvoTundraDragon(jogador) {
+    return !!(jogador && /mago|curandeir|healer|arqueiro|sniper/i.test(jogador.classe || ''));
+}
+
+function danoTundraDragon(slime, multiplicador) {
+    const furia = slime.eliteBerserk ? 1.4 : 1;
+    return Math.max(1, Math.round((slime.dano || 180) * furia * (multiplicador || 1)));
+}
+
+function enviarEventoSlimeElite(slime, type, dados) {
+    const mapa = mapaPorCoordenada(slime.x);
+    const payload = JSON.stringify(Object.assign({
+        type: type,
+        id: slime.id,
+        mapa: mapa,
+        instanciaId: slime.instanciaId || null
+    }, dados || {}));
+    wss.clients.forEach(function (client) {
+        if (client.readyState !== WebSocket.OPEN) return;
+        const jogador = client._playerId ? players[client._playerId] : null;
+        if (jogador && entidadeNoMapa(jogador, mapa, slime.instanciaId || null)) client.send(payload);
+    });
+}
+
+const TIPOS_MONSTROS_COM_AUDIO = new Set([
+    'slime', 'cogumelo_proibido', 'besouro_dourado', 'anaconda_selvagem',
+    'jararaca', 'gaviao', 'druaase_tundra', 'coruja_branca_tundra', 'formiga_sauva'
+]);
+const ASSETS_MONSTROS_COM_AUDIO = new Set([
+    'slime', 'cogumelo_50cc70dc', 'besouro dourado_f71ed54d',
+    'anaconda_marrom_53b6e531', 'anaconda_b42dd2b8', 'gaviao_335f3d57',
+    'druaerussa_tundra_eb93f50d', 'coruja branca_2fe25484', 'formiga a_4f74a16a'
+]);
+
+function enviarAudioAtaqueMonstro(slime) {
+    if (!slime || !slime.id ||
+        (!TIPOS_MONSTROS_COM_AUDIO.has(slime.tipo) && !ASSETS_MONSTROS_COM_AUDIO.has(slime.asset))) return;
+    enviarEventoSlimeElite(slime, 'monster_audio_attack', {
+        x: slime.x,
+        y: slime.y,
+        monsterType: slime.tipo,
+        asset: slime.asset
+    });
+}
+
+function tundraDragonPodeAtingirJogador(slime, pid, jogador) {
+    return !!(jogador && jogador.hp > 0 &&
+        mapaPorCoordenada(jogador.x + PLAYER_OFFSET_X) === mapaPorCoordenada(slime.x) &&
+        instanciaCompativel(slime, jogador) &&
+        jogadorPodeSerAlvoDoSlime(pid, jogador, slime));
+}
+
+function aplicarBafoGeloTundraDragon(slime, angle) {
+    const range = 500;
+    const halfAngle = Math.PI / 4;
+    const damage = danoTundraDragon(slime);
+    for (const pid of Object.keys(players)) {
+        const player = players[pid];
+        if (!tundraDragonPodeAtingirJogador(slime, pid, player)) continue;
+        const dx = player.x + PLAYER_OFFSET_X - slime.x;
+        const dy = player.y + PLAYER_OFFSET_Y - slime.y;
+        const distance = Math.hypot(dx, dy);
+        const difference = Math.atan2(Math.sin(Math.atan2(dy, dx) - angle), Math.cos(Math.atan2(dy, dx) - angle));
+        if (distance > range || Math.abs(difference) > halfAngle) continue;
+        aplicarDanoJogador(pid, slime.x, slime.y, damage);
+        if (efeitos) efeitos.aplicarEfeito(player, 'tundra_sopro_gelido', 60, 0.5);
+        sincronizarEfeitos(pid, player);
+    }
+    enviarEventoSlimeElite(slime, 'tundra_dragon_breath', {
+        x: slime.x, y: slime.y, angle: angle, range: range, halfAngle: halfAngle, duration: 650
+    });
+}
+
+function aplicarDanoVorticeTundraDragon(slime, vortex, now) {
+    const damage = danoTundraDragon(slime, 0.2);
+    for (const pid of Object.keys(players)) {
+        const player = players[pid];
+        if (!tundraDragonPodeAtingirJogador(slime, pid, player)) continue;
+        const distance = Math.hypot(
+            player.x + PLAYER_OFFSET_X - slime.x,
+            player.y + PLAYER_OFFSET_Y - slime.y
+        );
+        if (distance > vortex.radius) continue;
+        aplicarDanoJogador(pid, slime.x, slime.y, damage);
+    }
+    vortex.nextDamageAt = now + 500;
+}
+
+function distanciaPontoSegmento(x, y, x1, y1, x2, y2) {
+    const dx = x2 - x1;
+    const dy = y2 - y1;
+    const lengthSquared = dx * dx + dy * dy;
+    const projection = lengthSquared > 0
+        ? Math.max(0, Math.min(1, ((x - x1) * dx + (y - y1) * dy) / lengthSquared))
+        : 0;
+    return Math.hypot(x - (x1 + projection * dx), y - (y1 + projection * dy));
+}
+
+function aplicarDanoDashTundraDragon(slime, dash) {
+    const damage = danoTundraDragon(slime, 1.5);
+    const halfWidth = 72;
+    for (const pid of Object.keys(players)) {
+        const player = players[pid];
+        if (!tundraDragonPodeAtingirJogador(slime, pid, player) ||
+            distanciaPontoSegmento(player.x + PLAYER_OFFSET_X, player.y + PLAYER_OFFSET_Y,
+                dash.fromX, dash.fromY, dash.toX, dash.toY) > halfWidth) continue;
+        aplicarDanoJogador(pid, slime.x, slime.y, damage);
+        player.stunTimer = Math.max(player.stunTimer || 0, 100);
+        if (efeitos) efeitos.aplicarEfeito(player, 'stun', 100, 1);
+        sincronizarEfeitos(pid, player);
+    }
+}
+
+function atualizarHabilidadesTundraDragon(slime, target, now) {
+    const duracaoVorticeMs = 5000;
+    const vortex = slime.tundraDragonVortex;
+    if (vortex) {
+        if (now >= vortex.endsAt) {
+            slime.tundraDragonVortex = null;
+            enviarEventoSlimeElite(slime, 'tundra_dragon_vortex_end', { id: slime.id });
+        } else {
+            if (now >= vortex.nextDamageAt) aplicarDanoVorticeTundraDragon(slime, vortex, now);
+            slime.aiEstado = 'action';
+            slime.aiAtacandoAte = vortex.endsAt;
+            return true;
+        }
+    }
+
+    const dash = slime.tundraDragonDashState;
+    if (dash) {
+        if (dash.phase === 'telegraph' && now >= dash.dashAt) {
+            dash.phase = 'dash';
+            dash.startedAt = now;
+            dash.endsAt = now + 450;
+            slime.aiAtacandoAte = dash.endsAt;
+            enviarEventoSlimeElite(slime, 'tundra_dragon_dash', {
+                fromX: dash.fromX, fromY: dash.fromY,
+                toX: dash.toX, toY: dash.toY, duration: 450
+            });
+        }
+        if (dash.phase === 'telegraph') {
+            slime.aiEstado = 'action';
+            slime.aiAtacandoAte = dash.dashAt;
+            return true;
+        }
+        const progress = Math.max(0, Math.min(1, (now - dash.startedAt) / (dash.endsAt - dash.startedAt)));
+        slime.x = dash.fromX + (dash.toX - dash.fromX) * progress;
+        slime.y = dash.fromY + (dash.toY - dash.fromY) * progress;
+        slime.angulo = dash.angle;
+        slime.aiEstado = 'run';
+        if (progress >= 1) {
+            slime.x = dash.toX;
+            slime.y = dash.toY;
+            aplicarDanoDashTundraDragon(slime, dash);
+            slime.tundraDragonDashState = null;
+            slime.tundraDragonDashCooldownAt = now + 9000 + Math.random() * 5000;
+        }
+        return true;
+    }
+
+    if (!target || target.hp <= 0) return false;
+    const targetX = target.x + PLAYER_OFFSET_X;
+    const targetY = target.y + PLAYER_OFFSET_Y;
+    const distance = Math.hypot(targetX - slime.x, targetY - slime.y);
+    if (distance <= 760 && now >= (slime.tundraDragonVortexCooldownAt || 0)) {
+        slime.tundraDragonVortex = {
+            startedAt: now,
+            endsAt: now + duracaoVorticeMs,
+            nextDamageAt: now,
+            radius: 360
+        };
+        slime.tundraDragonVortexCooldownAt = now + 18000 + Math.random() * 7000;
+        slime.aiEstado = 'action';
+        enviarEventoSlimeElite(slime, 'tundra_dragon_vortex_start', {
+            x: slime.x, y: slime.y, radius: 360, duration: duracaoVorticeMs
+        });
+        return true;
+    }
+    if (distance > 120 && distance <= 900 &&
+        now >= (slime.tundraDragonDashNextRollAt || 0) &&
+        now >= (slime.tundraDragonDashCooldownAt || 0)) {
+        slime.tundraDragonDashNextRollAt = now + 7000 + Math.random() * 5000;
+        if (Math.random() < 0.5) {
+            const angle = Math.atan2(targetY - slime.y, targetX - slime.x);
+            const length = Math.min(760, distance + 130);
+            const toX = slime.x + Math.cos(angle) * length;
+            const toY = slime.y + Math.sin(angle) * length;
+            if (entidadeEmBiomaValido(slime, toX, toY)) {
+                slime.tundraDragonDashState = {
+                    phase: 'telegraph',
+                    fromX: slime.x,
+                    fromY: slime.y,
+                    toX: toX,
+                    toY: toY,
+                    angle: angle,
+                    dashAt: now + 1500
+                };
+                slime.aiEstado = 'action';
+                slime.aiAtacandoAte = now + 1500;
+                enviarEventoSlimeElite(slime, 'tundra_dragon_dash_telegraph', {
+                    fromX: slime.x, fromY: slime.y, toX: toX, toY: toY, duration: 1500
+                });
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+function aplicarDanoSaltoSlimeElite(slime, centerX, centerY) {
+    const radius = 155;
+    const damage = Math.max(1, Math.floor((slime.dano || 48) * 1.5));
+    const stunTicks = 30;
+    for (const pid of Object.keys(players)) {
+        const player = players[pid];
+        if (!player || player.hp <= 0 ||
+            mapaPorCoordenada(player.x + PLAYER_OFFSET_X) !== mapaPorCoordenada(slime.x) ||
+            !instanciaCompativel(slime, player) ||
+            Math.hypot(player.x + PLAYER_OFFSET_X - centerX, player.y + PLAYER_OFFSET_Y - centerY) > radius) continue;
+        aplicarDanoJogador(pid, centerX, centerY, damage);
+        player.stunTimer = Math.max(player.stunTimer || 0, stunTicks);
+        if (efeitos) efeitos.aplicarEfeito(player, 'stun', stunTicks, 1);
+    }
+    for (const pet of Object.values(petsAtivos)) {
+        const owner = pet && players[pet.owner_id];
+        if (!owner || owner.hp <= 0 || pet.hp <= 0 ||
+            entidadeEhSolari(slime) !== entidadeEhSolari(pet) ||
+            !instanciaCompativel(slime, pet) ||
+            mapaPorCoordenada(pet.x) !== mapaPorCoordenada(slime.x) ||
+            Math.hypot(pet.x - centerX, pet.y - centerY) > radius) continue;
+        applyDamageToCapturedPet(pet, damage, slime.id);
+        pet.stunTimer = Math.max(pet.stunTimer || 0, stunTicks);
+        if (efeitos) efeitos.aplicarEfeito(pet, 'stun', stunTicks, 1);
+    }
+    enviarEventoSlimeElite(slime, 'monster_skill_impact', {
+        skill: 'slime_elite_leap',
+        x: centerX,
+        y: centerY,
+        radius: radius
+    });
+}
+
+function atualizarSaltoSlimeElite(slime, target, now) {
+    if (!slime || slime.tipo !== 'slime_elite') return false;
+    const leap = slime.eliteLeapState;
+    if (leap) {
+        if (leap.phase === 'telegraph' && now >= leap.jumpAt) {
+            leap.phase = 'jump';
+            slime.eliteLeapJump = {
+                fromX: slime.x,
+                fromY: slime.y,
+                targetX: leap.x,
+                targetY: leap.y,
+                startedAt: leap.jumpAt,
+                endsAt: leap.landAt
+            };
+            enviarEventoSlimeElite(slime, 'monster_elite_leap_jump', {
+                x: slime.x,
+                y: slime.y,
+                targetX: leap.x,
+                targetY: leap.y,
+                duration: leap.landAt - leap.jumpAt
+            });
+        }
+        if (leap.phase === 'jump' && now >= leap.landAt) {
+            slime.x = leap.x;
+            slime.y = leap.y;
+            delete slime.eliteLeapJump;
+            slime.eliteLeapState = null;
+            slime.eliteLeapCooldownAt = now + (slime.eliteBerserk ? 5000 : 10000);
+            aplicarDanoSaltoSlimeElite(slime, leap.x, leap.y);
+        }
+        return true;
+    }
+    if (!target || target.hp <= 0 || now < (slime.eliteLeapCooldownAt || 0) ||
+        now < (slime.eliteLeapNextRollAt || 0)) return false;
+    const targetX = target.pet_instance_id ? target.x : target.x + PLAYER_OFFSET_X;
+    const targetY = target.pet_instance_id ? target.y : target.y + PLAYER_OFFSET_Y;
+    if (!Number.isFinite(targetX) || !Number.isFinite(targetY) ||
+        mapaPorCoordenada(targetX) !== mapaPorCoordenada(slime.x) ||
+        !instanciaCompativel(slime, target) ||
+        Math.hypot(targetX - slime.x, targetY - slime.y) > SLIME_ELITE_LEAP_RANGE) return false;
+    slime.eliteLeapNextRollAt = now + (slime.eliteBerserk ? 1200 : 2500);
+    if (Math.random() >= SLIME_ELITE_LEAP_CHANCE) return false;
+    const jumpAt = now + 1000;
+    const landAt = jumpAt + 600;
+    slime.eliteLeapState = { phase: 'telegraph', x: targetX, y: targetY, jumpAt: jumpAt, landAt: landAt };
+    slime.aiEstado = 'action';
+    slime.aiAtacandoAte = landAt;
+    enviarEventoSlimeElite(slime, 'monster_elite_leap_telegraph', {
+        x: slime.x,
+        y: slime.y,
+        targetX: targetX,
+        targetY: targetY,
+        radius: 155,
+        duration: 1000
+    });
+    return true;
 }
 
 function enviarAvisoAtaqueMonstro(monstro, aviso) {
@@ -3177,6 +3605,16 @@ function enviarAvisoAtaqueMonstro(monstro, aviso) {
     });
 }
 
+function pontoAlvoAtaqueMonstro(monstro, alvo) {
+    const jogador = (monstro && monstro.targetId && players[monstro.targetId] === alvo) ||
+        (alvo && alvo.id && players[alvo.id] === alvo) ||
+        (alvo && alvo.classe && !alvo.pet_instance_id && !alvo.owner_id);
+    return {
+        x: alvo.x + (jogador ? PLAYER_OFFSET_X : 0),
+        y: alvo.y + (jogador ? PLAYER_OFFSET_Y : 0)
+    };
+}
+
 function prepararAtaqueMonstroComAviso(monstro, alvo, alcance, attackKind) {
     if (!monstro || !alvo || !Number.isFinite(alcance) || alcance <= 0) {
         if (monstro) monstro.ataqueTelegraph = null;
@@ -3191,22 +3629,22 @@ function prepararAtaqueMonstroComAviso(monstro, alvo, alcance, attackKind) {
         const aviso = monstro.ataqueTelegraph;
         if (Date.now() < aviso.expiresAt) return { status: 'pending' };
         monstro.ataqueTelegraph = null;
-        const offsetX = players[monstro.targetId] === alvo ? PLAYER_OFFSET_X : 0;
-        const offsetY = players[monstro.targetId] === alvo ? PLAYER_OFFSET_Y : 0;
-        const dx = alvo.x + offsetX - monstro.x;
-        const dy = alvo.y + offsetY - monstro.y;
+        const pontoAlvo = pontoAlvoAtaqueMonstro(monstro, alvo);
+        const dx = pontoAlvo.x - monstro.x;
+        const dy = pontoAlvo.y - monstro.y;
         const distancia = Math.hypot(dx, dy);
         const anguloAlvo = Math.atan2(dy, dx);
         const diferencaAngulo = Math.atan2(Math.sin(anguloAlvo - aviso.angle), Math.cos(anguloAlvo - aviso.angle));
-        if (alvo.hp <= 0 || distancia > aviso.range || Math.abs(diferencaAngulo) > aviso.halfAngle) {
+        const margemMelee = aviso.attackKind === 'melee' ? (typeof PLAYER_COLLISION_RADIUS === 'number' ? PLAYER_COLLISION_RADIUS : 12) : 0;
+        const margemAngulo = aviso.attackKind === 'melee' ? 0.25 : 0;
+        if (alvo.hp <= 0 || distancia > (aviso.range + margemMelee) || Math.abs(diferencaAngulo) > (aviso.halfAngle + margemAngulo)) {
             return { status: 'missed' };
         }
         return { status: 'ready', angle: aviso.angle };
     }
 
-    const offsetX = players[monstro.targetId] === alvo ? PLAYER_OFFSET_X : 0;
-    const offsetY = players[monstro.targetId] === alvo ? PLAYER_OFFSET_Y : 0;
-    const angle = Math.atan2(alvo.y + offsetY - monstro.y, alvo.x + offsetX - monstro.x);
+    const pontoAlvo = pontoAlvoAtaqueMonstro(monstro, alvo);
+    const angle = Math.atan2(pontoAlvo.y - monstro.y, pontoAlvo.x - monstro.x);
     const aviso = {
         targetKey: alvoKey,
         angle: angle,
@@ -3485,9 +3923,12 @@ function validarMovimentoJogador(player, targetX, targetY, opcoes) {
 function velocidadeMaximaMovimentoJogador(player) {
     if (!player) return 216;
     const agilidade = Math.max(1, Math.min(100, getAtr(player, 'agilidade') || 1));
-    let mult = 1 + (agilidade - 1) * 0.03;
+    let mult = Math.min(1 + AGILIDADE_MOVIMENTO_BONUS_MAXIMO,
+        1 + (agilidade - 1) * AGILIDADE_MOVIMENTO_BONUS_POR_PONTO);
     if (player.classe === 'barbaro' && player.furiaTimer > 0) mult *= 1.3;
     if (efeitos && efeitos.temEfeito(player, 'lentidao')) mult *= 0.5;
+    const soproGelido = !!(efeitos && efeitos.temEfeito(player, 'tundra_sopro_gelido'));
+    if (soproGelido) mult *= 0.5;
     if (efeitos && efeitos.temEfeito(player, 'deserto_lentidao')) {
         const slow = efeitos.pegarEfeito(player, 'deserto_lentidao');
         mult *= 1 - Math.min(0.9, Math.max(0, Number(slow && slow.intensidade) || 0.3));
@@ -3502,7 +3943,8 @@ function velocidadeMaximaMovimentoJogador(player) {
     if (player.classe === 'mago' && player.formaIgneaAte > Date.now()) mult *= 2;
     // Client uses at most √2 diagonal speed; extra margin covers frame clamping,
     // water/terrain differences and small serialization/rounding drift.
-    return Math.max(216, Math.min(1800, 3.6 * 60 * mult * Math.SQRT2 * 1.15));
+    const velocidadeMinima = soproGelido ? 108 : 216;
+    return Math.max(velocidadeMinima, Math.min(1800, 3.6 * 60 * mult * Math.SQRT2 * 1.15));
 }
 
 function limitarMovimentoRecebido(player, targetX, targetY, agora) {
@@ -3590,11 +4032,28 @@ function gerarPosicaoCaverna() {
 
 const SANTUARIO_SLIME_BIOMA = 'Planície das Plantas (Santuário)';
 const SANTUARIO_SLIME_CENTRO = { x: 144000, y: 14018 };
+const SANTUARIO_CIDADE_ZONA_SEGURA_RAIO = 900;
 const SANTUARIO_SLIME_ELITE_CENTRO = { x: 145300, y: 14018 };
+const TUNDRA_CORUJA_BIOMA = 'Tundra Gélida';
 const SANTUARIO_SLIME_GRUPOS = [
     { x: 142950, y: 13000 }, { x: 145050, y: 13000 },
     { x: 142950, y: 15035 }, { x: 145050, y: 15035 }
 ];
+const TUNDRA_CORUJA_GRUPOS = [
+    { x: 143750, y: 19150 }, { x: 145000, y: 19150 },
+    { x: 143000, y: 20850 }, { x: 145000, y: 20850 }
+];
+const TUNDRA_DRUAASE_GRUPOS = [
+    { x: 144000, y: 19000 }, { x: 144000, y: 21000 },
+    { x: 145000, y: 19000 }, { x: 145000, y: 21000 }
+];
+
+function posicaoNoNucleoCidade(x, y, margem) {
+    return Math.hypot(
+        x - SANTUARIO_SLIME_CENTRO.x,
+        y - SANTUARIO_SLIME_CENTRO.y
+    ) < SANTUARIO_CIDADE_ZONA_SEGURA_RAIO + Math.max(0, Number(margem) || 0);
+}
 
 function slimeEmBiomaValido(x, y) {
     return entidadeEmBiomaValido({ bioma: SANTUARIO_SLIME_BIOMA }, x, y);
@@ -3602,11 +4061,14 @@ function slimeEmBiomaValido(x, y) {
 
 function entidadeEmBiomaValido(monstro, x, y) {
     if (monstro.bioma) {
-        return !!mapaMundo &&
+        const posicaoValida = !!mapaMundo &&
             x >= LARGURA_MUNDO && x < FIM_MUNDO &&
             y >= 0 && y < ALTO_MUNDO &&
             mapaMundo.biomaNome(x, y) === monstro.bioma &&
             podeAndar(x, y, monstro);
+        if (!posicaoValida) return false;
+        return monstro.bioma !== SANTUARIO_SLIME_BIOMA ||
+            !posicaoNoNucleoCidade(x, y, monstro.raioColisao || MONSTER_COLLISION_RADIUS);
     }
     return podeAndar(x, y, monstro);
 }
@@ -3636,11 +4098,18 @@ function gerarPosicaoNaturalBioma(bioma, origem, raio) {
     return null;
 }
 
+function calcularAlcanceAtaqueMonstro(range, ehMelee) {
+    const configuredRange = Number(range);
+    const baseRange = Number.isFinite(configuredRange) && configuredRange > 0
+        ? configuredRange : (ehMelee ? 48 : 180);
+    return ehMelee ? baseRange * 1.5 : baseRange;
+}
+
 function criarSlimeNatural(x, y, grupoId, tipo) {
     tipo = tipo || 'slime';
     const conf = spawnsAdmin.getMonstroConfig(tipo);
     const ehElite = Array.isArray(conf.tags) && conf.tags.indexOf('elite') !== -1;
-    const hp = calcularHpElite(conf.baseHp, ehElite);
+    const hp = calcularHpMonstro(tipo, conf.baseHp, ehElite);
     const agora = Date.now();
     const hora = sistemaDiaNoite ? sistemaDiaNoite.calcularTempoMundo(agora).horaDecimal : 12;
     const dormindo = hora < 6 || hora >= 23;
@@ -3662,8 +4131,10 @@ function criarSlimeNatural(x, y, grupoId, tipo) {
         baseHp: Math.max(10, Math.floor(conf.baseHp)),
         dano: conf.dano,
         xpBase: conf.xpBase,
-        aggroRange: conf.aggroRange,
-        attackRange: conf.attackRange,
+        aggroRange: tipo === 'slime_elite'
+            ? Math.max(conf.aggroRange || 0, SLIME_ELITE_LEAP_RANGE)
+            : conf.aggroRange,
+        attackRange: calcularAlcanceAtaqueMonstro(conf.attackRange, conf.ehMelee !== false),
         velocidade: conf.velocidade,
         cadenciaAtk: conf.cadenciaAtk,
         velProjetil: conf.velProjetil || 9,
@@ -3695,6 +4166,24 @@ function criarSlimeNatural(x, y, grupoId, tipo) {
         aiProximoPatrulha: agora + 1000 + Math.random() * 3000,
         aiUltimoMovimento: agora,
         aiUltimoDodge: 0,
+        aiProximoDodge: 0,
+        corujaGritoX: null,
+        corujaGritoY: null,
+        corujaGritoRaio: tipo === 'coruja_branca_tundra' ? 150 : 0,
+        corujaGritoDuracao: 1500,
+        corujaGritoAte: 0,
+        corujaGritoImpactoAte: 0,
+        corujaGritoDiaAcordada: false,
+        corujaGritoProximoAte: tipo === 'coruja_branca_tundra'
+            ? agora + 4000 + Math.random() * 2500 : 0,
+        eliteBerserk: false,
+        tundraDragonVortex: null,
+        tundraDragonVortexCooldownAt: tipo === 'tundra_dragon_elite'
+            ? agora + 10000 + Math.random() * 8000 : 0,
+        tundraDragonDashState: null,
+        tundraDragonDashNextRollAt: tipo === 'tundra_dragon_elite'
+            ? agora + 5000 + Math.random() * 7000 : 0,
+        tundraDragonDashCooldownAt: 0,
         aiIsNight: false,
         criadoEm: agora
     };
@@ -3787,11 +4276,77 @@ function inicializarSpawnsNaturaisSelva() {
     console.log('Monstros naturais da Selva Proibida posicionados: ' + total + '.');
 }
 
+function inicializarSpawnsNaturaisCorujaTundra() {
+    if (!spawnsAdmin || !mapaMundo || !mapaMundo.CENTROS_BIOMAS.neve) return;
+    const centro = mapaMundo.CENTROS_BIOMAS.neve;
+    let distribuidos = 0;
+    for (let i = 0; i < 24; i++) {
+        const pos = gerarPosicaoNaturalBioma(TUNDRA_CORUJA_BIOMA, centro, 2600);
+        if (!pos) break;
+        slimes.push(criarSlimeNatural(pos.x, pos.y, null, 'coruja_branca_tundra'));
+        distribuidos++;
+    }
+    let emGrupos = 0;
+    TUNDRA_CORUJA_GRUPOS.forEach(function (ponto, indice) {
+        const quantidade = 4 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < quantidade; i++) {
+            const pos = gerarPosicaoNaturalBioma(TUNDRA_CORUJA_BIOMA, ponto, 130);
+            if (!pos) continue;
+            slimes.push(criarSlimeNatural(pos.x, pos.y, 'tundra_coruja_' + indice, 'coruja_branca_tundra'));
+            emGrupos++;
+        }
+    });
+    console.log('Corujas naturais da Tundra Gélida posicionadas: ' + distribuidos + ' distribuídas, ' + emGrupos + ' em grupos.');
+}
+
+function inicializarSpawnsNaturaisDruaaseTundra() {
+    if (!spawnsAdmin || !mapaMundo || !mapaMundo.CENTROS_BIOMAS.neve) return;
+    const centro = mapaMundo.CENTROS_BIOMAS.neve;
+    let distribuidos = 0;
+    for (let i = 0; i < 20; i++) {
+        const pos = gerarPosicaoNaturalBioma(TUNDRA_CORUJA_BIOMA, centro, 2600);
+        if (!pos) break;
+        slimes.push(criarSlimeNatural(pos.x, pos.y, null, 'druaase_tundra'));
+        distribuidos++;
+    }
+    let emGrupos = 0;
+    TUNDRA_DRUAASE_GRUPOS.forEach(function (ponto, indice) {
+        const quantidade = 3 + Math.floor(Math.random() * 3);
+        for (let i = 0; i < quantidade; i++) {
+            const pos = gerarPosicaoNaturalBioma(TUNDRA_CORUJA_BIOMA, ponto, 130);
+            if (!pos) continue;
+            slimes.push(criarSlimeNatural(pos.x, pos.y, 'tundra_druaase_' + indice, 'druaase_tundra'));
+            emGrupos++;
+        }
+    });
+    console.log('Druaases naturais da Tundra posicionados: ' + distribuidos + ' dispersos e ' + emGrupos + ' em grupos.');
+}
+
+function inicializarSpawnNaturalTundraDragonElite() {
+    if (!spawnsAdmin || !mapaMundo || !mapaMundo.CENTROS_BIOMAS.neve) return;
+    if (slimes.some(function (slime) {
+        return slime && slime.tipo === 'tundra_dragon_elite' && slime.hp > 0;
+    })) return;
+    const pos = gerarPosicaoNaturalBioma(
+        TUNDRA_CORUJA_BIOMA, mapaMundo.CENTROS_BIOMAS.neve, 2600
+    );
+    if (!pos) {
+        console.error('Não foi possível encontrar uma posição válida na Tundra para o Tundra of Dragon.');
+        return;
+    }
+    const dragon = criarSlimeNatural(pos.x, pos.y, null, 'tundra_dragon_elite');
+    slimes.push(dragon);
+    notificarSpawnElite(dragon);
+    console.log('Tundra of Dragon surgiu em posição aleatória na Tundra Gélida.');
+}
+
 function jogadorPodeSerAlvoDoSlime(pid, jogador, slime) {
     if (!jogador || !(jogador.hp > 0) ||
         mapaPorCoordenada(jogador.x + PLAYER_OFFSET_X) !== mapaPorCoordenada(slime.x) ||
         !instanciaCompativel(jogador, slime) ||
         (efeitos && (efeitos.temEfeito(jogador, 'invisivel') || efeitos.temEfeito(jogador, 'camuflagem')))) return false;
+    if (slime.bioma === SANTUARIO_SLIME_BIOMA &&
+        posicaoNoNucleoCidade(jogador.x + PLAYER_OFFSET_X, jogador.y + PLAYER_OFFSET_Y)) return false;
     return !monstroPertenceABiomaDoMundo(slime) ||
         mapaMundo.biomaNome(jogador.x + PLAYER_OFFSET_X, jogador.y + PLAYER_OFFSET_Y) === slime.bioma;
 }
@@ -3804,10 +4359,13 @@ function monstroEhEliteOuBoss(monstro) {
 
 function monstroPodeFocarPet(monstro, pet) {
     const owner = pet && players[pet.owner_id];
+    if (pet && pet.lordMalakarSummon &&
+        (pet.type === 'skull_archer' || pet.type === 'skull_mage')) return false;
     if (!monstro || !pet || pet.hp <= 0 || pet.mode === 'PARADO' || !owner || owner.hp <= 0 ||
         monstroEhEliteOuBoss(monstro)) return false;
+    const petId = pet.pet_instance_id || pet.id;
     return !slimes.concat(bosses).some(function (outro) {
-        return outro && outro !== monstro && outro.hp > 0 && outro.targetId === pet.pet_instance_id;
+        return outro && outro !== monstro && outro.hp > 0 && outro.targetId === petId;
     });
 }
 
@@ -3897,6 +4455,173 @@ function moverMonstroComDesvio(slime, destinoX, destinoY, velocidade) {
     return true;
 }
 
+function esquivarProjetilCoruja(slime, agora) {
+    if (agora < (slime.aiProximoDodge || 0)) return false;
+    const mapa = mapaPorCoordenada(slime.x);
+    let ameaca = null;
+    for (const projetil of playerProjeteis) {
+        if (!projetil || projetil.vida <= 0 || !Number.isFinite(projetil.vx) ||
+            !Number.isFinite(projetil.vy) || !!projetil.solari !== !!slime.solari ||
+            (projetil.mapa && projetil.mapa !== mapa) ||
+            (projetil.instanciaId && projetil.instanciaId !== slime.instanciaId) ||
+            mapaPorCoordenada(projetil.x) !== mapa) continue;
+        if (projetil.origemBasica && projetil.alvoId &&
+            (projetil.alvoTipo !== 'slime' || String(projetil.alvoId) !== String(slime.id))) continue;
+        const dono = projetil.ownerId && players[projetil.ownerId];
+        if (!dono || dono.hp <= 0 || mapaPorCoordenada(dono.x + PLAYER_OFFSET_X) !== mapa ||
+            !instanciaCompativel(slime, dono)) continue;
+
+        const rx = projetil.x - slime.x;
+        const ry = projetil.y - slime.y;
+        const velocidade2 = projetil.vx * projetil.vx + projetil.vy * projetil.vy;
+        if (velocidade2 < 0.01 || rx * projetil.vx + ry * projetil.vy >= 0) continue;
+        const ticksAteImpacto = Math.min(12, projetil.vida,
+            Math.max(0, -(rx * projetil.vx + ry * projetil.vy) / velocidade2));
+        const distancia2 = Math.pow(rx + projetil.vx * ticksAteImpacto, 2) +
+            Math.pow(ry + projetil.vy * ticksAteImpacto, 2);
+        const raioSeguro = Math.max(36, (projetil.raio || 8) + (slime.raioColisao || 20) + 12);
+        if (distancia2 < raioSeguro * raioSeguro &&
+            (!ameaca || distancia2 < ameaca.distancia2)) {
+            ameaca = { projetil: projetil, distancia2: distancia2 };
+        }
+    }
+    if (!ameaca) return false;
+
+    const projetil = ameaca.projetil;
+    const cross = projetil.vx * (slime.y - projetil.y) - projetil.vy * (slime.x - projetil.x);
+    const lado = cross >= 0 ? 1 : -1;
+    const angulo = Math.atan2(projetil.vy, projetil.vx) + lado * Math.PI / 2;
+    const velocidade = (slime.velocidade || 2.7) * 2.4;
+    let moveu = moverMonstroComDesvio(slime,
+        slime.x + Math.cos(angulo) * 110, slime.y + Math.sin(angulo) * 110, velocidade);
+    if (!moveu) {
+        moveu = moverMonstroComDesvio(slime,
+            slime.x + Math.cos(angulo + Math.PI) * 110,
+            slime.y + Math.sin(angulo + Math.PI) * 110, velocidade);
+    }
+    slime.aiProximoDodge = agora + 650;
+    slime.aiEstado = moveu ? 'run' : 'blocked';
+    return moveu;
+}
+
+function atualizarGritoCoruja(slime, alvo, alvoPet, agora, dormePorHorario) {
+    if (slime.corujaGritoAte > 0) {
+        if (agora < slime.corujaGritoAte) {
+            const xAlvo = alvo && !alvoPet ? alvo.x + PLAYER_OFFSET_X : slime.corujaGritoX;
+            const yAlvo = alvo && !alvoPet ? alvo.y + PLAYER_OFFSET_Y : slime.corujaGritoY;
+            let dxFuga = slime.x - xAlvo;
+            let dyFuga = slime.y - yAlvo;
+            let distanciaFuga = Math.hypot(dxFuga, dyFuga);
+            if (distanciaFuga < 1) {
+                const anguloFuga = Number.isFinite(slime.angulo) ? slime.angulo + Math.PI : Math.PI;
+                dxFuga = Math.cos(anguloFuga);
+                dyFuga = Math.sin(anguloFuga);
+                distanciaFuga = 1;
+            }
+            const moveu = moverMonstroComDesvio(slime,
+                slime.x + (dxFuga / distanciaFuga) * 100,
+                slime.y + (dyFuga / distanciaFuga) * 100,
+                (slime.velocidade || 2.7) * 1.5);
+            slime.aiEstado = moveu ? 'run' : 'action';
+            slime.aiAtacandoAte = slime.corujaGritoAte;
+            return true;
+        }
+
+        const raio = slime.corujaGritoRaio || 150;
+        for (const pid of Object.keys(players)) {
+            const jogador = players[pid];
+            if (!jogadorPodeSerAlvoDoSlime(pid, jogador, slime) ||
+                Math.hypot(jogador.x + PLAYER_OFFSET_X - slime.corujaGritoX,
+                    jogador.y + PLAYER_OFFSET_Y - slime.corujaGritoY) > raio) continue;
+            if (efeitos) efeitos.aplicarEfeito(jogador, 'paralisia', 80, 1);
+        }
+        slime.corujaGritoAte = 0;
+        slime.corujaGritoImpactoAte = agora + 650;
+        slime.aiSkillAt = agora;
+        slime.aiAtacandoAte = agora + 250;
+        slime.aiEstado = 'action';
+        return true;
+    }
+
+    const acordadaDuranteODia = dormePorHorario && slime.corujaGritoDiaAcordada && !slime.aiIsNight;
+    if (!alvo || alvoPet || (dormePorHorario && !acordadaDuranteODia) || !monstroPodeAtacar(slime) ||
+        agora < (slime.corujaGritoProximoAte || 0)) return false;
+    const xAlvo = alvo.x + PLAYER_OFFSET_X;
+    const yAlvo = alvo.y + PLAYER_OFFSET_Y;
+    const distancia = Math.hypot(xAlvo - slime.x, yAlvo - slime.y);
+    if (distancia > 620 || distancia < 90) return false;
+
+    if (acordadaDuranteODia && Math.random() >= 0.2) {
+        slime.corujaGritoProximoAte = agora + 10000 + Math.random() * 3000;
+        return false;
+    }
+    slime.corujaGritoX = xAlvo;
+    slime.corujaGritoY = yAlvo;
+    slime.corujaGritoDuracao = 1500;
+    slime.corujaGritoAte = agora + slime.corujaGritoDuracao;
+    slime.corujaGritoProximoAte = agora + 10000 + Math.random() * 3000;
+    slime.corujaVooLado = Math.random() < 0.5 ? -1 : 1;
+    slime.aiAtacandoAte = slime.corujaGritoAte;
+    slime.aiEstado = 'action';
+    enviarEventoSlimeElite(slime, 'tundra_owl_scream_start', {
+        x: slime.x,
+        y: slime.y
+    });
+    return true;
+}
+
+function aplicarHemorragiaDruaase(jogador, agora, origemX, origemY) {
+    if (!jogador || jogador.hp <= 0 || Math.random() >= 0.3) return false;
+    jogador.druaaseHemorragiaAte = agora + 10000;
+    jogador.druaaseHemorragiaTempoAndando = 0;
+    jogador.druaaseHemorragiaUltimaAtualizacao = agora;
+    jogador.druaaseHemorragiaUltimaPosicaoX = jogador.x;
+    jogador.druaaseHemorragiaUltimaPosicaoY = jogador.y;
+    jogador.druaaseHemorragiaOrigemX = origemX;
+    jogador.druaaseHemorragiaOrigemY = origemY;
+    return true;
+}
+
+function atualizarHemorragiaDruaase(agora) {
+    for (const pid of Object.keys(players)) {
+        const jogador = players[pid];
+        if (!jogador || !(jogador.druaaseHemorragiaAte > agora)) {
+            if (jogador && jogador.druaaseHemorragiaAte) {
+                jogador.druaaseHemorragiaAte = 0;
+                jogador.druaaseHemorragiaTempoAndando = 0;
+                jogador.druaaseHemorragiaUltimaAtualizacao = 0;
+                jogador.druaaseHemorragiaUltimaPosicaoX = null;
+                jogador.druaaseHemorragiaUltimaPosicaoY = null;
+                jogador.druaaseHemorragiaOrigemX = null;
+                jogador.druaaseHemorragiaOrigemY = null;
+            }
+            continue;
+        }
+        const ultimaAtualizacao = jogador.druaaseHemorragiaUltimaAtualizacao || agora;
+        const decorrido = Math.max(0, agora - ultimaAtualizacao);
+        const posicaoAnteriorX = jogador.druaaseHemorragiaUltimaPosicaoX;
+        const posicaoAnteriorY = jogador.druaaseHemorragiaUltimaPosicaoY;
+        const moveuFisicamente = Number.isFinite(posicaoAnteriorX) &&
+            Number.isFinite(posicaoAnteriorY) &&
+            Math.hypot(jogador.x - posicaoAnteriorX, jogador.y - posicaoAnteriorY) > 0.01;
+        jogador.druaaseHemorragiaUltimaAtualizacao = agora;
+        jogador.druaaseHemorragiaUltimaPosicaoX = jogador.x;
+        jogador.druaaseHemorragiaUltimaPosicaoY = jogador.y;
+        if (!jogador.moving || !moveuFisicamente || jogador.hp <= 0) continue;
+        jogador.druaaseHemorragiaTempoAndando =
+            (jogador.druaaseHemorragiaTempoAndando || 0) + decorrido;
+        while (jogador.druaaseHemorragiaTempoAndando >= 500 && jogador.hp > 0) {
+            jogador.druaaseHemorragiaTempoAndando -= 500;
+            const dano = Math.max(1, Math.round((jogador.maxHp || 0) * 0.02));
+            const origemX = Number.isFinite(jogador.druaaseHemorragiaOrigemX)
+                ? jogador.druaaseHemorragiaOrigemX : jogador.x + PLAYER_OFFSET_X;
+            const origemY = Number.isFinite(jogador.druaaseHemorragiaOrigemY)
+                ? jogador.druaaseHemorragiaOrigemY : jogador.y + PLAYER_OFFSET_Y;
+            aplicarDanoJogador(pid, origemX, origemY, dano);
+        }
+    }
+}
+
 function atualizarIAMonstro(slime, agora, horaDecimal) {
     if (!slime.targetId) slime.ataqueTelegraph = null;
     if (slime.hp > 0 && monstroPertenceABiomaDoMundo(slime) &&
@@ -3917,7 +4642,22 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
         }
     }
     if (slime.hp <= 0) {
+        if (slime.eliteLeapState) {
+            enviarEventoSlimeElite(slime, 'monster_elite_leap_cancel', { reason: 'defeated' });
+        }
+        if (slime.tipo === 'tundra_dragon_elite') {
+            if (slime.tundraDragonVortex) {
+                enviarEventoSlimeElite(slime, 'tundra_dragon_vortex_end', { id: slime.id });
+            }
+            if (slime.tundraDragonDashState) {
+                enviarEventoSlimeElite(slime, 'tundra_dragon_dash_cancel', { id: slime.id });
+            }
+            slime.tundraDragonVortex = null;
+            slime.tundraDragonDashState = null;
+        }
         slime.ataqueTelegraph = null;
+        slime.eliteLeapState = null;
+        delete slime.eliteLeapJump;
         if (!slime.spawnNatural) return false;
         slime.aiRespawnTimer = (slime.aiRespawnTimer || 0) + 1;
         if (slime.aiRespawnTimer < 2400) return true;
@@ -3927,7 +4667,9 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
                 ? gerarPosicaoNaturalDeserto({ x: slime.origemX, y: slime.origemY }, slime.spawnGrupoId ? 220 : 9500)
                 : (slime.bioma === 'Selva Proibida'
                     ? gerarPosicaoNaturalSelva({ x: slime.origemX, y: slime.origemY }, slime.spawnGrupoId ? 220 : 9000)
-                    : null));
+                    : (slime.bioma === TUNDRA_CORUJA_BIOMA
+                        ? gerarPosicaoNaturalBioma(slime.bioma, { x: slime.origemX, y: slime.origemY }, slime.spawnGrupoId ? 220 : 2600)
+                        : null)));
         if (!pos) return true;
         slime.x = pos.x;
         slime.y = pos.y;
@@ -3935,6 +4677,19 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
         slime.captureConsumed = false;
         slime.captureFailCount = 0;
         slime.aiRespawnTimer = 0;
+        slime.eliteBerserk = false;
+        slime.tundraDragonVortex = null;
+        slime.tundraDragonVortexCooldownAt = agora + 10000 + Math.random() * 8000;
+        slime.tundraDragonDashState = null;
+        slime.tundraDragonDashNextRollAt = agora + 5000 + Math.random() * 7000;
+        slime.tundraDragonDashCooldownAt = 0;
+        slime.eliteLeapCooldownAt = 0;
+        slime.eliteLeapNextRollAt = 0;
+        slime.corujaGritoAte = 0;
+        slime.corujaGritoImpactoAte = 0;
+        slime.corujaGritoDiaAcordada = false;
+        slime.corujaGritoProximoAte = slime.tipo === 'coruja_branca_tundra'
+            ? agora + 4000 + Math.random() * 2500 : 0;
         slime.targetId = null;
         slime.tabelaDano = {};
         slime.buffsMonstros = [];
@@ -3954,10 +4709,33 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
         return mult * (buff.velocidadeMult || 1);
     }, 1);
     const multVelocidadeBioma = slime.bioma === 'Deserto Escaldante' ? 1.5 : 1;
-    slime.velocidade = slime._velocidadeBase * multVelocidadeBioma * (noite ? 3 : 1) * multVelocidadeBuff;
+    if ((slime.tipo === 'slime_elite' || slime.tipo === 'tundra_dragon_elite') &&
+        !slime.eliteBerserk && slime.hp <= slime.maxHp * 0.5) {
+        slime.eliteBerserk = true;
+        if (slime.tipo === 'tundra_dragon_elite') {
+            slime.aiDormindo = false;
+            slime.aiEstado = 'run';
+        }
+        enviarEventoSlimeElite(slime, 'monster_elite_berserk', {
+            x: slime.x,
+            y: slime.y,
+            active: true
+        });
+    }
+    const multiplicadorVelocidadeTundraDragon = slime.tipo === 'tundra_dragon_elite' && slime.eliteBerserk ? 1.4 : 1;
+    slime.velocidade = slime._velocidadeBase * multVelocidadeBioma * (noite ? 3 : 1) *
+        multVelocidadeBuff * multiplicadorVelocidadeSlimeElite(slime) * multiplicadorVelocidadeTundraDragon;
+    if (slime.tipo === 'tundra_dragon_elite' && slime.tundraDragonVortex &&
+        atualizarHabilidadesTundraDragon(slime, null, agora)) return true;
     if (slime.stunTimer > 0) {
         slime.stunTimer--;
         return true;
+    }
+    if (slime.tipo === 'slime_elite' && slime.eliteLeapState) {
+        return atualizarSaltoSlimeElite(slime, null, agora);
+    }
+    if (slime.tipo === 'tundra_dragon_elite' && slime.tundraDragonDashState) {
+        return atualizarHabilidadesTundraDragon(slime, null, agora);
     }
     if (!slime.aiDormindo) {
         atualizarBuffAreaMonstro(slime, agora);
@@ -3971,31 +4749,44 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
             else if (slime.aiEstado === 'rest_exit') slime.aiEstado = 'idle';
         }
     }
+    if (slime.tipo === 'druaase_tundra' && slime.aiEstado === 'action' &&
+        (slime.aiAtacandoAte || 0) <= agora) slime.aiEstado = 'idle';
     const petProvocando = !slime.flagPassivo && slime.tauntTimer > 0 && slime.tauntId
-        ? (lacaios[slime.tauntId] || petRuntimeDoId(slime.targetId))
-        : petRuntimeDoId(slime.targetId);
-    const alvoPetValido = petProvocando && petProvocando.hp > 0 &&
+        ? (lacaios[slime.tauntId] || petRuntimeDoId(slime.targetId) || lordMalakarEntities[slime.targetId])
+        : (petRuntimeDoId(slime.targetId) || lordMalakarEntities[slime.targetId]);
+    const alvoPetValido = slime.tipo !== 'tundra_dragon_elite' || !slime.eliteBerserk
+        ? petProvocando && petProvocando.hp > 0 &&
         players[petProvocando.owner_id] && players[petProvocando.owner_id].hp > 0 &&
         mapaPorCoordenada(petProvocando.x) === mapaPorCoordenada(slime.x) &&
-        instanciaCompativel(slime, petProvocando) && monstroPodeFocarPet(slime, petProvocando);
+        instanciaCompativel(slime, petProvocando) && monstroPodeFocarPet(slime, petProvocando)
+        : false;
     let alvoPet = !!alvoPetValido;
     let alvo = alvoPet ? petProvocando : (slime.targetId && players[slime.targetId]);
     if (alvoPet && !petProvocando.pet_instance_id) slime.targetId = slime.tauntId;
-    if (alvo && !alvoPet && !jogadorPodeSerAlvoDoSlime(slime.targetId, alvo, slime)) {
+    if (alvo && !alvoPet && (!jogadorPodeSerAlvoDoSlime(slime.targetId, alvo, slime) ||
+        (slime.tipo === 'tundra_dragon_elite' && slime.eliteBerserk && !classeValidaAlvoTundraDragon(alvo)))) {
         slime.targetId = null;
         alvo = null;
     }
     const alvoXAtual = alvo ? alvo.x + (alvoPet ? 0 : PLAYER_OFFSET_X) : 0;
     const alvoYAtual = alvo ? alvo.y + (alvoPet ? 0 : PLAYER_OFFSET_Y) : 0;
-    if (alvo && Math.hypot(alvoXAtual - slime.x, alvoYAtual - slime.y) > 900) {
+    const distanciaMaximaAlvo = slime.tipo === 'slime_elite'
+        ? Math.min(SLIME_ELITE_LEAP_RANGE + 200, DISTANCIA_MAXIMA_PERSEGUICAO_MONSTRO)
+        : (slime.tipo === 'coruja_branca_tundra'
+            ? Math.min(Math.max(slime.aggroRange || 300, 360), DISTANCIA_MAXIMA_PERSEGUICAO_MONSTRO)
+            : DISTANCIA_MAXIMA_PERSEGUICAO_MONSTRO);
+    if (alvo && Math.hypot(alvoXAtual - slime.x, alvoYAtual - slime.y) > distanciaMaximaAlvo) {
         slime.targetId = null;
         alvo = null;
         alvoPet = false;
+        slime.retornandoAoLar = true;
+        iniciarRegeneracaoMonstroAposPerderAgro(slime, agora);
     }
     let alvoForcado = alvoPet;
-    if (!alvoPet && slime.aiForcedTargetAte > agora) {
+    if (!alvoPet && !slime.retornandoAoLar && slime.aiForcedTargetAte > agora) {
         const curador = players[slime.aiForcedTargetId];
-        if (jogadorPodeSerAlvoDoSlime(slime.aiForcedTargetId, curador, slime)) {
+        if (jogadorPodeSerAlvoDoSlime(slime.aiForcedTargetId, curador, slime) &&
+            (slime.tipo !== 'tundra_dragon_elite' || !slime.eliteBerserk || classeValidaAlvoTundraDragon(curador))) {
             slime.targetId = slime.aiForcedTargetId;
             alvo = curador;
             alvoForcado = true;
@@ -4004,10 +4795,11 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
             slime.aiForcedTargetId = null;
         }
     }
-    if (!alvoForcado && !slime.flagPassivo && (!dormePorHorario || !slime.aiDormindo)) {
+    if (!alvoForcado && !slime.retornandoAoLar && !slime.flagPassivo &&
+        (!dormePorHorario || !slime.aiDormindo)) {
         let jogadorMaisProximo = null;
         let idMaisProximo = null;
-        let menorDistancia = slime.aggroRange || 320;
+        let menorDistancia = Math.min(slime.aggroRange || 320, DISTANCIA_MAXIMA_PERSEGUICAO_MONSTRO);
         const candidatos = [];
         for (const pid of Object.keys(players)) {
             const jogador = players[pid];
@@ -4023,6 +4815,13 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
             const distancia = Math.hypot(pet.x - slime.x, pet.y - slime.y);
             if (distancia <= menorDistancia) {
                 candidatos.push({ pid: pet.pet_instance_id, jogador: pet, distancia: distancia, pet: true });
+            }
+        }
+        if (slime.tipo === 'tundra_dragon_elite' && slime.eliteBerserk) {
+            for (let i = candidatos.length - 1; i >= 0; i--) {
+                if (candidatos[i].pet || !classeValidaAlvoTundraDragon(candidatos[i].jogador)) {
+                    candidatos.splice(i, 1);
+                }
             }
         }
         const elite = tags.indexOf('elite') !== -1 || tags.indexOf('boss') !== -1;
@@ -4055,14 +4854,32 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
             alvoPet = !!candidatos[0].pet;
         }
     }
+    if (alvo) {
+        slime.retornandoAoLar = false;
+        slime.aiHpRegenUltimaAtualizacao = null;
+    } else {
+        atualizarRegeneracaoMonstroAposPerderAgro(slime, agora);
+    }
     if (alvo && slime.aiDormindo) {
+        if (slime.tipo === 'coruja_branca_tundra' && dormePorHorario) {
+            slime.corujaGritoDiaAcordada = true;
+        }
         slime.aiDormindo = false;
         slime.aiEstado = 'rest_exit';
         slime.aiEstadoTimer = 12;
     }
-    if (dormePorHorario && !alvo) {
+    if (slime.tipo === 'coruja_branca_tundra' &&
+        atualizarGritoCoruja(slime, alvo, alvoPet, agora, dormePorHorario)) return true;
+    if (slime.retornandoAoLar && !alvo) {
+        const voltou = moverInimigoParaOrigem(slime, slime.slowTimer > 0 ? 0.5 : 1);
+        slime.aiEstado = voltou && !slime.retornandoAoLar ? 'idle' : 'run';
+        return true;
+    }
+    const dragonBerserk = slime.tipo === 'tundra_dragon_elite' && slime.eliteBerserk;
+    if (dormePorHorario && !alvo && !dragonBerserk) {
         slime.targetId = null;
         slime.aiDormindo = true;
+        if (slime.tipo === 'coruja_branca_tundra') slime.corujaGritoDiaAcordada = false;
         if (slime.aiEstado !== 'sleep' && slime.aiEstado !== 'rest_enter') {
             slime.aiEstado = 'rest_enter';
             slime.aiEstadoTimer = 12;
@@ -4076,6 +4893,10 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
         slime.aiEstadoTimer = 12;
     }
     if (slime.aiEstado === 'rest_enter' || slime.aiEstado === 'rest_exit') return true;
+    if (slime.tipo === 'coruja_branca_tundra' && !slime.aiDormindo &&
+        esquivarProjetilCoruja(slime, agora)) return true;
+    if (slime.tipo === 'tundra_dragon_elite' &&
+        atualizarHabilidadesTundraDragon(slime, alvoPet ? null : alvo, agora)) return true;
     if (alvo) {
         const alvoX = alvo.x + (alvoPet ? 0 : PLAYER_OFFSET_X);
         const alvoY = alvo.y + (alvoPet ? 0 : PLAYER_OFFSET_Y);
@@ -4087,6 +4908,7 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
         const melee = slime.ehMelee !== false;
         const alcanceAtaque = slime.attackRange || (melee ? 48 : 180);
         const distanciaPreferida = slime.distanciaPreferida || (melee ? alcanceAtaque : 200);
+        if (slime.tipo === 'slime_elite' && atualizarSaltoSlimeElite(slime, alvo, agora)) return true;
         if (!alvoPet && slime.tipo === 'escorpiao_escaldante') {
             atualizarCombateEscorpiao(slime, alvo, distancia, agora, noite, buffsAtivos);
             return true;
@@ -4107,24 +4929,58 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
             moverMonstroComDesvio(slime, dodgeX, dodgeY, (slime.velocidade || 1.4) * 2);
             slime.aiProximoDodge = agora + 1400 + Math.random() * 900;
             slime.aiEstado = 'dodge';
+        } else if (slime.tipo === 'coruja_branca_tundra' && distancia > alcanceAtaque) {
+            const anguloAlvo = Math.atan2(dy, dx);
+            const faseVoo = agora / 900 + String(slime.id || '').length;
+            const anguloVoo = anguloAlvo + Math.sin(faseVoo) * 0.48;
+            const moveu = moverMonstroComDesvio(slime,
+                slime.x + Math.cos(anguloVoo) * Math.min(100, Math.max(35, distancia - alcanceAtaque)),
+                slime.y + Math.sin(anguloVoo) * Math.min(100, Math.max(35, distancia - alcanceAtaque)),
+                (slime.velocidade || 2.7) * (slime.slowTimer > 0 ? 0.5 : 1.35));
+            slime.aiEstado = moveu ? 'run' : 'blocked';
+        } else if (slime.tipo === 'coruja_branca_tundra' &&
+            slime.attackCooldown > 0 && !slime.ataqueTelegraph) {
+            slime.attackCooldown = Math.max(0, slime.attackCooldown - 1);
+            const lado = slime.corujaVooLado || 1;
+            const anguloVoo = Math.atan2(dy, dx) + lado * Math.PI / 2;
+            const moveu = moverMonstroComDesvio(slime,
+                slime.x + Math.cos(anguloVoo) * 70, slime.y + Math.sin(anguloVoo) * 70,
+                (slime.velocidade || 2.7) * 0.9);
+            slime.aiEstado = moveu ? 'run' : 'blocked';
         } else if (distancia <= alcanceAtaque || slime.ataqueTelegraph) {
             slime.attackCooldown = Math.max(0, (slime.attackCooldown || 0) - 1);
             if (slime.attackCooldown === 0 || slime.ataqueTelegraph) {
                 const multDanoBuff = buffsAtivos.reduce(function (mult, buff) {
                     return mult * (buff.danoMult || 1);
                 }, 1);
-                const danoBase = Math.max(1, Math.floor((slime.dano || 8) * (noite ? 2 : 1) * multDanoBuff));
-                const aviso = monstroPodeAtacar(slime)
-                    ? prepararAtaqueMonstroComAviso(slime, alvo, alcanceAtaque, melee ? 'melee' : 'ranged')
-                    : { status: 'cancelled' };
+                const danoBase = Math.max(1, Math.floor((slime.dano || 8) * (noite ? 2 : 1) * multDanoBuff *
+                    (slime.tipo === 'tundra_dragon_elite' && slime.eliteBerserk ? 1.4 : 1)));
+                const podeAtacar = monstroPodeAtacar(slime);
+                const aviso = !podeAtacar
+                    ? { status: 'cancelled' }
+                    : (slime.tipo === 'druaase_tundra'
+                        ? { status: 'ready', angle: Math.atan2(dy, dx) }
+                        : prepararAtaqueMonstroComAviso(slime, alvo, alcanceAtaque, melee ? 'melee' : 'ranged'));
                 if (aviso.status === 'missed') slime.attackCooldown = cadenciaAtaqueMonstro(slime);
-                if (aviso.status === 'ready' && (distancia <= alcanceAtaque)) {
-                    if (slime.petAttackSkill && slime.petAttackSkill.projectileType) {
+                if (aviso.status === 'ready' && (distancia <= alcanceAtaque + (melee ? (typeof PLAYER_COLLISION_RADIUS === 'number' ? PLAYER_COLLISION_RADIUS : 12) : 0))) {
+                    if (slime.tipo === 'tundra_dragon_elite' && !alvoPet) {
+                        aplicarBafoGeloTundraDragon(slime, aviso.angle);
+                        slime.aiSkillAt = agora;
+                        slime.aiAtacandoAte = agora + 650;
+                        slime.aiEstado = 'action';
+                        slime.attackCooldown = cadenciaAtaqueMonstro(slime);
+                    } else if (slime.petAttackSkill && slime.petAttackSkill.projectileType) {
                         const skill = slime.petAttackSkill;
                         const shot = executeSharedMonsterAttack({
                             attacker: slime,
                             target: alvo,
+                            attackerX: slime.x,
+                            attackerY: slime.y,
+                            targetX: alvoX,
+                            targetY: alvoY,
                             range: slime.attackRange || alcanceAtaque,
+                            tolerance: 0,
+                            isMelee: false,
                             now: agora,
                             cooldownMs: 0,
                             validate: function () {
@@ -4139,6 +4995,7 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
                             }
                         });
                         if (shot.valid) {
+                            enviarAudioAtaqueMonstro(slime);
                             slime.aiSkillAt = agora;
                             slime.aiAtacandoAte = agora + 801;
                             slime.attackCooldown = cadenciaAtaqueMonstro(slime);
@@ -4149,14 +5006,21 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
                         const hit = executeSharedMonsterAttack({
                             attacker: slime,
                             target: alvo,
+                            attackerX: slime.x,
+                            attackerY: slime.y,
+                            targetX: alvoX,
+                            targetY: alvoY,
                             range: alcanceAtaque,
+                            tolerance: melee ? (typeof PLAYER_COLLISION_RADIUS === 'number' ? PLAYER_COLLISION_RADIUS : 12) : 0,
+                            isMelee: melee,
                             now: agora,
                             cooldownMs: 0,
                             validate: function () {
                                 if (!alvo || alvo.hp <= 0 || !instanciaCompativel(slime, alvo)) {
                                     return { valid: false, reason: 'target_invalid' };
                                 }
-                                if (alvo.pet_instance_id && petRuntimeDoId(alvo.pet_instance_id) !== alvo) {
+                                if (alvo.pet_instance_id && petRuntimeDoId(alvo.pet_instance_id) !== alvo &&
+                                    lordMalakarEntities[alvo.pet_instance_id] !== alvo) {
                                     return { valid: false, reason: 'pet_not_active' };
                                 }
                                 if (!alvoPet && !jogadorPodeSerAlvoDoSlime(slime.targetId, alvo, slime)) {
@@ -4165,6 +5029,9 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
                                 return { valid: true };
                             },
                             applyDamage: function () {
+                                if (alvo.pet_instance_id && lordMalakarEntities[alvo.pet_instance_id] === alvo) {
+                                    return aplicarDanoLordMalakarPorMonstro(alvo, danoBase, slime);
+                                }
                                 if (alvo.pet_instance_id) return applyDamageToCapturedPet(alvo, danoBase, slime.id);
                                 if (alvoPet) {
                                     danoCausadoAoOgro(slime.tauntId, danoBase, alvo.x, alvo.y);
@@ -4177,7 +5044,14 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
                             slime.attackCooldown = 1;
                             return true;
                         }
+                        enviarAudioAtaqueMonstro(slime);
                         slime.aiAtacandoAte = agora + (slime.bioma === 'Deserto Escaldante' ? 801 : 1122);
+                        if (slime.tipo === 'druaase_tundra' && !alvoPet) {
+                            slime.aiAtacandoAte = agora + 1848;
+                            slime.aiEstado = 'action';
+                            slime.druaaseMordidaEm = agora;
+                            aplicarHemorragiaDruaase(alvo, agora, slime.x, slime.y);
+                        }
                         slime.attackCooldown = cadenciaAtaqueMonstro(slime);
                         if (!alvoPet && slime.tipo === 'besouro_dourado' && efeitos) {
                             efeitos.aplicarEfeito(alvo, 'deserto_lentidao', 200, 0.3);
@@ -4208,6 +5082,8 @@ function atualizarIAMonstro(slime, agora, horaDecimal) {
             patrulha = gerarPosicaoNaturalDeserto({ x: slime.origemX, y: slime.origemY }, raioPatrulha);
         } else if (slime.bioma === 'Selva Proibida') {
             patrulha = gerarPosicaoNaturalSelva({ x: slime.origemX, y: slime.origemY }, raioPatrulha);
+        } else if (slime.bioma === TUNDRA_CORUJA_BIOMA) {
+            patrulha = gerarPosicaoNaturalBioma(slime.bioma, { x: slime.origemX, y: slime.origemY }, raioPatrulha);
         } else {
             for (let tentativa = 0; tentativa < 30 && !patrulha; tentativa++) {
                 const angulo = Math.random() * Math.PI * 2;
@@ -4589,12 +5465,12 @@ function concederConhecimentoBestiarioPorAbate(entidade, ownerId) {
     };
 }
 
-function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem, petInstanceId) {
+function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem, petInstanceId, entidadeOrigem, multiplicadorFinal = 1) {
     if (!slime || !autorId || slime.hp <= 0) return { dano: 0, critico: false };
     if (Array.isArray(slime.tags) && slime.tags.indexOf('invenciveis') !== -1) return { dano: 0, critico: false };
     const autorP = players[autorId];
     if (autorP && !instanciaCompativel(autorP, slime)) return { dano: 0, critico: false };
-    let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem, slime);
+    let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem, slime, entidadeOrigem, multiplicadorFinal);
     let danoFinal = calc.dano;
     // ===== ADMIN CHEAT: SUPER ATAQUE =====
     if (autorP && autorP.adminCheats && autorP.adminCheats.superAtaque) {
@@ -4643,7 +5519,8 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem, petInstanc
     if (danoFinal > 0 && slime.marcaPresaExpires && slime.marcaPresaExpires > Date.now() && slime.marcaPresaOwner === autorId) {
         danoFinal = Math.max(1, Math.round(danoFinal * 1.15));
     }
-    if (danoFinal > 0 && slime.presaInescapavelAte && slime.presaInescapavelAte > Date.now() && tipoOrigem === 'pet') {
+    if (danoFinal > 0 && slime.presaInescapavelAte && slime.presaInescapavelAte > Date.now() &&
+        (tipoOrigem === 'pet' || tipoOrigem === 'malakar_summon')) {
         danoFinal = Math.max(1, Math.round(danoFinal * 1.30));
     }
     if (danoFinal > 0 && slime.block > 0 && Math.random() * 100 < Math.min(90, slime.block)) {
@@ -4658,6 +5535,7 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem, petInstanc
         }
     }
 
+    if (tipoOrigem === 'fixed' && danoFinal > 0) danoFinal = 1;
     if (!slime.tabelaDano) slime.tabelaDano = {};
     if (danoFinal > 0) slime.tabelaDano[autorId] = (slime.tabelaDano[autorId] || 0) + danoFinal;
     registrarContribuicaoPet(slime, autorId, petInstanceId, danoFinal);
@@ -4667,6 +5545,7 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem, petInstanc
         if (!autorP || !(efeitos && (efeitos.temEfeito(autorP, 'invisivel') || efeitos.temEfeito(autorP, 'camuflagem')))) {
             slime.targetId = autorId;
             if (slime.aiManaged && slime.aiDormindo) {
+                if (slime.tipo === 'coruja_branca_tundra') slime.corujaGritoDiaAcordada = true;
                 slime.aiDormindo = false;
                 slime.aiEstado = 'rest_exit';
                 slime.aiEstadoTimer = 12;
@@ -4780,10 +5659,11 @@ function distribuirXpMorte(slime) {
 
 function aplicarDanoJogador(pid, origemX, origemY, dano) {
     let jogador = players[pid];
-    if (!jogador || jogador.hp <= 0) return false;
+    if (!jogador || jogador.hp <= 0 || (jogador.mapaCarregamentoAte || 0) > Date.now()) return false;
     // ===== ADMIN CHEAT: VIDA INFINITA (GOD MODE) =====
     if (jogador.adminCheats && jogador.adminCheats.vidaInfinita) {
-        jogador.hp = jogador.maxHp;
+        jogador.hp = jogador.classe === lordMalakar.CONFIG.classId
+            ? lordMalakar.availableMaxHp(jogador) : jogador.maxHp;
         return true;
     }
     let debuffedAttacker = false;
@@ -5049,9 +5929,13 @@ function aplicarDanoJogador(pid, origemX, origemY, dano) {
         }
     }
 
+    if (dano > 0 && jogador.classe === lordMalakar.CONFIG.classId) {
+        dano = Math.max(1, Math.round(dano * (1 - lordMalakar.damageReduction(jogador))));
+    }
     jogador.hp -= dano;
     if (jogador.hp < 0) jogador.hp = 0;
     if (jogador.hp <= 0) {
+        removerEntidadesLordMalakar(jogador);
         solariMarcaMorte(pid);
         tentarRessurreicaoAutomatica(pid);
     }
@@ -5091,6 +5975,7 @@ function provocarMonstrosPelaCura(curadorId, aliadoId) {
         slime.aiForcedTargetId = curadorId;
         slime.aiForcedTargetAte = agora + 10000;
         if (slime.aiDormindo) {
+            if (slime.tipo === 'coruja_branca_tundra') slime.corujaGritoDiaAcordada = true;
             slime.aiDormindo = false;
             slime.aiEstado = 'rest_exit';
             slime.aiEstadoTimer = 12;
@@ -5105,7 +5990,8 @@ function aplicarCuraAoJogador(pid, quantidade, curadorId) {
     let cura = quantidade;
     if (efeitos && efeitos.temEfeito(p, 'cortaCura')) cura = Math.round(cura * 0.5);
     if (aliadoNaAura(pid)) cura = Math.round(cura * 1.10);
-    p.hp = Math.min(p.maxHp, p.hp + cura);
+    const hpCap = p.classe === lordMalakar.CONFIG.classId ? lordMalakar.availableMaxHp(p) : p.maxHp;
+    p.hp = Math.min(hpCap, p.hp + cura);
     if (curadorId) provocarMonstrosPelaCura(curadorId, pid);
 }
 
@@ -5119,6 +6005,9 @@ function aplicarDanoAmbiente(pid, dano, tipoDano, texto) {
         jogador.inventario && jogador.inventario.slots || {},
         dano
     );
+    if (dano > 0 && jogador.classe === lordMalakar.CONFIG.classId) {
+        dano = Math.max(1, Math.round(dano * (1 - lordMalakar.damageReduction(jogador))));
+    }
     jogador.hp = Math.max(0, jogador.hp - dano);
     let ws = playerSockets[pid];
     if (ws && ws.readyState === WebSocket.OPEN) {
@@ -5133,6 +6022,7 @@ function aplicarDanoAmbiente(pid, dano, tipoDano, texto) {
         ws.send(JSON.stringify({ type: 'hp_sync', hp: jogador.hp, maxHp: jogador.maxHp }));
     }
     if (jogador.hp <= 0) {
+        removerEntidadesLordMalakar(jogador);
         solariMarcaMorte(pid);
         tentarRessurreicaoAutomatica(pid);
     }
@@ -5141,13 +6031,13 @@ function aplicarDanoAmbiente(pid, dano, tipoDano, texto) {
 // ============ BOSS: GOLEM DE PEDRA ============
 let bosses = [];
 
-function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem, petInstanceId) {
+function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem, petInstanceId, entidadeOrigem, multiplicadorFinal = 1) {
     if (!boss || !autorId || boss.hp <= 0) return { dano: 0, critico: false };
     const autorP0 = players[autorId];
     if (autorP0 && !instanciaCompativel(autorP0, boss)) return { dano: 0, critico: false };
     let tipoDano = (tipo === 'basico') ? 'basico' : 'skill';
 
-    let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem, boss);
+    let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem, boss, entidadeOrigem, multiplicadorFinal);
     let danoFinal = calc.dano;
     let autorP = players[autorId];
     // ===== ADMIN CHEAT: SUPER ATAQUE =====
@@ -5165,7 +6055,8 @@ function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem, petInsta
     if (danoFinal > 0 && boss.marcaPresaExpires && boss.marcaPresaExpires > Date.now() && boss.marcaPresaOwner === autorId) {
         danoFinal = Math.max(1, Math.round(danoFinal * 1.15));
     }
-    if (danoFinal > 0 && boss.presaInescapavelAte && boss.presaInescapavelAte > Date.now() && tipoOrigem === 'pet') {
+    if (danoFinal > 0 && boss.presaInescapavelAte && boss.presaInescapavelAte > Date.now() &&
+        (tipoOrigem === 'pet' || tipoOrigem === 'malakar_summon')) {
         danoFinal = Math.max(1, Math.round(danoFinal * 1.30));
     }
 
@@ -5179,6 +6070,7 @@ function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem, petInsta
         return { dano: 0, critico: false };
     }
 
+    if (tipoOrigem === 'fixed' && danoFinal > 0) danoFinal = 1;
     if (!boss.tabelaDano) boss.tabelaDano = {};
     boss.tabelaDano[autorId] = (boss.tabelaDano[autorId] || 0) + danoFinal;
     registrarContribuicaoPet(boss, autorId, petInstanceId, danoFinal);
@@ -5670,7 +6562,9 @@ function solariSpawnarUm(s, conf) {
         patrulhaFase: Math.random() * Math.PI * 2,
         tabelaDano: {},
         aggroRange: Math.round((confBase.aggroRange || 320) * 1.25),
-        attackRange: confBase.attackRange || 55,
+        attackRange: calcularAlcanceAtaqueMonstro(confBase.attackRange,
+            confBase.ehMelee !== false),
+        ehMelee: confBase.ehMelee !== false,
         dano: dano,
         nivelMinimo: 1,
         arquetipo: confBase.arquetipo || null,
@@ -5794,6 +6688,7 @@ function solariRemoverMembro(pid, motivo) {
     // um jogador sem sessão preso fisicamente dentro da faixa da Arena.
     const p = players[pid];
     if (p && motivo !== 'pvp' && motivo !== 'desconexao') {
+        removerEntidadesLordMalakar(p);
         p.hp = p.maxHp;
         p.mana = p.maxMp;
         p.estamina = 100;
@@ -5826,6 +6721,7 @@ function solariEncerrarSessao(s) {
 function solariVoltarCidade(pid) {
     const p = players[pid];
     if (!p) return;
+    removerEntidadesLordMalakar(p);
     p.hp = p.maxHp;
     p.estamina = 100;
     p.mana = p.maxMp;
@@ -6119,6 +7015,9 @@ function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
         p2.inventario && p2.inventario.slots || {},
         dano
     );
+    if (dano > 0 && p2.classe === lordMalakar.CONFIG.classId) {
+        dano = Math.max(1, Math.round(dano * (1 - lordMalakar.damageReduction(p2))));
+    }
     p2.hp -= dano;
     if (p2.hp < 0) p2.hp = 0;
     if (atk && atk.classe === 'barbaro' && (atk.vinculoAtivo || (atk.vampirismoBonus && atk.vampirismoBonus > 0)) && atk.vinculoExpires > Date.now() && dano > 0) {
@@ -6127,6 +7026,7 @@ function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
     }
     broadcastDanoFlut(p2.x, p2.y - 20, dano, atkId);
     if (p2.hp <= 0) {
+        removerEntidadesLordMalakar(p2);
         // DRONEMASTER — PROTOCOLO TITÃ (revive especial em PvP também)
         if (p2.classe === 'dronemaster' && p2.dmTitaAtivo && p2.dmTitaReviveCooldown <= Date.now()) {
             p2.dmTitaAtivo = false;
@@ -6252,7 +7152,7 @@ function spawnMonstroBandeira(flag, instanciaId) {
     let mob = slimes.find(s => s.flagId === flag.id && s.hp <= 0 && (!mapaEhInstanciado(mapaPorCoordenada(flag.x)) || s.instanciaId === instanciaId));
     if (mob) {
         let pos = posicaoBandeiraValida(flag, 60);
-        mob.hp = calcularHpElite(flag.hpBase || (configMonstro && configMonstro.baseHp), ehElite);
+        mob.hp = calcularHpMonstro(flag.tipo, flag.hpBase || (configMonstro && configMonstro.baseHp), ehElite);
         mob.maxHp = mob.hp;
         mob.x = pos.x;
         mob.y = pos.y;
@@ -6268,6 +7168,12 @@ function spawnMonstroBandeira(flag, instanciaId) {
         mob.tauntId = null;
         mob.flagPassivo = passivo;
         mob.flagAgressivo = agressivo;
+        mob.eliteBerserk = false;
+        mob.tundraDragonVortex = null;
+        mob.tundraDragonVortexCooldownAt = Date.now() + 10000 + Math.random() * 8000;
+        mob.tundraDragonDashState = null;
+        mob.tundraDragonDashNextRollAt = Date.now() + 5000 + Math.random() * 7000;
+        mob.tundraDragonDashCooldownAt = 0;
         if (mapaEhInstanciado(mapaPorCoordenada(flag.x))) mob.instanciaId = instanciaId || null;
         if (mob.tipo === 'zumbi') {
             mob.skillCharging = false;
@@ -6292,8 +7198,17 @@ function spawnMonstroBandeira(flag, instanciaId) {
     } else {
         let novoMob = spawnsAdmin.criarMonstroBandeira(flag);
         if (entidadeEhElite(novoMob)) {
-            novoMob.maxHp = calcularHpElite(novoMob.maxHp, true);
+            novoMob.maxHp = calcularHpMonstro(novoMob.tipo, novoMob.maxHp, true);
             novoMob.hp = novoMob.maxHp;
+        }
+        if (novoMob.tipo === 'tundra_dragon_elite') {
+            const agora = Date.now();
+            novoMob.eliteBerserk = false;
+            novoMob.tundraDragonVortex = null;
+            novoMob.tundraDragonVortexCooldownAt = agora + 10000 + Math.random() * 8000;
+            novoMob.tundraDragonDashState = null;
+            novoMob.tundraDragonDashNextRollAt = agora + 5000 + Math.random() * 7000;
+            novoMob.tundraDragonDashCooldownAt = 0;
         }
         if (mapaEhInstanciado(mapaPorCoordenada(flag.x))) novoMob.instanciaId = instanciaId || null;
         slimes.push(novoMob);
@@ -6546,6 +7461,7 @@ function verificarEventoHorda() {
 
         let conf = (spawnsAdmin && spawnsAdmin.TIPOS_MONSTROS[mobTipo]) || { aggroRange: 380, attackRange: 55, dano: 14 };
         let confEdit = (spawnsAdmin && typeof spawnsAdmin.getMonstroConfig === 'function') ? spawnsAdmin.getMonstroConfig(mobTipo) : null;
+        const ehMelee = confEdit ? confEdit.ehMelee !== false : true;
         let mob = {
             id: 'horda_' + Date.now() + '_' + i + '_' + Math.random().toString(36).slice(2, 6),
             tipo: mobTipo,
@@ -6563,7 +7479,7 @@ function verificarEventoHorda() {
             patrolTimer: 0,
             tabelaDano: {},
             aggroRange: 550,
-            attackRange: conf.attackRange || 55,
+            attackRange: calcularAlcanceAtaqueMonstro(conf.attackRange, ehMelee),
             dano: conf.dano || 14,
             flagPassivo: false,
             flagAgressivo: true,
@@ -6575,7 +7491,7 @@ function verificarEventoHorda() {
             velAtk: confEdit ? (confEdit.velAtk || 1) : 1,
             velProjetil: confEdit ? (confEdit.velProjetil || 11) : 11,
             cadenciaAtk: confEdit ? (confEdit.cadenciaAtk || 45) : 45,
-            ehMelee: confEdit ? confEdit.ehMelee !== false : true,
+            ehMelee: ehMelee,
             imuneDebuffs: (confEdit && Array.isArray(confEdit.imuneDebuffs)) ? confEdit.imuneDebuffs.slice() : [],
             debuffsAplicados: (confEdit && Array.isArray(confEdit.debuffsAplicados)) ? confEdit.debuffsAplicados.slice() : [],
             buffsAplicados: (confEdit && Array.isArray(confEdit.buffsAplicados)) ? confEdit.buffsAplicados.slice() : [],
@@ -7204,6 +8120,9 @@ function syncPetRuntimeToProfile(runtime) {
 }
 
 function applyDamageToCapturedPet(runtime, damage, source) {
+    if (runtime && runtime.lordMalakarSummon) {
+        return aplicarDanoLordMalakarPorMonstro(runtime, damage, { id: source });
+    }
     if (!runtime || !petsAtivos[runtime.pet_instance_id] || runtime.state === petAi.PET_STATES.DEAD ||
         runtime.state === petAi.PET_STATES.RESPAWN || runtime.hp <= 0) return false;
     const owner = players[runtime.owner_id];
@@ -7404,6 +8323,7 @@ function atualizarPetsAtivos(now) {
             if (runtime) delete petsAtivos[runtime.pet_instance_id];
             continue;
         }
+        if (runtime.lordMalakarSummon) continue;
         runtime.instanciaId = owner.instanciaId || null;
         runtime.solari = !!solariEmSessao(runtime.owner_id);
         runtime.solariInstanceId = owner.instanciaId || null;
@@ -7521,7 +8441,13 @@ function atualizarPetsAtivos(now) {
                 const result = executeSharedMonsterAttack({
                     attacker: runtime,
                     target: target.entity,
+                    attackerX: runtime.x,
+                    attackerY: runtime.y,
+                    targetX: targetPoint.x,
+                    targetY: targetPoint.y,
                     range: runtime.attackRange,
+                    tolerance: 14,
+                    isMelee: true,
                     now: tickNow,
                     cooldownMs: runtime.attackCooldownMs,
                     validate: function () {
@@ -8012,6 +8938,568 @@ function dispararSkillZumbi(slime) {
     slime.skillAim = null;
 }
 
+function removerEntidadesLordMalakar(player) {
+    if (!player) return;
+    player.lordMalakarBasicTether = null;
+    const removed = lordMalakar.clear(player) || [];
+    removed.forEach(function (entity) {
+        if (entity && entity.id) delete lordMalakarEntities[entity.id];
+    });
+    for (const slime of slimes) {
+        if (slime && slime.targetId && !players[slime.targetId] &&
+            !petsAtivos[slime.targetId] && !lacaios[slime.targetId]) {
+            const removedEntity = removed.some(function (entity) { return entity && entity.id === slime.targetId; });
+            if (removedEntity) {
+                slime.targetId = null;
+                slime.tauntId = null;
+                slime.tauntTimer = 0;
+                slime.ataqueTelegraph = null;
+            }
+        }
+    }
+}
+
+function procurarAlvoLordMalakar(owner, preferredTarget, range) {
+    const ox = owner.x + PLAYER_OFFSET_X;
+    const oy = owner.y + PLAYER_OFFSET_Y;
+    const preferredId = preferredTarget && typeof preferredTarget === 'object'
+        ? preferredTarget.id : preferredTarget;
+    const preferredList = preferredTarget && typeof preferredTarget === 'object' &&
+        preferredTarget.tipo === 'boss' ? bosses : slimes;
+    const preferred = preferredId && preferredList.find(function (mob) {
+        return mob && mob.id === preferredId && mob.hp > 0 &&
+            mapaPorCoordenada(mob.x) === mapaPorCoordenada(ox) &&
+            instanciaCompativel(owner, mob);
+    });
+    if (preferred && Math.hypot(preferred.x - ox, preferred.y - oy) <= range) return preferred;
+    return slimes.filter(function (mob) {
+        return mob && mob.hp > 0 && mapaPorCoordenada(mob.x) === mapaPorCoordenada(ox) &&
+            instanciaCompativel(owner, mob) && Math.hypot(mob.x - ox, mob.y - oy) <= range;
+    }).sort(function (a, b) {
+        return Math.hypot(a.x - ox, a.y - oy) - Math.hypot(b.x - ox, b.y - oy);
+    })[0] || null;
+}
+
+function posicionLordMalakarLivre(entity, owner, x, y) {
+    if (!posicaoPetValida(x, y) || mapaPorCoordenada(x) !== mapaPorCoordenada(owner.x + PLAYER_OFFSET_X)) return false;
+    return !Object.values(lordMalakarEntities).some(function (other) {
+        return other && other.id !== entity.id && other.hp > 0 &&
+            Math.hypot(other.x - x, other.y - y) < 28;
+    });
+}
+
+function caveiraLordMalakarColide(entity, x, y) {
+    return Object.values(lordMalakarEntities).some(function (other) {
+        return other && other !== entity && other.owner_id === entity.owner_id &&
+            typeof other.type === 'string' && other.type.indexOf('skull_') === 0 &&
+            other.hp > 0 && Math.hypot(other.x - x, other.y - y) < 28;
+    });
+}
+
+function moverCaveiraLordMalakarComColisao(entity, dx, dy, passo, ignorarInimigoId) {
+    const previousX = entity.x;
+    const previousY = entity.y;
+    moverPetComColisao(entity, dx, dy, passo, ignorarInimigoId);
+    if (!caveiraLordMalakarColide(entity, entity.x, entity.y)) return;
+
+    entity.x = previousX;
+    entity.y = previousY;
+    const angle = Math.atan2(dy, dx);
+    for (const side of [-1, 1]) {
+        const candidateX = previousX + Math.cos(angle + side * Math.PI / 2) * passo;
+        const candidateY = previousY + Math.sin(angle + side * Math.PI / 2) * passo;
+        if (posicaoPetValida(candidateX, candidateY) &&
+            !petColideComInimigo(candidateX, candidateY, ignorarInimigoId) &&
+            !caveiraLordMalakarColide(entity, candidateX, candidateY)) {
+            entity.x = candidateX;
+            entity.y = candidateY;
+            return;
+        }
+    }
+}
+
+function causarDanoLordMalakarAlvo(owner, entity, target, damage, now) {
+    if (!target || target.hp <= 0 || !instanciaCompativel(owner, target)) return 0;
+    const isBoss = bosses.indexOf(target) !== -1;
+    const result = isBoss
+        ? registrarDanoBoss(target, entity.owner_id, damage, 'skill', 'malakar_summon', undefined, entity)
+        : registrarDanoMonstro(target, entity.owner_id, damage, 'malakar_summon', undefined, entity);
+    if (result.dano > 0) {
+        const state = lordMalakar.getState(owner);
+        if (state && state.link && state.link.targetIds.indexOf(target.id) !== -1) {
+            aplicarCuraAoJogador(entity.owner_id,
+                lordMalakar.linkedHealAmount(result.dano), entity.owner_id);
+        }
+    }
+    return result.dano;
+}
+
+function atualizarCorrenteSangueLordMalakar(ownerId, owner, now) {
+    const tether = owner.lordMalakarBasicTether;
+    if (!tether || tether.expiresAt <= now) {
+        owner.lordMalakarBasicTether = null;
+        return;
+    }
+    const target = validarAtaqueBasicoAlvo(ownerId, owner, tether.targetType, tether.targetId);
+    if (!target) {
+        owner.lordMalakarBasicTether = null;
+        return;
+    }
+    tether.x = target.x;
+    tether.y = target.y;
+    if (now < tether.nextTickAt) return;
+
+    const damage = lordMalakar.CONFIG.basicAttackDamage;
+    let dealt = 0;
+    if (tether.targetType === 'slime') {
+        dealt = registrarDanoMonstro(target, ownerId, damage, 'fixed').dano;
+    } else if (tether.targetType === 'boss') {
+        dealt = registrarDanoBoss(target, ownerId, damage, 'basico', 'fixed').dano;
+    } else if (tether.targetType === 'player') {
+        aplicarDanoPvP(ownerId, tether.targetId, damage, 'sangue');
+        dealt = damage;
+    } else if (tether.targetType === 'pet') {
+        dealt = applyDamageToCapturedPet(target, damage, ownerId) ? damage : 0;
+    } else if (tether.targetType === 'malakar_summon') {
+        dealt = aplicarDanoEntidadeLordMalakar(target.id, damage, ownerId);
+    }
+    tether.nextTickAt = now + lordMalakar.CONFIG.basicAttackTickMs;
+    if (dealt > 0) {
+        enviarParaMapaDoJogador(ownerId, 'lord_malakar_blood_tether_hit', {
+            ownerId: ownerId, targetType: tether.targetType, targetId: tether.targetId,
+            x: target.x, y: target.y, damage: damage
+        });
+    }
+}
+
+function alvoComandadoLordMalakarAtivo(owner, target) {
+    if (!owner || !target || !target.id) return false;
+    const targetList = target.tipo === 'boss' ? bosses : slimes;
+    const mob = targetList.find(function (entry) {
+        return entry && entry.id === target.id && entry.hp > 0 &&
+            mapaPorCoordenada(entry.x) === mapaPorCoordenada(owner.x + PLAYER_OFFSET_X) &&
+            instanciaCompativel(owner, entry) &&
+            Math.hypot(entry.x - (owner.x + PLAYER_OFFSET_X),
+                entry.y - (owner.y + PLAYER_OFFSET_Y)) <= 700;
+    });
+    return !!mob;
+}
+
+function atualizarDialogoLordMalakar(ownerId, owner, state, now) {
+    if (state.skulls.length !== 5) {
+        state.dialogue = null;
+        return;
+    }
+    const inCombat = owner.hp <= 0 ||
+        alvoComandadoLordMalakarAtivo(owner, owner.lordMalakarTarget) ||
+        slimes.some(function (mob) {
+            return mob && mob.hp > 0 &&
+                (mob.targetId === ownerId || state.skulls.some(function (skull) { return mob.targetId === skull.id; }));
+        });
+    if (inCombat) {
+        state.dialogue = null;
+        state.nextDialogueAt = now + 10000;
+        return;
+    }
+    if (state.dialogue && state.dialogue.nextAt <= now) {
+        const line = state.dialogue.lines[state.dialogue.index];
+        if (!line || !state.skulls.some(function (skull) { return skull.id === line.skullId; })) {
+            state.dialogue = null;
+            return;
+        }
+        const speaker = state.skulls.find(function (skull) { return skull.id === line.skullId; });
+        state.skulls.forEach(function (skull) {
+            skull.dialogueText = null;
+            skull.dialogueUntil = 0;
+        });
+        speaker.dialogueText = line.text;
+        speaker.dialogueUntil = now + 4000;
+        state.dialogue.index++;
+        state.dialogue.nextAt = now + 2200;
+        if (state.dialogue.index >= state.dialogue.lines.length) {
+            state.nextDialogueAt = now + 10000;
+            state.dialogue = null;
+        }
+        return;
+    }
+    if (!state.dialogue && now >= state.nextDialogueAt) {
+        const groups = [
+            [
+                ['skull_warrior', 'Você chama isso de mira?'],
+                ['skull_archer', 'Pelo menos eu acerto de longe.'],
+                ['skull_warrior', 'De longe até eu pareço inteligente.']
+            ],
+            [
+                ['skull_mage', 'Vocês sabem conjurar alguma coisa?'],
+                ['skull_archer', 'Eu conjuro flechas.'],
+                ['skull_warrior', 'Eu conjuro problemas.']
+            ],
+            [
+                ['skull_archer', 'Por que você sempre vai na frente?'],
+                ['skull_warrior', 'Porque alguém precisa apanhar primeiro.']
+            ]
+        ];
+        const group = groups[Math.floor(Math.random() * groups.length)];
+        const lines = group.map(function (entry, index) {
+            const candidates = state.skulls.filter(function (skull) { return skull.type === entry[0]; });
+            return { skullId: candidates[index % candidates.length].id, text: entry[1] };
+        });
+        state.dialogue = { lines: lines, index: 0, nextAt: now };
+    }
+}
+
+function atualizarLordMalakar(now) {
+    for (const ownerId of Object.keys(players)) {
+        const owner = players[ownerId];
+        if (!owner || owner.classe !== lordMalakar.CONFIG.classId) continue;
+        const state = lordMalakar.getState(owner);
+        if (owner.hp <= 0) {
+            owner.lordMalakarBasicTether = null;
+            removerEntidadesLordMalakar(owner);
+            continue;
+        }
+        const map = mapaPorCoordenada(owner.x + PLAYER_OFFSET_X);
+        const mapKey = map + ':' + (owner.instanciaId || '');
+        if (state.runtimeMapKey && state.runtimeMapKey !== mapKey) {
+            owner.lordMalakarBasicTether = null;
+            const removed = lordMalakar.clearSummons(owner);
+            removed.forEach(function (entity) {
+                if (entity.type === 'link') {
+                    enviarParaMapaDoJogador(ownerId, 'lord_malakar_link_end', {
+                        ownerId: ownerId, reason: 'map_changed', link: entity
+                    });
+                } else if (entity.id) {
+                    delete lordMalakarEntities[entity.id];
+                    enviarParaMapaDoJogador(ownerId, 'lord_malakar_summon_end', {
+                        ownerId: ownerId, entityId: entity.id, reason: 'map_changed'
+                    });
+                }
+            });
+            enviarParaMapaDoJogador(ownerId, 'lord_malakar_suffering', {
+                ownerId: ownerId, active: false, reason: 'map_changed'
+            });
+        }
+        state.runtimeMapKey = mapKey;
+        const tickEvents = lordMalakar.tickPlayer(owner, now) || [];
+        atualizarCorrenteSangueLordMalakar(ownerId, owner, now);
+        for (const event of tickEvents) {
+            if (event.entity && event.entity.id) {
+                delete lordMalakarEntities[event.entity.id];
+                enviarParaMapaDoJogador(ownerId, 'lord_malakar_summon_end', {
+                    ownerId: ownerId, entityId: event.entity.id, reason: event.reason || 'expired'
+                });
+            }
+            if (event.type === 'link_removed') {
+                enviarParaMapaDoJogador(ownerId, 'lord_malakar_link_end', {
+                    ownerId: ownerId, reason: event.reason || 'expired', link: event.link
+                });
+            }
+            if (event.type === 'suffering_deactivated') {
+                enviarParaMapaDoJogador(ownerId, 'lord_malakar_suffering', {
+                    ownerId: ownerId, active: false, reason: event.reason
+                });
+            }
+        }
+        const entities = state.skulls.concat(state.minion ? [state.minion] : []);
+        entities.forEach(function (entity, index) {
+            entity.owner_id = ownerId;
+            entity.ownerId = ownerId;
+            entity.pet_instance_id = entity.id;
+            entity.lordMalakarBuffActive = !!state.sufferingActive;
+            entity.type = entity.type;
+            entity.mapa = map;
+            entity.instanciaId = owner.instanciaId || null;
+            entity.solari = !!solariEmSessao(ownerId);
+            entity.solariInstanceId = owner.instanciaId || null;
+            entity.animationState = entity.animationUntil > now ? entity.animationState : (entity.moving ? 'WALK' : 'IDLE');
+            entity.moving = false;
+            lordMalakarEntities[entity.id] = entity;
+
+            const ownerX = owner.x + PLAYER_OFFSET_X;
+            const ownerY = owner.y + PLAYER_OFFSET_Y;
+            const ownerDistance = Math.hypot(ownerX - entity.x, ownerY - entity.y);
+            if (ownerDistance > 700) {
+                const safePosition = [
+                    [0, -42], [42, 0], [0, 42], [-42, 0],
+                    [30, -30], [-30, -30], [30, 30], [-30, 30]
+                ].map(function (offset) {
+                    return { x: owner.x + PLAYER_OFFSET_X + offset[0], y: owner.y + PLAYER_OFFSET_Y + offset[1] };
+                }).find(function (point) { return posicionLordMalakarLivre(entity, owner, point.x, point.y); });
+                if (safePosition) {
+                    entity.x = safePosition.x;
+                    entity.y = safePosition.y;
+                    entity.targetId = null;
+                    return;
+                }
+            }
+
+            const target = procurarAlvoLordMalakar(owner, owner.lordMalakarTarget, entity.type === 'sniper' ? 600 : 420);
+            entity.targetId = target ? target.id : null;
+            let destination = null;
+            let ignoreEnemyId = null;
+            if (target && entity.type !== 'cleric') {
+                const targetDistance = Math.hypot(target.x - entity.x, target.y - entity.y);
+                const ranged = entity.type === 'skull_archer' || entity.type === 'skull_mage' ||
+                    entity.type === 'sniper';
+                const preferredDistance = ranged ? Math.min(260, lordMalakar.CONFIG.rangedAttackRange * 0.7) : 48;
+                const distanceError = targetDistance - preferredDistance;
+                if (Math.abs(distanceError) > 22 && (distanceError > 0 || ranged)) {
+                    destination = {
+                        x: entity.x + (target.x - entity.x) / (targetDistance || 1) * distanceError,
+                        y: entity.y + (target.y - entity.y) / (targetDistance || 1) * distanceError
+                    };
+                }
+                ignoreEnemyId = target.id;
+            } else if (!target && entity.type.indexOf('skull_') === 0) {
+                const wanderTarget = entity.wanderTarget;
+                if (!wanderTarget || now >= entity.wanderNextAt ||
+                    Math.hypot(wanderTarget.x - entity.x, wanderTarget.y - entity.y) < 16) {
+                    entity.wanderTarget = null;
+                    for (let attempt = 0; attempt < 8; attempt++) {
+                        const angle = Math.random() * Math.PI * 2;
+                        const radius = lordMalakar.CONFIG.skullWanderMinRadius +
+                            Math.random() * (lordMalakar.CONFIG.skullWanderMaxRadius -
+                                lordMalakar.CONFIG.skullWanderMinRadius);
+                        const candidate = {
+                            x: ownerX + Math.cos(angle) * radius,
+                            y: ownerY + Math.sin(angle) * radius
+                        };
+                        if (mapaPorCoordenada(candidate.x) === map &&
+                            posicaoPetValida(candidate.x, candidate.y)) {
+                            entity.wanderTarget = candidate;
+                            break;
+                        }
+                    }
+                    entity.wanderNextAt = now + 1600 + Math.random() * 2200;
+                }
+                destination = entity.wanderTarget;
+            } else if (entity.type === 'cleric' || !target) {
+                const angle = (Math.PI * 2 * index / Math.max(1, entities.length)) - Math.PI / 2;
+                const distance = entity.type === 'cleric' ? 80 : 95;
+                destination = {
+                    x: ownerX + Math.cos(angle) * distance,
+                    y: ownerY + Math.sin(angle) * distance
+                };
+            }
+
+            if (destination && mapaPorCoordenada(destination.x) === map) {
+                const dx = destination.x - entity.x;
+                const dy = destination.y - entity.y;
+                const distance = Math.hypot(dx, dy);
+                if (distance > 12) {
+                    const previousX = entity.x;
+                    const previousY = entity.y;
+                    if (entity.type.indexOf('skull_') === 0) {
+                        const movementMultiplier = target ? 1.5 : 1;
+                        moverCaveiraLordMalakarComColisao(entity, dx, dy,
+                            Math.min(lordMalakar.CONFIG.skullMovementStep * movementMultiplier, distance),
+                            ignoreEnemyId);
+                    } else {
+                        const movementMultiplier = entity.type === 'reaper'
+                            ? lordMalakar.CONFIG.minions.reaper.movementSpeedMultiplier
+                            : entity.type === 'cleric'
+                                ? lordMalakar.CONFIG.minions.cleric.movementSpeedMultiplier
+                                : 1;
+                        moverPetComColisao(entity, dx, dy,
+                            Math.min(lordMalakar.CONFIG.minionMovementStep * movementMultiplier, distance),
+                            ignoreEnemyId);
+                    }
+                    if (Math.hypot(entity.x - previousX, entity.y - previousY) > 0.01 &&
+                        mapaPorCoordenada(entity.x) === map) {
+                        entity.stuckSince = 0;
+                        entity.moving = true;
+                        entity.angle = Math.atan2(dy, dx);
+                        entity.animationState = 'WALK';
+                    } else {
+                        entity.stuckSince = entity.stuckSince || now;
+                        if (now - entity.stuckSince >= 1500) {
+                            const safe = posicaoSeguraPet(owner, entity);
+                            if (safe && mapaPorCoordenada(safe.x) === map) {
+                                entity.x = safe.x;
+                                entity.y = safe.y;
+                                entity.stuckSince = 0;
+                                entity.wanderTarget = null;
+                                entity.targetId = null;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (!target) return;
+            const range = entity.type === 'skull_warrior' || entity.type === 'reaper'
+                ? lordMalakar.CONFIG.entityAttackRange : lordMalakar.CONFIG.rangedAttackRange;
+            const distanceToTarget = Math.hypot(target.x - entity.x, target.y - entity.y);
+            entity.angle = Math.atan2(target.y - entity.y, target.x - entity.x);
+            if (distanceToTarget > range || now < (entity.attackAt || 0)) return;
+
+            let damage = entity.type === 'skull_warrior' ? lordMalakar.CONFIG.warriorDamage :
+                entity.type === 'skull_archer' ? lordMalakar.CONFIG.archerDamage :
+                entity.type === 'skull_mage' ? lordMalakar.CONFIG.mageDamage :
+                entity.type === 'reaper' ? lordMalakar.CONFIG.reaperDamage :
+                entity.type === 'sniper' ? lordMalakar.CONFIG.sniperDamage : 0;
+            if (entity.type === 'sniper') {
+                entity.shotCount = (entity.shotCount || 0) % 5 + 1;
+                damage = Math.round(damage * 1.5 * (entity.shotCount === 5 ? 3 : 1));
+            }
+            const buffActive = state.sufferingActive;
+            const speedFactor = buffActive ? 1.5 : 1;
+            entity.attackAt = now + (entity.type === 'skull_warrior' ? 1200 :
+                entity.type === 'skull_archer' || entity.type === 'skull_mage' ? 1600 :
+                entity.type === 'reaper' ? 1000 : entity.type === 'sniper' ? 1800 : 0) / speedFactor;
+            entity.animationState = 'ATTACK';
+            entity.animationUntil = now + 450;
+            if (entity.type === 'cleric') {
+                entity.attackAt = now + 1500 / speedFactor;
+                return;
+            }
+            if (entity.type === 'reaper' && now >= (entity.specialAt || 0)) {
+                entity.specialAt = now + lordMalakar.CONFIG.minions.reaper.specialCooldownMs;
+                const targets = slimes.filter(function (mob) {
+                    return mob && mob.hp > 0 && mapaPorCoordenada(mob.x) === map &&
+                        instanciaCompativel(owner, mob) && Math.hypot(mob.x - entity.x, mob.y - entity.y) <=
+                        lordMalakar.CONFIG.minionSpecialRange;
+                });
+                const hits = [];
+                targets.forEach(function (mob) {
+                    const dealt = causarDanoLordMalakarAlvo(owner, entity, mob,
+                        lordMalakar.CONFIG.reaperSpinDamage, now);
+                    if (dealt > 0) hits.push({ x: mob.x, y: mob.y, damage: dealt });
+                });
+                enviarParaMapaDoJogador(ownerId, 'lord_malakar_attack', {
+                    ownerId: ownerId, entityId: entity.id, attack: 'reaper_spin', x: entity.x, y: entity.y,
+                    targets: hits
+                });
+            } else {
+                const dealt = causarDanoLordMalakarAlvo(owner, entity, target, damage, now);
+                if (dealt > 0) {
+                    enviarParaMapaDoJogador(ownerId, 'lord_malakar_attack', {
+                        ownerId: ownerId, entityId: entity.id, targetId: target.id,
+                        attack: entity.type, x: entity.x, y: entity.y,
+                        targetX: target.x, targetY: target.y, damage: dealt,
+                        critical: entity.type === 'sniper', fifthShot: entity.type === 'sniper' && entity.shotCount === 5
+                    });
+                }
+            }
+        });
+
+        if (state.minion && state.minion.type === 'cleric' && now >= (state.minion.healAt || 0)) {
+            const partyMembers = Object.keys(players).map(function (id) {
+                const member = players[id];
+                return { id: id, player: member };
+            }).filter(function (entry) {
+                return entry.player && entry.player.hp > 0 && entry.id !== ownerId &&
+                    owner.partyId && owner.partyId === entry.player.partyId &&
+                    mapaPorCoordenada(entry.player.x + PLAYER_OFFSET_X) === map &&
+                    instanciaCompativel(owner, entry.player) &&
+                    Math.hypot(entry.player.x - owner.x, entry.player.y - owner.y) <= 420;
+            });
+            const playerTargets = [{ id: ownerId, player: owner }]
+                .concat(partyMembers)
+                .map(function (entry) {
+                    const cap = entry.player.classe === lordMalakar.CONFIG.classId
+                        ? lordMalakar.availableMaxHp(entry.player) : entry.player.maxHp;
+                    return { type: 'player', id: entry.id, player: entry.player, cap: cap };
+                });
+            const summonTargets = state.skulls
+                .filter(function (skull) { return skull && skull.hp > 0 && skull.hp < skull.maxHp; })
+                .map(function (skull) {
+                    return { type: 'summon', summon: skull, cap: skull.maxHp };
+                });
+            const healTargets = playerTargets.concat(summonTargets)
+                .filter(function (entry) { return entry.player ? entry.player.hp < entry.cap : true; })
+                .sort(function (a, b) {
+                    const hpA = a.player ? a.player.hp : a.summon.hp;
+                    const hpB = b.player ? b.player.hp : b.summon.hp;
+                    return hpA / Math.max(1, a.cap) - hpB / Math.max(1, b.cap);
+                });
+            const target = healTargets[0];
+            if (target) {
+                const divinityBonus = 1 + Math.max(0, Number(state.minion.inheritedAttributes &&
+                    state.minion.inheritedAttributes.divindade) || 0) * 0.05;
+                const heal = target.type === 'player'
+                    ? Math.max(1, Math.round(target.player.maxHp * 0.08 * divinityBonus))
+                    : Math.max(1, Math.round(20 * divinityBonus));
+                if (target.type === 'player') {
+                    aplicarCuraAoJogador(target.id, heal, ownerId);
+                } else {
+                    target.summon.hp = Math.min(target.cap, target.summon.hp + heal);
+                }
+                state.minion.healAt = now + 2000;
+                state.minion.animationState = 'HEAL';
+                state.minion.animationUntil = now + 500;
+                enviarParaMapaDoJogador(ownerId, 'lord_malakar_heal', {
+                    ownerId: ownerId, entityId: state.minion.id,
+                    targetId: target.type === 'player' ? target.id : target.summon.id,
+                    x: target.type === 'player'
+                        ? target.player.x + PLAYER_OFFSET_X : target.summon.x,
+                    y: target.type === 'player'
+                        ? target.player.y + PLAYER_OFFSET_Y : target.summon.y,
+                    fromX: state.minion.x, fromY: state.minion.y,
+                    amount: heal, targetType: target.type === 'summon' ? 'summon' : undefined
+                });
+            } else {
+                state.minion.healAt = now + 500;
+            }
+        }
+
+        if (state.link) {
+            const validTargets = state.link.targetIds.filter(function (id) {
+                const target = slimes.find(function (mob) { return mob && mob.id === id && mob.hp > 0; });
+                return !!target && mapaPorCoordenada(target.x) === map &&
+                    instanciaCompativel(owner, target) &&
+                    Math.hypot(target.x - (owner.x + PLAYER_OFFSET_X), target.y - (owner.y + PLAYER_OFFSET_Y)) <=
+                    lordMalakar.CONFIG.linkBreakDistance;
+            });
+            state.link.targetIds = validTargets;
+            if (!validTargets.length) {
+                const broken = lordMalakar.unlink(owner);
+                enviarParaMapaDoJogador(ownerId, 'lord_malakar_link_end', { ownerId: ownerId, reason: 'target_invalid', link: broken });
+            }
+        }
+        atualizarDialogoLordMalakar(ownerId, owner, state, now);
+    }
+}
+
+function removerEntidadeLordMalakarPorMorte(entity, attackerId) {
+    const owner = players[entity.owner_id];
+    const state = owner && lordMalakar.getState(owner);
+    if (state && entity.type.indexOf('skull_') === 0) {
+        lordMalakar.releaseSkull(owner, entity.id);
+    } else if (state && state.minion && state.minion.id === entity.id) {
+        lordMalakar.releaseMinion(owner);
+    }
+    delete lordMalakarEntities[entity.id];
+    enviarParaMapaDoJogador(entity.owner_id, 'lord_malakar_summon_end', {
+        ownerId: entity.owner_id, entityId: entity.id, reason: 'dead', attackerId: attackerId || null
+    });
+}
+
+function aplicarDanoEntidadeLordMalakar(entityId, amount, attackerId) {
+    const entity = lordMalakarEntities[entityId];
+    if (!entity || !entity.lordMalakarSummon || entity.hp <= 0 ||
+        !Number.isFinite(amount) || amount <= 0) return false;
+    const owner = players[entity.owner_id];
+    const attacker = players[attackerId];
+    if (!owner || !attacker || !pvpPodeAtacar(attackerId, entity.owner_id) ||
+        !instanciaCompativel(owner, entity)) return false;
+    entity.hp = Math.max(0, entity.hp - amount);
+    entity.animationState = 'HIT';
+    entity.animationUntil = Date.now() + 300;
+    if (entity.hp <= 0) removerEntidadeLordMalakarPorMorte(entity, attackerId);
+    return true;
+}
+
+function aplicarDanoLordMalakarPorMonstro(entity, amount, monster) {
+    if (!entity || !entity.lordMalakarSummon || entity.hp <= 0 ||
+        !Number.isFinite(amount) || amount <= 0) return false;
+    entity.hp = Math.max(0, entity.hp - amount);
+    entity.animationState = 'HIT';
+    entity.animationUntil = Date.now() + 300;
+    if (entity.hp <= 0) removerEntidadeLordMalakarPorMorte(entity, monster && monster.id);
+    return true;
+}
+
 // ============ SPAWNS NATURAIS ============
 // Slimes do Santuário são criados em pontos dispersos e grupos fixos; os demais
 // monstros continuam usando as bandeiras administrativas até serem cadastrados.
@@ -8020,6 +9508,9 @@ console.log("Servidor Rodando: Classe Bárbaro Sangrento Ativa!");
 inicializarSpawnsNaturaisSlime();
 inicializarSpawnsNaturaisDeserto();
 inicializarSpawnsNaturaisSelva();
+inicializarSpawnsNaturaisCorujaTundra();
+inicializarSpawnsNaturaisDruaaseTundra();
+inicializarSpawnNaturalTundraDragonElite();
 
 setInterval(() => {
 
@@ -8034,7 +9525,9 @@ setInterval(() => {
     slimes.forEach(slime => {
         atualizarIAMonstro(slime, agora, global.slimeAiHoraDecimal || 12);
     });
+    atualizarHemorragiaDruaase(agora);
     atualizarPetsAtivos(agora);
+    atualizarLordMalakar(agora);
     
     // Meteoro Fires
     for (let i = meteorFires.length - 1; i >= 0; i--) {
@@ -8394,17 +9887,17 @@ setInterval(() => {
             // Tier 4 B: Colapso Final (implosão massiva ao terminar os 8s causando 120% do dano base)
             if (!g.cancelado && elapsed >= (g.duration || 8000) && SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgradesSismicoFim, 'sismico', 4, 'B')) {
                 let baseDanoFim = p ? dmgSkill(p, 'sismico', 55) : 45;
-                let danoColapso = Math.round(baseDanoFim * 1.20);
+                let danoColapso = Math.round(baseDanoFim * 1.20 * 0.5);
                 slimes.forEach(s => {
-                    if (s.hp > 0 && Math.hypot(s.x - g.x, s.y - g.y) < 260) {
+                    if (s.hp > 0 && Math.hypot(s.x - g.x, s.y - g.y) < 182) {
                         let r = registrarDanoMonstro(s, pid, danoColapso, 'pet');
                         broadcastDanoLacaio(s.x, s.y, r ? r.dano : danoColapso);
                     }
                 });
-                let dbColapso = danoEmBosses(g.x, g.y, 275, pid, danoColapso, 'skill', 'pet');
+                let dbColapso = danoEmBosses(g.x, g.y, 193, pid, danoColapso, 'skill', 'pet');
                 if (dbColapso) broadcastDanoLacaio(dbColapso.x, dbColapso.y, dbColapso.dano);
                 wss.clients.forEach(c => {
-                    if (c.readyState === 1) c.send(JSON.stringify({ type: 'action_summoner_colapso_final', x: g.x, y: g.y, raio: 260 }));
+                    if (c.readyState === 1) c.send(JSON.stringify({ type: 'action_summoner_colapso_final', x: g.x, y: g.y, raio: 182 }));
                 });
             }
 
@@ -8444,8 +9937,8 @@ setInterval(() => {
                 multInstavel = 1 + (g.pulses * 0.03);
             }
 
-            let danoPulso = Math.round(baseDano * (1 + progress * 0.45) * multInstavel);
-            let raioArea = 260; // Grande área de efeito
+            let danoPulso = Math.round(baseDano * (1 + progress * 0.45) * multInstavel * 0.5);
+            let raioArea = 182;
             let alvosAtingidos = [];
 
             // Tier 2 A: Prisão Tectônica (pulso 1 e penúltimo/último enraízam 2s)
@@ -8469,8 +9962,8 @@ setInterval(() => {
                     s.lentidao = 0.5;
                     s.lentidaoTimer = 40;
 
-                    // Tier 1 A: Campo de Falha (borda raio 200-260 sofre 60% lentidão)
-                    if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgradesSismico, 'sismico', 1, 'A') && dist >= 200) {
+                    // Tier 1 A: Campo de Falha (borda raio 140-182 sofre 60% lentidão)
+                    if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgradesSismico, 'sismico', 1, 'A') && dist >= 140) {
                         s.lentidao = 0.4;
                     }
 
@@ -8494,13 +9987,13 @@ setInterval(() => {
             if (SkillUpgradeTree && SkillUpgradeTree.temUpgrade(upgradesSismico, 'sismico', 2, 'B') && (g.pulses % 2 === 0)) {
                 for (let mi = 0; mi < 2; mi++) {
                     let angM = Math.random() * Math.PI * 2;
-                    let distM = Math.random() * 200;
+                    let distM = Math.random() * 140;
                     let mx = g.x + Math.cos(angM) * distM;
                     let my = g.y + Math.sin(angM) * distM;
                     slimes.forEach(s => {
-                        if (s.hp > 0 && Math.hypot(s.x - mx, s.y - my) < 50) {
-                            let r = registrarDanoMonstro(s, pid, 30, 'pet');
-                            broadcastDanoLacaio(s.x, s.y, r ? r.dano : 30);
+                        if (s.hp > 0 && Math.hypot(s.x - mx, s.y - my) < 35) {
+                            let r = registrarDanoMonstro(s, pid, 15, 'pet');
+                            broadcastDanoLacaio(s.x, s.y, r ? r.dano : 15);
                         }
                     });
                     wss.clients.forEach(c => {
@@ -8654,16 +10147,16 @@ setInterval(() => {
         if (player.giroDescontroladoAtivo && (!player.giroDescontroladoExpiresAt || Date.now() < player.giroDescontroladoExpiresAt)) {
             const tx = player.x + 12;
             const ty = player.y + 16;
-            const danoGiro = Math.round(dmgSkill(player, 'giro_descontrolado', 18) * 0.2); // v-cXX: dano reduzido em 80%
+            const danoGiro = Math.round(dmgSkill(player, 'giro_descontrolado', 18) * 0.2);
             slimes.forEach(slime => {
                 if (slime.hp > 0 && Math.hypot(slime.x - tx, slime.y - ty) < 90) {
-                    registrarDanoMonstro(slime, pid, danoGiro, 'player');
+                    registrarDanoMonstro(slime, pid, danoGiro, 'player', undefined, undefined, 0.5);
                     efeitos.aplicarEfeito(slime, 'sangramento', 80, 3);
                 }
             });
             bosses.forEach(boss => {
                 if (boss.hp > 0 && Math.hypot(boss.x - tx, boss.y - ty) < 90) {
-                    registrarDanoBoss(boss, pid, danoGiro, 'skill', 'player');
+                    registrarDanoBoss(boss, pid, danoGiro, 'skill', 'player', undefined, undefined, 0.5);
                     efeitos.aplicarEfeito(boss, 'sangramento', 80, 3);
                 }
             });
@@ -9163,9 +10656,10 @@ setInterval(() => {
 
             try {
                 if (ogro.colossalAtivo) {
-                    ogro.colossalTimer--;
+                    ogro.colossalTimer = Math.max(0, Math.ceil((ogro.colossalExpiresAt - agora) / 50));
                     if (ogro.colossalTimer <= 0) {
                         ogro.colossalAtivo = false;
+                        ogro.colossalExpiresAt = 0;
                         wss.clients.forEach((client) => {
                             if (client.readyState === WebSocket.OPEN) {
                                 client.send(JSON.stringify({ type: 'action_ogro_colossal_fim', pid: pid }));
@@ -9279,6 +10773,7 @@ setInterval(() => {
             } catch (eColossal) {
                 console.error('[ERRO GOLEM COLOSSAL]', eColossal);
                 ogro.colossalAtivo = false;
+                ogro.colossalExpiresAt = 0;
             }
 
             // Regeneração lenta do golem (não morre sozinho aguentando o agro)
@@ -10247,7 +11742,12 @@ setInterval(() => {
         for (let pid in players) {
             let p = players[pid];
             if (p.mana === undefined) { p.mana = p.maxMp || 50; continue; }
-            if (!p.maxMp) p.maxMp = calcularMaxMp(p);
+            if (p.classe === lordMalakar.CONFIG.classId) {
+                p.maxMp = 0;
+                p.mana = 0;
+            } else if (!p.maxMp) {
+                p.maxMp = calcularMaxMp(p);
+            }
             let regen = Math.max(1, Math.ceil(p.maxMp * 0.03));
             let wsTarget = playerSockets[pid];
 
@@ -10266,8 +11766,10 @@ setInterval(() => {
                     regen += 12;
                 }
                 // 4. SELVA PROIBIDA: Vitalidade Primordial (+4 HP a cada 0.5s)
-                if (typeof mapaMundo.ehSelva === 'function' && mapaMundo.ehSelva(p.x, p.y) && p.hp < p.maxHp) {
-                    p.hp = Math.min(p.maxHp, p.hp + 4);
+                const hpCap = p.classe === lordMalakar.CONFIG.classId
+                    ? lordMalakar.availableMaxHp(p) : p.maxHp;
+                if (typeof mapaMundo.ehSelva === 'function' && mapaMundo.ehSelva(p.x, p.y) && p.hp < hpCap) {
+                    p.hp = Math.min(hpCap, p.hp + 4);
                     if (wsTarget && wsTarget.readyState === WebSocket.OPEN) {
                         wsTarget.send(JSON.stringify({ type: 'hp_sync', hp: p.hp, maxHp: p.maxHp }));
                     }
@@ -10862,6 +12364,18 @@ setInterval(() => {
                 if (p.tipo === 'cogumelo_veneno' && efeitos) {
                     efeitos.aplicarEfeito(player, 'veneno', 100, 1);
                     efeitos.aplicarEfeito(player, 'confusao', 100, 1);
+                    const cogumelo = slimes.find(function (monstro) {
+                        return monstro && monstro.id === p.ownerMonstro &&
+                            monstro.tipo === 'cogumelo_proibido';
+                    });
+                    if (cogumelo) {
+                        enviarEventoSlimeElite(cogumelo, 'cogumelo_veneno_acerto', {
+                            x: p.x,
+                            y: p.y,
+                            soundKey: 'monster_mushroom_hit:' + cogumelo.id + ':' + pid + ':' + Date.now(),
+                            duration: 5000
+                        });
+                    }
                 }
                 if (p.tipo === 'louva_folha' && efeitos) {
                     efeitos.aplicarEfeito(player, 'selva_ataque_lento', 100, 0.4);
@@ -10944,7 +12458,7 @@ setInterval(() => {
         if (!removido) for (let s of slimes) {
             if (pp.origemBasica && pp.alvoId && (pp.alvoTipo !== 'slime' || String(s.id) !== String(pp.alvoId))) continue;
             if (s.hp > 0 && Math.hypot(s.x - pp.x, s.y - pp.y) < 30) {
-                registrarDanoMonstro(s, pp.ownerId, pp.dano);
+                registrarDanoMonstro(s, pp.ownerId, pp.dano, pp.danoFixo ? 'fixed' : undefined);
                 if (pp.tipo === 'magia_gelo') {
                     s.hitsGeloBasico = (s.hitsGeloBasico || 0) + 1;
                     if (s.hitsGeloBasico >= 3) {
@@ -10965,7 +12479,8 @@ setInterval(() => {
             for (let bb of bosses) {
                 if (pp.origemBasica && pp.alvoId && (pp.alvoTipo !== 'boss' || String(bb.id) !== String(pp.alvoId))) continue;
                 if (bb.hp > 0 && Math.hypot(bb.x - pp.x, bb.y - pp.y) < 82) {
-                    registrarDanoBoss(bb, pp.ownerId, pp.dano, pp.origemBasica ? 'basico' : 'skill');
+                    registrarDanoBoss(bb, pp.ownerId, pp.dano, pp.origemBasica ? 'basico' : 'skill',
+                        pp.danoFixo ? 'fixed' : undefined);
                     if (pp.tipo === 'magia_gelo') {
                         bb.hitsGeloBasico = (bb.hitsGeloBasico || 0) + 1;
                         if (bb.hitsGeloBasico >= 3) {
@@ -11003,7 +12518,7 @@ setInterval(() => {
         }
         if (!removido) {
             const p1 = players[pp.ownerId];
-            const targetedPet = pp.origemBasica && pp.alvoTipo === 'pet'
+            const targetedPet = pp.origemBasica && (pp.alvoTipo === 'pet' || pp.alvoTipo === 'malakar_summon')
                 ? petRuntimeDoId(pp.alvoId)
                 : null;
             const petTargets = targetedPet ? [targetedPet] : Object.values(petsAtivos);
@@ -11011,11 +12526,16 @@ setInterval(() => {
                 const owner = pet && players[pet.owner_id];
                 if (!p1 || !p1.pvpAtivo || !owner || pet.hp <= 0 ||
                     !pvpPodeAtacar(pp.ownerId, pet.owner_id) ||
-                    !validarOwnerPet(pet.owner_id, pet) ||
+                    (!pet.lordMalakarSummon && !validarOwnerPet(pet.owner_id, pet)) ||
                     (pp.origemBasica && pp.alvoId && pet.pet_instance_id !== pp.alvoId) ||
                     (pp.mapa && pp.mapa !== mapaPorCoordenada(pet.x)) ||
+                    !instanciaCompativel(p1, pet) ||
                     Math.hypot(pet.x - pp.x, pet.y - pp.y) >= (pp.raio || 5) + PET_COLLISION_RADIUS) continue;
-                aplicarDanoAtaquePet(pp.ownerId, 'pet', pet.pet_instance_id, pp.dano, 'skill');
+                if (pet.lordMalakarSummon) {
+                    aplicarDanoEntidadeLordMalakar(pet.id, pp.dano, pp.ownerId);
+                } else {
+                    aplicarDanoAtaquePet(pp.ownerId, 'pet', pet.pet_instance_id, pp.dano, 'skill');
+                }
                 if (!pp.perfurante) {
                     playerProjeteis.splice(i, 1);
                     removido = true;
@@ -11251,6 +12771,7 @@ setInterval(() => {
         garantirOrigemInimigo(slime);
 
         if (slime.retornandoAoLar) {
+            atualizarRegeneracaoMonstroAposPerderAgro(slime, Date.now());
             moverInimigoParaOrigem(slime, fatorLentidao);
             return;
         }
@@ -11258,11 +12779,11 @@ setInterval(() => {
         if (!slime.flagPassivo && slime.tauntTimer > 0 && (players[slime.tauntId] || lacaios[slime.tauntId])) {
             slime.targetId = slime.tauntId;
         } else if (permiteAgroProximidade && !slime.targetId) {
-            let menorDist = slime.aggroRange || 320;
+            let menorDist = Math.min(slime.aggroRange || 320, DISTANCIA_MAXIMA_PERSEGUICAO_MONSTRO);
             let alvoProximo = null;
             for (let pid in players) {
                 let p = players[pid];
-                if (p.hp <= 0) continue;
+                if (p.hp <= 0 || (p.mapaCarregamentoAte || 0) > Date.now()) continue;
                 // Monstros Solari só podem adquirir jogadores da própria sessão.
                 if (slime.solari && !solariEmSessao(pid)) continue;
                 if (!slime.solari && solariEmSessao(pid)) continue;
@@ -11316,10 +12837,16 @@ setInterval(() => {
                 slime.targetId = null;
                 return;
             }
-            let dx = alvo.x - slime.x;
-            let dy = alvo.y - slime.y;
+            if (alvo === players[slime.targetId] && (alvo.mapaCarregamentoAte || 0) > Date.now()) {
+                slime.targetId = null;
+                slime.ataqueTelegraph = null;
+                return;
+            }
+            const pontoAlvo = pontoAlvoAtaqueMonstro(slime, alvo);
+            let dx = pontoAlvo.x - slime.x;
+            let dy = pontoAlvo.y - slime.y;
             let dist = Math.hypot(dx, dy);
-            let distanciaDesiste = Math.max(slime.aggroRange || 320, DISTANCIA_RETORNO_INIMIGO);
+            let distanciaDesiste = DISTANCIA_MAXIMA_PERSEGUICAO_MONSTRO;
 
             if (mapaPorCoordenada(slime.x) !== mapaPorCoordenada(alvo.x) || dist > distanciaDesiste) {
                 slime.targetId = null;
@@ -11329,12 +12856,14 @@ setInterval(() => {
                 slime.skillChargeTimer = 0;
                 slime.skillAim = null;
                 slime.attackCooldown = 0;
+                iniciarRegeneracaoMonstroAposPerderAgro(slime, Date.now());
                 return;
             }
+            slime.aiHpRegenUltimaAtualizacao = null;
 
             if (slime.arquetipo && atualizarMonstroEspecial(slime, alvo, dx, dy, dist, fatorLentidao)) {
                 return;
-            } else if (slime.tipo === "melee" || slime.tipo === "globin" || (slime.tipo === "ranged" && slime.ehMelee)) {
+            } else if (monstroUsaAtaqueMeleeBasico(slime)) {
                 const alcanceMelee = slime.attackRange || 55;
                 if (dist > alcanceMelee && !slime.ataqueTelegraph) {
                     let velSlime = velocidadeMovimentoMonstro((slime.velocidade || 3.2) * fatorLentidao);
@@ -12264,6 +13793,23 @@ if (g.hp <= 0) {
         let p = players[pid];
         playersVisivel[pid] = Object.assign({}, p);
         delete playersVisivel[pid].inventario;
+        delete playersVisivel[pid].lordMalakar;
+        delete playersVisivel[pid].druaaseHemorragiaTempoAndando;
+        delete playersVisivel[pid].druaaseHemorragiaUltimaAtualizacao;
+        delete playersVisivel[pid].druaaseHemorragiaUltimaPosicaoX;
+        delete playersVisivel[pid].druaaseHemorragiaUltimaPosicaoY;
+        delete playersVisivel[pid].druaaseHemorragiaOrigemX;
+        delete playersVisivel[pid].druaaseHemorragiaOrigemY;
+        playersVisivel[pid].lordMalakarPetrifiedHp = lordMalakar.petrifiedHp(p);
+        playersVisivel[pid].lordMalakarPetrifiedPercent = lordMalakar.petrifiedPercent(lordMalakar.getState(p));
+        const lordState = lordMalakar.getState(p);
+        playersVisivel[pid].lordMalakarSuffering = !!(lordState && lordState.sufferingActive);
+        playersVisivel[pid].lordMalakarBuffAtivo = lordMalakarSofrimentoBuffAtivo(p, false);
+        playersVisivel[pid].lordMalakarBasicTether = p.lordMalakarBasicTether
+            ? Object.assign({}, p.lordMalakarBasicTether) : null;
+        playersVisivel[pid].lordMalakarLink = lordState && lordState.link
+            ? { targetIds: lordState.link.targetIds.slice(), expiresAt: lordState.link.expiresAt }
+            : null;
         // Expõe dados básicos da arma para visual (v1.39.6)
         let armaSlot = p.inventario && p.inventario.slots && p.inventario.slots.arma;
         playersVisivel[pid].armaVisual = armaSlot ? { nome: armaSlot.nome, raridade: armaSlot.raridade, customVisual: armaSlot.customVisual || null } : null;
@@ -12351,7 +13897,8 @@ if (g.hp <= 0) {
             playerProjeteis: filtrarPorMapa(playerProjeteis, mapaCliente, instanciaCliente),
             lacaios: Object.fromEntries(Object.entries(lacaios).filter(function (entry) { return entidadeNoMapa(entry[1], mapaCliente, instanciaCliente); })), 
             pets: Object.fromEntries(Object.entries(petsAtivos).filter(function (entry) {
-                return entidadeNoMapa(entry[1], mapaCliente, instanciaCliente);
+                return !entry[1].lordMalakarSummon &&
+                    entidadeNoMapa(entry[1], mapaCliente, instanciaCliente);
             }).map(function (entry) {
                 const pet = entry[1];
                 return [entry[0], {
@@ -12383,6 +13930,18 @@ if (g.hp <= 0) {
                     instanciaId: pet.instanciaId || null
                 }];
             })),
+            lordMalakarEntities: Object.fromEntries(Object.entries(lordMalakarEntities)
+                .filter(function (entry) {
+                    return entry[1].lordMalakarSummon &&
+                        entidadeNoMapa(entry[1], mapaCliente, instanciaCliente);
+                })
+                .map(function (entry) {
+                    const entity = entry[1];
+                    const owner = players[entity.owner_id];
+                    return [entry[0], Object.assign({}, entity, {
+                        lordMalakarBuffActive: !!(owner && lordMalakarSofrimentoBuffAtivo(owner, true))
+                    })];
+                })),
             bandas: Object.fromEntries(Object.entries(bandas).filter(function (entry) { return players[entry[0]] && (clienteEmSolari ? solariEmSessao(entry[0]) : (mapaPorCoordenada(players[entry[0]].x + PLAYER_OFFSET_X) === mapaCliente && (!mapaEhInstanciado(mapaCliente) || players[entry[0]].instanciaId === instanciaCliente))); })),
             bosses: filtrarPorMapa(bosses, mapaCliente, instanciaCliente),
             drops: filtrarPorMapa(dropsChao, mapaCliente, instanciaCliente),
@@ -12407,13 +13966,18 @@ if (g.hp <= 0) {
 const MAX_PERSONAGENS_POR_CONTA = 10;
 const TAMANHO_MIN_NOME = 3;
 const TAMANHO_MAX_NOME = 16;
+const SESSAO_VISITANTE_TTL_MS = 24 * 60 * 60 * 1000;
+const JANELA_NOVO_VISITANTE_MS = 10 * 60 * 1000;
+const LIMITE_NOVOS_VISITANTES_POR_IP = 8;
+const sessoesVisitante = new Map();
+const emissoesVisitantePorIp = new Map();
 const PASTA_CHAR_DELETADOS = path.join(__dirname, 'Char deletados');
 const PALAVRAS_PROIBIDAS_NOME = ['admin', 'administrator', 'moderador', 'moderator', 'suporte', 'game_master', 'gamemaster', 'staff', 'owner', 'root'];
 
 // Ações aceitas enquanto o jogador ainda não escolheu um personagem.
 // Qualquer outra ação é descartada: nada de gameplay antes da confirmação.
 const ACOES_ANTES_DA_SELECAO = [
-    'login', 'google_login', 'personagem_listar', 'personagem_verificar_nome',
+    'login', 'google_login', 'guest_login', 'personagem_listar', 'personagem_verificar_nome',
     'personagem_criar', 'personagem_deletar', 'personagem_selecionar',
     'ping', 'client_error', 'client_estado'
 ];
@@ -12450,7 +14014,63 @@ function personagemPertenceAConta(nome, contaId) {
 }
 
 function contaAutenticada(ws) {
-    return !!(ws && (ws._googleAuthenticated || ws._localIdAuthenticated));
+    return !!(ws && (ws._googleAuthenticated || ws._localIdAuthenticated || ws._guestAuthenticated));
+}
+
+function contaPodeGerenciarPersonagens(ws) {
+    return !!(ws && (ws._googleAuthenticated || ws._guestAuthenticated));
+}
+
+function autenticarVisitante(ws, tokenRecebido, enderecoRemoto) {
+    if (!ws || ws._charSelecionado || contaAutenticada(ws)) {
+        return { ok: false, mensagem: 'Esta conexão já possui uma sessão autenticada.' };
+    }
+
+    const token = typeof tokenRecebido === 'string' ? tokenRecebido : '';
+    const agora = Date.now();
+    let sessao;
+    if (token) {
+        if (!/^[a-f0-9]{64}$/.test(token)) {
+            return { ok: false, mensagem: 'Sessão visitante inválida. Clique novamente para entrar.' };
+        }
+        sessao = sessoesVisitante.get(token);
+        if (!sessao || sessao.expiraEm <= agora) {
+            sessoesVisitante.delete(token);
+            return { ok: false, mensagem: 'Sessão visitante expirada. Clique novamente para entrar.' };
+        }
+    } else {
+        for (const [chave, valor] of sessoesVisitante) {
+            if (valor.expiraEm <= agora) sessoesVisitante.delete(chave);
+        }
+        for (const [chave, valor] of emissoesVisitantePorIp) {
+            if (valor.inicio + JANELA_NOVO_VISITANTE_MS <= agora) emissoesVisitantePorIp.delete(chave);
+        }
+        const ip = String(enderecoRemoto || 'desconhecido').replace(/^::ffff:/, '');
+        let limite = emissoesVisitantePorIp.get(ip);
+        if (!limite || limite.inicio + JANELA_NOVO_VISITANTE_MS <= agora) {
+            limite = { inicio: agora, total: 0 };
+        }
+        if (limite.total >= LIMITE_NOVOS_VISITANTES_POR_IP) {
+            return { ok: false, mensagem: 'Muitas contas visitantes criadas neste endereço. Tente novamente mais tarde.' };
+        }
+        limite.total++;
+        emissoesVisitantePorIp.set(ip, limite);
+        const tokenNovo = crypto.randomBytes(32).toString('hex');
+        sessao = { contaId: 'visitor:' + tokenNovo, expiraEm: agora + SESSAO_VISITANTE_TTL_MS };
+        sessoesVisitante.set(tokenNovo, sessao);
+        return associarSessaoVisitante(ws, tokenNovo, sessao);
+    }
+    sessao.expiraEm = agora + SESSAO_VISITANTE_TTL_MS;
+    return associarSessaoVisitante(ws, token, sessao);
+}
+
+function associarSessaoVisitante(ws, token, sessao) {
+    ws._guestAuthenticated = true;
+    ws._guestToken = token;
+    ws._contaId = sessao.contaId;
+    ws.ehAdminContaGlobal = false;
+    ws.ehAdminCliente = false;
+    return { ok: true, token: token, contaId: sessao.contaId };
 }
 
 function diagnosticoMascaraRaster(mask) {
@@ -12659,6 +14279,24 @@ wss.on('connection', (ws) => {
                 return;
             }
 
+            if (data.action === 'guest_login') {
+                const remoteAddress = String(ws._socket && ws._socket.remoteAddress || 'desconhecido');
+                const resultadoVisitante = autenticarVisitante(ws, data.token, remoteAddress);
+                if (!resultadoVisitante.ok) {
+                    ws.send(JSON.stringify({ type: 'login_erro', mensagem: resultadoVisitante.mensagem }));
+                    return;
+                }
+                ws.send(JSON.stringify({
+                    type: 'personagens_lista',
+                    conta: resultadoVisitante.contaId,
+                    maximo: MAX_PERSONAGENS_POR_CONTA,
+                    personagens: listarPersonagensDaConta(resultadoVisitante.contaId),
+                    visitorLogin: true,
+                    guestToken: resultadoVisitante.token
+                }));
+                return;
+            }
+
             if (data.action === 'personagem_listar') {
                 if (!contaAutenticada(ws) || !ws._contaId) return;
                 ws.send(JSON.stringify({
@@ -12672,7 +14310,7 @@ wss.on('connection', (ws) => {
             }
 
             if (data.action === 'personagem_verificar_nome') {
-                if (!ws._googleAuthenticated || !ws._contaId) return;
+                if (!contaPodeGerenciarPersonagens(ws) || !ws._contaId) return;
                 const entrada = typeof data.personagem === 'string' ? data.personagem : '';
                 const verificado = validarNomePersonagem(entrada);
                 if (!verificado.ok) {
@@ -12690,7 +14328,7 @@ wss.on('connection', (ws) => {
             }
 
             if (data.action === 'personagem_criar') {
-                if (!ws._googleAuthenticated || !ws._contaId) return;
+                if (!contaPodeGerenciarPersonagens(ws) || !ws._contaId) return;
                 const contaId = ws._contaId;
                 const atuais = listarPersonagensDaConta(contaId);
                 if (atuais.length >= MAX_PERSONAGENS_POR_CONTA) {
@@ -12746,7 +14384,7 @@ wss.on('connection', (ws) => {
             }
 
             if (data.action === 'personagem_deletar') {
-                if (!ws._googleAuthenticated || !ws._contaId) return;
+                if (!contaPodeGerenciarPersonagens(ws) || !ws._contaId) return;
                 const contaId = ws._contaId;
                 const nomeDel = String(data.personagem || '').trim();
                 if (!nomeDel || !personagemPertenceAConta(nomeDel, contaId)) {
@@ -12772,6 +14410,7 @@ wss.on('connection', (ws) => {
                     if (playerSockets[idOnline] && playerSockets[idOnline] !== ws) {
                         try { playerSockets[idOnline].close(); } catch (e) {}
                     }
+                    removerEntidadesLordMalakar(players[idOnline]);
                     delete players[idOnline];
                     delete playerSockets[idOnline];
                     delete lacaios[idOnline];
@@ -12877,6 +14516,7 @@ wss.on('connection', (ws) => {
                     uiLayout: normalizarUiLayout(dadosSalvos && dadosSalvos.uiLayout),
                     isDashing: false,
                     mapaTransicaoAte: 0,
+                    mapaCarregamentoAte: 0,
                     furiaTimer: 0,
                     giroDescontroladoTimer: 0,
                     giroDescontroladoCooldown: 0,
@@ -12953,6 +14593,10 @@ aaCometasCooldown: 0,
                 players[playerId].maxHp = calcularMaxHp(players[playerId]);
                 if (players[playerId].hp > players[playerId].maxHp) players[playerId].hp = players[playerId].maxHp;
                 players[playerId].maxMp = calcularMaxMp(players[playerId]);
+                if (players[playerId].classe === lordMalakar.CONFIG.classId) {
+                    players[playerId].mana = 0;
+                    players[playerId].maxMp = 0;
+                }
                 if (players[playerId].mana > players[playerId].maxMp) players[playerId].mana = players[playerId].maxMp;
                 // Anti-hack (defesa em profundidade): revalida level/xp vindos do
                 // disco. Registros forjados por versões antigas do
@@ -13474,11 +15118,17 @@ aaCometasCooldown: 0,
                 let hpSeguinte = pP.hp;
                 let manaSeguinte = pP.mana || 0;
                 if (subtipo === 'pocao_mp') {
+                    if (pP.classe === lordMalakar.CONFIG.classId) {
+                        ws.send(JSON.stringify({ type: 'pocao_indisponivel', subtipo: subtipo }));
+                        return;
+                    }
                     let curaMp = Math.round((pP.maxMp || 50) * pct);
                     manaSeguinte = Math.min(pP.maxMp || 50, manaSeguinte + curaMp);
                 } else {
                     let curaHp = Math.round((pP.maxHp || 100) * pct);
-                    hpSeguinte = Math.min(pP.maxHp || 100, hpSeguinte + curaHp);
+                    const hpCap = pP.classe === lordMalakar.CONFIG.classId
+                        ? lordMalakar.availableMaxHp(pP) : pP.maxHp || 100;
+                    hpSeguinte = Math.min(hpCap, hpSeguinte + curaHp);
                 }
                 // consome 1 unidade
                 pocaoSeguinte.quantidade = (pocaoSeguinte.quantidade || 1) - 1;
@@ -13682,6 +15332,47 @@ aaCometasCooldown: 0,
                 } catch (e) {
                     console.error('[INVENTARIO] Falha ao persistir destruição:', e && e.stack ? e.stack : e);
                     ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Item não destruído: falha ao salvar.' }));
+                    return;
+                }
+                p.inventario = inventarioSeguinte;
+                ws.send(JSON.stringify({ type: 'inventario_sync', inventario: p.inventario }));
+                return;
+            }
+            if (data.action === 'destruir_itens') {
+                const p = players[playerId];
+                if (!p || !p.inventario || !Array.isArray(p.inventario.mochila) ||
+                    !Array.isArray(data.ids) || data.ids.length < 1 || data.ids.length > 100) {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Seleção de descarte inválida.' }));
+                    return;
+                }
+                const ids = Array.from(new Set(data.ids.map(function (id) {
+                    return id == null ? '' : String(id);
+                })));
+                if (ids.length !== data.ids.length || ids.some(function (id) { return !id; })) {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'A seleção contém itens inválidos ou repetidos.' }));
+                    return;
+                }
+                const itensSelecionados = ids.map(function (id) {
+                    return p.inventario.mochila.find(function (item) { return String(item.id) === id; });
+                });
+                if (itensSelecionados.some(function (item) { return !item; })) {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Um ou mais itens não estão mais na mochila.' }));
+                    return;
+                }
+                if (itensSelecionados.some(function (item) { return item.locked; })) {
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Desbloqueie todos os itens selecionados antes de destruí-los.' }));
+                    return;
+                }
+                const inventarioSeguinte = clonarInventario(p.inventario);
+                const idsSelecionados = new Set(ids);
+                inventarioSeguinte.mochila = inventarioSeguinte.mochila.filter(function (item) {
+                    return !idsSelecionados.has(String(item.id));
+                });
+                try {
+                    salvarProgresso(userId, { inventario: inventarioSeguinte });
+                } catch (e) {
+                    console.error('[INVENTARIO] Falha ao persistir destruição em lote:', e && e.stack ? e.stack : e);
+                    ws.send(JSON.stringify({ type: 'inventario_erro', motivo: 'Itens não destruídos: falha ao salvar.' }));
                     return;
                 }
                 p.inventario = inventarioSeguinte;
@@ -14117,7 +15808,10 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     semCooldown: false
                 }, p.adminCheats || {}, data.cheats || {});
 
-                if (p.adminCheats.vidaInfinita) p.hp = p.maxHp;
+                if (p.adminCheats.vidaInfinita) {
+                    p.hp = p.classe === lordMalakar.CONFIG.classId
+                        ? lordMalakar.availableMaxHp(p) : p.maxHp;
+                }
                 if (p.adminCheats.manaInfinita) p.mana = p.maxMp;
 
                 console.log('[ADMIN CHEATS]', p.nome || playerId, 'atualizou cheats:', p.adminCheats);
@@ -14145,8 +15839,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     p.pontosDisponiveis = (p.pontosDisponiveis === undefined ? 0 : p.pontosDisponiveis) + (diff * PONTOS_POR_LEVEL);
                     p.pontosHabilidade = (p.pontosHabilidade || 0) + diff;
                     p.maxHp = calcularMaxHp(p);
-                    p.maxMp = calcularMaxMp(p);
-                    p.hp = p.maxHp;
+                    p.maxMp = p.classe === lordMalakar.CONFIG.classId ? 0 : calcularMaxMp(p);
+                    p.hp = p.classe === lordMalakar.CONFIG.classId
+                        ? lordMalakar.availableMaxHp(p) : p.maxHp;
                     p.mana = p.maxMp;
                     if (lacaios[playerId]) {
                         let novaVidaPet = calcularVidaPet(p);
@@ -14209,8 +15904,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 p.pontosHabilidade = 0;
                 p.skillUpgrades = {};
                 p.maxHp = calcularMaxHp(p);
-                p.maxMp = calcularMaxMp(p);
-                p.hp = p.maxHp;
+                p.maxMp = p.classe === lordMalakar.CONFIG.classId ? 0 : calcularMaxMp(p);
+                p.hp = p.classe === lordMalakar.CONFIG.classId
+                    ? lordMalakar.availableMaxHp(p) : p.maxHp;
                 p.mana = p.maxMp;
                 if (lacaios[playerId]) {
                     let novaVidaPet = calcularVidaPet(p);
@@ -14245,6 +15941,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 ws.send(JSON.stringify({
                     type: 'atributos_resetados',
                     atributos: p.atributos,
+                    atributosTotais: atributosTotais(p),
                     pontos: p.pontosDisponiveis,
                     maxHp: p.maxHp,
                     maxMp: p.maxMp,
@@ -15002,6 +16699,15 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 if (!data.atributo || ATRIBUTOS.indexOf(data.atributo) === -1) return;
                 if (!p.atributos) p.atributos = atributosIniciais();
                 if ((p.pontosDisponiveis || 0) <= 0) return;
+                if (data.atributo === 'agilidade' &&
+                    (getAtr(p, 'agilidade') - 1) * AGILIDADE_MOVIMENTO_BONUS_POR_PONTO >= AGILIDADE_MOVIMENTO_BONUS_MAXIMO) {
+                    ws.send(JSON.stringify({
+                        type: 'atributo_limite',
+                        atributo: 'agilidade',
+                        mensagem: 'A Agilidade já atingiu o limite de +50% de velocidade de movimento.'
+                    }));
+                    return;
+                }
 
                 p.atributos[data.atributo]++;
                 p.pontosDisponiveis--;
@@ -15044,6 +16750,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     type: 'ponto_distribuido',
                     atributo: data.atributo,
                     atributos: p.atributos,
+                    atributosTotais: atributosTotais(p),
                     pontos: p.pontosDisponiveis,
                     maxHp: p.maxHp,
                     maxMp: p.maxMp,
@@ -15075,7 +16782,13 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (v > 1) gastos += v - 1;
                 });
                 if (gastos <= 0) {
-                    ws.send(JSON.stringify({ type: 'atributos_resetados', atributos: p.atributos, pontos: p.pontosDisponiveis || 0, maxHp: p.maxHp }));
+                    ws.send(JSON.stringify({
+                        type: 'atributos_resetados',
+                        atributos: p.atributos,
+                        atributosTotais: atributosTotais(p),
+                        pontos: p.pontosDisponiveis || 0,
+                        maxHp: p.maxHp
+                    }));
                     return;
                 }
 
@@ -15104,6 +16817,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 ws.send(JSON.stringify({
                     type: 'atributos_resetados',
                     atributos: p.atributos,
+                    atributosTotais: atributosTotais(p),
                     pontos: p.pontosDisponiveis,
                     maxHp: p.maxHp,
                     maxMp: p.maxMp,
@@ -15647,6 +17361,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 players[playerId].x = destinoRespawnPrioritario ? destinoRespawnPrioritario.x : CIDADE_SPAWN_X;
                 players[playerId].y = destinoRespawnPrioritario ? destinoRespawnPrioritario.y : CIDADE_SPAWN_Y;
                 players[playerId].mapaTransicaoAte = 0;
+                players[playerId].mapaCarregamentoAte = 0;
                 delete bateriaCanal[playerId];
                 if (players[playerId].classe === 'summoner') {
                     delete petRespawnTimer[playerId];
@@ -15782,6 +17497,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     'ataque_dronemaster', 'dronemaster_supressao', 'dronemaster_assalto', 'dronemaster_caixa', 'dronemaster_tita',
                     'ataque_arqueiro_arcano', 'arqueiro_cometas', 'arqueiro_orbe', 'arqueiro_cascata',
                     'ataque_sniper', 'sniper_apontar', 'sniper_fogo', 'sniper_rede', 'sniper_camuflagem', 'sniper_posicao',
+                    'ataque_lord_malakar', lordMalakar.CONFIG.skills.summonSkull.id,
+                    lordMalakar.CONFIG.skills.mortalBond.id, lordMalakar.CONFIG.skills.eternalSuffering.id,
+                    lordMalakar.CONFIG.skills.randomSummon.id,
                     'ataque_pikeman', 'pikeman_giro', 'pikeman_pirueta', 'pikeman_geada', 'pikeman_execucao', 'ataque_florim', 'florim_arvore', 'florim_semente', 'florim_espinhos', 'florim_parede',
                     'ataque_kaledron', 'kaledron_golpe_fulminante', 'kaledron_impacto_terrestre', 'kaledron_redemoinho', 'kaledron_brado_guerra'
                 ];
@@ -15831,16 +17549,121 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (acoesDuranteRajada.indexOf(data.action) !== -1) return;
                 }
 
+                if (data.action === lordMalakar.CONFIG.skills.summonSkull.id ||
+                    data.action === lordMalakar.CONFIG.skills.mortalBond.id ||
+                    data.action === lordMalakar.CONFIG.skills.eternalSuffering.id ||
+                    data.action === lordMalakar.CONFIG.skills.randomSummon.id) {
+                    const pMalakar = players[playerId];
+                    if (!pMalakar || pMalakar.classe !== lordMalakar.CONFIG.classId || pMalakar.hp <= 0) {
+                        ws.send(JSON.stringify({ type: 'skill_aviso', skill: data.action, motivo: 'classe_invalida' }));
+                        return;
+                    }
+                    const now = Date.now();
+                    let result;
+                    if (data.action === lordMalakar.CONFIG.skills.summonSkull.id) {
+                        result = lordMalakar.summonSkull(pMalakar, now);
+                        if (result.ok) {
+                            aplicarHerancaAtributosLordMalakar(result.entity, pMalakar);
+                            Object.assign(result.entity, {
+                                owner_id: playerId,
+                                ownerId: playerId,
+                                pet_instance_id: result.entity.id,
+                                lordMalakarSummon: true,
+                                state: 'FOLLOW',
+                                mode: 'ATK',
+                                mapa: mapaPorCoordenada(pMalakar.x + PLAYER_OFFSET_X),
+                                instanciaId: pMalakar.instanciaId || null,
+                                solari: !!solariEmSessao(playerId),
+                                solariInstanceId: pMalakar.instanciaId || null
+                            });
+                            lordMalakarEntities[result.entity.id] = result.entity;
+                            pMalakar.lordMalakarTarget = null;
+                            enviarParaMapaDoJogador(playerId, 'lord_malakar_summon', {
+                                ownerId: playerId, entity: result.entity, petrifiedHp: lordMalakar.petrifiedHp(pMalakar)
+                            });
+                        }
+                    } else if (data.action === lordMalakar.CONFIG.skills.mortalBond.id) {
+                        const px = pMalakar.x + PLAYER_OFFSET_X;
+                        const py = pMalakar.y + PLAYER_OFFSET_Y;
+                        const targets = slimes.filter(function (mob) {
+                            return mob && mob.hp > 0 &&
+                                mapaPorCoordenada(mob.x) === mapaPorCoordenada(px) &&
+                                instanciaCompativel(pMalakar, mob) &&
+                                Math.hypot(mob.x - px, mob.y - py) <= lordMalakar.CONFIG.linkBreakDistance;
+                        }).sort(function (a, b) {
+                            return Math.hypot(a.x - px, a.y - py) - Math.hypot(b.x - px, b.y - py);
+                        }).slice(0, lordMalakar.CONFIG.skills.mortalBond.maxTargets)
+                            .map(function (mob) { return mob.id; });
+                        result = lordMalakar.linkTargets(pMalakar, targets, now);
+                        if (result.ok) {
+                            enviarParaMapaDoJogador(playerId, 'lord_malakar_link', {
+                                ownerId: playerId, link: result.link
+                            });
+                        }
+                    } else if (data.action === lordMalakar.CONFIG.skills.eternalSuffering.id) {
+                        result = lordMalakar.toggleSuffering(pMalakar, now);
+                        if (result.ok) {
+                            enviarParaMapaDoJogador(playerId, 'lord_malakar_suffering', {
+                                ownerId: playerId, active: result.active
+                            });
+                        }
+                    } else {
+                        result = lordMalakar.summonMinion(pMalakar, now);
+                        if (result.ok) {
+                            if (result.replaced) delete lordMalakarEntities[result.replaced.id];
+                            aplicarHerancaAtributosLordMalakar(result.entity, pMalakar);
+                            Object.assign(result.entity, {
+                                owner_id: playerId,
+                                ownerId: playerId,
+                                pet_instance_id: result.entity.id,
+                                lordMalakarSummon: true,
+                                state: 'FOLLOW',
+                                mode: 'ATK',
+                                mapa: mapaPorCoordenada(pMalakar.x + PLAYER_OFFSET_X),
+                                instanciaId: pMalakar.instanciaId || null,
+                                solari: !!solariEmSessao(playerId),
+                                solariInstanceId: pMalakar.instanciaId || null
+                            });
+                            lordMalakarEntities[result.entity.id] = result.entity;
+                            enviarParaMapaDoJogador(playerId, 'lord_malakar_summon', {
+                                ownerId: playerId, entity: result.entity, petrifiedHp: lordMalakar.petrifiedHp(pMalakar),
+                                replacedId: result.replaced && result.replaced.id
+                            });
+                        }
+                    }
+                    if (!result.ok) {
+                        ws.send(JSON.stringify({
+                            type: 'skill_aviso',
+                            skill: data.action,
+                            motivo: result.reason,
+                            restante: data.action === lordMalakar.CONFIG.skills.summonSkull.id
+                                ? lordMalakar.cooldownRemaining(pMalakar, data.action, now) : 0
+                        }));
+                        return;
+                    }
+                    ws.send(JSON.stringify({
+                        type: 'lord_malakar_skill_result',
+                        skill: data.action,
+                        ok: true,
+                        active: result.active,
+                        entityType: result.entity && result.entity.type,
+                        cooldownMs: result.cooldownMs || 0,
+                        petrifiedHp: lordMalakar.petrifiedHp(pMalakar),
+                        petrifiedPercent: lordMalakar.petrifiedPercent(lordMalakar.getState(pMalakar))
+                    }));
+                    return;
+                }
+
                 // ATAQUE BÁSICO DO BÁRBARO: MACHADADA ENSANGUENTADA (20 DANO + VAMPIRISMO EM FÚRIA)
                 if (data.action === 'ataque_barbaro') {
                     // GIRO DESCONTROLADO ativo: o ataque básico NÃO funciona (server-authoritative)
                     if (players[playerId].giroDescontroladoAtivo) return;
                     if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], tempoBaseAtaqueBasico(players[playerId]))) return;
-                    players[playerId].lastBasicAttack = agora;
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, players[playerId], data.alvoTipo, data.alvoId);
                     if (!alvoAuto) return; // ataque básico exige exatamente um alvo válido
+                    players[playerId].lastBasicAttack = agora;
 
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
@@ -16076,11 +17899,11 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     // Travado durante coreografias (servidor controla a posição)
                     if (pA.ladinoDancaAtivo || pA.ladinoEstrela) return;
                     if (agora - pA.lastBasicAttack < tempoAtaqueBasico(pA, tempoBaseAtaqueBasico(pA))) return;
-                    pA.lastBasicAttack = agora;
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, pA, data.alvoTipo, data.alvoId);
                     if (!alvoAuto) return;
+                    pA.lastBasicAttack = agora;
 
                     let pX = pA.x + 12;
                     let pY = pA.y + 16;
@@ -16259,9 +18082,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     if (pD.dmTitaAtivo) {
                         // Forma Robô: ataque à distância tecnológico (mesmo handler, outro dano)
                         if (Date.now() - pD.lastBasicAttack < tempoAtaqueBasico(pD, 416)) return;
-                        pD.lastBasicAttack = Date.now();
                         let alvoAutoR = validarAtaqueBasicoAlvo(playerId, pD, data.alvoTipo, data.alvoId);
                         if (!alvoAutoR) return;
+                        pD.lastBasicAttack = Date.now();
                         let pXR = pD.x + PLAYER_OFFSET_X, pYR = pD.y + PLAYER_OFFSET_Y;
                         let angR = Math.atan2(alvoAutoR.y - pYR, alvoAutoR.x - pXR);
                         let danoR = danoBasicoRobo(pD);
@@ -16275,9 +18098,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     }
                     // Drone normal: tiro à distância do Drone (range 90)
                     if (Date.now() - pD.lastBasicAttack < tempoAtaqueBasico(pD, 560)) return;
-                    pD.lastBasicAttack = Date.now();
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, pD, data.alvoTipo, data.alvoId);
                     if (!alvoAuto) return;
+                    pD.lastBasicAttack = Date.now();
                     let pX = pD.dmDroneX !== undefined ? pD.dmDroneX : (pD.x + PLAYER_OFFSET_X + 30);
                     let pY = pD.dmDroneY !== undefined ? pD.dmDroneY : (pD.y + PLAYER_OFFSET_Y - 14);
                     let angulo = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX);
@@ -16386,9 +18209,9 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     let pA = players[playerId];
                     if (!pA || pA.hp <= 0) return;
                     if (Date.now() - pA.lastBasicAttack < tempoAtaqueBasico(pA, 500)) return;
-                    pA.lastBasicAttack = Date.now();
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, pA, data.alvoTipo, data.alvoId);
                     if (!alvoAuto) return;
+                    pA.lastBasicAttack = Date.now();
                     let pX = pA.x + PLAYER_OFFSET_X, pY = pA.y + PLAYER_OFFSET_Y;
                     let angulo = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX);
                     let danoFlecha = dmgSkill(pA, 'flecha_arcana', DANO_BASE_ATAQUE_BASICO.magic);
@@ -16524,12 +18347,13 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     let pS = players[playerId];
                     if (!pS || pS.hp <= 0) return;
                     // Camuflado: disparar quebra a camuflagem
-                    if (pS.snCamuflado) finalizarCamuflagemSniper(pS, playerId, 'tiro');
                     if (pS.snAim) return; // não atira básico enquanto mira o super tiro
                     if (Date.now() - pS.lastBasicAttack < tempoAtaqueBasico(pS, 936)) return;
-                    pS.lastBasicAttack = Date.now();
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, pS, data.alvoTipo, data.alvoId);
                     if (!alvoAuto) return;
+                    pS.lastBasicAttack = Date.now();
+                    // Camuflado: um disparo aceito quebra a camuflagem.
+                    if (pS.snCamuflado) finalizarCamuflagemSniper(pS, playerId, 'tiro');
                     let pX = pS.x + PLAYER_OFFSET_X, pY = pS.y + PLAYER_OFFSET_Y;
                     let angulo = Math.atan2(alvoAuto.y - pY, alvoAuto.x - pX);
                     let danoBarrett = dmgSkill(pS, 'tiro_barrett', DANO_BASE_ATAQUE_BASICO.physicalRanged);
@@ -17187,9 +19011,9 @@ if (data.action === 'dash') {
                 if (data.action === 'ataque_florim') {
                     const p = players[playerId]; if (!p || p.classe !== 'florim') return;
                     if (!cdSkillExpirado(ws, p, 'lastFlorimBasic', 550, 'ataque_florim')) return;
-                    marcarSkillUsada(p, 'lastFlorimBasic');
                     let alvo = validarAtaqueBasicoAlvo(playerId, p, data.alvoTipo, data.alvoId);
                     if (!alvo) return;
+                    marcarSkillUsada(p, 'lastFlorimBasic');
                     const dano = dmgSkill(p, 'ataque_florim', DANO_BASE_ATAQUE_BASICO.magic);
                     aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, dano, 'natureza');
                     florimBroadcast({ type: 'action_florim_basic', id: playerId, x: p.x + PLAYER_OFFSET_X, y: p.y + PLAYER_OFFSET_Y, angulo: Number(data.angulo) || p.angulo }, p);
@@ -17675,11 +19499,11 @@ if (data.action === 'dash') {
                     if (pikemanCanais[playerId]) return;
                     if (players[playerId] && players[playerId].pikemanSkillAte && agora < players[playerId].pikemanSkillAte) return;
                     if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], tempoBaseAtaqueBasico(players[playerId]))) return;
-                    players[playerId].lastBasicAttack = agora;
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, players[playerId], data.alvoTipo, data.alvoId);
                     if (!alvoAuto) return;
+                    players[playerId].lastBasicAttack = agora;
 
                     wss.clients.forEach((client) => {
                         if (client !== ws && client.readyState === WebSocket.OPEN) {
@@ -17852,10 +19676,10 @@ if (data.action === 'dash') {
                     let pk = players[playerId];
                     if (!pk) return;
                     if (agora - pk.lastBasicAttack < tempoAtaqueBasico(pk, tempoBaseAtaqueBasico(pk))) return;
-                    pk.lastBasicAttack = agora;
 
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, pk, data.alvoTipo, data.alvoId);
                     if (!alvoAuto) return;
+                    pk.lastBasicAttack = agora;
 
                     let pX = pk.x + 12;
                     let pY = pk.y + 16;
@@ -18035,13 +19859,27 @@ if (data.action === 'dash') {
                     });
                 }
 
+                if (data.action === 'lord_malakar_focus_target') {
+                    const owner = players[playerId];
+                    if (!owner || owner.classe !== lordMalakar.CONFIG.classId) return;
+                    const target = validarAtaqueBasicoAlvo(
+                        playerId, owner, data.alvoTipo, data.alvoId
+                    );
+                    if (!target) return;
+                    owner.lordMalakarTarget = {
+                        tipo: data.alvoTipo,
+                        id: data.alvoId
+                    };
+                    return;
+                }
+
                 if (data.action === 'corte') {
                     if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], tempoBaseAtaqueBasico(players[playerId]))) return;
-                    players[playerId].lastBasicAttack = agora;
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
                     let alvoAuto = validarAtaqueBasicoAlvo(playerId, players[playerId], data.alvoTipo, data.alvoId);
                     if (!alvoAuto) return;
+                    players[playerId].lastBasicAttack = agora;
 
                     wss.clients.forEach((client) => {
                         if (client !== ws && client.readyState === WebSocket.OPEN) {
@@ -18055,7 +19893,9 @@ if (data.action === 'dash') {
                     aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, danoCorte, 'físico');
                 }
 
-                if (data.action === 'ataque_mago' || data.action === 'ataque_summoner' || data.action === 'ataque_arqueiro' || data.action === 'ataque_curandeiro') {
+                if (data.action === 'ataque_mago' || data.action === 'ataque_summoner' || data.action === 'ataque_arqueiro' || data.action === 'ataque_curandeiro' || data.action === 'ataque_lord_malakar') {
+                    if (data.action === 'ataque_lord_malakar' &&
+                        players[playerId].classe !== lordMalakar.CONFIG.classId) return;
                     if (agora - players[playerId].lastBasicAttack < tempoAtaqueBasico(players[playerId], tempoBaseAtaqueBasico(players[playerId]))) return;
 
                     // Auto-ataque com alvo informado exige validação completa no servidor
@@ -18072,6 +19912,25 @@ if (data.action === 'dash') {
                             lacaios[playerId].focoAlvo = null;
                         }
                     }
+                    if (data.action === 'ataque_lord_malakar') {
+                        const currentTether = players[playerId].lordMalakarBasicTether;
+                        const sameTetherTarget = currentTether &&
+                            currentTether.expiresAt > agora &&
+                            currentTether.targetType === data.alvoTipo &&
+                            currentTether.targetId === data.alvoId;
+                        players[playerId].lordMalakarTarget =
+                            data.alvoTipo === 'slime' || data.alvoTipo === 'boss'
+                                ? { tipo: data.alvoTipo, id: data.alvoId }
+                                : null;
+                        players[playerId].lordMalakarBasicTether = {
+                            targetType: data.alvoTipo,
+                            targetId: data.alvoId,
+                            expiresAt: agora + 900,
+                            nextTickAt: sameTetherTarget && currentTether.nextTickAt > agora
+                                ? currentTether.nextTickAt
+                                : agora + lordMalakar.CONFIG.basicAttackTickMs
+                        };
+                    }
 
                     let pX = players[playerId].x + 12;
                     let pY = players[playerId].y + 16;
@@ -18081,6 +19940,9 @@ if (data.action === 'dash') {
                     if (data.action === 'ataque_summoner') danoProj = dmgSkill(players[playerId], 'orbe', DANO_BASE_ATAQUE_BASICO.magic);
                     if (data.action === 'ataque_arqueiro') danoProj = dmgSkill(players[playerId], 'flecha', DANO_BASE_ATAQUE_BASICO.physicalRanged);
                     if (data.action === 'ataque_curandeiro') danoProj = dmgSkill(players[playerId], 'sagrado', DANO_BASE_ATAQUE_BASICO.magic);
+                    if (data.action === 'ataque_lord_malakar') {
+                        danoProj = lordMalakar.CONFIG.basicAttackDamage;
+                    }
 
                     let velocidadeProj = 10.0;
                     if (data.action === 'ataque_arqueiro') velocidadeProj = 14.0;
@@ -18088,6 +19950,9 @@ if (data.action === 'dash') {
                     // Alcance do arqueiro ~10% maior que o das classes mágicas (48 ticks x 14 = ~672px vs 600px)
                     let vidaProj = 60;
                     if (data.action === 'ataque_arqueiro') vidaProj = 48;
+                    if (data.action === 'ataque_lord_malakar') {
+                        vidaProj = Math.ceil(lordMalakar.CONFIG.basicAttackRange / velocidadeProj) + 2;
+                    }
 
                     let isGeloBasico = false;
                     if (data.action === 'ataque_mago') {
@@ -18100,16 +19965,18 @@ if (data.action === 'dash') {
                     let tipoProj = isGeloBasico ? 'magia_gelo' :
                                    (data.action === 'ataque_mago') ? 'magia' :
                                    (data.action === 'ataque_summoner') ? 'orbe' :
-                                   (data.action === 'ataque_arqueiro') ? 'flecha' : 'sagrado';
+                                   (data.action === 'ataque_arqueiro') ? 'flecha' :
+                                   (data.action === 'ataque_lord_malakar') ? 'malakar_soul' : 'sagrado';
 
                     const ownerInSolari = !!solariSessaoDoJogador(playerId);
-                    playerProjeteis.push({
+                    if (data.action !== 'ataque_lord_malakar') playerProjeteis.push({
                         ownerId: playerId,
                         x: pX,
                         y: pY,
                         vx: Math.cos(ang) * velocidadeProj,
                         vy: Math.sin(ang) * velocidadeProj,
                         dano: danoProj,
+                        danoFixo: data.action === 'ataque_lord_malakar',
                         vida: vidaProj,
                         perfurante: false,
                         tipo: tipoProj,
@@ -18122,11 +19989,16 @@ if (data.action === 'dash') {
                     let tipoAcao = isGeloBasico ? 'action_mago_tiro_gelo' :
                                    (data.action === 'ataque_mago') ? 'action_magia_basica' :
                                    (data.action === 'ataque_summoner') ? 'action_orbe' :
-                                   (data.action === 'ataque_arqueiro') ? 'action_flecha' : 'action_sagrado';
+                                   (data.action === 'ataque_arqueiro') ? 'action_flecha' :
+                                   (data.action === 'ataque_lord_malakar') ? 'action_lord_malakar_basic' : 'action_sagrado';
 
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
-                            client.send(JSON.stringify({ type: tipoAcao, id: playerId, x: pX, y: pY, vx: Math.cos(ang) * velocidadeProj, vy: Math.sin(ang) * velocidadeProj }));
+                            client.send(JSON.stringify({
+                                type: tipoAcao, id: playerId, x: pX, y: pY,
+                                vx: Math.cos(ang) * velocidadeProj, vy: Math.sin(ang) * velocidadeProj,
+                                targetX: alvoAuto.x, targetY: alvoAuto.y
+                            }));
                         }
                     });
                 }
@@ -18891,14 +20763,22 @@ if (data.action === 'dash') {
                     let ogroC = lacaios[playerId];
                     if (ogroC && ogroC.hp > 0 && !ogroC.colossalAtivo && (!ogroC.colossalCooldown || ogroC.colossalCooldown <= 0)) {
                         if (!gastarMana(ws, players[playerId], mpSkill(players[playerId], 'colossal', 40))) return;
+                        const duracaoColossal = 20000;
                         ogroC.colossalAtivo = true;
-                        ogroC.colossalTimer = 400;
+                        ogroC.colossalExpiresAt = Date.now() + duracaoColossal;
+                        ogroC.colossalTimer = Math.ceil(duracaoColossal / 50);
                         ogroC.colossalPedraCd = 0;
                         ogroC.colossalCooldown = 900;
                         ogroC.hp = Math.min(ogroC.maxHp, ogroC.hp + ogroC.maxHp * 0.5);
                         wss.clients.forEach((client) => {
                             if (client.readyState === WebSocket.OPEN) {
-                                client.send(JSON.stringify({ type: 'action_ogro_colossal', pid: playerId, x: ogroC.x, y: ogroC.y }));
+                                client.send(JSON.stringify({
+                                    type: 'action_ogro_colossal',
+                                    pid: playerId,
+                                    x: ogroC.x,
+                                    y: ogroC.y,
+                                    duracao: duracaoColossal
+                                }));
                             }
                         });
                     }
@@ -19000,11 +20880,17 @@ if (data.action === 'dash') {
                 players[playerId].x = destinoSeguro.x;
                 players[playerId].y = destinoSeguro.y;
                 players[playerId].mapaTransicaoAte = Date.now() + 500;
+                players[playerId].mapaCarregamentoAte = Date.now() + 20000;
                 if (players[playerId].classe === 'summoner' && lacaios[playerId]) {
                     lacaios[playerId].x = players[playerId].x + 30;
                     lacaios[playerId].y = players[playerId].y + 30;
                 }
                 ws.send(JSON.stringify({ type: 'teleporte_confirmado', mapa: data.mapa, x: players[playerId].x, y: players[playerId].y }));
+                return;
+            }
+            if (data.action === 'mapa_carregamento_pronto') {
+                const jogador = players[playerId];
+                if (jogador) jogador.mapaCarregamentoAte = 0;
                 return;
             }
 
@@ -19119,6 +21005,7 @@ if (data.action === 'dash') {
             Object.values(petsAtivos).forEach(function (pet) {
                 if (pet && pet.owner_id === playerId) syncPetRuntimeToProfile(pet);
             });
+            removerEntidadesLordMalakar(players[playerId]);
             salvarProgresso(userId, {
                 level: players[playerId].level,
                 xp: players[playerId].xp,
@@ -19139,6 +21026,7 @@ if (data.action === 'dash') {
                 petActiveId: players[playerId].petActiveId
             });
             despawnPetsDoOwner(playerId);
+            removerEntidadesLordMalakar(players[playerId]);
             cancelarTrade(playerId);
             // DASH v2: a roupa de camuflagem do Sniper é estado do jogador —
             // limpo aqui para não sobrar flag ao recarregar o personagem

@@ -4,6 +4,9 @@
 const inventoryScreen = document.getElementById("inventory-screen");
 const invInfo = document.getElementById("inv-info");
 window.inventarioAberto = false;
+window._modoDescarteMochila = false;
+window._itensSelecionadosDescarte = new Set();
+window._descarteMochilaPendente = false;
 window.inventario = {
     capacete: null,
     peitoral: null,
@@ -94,6 +97,25 @@ function corRaridade(item) {
         epico: '#c05cff',
         lendario: '#ffb02e'
     })[item && item.raridade] || '#8ba8c2';
+}
+
+function iconeItemInventario(item) {
+    if (item && item.tipo === 'equipamento') {
+        const iconesPorSlot = {
+            capacete: '🪖',
+            peitoral: '🛡️',
+            capa: '🧥',
+            luva: '🧤',
+            bota: '🥾',
+            anel: '💍',
+            colar: '📿'
+        };
+        if (iconesPorSlot[item.slot]) return iconesPorSlot[item.slot];
+        if (item.icon && item.icon !== '🎒') return item.icon;
+        if (item.slot === 'arma') return '⚔️';
+        if (item.slot === 'armaSecundaria') return '🛡️';
+    }
+    return item && item.icon ? item.icon : '🎒';
 }
 
 function montarTooltipItem(item) {
@@ -197,6 +219,46 @@ function ordenarChavesStatus(chaves) {
     });
 }
 
+function obterExtremosRolagens(item) {
+    const rolagens = Array.isArray(item && item.rolls) ? item.rolls : [];
+    const validas = rolagens.map(function (rolagem, indice) {
+        return { rolagem: rolagem, indice: indice, percentual: Number(rolagem && rolagem.rollPercent) };
+    }).filter(function (entry) {
+        return Number.isFinite(entry.percentual);
+    });
+    if (validas.length < 2) return null;
+    return {
+        maior: validas.reduce(function (atual, entry) {
+            return entry.percentual > atual.percentual ? entry : atual;
+        }),
+        menor: validas.reduce(function (atual, entry) {
+            return entry.percentual < atual.percentual ? entry : atual;
+        })
+    };
+}
+
+function formatarRolagemItem(rolagem, item, indice) {
+    const extremos = obterExtremosRolagens(item);
+    let classe = '';
+    let destaque = '';
+    if (extremos && extremos.maior.indice !== extremos.menor.indice) {
+        if (extremos.maior.indice === indice) {
+            classe = ' roll-mais-forte';
+            destaque = ' · MELHOR ROLAGEM';
+        } else if (extremos.menor.indice === indice) {
+            classe = ' roll-mais-fraca';
+            destaque = ' · MENOR ROLAGEM';
+        }
+    }
+    return '<div class="item-card-progressao' + classe + '">' +
+        escaparHtml(formatarNomeAtributo(rolagem.statId)) + ': ' +
+        escaparHtml(formatarNumeroStatus(rolagem.value)) + ' [' +
+        escaparHtml(formatarNumeroStatus(rolagem.min)) + '–' +
+        escaparHtml(formatarNumeroStatus(rolagem.max)) + '] · ' +
+        escaparHtml(rolagem.rollPercent) + '%' + (rolagem.perfect ? ' ★' : '') +
+        (destaque ? '<b>' + destaque + '</b>' : '') + '</div>';
+}
+
 function obterStatsItem(item) {
     let status = Object.assign({}, item && item.status || {});
     if (item && Number.isFinite(Number(item.attack)) && Number(item.attack) !== 0 &&
@@ -233,6 +295,9 @@ function abrirInventario() {
     window._mochilaItemSelecionado = null;
     window._slotEquipadoSelecionado = null;
     window._itemEquipadoSelecionadoId = null;
+    window._modoDescarteMochila = false;
+    window._itensSelecionadosDescarte.clear();
+    window._descarteMochilaPendente = false;
     inventoryScreen.style.display = "flex";
     renderizarInventario();
     renderizarMochila();
@@ -248,6 +313,9 @@ function fecharInventario() {
     window._mochilaItemSelecionado = null;
     window._slotEquipadoSelecionado = null;
     window._itemEquipadoSelecionadoId = null;
+    window._modoDescarteMochila = false;
+    window._itensSelecionadosDescarte.clear();
+    window._descarteMochilaPendente = false;
     limparComparacao();
     renderizarMochila();
     renderizarInventario();
@@ -328,7 +396,7 @@ function renderizarInventario() {
         let lockAntigo = slotEl.querySelector(':scope > .lock-ico');
         if (lockAntigo) lockAntigo.remove();
         let icone = slotEl.querySelector('.slot-ico');
-        if (icone) icone.textContent = item ? (item.icon || '🛡️') : '';
+        if (icone) icone.textContent = item ? iconeItemInventario(item) : '';
         slotEl.style.setProperty('--item-rarity', ocupado ? corRaridade(item) : '');
         slotEl.title = item
             ? montarTooltipItem(item) + '\nClique para inspecionar'
@@ -383,7 +451,7 @@ function selecionarSlot(chave) {
 
         let html = '<div class="item-card-detalhes">';
         html += '<div class="item-card-topo">';
-        html +=   '<span class="item-card-ico">' + escaparHtml(item.icon || '🛡️') + '</span>';
+        html +=   '<span class="item-card-ico">' + escaparHtml(iconeItemInventario(item)) + '</span>';
         html +=   '<div class="item-card-titulos">';
         html +=     '<div class="item-card-nome" style="color:' + escaparHtml(cor) + '">' + escaparHtml(item.nome || info.nome) + (nivelUp > 0 ? ' <span class="upg-badge">+' + nivelUp + '</span>' : '') + '</div>';
         html +=     '<div class="item-card-tags">';
@@ -410,11 +478,8 @@ function selecionarSlot(chave) {
                     (item.isPerfect ? ' · ✨ Perfeito' : '') + '</div>';
             }
             if (Array.isArray(item.rolls)) {
-                item.rolls.forEach(function (rolagem) {
-                    html += '<div class="item-card-progressao">' + escaparHtml(formatarNomeAtributo(rolagem.statId)) + ': ' +
-                        escaparHtml(formatarNumeroStatus(rolagem.value)) + ' [' + escaparHtml(formatarNumeroStatus(rolagem.min)) +
-                        '–' + escaparHtml(formatarNumeroStatus(rolagem.max)) + '] · ' + escaparHtml(rolagem.rollPercent) +
-                        '%' + (rolagem.perfect ? ' ★' : '') + '</div>';
+                item.rolls.forEach(function (rolagem, indice) {
+                    html += formatarRolagemItem(rolagem, item, indice);
                 });
             }
         }
@@ -426,7 +491,7 @@ function selecionarSlot(chave) {
     } else if (item) {
         let html = '<div class="item-card-detalhes">';
         html += '<div class="item-card-topo">';
-        html +=   '<span class="item-card-ico">' + escaparHtml(item.icon || '🎒') + '</span>';
+        html +=   '<span class="item-card-ico">' + escaparHtml(iconeItemInventario(item)) + '</span>';
         html +=   '<div class="item-card-titulos">';
         html +=     '<div class="item-card-nome">' + escaparHtml(item.nome || info.nome) + '</div>';
         html +=   '</div>';
@@ -538,7 +603,7 @@ function removerItemDaMochila(id, quantidade) {
 
 function setAbaMochila(abaChave) {
     abaMochilaAtiva = abaChave;
-    if (abaChave !== 'equipamentos') slotMochilaFiltro = '';
+    slotMochilaFiltro = '';
     document.querySelectorAll(".mochila-aba").forEach(el => {
         el.classList.toggle("ativa", el.getAttribute("data-aba") === abaChave);
         el.setAttribute('aria-selected', el.getAttribute("data-aba") === abaChave ? 'true' : 'false');
@@ -573,6 +638,10 @@ function compararRaridades(a, b) {
 function renderizarMochila() {
     let grade = document.getElementById("mochila-grade");
     if (!grade) return;
+    const idsMochila = new Set(window.mochila.map(function (item) { return String(item.id); }));
+    window._itensSelecionadosDescarte.forEach(function (id) {
+        if (!idsMochila.has(id)) window._itensSelecionadosDescarte.delete(id);
+    });
     let aba = ABAS_MOCHILA.find(a => a.chave === abaMochilaAtiva) || ABAS_MOCHILA[0];
     let termoBusca = normalizarBusca(buscaMochila);
     let itens = window.mochila.filter(function (item) {
@@ -615,13 +684,15 @@ function renderizarMochila() {
         div.tabIndex = 0;
         div.setAttribute('aria-label', div.title || 'Item');
         div.setAttribute("data-id", item.id); // usado pelo sistema Drag & Drop
+        const selecionadoParaDescarte = window._itensSelecionadosDescarte.has(String(item.id));
+        if (selecionadoParaDescarte) div.classList.add('selecionado-descarte');
         if (window._mochilaItemSelecionado && window._mochilaItemSelecionado.id === item.id) {
             div.classList.add('selecionado');
         }
         div.style.setProperty('--item-rarity', corRaridade(item));
         let icone = document.createElement('span');
         icone.className = 'slot-ico';
-        icone.textContent = item.icon || '🎒';
+        icone.textContent = iconeItemInventario(item);
         div.appendChild(icone);
         if (item.quantidade > 1) {
             let qtd = document.createElement('span');
@@ -652,17 +723,34 @@ function renderizarMochila() {
 
         div.addEventListener("click", function () {
             if (window.__dndClickSuprimido && window.__dndClickSuprimido()) return;
+            if (window._modoDescarteMochila) {
+                if (window._descarteMochilaPendente) return;
+                if (item.locked) {
+                    mostrarMensagemInv('Desbloqueie o item antes de selecioná-lo para descarte.', '#ffbf69');
+                    return;
+                }
+                if (!item.id) {
+                    mostrarMensagemInv('Item sem identificador do servidor; descarte cancelado.', '#ff7676');
+                    return;
+                }
+                const id = String(item.id);
+                if (window._itensSelecionadosDescarte.has(id)) window._itensSelecionadosDescarte.delete(id);
+                else window._itensSelecionadosDescarte.add(id);
+                renderizarMochila();
+                return;
+            }
             selecionarItemMochila(item);
         });
         div.addEventListener("dblclick", function (event) {
             event.preventDefault();
+            if (window._modoDescarteMochila) return;
             selecionarItemMochila(item);
             window.executarAcaoItemSelecionado();
         });
         div.addEventListener("keydown", function (event) {
             if (event.key === 'Enter' || event.key === ' ') {
                 event.preventDefault();
-                selecionarItemMochila(item);
+                div.click();
             }
         });
         grade.appendChild(div);
@@ -675,11 +763,31 @@ function renderizarMochila() {
     }
     let contador = document.getElementById('inv-contagem-itens');
     if (contador) {
-        contador.textContent = itens.length + ' / ' + window.mochila.length + ' itens';
+        contador.textContent = window._modoDescarteMochila
+            ? (window._itensSelecionadosDescarte.size
+                ? window._itensSelecionadosDescarte.size + ' selecionado(s) · lixeira confirma'
+                : 'Descarte: toque nos itens · lixeira cancela')
+            : itens.length + ' / ' + window.mochila.length + ' itens';
+        contador.classList.toggle('modo-descarte-info', window._modoDescarteMochila);
     }
     let ordenar = document.getElementById('btn-inv-organizar');
     if (ordenar) ordenar.title = 'Ordenar por ' + ordenacao.nome + ' (clique para alternar)';
+    atualizarBotaoDescarte();
     atualizarAcoesInventario();
+}
+
+function atualizarBotaoDescarte() {
+    const botao = document.getElementById('btn-inv-destruir');
+    if (!botao) return;
+    const quantidade = window._itensSelecionadosDescarte.size;
+    botao.textContent = window._modoDescarteMochila ? '🗑️ ' + quantidade : '🗑️';
+    botao.classList.toggle('modo-descarte', window._modoDescarteMochila);
+    botao.disabled = window._descarteMochilaPendente;
+    botao.setAttribute('aria-pressed', window._modoDescarteMochila ? 'true' : 'false');
+    botao.title = window._modoDescarteMochila
+        ? (quantidade ? 'Confirmar descarte dos ' + quantidade + ' itens selecionados' : 'Sair do modo de descarte')
+        : 'Selecionar vários itens para descarte';
+    botao.setAttribute('aria-label', botao.title);
 }
 
 function renderizarComparacao(item) {
@@ -704,7 +812,7 @@ function renderizarComparacao(item) {
     let detalhesItem = function (instancia, cor, nivel) {
         return '<div class="cmp-item-col">' +
             '<span class="cmp-icone-item" style="--item-rarity:' + escaparHtml(cor) + '" aria-hidden="true">' +
-            escaparHtml(instancia.icon || '🛡️') + '</span>' +
+            escaparHtml(iconeItemInventario(instancia)) + '</span>' +
             '<span class="cmp-nome-item" style="color:' + escaparHtml(cor) + '">' +
             escaparHtml(instancia.nome || 'Equipamento') + '</span>' +
             '<span class="cmp-sub">' + escaparHtml(instancia.raridadeNome || instancia.raridade || 'Raridade não informada') +
@@ -776,7 +884,7 @@ function selecionarItemMochila(item) {
 
     let html = '<div class="item-card-detalhes">';
     html += '<div class="item-card-topo">';
-    html +=   '<span class="item-card-ico">' + escaparHtml(item.icon || '🎒') + '</span>';
+    html +=   '<span class="item-card-ico">' + escaparHtml(iconeItemInventario(item)) + '</span>';
     html +=   '<div class="item-card-titulos">';
     html +=     '<div class="item-card-nome" style="color:' + escaparHtml(cor) + '">' + escaparHtml(item.nome || 'Item') + (nivelUp > 0 ? ' <span class="upg-badge">+' + nivelUp + '</span>' : '') + (item.quantidade > 1 ? ' <span class="qtd-badge">x' + item.quantidade + '</span>' : '') + '</div>';
     html +=     '<div class="item-card-tags">';
@@ -800,10 +908,7 @@ function selecionarItemMochila(item) {
     }
     if (Array.isArray(item.rolls)) {
         item.rolls.forEach(function (rolagem) {
-            html += '<div class="item-card-progressao">' + escaparHtml(formatarNomeAtributo(rolagem.statId)) + ': ' +
-                escaparHtml(formatarNumeroStatus(rolagem.value)) + ' [' + escaparHtml(formatarNumeroStatus(rolagem.min)) +
-                '–' + escaparHtml(formatarNumeroStatus(rolagem.max)) + '] · ' + escaparHtml(rolagem.rollPercent) +
-                '%' + (rolagem.perfect ? ' ★' : '') + '</div>';
+            html += formatarRolagemItem(rolagem, item, item.rolls.indexOf(rolagem));
         });
     }
     if (item.tipo === 'equipamento') {
@@ -916,8 +1021,11 @@ function atualizarAcoesInventario() {
         equiparComparado.setAttribute('aria-label', equiparComparado.title);
     }
     if (destruir) {
-        destruir.disabled = !item || !!item.locked;
-        destruir.title = item && item.locked ? 'Desbloqueie antes de destruir' : 'Destruir item selecionado';
+        destruir.disabled = window._descarteMochilaPendente ||
+            (!window._modoDescarteMochila && (!item || !!item.locked));
+        if (!window._modoDescarteMochila) {
+            destruir.title = item && item.locked ? 'Desbloqueie antes de destruir' : 'Selecionar vários itens para descarte';
+        }
     }
     if (bloquear) {
         bloquear.disabled = !item || item.tipo !== 'equipamento';
@@ -1018,32 +1126,6 @@ document.querySelectorAll('.mochila-filtro-slot').forEach(function (el) {
     });
 });
 
-document.querySelectorAll('[data-aba-extra]').forEach(function (el) {
-    el.addEventListener('click', function () {
-        document.getElementById('inv-menu-categorias').hidden = true;
-        setAbaMochila(this.getAttribute('data-aba-extra'));
-    });
-});
-
-document.querySelectorAll('[data-slot-filtro-extra]').forEach(function (el) {
-    el.addEventListener('click', function () {
-        document.getElementById('inv-menu-slots').hidden = true;
-        setFiltroSlotMochila(this.getAttribute('data-slot-filtro-extra'));
-    });
-});
-
-document.getElementById('btn-inv-categorias-extra').addEventListener('click', function () {
-    let menu = document.getElementById('inv-menu-categorias');
-    menu.hidden = !menu.hidden;
-    document.getElementById('inv-menu-slots').hidden = true;
-});
-
-document.getElementById('btn-inv-slot-extra').addEventListener('click', function () {
-    let menu = document.getElementById('inv-menu-slots');
-    menu.hidden = !menu.hidden;
-    document.getElementById('inv-menu-categorias').hidden = true;
-});
-
 document.getElementById('btn-inv-organizar').addEventListener('click', function () {
     window.alternarOrdenacaoMochila();
 });
@@ -1096,7 +1178,40 @@ window.destruirItemConfirm = function(item) {
 };
 
 window.destruirItemSelecionado = function() {
-    destruirItemConfirm(window._mochilaItemSelecionado);
+    if (!window._modoDescarteMochila) {
+        window._modoDescarteMochila = true;
+        window._itensSelecionadosDescarte.clear();
+        window._mochilaItemSelecionado = null;
+        mostrarMensagemInv('Modo descarte: selecione os itens e clique na lixeira novamente para confirmar.');
+        renderizarMochila();
+        return;
+    }
+    if (window._descarteMochilaPendente) return;
+    if (!window._itensSelecionadosDescarte.size) {
+        window._modoDescarteMochila = false;
+        mostrarMensagemInv('Modo descarte cancelado.');
+        renderizarMochila();
+        return;
+    }
+    const itens = window.mochila.filter(function (item) {
+        return window._itensSelecionadosDescarte.has(String(item.id));
+    });
+    if (!itens.length) {
+        window._itensSelecionadosDescarte.clear();
+        mostrarMensagemInv('Os itens selecionados não estão mais na mochila.', '#ffbf69');
+        renderizarMochila();
+        return;
+    }
+    mostrarConfirmacao('Destruir ' + itens.length + ' itens selecionados? Essa ação não pode ser desfeita!', function () {
+        const enviado = enviarAcaoInventario({
+            action: 'destruir_itens',
+            ids: itens.map(function (item) { return item.id; })
+        }, 'Destruindo ' + itens.length + ' itens; aguardando servidor...');
+        if (enviado) {
+            window._descarteMochilaPendente = true;
+            atualizarBotaoDescarte();
+        }
+    });
 };
 
 function destruirItem(item) {
@@ -1107,6 +1222,15 @@ function destruirItem(item) {
     }
     enviarAcaoInventario({ action: 'destruir_item', id: item.id }, 'Destruindo; aguardando servidor...');
 }
+
+window.finalizarDescarteMochila = function(confirmado) {
+    window._descarteMochilaPendente = false;
+    if (confirmado) {
+        window._modoDescarteMochila = false;
+        window._itensSelecionadosDescarte.clear();
+    }
+    atualizarBotaoDescarte();
+};
 
 window.organizarMochila = function() {
     window.alternarOrdenacaoMochila();
@@ -1180,7 +1304,7 @@ window.desenharDrop = function(drop) {
     ctx.textAlign = "center";
     ctx.shadowColor = grandao ? cor : "#000";
     ctx.shadowBlur = grandao ? 18 : 6;
-    ctx.fillText(drop.item.icon || '🎒', x, y - 5 + Math.sin(t * 2.2 + (hash % 7)) * 3);
+    ctx.fillText(iconeItemInventario(drop.item), x, y - 5 + Math.sin(t * 2.2 + (hash % 7)) * 3);
     ctx.restore();
 
     // Raridade label (destacada p/ Épico/Lendário)

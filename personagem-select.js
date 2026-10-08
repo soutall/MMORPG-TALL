@@ -6,7 +6,7 @@
 
     var MAX_SLOTS = 10;
     var HISTORIA_PADRAO = 'História ainda não criada.';
-    var FOTO_RETRY = '?v=perfil3';
+    var FOTO_RETRY = '?v=perfil4';
 
     // Mesmos retratos já usados pelo HUD (fonte: index.html / imagem/HUD/Perfil)
     var PERFIL_POR_CLASSE = {
@@ -14,7 +14,8 @@
         barbaro: 'Barbaro', roqueiro: 'Roqueiro', ladino: 'Ladino', dronemaster: 'DroneMaster',
         arqueiro_arcano: 'Arqueir_astral', arqueiro_astral: 'Arqueir_astral', sniper: 'sniper',
         pikeman: 'PikeMan', curandeiro: 'curandeiro', florim: 'Florim',
-        guerreiro_kaledron: 'Kaledron', kaledron: 'Kaledron'
+        guerreiro_kaledron: 'Kaledron', kaledron: 'Kaledron',
+        lord_malakar: 'Malakar'
     };
 
     var CLASSES = null;
@@ -85,7 +86,8 @@
         var cNorm = String(classe).toLowerCase().trim();
         var nome = PERFIL_POR_CLASSE[cNorm] || PERFIL_POR_CLASSE[classe];
         if (!nome) return '';
-        if (cNorm === 'florim') return 'imagem/HUD/Perfil/Florim.svg' + FOTO_RETRY;
+        if (cNorm === 'florim') return 'imagem/HUD/Perfil/Frorin.png' + FOTO_RETRY;
+        if (cNorm === 'lord_malakar') return 'imagem/HUD/Perfil/Malakar.png' + FOTO_RETRY;
         return 'imagem/HUD/Perfil/' + nome + '.png' + FOTO_RETRY;
     }
 

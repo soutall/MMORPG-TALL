@@ -1,5 +1,6 @@
 window.desenharBarraHp = function(x, y, hp, maxHp, stunTimer = 0, slowTimer = 0, larguraCustom = 0, slime = null) {
     if (!window.ctx) return;
+    if (slime && slime.preview) return;
 
     // REGRA GERAL: Retira a barra de HP em cima do personagem para TODAS as classes de heróis!
     // A barra só é renderizada para monstros/slimes/bosses (onde slime é passado).

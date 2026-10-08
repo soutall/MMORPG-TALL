@@ -146,7 +146,7 @@
 
     /* ============ CORPO (ASSASSINO DE TOCA AZUL — ágil, leve e orgânico) ============ */
     // Pernas leves e longas, prontas para movimentos rápidos (passo 0..1 andando)
-    function _pernas(ctx, passo, correndo) {
+    function _pernasLegacy(ctx, passo, correndo) {
         let amp = correndo ? 1.1 : 0.72;
         let f1 = Math.sin(passo * Math.PI * 2) * amp;   // perna da frente
         let f2 = Math.sin(passo * Math.PI * 2 + Math.PI) * amp;
@@ -225,7 +225,7 @@
     }
 
     /* Tronco: torso magro e atlético — manto leve, sem armadura, com faixa e decote V */
-    function _tronco(ctx, inclinacao) {
+    function _troncoLegacy(ctx, inclinacao) {
         ctx.save();
         ctx.translate(0, inclinacao);
         // barra do manto curto — bainha irregular (recortes de tecido, nada de quadrado)
@@ -338,7 +338,7 @@
     }
 
     /* Cabeça: CAPUZ azul-escuro orgânico + MÁSCARA azul (olhos discretos) */
-    function _cabeca(ctx, olhosCor, bocaAberta) {
+    function _cabecaLegacy(ctx, olhosCor, bocaAberta) {
         // pescoço enfaixado (tecido escuro, leve)
         ctx.fillStyle = 'rgba(12,16,32,1)';
         ctx.beginPath();
@@ -458,7 +458,7 @@
     }
 
     /* Braço fino e definido + pulso prateado + mão sombria (agilidade) */
-    function _braco(ctx, rotBiceps, rotAntebraco) {
+    function _bracoLegacy(ctx, rotBiceps, rotAntebraco) {
         let ex = 12 + Math.sin(rotBiceps) * 8;
         let ey = -18 + Math.cos(rotBiceps) * 4;
         let hx = ex + Math.sin(rotBiceps + rotAntebraco) * 10;
@@ -504,7 +504,7 @@
     /* ombreiras REMOVIDAS (pedido do usuário: corpo enxuto de foiceiro assassino) */
 
     /* Manto/costas — cauda longa + faixas de tecido azul esvoaçando */
-    function _capa(ctx, vento, inclinacao) {
+    function _capaLegacy(ctx, vento, inclinacao) {
         ctx.save();
         let w = vento * 2.4;
         // cauda principal do manto (atrás) — longa e envolvente
@@ -566,6 +566,227 @@
         ctx.restore();
     }
 
+    function _placa(ctx, pontos, cor, borda) {
+        ctx.beginPath();
+        ctx.moveTo(pontos[0][0], pontos[0][1]);
+        for (let i = 1; i < pontos.length; i++) ctx.lineTo(pontos[i][0], pontos[i][1]);
+        ctx.closePath();
+        ctx.fillStyle = cor;
+        ctx.strokeStyle = borda || 'rgba(158,146,151,0.85)';
+        ctx.lineWidth = 0.9;
+        ctx.fill();
+        ctx.stroke();
+    }
+
+    function _pernas(ctx, passo, correndo) {
+        const balanco = Math.sin(passo * Math.PI * 2) * (correndo ? 1.1 : 0.65);
+        const retorno = Math.sin(passo * Math.PI * 2 + Math.PI) * (correndo ? 1.1 : 0.65);
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#171820';
+        ctx.lineWidth = 5.5;
+        ctx.beginPath();
+        ctx.moveTo(-2.5, -13); ctx.lineTo(-3.2 + retorno * 3, -7); ctx.lineTo(-4 + retorno * 5, -1);
+        ctx.moveTo(2.5, -13); ctx.lineTo(3.2 + balanco * 3, -7); ctx.lineTo(4 + balanco * 5, -1);
+        ctx.stroke();
+        ctx.strokeStyle = '#625a61';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.moveTo(-3.2 + retorno * 3, -7); ctx.lineTo(-4 + retorno * 5, -1);
+        ctx.moveTo(3.2 + balanco * 3, -7); ctx.lineTo(4 + balanco * 5, -1);
+        ctx.stroke();
+        for (const side of [-1, 1]) {
+            const movement = side < 0 ? retorno : balanco;
+            ctx.save();
+            ctx.translate(side * 3 + movement * 3, -9);
+            _placa(ctx, [[-2.5, -3], [1.8, -3.5], [3, 1], [0, 3], [-2.8, 1]], '#29272f', '#8b8086');
+            ctx.strokeStyle = '#a92b42';
+            ctx.lineWidth = 0.8;
+            ctx.beginPath(); ctx.moveTo(-1.5, -2); ctx.lineTo(1.4, 1.5); ctx.stroke();
+            ctx.translate(0, 8 + movement * 2);
+            ctx.fillStyle = '#101118';
+            ctx.strokeStyle = '#a69a9b';
+            ctx.lineWidth = 0.8;
+            ctx.beginPath();
+            ctx.moveTo(-2.5, -2); ctx.lineTo(2.5, -2); ctx.lineTo(4.5, 0);
+            ctx.lineTo(3.5, 2); ctx.lineTo(-3, 2); ctx.closePath();
+            ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#a9233b';
+            ctx.fillRect(-2, -2, 4, 0.8);
+            ctx.restore();
+        }
+    }
+
+    function _tronco(ctx, inclinacao) {
+        ctx.save();
+        ctx.translate(0, inclinacao);
+
+        // Cape silhouette, split into torn panels over the armored torso.
+        ctx.fillStyle = '#11131c';
+        ctx.beginPath();
+        ctx.moveTo(-6, -27); ctx.lineTo(6, -27);
+        ctx.quadraticCurveTo(10, -16, 7, -5);
+        ctx.lineTo(2, -9); ctx.lineTo(0, -3); ctx.lineTo(-3, -9);
+        ctx.lineTo(-8, -4); ctx.quadraticCurveTo(-11, -18, -6, -27);
+        ctx.closePath(); ctx.fill();
+
+        const metal = ctx.createLinearGradient(-7, -28, 7, -12);
+        metal.addColorStop(0, '#554c52');
+        metal.addColorStop(0.42, '#302d35');
+        metal.addColorStop(1, '#171820');
+        _placa(ctx, [[-7, -27], [-3, -29], [0, -26], [3, -29], [7, -27], [8, -17], [5, -12], [0, -14], [-5, -12], [-8, -17]], metal);
+        _placa(ctx, [[-7, -25], [-3, -26], [-1, -20], [-5, -18], [-8, -20]], '#3b363e');
+        _placa(ctx, [[7, -25], [3, -26], [1, -20], [5, -18], [8, -20]], '#302d35');
+        _placa(ctx, [[-5, -18], [0, -20], [5, -18], [4, -14], [0, -12], [-4, -14]], '#1b1a22', '#81767c');
+
+        // Red inlays, rivets and a skull-shaped belt clasp.
+        ctx.strokeStyle = '#c02e47';
+        ctx.lineWidth = 1.3;
+        ctx.beginPath();
+        ctx.moveTo(-4, -25); ctx.lineTo(-1, -22); ctx.lineTo(0, -18);
+        ctx.lineTo(2, -22); ctx.lineTo(5, -25);
+        ctx.stroke();
+        ctx.fillStyle = '#d4c5b6';
+        for (const [x, y] of [[-6, -23], [-4, -17], [6, -23], [4, -17]]) {
+            ctx.beginPath(); ctx.arc(x, y, 0.65, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.fillStyle = '#211c22';
+        ctx.fillRect(-6.5, -13, 13, 2.5);
+        ctx.strokeStyle = '#b39b76';
+        ctx.lineWidth = 0.9;
+        ctx.strokeRect(-1.8, -13.3, 3.6, 3.1);
+        ctx.fillStyle = '#d0c1ac';
+        ctx.beginPath();
+        ctx.arc(0, -12.4, 1.2, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.fillStyle = '#251c23';
+        ctx.beginPath(); ctx.arc(-0.45, -12.6, 0.25, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(0.45, -12.6, 0.25, 0, Math.PI * 2); ctx.fill();
+
+        _placa(ctx, [[-7, -27], [-11, -27], [-13, -24], [-10, -23], [-7, -24]], '#28252c');
+        _placa(ctx, [[7, -27], [11, -27], [13, -24], [10, -23], [7, -24]], '#28252c');
+        ctx.strokeStyle = '#b52a41';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(-12, -25); ctx.lineTo(-9, -25); ctx.moveTo(9, -25); ctx.lineTo(12, -25); ctx.stroke();
+        ctx.restore();
+    }
+
+    function _cabeca(ctx, olhosCor) {
+        ctx.fillStyle = '#14151d';
+        ctx.strokeStyle = '#716c73';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(-4, -33); ctx.lineTo(4, -33);
+        ctx.lineTo(5, -26); ctx.lineTo(0, -23);
+        ctx.lineTo(-5, -26); ctx.closePath();
+        ctx.fill(); ctx.stroke();
+
+        const hood = ctx.createLinearGradient(-7, -53, 7, -31);
+        hood.addColorStop(0, '#373843');
+        hood.addColorStop(0.48, '#20212b');
+        hood.addColorStop(1, '#11131a');
+        ctx.fillStyle = hood;
+        ctx.strokeStyle = '#827b80';
+        ctx.lineWidth = 0.9;
+        ctx.beginPath();
+        ctx.moveTo(-7, -32); ctx.lineTo(-9, -40); ctx.lineTo(-6, -48);
+        ctx.lineTo(0, -53); ctx.lineTo(6, -48); ctx.lineTo(9, -40);
+        ctx.lineTo(7, -32); ctx.lineTo(4, -35); ctx.lineTo(0, -34);
+        ctx.lineTo(-4, -35); ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = 'rgba(8,9,14,0.95)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-6, -45); ctx.quadraticCurveTo(-3, -41, -4, -35);
+        ctx.moveTo(6, -45); ctx.quadraticCurveTo(3, -41, 4, -35);
+        ctx.stroke();
+
+        // Deep hood, engraved executioner mask and red eye slits.
+        ctx.fillStyle = '#080a10';
+        ctx.beginPath();
+        ctx.moveTo(-5.5, -38); ctx.lineTo(5.5, -38); ctx.lineTo(4.5, -32);
+        ctx.lineTo(0, -29); ctx.lineTo(-4.5, -32); ctx.closePath(); ctx.fill();
+        _placa(ctx, [[-5.5, -37], [0, -39], [5.5, -37], [4.5, -33], [0, -31], [-4.5, -33]], '#403941');
+        ctx.fillStyle = olhosCor || '#f23b52';
+        ctx.shadowColor = '#e52343';
+        ctx.shadowBlur = 5;
+        ctx.beginPath();
+        ctx.moveTo(-4.3, -36); ctx.lineTo(-1, -36.5); ctx.lineTo(-1.4, -35.4); ctx.lineTo(-4, -35.3); ctx.closePath(); ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(4.3, -36); ctx.lineTo(1, -36.5); ctx.lineTo(1.4, -35.4); ctx.lineTo(4, -35.3); ctx.closePath(); ctx.fill();
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#b9ada9';
+        ctx.lineWidth = 0.75;
+        ctx.beginPath();
+        ctx.moveTo(0, -34); ctx.lineTo(0, -31.5);
+        ctx.moveTo(-2, -33.5); ctx.lineTo(-1, -32);
+        ctx.moveTo(2, -33.5); ctx.lineTo(1, -32);
+        ctx.stroke();
+        ctx.fillStyle = '#d1c0ac';
+        ctx.beginPath(); ctx.arc(0, -43, 2.3, 0, Math.PI * 2); ctx.fill();
+        ctx.fillStyle = '#282127';
+        ctx.beginPath(); ctx.arc(-0.8, -43.2, 0.55, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(0.8, -43.2, 0.55, 0, Math.PI * 2); ctx.fill();
+        ctx.fillRect(-0.35, -42.2, 0.7, 1);
+    }
+
+    function _braco(ctx, rotBiceps, rotAntebraco) {
+        const side = rotBiceps < 0 ? -1 : 1;
+        const shoulderX = side * 6;
+        const shoulderY = -25;
+        const elbowX = side * (8 + Math.sin(rotBiceps) * 2);
+        const elbowY = -20 + Math.cos(rotBiceps) * 2;
+        const handX = elbowX + side * (2 + Math.sin(rotAntebraco) * 2);
+        const handY = elbowY + 4 + Math.cos(rotAntebraco);
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#16171f';
+        ctx.lineWidth = 5.6;
+        ctx.beginPath(); ctx.moveTo(shoulderX, shoulderY); ctx.lineTo(elbowX, elbowY); ctx.stroke();
+        ctx.strokeStyle = '#514b53';
+        ctx.lineWidth = 3.2;
+        ctx.beginPath(); ctx.moveTo(shoulderX, shoulderY); ctx.lineTo(elbowX, elbowY); ctx.stroke();
+        _placa(ctx, [[shoulderX - 2.8, shoulderY - 2], [shoulderX + side * 2, shoulderY - 3], [elbowX + side, elbowY], [elbowX - side * 2, elbowY + 1]], '#302c34');
+        ctx.strokeStyle = '#a92b42';
+        ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(shoulderX, shoulderY - 1); ctx.lineTo(elbowX, elbowY); ctx.stroke();
+        ctx.strokeStyle = '#171820';
+        ctx.lineWidth = 4.2;
+        ctx.beginPath(); ctx.moveTo(elbowX, elbowY); ctx.lineTo(handX, handY); ctx.stroke();
+        ctx.strokeStyle = '#a69a9b';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath(); ctx.moveTo(elbowX, elbowY); ctx.lineTo(handX, handY); ctx.stroke();
+        ctx.fillStyle = '#c0b0a6';
+        ctx.beginPath(); ctx.arc(handX, handY, 1.8, 0, Math.PI * 2); ctx.fill();
+    }
+
+    function _capa(ctx, vento, inclinacao) {
+        const sway = vento * 1.2;
+        ctx.fillStyle = '#10121c';
+        ctx.strokeStyle = 'rgba(115,105,116,0.85)';
+        ctx.lineWidth = 0.9;
+        ctx.beginPath();
+        ctx.moveTo(-5, -27 + inclinacao);
+        ctx.quadraticCurveTo(-13 - sway, -20, -11 - sway * 2, -10);
+        ctx.lineTo(-9 - sway * 2, -6); ctx.lineTo(-5 - sway, -11);
+        ctx.lineTo(-3, -5); ctx.lineTo(0, -11); ctx.lineTo(4 + sway, -5);
+        ctx.lineTo(5, -12); ctx.quadraticCurveTo(10 + sway, -20, 5, -27 + inclinacao);
+        ctx.closePath(); ctx.fill(); ctx.stroke();
+        ctx.fillStyle = '#2b2b37';
+        ctx.beginPath();
+        ctx.moveTo(-5, -25 + inclinacao);
+        ctx.quadraticCurveTo(-9 - sway, -17, -8 - sway, -8);
+        ctx.lineTo(-5 - sway, -12); ctx.lineTo(-3, -25 + inclinacao); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#1b1b25';
+        ctx.beginPath();
+        ctx.moveTo(2, -25 + inclinacao);
+        ctx.quadraticCurveTo(8 + sway, -18, 6 + sway, -8);
+        ctx.lineTo(3, -12); ctx.closePath(); ctx.fill();
+        ctx.strokeStyle = '#a72740';
+        ctx.lineWidth = 1.1;
+        ctx.beginPath();
+        ctx.moveTo(-6, -22 + inclinacao); ctx.quadraticCurveTo(-8 - sway, -16, -8 - sway * 2, -9);
+        ctx.moveTo(4, -23 + inclinacao); ctx.quadraticCurveTo(7 + sway, -16, 6 + sway, -10);
+        ctx.stroke();
+    }
+
     /* ============================================================
        DESENHADOR PRINCIPAL
        assinatura igual às outras classes + extras {eu, pp} + pid
@@ -609,6 +830,18 @@
         let flip = (Math.sin(ang) < 0) ? -1 : 1;
         let escPikeman = 0.72;
         ctx.scale(flip * escPikeman, escPikeman);
+        const ladoFoice = Math.cos(ang || 0) < 0 ? -1 : 1;
+        const armaFlutuante = estado === 'idle' || estado === 'andando';
+        if (armaFlutuante) {
+            const flutuar = Math.sin(_agora() / 360) * 2.5;
+            ctx.save();
+            ctx.translate(ladoFoice * 27, -19 + flutuar);
+            ctx.rotate(ladoFoice * (-0.18 + Math.sin(_agora() / 900) * 0.045));
+            ctx.shadowColor = 'rgba(190, 25, 55, 0.72)';
+            ctx.shadowBlur = 8 + Math.sin(_agora() / 300) * 2;
+            _foice(ctx, 0, 0.12 + Math.sin(_agora() / 650) * 0.08, false, posX, posY);
+            ctx.restore();
+        }
 
         // parâmetros de movimento (o jogo não diferencia walk/run: sempre animação enérgica e agressiva)
         let correndo = !!mov;
@@ -693,20 +926,10 @@
                 ctx.restore();
                 _braco(ctx, -0.5 + p * 1.4, 3.2);
             } else {
-                // marchando com a foice apoiada no ombro
-                ctx.save();
-                ctx.translate(-2, -23);
-                _foice(ctx, 0.35 + Math.sin(passo * Math.PI * 2) * 0.06, 0, false, posX, posY);
-                ctx.restore();
-                _braco(ctx, 0.2, 2.6);
+                _braco(ctx, 0.2 + Math.sin(passo * Math.PI * 2) * 0.12, 2.6);
             }
         } else {
-            // idle: foice de duas mãos apoiada à frente
-            ctx.save();
-            ctx.translate(-2, -23);
-            _foice(ctx, 0.32 + Math.sin(_agora() / 1400) * 0.02, 0.06 + Math.sin(_agora() / 1000) * 0.08, false, posX, posY);
-            ctx.restore();
-            _braco(ctx, 0.2, 2.6);
+            _braco(ctx, 0.2 + Math.sin(_agora() / 700) * 0.04, 2.6);
         }
 
         // (ombreiras removidas — corpo enxuto de foiceiro)
@@ -714,8 +937,10 @@
         // cabeça
         let olhos = (estado === 'execucao' && chanProg < 0.995) ? 'rgba(170,225,255,1)' : 'rgba(110,190,255,1)';
         let boca = (estado === 'giro' || estado === 'execucao') ? true : false;
-        if (estado === 'execucao' || estado === 'geada') ctx.translate(0, -1.2);
+        ctx.save();
+        ctx.translate(0, estado === 'execucao' || estado === 'geada' ? 1.8 : 3);
         _cabeca(ctx, olhos, boca);
+        ctx.restore();
 
         // partículas de sombra ao redor das pernas (silhueta ameaçadora)
         _fiaposSombra(ctx, _agora());
@@ -770,108 +995,102 @@
 window.desenharFoiceExposta = function(ctx, armaVisualCustom, tam, carga) {
     tam = tam || 1;
     let cv = (armaVisualCustom && armaVisualCustom.customVisual) ? armaVisualCustom.customVisual : {};
-    let t = cv.tamanho || 1;
-    let l = cv.largura || 1;
-
-    let cBase = cv.cBase || 'rgba(35,22,12,0.95)';
-    let cMeio = cv.cMeio || 'rgba(20,18,26,0.98)';
-    let cPonta = cv.cPonta || 'rgba(200,30,60,1)';
-    let cFio = cv.cFio || 'rgba(225,225,235,0.95)';
-
+    const t = cv.tamanho || 1;
+    const l = cv.largura || 1;
+    const cBase = cv.cBase || '#211a20';
+    const cMeio = cv.cMeio || '#211d27';
+    const cPonta = cv.cPonta || '#d12945';
+    const cFio = cv.cFio || '#ded4d1';
+    const energia = Math.max(0, Math.min(1, carga || 0));
     ctx.save();
     ctx.scale(t, l);
+    const now = (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now();
+    const pulse = 0.72 + Math.sin(now / 180) * 0.08 + energia * 0.2;
 
-    function _agora() { return (typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now(); }
+    // Long, straight haft with wrapped grip, metal collars and a weighted pommel.
+    ctx.lineCap = 'round';
+    ctx.strokeStyle = '#100f15';
+    ctx.lineWidth = 4.2 * tam;
+    ctx.beginPath(); ctx.moveTo(0, 26 * tam); ctx.lineTo(0, -29 * tam); ctx.stroke();
+    ctx.strokeStyle = cBase;
+    ctx.lineWidth = 2.8 * tam;
+    ctx.beginPath(); ctx.moveTo(0, 25 * tam); ctx.lineTo(0, -28 * tam); ctx.stroke();
+    ctx.strokeStyle = 'rgba(164,145,137,0.72)';
+    ctx.lineWidth = 0.8 * tam;
+    ctx.beginPath(); ctx.moveTo(-0.7 * tam, 22 * tam); ctx.lineTo(-0.7 * tam, -23 * tam); ctx.stroke();
+    for (const y of [18, 14, 10, 6, 2, -2]) {
+        ctx.strokeStyle = (y % 2) ? '#922239' : '#6b626a';
+        ctx.lineWidth = 1.2 * tam;
+        ctx.beginPath(); ctx.moveTo(-1.7 * tam, y * tam); ctx.lineTo(1.7 * tam, (y - 1.5) * tam); ctx.stroke();
+    }
+    for (const y of [-25, 18]) {
+        ctx.fillStyle = '#777078';
+        ctx.fillRect(-2.8 * tam, y * tam, 5.6 * tam, 2 * tam);
+        ctx.strokeStyle = '#c9bcbc';
+        ctx.lineWidth = 0.65 * tam;
+        ctx.strokeRect(-2.8 * tam, y * tam, 5.6 * tam, 2 * tam);
+    }
+    ctx.fillStyle = '#3b343d';
+    ctx.beginPath(); ctx.arc(0, 26 * tam, 2.4 * tam, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#ba3046';
+    ctx.lineWidth = 0.9 * tam;
+    ctx.stroke();
 
-    // haste longa (madeira escura com metal)
-        ctx.beginPath();
-        ctx.moveTo(-20 * tam, 10 * tam);
-        ctx.lineTo(30 * tam, -16 * tam);
-        ctx.lineTo(31 * tam, -13 * tam);
-        ctx.lineTo(-18 * tam, 13 * tam);
-        ctx.closePath();
-        ctx.fillStyle = cBase;
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(160,120,70,0.7)';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-        // faixa de metal na haste
-        ctx.strokeStyle = 'rgba(200,200,210,0.85)';
-        ctx.lineWidth = 2.4;
-        ctx.beginPath();
-        ctx.moveTo(2 * tam, -4 * tam);
-        ctx.lineTo(12 * tam, -9 * tam);
-        ctx.stroke();
-        // anel inferior (punho)
-        ctx.beginPath();
-        ctx.arc(-15 * tam, 8 * tam, 3.4 * tam, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(45,45,55,0.95)';
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(180,40,50,0.9)';
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
+    // Heavy crescent blade sweeps from the haft like a hooked executioner's scythe.
+    ctx.fillStyle = cBase;
+    ctx.beginPath();
+    ctx.moveTo(-1 * tam, -25 * tam);
+    ctx.quadraticCurveTo(3 * tam, -35 * tam, 15 * tam, -43 * tam);
+    ctx.quadraticCurveTo(27 * tam, -50 * tam, 31 * tam, -40 * tam);
+    ctx.quadraticCurveTo(35 * tam, -30 * tam, 25 * tam, -20 * tam);
+    ctx.quadraticCurveTo(20 * tam, -15 * tam, 12 * tam, -15 * tam);
+    ctx.quadraticCurveTo(24 * tam, -27 * tam, 24 * tam, -37 * tam);
+    ctx.quadraticCurveTo(17 * tam, -33 * tam, 3 * tam, -24 * tam);
+    ctx.closePath(); ctx.fill();
+    ctx.strokeStyle = '#82767c';
+    ctx.lineWidth = 1.2 * tam;
+    ctx.stroke();
+    ctx.fillStyle = cMeio;
+    ctx.beginPath();
+    ctx.moveTo(1 * tam, -27 * tam);
+    ctx.quadraticCurveTo(8 * tam, -36 * tam, 20 * tam, -43 * tam);
+    ctx.quadraticCurveTo(28 * tam, -47 * tam, 29 * tam, -40 * tam);
+    ctx.quadraticCurveTo(31 * tam, -31 * tam, 22 * tam, -23 * tam);
+    ctx.quadraticCurveTo(27 * tam, -34 * tam, 23 * tam, -40 * tam);
+    ctx.quadraticCurveTo(15 * tam, -37 * tam, 2 * tam, -25 * tam);
+    ctx.closePath(); ctx.fill();
 
-        // ★ A LÂMINA — crescente enorme, curva, escura com fio prateado ★
-        ctx.save();
-        // junção (respiroso "miolo" da foice)
-        ctx.beginPath();
-        ctx.arc(28 * tam, -15 * tam, 4.5 * tam, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(60,60,75,1)';
-        ctx.fill();
-        ctx.strokeStyle = 'rgba(210,210,220,0.9)';
-        ctx.lineWidth = 1.4;
-        ctx.stroke();
-        // gema vermelho-roxo na junção
-        let brilhoGema = 0.55 + (carga || 0) * 0.45 + Math.sin(_agora() / 180) * 0.12;
-        ctx.beginPath();
-        ctx.arc(28 * tam, -15 * tam, 2.1 * tam, 0, Math.PI * 2);
-        ctx.save();
-        ctx.globalAlpha = Math.min(1, brilhoGema);
-        ctx.fillStyle = cPonta;
-        ctx.fill();
-        ctx.restore();
-        ctx.shadowColor = cPonta;
-        ctx.shadowBlur = 6 + 10 * (carga || 0);
-        ctx.beginPath();
-        ctx.arc(28 * tam, -15 * tam, 1.1 * tam, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(255,220,230,0.95)';
-        ctx.fill();
+    // Bright sharpened edge and red vein runes make the silhouette readable at game scale.
+    ctx.strokeStyle = cFio;
+    ctx.lineWidth = 1.35 * tam;
+    ctx.beginPath();
+    ctx.moveTo(3 * tam, -27 * tam);
+    ctx.quadraticCurveTo(16 * tam, -40 * tam, 25 * tam, -44 * tam);
+    ctx.quadraticCurveTo(32 * tam, -42 * tam, 28 * tam, -32 * tam);
+    ctx.stroke();
+    ctx.strokeStyle = cPonta;
+    ctx.globalAlpha = pulse;
+    ctx.lineWidth = (1 + energia * 0.45) * tam;
+    ctx.shadowColor = cPonta;
+    ctx.shadowBlur = 3 + energia * 8;
+    ctx.beginPath();
+    ctx.moveTo(4 * tam, -28 * tam);
+    ctx.lineTo(11 * tam, -31 * tam);
+    ctx.lineTo(13 * tam, -36 * tam);
+    ctx.moveTo(15 * tam, -32 * tam);
+    ctx.lineTo(21 * tam, -37 * tam);
+    ctx.stroke();
 
-        // corpo da lâmina: grande arco de foice
-        ctx.fillStyle = cMeio;
-        ctx.beginPath();
-        ctx.arc(34 * tam, -34 * tam, 26 * tam, -1.05, 0.55);
-        ctx.lineTo(50 * tam, -14 * tam);
-        ctx.quadraticCurveTo(40 * tam, -6 * tam, 30 * tam, -8 * tam);
-        ctx.closePath();
-        ctx.fill();
-        // fio cortante (borda externa)
-        ctx.strokeStyle = cFio;
-        ctx.lineWidth = 1.8;
-        ctx.beginPath();
-        ctx.arc(34 * tam, -34 * tam, 26 * tam, -1.0, 0.5);
-        ctx.stroke();
-        // fio interno escuro
-        ctx.strokeStyle = 'rgba(120,40,60,0.8)';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(34 * tam, -34 * tam, 24.6 * tam, -0.9, 0.85);
-        ctx.stroke();
-        // runas sombrias na lâmina (brilham com a carga)
-        ctx.save();
-        ctx.globalAlpha = Math.min(0.95, 0.25 + (carga || 0) * 0.7);
-        ctx.strokeStyle = cPonta;
-        ctx.lineWidth = 1.1;
-        ctx.shadowColor = cPonta;
-        ctx.shadowBlur = 5 + 9 * (carga || 0);
-        for (let i = 0; i < 4; i++) {
-            let a = -0.85 + i * 0.34;
-            ctx.beginPath();
-            ctx.arc(34 * tam, -34 * tam, 22.6 * tam, a, a + 0.18);
-            ctx.stroke();
-        }
-        ctx.restore();
-        ctx.restore();
-
+    // Blade socket and red core.
+    ctx.shadowBlur = 0;
+    ctx.globalAlpha = 1;
+    ctx.fillStyle = '#302b34';
+    ctx.strokeStyle = '#b7a8a8';
+    ctx.lineWidth = 0.9 * tam;
+    ctx.beginPath(); ctx.arc(1 * tam, -26 * tam, 3.2 * tam, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = cPonta;
+    ctx.shadowColor = cPonta;
+    ctx.shadowBlur = 4 + energia * 7;
+    ctx.beginPath(); ctx.arc(1 * tam, -26 * tam, 1.5 * tam, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
 };

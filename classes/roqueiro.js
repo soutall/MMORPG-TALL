@@ -127,8 +127,8 @@ window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
     ctx.arc(12, 6, 3.5, 0, Math.PI * 2);
     ctx.fill();
     
-    // Cabelo comprido (preto, estilo rock anos 80)
-    ctx.fillStyle = "#1a1a1a";
+    // Cabelo vermelho em mechas, com silhueta de vocalista de palco.
+    ctx.fillStyle = "#971f32";
     
     // Topo e lateral esquerda
     ctx.beginPath();
@@ -154,7 +154,7 @@ window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
     ctx.fill();
     
     // Ondas/volume no cabelo
-    ctx.fillStyle = "#0d0d0d";
+    ctx.fillStyle = "#d12b42";
     ctx.beginPath();
     ctx.arc(8, 5, 1.2, 0, Math.PI * 2);
     ctx.fill();
@@ -163,7 +163,7 @@ window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
     ctx.fill();
     
     // Franja (cabelo na testa)
-    ctx.fillStyle = "#1a1a1a";
+    ctx.fillStyle = "#bd263c";
     ctx.beginPath();
     ctx.moveTo(9, 4);
     ctx.lineTo(8, 7);
@@ -172,6 +172,20 @@ window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
     ctx.lineTo(15, 4);
     ctx.closePath();
     ctx.fill();
+
+    // Fones de palco com aro e conchas metálicas.
+    ctx.strokeStyle = "#17151b";
+    ctx.lineWidth = 1.6;
+    ctx.beginPath();
+    ctx.arc(12, 5.7, 5.2, Math.PI * 1.02, Math.PI * 1.98);
+    ctx.stroke();
+    ctx.fillStyle = "#211922";
+    ctx.beginPath(); ctx.ellipse(7.2, 7, 1.5, 2.6, -0.2, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(16.8, 7, 1.5, 2.6, 0.2, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = "#d5a13c";
+    ctx.lineWidth = 0.65;
+    ctx.beginPath(); ctx.arc(7.2, 7, 0.8, 0, Math.PI * 2); ctx.stroke();
+    ctx.beginPath(); ctx.arc(16.8, 7, 0.8, 0, Math.PI * 2); ctx.stroke();
 
     // ===== ROSTO: Olhos e expressão rock =====
     
@@ -256,10 +270,26 @@ window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
     
     ctx.restore();
 
-    // ===== GUITARRA ELÉTRICA (vermelha e preta) =====
+    // Alça diagonal no peito, por baixo da guitarra.
+    ctx.strokeStyle = "#57423e";
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(5, 12);
+    ctx.lineTo(19, 24);
+    ctx.stroke();
+    ctx.strokeStyle = "#c99748";
+    ctx.lineWidth = 0.7;
+    ctx.beginPath();
+    ctx.moveTo(5, 12);
+    ctx.lineTo(19, 24);
+    ctx.stroke();
+
+    // ===== GUITARRA ELÉTRICA PRESA AO PEITO =====
     ctx.save();
-    ctx.translate(12, 16);
-    ctx.rotate(angulo);
+    const ladoGuitarra = Math.cos(angulo || 0) < 0 ? -1 : 1;
+    ctx.translate(12, 17);
+    ctx.scale(ladoGuitarra, 1);
+    ctx.rotate(-0.48);
 
     // Animação de golpe (swing da guitarra)
     let golpeEm = 0;
@@ -274,8 +304,6 @@ window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
 
     // Strum vibratório quando bateria está ligada
     let strum = window.roqueiroBateriaLigada ? Math.sin(Date.now() / 55) * 0.18 : Math.sin(t * 2.2) * 0.06;
-    ctx.translate(14, 0);
-
     let wp = window.inventario ? window.inventario.arma : null;
     let armaV = null;
     if (x === window.meuX && y === window.meuY) { 
@@ -292,7 +320,7 @@ window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
     }
 };
 
-// ===== FUNÇÃO: Desenha os Integrantes da Banda (MANTÉM COMO ESTÁ) =====
+// ===== FUNÇÃO: LACAIO VOCALISTA DA BANDA =====
 window.desenharBandaRoqueiro = function(listaBanda) {
     if (!window.ctx) return;
     let ctx = window.ctx;
@@ -309,99 +337,52 @@ window.desenharBandaRoqueiro = function(listaBanda) {
                 ctx.fillStyle = "rgba(0,0,0,0.4)";
                 ctx.beginPath(); ctx.ellipse(0, 16, 8, 3, 0, 0, Math.PI * 2); ctx.fill();
 
-                // Pernas (jeans rasgado)
-                ctx.fillStyle = "#1c2833";
-                ctx.fillRect(-3.5, 8, 3, 7);
-                ctx.fillRect(0.5, 8, 3, 7);
-                ctx.fillStyle = "#111";
-                ctx.fillRect(-3.5, 9.5, 1.2, 2);
-                ctx.fillRect(0.5, 11, 1.2, 2);
+                const pulse = 0.5 + Math.sin(t * 8 + (membro.x || 0) * 0.03) * 0.5;
+                const cantando = Math.sin(t * 7 + (membro.y || 0) * 0.02);
+                const passoVocalista = Math.sin(t * 5 + (membro.x || 0) * 0.04) * 1.2;
 
-                // Colete/jaqueta punk (estudded)
-                ctx.fillStyle = "#21262d";
-                ctx.fillRect(-5, -2, 10, 12);
-                ctx.fillStyle = "#aab2bd";
-                ctx.fillRect(-4.5, 1, 1, 1); ctx.fillRect(-1, 3, 1, 1); ctx.fillRect(2.5, 1, 1, 1);
-                ctx.fillRect(3.5, 6, 1, 1); ctx.fillRect(-4.5, 6, 1, 1);
-
-                // Corrente no pescoço
-                ctx.strokeStyle = "#95a5a6";
-                ctx.lineWidth = 0.9;
-                ctx.beginPath(); ctx.moveTo(-4, -1); ctx.quadraticCurveTo(0, 1.5, 4, -1); ctx.stroke();
-
-                // Cabeça punk com moicano
-                ctx.fillStyle = "#f1c40f";
-                ctx.fillRect(-4, -10, 8, 7);
-                ctx.fillStyle = "#c0392b";
+                // Calca escura, botas e casaco de palco com abas vermelhas.
+                ctx.fillStyle = "#16151c";
+                ctx.fillRect(-3.4, 8 + passoVocalista, 2.8, 7);
+                ctx.fillRect(0.6, 8 - passoVocalista, 2.8, 7);
+                ctx.fillStyle = "#6f202b";
+                ctx.fillRect(-4, 14 + passoVocalista, 4, 2);
+                ctx.fillRect(0, 14 - passoVocalista, 4, 2);
+                ctx.fillStyle = "#211923";
                 ctx.beginPath();
-                ctx.moveTo(-1, -9); ctx.lineTo(0, -15); ctx.lineTo(1, -9);
-                ctx.lineTo(2, -16); ctx.lineTo(3, -9); ctx.closePath();
-                ctx.fill();
-                ctx.fillStyle = "#111";
-                ctx.fillRect(-4, -10, 8, 2.2);
-                ctx.fillRect(-5, -8.5, 2, 3);
-                ctx.fillRect(3, -8.5, 2, 3);
-                // Óculos escuros
-                ctx.fillStyle = "#111";
-                ctx.fillRect(-3.5, -7, 3, 2);
-                ctx.fillRect(0.5, -7, 3, 2);
-                ctx.fillRect(-0.5, -6.8, 1, 1.4);
-                ctx.fillStyle = "#c0392b";
-                ctx.fillRect(-3, -6.8, 2, 1.2);
-                ctx.fillRect(1, -6.8, 2, 1.2);
+                ctx.moveTo(-5, -2); ctx.lineTo(5, -2); ctx.lineTo(6, 10);
+                ctx.lineTo(2, 8); ctx.lineTo(0, 12); ctx.lineTo(-2, 8); ctx.lineTo(-6, 10);
+                ctx.closePath(); ctx.fill();
+                ctx.strokeStyle = "#a52d3d"; ctx.lineWidth = 1;
+                ctx.beginPath(); ctx.moveTo(0, -1); ctx.lineTo(0, 7); ctx.stroke();
+                ctx.fillStyle = "#d5b06b";
+                ctx.beginPath(); ctx.arc(0, 4, 1.1, 0, Math.PI * 2); ctx.fill();
 
-                // GUITARRA do integrante
-                const giroGuitarra = Math.sin(t * 3 + membro.x * 0.1) * 0.5;
-                ctx.save();
-                ctx.translate(4, 2);
-                ctx.rotate(giroGuitarra);
-                // Corpo da guitarra
-                ctx.fillStyle = "#101418";
+                // Rosto aquecido pelo palco, cabelo vermelho e boca em canto.
+                ctx.fillStyle = "#c98768";
+                ctx.beginPath(); ctx.ellipse(0, -7, 4.1, 4.8, 0, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = "#8f1f32";
                 ctx.beginPath();
-                ctx.ellipse(0, 0, 5, 4, 0, 0, Math.PI * 2);
-                ctx.moveTo(-3, -2); ctx.lineTo(-7, -5); ctx.lineTo(-4, 0);
-                ctx.moveTo(-3, 2); ctx.lineTo(-7, 5); ctx.lineTo(-4, 0);
-                ctx.closePath();
-                ctx.fill();
-                ctx.fillStyle = "#c0392b";
-                ctx.strokeStyle = "#c0392b";
-                ctx.lineWidth = 1;
-                ctx.beginPath(); ctx.ellipse(0, 0, 5, 4, 0, 0.4, Math.PI * 1.6); ctx.stroke();
-                ctx.fillStyle = "#e8e4da";
-                ctx.fillRect(-2.5, -1.6, 3, 3.2);
-                // Braço + headstock
-                ctx.fillStyle = "#8a5a30";
-                ctx.fillRect(2, -1.2, 11, 2.4);
-                ctx.fillStyle = "#f4e8d8";
-                ctx.fillRect(3, -0.8, 10, 1.6);
-                ctx.strokeStyle = "#7a6a55";
-                ctx.lineWidth = 0.4;
-                for (let f = 5; f <= 12; f += 2.5) { ctx.beginPath(); ctx.moveTo(f, -0.8); ctx.lineTo(f, 0.8); ctx.stroke(); }
-                ctx.fillStyle = "#101418";
-                ctx.fillRect(12, -1.6, 4, 3.2);
-                ctx.fillStyle = "#bdc3c7";
-                ctx.beginPath(); ctx.arc(14.5, -1, 0.6, 0, Math.PI * 2); ctx.fill();
-                ctx.beginPath(); ctx.arc(14.5, 1, 0.6, 0, Math.PI * 2); ctx.fill();
-                // Cordas vibrantes
-                ctx.strokeStyle = "#d7dbdd";
-                ctx.lineWidth = 0.4;
-                for (let s = 0; s < 3; s++) {
-                    const w = Math.sin(t * 14 + s * 2 + membro.x) * 0.7;
-                    ctx.beginPath();
-                    ctx.moveTo(-3, -0.6 + s * 0.6);
-                    ctx.quadraticCurveTo(4 + w, -0.6 + s * 0.6 + w, 13, -0.6 + s * 0.6);
-                    ctx.stroke();
-                }
-                ctx.restore();
+                ctx.moveTo(-4, -8); ctx.lineTo(-6, -13); ctx.lineTo(-1, -11);
+                ctx.lineTo(1, -15); ctx.lineTo(2, -11); ctx.lineTo(6, -12);
+                ctx.lineTo(4, -7); ctx.lineTo(3, -4); ctx.lineTo(-3, -5);
+                ctx.closePath(); ctx.fill();
+                ctx.fillStyle = "#27141a";
+                ctx.fillRect(-2.5, -8, 1.4, 0.8);
+                ctx.fillRect(1.2, -8, 1.4, 0.8);
+                ctx.fillStyle = "#45121d";
+                ctx.beginPath(); ctx.ellipse(0.5, -4.5, 1.1, 1.6 + Math.abs(cantando) * 0.8, 0, 0, Math.PI * 2); ctx.fill();
 
-                // BRAÇO do integrante (segurando a guitarra)
-                ctx.strokeStyle = "#8d6e63";
-                ctx.lineWidth = 2.6;
-                ctx.lineCap = 'round';
-                ctx.beginPath();
-                ctx.moveTo(-3, 0);
-                ctx.quadraticCurveTo(0, 2, 4, 3);
-                ctx.stroke();
+                // Microfone erguido na mao e ondas sonoras do vocal.
+                ctx.strokeStyle = "#c98768"; ctx.lineWidth = 2.4; ctx.lineCap = "round";
+                ctx.beginPath(); ctx.moveTo(3, 1); ctx.quadraticCurveTo(6, -1, 5, -5); ctx.stroke();
+                ctx.strokeStyle = "#bfc6d2"; ctx.lineWidth = 1.2;
+                ctx.beginPath(); ctx.moveTo(5, -5); ctx.lineTo(6.5, -11); ctx.stroke();
+                ctx.fillStyle = "#181a22";
+                ctx.beginPath(); ctx.ellipse(6.7, -12, 2, 2.8, -0.2, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = "#c33b52"; ctx.lineWidth = 0.8;
+                ctx.beginPath(); ctx.arc(0, -9, 10 + pulse * 2, -2.5, -0.6); ctx.stroke();
+                ctx.beginPath(); ctx.arc(0, -9, 14 + pulse * 3, -2.45, -0.65); ctx.stroke();
 
                 ctx.restore();  // fecha o save() da linha 325 (membro inteiro)
             });

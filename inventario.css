@@ -2013,3 +2013,508 @@
     .inv-info-panel,
     .inv-compare-panel { min-height: 0; }
 }
+
+/* Inventário redesenhado sem arte de fundo; todos os filtros ficam acessíveis. */
+#inv-window {
+    width: min(1280px, 98vw, 142.5vh);
+    aspect-ratio: 3 / 2;
+    overflow: visible;
+    border: 1px solid rgba(219, 183, 105, 0.78);
+    border-radius: 14px;
+    background: linear-gradient(145deg, #182334 0%, #0b121c 58%, #171b29 100%);
+    box-shadow: 0 22px 70px rgba(0, 0, 0, 0.82), inset 0 0 40px rgba(148, 180, 214, 0.06);
+}
+
+#inv-artboard {
+    height: 100%;
+    aspect-ratio: auto;
+    overflow: hidden;
+    border-radius: inherit;
+    background:
+        radial-gradient(ellipse at 12% 7%, rgba(96, 126, 160, 0.18), transparent 36%),
+        linear-gradient(145deg, rgba(21, 34, 49, 0.98), rgba(8, 14, 23, 0.99));
+}
+
+#inv-artwork { display: none; }
+
+#inv-overlay {
+    display: grid;
+    grid-template-columns: minmax(190px, 0.82fr) minmax(280px, 1.12fr) minmax(370px, 1.55fr);
+    grid-template-rows: minmax(0, 1fr) 48px;
+    grid-template-areas: "equipment inspect backpack" "equipment actions backpack";
+    gap: 12px;
+    padding: 64px 16px 14px;
+    box-sizing: border-box;
+    font-size: 13px;
+}
+
+#inv-title {
+    position: absolute;
+    inset: 12px 58px auto 18px;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    color: #f4d27f;
+    font: 800 20px 'Cinzel', Georgia, serif;
+    letter-spacing: 1.6px;
+    text-shadow: 0 2px 8px #000;
+    pointer-events: none;
+}
+
+.inv-title-ico { font-size: 25px; }
+
+#btn-inv-fechar {
+    inset: 12px 12px auto auto;
+    width: 34px;
+    height: 34px;
+    border: 1px solid rgba(255, 140, 127, 0.75);
+    border-radius: 7px;
+    background: rgba(126, 42, 47, 0.78);
+    color: #fff;
+    font-size: 17px;
+}
+
+#inv-col-esquerda,
+#inv-col-inspecao,
+#inv-col-direita {
+    position: relative;
+    inset: auto;
+    display: flex;
+    width: auto;
+    height: auto;
+    min-width: 0;
+    max-width: none;
+    min-height: 0;
+    padding: 11px;
+    border: 1px solid rgba(125, 154, 183, 0.32);
+    border-radius: 10px;
+    background: linear-gradient(160deg, rgba(27, 41, 57, 0.88), rgba(11, 19, 29, 0.92));
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.04), 0 8px 18px rgba(0, 0, 0, 0.22);
+    pointer-events: auto;
+}
+
+#inv-col-esquerda { grid-area: equipment; flex-direction: column; gap: 12px; }
+#inv-col-inspecao { grid-area: inspect; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+#inv-col-direita {
+    grid-area: backpack;
+    display: grid;
+    grid-template-columns: minmax(62px, 0.18fr) minmax(72px, 0.22fr) minmax(0, 1fr);
+    grid-template-rows: 48px minmax(0, 1fr) 24px;
+    grid-template-areas: "categories slots controls" "categories slots items" "categories slots count";
+    gap: 8px;
+}
+
+#equip-body {
+    position: relative;
+    inset: auto;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-rows: repeat(3, minmax(48px, 1fr));
+    gap: 7px;
+    width: 100%;
+    height: min(48%, 265px);
+    margin: 0 auto;
+    pointer-events: auto;
+}
+
+.inv-slot {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: 100%;
+    border: 1px solid rgba(141, 169, 196, 0.4);
+    border-radius: 8px;
+    background: linear-gradient(145deg, rgba(49, 66, 84, 0.6), rgba(11, 20, 29, 0.9));
+    box-shadow: inset 0 1px rgba(255, 255, 255, 0.06);
+}
+
+.slot-capacete { grid-area: 1 / 1; }
+.slot-colar { grid-area: 1 / 2; }
+.slot-peitoral { grid-area: 1 / 3; }
+.slot-capa { grid-area: 2 / 1; }
+.slot-luva { grid-area: 2 / 2; }
+.slot-anel { grid-area: 2 / 3; }
+.slot-arma { grid-area: 3 / 1; }
+.slot-arma-sec { grid-area: 3 / 2; }
+.slot-bota { grid-area: 3 / 3; }
+.inv-slot .slot-ico { font-size: clamp(20px, 2.6cqw, 36px); }
+
+#inv-personagem {
+    position: relative;
+    inset: auto;
+    display: flex;
+    flex: 1;
+    min-height: 0;
+    flex-direction: column;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 8px;
+    background: rgba(5, 12, 20, 0.44);
+    pointer-events: auto;
+}
+
+#inv-personagem-nivel,
+.inv-recurso {
+    position: relative;
+    inset: auto;
+    width: 100%;
+    height: auto;
+    min-height: 25px;
+    overflow: hidden;
+    border: 1px solid rgba(120, 150, 180, 0.3);
+    border-radius: 5px;
+    background: rgba(10, 18, 28, 0.8);
+    color: #e8f2fb;
+}
+
+#inv-personagem-nivel { padding: 5px; color: #ffe08a; }
+.inv-recurso-hp { border-color: rgba(222, 94, 92, 0.45); }
+.inv-recurso-mp { border-color: rgba(75, 155, 225, 0.45); }
+.inv-recurso-hp > span:first-child { background: rgba(9, 15, 23, 0.8); }
+.inv-recurso > span:last-child { font-size: 12px; }
+
+#inv-atributos {
+    position: relative;
+    inset: auto;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 5px;
+}
+
+#inv-atributos [data-atributo] {
+    position: relative;
+    inset: auto;
+    width: auto;
+    height: auto;
+    min-height: 25px;
+    border: 1px solid rgba(117, 148, 180, 0.2);
+    border-radius: 4px;
+    background: rgba(30, 49, 67, 0.4);
+    color: #d8ecff;
+    font-size: 12px;
+}
+
+#inv-col-inspecao .inv-info-panel,
+#inv-col-inspecao .inv-compare-panel {
+    position: relative;
+    min-width: 0;
+    min-height: 0;
+    padding: 8px;
+    overflow: hidden;
+    border: 1px solid rgba(130, 159, 188, 0.26);
+    border-radius: 8px;
+    background: rgba(6, 12, 20, 0.54);
+    pointer-events: auto;
+}
+
+#inv-info,
+#inv-comparacao,
+#inv-comparacao-empty {
+    inset: 0;
+    padding: 6px;
+    font-size: 12px;
+}
+
+#inv-botoes {
+    position: relative;
+    grid-area: actions;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: auto;
+    height: auto;
+    pointer-events: auto;
+}
+
+.inv-botoes-ajuda { display: none; }
+
+#btn-inv-acao-principal,
+#btn-inv-comparacao-equipar,
+#btn-inv-destruir,
+#btn-inv-bloquear {
+    position: relative;
+    inset: auto;
+    display: grid !important;
+    width: auto;
+    min-width: 42px;
+    height: 38px;
+    padding: 0 10px;
+    border: 1px solid rgba(160, 190, 218, 0.48);
+    border-radius: 7px;
+    background: rgba(28, 45, 62, 0.9);
+    color: #e9f2fa;
+    font: 800 12px 'Rajdhani', sans-serif;
+}
+
+#btn-inv-acao-principal:not(:empty),
+#btn-inv-comparacao-equipar:not(:empty) { color: #ffe19a; }
+#btn-inv-destruir { color: #ffb1a7; }
+#btn-inv-destruir.modo-descarte { color: #fff; border-color: #ff806f; background: #842e2b; }
+#btn-inv-bloquear { color: #9bd5ff; }
+
+#mochila-abas { grid-area: categories; }
+#mochila-filtros-slot { grid-area: slots; }
+#mochila-abas,
+#mochila-filtros-slot {
+    position: relative;
+    inset: auto;
+    display: flex;
+    width: auto;
+    height: auto;
+    min-height: 0;
+    flex-direction: column;
+    gap: 5px;
+    overflow: auto;
+    pointer-events: auto;
+}
+
+.mochila-aba,
+.mochila-filtro-slot {
+    position: relative;
+    inset: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1 0 34px;
+    width: 100%;
+    min-height: 34px;
+    height: auto;
+    padding: 4px 3px;
+    border: 1px solid rgba(121, 153, 183, 0.28);
+    border-radius: 6px;
+    background: rgba(32, 48, 65, 0.72);
+    color: #d9e5ef;
+    font: 800 11px 'Rajdhani', sans-serif;
+    text-align: center;
+}
+
+.mochila-aba { flex-direction: column; gap: 1px; font-size: 15px; }
+.mochila-aba span { font-size: 9px; line-height: 1; }
+.mochila-aba.ativa,
+.mochila-filtro-slot.ativo {
+    border-color: #eac875;
+    background: linear-gradient(135deg, rgba(131, 99, 43, 0.72), rgba(54, 46, 38, 0.9));
+    color: #ffe5a1;
+    box-shadow: inset 0 0 10px rgba(255, 208, 93, 0.11);
+}
+
+#mochila-filtros { grid-area: controls; position: relative; inset: auto; display: grid; width: auto; height: auto; grid-template-columns: minmax(0, 1fr) minmax(105px, 0.8fr) 38px; gap: 6px; pointer-events: auto; }
+#mochila-filtros input,
+#mochila-filtros select,
+#btn-inv-organizar {
+    min-height: 38px;
+    padding: 5px 8px;
+    border: 1px solid rgba(130, 161, 191, 0.32);
+    border-radius: 6px;
+    background: #111e2b;
+    color: #e7f0f8;
+}
+#mochila-busca::placeholder { color: #91a5b7; }
+#btn-inv-organizar { color: #ffe19a; cursor: pointer; }
+
+#mochila-grade-container { grid-area: items; position: relative; inset: auto; min-width: 0; min-height: 0; }
+#mochila-grade {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 7px;
+    min-height: auto;
+}
+
+.mochila-slot,
+.mochila-slot-vazio {
+    border: 1px solid rgba(126, 153, 178, 0.3);
+    border-radius: 8px;
+    background: linear-gradient(145deg, rgba(43, 60, 76, 0.7), rgba(12, 20, 29, 0.92));
+}
+
+.mochila-slot .slot-ico { position: relative; z-index: 1; }
+.mochila-slot.selecionado-descarte {
+    outline: 2px solid #ff766c;
+    outline-offset: -2px;
+    background: rgba(139, 39, 43, 0.62);
+}
+.mochila-slot.selecionado-descarte::before {
+    content: "✓";
+    position: absolute;
+    z-index: 3;
+    top: 3px;
+    left: 4px;
+    display: grid;
+    width: 16px;
+    height: 16px;
+    place-items: center;
+    border-radius: 50%;
+    background: #ed625b;
+    color: #fff;
+    font: 900 11px sans-serif;
+}
+
+.mochila-slot.equip-epico,
+.mochila-slot.equip-lendario { overflow: hidden; }
+.mochila-slot.equip-epico::after,
+.mochila-slot.equip-lendario::after {
+    content: "";
+    position: absolute;
+    z-index: 0;
+    inset: -25% auto -25% -75%;
+    width: 48%;
+    transform: skewX(-22deg);
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.48), transparent);
+    animation: inventario-brilho-raro 3.2s ease-in-out infinite;
+    pointer-events: none;
+}
+.mochila-slot.equip-lendario::after { animation-duration: 2.6s; background: linear-gradient(90deg, transparent, rgba(255, 225, 142, 0.65), transparent); }
+.mochila-slot.equip-epico { border-color: #bc72ff; box-shadow: 0 0 11px rgba(188, 114, 255, 0.45); }
+.mochila-slot.equip-lendario { border-color: #ffc35c; box-shadow: 0 0 13px rgba(255, 174, 54, 0.52); }
+
+@keyframes inventario-brilho-raro {
+    0%, 60% { left: -75%; }
+    100% { left: 145%; }
+}
+
+#inv-contagem-itens { grid-area: count; position: relative; inset: auto; width: auto; height: auto; padding: 2px; color: #b9c9d8; text-align: right; pointer-events: none; }
+#inv-contagem-itens.modo-descarte-info { color: #ffc2b8; text-align: center; white-space: normal; }
+
+.item-card-progressao.roll-mais-forte {
+    padding: 3px 5px;
+    border-left: 3px solid #59db9a;
+    background: rgba(30, 112, 73, 0.22);
+    color: #c3ffdd;
+}
+.item-card-progressao.roll-mais-fraca {
+    padding: 3px 5px;
+    border-left: 3px solid #e59a65;
+    background: rgba(133, 75, 41, 0.2);
+    color: #ffd0ae;
+}
+.item-card-progressao.roll-mais-forte b,
+.item-card-progressao.roll-mais-fraca b { display: block; margin-top: 2px; font-size: 9px; letter-spacing: 0.4px; }
+
+@media (max-width: 760px) {
+    #inventory-screen { overflow: auto; padding: 8px; }
+    #inv-window { width: min(680px, 98vw); max-height: 94dvh; aspect-ratio: auto; overflow-y: auto; }
+    #inv-artboard { height: auto; min-height: 100dvh; overflow: visible; }
+    #inv-overlay {
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto;
+        grid-template-areas: "equipment" "backpack" "inspect" "actions";
+        gap: 9px;
+        padding: 58px 10px 12px;
+    }
+    #inv-col-esquerda { display: grid; grid-template-columns: minmax(160px, 0.8fr) minmax(0, 1.2fr); align-items: center; }
+    #equip-body { height: 190px; grid-template-rows: repeat(3, 1fr); }
+    #inv-personagem { min-height: 180px; }
+    #inv-col-direita {
+        display: grid;
+        grid-template-columns: 66px 78px minmax(0, 1fr);
+        grid-template-rows: 42px minmax(180px, 1fr) 22px;
+        min-height: 375px;
+    }
+    #mochila-abas { grid-area: 1 / 1 / 4 / 2; }
+    #mochila-filtros-slot { grid-area: 1 / 2 / 4 / 3; }
+    #mochila-filtros { grid-area: 1 / 3 / 2 / 4; grid-template-columns: minmax(0, 1fr) minmax(82px, 0.7fr) 34px; }
+    #mochila-grade-container { grid-area: 2 / 3 / 3 / 4; }
+    #inv-contagem-itens { grid-area: 3 / 3 / 4 / 4; }
+    #inv-col-inspecao { min-height: 250px; }
+    #inv-botoes { grid-area: actions; min-height: 44px; }
+}
+
+@media (max-width: 460px) {
+    #inv-col-esquerda { grid-template-columns: minmax(135px, 0.8fr) minmax(0, 1.2fr); padding: 7px; gap: 7px; }
+    #equip-body { gap: 4px; height: 160px; }
+    #inv-personagem { padding: 6px; }
+    #inv-col-direita { grid-template-columns: 54px 64px minmax(0, 1fr); gap: 5px; padding: 7px; }
+    .mochila-aba,
+    .mochila-filtro-slot { flex-basis: 23px; min-height: 23px; padding: 2px; font-size: 8px; }
+    .mochila-aba span { font-size: 8px; }
+    #mochila-grade { gap: 4px; }
+    #inv-col-inspecao { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .mochila-slot.equip-epico::after,
+    .mochila-slot.equip-lendario::after { animation: none; }
+}
+
+.mochila-aba,
+.mochila-filtro-slot {
+    flex: 0 0 50px;
+    min-height: 50px;
+}
+
+.mochila-aba .aba-ico { font-size: 17px; line-height: 1; }
+.mochila-aba .aba-rotulo { font-size: 8px; }
+
+.mochila-filtro-slot {
+    gap: 3px;
+    font-size: 9px;
+}
+
+.filtro-slot-ico {
+    font-size: 14px;
+    line-height: 1;
+}
+
+.inv-slot::before {
+    position: absolute;
+    z-index: 0;
+    display: grid;
+    inset: 0;
+    place-items: center;
+    opacity: 0.24;
+    filter: grayscale(1) brightness(0.65);
+    font-size: clamp(20px, 2.2cqw, 30px);
+    line-height: 1;
+    pointer-events: none;
+}
+
+.inv-slot.ocupado::before { opacity: 0.08; }
+.inv-slot .slot-ico { position: relative; z-index: 1; }
+.slot-capacete::before { content: "🪖"; }
+.slot-colar::before { content: "📿"; }
+.slot-peitoral::before { content: "🛡️"; }
+.slot-capa::before { content: "🧥"; }
+.slot-luva::before { content: "🧤"; }
+.slot-anel::before { content: "💍"; }
+.slot-arma::before { content: "⚔️"; }
+.slot-arma-sec::before { content: "🗡️"; }
+.slot-bota::before { content: "🥾"; }
+
+#inv-atributos [data-atributo] {
+    justify-content: flex-start;
+    gap: 3px;
+    padding-left: 4px;
+    font-size: clamp(8px, 0.76cqw, 10px);
+}
+
+#inv-atributos [data-atributo]::before {
+    flex: 0 0 auto;
+    font-size: clamp(8px, 0.9cqw, 11px);
+    line-height: 1;
+}
+
+#inv-atributos [data-atributo="forca"]::before { content: "👊"; }
+#inv-atributos [data-atributo="vida"]::before { content: "❤️"; }
+#inv-atributos [data-atributo="inteligencia"]::before { content: "📖"; }
+#inv-atributos [data-atributo="profanidade"]::before { content: "☠️"; }
+#inv-atributos [data-atributo="agilidade"]::before { content: "💨"; }
+#inv-atributos [data-atributo="divindade"]::before { content: "✨"; }
+#inv-atributos [data-atributo="destreza"]::before { content: "🏹"; }
+#inv-atributos [data-atributo="afinidade"]::before { content: "🐾"; }
+
+@media (max-width: 760px) {
+    .mochila-aba,
+    .mochila-filtro-slot { flex-basis: 38px; min-height: 38px; }
+    .mochila-aba .aba-ico { font-size: 14px; }
+    .mochila-filtro-slot { font-size: 8px; }
+    .filtro-slot-ico { font-size: 12px; }
+}
+
+@media (max-width: 460px) {
+    .mochila-aba,
+    .mochila-filtro-slot { flex-basis: 27px; min-height: 27px; }
+    .mochila-aba .aba-ico { font-size: 12px; }
+    .mochila-aba .aba-rotulo { font-size: 7px; }
+    .mochila-filtro-slot { gap: 1px; font-size: 7px; }
+    .filtro-slot-ico { font-size: 10px; }
+}

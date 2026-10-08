@@ -125,11 +125,38 @@ const SKILLS_INFO = {
           area: 'Ao redor do golem', alcance: 'Via pet',
           duracao: '20s', duracaoBase: null, extras: ['+50% de vida do pet', 'Aumento de alcance e dano em área'] },
         { id: 'sismico', nome: 'Golem Sísmico', icon: '⛰️', iconImage: 'imagem/HUD/skills/Slotbar/Summoner/golem-sismico.png', categoria: 'aoe',
-          desc: 'Golem trava no lugar e libera ondas sísmicas por 8s: dano em área crescente (raio 260), lentidão 50% e tremores cada vez mais rápidos.',
-          danoBase: 55, danoUnidade: 'físico', danoNota: 'pulso crescente',
+          desc: 'Golem trava no lugar e libera ondas sísmicas por 8s: dano em área crescente reduzido (raio 182), lentidão 50% e tremores cada vez mais rápidos.',
+          danoBase: 28, danoUnidade: 'físico', danoNota: 'pulso crescente',
           mp: 40, cd: 30, escala: 'dano',
-          area: 'Raio 260 (no golem)', alcance: 'Via pet',
+          area: 'Raio 182 (no golem)', alcance: 'Via pet',
           duracao: '8s', duracaoBase: 8, extras: ['Pulsos aceleram (1s → 0.3s)', 'Lentidão 50% por 2s', 'Golem imune/travado'] }
+    ],
+    lord_malakar: [
+        { id: 'lord_malakar_carne_petrificada', nome: 'Carne Petrificada (Passiva)', icon: '🪨', categoria: 'passiva',
+          desc: 'A Vida Máxima petrificada pelas invocações reduz o dano recebido por Malakar: 2% a cada 3% de Vida Máxima petrificada, até 10%.',
+          danoBase: null, danoUnidade: null, danoNota: 'Redução de dano de até 10%',
+          mp: 0, cd: 0, escala: 'nenhum', area: 'Malakar', alcance: 'Passiva',
+          duracao: 'Permanente', duracaoBase: null, extras: ['A redução acompanha a quantidade de Vida Petrificada'] },
+        { id: 'lord_malakar_evocacao_demoníaca', nome: 'Evocação Demoníaca', icon: '💀', categoria: 'invocacao',
+          desc: 'Invoca uma caveira. Cada criatura petrifica 3% da Vida Máxima; limite de duas guerreiras, duas arqueiras e uma maga.',
+          danoBase: null, danoUnidade: null, danoNota: '3% Vida Máx por caveira',
+          mp: 0, cd: 4, escala: 'nenhum', area: 'Até 5 caveiras', alcance: 'Ao redor de Malakar',
+          duracao: 'Enquanto sobreviver', duracaoBase: null, extras: ['2 Caveiras Guerreiras', '2 Caveiras Arqueiras', '1 Caveira Maga'] },
+        { id: 'lord_malakar_vinculo_mortal', nome: 'Vínculo Mortal', icon: '⛓️', categoria: 'suporte',
+          desc: 'Vincula até quatro inimigos em até 260 px por 5 segundos. Dano causado pelas caveiras e lacaios a alvos vinculados cura Malakar em 10% do dano (mínimo de 1 por acerto).',
+          danoBase: null, danoUnidade: null, danoNota: '10% do dano das caveiras e lacaios (mínimo 1 por acerto)',
+          mp: 0, cd: 15, escala: 'nenhum', area: 'Até 4 inimigos', alcance: '260 px',
+          duracao: '5s', duracaoBase: 5, extras: ['Somente dano das caveiras ativa a cura'] },
+        { id: 'lord_malakar_sofrimento_eterno', nome: 'Sofrimento Eterno', icon: '🩸', categoria: 'buff',
+          desc: 'Fortalece caveiras, lacaio e aliados do grupo: +20% chance crítica, +30% dano crítico e +50% velocidade de ataque. Drena Vida por segundo; desativa aos 20% de HP.',
+          danoBase: null, danoUnidade: null, danoNota: '1% + 0,5% Vida Máx/s por invocação',
+          mp: 0, cd: 13, escala: 'nenhum', area: 'Invocações e grupo', alcance: 'Grupo de Malakar',
+          duracao: 'Toggle', duracaoBase: null, extras: ['Malakar não recebe os bônus', 'CD de 13s ao cancelar ou desativar'] },
+        { id: 'lord_malakar_invocacao_aleatoria', nome: 'Invocação Aleatória', icon: '🕯️', categoria: 'invocacao',
+          desc: 'Invoca um Ceifador, Sniper das Profundezas ou Clérigo das Almas; substitui o lacaio anterior.',
+          danoBase: null, danoUnidade: null, danoNota: 'Custo de 10% a 15% Vida Máx',
+          mp: 0, cd: 20, escala: 'nenhum', area: '1 lacaio', alcance: 'Ao redor de Malakar',
+          duracao: '10s / 15s', duracaoBase: null, extras: ['Chance influenciada pelo maior atributo: Força, Agilidade ou Divindade'] }
     ],
     arqueiro: [
         { id: 'flecha', nome: 'Flecha Precisa', icon: '🏹', categoria: 'ataque',
@@ -225,7 +252,7 @@ const SKILLS_INFO = {
           duracao: '6s', duracaoBase: 6, extras: ['+30% velocidade', 'Lifesteal +8', 'Cooldown: 15s'] },
         { id: 'giro_descontrolado', nome: 'Giro Descontrolado', icon: '🌀', categoria: 'aoe',
           desc: 'Gira violentamente por 4 segundos, causando dano e sangramento ao redor e reduzindo o dano recebido em 10%.',
-          danoBase: 18, danoUnidade: 'físico', danoNota: '+ Sangramento 3/s',
+          danoBase: 18, danoMultiplicadorBase: 0.2, danoMultiplicadorFinal: 0.5, danoUnidade: 'físico', danoNota: 'por pulso (dano final reduzido pela metade) · + Sangramento 3/s',
           mp: 30, cd: 15, escala: 'dano',
           area: 'Raio 90', alcance: 'Ao redor do Bárbaro',
           duracao: '4s', duracaoBase: null, extras: ['Duração reduzida para 4s', 'Cooldown aumentado para 15s', 'Redução de dano recebida: 10%'] },
@@ -510,12 +537,12 @@ const NOMES_CLASSES = {
     guerreiro: 'GUERREIRO', mago: 'MAGO', summoner: 'SUMMONER', arqueiro: 'ARQUEIRO',
     curandeiro: 'CURANDEIRO', barbaro: 'BÁRBARO', roqueiro: 'ROQUEIRO', ladino: 'LADINO',
     dronemaster: 'DRONEMASTER', arqueiro_arcano: 'ARQUEIRO ASTRAL', arqueiro_astral: 'ARQUEIRO ASTRAL', sniper: 'SNIPER',
-    pikeman: 'PIKEMAN', guerreiro_kaledron: 'GUERREIRO KALEDRON'
+    pikeman: 'PIKEMAN', guerreiro_kaledron: 'GUERREIRO KALEDRON', lord_malakar: 'LORD MALAKAR'
 };
 
 const LABELS_CATEGORIA = {
     ataque: 'ATAQUE', aoe: 'AOE', zona: 'ZONA', canal: 'CANAL', cura: 'CURA',
-    buff: 'BUFF', mobilidade: 'MOBILIDADE', invocacao: 'INVOCAÇÃO', passiva: 'PASSIVA'
+    buff: 'BUFF', mobilidade: 'MOBILIDADE', invocacao: 'INVOCAÇÃO', suporte: 'SUPORTE', passiva: 'PASSIVA'
 };
 
 function skillScreenEl() { return document.getElementById("skills-screen"); }
@@ -530,7 +557,8 @@ function obterNivelSkill(classe, id) {
 
 function valorEscalado(skill, nivel) {
     if (skill.escala === 'dano' || skill.escala === 'cura') {
-        return Math.round(skill.danoBase * (1 + (nivel - 1) * 0.25));
+        const escalado = Math.round(skill.danoBase * (1 + (nivel - 1) * 0.25));
+        return Math.round(escalado * (skill.danoMultiplicadorBase || 1));
     }
     if (skill.escala === 'duracao') {
         return Math.round(skill.duracaoBase * (1 + (nivel - 1) * 0.1));
@@ -539,13 +567,14 @@ function valorEscalado(skill, nivel) {
 }
 
 // Espelha as regras de escala por ATRIBUTO do server.js (calcularDanoJogador/calcularCuraJogador):
-// cura -> Divindade; golpes de pet -> Afinidade; dano contínuo ('/s' ou '/ n s') -> Profanidade;
-// classes mágicas (mago/summoner/curandeiro/roqueiro/arqueiro_arcano/arqueiro_astral) -> Inteligência; demais -> Força.
+// cura -> Divindade; golpes de pet -> herança por Afinidade; Malakar -> Afinidade;
+// dano contínuo ('/s' ou '/ n s') -> Profanidade; classes mágicas -> Inteligência; demais -> Força.
 function atributoEscalaSkill(skill) {
     if (skill.escala === 'cura') return { chave: 'divindade', rotulo: 'Divindade' };
     if (skill.id === 'ogro' || skill.id === 'esmagamento' || skill.id === 'salto' || skill.id === 'colossal' || skill.id === 'sismico') return { chave: 'afinidade', rotulo: 'Afinidade' };
     // 'banda' (Roqueiro) também é dano de INVOCADO -> servidor usa origem 'pet' -> Afinidade
     if (skill.id === 'banda') return { chave: 'afinidade', rotulo: 'Afinidade' };
+    if (window.minhaClasse === 'lord_malakar') return { chave: 'afinidade', rotulo: 'Afinidade' };
     if (skill.danoNota && /\/\s*\d*s/.test(skill.danoNota)) return { chave: 'profanidade', rotulo: 'Profanidade' };
     if (['mago', 'summoner', 'curandeiro', 'roqueiro', 'arqueiro_arcano', 'arqueiro_astral'].indexOf(window.minhaClasse) !== -1) return { chave: 'inteligencia', rotulo: 'Inteligência' };
     return { chave: 'forca', rotulo: 'Força' };
@@ -556,11 +585,31 @@ function valorComAtributo(skill, nivel) {
     if (!skill.danoBase || (skill.escala !== 'dano' && skill.escala !== 'cura')) return null;
     let tot = window.atributosTotais && window.atributosTotais[atr.chave];
     if (!tot) return null;
-    let baseDano = skill.danoBase;
-    if (nivel !== undefined) {
-        baseDano = Math.round(skill.danoBase * (1 + (nivel - 1) * 0.25));
+    const baseDano = valorEscalado(skill, nivel === undefined ? 1 : nivel);
+    const pontos = Math.max(0, tot - 1);
+    let dano = baseDano;
+    if (atr.chave === 'forca') dano += pontos;
+    else if (atr.chave === 'inteligencia') dano += pontos * 10;
+    else if (atr.chave === 'profanidade') dano = Math.round(baseDano * (1 + pontos * 0.01));
+    else if (!(atr.chave === 'afinidade' &&
+        ['ogro', 'esmagamento', 'salto', 'colossal', 'sismico', 'banda'].indexOf(skill.id) !== -1)) {
+        dano = Math.round(baseDano * (1 + pontos * 0.05));
     }
-    return Math.round(baseDano * (1 + (tot - 1) * 0.05));
+    return Math.round(dano * (skill.danoMultiplicadorFinal || 1));
+}
+
+function textoEscalaAtributo(skill) {
+    const atributo = atributoEscalaSkill(skill);
+    if (atributo.chave === 'forca') return '+1 dano por ponto de Força';
+    if (atributo.chave === 'inteligencia') return '+10 dano por ponto de Inteligência';
+    if (atributo.chave === 'profanidade') return '+1% DoT por ponto de Profanidade';
+    if (atributo.chave === 'divindade') return '+5% cura por ponto de Divindade';
+    if (atributo.chave === 'afinidade' &&
+        ['ogro', 'esmagamento', 'salto', 'colossal', 'sismico', 'banda'].indexOf(skill.id) !== -1) {
+        return 'Escala com atributos herdados do lacaio';
+    }
+    if (atributo.chave === 'afinidade') return '+5% dano por ponto de Afinidade';
+    return '+5% por ' + atributo.rotulo;
 }
 
 function classificarGrupoSkill(skill) {
@@ -734,7 +783,7 @@ function renderizarSkills() {
         let icone = skillSel.escala === 'cura' ? '💖 Cura' : '⚔️ Dano';
         let corNota = skillSel.escala === 'cura' ? '#27ae60' : '#e67e22';
         let notaAtr = comAtr !== null
-            ? ' <span style="color:#9b59b6">(' + skillSel.danoBase + ' base · +5% por ' + atributoEscalaSkill(skillSel).rotulo + ')</span>'
+            ? ' <span style="color:#9b59b6">(' + textoEscalaAtributo(skillSel) + ')</span>'
             : '';
         linhaDano = '<div class="skill-det-stat"><b>' + icone + ':</b> ' + principal + notaAtr + (skillSel.danoUnidade && skillSel.escala !== 'cura' ? ' ' + skillSel.danoUnidade : '') + (skillSel.danoNota ? ' <span style="color:' + corNota + '">' + skillSel.danoNota + '</span>' : '') + '</div>';
     } else {

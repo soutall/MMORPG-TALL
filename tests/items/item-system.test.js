@@ -28,6 +28,7 @@ test('gera e valida as duas armas configuradas para cada classe', function () {
         assert.ok(classe, 'classe existente: ' + classId);
         for (const definitionId of [classe.primaryWeapon, classe.secondaryWeapon]) {
             const instance = criarItem({ classId: classId, definitionId: definitionId });
+            assert.equal(instance.icon, items.getDefinition(definitionId).icon);
             assert.equal(instance.itemDefinitionId, definitionId);
             assert.equal(items.validateEquipmentForClass(classId, instance).valid, true);
             assert.match(instance.itemInstanceId, /^item_[0-9a-f-]{36}$/i);
@@ -40,6 +41,15 @@ test('gera e valida as duas armas configuradas para cada classe', function () {
 
 test('gera todos os slots de equipamento e mantém a classe sem restrição', function () {
     const slots = ['capacete', 'peitoral', 'capa', 'luva', 'bota', 'anel', 'colar'];
+    const icones = {
+        capacete: '🪖',
+        peitoral: '🛡️',
+        capa: '🧥',
+        luva: '🧤',
+        bota: '🥾',
+        anel: '💍',
+        colar: '📿'
+    };
     for (const slot of slots) {
         const definitionId = {
             capacete: 'armor_helmet',
@@ -52,7 +62,11 @@ test('gera todos os slots de equipamento e mantém a classe sem restrição', fu
         }[slot];
         const instance = criarItem({ classId: 'mago', definitionId: definitionId });
         assert.equal(instance.slot, slot);
+        assert.equal(instance.icon, icones[slot]);
         assert.equal(items.validateEquipmentForClass('mago', instance).valid, true);
+
+        const legado = Object.assign({}, instance, { icon: slot === 'peitoral' ? '🛡️' : '🎒' });
+        assert.equal(items.validateEquipmentForClass('mago', legado).valid, true, 'mantém compatibilidade com ícones antigos');
     }
 });
 

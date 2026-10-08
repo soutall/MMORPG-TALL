@@ -314,20 +314,42 @@ window.desenharEfeitosBarbaro = function() {
             window.esmagamentosBarbaro.splice(i, 1);
         } else {
             ctx.save();
-            // Cratera de choque de sangue
-            ctx.strokeStyle = "rgba(192, 57, 43, " + e.alpha + ")";
-            ctx.lineWidth = 5;
-            ctx.shadowColor = "#900c3f";
-            ctx.shadowBlur = 14;
+            const pulsoImpacto = 0.82 + Math.sin(Date.now() / 55) * 0.12;
+            ctx.fillStyle = "rgba(25, 8, 14, " + (e.alpha * 0.3) + ")";
             ctx.beginPath();
-            ctx.arc(e.x, e.y, e.raio, 0, Math.PI * 2);
-            ctx.stroke();
-
-            // Rachaduras de sangue no solo
-            ctx.fillStyle = "rgba(100, 10, 10, " + (e.alpha * 0.4) + ")";
-            ctx.beginPath();
-            ctx.arc(e.x, e.y, e.raio * 0.7, 0, Math.PI * 2);
+            ctx.ellipse(e.x, e.y + 5, e.raio * 1.05, e.raio * 0.52, 0, 0, Math.PI * 2);
             ctx.fill();
+
+            // Fraturas carmesim abrem no chao em vez de um anel perfeitamente redondo.
+            ctx.lineCap = "round";
+            ctx.lineJoin = "round";
+            for (let fissura = 0; fissura < 7; fissura++) {
+                const angulo = fissura * Math.PI * 2 / 7 + 0.18;
+                const comprimento = e.raio * (0.6 + (fissura % 3) * 0.13) * pulsoImpacto;
+                const inicioX = e.x + Math.cos(angulo) * 5;
+                const inicioY = e.y + Math.sin(angulo) * 3;
+                const meioX = e.x + Math.cos(angulo + 0.12) * comprimento * 0.58;
+                const meioY = e.y + Math.sin(angulo + 0.12) * comprimento * 0.3;
+                const fimX = e.x + Math.cos(angulo - 0.06) * comprimento;
+                const fimY = e.y + Math.sin(angulo - 0.06) * comprimento * 0.52;
+                ctx.beginPath();
+                ctx.moveTo(inicioX, inicioY);
+                ctx.lineTo(meioX, meioY);
+                ctx.lineTo(fimX, fimY);
+                ctx.strokeStyle = "rgba(124, 15, 35, " + (e.alpha * 0.85) + ")";
+                ctx.lineWidth = Math.max(1.2, 3.5 - fissura * 0.25);
+                ctx.shadowColor = "#e12b46";
+                ctx.shadowBlur = 7;
+                ctx.stroke();
+                ctx.shadowBlur = 0;
+                ctx.beginPath();
+                ctx.moveTo(meioX, meioY);
+                ctx.lineTo(meioX + Math.cos(angulo + 0.85) * comprimento * 0.19,
+                    meioY + Math.sin(angulo + 0.85) * comprimento * 0.12);
+                ctx.strokeStyle = "rgba(255, 125, 93, " + (e.alpha * 0.62) + ")";
+                ctx.lineWidth = 1.2;
+                ctx.stroke();
+            }
             ctx.restore();
         }
     }

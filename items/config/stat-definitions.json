@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
   "primaryAttributes": {
-    "forca": { "name": "Força", "implemented": true, "effect": "Aumenta dano físico e vida máxima." },
-    "inteligencia": { "name": "Inteligência", "implemented": true, "effect": "Aumenta dano mágico e mana máxima." },
+    "forca": { "name": "Força", "implemented": true, "effect": "Cada ponto acima do inicial concede +1 de dano físico." },
+    "inteligencia": { "name": "Inteligência", "implemented": true, "effect": "Cada ponto acima do inicial concede +10 de dano a ataques de Inteligência e +10 de mana máxima." },
     "agilidade": { "name": "Agilidade", "implemented": false, "effect": "O painel indica velocidade de movimento; o bônus ainda não é aplicado pelo servidor." },
-    "destreza": { "name": "Destreza", "implemented": true, "effect": "Aumenta chance e multiplicador de crítico." },
-    "vida": { "name": "Vida", "implemented": true, "effect": "Aumenta vida máxima." },
-    "profanidade": { "name": "Profanidade", "implemented": true, "effect": "Aumenta dano periódico." },
-    "divindade": { "name": "Divindade", "implemented": true, "effect": "Aumenta curas." },
+    "destreza": { "name": "Destreza", "implemented": true, "effect": "Cada ponto concede +1% de chance crítica, limitada a 70%; dano crítico é 2x." },
+    "vida": { "name": "Vida", "implemented": true, "effect": "Cada ponto acima do inicial concede +5 de vida máxima." },
+    "profanidade": { "name": "Profanidade", "implemented": true, "effect": "Cada ponto acima do inicial concede +1% de dano periódico." },
+    "divindade": { "name": "Divindade", "implemented": true, "effect": "Cada ponto acima do inicial concede +5% de cura." },
     "afinidade": { "name": "Afinidade", "implemented": true, "effect": "Aumenta atributos herdados por pets e lacaios." }
   },
   "secondaryStats": {

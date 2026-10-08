@@ -2,14 +2,14 @@
    Janela de Status com os 8 atributos do jogo. A validação é 100% no servidor. */
 
 const ATRIBUTOS_INFO = [
-    { chave: 'forca',        icone: '⚔️', nome: 'Força',        bonus: '+Dano físico | +HP por ponto' },
-    { chave: 'inteligencia', icone: '🔮', nome: 'Inteligência',  bonus: '+Dano mágico | +regen de MP' },
-    { chave: 'agilidade',    icone: '💨', nome: 'Agilidade',     bonus: '+Velocidade de movimento' },
-    { chave: 'destreza',     icone: '🎯', nome: 'Destreza',      bonus: '+Chance e dano crítico' },
-    { chave: 'vida',         icone: '❤️', nome: 'Vida',          bonus: '+Vida máxima direta' },
-    { chave: 'profanidade',  icone: '☠️', nome: 'Profanidade',   bonus: '+Dano de DoT (veneno/sangramento)' },
-    { chave: 'divindade',    icone: '✨', nome: 'Divindade',     bonus: '+Cura/escudo recebidos e dados' },
-    { chave: 'afinidade',    icone: '🐾', nome: 'Afinidade',     bonus: '+Dano e vida de pets/lacaios' }
+    { chave: 'forca',        icone: '⚔️', nome: 'Força',        bonus: '+1 dano físico direto por ponto' },
+    { chave: 'inteligencia', icone: '🔮', nome: 'Inteligência',  bonus: '+10 dano mágico e +10 Mana máxima por ponto' },
+    { chave: 'agilidade',    icone: '💨', nome: 'Agilidade',     bonus: '+3% de velocidade por ponto (máximo +50%)' },
+    { chave: 'destreza',     icone: '🎯', nome: 'Destreza',      bonus: '+1% de chance crítica por ponto (limite base: 70%)' },
+    { chave: 'vida',         icone: '❤️', nome: 'Vida',          bonus: '+5 Vida máxima por ponto' },
+    { chave: 'profanidade',  icone: '☠️', nome: 'Profanidade',   bonus: '+1% de dano periódico por ponto' },
+    { chave: 'divindade',    icone: '✨', nome: 'Divindade',     bonus: '+5% de cura dada por ponto' },
+    { chave: 'afinidade',    icone: '🐾', nome: 'Afinidade',     bonus: '+5% dano do Malakar e herança de atributos para pets/lacaios (2%-40%, por faixas)' }
 ];
 
 const ATRIBUTOS_SCREEN = document.getElementById("atributos-screen");
@@ -19,6 +19,15 @@ window.pontosDisponiveis = window.pontosDisponiveis || 0;
 window.meuMaxHp = window.meuMaxHp || 100;
 
 let _intervaloAtributos = null;
+const AGILIDADE_MOVIMENTO_BONUS_POR_PONTO = 0.03;
+const AGILIDADE_MOVIMENTO_BONUS_MAXIMO = 0.50;
+
+function agilidadeMovimentoAtingiuLimite() {
+    const base = Number(window.meusAtributos && window.meusAtributos.agilidade) || 1;
+    const total = Number(window.atributosTotais && window.atributosTotais.agilidade);
+    const agilidade = Number.isFinite(total) ? total : base;
+    return (agilidade - 1) * AGILIDADE_MOVIMENTO_BONUS_POR_PONTO >= AGILIDADE_MOVIMENTO_BONUS_MAXIMO;
+}
 
 function formatarNumeroAtributo(valor) {
     if (!Number.isFinite(Number(valor))) return String(valor);
@@ -97,7 +106,9 @@ function renderizarAtributos() {
             // enquanto houver pontos disponíveis (liberdade total de distribuição).
             if (btnPlus) {
                 if (btnPlus.textContent === "...") btnPlus.textContent = "+";
-                btnPlus.disabled = pts <= 0;
+                const limiteAgilidade = attr.chave === 'agilidade' && agilidadeMovimentoAtingiuLimite();
+                btnPlus.disabled = pts <= 0 || limiteAgilidade;
+                btnPlus.title = limiteAgilidade ? 'Limite de +50% de velocidade atingido' : '';
             }
             let elValor = linha.querySelector(".atributo-valor");
             if (elValor) {
@@ -116,9 +127,12 @@ function renderizarAtributos() {
             let btnPlus = document.createElement("button");
             btnPlus.className = "atributo-btn-mais";
             btnPlus.textContent = "+";
-            btnPlus.disabled = pts <= 0;
+            const limiteAgilidade = attr.chave === 'agilidade' && agilidadeMovimentoAtingiuLimite();
+            btnPlus.disabled = pts <= 0 || limiteAgilidade;
+            btnPlus.title = limiteAgilidade ? 'Limite de +50% de velocidade atingido' : '';
             btnPlus.onclick = function () {
                 if ((window.pontosDisponiveis || 0) <= 0) return;
+                if (attr.chave === 'agilidade' && agilidadeMovimentoAtingiuLimite()) return;
                 btnPlus.disabled = true;
                 btnPlus.textContent = "...";
                 distribuirPontoAtributo(attr.chave);
@@ -166,34 +180,31 @@ function renderizarDetalhes() {
     let bradoRestante = Math.max(0, Math.ceil(((Number(jogadorAtual && jogadorAtual.kaledronBradoAte) || 0) - Date.now()) / 1000));
     let bradoAtivo = bradoRestante > 0;
 
-    let maxHp = Math.round(100 + (g('vida') - 1) * 20 + (g('forca') - 1) * 4);
-    if (temGrito) maxHp = Math.round(maxHp * 1.05); // +5% Vida Máxima do Grito de Guerra
+    let maxHp = Math.round(100 + (g('vida') - 1) * 5);
+    if (temGrito) maxHp += Number(jogadorAtual && jogadorAtual.gritoGuerraBonus) || Math.round(maxHp * 0.05);
 
-    let maxMana = Math.round(50 + (g('inteligencia') - 1) * 10);
-    let inteligenciaBase = Math.max(1, Number(window.meusAtributos && window.meusAtributos.inteligencia) || 1);
-    let bonusIntMana = window.minhaClasse === 'mago' ? Math.floor(Math.max(0, inteligenciaBase - 1) / 5) : 0;
+    let maxMana = window.minhaClasse === 'lord_malakar' ? 0 : Math.round(50 + (g('inteligencia') - 1) * 10);
     let bonusDanoMana = window.minhaClasse === 'mago'
         ? Math.round(Math.max(0, Math.min(1, (Number(window.meuMp) || 0) / Math.max(1, Number(window.meuMaxMp) || maxMana))) * 10)
         : 0;
 
-    let critChance = (0.05 + (g('destreza') - 1) * 0.01);
+    let critChance = Math.min(0.70, 0.05 + (g('destreza') - 1) * 0.01);
     if (temGrito) critChance += 0.30; // +30% de chance de crítico do Grito de Guerra
     let sniperPos = (window.minhaClasse === 'sniper' && window.sniperPosicaoAtiva);
     if (sniperPos) critChance += 1.0; // +100% de chance de crítico na Posição de Franco-Atirador
+    if (window.minhaClasse === 'pikeman') critChance += 0.10;
     let critChancePct = Math.min(100, Math.round(critChance * 100));
 
-    let critMult = 1.5 + (g('destreza') - 1) * 0.03;
+    let critMult = window.minhaClasse === 'pikeman' ? 3 : 2;
     if (temGrito) critMult *= 1.5; // +50% multiplicador de dano crítico do Grito de Guerra
     critMult = Math.round(critMult * 100) / 100;
 
-    let danoFisico = Math.round((g('forca') - 1) * 0.05 * 100);
-    if (bradoAtivo) danoFisico += 35;
-    let danoMagico = Math.round((g('inteligencia') - 1) * 0.05 * 100);
+    let danoFisico = Math.max(0, g('forca') - 1);
+    let danoMagico = Math.max(0, (g('inteligencia') - 1) * 10);
     let curaBonus = Math.round((g('divindade') - 1) * 0.05 * 100);
-    let dotBonus = Math.round((g('profanidade') - 1) * 0.05 * 100);
-    let petDano = Math.round((g('afinidade') - 1) * 0.05 * 100);
-    let petVida = Math.round(90 + (g('afinidade') - 1) * 15);
-    let veloc = Math.round((g('agilidade') - 1) * 0.03 * 100);
+    let dotBonus = Math.round((g('profanidade') - 1) * 0.01 * 100);
+    let afinidade = Math.max(1, g('afinidade'));
+    let veloc = Math.round(Math.min(0.50, (g('agilidade') - 1) * 0.03) * 100);
 
     // Velocidade de ataque (mesma fórmula do servidor: buff Grito de Guerra + equipamentos)
     let multAtaqueLocal = 1;
@@ -218,19 +229,18 @@ function renderizarDetalhes() {
         { nome: '🔋 Mana Máx', valor: maxMana },
         { nome: '🎯 Crít. chance' + gritoBadge + sniperBadge, valor: critChancePct + '%' },
         { nome: '💥 Dano crítico' + gritoBadge, valor: 'x' + critMult },
-        { nome: '⚔️ Dano físico' + (sniperPos ? ' (x2)' : '') + bradoBadge, valor: '+' + danoFisico + '%' },
-        { nome: '🔮 Dano mágico', valor: '+' + danoMagico + '%' },
+        { nome: '⚔️ Dano físico' + (sniperPos ? ' (x2)' : '') + bradoBadge, valor: '+' + formatarNumeroAtributo(danoFisico) },
+        { nome: '🔮 Dano mágico', valor: '+' + formatarNumeroAtributo(danoMagico) },
         { nome: '✨ Cura', valor: '+' + curaBonus + '%' },
         { nome: '☠️ DoT', valor: '+' + dotBonus + '%' },
-        { nome: '🐾 Pet dano', valor: '+' + petDano + '%' },
-        { nome: '🐾 Pet vida', valor: petVida },
+        { nome: '🐾 Afinidade efetiva', valor: formatarNumeroAtributo(afinidade) },
         { nome: '💨 Velocidade', valor: '+' + veloc + '%' },
         { nome: '⚡ Vel. de ataque' + gritoBadge + bradoBadge, valor: '+' + velAtaquePct + '%' }
     ];
     if (window.minhaClasse === 'mago') {
-        linhas.push({ nome: '💠 Mana Arcana', valor: '+' + bonusIntMana + ' INT / +' + bonusDanoMana + '% dano' });
+        linhas.push({ nome: '💠 Mana Arcana', valor: '+' + bonusDanoMana + '% dano' });
     }
-    if (bradoAtivo) linhas.push({ nome: '📣 Brado de Guerra Vulcânico', valor: bradoRestante + 's restantes' });
+    if (bradoAtivo) linhas.push({ nome: '📣 Brado de Guerra Vulcânico', valor: '+35% dano · ' + bradoRestante + 's restantes' });
 
     lista.innerHTML = "";
     linhas.forEach(function (ln) {

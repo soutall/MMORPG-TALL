@@ -767,6 +767,32 @@ function _atualizarEfeitosSkillGolem(lacaio) {
     }
 }
 
+function _desenharTooltipHpGolem(ctx, x, y, hp, maxHp, larguraHit, alturaHit, deslocamentoPainel) {
+    const pointerX = Number(window.mouseWorldX);
+    const pointerY = Number(window.mouseWorldY);
+    if (!Number.isFinite(pointerX) || !Number.isFinite(pointerY) ||
+        Math.abs(pointerX - x) > larguraHit || Math.abs(pointerY - y) > alturaHit) return;
+
+    const texto = Math.max(0, Math.ceil(hp)) + '/' + Math.max(1, Math.ceil(maxHp || hp));
+    const painelY = y + deslocamentoPainel;
+    ctx.save();
+    ctx.fillStyle = 'rgba(8, 5, 16, .84)';
+    ctx.fillRect(x - 25, painelY, 50, 12);
+    ctx.strokeStyle = 'rgba(192, 132, 252, .9)';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x - 25, painelY, 50, 12);
+    ctx.font = "700 9px 'Rajdhani', Arial, sans-serif";
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.lineJoin = 'round';
+    ctx.lineWidth = 2;
+    ctx.strokeStyle = 'rgba(0, 0, 0, .95)';
+    ctx.strokeText(texto, x, painelY + 6);
+    ctx.fillStyle = '#fff';
+    ctx.fillText(texto, x, painelY + 6);
+    ctx.restore();
+}
+
 window.desenharLacaio = function (lacaio) {
     if (!lacaio || !window.ctx) return;
     const ctx = window.ctx;
@@ -777,6 +803,7 @@ window.desenharLacaio = function (lacaio) {
         if (typeof window.desenharBarraHp === "function") {
             window.desenharBarraHp(lacaio.x - 18, lacaio.y - 90, lacaio.hp, lacaio.maxHp);
         }
+        _desenharTooltipHpGolem(ctx, lacaio.x, lacaio.y, lacaio.hp, lacaio.maxHp, 55, 105, 30);
         ctx.save();
         ctx.font = "bold 11px sans-serif";
         ctx.fillStyle = "#ffd700";
@@ -836,7 +863,13 @@ window.desenharLacaio = function (lacaio) {
     ctx.ellipse(lacaio.x, lacaio.y + 18, 21, 7, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    let estaColossal = (window.lacaioColossal && lacaio.pid && window.lacaioColossal[lacaio.pid]) ? true : false;
+    let estaColossal = !!(window.lacaioColossal && lacaio.pid && window.lacaioColossal[lacaio.pid]);
+    const colossalExpiraEm = window.lacaioColossalTimers && lacaio.pid && window.lacaioColossalTimers[lacaio.pid];
+    if (estaColossal && colossalExpiraEm && Date.now() >= colossalExpiraEm) {
+        delete window.lacaioColossal[lacaio.pid];
+        delete window.lacaioColossalTimers[lacaio.pid];
+        estaColossal = false;
+    }
     let escalaGolem = estaColossal ? 1.4 : 1;
 
     // Skill 3: Golem Colossal — aura profana permanente e chuva de pedras caindo
@@ -885,6 +918,8 @@ window.desenharLacaio = function (lacaio) {
         }
         ctx.restore();
     }
+    _desenharTooltipHpGolem(ctx, lacaio.x, lacaio.y, lacaio.hp, lacaio.maxHp,
+        estaColossal ? 48 : 34, estaColossal ? 58 : 42, estaColossal ? 38 : 28);
 
     window.desenharCorpoGolem(lacaio.x, lacaio.y, escalaGolem, estaColossal);
 

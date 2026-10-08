@@ -17,12 +17,37 @@ var _slimeSprites = {
     cogumelo_50cc70dc: { metadata: null, image: null, clipsByName: null, loading: false },
     anaconda_b42dd2b8: { metadata: null, image: null, clipsByName: null, loading: false },
     anaconda_marrom_53b6e531: { metadata: null, image: null, clipsByName: null, loading: false },
-    'louva deus_dd5845ad': { metadata: null, image: null, clipsByName: null, loading: false }
+    'louva deus_dd5845ad': { metadata: null, image: null, clipsByName: null, loading: false },
+    'coruja branca_2fe25484': { metadata: null, image: null, clipsByName: null, loading: false },
+    druaerussa_tundra_eb93f50d: { metadata: null, image: null, clipsByName: null, loading: false },
+    'dragon negro_aeecf00d': { metadata: null, image: null, images: [], pageLoading: {}, pageFailed: {}, clipsByName: null, loading: false }
 };
+
+function _carregarPaginaSpriteSlime(sprite, page) {
+    var pagina = sprite.metadata && sprite.metadata.pages && sprite.metadata.pages[page];
+    if (!pagina || (sprite.images && sprite.images[page]) ||
+        (sprite.pageLoading && sprite.pageLoading[page]) ||
+        (sprite.pageFailed && sprite.pageFailed[page])) return;
+    if (!sprite.pageLoading) sprite.pageLoading = {};
+    if (!sprite.pageFailed) sprite.pageFailed = {};
+    sprite.pageLoading[page] = true;
+    var imagem = new Image();
+    imagem.onload = function () {
+        sprite.images[page] = imagem;
+        if (page === 0) sprite.image = imagem;
+        sprite.pageLoading[page] = false;
+    };
+    imagem.onerror = function () {
+        sprite.pageLoading[page] = false;
+        sprite.pageFailed[page] = true;
+        console.error('Não foi possível carregar a página original da spritesheet:', pagina.file);
+    };
+    imagem.src = '/sprites/monstros/' + sprite.asset + '/' + pagina.file;
+}
 
 function _carregarSpriteSlime(asset) {
     var sprite = _slimeSprites[asset];
-    if (!sprite || sprite.loading || sprite.metadata) return;
+    if (!sprite || sprite.loading || sprite.metadata || sprite.loadFailed) return;
     sprite.loading = true;
     fetch('/sprites/monstros/' + asset + '/spritesheet.json')
         .then(function (res) {
@@ -36,6 +61,10 @@ function _carregarSpriteSlime(asset) {
             imagem.onload = function () {
                 sprite.metadata = metadata;
                 sprite.image = imagem;
+                sprite.asset = asset;
+                sprite.images = sprite.images || [];
+                sprite.images[0] = imagem;
+                sprite.pageLoading = sprite.pageLoading || {};
                 sprite.clipsByName = Object.create(null);
                 metadata.clips.forEach(function (clip) {
                     sprite.clipsByName[clip.name] = clip;
@@ -43,12 +72,14 @@ function _carregarSpriteSlime(asset) {
             };
             imagem.onerror = function () {
                 sprite.loading = false;
+                sprite.loadFailed = true;
                 console.error('Não foi possível carregar a spritesheet original:', asset);
             };
             imagem.src = '/sprites/monstros/' + asset + '/' + pagina.file;
         })
         .catch(function (erro) {
             sprite.loading = false;
+            sprite.loadFailed = true;
             console.error('Não foi possível carregar os metadados originais do monstro:', asset, erro);
         });
 }
@@ -63,13 +94,17 @@ _carregarSpriteSlime('cogumelo_50cc70dc');
 _carregarSpriteSlime('anaconda_b42dd2b8');
 _carregarSpriteSlime('anaconda_marrom_53b6e531');
 _carregarSpriteSlime('louva deus_dd5845ad');
+_carregarSpriteSlime('coruja branca_2fe25484');
+_carregarSpriteSlime('druaerussa_tundra_eb93f50d');
 
 function _desenharSpriteSlime(ctx, slime, est) {
     var sprite = _slimeSprites[slime.asset || 'slime'];
     if (!sprite.metadata || !sprite.image) return false;
     var agora = Date.now();
+    var desativaHitVisual = slime.tipo === 'coruja_branca_tundra' ||
+        slime.tipo === 'druaase_tundra' || slime.tipo === 'tundra_dragon_elite';
     if (est.slimeHp == null) est.slimeHp = slime.hp;
-    if (slime.hp < est.slimeHp) {
+    if (slime.hp < est.slimeHp && !desativaHitVisual) {
         var direcaoHit = Math.round(Math.atan2(-Math.sin(est.face || 0), Math.cos(est.face || 0)) / (Math.PI / 4));
         direcaoHit = ((direcaoHit % 8) + 8) % 8;
         var nomeHit = 'hit_' + ['E', 'NE', 'N', 'NW', 'W', 'SW', 'S', 'SE'][direcaoHit];
@@ -87,19 +122,24 @@ function _desenharSpriteSlime(ctx, slime, est) {
     var emAtaque = (slime.aiAtacandoAte || 0) > agora || est.atkT > 0 ||
         (slime.animationState === 'ATTACK' &&
             (!slime.animationUntil || slime.animationUntil > agora));
-    var emHit = (est.slimeHitAte || 0) > agora ||
+    var emHit = !desativaHitVisual && ((est.slimeHitAte || 0) > agora ||
         (slime.animationState === 'HIT' &&
-            (!slime.animationUntil || slime.animationUntil > agora));
+            (!slime.animationUntil || slime.animationUntil > agora)));
     var estadoMovimento = slime.aiEstado === 'walk' || slime.aiEstado === 'run' ||
         slime.aiEstado === 'kite' || slime.aiEstado === 'dodge' || est.movendo ||
         slime.animationState === 'WALK';
+    var voador = slime.tipo === 'coruja_branca_tundra' ||
+        (Array.isArray(slime.tags) && slime.tags.indexOf('voadores') !== -1) ||
+        (slime.tipo === 'tundra_dragon_elite' && slime.eliteBerserk === true);
     var estadoDesejado = slime.animationState === 'DEAD' ? 'dead' :
         (emHit ? 'hit' :
             (slime.aiDormindo && slime.aiEstado === 'rest_enter' ? 'rest_enter' :
                 (slime.aiDormindo ? 'sleep' :
                     (slime.aiEstado === 'rest_exit' ? 'rest_exit' :
-                        (estadoMovimento ? (slime.aiEstado === 'run' || slime.aiEstado === 'kite' ? 'run' : 'walk') :
+                        (estadoMovimento ? (voador || slime.aiEstado === 'run' || slime.aiEstado === 'kite' ? 'run' : 'walk') :
                             (emAtaque ? 'action' : 'idle'))))));
+    if (slime.tipo === 'tundra_dragon_elite' && slime.eliteBerserk === true &&
+        estadoDesejado === 'idle') estadoDesejado = 'run';
     var nomeClipe = estadoDesejado + '_' + nomesDirecao[direcao];
     var clipe = sprite.clipsByName[nomeClipe];
     if (!clipe || !clipe.frames || !clipe.frames.length) return false;
@@ -125,8 +165,21 @@ function _desenharSpriteSlime(ctx, slime, est) {
         tempo -= duracaoQuadro;
     }
     var meta = sprite.metadata;
+    var paginaQuadro = Number.isInteger(quadro.page) ? quadro.page : 0;
+    var imagem = sprite.images && sprite.images[paginaQuadro];
+    if (!imagem && paginaQuadro === 0) imagem = sprite.image;
+    if (!imagem && paginaQuadro > 0 && sprite.asset === 'dragon negro_aeecf00d') {
+        _carregarPaginaSpriteSlime(sprite, paginaQuadro);
+        var idle = sprite.clipsByName['idle_' + nomesDirecao[direcao]];
+        if (idle && idle.frames && idle.frames.length) {
+            quadro = idle.frames[0];
+            imagem = sprite.images && sprite.images[Number.isInteger(quadro.page) ? quadro.page : 0];
+            if (!imagem && (!Number.isInteger(quadro.page) || quadro.page === 0)) imagem = sprite.image;
+        }
+    }
+    if (!imagem) return false;
     var escalaSprite = 0.975;
-    ctx.drawImage(sprite.image, quadro.x, quadro.y, meta.frameWidth, meta.frameHeight,
+    ctx.drawImage(imagem, quadro.x, quadro.y, meta.frameWidth, meta.frameHeight,
         -meta.originX * escalaSprite, -meta.originY * escalaSprite,
         meta.frameWidth * escalaSprite, meta.frameHeight * escalaSprite);
     if (slime.aiDormindo && slime.aiEstado === 'sleep') {
@@ -171,6 +224,68 @@ function _desenharTelegraphVeneno(ctx, slime) {
     ctx.fillStyle = '#f4ffac';
     ctx.strokeText('☠️ VENENO ' + (slime.venenoCastAte - Date.now() <= 500 ? '!' : '1s'), x, y - 8);
     ctx.fillText('☠️ VENENO ' + (slime.venenoCastAte - Date.now() <= 500 ? '!' : '1s'), x, y - 8);
+    ctx.restore();
+}
+
+function _desenharTelegraphGritoCoruja(ctx, slime) {
+    var agora = Date.now();
+    var raio = slime.corujaGritoRaio || 150;
+    var x = slime.corujaGritoX;
+    var y = slime.corujaGritoY;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+    var conjurando = (slime.corujaGritoAte || 0) > agora;
+    var impacto = (slime.corujaGritoImpactoAte || 0) > agora;
+    if (!conjurando && !impacto) return;
+
+    ctx.save();
+    if (conjurando) {
+        var restante = Math.max(0, Math.min(1,
+            (slime.corujaGritoAte - agora) / (slime.corujaGritoDuracao || 900)));
+        var pulso = 0.5 + Math.sin(agora / 75) * 0.12;
+        var raioAviso = raio * (0.97 + (1 - restante) * 0.05);
+        ctx.globalAlpha = pulso;
+        ctx.fillStyle = 'rgba(255, 45, 45, 0.24)';
+        ctx.beginPath();
+        ctx.arc(x, y, raioAviso, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.globalAlpha = 0.92;
+        ctx.strokeStyle = '#ffb0b0';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([10, 7]);
+        ctx.beginPath();
+        ctx.arc(x, y, raioAviso, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.strokeStyle = 'rgba(255, 65, 65, 0.9)';
+        ctx.lineWidth = 1.5;
+        for (var i = 0; i < 12; i++) {
+            var angulo = (Math.PI * 2 * i) / 12 + agora / 1800;
+            ctx.beginPath();
+            ctx.moveTo(x + Math.cos(angulo) * raioAviso * 0.72, y + Math.sin(angulo) * raioAviso * 0.72);
+            ctx.lineTo(x + Math.cos(angulo) * raioAviso * 0.94, y + Math.sin(angulo) * raioAviso * 0.94);
+            ctx.stroke();
+        }
+        ctx.font = 'bold 14px Rajdhani, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.lineWidth = 3;
+        ctx.strokeStyle = '#4a1010';
+        ctx.fillStyle = '#effcff';
+        ctx.strokeText('GRITO DA TUNDRA', x, y - 9);
+        ctx.fillText('GRITO DA TUNDRA', x, y - 9);
+    } else {
+        var progresso = 1 - Math.max(0, Math.min(1, (slime.corujaGritoImpactoAte - agora) / 650));
+        ctx.globalAlpha = 0.82 * (1 - progresso);
+        ctx.strokeStyle = '#ff4a4a';
+        ctx.lineWidth = 5 * (1 - progresso) + 1;
+        ctx.beginPath();
+        ctx.arc(x, y, raio * (0.65 + progresso * 0.5), 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.globalAlpha = 0.18 * (1 - progresso);
+        ctx.fillStyle = '#ff3333';
+        ctx.beginPath();
+        ctx.arc(x, y, raio * (0.65 + progresso * 0.5), 0, Math.PI * 2);
+        ctx.fill();
+    }
     ctx.restore();
 }
 
@@ -3044,6 +3159,7 @@ window.desenharSlime = function(slime) {
     if (slime.invisivel) return;
 
     _desenharTelegraphVeneno(ctx, slime);
+    if (slime.tipo === 'coruja_branca_tundra') _desenharTelegraphGritoCoruja(ctx, slime);
     var info = _info(slime);
     if (tp === 'morcegote') {
         var estM = _estado(slime);
@@ -3074,18 +3190,40 @@ window.desenharSlime = function(slime) {
         return;
     }
     if (_slimeSprites[slime.asset]) {
+        if (slime.tipo === 'tundra_dragon_elite' &&
+            !_slimeSprites[slime.asset].metadata && !_slimeSprites[slime.asset].loading) {
+            _carregarSpriteSlime(slime.asset);
+        }
         var estS = _estado(slime);
         _atualizarEstado(slime, estS);
         if (Number.isFinite(slime.angulo)) estS.face = slime.angulo;
         var spriteOriginal = _slimeSprites[slime.asset];
-        ctx.save();
-        ctx.translate(slime.x, slime.y);
-        if (escala !== 1) ctx.scale(escala, escala);
-        if (!_desenharSpriteSlime(ctx, slime, estS)) {
-            _sombra(ctx, info.raio / 14);
-            _slimeGel(ctx, slime, estS, info);
+        var leapJump = slime.eliteLeapJump && slime.eliteLeapJump.endsAt > Date.now();
+        if (!leapJump) {
+            ctx.save();
+            ctx.translate(slime.x, slime.y);
+            if (escala !== 1) ctx.scale(escala, escala);
+            if (!_desenharSpriteSlime(ctx, slime, estS) && slime.tipo !== 'tundra_dragon_elite') {
+                _sombra(ctx, info.raio / 14);
+                _slimeGel(ctx, slime, estS, info);
+            }
+            if (slime.tipo === 'slime_elite' && slime.eliteBerserk) {
+                var ragePulse = .5 + Math.sin(Date.now() / 90) * .18;
+                ctx.save();
+                ctx.globalAlpha = ragePulse;
+                ctx.fillStyle = 'rgba(255, 24, 35, .58)';
+                ctx.shadowColor = '#ff101f';
+                ctx.shadowBlur = 32;
+                ctx.beginPath();
+                ctx.ellipse(0, 0, 30, 25, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.strokeStyle = '#ff3947';
+                ctx.lineWidth = 2.5;
+                ctx.stroke();
+                ctx.restore();
+            }
+            ctx.restore();
         }
-        ctx.restore();
         var deslocamentoBarra = -(((spriteOriginal.metadata && spriteOriginal.metadata.originY) || 32) * 0.975 + 10) * escala;
         if (!elite) _barraHp(slime, -29 * escala, deslocamentoBarra, 58 * escala);
         return;
