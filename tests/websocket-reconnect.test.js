@@ -31,6 +31,6 @@ test('an interrupted in-world session reselects the same character after account
 });
 
 test('client and character selector caches are advanced for the reconnect fix', () => {
-    assert.match(html, /GAME_VERSION = 'v1\.75\.47'/);
+    assert.match(html, /GAME_VERSION = 'v1\.75\.95'/);
     assert.match(html, /personagem-select\.js\?v=8/);
 });

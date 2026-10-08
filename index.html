@@ -1013,7 +1013,7 @@
     </div>
 
     <script src="mapas-registry.js?v=6"></script>
-    <script src="mapas/mapa_mundo.js?v=21"></script>
+    <script src="mapas/mapa_mundo.js?v=22"></script>
     <script src="cartografia_universal.js?v=9"></script>
     <script src="engine_otimizador.js?v=5"></script>
     <script>
@@ -1030,7 +1030,7 @@
         })();
     </script>
     <!-- SISTEMA DE CICLO DIA/NOITE & ILUMINAÇÃO DINÂMICA (v1.52.1) -->
-    <script src="sistema_dia_noite_cliente.js?v=1525"></script>
+    <script src="sistema_dia_noite_cliente.js?v=1527"></script>
     <!-- DASH v2: módulo ISOMÓRFICO (o MESMO arquivo é require() no server.js).
          Precisa vir antes das classes porque elas podem consultar window.DASH. -->
     <script src="dash.js?v=1501"></script>
@@ -1095,6 +1095,7 @@
     <script src="sonoro.js?v=1585"></script>
     <script src="intro.js?v=1"></script>
     <script src="mobile-hud.js?v=1"></script>
+    <script src="mobile-touch-controls.js?v=1"></script>
     <script src="item-admin.js?v=5"></script>
     <script src="admin-cheats.js?v=6"></script>
     <script src="personagens-historias.js?v=2"></script>
@@ -3411,8 +3412,13 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             }
             if (!ok) { e.preventDefault(); e.stopImmediatePropagation(); }
         }, { capture: true, passive: false });
-        let slashes = []; let blockEffects = []; window.floatingTexts = []; window.petDamageTexts = []; let ultimoEnvioRede = 0; let pingAtual = 0;
-        function atualizarHudPing() { const el = document.getElementById('ping-counter'); if (el) el.textContent = 'PING: ' + Math.max(0, Math.round(pingAtual)) + ' ms'; }
+        let slashes = []; let blockEffects = []; window.floatingTexts = []; window.petDamageTexts = []; let ultimoEnvioRede = 0; let pingAtual = 0; let pingServidorMs = 0; let pingLoopMs = 0;
+        function atualizarHudPing() {
+            const el = document.getElementById('ping-counter');
+            if (!el) return;
+            el.textContent = 'PING: ' + Math.max(0, Math.round(pingAtual)) + ' ms · LOOP: ' + Math.max(0, Math.round(pingLoopMs)) + ' ms';
+            el.title = 'RTT total: ' + Math.round(pingAtual) + ' ms. Atraso do event loop do servidor: ' + pingLoopMs.toFixed(1) + ' ms. Processamento do ping no servidor: ' + pingServidorMs.toFixed(1) + ' ms. O restante inclui cliente e transporte.';
+        }
         window.atualizarHudPing = atualizarHudPing;
 
         function registrarDanoCausado(valor) { let agora = Date.now(); historicoDano.push({ valor: valor, tempo: agora }); danoTotalAcumulado += valor; }
@@ -4445,6 +4451,8 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                     }
                     if (dados.type === 'pong') {
                         pingAtual = Math.max(0, Date.now() - (Number(dados.t) || Date.now()));
+                        pingServidorMs = Math.max(0, (Number(dados.sTime) || 0) - (Number(dados.time) || 0));
+                        pingLoopMs = Math.max(0, Number(dados.loopLagMs) || 0);
                         if (typeof window.atualizarHudPing === 'function') window.atualizarHudPing();
                     }
                     if (dados.type === 'party_invite_received') {
@@ -4543,6 +4551,8 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                         if (window.atualizarHudPocoes) window.atualizarHudPocoes();
                         if (pingIntervalo) clearInterval(pingIntervalo);
                         pingAtual = 0;
+                        pingServidorMs = 0;
+                        pingLoopMs = 0;
                         if (typeof window.atualizarHudPing === 'function') window.atualizarHudPing();
                         const enviarPingReal = () => { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'ping', t: Date.now() })); };
                         enviarPingReal();
@@ -8789,7 +8799,10 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         function criarEfeitoCorte(x, y, angulo) { slashes.push({ x: x, y: y, angulo: angulo, alpha: 1.0, escala: 0.5 }); }
 
         const joystickBase = document.getElementById("joystick-base"); const joystickStick = document.getElementById("joystick-stick");
-        let joystickTouchId = null; let startX = 0, startY = 0;
+        let joystickTouchId = null; let lanternaTouchId = null; let startX = 0, startY = 0;
+
+        // Captura ações no segundo dedo sem alterar o identificador do joystick.
+        document.addEventListener("touchstart", window.handleHudActionTouchStart, { capture: true, passive: false });
 
         // ===============================================
         // NOVO MINIMAPA & MAPA GRANDE (TECLA M)
@@ -9973,6 +9986,20 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                     continue;
                 }
             }
+            // O segundo dedo controla a lanterna sem interromper o joystick.
+            if (joystickTouchId !== null && lanternaTouchId === null) {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    let touch = e.changedTouches[i];
+                    if (touch.identifier === joystickTouchId) continue;
+                    let alvo = touch.target || e.target;
+                    if (!alvo || (alvo.closest && alvo.closest('#joystick-base, button, a, input, textarea, select, [data-ui], .modal-window'))) continue;
+                    lanternaTouchId = touch.identifier;
+                    window.lanternaMobileAtiva = true;
+                    atualizarMiraLanternaTouch(touch);
+                    if (e.cancelable) e.preventDefault();
+                    break;
+                }
+            }
             // PARTY: Tocar em outro player
             if (window.todosJogadores) {
                 for (let i = 0; i < e.changedTouches.length; i++) {
@@ -10014,6 +10041,16 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                     }
                 }
             }
+            if (lanternaTouchId !== null) {
+                for (let i = 0; i < e.changedTouches.length; i++) {
+                    let touch = e.changedTouches[i];
+                    if (touch.identifier === lanternaTouchId) {
+                        atualizarMiraLanternaTouch(touch);
+                        if (e.cancelable) e.preventDefault();
+                        break;
+                    }
+                }
+            }
             if (joystickTouchId === null || window.estaMorto || window.spawnAdminAberto || window.teleporteAberto || window.mapaEditorAtivo || (window.colisaoEditorAtivo && !window.editorMinimizado)) return;
             for (let i = 0; i < e.touches.length; i++) {
                 let touch = e.touches[i];
@@ -10042,6 +10079,12 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         window.addEventListener("touchend", (e) => {
             if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
             for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === lanternaTouchId) {
+                    lanternaTouchId = null;
+                    window.lanternaMobileAtiva = false;
+                }
+            }
+            for (let i = 0; i < e.changedTouches.length; i++) {
                 let touch = e.changedTouches[i];
                 if (touch && window.dragSkill.ativo && touch.identifier === window.dragSkill.touchId) {
                     soltarSkillDrag();
@@ -10055,6 +10098,12 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
 
         window.addEventListener("touchcancel", (e) => {
             if (!window.jogoIniciado) return; // Pré-jogo (login/seleção): sem input do mundo
+            for (let i = 0; i < e.changedTouches.length; i++) {
+                if (e.changedTouches[i].identifier === lanternaTouchId) {
+                    lanternaTouchId = null;
+                    window.lanternaMobileAtiva = false;
+                }
+            }
             for (let i = 0; i < e.changedTouches.length; i++) {
                 let touch = e.changedTouches[i];
                 if (touch && window.dragSkill.ativo && touch.identifier === window.dragSkill.touchId) {
@@ -10089,6 +10138,26 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         window.mouseWorldX = window.meuX + 12;
         window.mouseWorldY = window.meuY + 16;
         window.mouseJaMoveu = false;
+
+        function atualizarMiraLanternaTouch(touch) {
+            if (!touch || !window.canvas) return;
+            let rect = window.canvas.getBoundingClientRect();
+            let zoom = window.cameraZoomAtual || ZOOM_CAMERA;
+            let tilt = window.CAMERA_25D ? (window.CAMERA_TILT_Y || 0.88) : 1.0;
+            let escalaX = window.canvas.width / (rect.width || window.innerWidth);
+            let escalaY = window.canvas.height / (rect.height || window.innerHeight);
+            let telaX = (touch.clientX - rect.left) * escalaX;
+            let telaY = (touch.clientY - rect.top) * escalaY;
+            let camX = window.camX || 0, camY = window.camY || 0;
+            window.mouseWorldX = Math.max(0, Math.min(WORLD_WIDTH, telaX / zoom + camX));
+            window.mouseWorldY = Math.max(0, Math.min(WORLD_HEIGHT, telaY / (zoom * tilt) + camY));
+            window.mouseClientX = touch.clientX;
+            window.mouseClientY = touch.clientY;
+            window.mouseJaMoveu = true;
+            if (typeof window.meuX === 'number' && typeof window.meuY === 'number') {
+                window.anguloLanternaMobile = Math.atan2(window.mouseWorldY - (window.meuY + 16), window.mouseWorldX - (window.meuX + 12));
+            }
+        }
 
         function atualizarMiraMouse() {
             let camX = window.camX || 0, camY = window.camY || 0;
@@ -10269,11 +10338,21 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             if (cdx !== 0 || cdy !== 0) window.meuAngulo = Math.atan2(cdy, cdx);
         });
 
-        let lastFpsUpdate = 0; 
+        let lastFpsUpdate = performance.now();
         let frameCount = 0;    
+        const perfHudAtivo = new URLSearchParams(window.location.search).get('perf') === '1';
+        window._fpsDiagnosticsAtivo = perfHudAtivo;
+        const perfHud = perfHudAtivo ? document.createElement('div') : null;
+        const perfAcumulado = perfHudAtivo ? { frames: 0, total: 0, simulacao: 0, mundo: 0, restante: 0, mapa: 0, sprites: 0 } : null;
+        if (perfHud) {
+            perfHud.id = 'game-perf-hud';
+            perfHud.style.cssText = 'position:fixed;top:54px;left:8px;z-index:999999;max-width:calc(100vw - 16px);padding:5px 7px;background:rgba(0,0,0,.82);border:1px solid rgba(0,255,210,.55);border-radius:5px;color:#dcfff6;font:10px/1.35 monospace;white-space:pre-wrap;pointer-events:none;';
+            document.body.appendChild(perfHud);
+        }
 
         window.lastFrameTime = window.lastFrameTime || performance.now();
         function loop() {
+            const perfFrameStart = perfHudAtivo ? performance.now() : 0;
             if (window.EngineOtimizador) {
                 window.EngineOtimizador.registrarFrame();
                 if (window.ctx) window.EngineOtimizador.aplicarInterceptorContexto(window.ctx);
@@ -10305,7 +10384,7 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                         // Anti-hack: NÃO enviamos hp/morto aqui. O status é
                         // server-authoritative; mandar no payload só criava a
                         // tentação de o servidor confiar nele no futuro.
-                        window.ws.send(JSON.stringify({ action: 'client_estado', meuX: Math.round(window.meuX), meuY: Math.round(window.meuY), cm: window.currentMap, id: window.meuId || 'null', np: Object.keys(window.todosJogadores || {}).length, ns: (window.listaSlimes || []).length, f: pingAtual, ws: window.ws.readyState, updMs: Math.max(0, Date.now() - (window.ultimoWorldUpdateAt || 0)), cls: window.minhaClasse || '' }));
+                        window.ws.send(JSON.stringify({ action: 'client_estado', meuX: Math.round(window.meuX), meuY: Math.round(window.meuY), cm: window.currentMap, id: window.meuId || 'null', np: Object.keys(window.todosJogadores || {}).length, ns: (window.listaSlimes || []).length, fps: window._fpsRenderizado || 0, ping: pingAtual, ws: window.ws.readyState, updMs: Math.max(0, Date.now() - (window.ultimoWorldUpdateAt || 0)), cls: window.minhaClasse || '' }));
                     } catch (e) {}
                 }
             }
@@ -10316,13 +10395,6 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             atualizarDpsLive();
 
             frameCount++;
-            let nowFps = performance.now();
-            if (nowFps - lastFpsUpdate >= 500) {
-                let currentFps = Math.round((frameCount * 1000) / (nowFps - lastFpsUpdate));
-                if(fpsCounter) fpsCounter.innerText = "FPS: " + currentFps;
-                frameCount = 0;
-                lastFpsUpdate = nowFps;
-            }
 
             let shakeX = 0, shakeY = 0;
             if (window.tremorTela > 0) { shakeX = (Math.random() - 0.5) * window.tremorTela; shakeY = (Math.random() - 0.5) * window.tremorTela; window.tremorTela *= 0.88; if (window.tremorTela < 0.5) window.tremorTela = 0; }
@@ -10566,7 +10638,7 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                 maxY: cameraY + alturaVisivel + visibilidadeMargem
             };
 
-            ctx.setTransform(1, 0, 0, 0, 0, 0);
+            const perfSimulationEnd = perfHudAtivo ? performance.now() : 0;
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.fillStyle = "#0a1926";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -10577,26 +10649,33 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             ctx.fillStyle = "#0e3250";
             ctx.fillRect(100000, 0, 88000, 28000);
             if (typeof window.desenharCenarioMundo === "function") window.desenharCenarioMundo(tempoAnimacao, ctx);
-            // Captura somente o quadro do cenário antes do Y-SORT de personagens.
-            // O Editor de Colisões usa este snapshot como fallback genérico para
-            // desenhar camadas em mapas que não possuem um renderizador próprio.
-            try {
-                if (!window._mapLayerSnapshotCanvas || window._mapLayerSnapshotCanvas.width !== canvas.width || window._mapLayerSnapshotCanvas.height !== canvas.height) {
-                    window._mapLayerSnapshotCanvas = document.createElement('canvas');
-                    window._mapLayerSnapshotCanvas.width = canvas.width;
-                    window._mapLayerSnapshotCanvas.height = canvas.height;
+            // Só copiar a tela inteira quando há camadas foreground sem renderer próprio.
+            // No mapa comum quase sempre não há nenhuma, então evita uma alocação/cópia
+            // de bitmap do tamanho da tela a cada frame.
+            const camadasSnapshot = window.camadasPorMapa && window.camadasPorMapa[window.currentMap];
+            const rendererCamadaAtivo = window.desenharCamadaMapaAtivoPorMapa &&
+                window.desenharCamadaMapaAtivoPorMapa[window.currentMap];
+            if (Array.isArray(camadasSnapshot) && camadasSnapshot.length > 0 && typeof rendererCamadaAtivo !== 'function') {
+                try {
+                    if (!window._mapLayerSnapshotCanvas || window._mapLayerSnapshotCanvas.width !== canvas.width || window._mapLayerSnapshotCanvas.height !== canvas.height) {
+                        window._mapLayerSnapshotCanvas = document.createElement('canvas');
+                        window._mapLayerSnapshotCanvas.width = canvas.width;
+                        window._mapLayerSnapshotCanvas.height = canvas.height;
+                    }
+                    const layerSnapCtx = window._mapLayerSnapshotCanvas.getContext('2d');
+                    layerSnapCtx.setTransform(1, 0, 0, 1, 0, 0);
+                    layerSnapCtx.clearRect(0, 0, canvas.width, canvas.height);
+                    layerSnapCtx.drawImage(canvas, 0, 0);
+                    window._mapLayerSnapshot = {
+                        canvas: window._mapLayerSnapshotCanvas,
+                        camX: cameraX,
+                        camY: cameraY,
+                        zoom: (window.cameraZoomAtual || ZOOM_CAMERA || 1)
+                    };
+                } catch (erroSnapshotCamadas) {
+                    window._mapLayerSnapshot = null;
                 }
-                const layerSnapCtx = window._mapLayerSnapshotCanvas.getContext('2d');
-                layerSnapCtx.setTransform(1, 0, 0, 1, 0, 0);
-                layerSnapCtx.clearRect(0, 0, canvas.width, canvas.height);
-                layerSnapCtx.drawImage(canvas, 0, 0);
-                window._mapLayerSnapshot = {
-                    canvas: window._mapLayerSnapshotCanvas,
-                    camX: cameraX,
-                    camY: cameraY,
-                    zoom: (window.cameraZoomAtual || ZOOM_CAMERA || 1)
-                };
-            } catch (erroSnapshotCamadas) {
+            } else {
                 window._mapLayerSnapshot = null;
             }
 
@@ -11655,10 +11734,13 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             if (typeof window.renderizarCicloDiaNoite === 'function' && window.currentMap !== 'testevisual') {
                 window.renderizarCicloDiaNoite(ctx, cameraX, cameraY, shakeX, shakeY, (window.cameraZoomAtual || ZOOM_CAMERA), cameraTiltY);
             }
+            const perfWorldEnd = perfHudAtivo ? performance.now() : 0;
 
             // ======= NOVO MINIMAPA FUNCIONAL (COM RADAR DE ZOOM, MONSTROS, PLAYERS E DROPS) =======
             if (mmCtx && mmCanvas && mmCanvas.style.display !== "none" && typeof window.meuX === "number") {
-                let mw = mmCanvas.width = 176, mh = mmCanvas.height = 100;
+                if (mmCanvas.width !== 176) mmCanvas.width = 176;
+                if (mmCanvas.height !== 100) mmCanvas.height = 100;
+                let mw = 176, mh = 100;
                 mmCtx.clearRect(0, 0, mw, mh);
 
                 // Header do minimapa: bioma e coordenadas
@@ -11877,6 +11959,50 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             // HUD Canvas (moldura vetorial + barras dinâmicas)
             if (window.desenharHudCanvas) window.desenharHudCanvas();
             if (window.atualizarInteracaoNPC) window.atualizarInteracaoNPC();
+
+            const perfFrameEnd = performance.now();
+            frameCount++;
+            if (perfHudAtivo) {
+                perfAcumulado.frames++;
+                perfAcumulado.total += perfFrameEnd - perfFrameStart;
+                perfAcumulado.simulacao += perfSimulationEnd - perfFrameStart;
+                perfAcumulado.mundo += perfWorldEnd - perfSimulationEnd;
+                perfAcumulado.restante += perfFrameEnd - perfWorldEnd;
+                perfAcumulado.mapa += Number(window._perfMapChunkMs) || 0;
+                perfAcumulado.sprites += spritesSort.length;
+            }
+            if (perfFrameEnd - lastFpsUpdate >= 500) {
+                const janelaMs = perfFrameEnd - lastFpsUpdate;
+                const currentFps = Math.round((frameCount * 1000) / janelaMs);
+                window._fpsRenderizado = currentFps;
+                if (fpsCounter) {
+                    fpsCounter.innerText = 'FPS: ' + currentFps;
+                }
+                if (perfHudAtivo) {
+                    const divisorPerf = Math.max(1, perfAcumulado.frames);
+                    const mediaTotal = perfAcumulado.total / divisorPerf;
+                    const mediaSimulacao = perfAcumulado.simulacao / divisorPerf;
+                    const mediaMundo = perfAcumulado.mundo / divisorPerf;
+                    const mediaRestante = perfAcumulado.restante / divisorPerf;
+                    const mediaMapa = perfAcumulado.mapa / divisorPerf;
+                    const mediaSprites = Math.round(perfAcumulado.sprites / divisorPerf);
+                    const resumoPerf = 'Frame ' + mediaTotal.toFixed(1) + ' ms · lógica ' + mediaSimulacao.toFixed(1) +
+                        ' · desenho ' + mediaMundo.toFixed(1) + ' · HUD ' + mediaRestante.toFixed(1) +
+                        ' · chunks ' + mediaMapa.toFixed(1) + ' · sprites ' + mediaSprites +
+                        ' · canvas ' + canvas.width + 'x' + canvas.height;
+                    if (fpsCounter) fpsCounter.title = resumoPerf;
+                    perfHud.textContent = 'FPS ' + currentFps + ' | ' + resumoPerf;
+                    perfAcumulado.frames = 0;
+                    perfAcumulado.total = 0;
+                    perfAcumulado.simulacao = 0;
+                    perfAcumulado.mundo = 0;
+                    perfAcumulado.restante = 0;
+                    perfAcumulado.mapa = 0;
+                    perfAcumulado.sprites = 0;
+                }
+                frameCount = 0;
+                lastFpsUpdate = perfFrameEnd;
+            }
             requestAnimationFrame(loop);
         }
 

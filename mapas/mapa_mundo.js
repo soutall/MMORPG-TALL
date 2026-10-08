@@ -1025,6 +1025,11 @@
         }
 
         function processarFila(orcamentoMs) {
+            const medirFila = global._fpsDiagnosticsAtivo === true;
+            const inicioPerfilMapa = medirFila
+                ? ((global.performance && global.performance.now) ? global.performance.now() : Date.now())
+                : 0;
+            if (medirFila) global._perfMapChunkMs = 0;
             if (!fila.length) return;
             if (filaPrecisaOrdenar) {
                 const v = vista();
@@ -1058,6 +1063,10 @@
                 });
                 for (let i = 180; i < arr.length; i++) chunks.delete(arr[i][0]);
                 fila.splice(0, fila.length, ...fila.filter(function (ch) { return chunks.has(ch.ci * 100000 + ch.cj); }));
+            }
+            if (medirFila) {
+                global._perfMapChunkMs = Math.max(0,
+                    ((global.performance && global.performance.now) ? global.performance.now() : Date.now()) - inicioPerfilMapa);
             }
         }
 

@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
+const { monitorEventLoopDelay } = require('node:perf_hooks');
 const MAPAS_REGISTRY = require('./mapas-registry.js');
 const INSTANCIAS = require('./instancias.js');
 const WebSocket = require('ws');
@@ -24,6 +25,14 @@ const ANIMACOES_MAPA_SPRITE = new Set([
 ]);
 const { AsyncLocalStorage } = require('async_hooks');
 const combateContextStorage = new AsyncLocalStorage();
+const atrasoEventLoopServidor = monitorEventLoopDelay({ resolution: 20 });
+atrasoEventLoopServidor.enable();
+let atrasoEventLoopServidorMs = 0;
+const timerAmostraEventLoop = setInterval(() => {
+    atrasoEventLoopServidorMs = Math.max(0, atrasoEventLoopServidor.max / 1e6);
+    atrasoEventLoopServidor.reset();
+}, 1000);
+if (typeof timerAmostraEventLoop.unref === 'function') timerAmostraEventLoop.unref();
 
 process.on('uncaughtException', (err) => {
     console.error('[ERRO NÃO TRATADO]', err && err.stack ? err.stack : err);
@@ -14726,14 +14735,20 @@ aaCometasCooldown: 0,
             }
 
             if (data.action === 'client_estado') {
-                console.log('[ESTADO]', userId || '?', 'x=' + Math.round(data.meuX), 'y=' + Math.round(data.meuY), 'mapa=' + data.cm, 'id=' + (data.id || 'null'), 'jog=' + data.np, 'slimes=' + data.ns, 'fps=' + data.f, 'ws=' + data.ws, 'updMs=' + (data.updMs === undefined ? '?' : data.updMs));
+                console.log('[ESTADO]', userId || '?', 'x=' + Math.round(data.meuX), 'y=' + Math.round(data.meuY), 'mapa=' + data.cm, 'id=' + (data.id || 'null'), 'jog=' + data.np, 'slimes=' + data.ns, 'fps=' + (data.fps === undefined ? '?' : data.fps), 'ping=' + (data.ping === undefined ? '?' : data.ping), 'ws=' + data.ws, 'updMs=' + (data.updMs === undefined ? '?' : data.updMs));
                 return;
             }
 
             if (data.action === 'ping') {
                 // RTT real da conexão WebSocket: devolve o timestamp enviado pelo cliente.
                 // O cliente calcula Date.now() - t, sem depender do relógio do servidor.
-                ws.send(JSON.stringify({ type: 'pong', t: Number.isFinite(Number(data.t)) ? Number(data.t) : Date.now(), time: agora, sTime: Date.now() }));
+                ws.send(JSON.stringify({
+                    type: 'pong',
+                    t: Number.isFinite(Number(data.t)) ? Number(data.t) : Date.now(),
+                    time: agora,
+                    sTime: Date.now(),
+                    loopLagMs: Number(atrasoEventLoopServidorMs.toFixed(1))
+                }));
                 return;
             }
 

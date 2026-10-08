@@ -38,14 +38,45 @@ test('flashlight direction follows the camera vertical tilt used by the game wor
     assert.ok(diagonalAim.distancia < Math.hypot(100, 100));
 });
 
+test('mobile flashlight follows facing direction unless the second touch is aiming', () => {
+    const state = {
+        meuAngulo: Math.PI / 2,
+        anguloLanternaMobile: 0,
+        lanternaMobileAtiva: false,
+        mouseWorldX: -100,
+        mouseWorldY: 0
+    };
+
+    const alvoFrente = dayNight.obterAlvoLanterna(state, 100, 200, true, 330);
+    assert.ok(Math.abs(alvoFrente.x - 100) < 1e-9);
+    assert.ok(Math.abs(alvoFrente.y - 530) < 1e-9);
+
+    state.lanternaMobileAtiva = true;
+    const alvoToque = dayNight.obterAlvoLanterna(state, 100, 200, true, 330);
+    assert.ok(Math.abs(alvoToque.x - 430) < 1e-9);
+    assert.ok(Math.abs(alvoToque.y - 200) < 1e-9);
+});
+
+test('desktop flashlight remains aimed at the mouse world position', () => {
+    const state = { meuAngulo: Math.PI, mouseWorldX: 450, mouseWorldY: 260 };
+
+    assert.deepEqual(dayNight.obterAlvoLanterna(state, 100, 200, false, 330), { x: 450, y: 260 });
+});
+
 test('night lighting draws a reduced player halo and a mouse-aimed fading beam', () => {
-    assert.match(source, /cortarLuz\(pLocal\.x,\s*pLocal\.y,\s*68\s*\+\s*pulsoFogo/);
+    assert.match(source, /var raioLuzPessoal = dispositivoTouch \? 38 \+ pulsoFogo[\s\S]*?: 68 \+ pulsoFogo/);
+    assert.match(source, /var forcaLuzPessoal = dispositivoTouch \? 0\.54 : 0\.78/);
+    assert.match(source, /calcularFeixeLanterna\(\s*playerX,\s*playerY,\s*alvoLanterna\.x,\s*alvoLanterna\.y,\s*Number\(global\.meuAngulo\)/);
     assert.match(source, /calcularFeixeLanterna\([\s\S]*?global\.mouseWorldX[\s\S]*?global\.mouseWorldY[\s\S]*?330/);
     assert.match(source, /gradiente\.addColorStop\(0\.88,[\s\S]*?gradiente\.addColorStop\(1,\s*'rgba\(0, 0, 0, 0\)'/);
     assert.match(source, /recortarFeixeLanterna\(luzCtx,\s*pLocal\.x,\s*pLocal\.y,\s*feixe,\s*zoom,\s*escuridao\)/);
     assert.match(source, /function renderizarCicloDiaNoite\(ctx,\s*camX,\s*camY,\s*shakeX,\s*shakeY,\s*zoom,\s*inclinacaoY\)/);
     assert.match(source, /y:\s*\(wy - camY \+ shakeY\)\s*\*\s*zoom\s*\*\s*tiltY/);
     assert.match(html, /renderizarCicloDiaNoite\(ctx,\s*cameraX,\s*cameraY,\s*shakeX,\s*shakeY,\s*\(window\.cameraZoomAtual \|\| ZOOM_CAMERA\),\s*cameraTiltY\)/);
-    assert.match(html, /sistema_dia_noite_cliente\.js\?v=1525/);
+    assert.match(html, /sistema_dia_noite_cliente\.js\?v=1527/);
+    assert.match(html, /let joystickTouchId = null; let lanternaTouchId = null/);
+    assert.match(html, /function atualizarMiraLanternaTouch\(touch\)/);
+    assert.match(html, /window\.lanternaMobileAtiva = true/);
+    assert.match(html, /window\.lanternaMobileAtiva = false/);
     assert.match(html, /const GAME_VERSION = 'v1\.75\.95'/);
 });

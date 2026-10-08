@@ -143,6 +143,20 @@
         };
     }
 
+    function obterAlvoLanterna(global, x, y, dispositivoTouch, alcance) {
+        var alcanceAlvo = Number.isFinite(alcance) && alcance > 0 ? alcance : 330;
+        if (dispositivoTouch) {
+            var angulo = global.lanternaMobileAtiva && Number.isFinite(global.anguloLanternaMobile)
+                ? global.anguloLanternaMobile
+                : (Number(global.meuAngulo) || 0);
+            return { x: x + Math.cos(angulo) * alcanceAlvo, y: y + Math.sin(angulo) * alcanceAlvo };
+        }
+        return {
+            x: Number.isFinite(global.mouseWorldX) ? global.mouseWorldX : NaN,
+            y: Number.isFinite(global.mouseWorldY) ? global.mouseWorldY : NaN
+        };
+    }
+
     function recortarFeixeLanterna(ctx, sx, sy, geometria, zoom, forca) {
         var comprimento = geometria.distancia * zoom;
         if (comprimento <= 1) return;
@@ -301,15 +315,17 @@
                 var playerX = global.meuX + 12;
                 var playerY = global.meuY + 16;
                 var pLocal = paraTela(playerX, playerY);
-                cortarLuz(pLocal.x, pLocal.y, 68 + pulsoFogo * 0.25, 0.78, 0.20);
-
-                var miraX = Number.isFinite(global.mouseWorldX) ? global.mouseWorldX : NaN;
-                var miraY = Number.isFinite(global.mouseWorldY) ? global.mouseWorldY : NaN;
+                var dispositivoTouch = (('ontouchstart' in global) || (global.navigator && global.navigator.maxTouchPoints > 0)) &&
+                    (global.innerWidth <= 1024 || (typeof global.matchMedia === 'function' && global.matchMedia('(pointer: coarse)').matches));
+                var raioLuzPessoal = dispositivoTouch ? 38 + pulsoFogo * 0.2 : 68 + pulsoFogo * 0.25;
+                var forcaLuzPessoal = dispositivoTouch ? 0.54 : 0.78;
+                cortarLuz(pLocal.x, pLocal.y, raioLuzPessoal, forcaLuzPessoal, dispositivoTouch ? 0.24 : 0.20);
+                var alvoLanterna = obterAlvoLanterna(global, playerX, playerY, dispositivoTouch, 330);
                 var feixe = calcularFeixeLanterna(
                     playerX,
                     playerY,
-                    miraX,
-                    miraY,
+                    alvoLanterna.x,
+                    alvoLanterna.y,
                     Number(global.meuAngulo) || 0,
                     330,
                     tiltY
@@ -531,7 +547,8 @@
             isLuzMapaAtiva: isLuzMapaAtiva,
             obterFatorLuzDiaNoite: obterFatorLuzDiaNoite,
             isEfeitoLuz: isEfeitoLuz,
-            calcularFeixeLanterna: calcularFeixeLanterna
+            calcularFeixeLanterna: calcularFeixeLanterna,
+            obterAlvoLanterna: obterAlvoLanterna
         };
     }
 
