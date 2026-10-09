@@ -16,6 +16,12 @@ test('Lord Malakar summons display current and maximum health below their health
     assert.match(renderer, /const hovering = Number\.isFinite\(pointerX\) && Number\.isFinite\(pointerY\)[\s\S]{0,120}if \(hovering\)/);
 });
 
+test('summon creation animation skips future or invalid server timestamps', () => {
+    assert.match(renderer, /const creationAge = time - Number\(entity\.createdAt\);/);
+    assert.match(renderer, /entity\.createdAt && Number\.isFinite\(creationAge\) &&\s*creationAge >= 0 && creationAge < 900/);
+    assert.match(renderer, /const progress = creationAge \/ 900;/);
+});
+
 test('Malakar HUD shows icon-only counts for active summons below stamina', () => {
     assert.match(client, /function desenharIconesLacaiosMalakar/);
     assert.match(client, /entity\.hp > 0/);

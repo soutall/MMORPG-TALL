@@ -2753,8 +2753,10 @@
             }
             ctx.restore();
         }
-        if (entity.createdAt && time - entity.createdAt < 900) {
-            const progress = (time - entity.createdAt) / 900;
+        const creationAge = time - Number(entity.createdAt);
+        if (entity.createdAt && Number.isFinite(creationAge) &&
+            creationAge >= 0 && creationAge < 900) {
+            const progress = creationAge / 900;
             ctx.globalAlpha = 1 - progress;
             ctx.strokeStyle = entity.type === 'skull_mage' ? '#d468ff' : '#ff354f';
             ctx.lineWidth = 2 - progress;
