@@ -438,10 +438,36 @@
                     var pv = paraTela(vf.x, vf.y);
                     var rT = Math.max(130, (vf.raio || 80) * (vf.escala || 1) * 1.9);
                     cortarLuz(pv.x, pv.y, rT + pulsoFogo, 0.90 * fatorLuz, 0.20);
-                } else if (tVf === 'lampada' || tVf === 'holofote') {
+                } else if (tVf === 'lampada') {
                     var pv = paraTela(vf.x, vf.y);
                     var rL = Math.max(140, (vf.raio || 80) * (vf.escala || 1) * 2.2);
                     cortarLuz(pv.x, pv.y, rL + pulsoFogo * 0.6, 0.96 * fatorLuz, 0.28);
+                } else if (tVf === 'holofote') {
+                    var direcoes = {
+                        n: { x: 0, y: -1 }, ne: { x: 0.7071, y: -0.7071 },
+                        e: { x: 1, y: 0 }, se: { x: 0.7071, y: 0.7071 },
+                        s: { x: 0, y: 1 }, sw: { x: -0.7071, y: 0.7071 },
+                        w: { x: -1, y: 0 }, nw: { x: -0.7071, y: -0.7071 }
+                    };
+                    var direcao = direcoes[vf.direcao] || direcoes.n;
+                    var pv = paraTela(vf.x, vf.y);
+                    var alcanceHolofote = Math.max(140, (vf.raio || 80) * (vf.escala || 1) * 2.2);
+                    var feixeHolofote = calcularFeixeLanterna(
+                        vf.x, vf.y,
+                        vf.x + direcao.x * alcanceHolofote,
+                        vf.y + direcao.y * alcanceHolofote,
+                        Math.atan2(direcao.y, direcao.x),
+                        alcanceHolofote,
+                        tiltY
+                    );
+                    recortarFeixeLanterna(
+                        luzCtx,
+                        pv.x,
+                        pv.y,
+                        feixeHolofote,
+                        zoom,
+                        Math.min(0.96, Math.max(0.1, Number(vf.intensidade) || 1) * fatorLuz)
+                    );
                 } else if (tVf === 'cristais' || tVf === 'portal') {
                     var pv = paraTela(vf.x, vf.y);
                     cortarLuz(pv.x, pv.y, 145 + pulsoFogo * 0.8, 0.88 * fatorLuz, 0.20);
@@ -502,7 +528,7 @@
                         var vf2 = global.vfxMapa[vi2];
                         if (!vf2) continue;
                         if (vf2.mapa && vf2.mapa !== cMap) continue;
-                        if (vf2.tipo === 'lampada' || vf2.tipo === 'holofote') {
+                        if (vf2.tipo === 'lampada') {
                             var pvl = paraTela(vf2.x, vf2.y);
                             var rLampGlow = Math.max(90, (vf2.raio || 80) * (vf2.escala || 1) * 1.5);
                             desenharHaloQuente(pvl.x, pvl.y, rLampGlow, 'rgba(255, 215, 105, ' + (0.24 * fatorLuz).toFixed(3) + ')');

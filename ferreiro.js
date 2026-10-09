@@ -18,6 +18,7 @@
     'use strict';
 
     var NPC = { x: 60800, y: 400, r: 52 };
+    var NPC_LOKI = { x: 144238, y: 13894, r: 52, mapa: 'mundo' };
 
     // Tabela de chances (exibição — o servidor é a autoridade)
     var CHANCES = {
@@ -51,6 +52,7 @@
     var _animInicio = 0;
     var _checarCidadeTimer = null;
     var _resultadoPendenteTimer = null;
+    var _npcServicoAtual = null;
 
     window.ferreiroAberto = false;
 
@@ -130,14 +132,18 @@
        ABRIR / FECHAR
        ========================================================================== */
 
-    window.abrirFerreiro = function () {
+    window.abrirFerreiro = function (npcId) {
         if (window.estaMorto) return;
         if (window.ferreiroAberto) return;
-        if (typeof window.requerProximidade === 'function' && !window.requerProximidade(NPC.x, NPC.y, 160)) {
+        var pontoForja = obterPontoFerreiro(npcId);
+        var mapaForja = npcId === 'loki_forja' ? NPC_LOKI.mapa : 'cidade';
+        if (window.currentMap !== mapaForja ||
+            (typeof window.requerProximidade === 'function' && !window.requerProximidade(pontoForja.x, pontoForja.y, 130))) {
             if (typeof window.avisoProximidade === 'function') window.avisoProximidade();
             return;
         }
         window.ferreiroAberto = true;
+        _npcServicoAtual = npcId === 'loki_forja' ? npcId : null;
         var screen = el('ferreiro-screen');
         if (screen) screen.style.display = 'flex';
         slotItem = null;
@@ -145,11 +151,16 @@
         fecharRegras();
         fecharResultado();
         renderizarTudo();
-        iniciarChecagemCidade();
+        iniciarChecagemCidade(pontoForja, mapaForja, npcId);
         if (typeof window.fecharConfirmacao === 'function') window.fecharConfirmacao();
     };
 
     window.fecharFerreiro = function () {
+        var npcFechado = _npcServicoAtual;
+        _npcServicoAtual = null;
+        if (npcFechado && window.ws && window.ws.readyState === WebSocket.OPEN) {
+            window.ws.send(JSON.stringify({ action: 'npc_service_close', npcId: npcFechado }));
+        }
         window.ferreiroAberto = false;
         var screen = el('ferreiro-screen');
         if (screen) screen.style.display = 'none';
@@ -161,12 +172,21 @@
         }
     };
 
-    function iniciarChecagemCidade() {
+    function obterPontoFerreiro(npcId) {
+        if (npcId === 'loki_forja') {
+            var npcLoki = (window.npcsInterativos || []).find(function (npc) { return npc && npc.id === 'loki_forja'; });
+            return npcLoki || NPC_LOKI;
+        }
+        return NPC;
+    }
+
+    function iniciarChecagemCidade(pontoForja, mapaForja, npcId) {
         pararChecagemCidade();
         _checarCidadeTimer = setInterval(function () {
             if (!window.ferreiroAberto) return;
-            if (window.currentMap !== 'cidade') { window.fecharFerreiro(); return; }
-            if (typeof window.requerProximidade === 'function' && !window.requerProximidade(NPC.x, NPC.y, 180)) window.fecharFerreiro();
+            if (window.currentMap !== mapaForja) { window.fecharFerreiro(); return; }
+            var pontoAtual = obterPontoFerreiro(npcId) || pontoForja;
+            if (typeof window.requerProximidade === 'function' && !window.requerProximidade(pontoAtual.x, pontoAtual.y, 160)) window.fecharFerreiro();
         }, 600);
     }
     function pararChecagemCidade() {

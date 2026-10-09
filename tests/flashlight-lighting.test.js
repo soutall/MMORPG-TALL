@@ -80,7 +80,7 @@ test('night lighting draws a reduced player halo and a mouse-aimed fading beam',
     assert.match(source, /function renderizarCicloDiaNoite\(ctx,\s*camX,\s*camY,\s*shakeX,\s*shakeY,\s*zoom,\s*inclinacaoY\)/);
     assert.match(source, /y:\s*\(wy - camY \+ shakeY\)\s*\*\s*zoom\s*\*\s*tiltY/);
     assert.match(html, /renderizarCicloDiaNoite\(ctx,\s*cameraX,\s*cameraY,\s*shakeX,\s*shakeY,\s*\(window\.cameraZoomAtual \|\| ZOOM_CAMERA\),\s*cameraTiltY\)/);
-    assert.match(html, /sistema_dia_noite_cliente\.js\?v=1528/);
+    assert.match(html, /sistema_dia_noite_cliente\.js\?v=1529/);
     assert.match(html, /let joystickTouchId = null; let lanternaTouchId = null/);
     assert.match(html, /function atualizarMiraLanternaTouch\(touch\)/);
     assert.match(html, /window\.lanternaMobileAtiva = true/);

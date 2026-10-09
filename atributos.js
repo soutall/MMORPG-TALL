@@ -3,7 +3,7 @@
 
 const ATRIBUTOS_INFO = [
     { chave: 'forca',        icone: '⚔️', nome: 'Força',        bonus: '+1 dano físico direto por ponto' },
-    { chave: 'inteligencia', icone: '🔮', nome: 'Inteligência',  bonus: '+10 dano mágico e +10 Mana máxima por ponto' },
+    { chave: 'inteligencia', icone: '🔮', nome: 'Inteligência',  bonus: '+1 dano em ataques básicos mágicos, +10 dano em habilidades e +10 Mana máxima por ponto' },
     { chave: 'agilidade',    icone: '💨', nome: 'Agilidade',     bonus: '+3% de velocidade por ponto (máximo +50%)' },
     { chave: 'destreza',     icone: '🎯', nome: 'Destreza',      bonus: '+1% de chance crítica por ponto (limite base: 70%)' },
     { chave: 'vida',         icone: '❤️', nome: 'Vida',          bonus: '+5 Vida máxima por ponto' },
@@ -200,7 +200,8 @@ function renderizarDetalhes() {
     critMult = Math.round(critMult * 100) / 100;
 
     let danoFisico = Math.max(0, g('forca') - 1);
-    let danoMagico = Math.max(0, (g('inteligencia') - 1) * 10);
+    let danoMagicoBasico = Math.max(0, g('inteligencia') - 1);
+    let danoMagicoHabilidades = danoMagicoBasico * 10;
     let curaBonus = Math.round((g('divindade') - 1) * 0.05 * 100);
     let dotBonus = Math.round((g('profanidade') - 1) * 0.01 * 100);
     let afinidade = Math.max(1, g('afinidade'));
@@ -230,7 +231,8 @@ function renderizarDetalhes() {
         { nome: '🎯 Crít. chance' + gritoBadge + sniperBadge, valor: critChancePct + '%' },
         { nome: '💥 Dano crítico' + gritoBadge, valor: 'x' + critMult },
         { nome: '⚔️ Dano físico' + (sniperPos ? ' (x2)' : '') + bradoBadge, valor: '+' + formatarNumeroAtributo(danoFisico) },
-        { nome: '🔮 Dano mágico', valor: '+' + formatarNumeroAtributo(danoMagico) },
+        { nome: '🔮 Dano básico mágico', valor: '+' + formatarNumeroAtributo(danoMagicoBasico) },
+        { nome: '✨ Dano mágico de habilidades', valor: '+' + formatarNumeroAtributo(danoMagicoHabilidades) },
         { nome: '✨ Cura', valor: '+' + curaBonus + '%' },
         { nome: '☠️ DoT', valor: '+' + dotBonus + '%' },
         { nome: '🐾 Afinidade efetiva', valor: formatarNumeroAtributo(afinidade) },

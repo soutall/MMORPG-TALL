@@ -19,9 +19,13 @@
     const R_GAIA = 7200;                    // Raio do anel central de Gaia
     const SEED = 4242;
     const CHUNK = 512, TEXEL = 2, CT = CHUNK / TEXEL;
+    const PREVIA_CHUNK_RESOLUCAO = 8;
+    const DISTANCIA_PRE_CARREGAMENTO = CHUNK * 2;
+    const INTERVALO_PRE_CARREGAMENTO_MS = 250;
     const CELL = 240;                       // Célula da grade de props
     const SPAWN = { x: 144000, y: 14018 };  // Centro exato de Gaia
     const PORTAL_RETORNO = { x: 144000, y: 14018, r: 0 };
+    const RAIO_AREA_SEGURA_SANTUARIO = 900;
 
     // Centros oficiais dos biomas (viagem, minimapa e referências)
     const CENTROS_BIOMAS = {
@@ -542,6 +546,15 @@
 
     function colideProjetilMundo(x, y) { return !dentro(x, y); }
     function biomaNome(x, y) { return NOMES[biomaEm(x, y, 0)]; }
+    function ehTerrenoGrama(wx, wy) {
+        if (!dentro(wx, wy)) return false;
+        const bio = biomaEm(wx, wy, 0);
+        if (bio !== B.PLANTAS && bio !== B.FLORESTA && bio !== B.SELVA) return false;
+        return liquidoEm(wx, wy, bio) === 0;
+    }
+    function ehAreaSegura(wx, wy) {
+        return Math.hypot(wx - SPAWN.x, wy - SPAWN.y) < RAIO_AREA_SEGURA_SANTUARIO;
+    }
 
     // Helpers de mecânicas de ambiente
     function ehBiomaGelo(wx, wy) {
@@ -858,7 +871,8 @@
         SPAWN: SPAWN, PORTAL_RETORNO: PORTAL_RETORNO,
         CENTROS_BIOMAS: CENTROS_BIOMAS,
         colideMundo: colideMundo, colideProjetilMundo: colideProjetilMundo,
-        biomaNome: biomaNome, isMundo: dentro,
+        biomaNome: biomaNome, isMundo: dentro, ehTerrenoGrama: ehTerrenoGrama,
+        ehAreaSegura: ehAreaSegura,
         ehBiomaGelo: ehBiomaGelo, ehLava: ehLava, ehVeneno: ehVeneno, ehDeserto: ehDeserto,
         ehCristal: ehCristal, ehTempestade: ehTempestade, ehProfanado: ehProfanado, ehSelva: ehSelva,
         corPixelRgb: corPixelRgb, obterCorMinimapa: obterCorMinimapa,
@@ -875,6 +889,7 @@
         let direcaoPreCarregamento = { x: 0, y: 0 };
         let ultimaPosicaoJogador = null;
         let ultimoMovimentoJogador = 0;
+        let ultimoPreCarregamentoEm = 0;
 
         function vistaNoCentro(x, y) {
             const cz = global.cameraZoomAtual || global.ZOOM_CAMERA || 1;
@@ -931,7 +946,7 @@
         }
 
         function criarPreviaChunk(ch) {
-            const lado = 16;
+            const lado = PREVIA_CHUNK_RESOLUCAO;
             const cv = document.createElement('canvas');
             cv.width = lado;
             cv.height = lado;
@@ -1072,11 +1087,12 @@
 
         function vista() {
             const cz = global.cameraZoomAtual || global.ZOOM_CAMERA || 1;
+            const tilt = global.CAMERA_25D ? (global.CAMERA_TILT_Y || 0.88) : 1;
             return {
                 x: global.camX || 0,
                 y: global.camY || 0,
                 w: ((global.canvas && global.canvas.width) || 1280) / cz,
-                h: ((global.canvas && global.canvas.height) || 720) / cz
+                h: ((global.canvas && global.canvas.height) || 720) / (cz * tilt)
             };
         }
 
@@ -1105,11 +1121,13 @@
                 ultimaPosicaoJogador = posicao;
             }
             const visibles = garantirChunksRetangulo(v, 0);
-            if (agora - ultimoMovimentoJogador < 900 &&
+            const jogadorEmMovimento = agora - ultimoMovimentoJogador < 900;
+            if (jogadorEmMovimento &&
+                agora - ultimoPreCarregamentoEm >= INTERVALO_PRE_CARREGAMENTO_MS &&
                 (direcaoPreCarregamento.x !== 0 || direcaoPreCarregamento.y !== 0)) {
-                const distanciaAntecipacao = CHUNK * 7;
-                const deslocamentoX = direcaoPreCarregamento.x * distanciaAntecipacao;
-                const deslocamentoY = direcaoPreCarregamento.y * distanciaAntecipacao;
+                ultimoPreCarregamentoEm = agora;
+                const deslocamentoX = direcaoPreCarregamento.x * DISTANCIA_PRE_CARREGAMENTO;
+                const deslocamentoY = direcaoPreCarregamento.y * DISTANCIA_PRE_CARREGAMENTO;
                 garantirChunksRetangulo({
                     x: v.x + Math.min(0, deslocamentoX),
                     y: v.y + Math.min(0, deslocamentoY),
@@ -1117,7 +1135,9 @@
                     h: v.h + Math.abs(deslocamentoY)
                 }, 1);
             }
-            processarFila(global.carregandoMapaMundo ? 6 : (agora - ultimoMovimentoJogador < 900 ? 5 : 2.5));
+            // Chunk rasterization shares the browser main thread with WebSocket events,
+            // so keep its steady-state budget small to avoid inflating measured RTT.
+            processarFila(global.carregandoMapaMundo ? 6 : (jogadorEmMovimento ? 1.5 : 0.75));
             ctx.save();
             for (let i = 0; i < visibles.length; i++) {
                 const ch = visibles[i];

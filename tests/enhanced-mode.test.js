@@ -19,7 +19,7 @@ test('enhanced mode starts off unless the browser startup query enables it', () 
 
 test('enhanced manager modules are wired in the client before the game loop', () => {
     const html = require('node:fs').readFileSync(require('node:path').join(__dirname, '..', 'index.html'), 'utf8');
-    assert.match(html, /modo-melhorado\/camera\.js\?v=1/);
+    assert.match(html, /modo-melhorado\/camera\.js\?v=3/);
     assert.match(html, /modo-melhorado\/combate\.js\?v=1/);
     assert.match(html, /modo-melhorado\/atmosfera\.js\?v=1/);
     assert.match(html, /modo-melhorado\/sombras\.js\?v=1/);

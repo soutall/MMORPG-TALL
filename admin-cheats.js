@@ -303,6 +303,14 @@
                     </div>
                 </div>
 
+                <div class="ac-card" style="flex-direction:column;align-items:stretch;gap:8px;">
+                    <div class="ac-info">
+                        <div class="ac-label">🧙 NPCs do mapa</div>
+                        <div class="ac-desc">Mover NPCs, selecionar animações e desenhar percursos.</div>
+                    </div>
+                    <button class="ac-btn ac-btn-on" type="button" onclick="window.toggleNpcAdmin()">Abrir editor de NPCs</button>
+                </div>
+
                 <div class="ac-card" id="ac-card-vida">
                     <div class="ac-info">
                         <div class="ac-label">❤️ Vida Infinita</div>
@@ -370,13 +378,13 @@
                 <div class="ac-card" style="flex-direction:column; align-items:stretch; gap:10px;">
                     <div class="ac-info">
                         <div class="ac-label">💨 Intensidade da chuva</div>
-                        <div class="ac-desc">Fraca: atual · Média: 30% mais densa · Tempestade: 60% mais densa e rápida.</div>
+                        <div class="ac-desc">Fraca: atual · Média: 30% mais densa · Forte: 60% mais densa e rápida.</div>
                     </div>
                     <select class="ac-time-input" id="ac-intensidade-chuva" aria-label="Intensidade da chuva"
                         onchange="window.adminDefinirIntensidadeChuva(this.value)">
                         <option value="fraca">Fraca</option>
                         <option value="media">Média</option>
-                        <option value="tempestade">Tempestade</option>
+                        <option value="tempestade">Forte</option>
                     </select>
                 </div>
             </div>

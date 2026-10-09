@@ -13,13 +13,14 @@ const clientSource = fs.readFileSync(path.join(projectRoot, 'index.html'), 'utf8
 
 test('attribute status descriptions and derived values match server progression', () => {
     assert.match(attributesSource, /Força',\s*bonus: '\+1 dano físico direto por ponto'/);
-    assert.match(attributesSource, /Inteligência',\s*bonus: '\+10 dano mágico e \+10 Mana máxima por ponto'/);
+    assert.match(attributesSource, /Inteligência',\s*bonus: '\+1 dano em ataques básicos mágicos, \+10 dano em habilidades e \+10 Mana máxima por ponto'/);
     assert.match(attributesSource, /Vida',\s*bonus: '\+5 Vida máxima por ponto'/);
     assert.match(attributesSource, /Profanidade',\s*bonus: '\+1% de dano periódico por ponto'/);
     assert.match(attributesSource, /Afinidade',\s*bonus: '\+5% dano do Malakar e herança de atributos para pets\/lacaios/);
     assert.match(attributesSource, /let maxHp = Math\.round\(100 \+ \(g\('vida'\) - 1\) \* 5\);/);
     assert.match(attributesSource, /let danoFisico = Math\.max\(0, g\('forca'\) - 1\);/);
-    assert.match(attributesSource, /let danoMagico = Math\.max\(0, \(g\('inteligencia'\) - 1\) \* 10\);/);
+    assert.match(attributesSource, /let danoMagicoBasico = Math\.max\(0, g\('inteligencia'\) - 1\);/);
+    assert.match(attributesSource, /let danoMagicoHabilidades = danoMagicoBasico \* 10;/);
     assert.doesNotMatch(attributesSource, /g\('forca'\) - 1\) \* 0\.05/);
 });
 
@@ -30,6 +31,18 @@ test('skill preview uses flat Force and Intelligence bonuses', () => {
     assert.match(skillsSource, /return '\+10 dano por ponto de Inteligência';/);
     assert.match(skillsSource, /Escala com atributos herdados do lacaio/);
     assert.doesNotMatch(skillsSource, /baseDano \* \(1 \+ \(tot - 1\) \* 0\.05\)/);
+});
+
+test('basic magical attacks use the reduced Intelligence bonus in PvE and PvP', () => {
+    assert.match(serverSource, /bonusDanoAtaqueBasicoMagico\(getAtr\(p, atributoDano\)\)/);
+    assert.match(serverSource, /'arqueiro_astral', 'florim'/);
+    assert.match(serverSource, /escalaAtaqueBasicoInteligencia: CLASSES_QUE_ESCALAM_COM_INTELIGENCIA\.has\(players\[playerId\]\.classe\)/);
+    assert.match(serverSource, /tipo: 'riff',\s*origemBasica: true,\s*escalaAtaqueBasicoInteligencia: true/);
+    assert.match(serverSource, /registrarDanoMonstro\([\s\S]{0,300}!!pp\.escalaAtaqueBasicoInteligencia/);
+    assert.match(serverSource, /registrarDanoBoss\([\s\S]{0,400}!!pp\.escalaAtaqueBasicoInteligencia/);
+    assert.match(serverSource, /pp\.dano \+ progressaoAtributos\.bonusDanoAtaqueBasicoMagico\(getAtr\(p1, 'inteligencia'\)\)/);
+    assert.match(serverSource, /danoFlecha, 'mágico', true/);
+    assert.match(serverSource, /dano, 'natureza', true/);
 });
 
 test('Berserker spin damage and skill preview both use a half-damage multiplier', () => {

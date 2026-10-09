@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Oswald:wght@500;600;700&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=257">
+    <link rel="stylesheet" href="style.css?v=260">
     <link rel="stylesheet" href="sistemas/pets/pets-ui.css?v=5">
     <link rel="stylesheet" href="inventario.css?v=174">
     <link rel="stylesheet" href="skills.css?v=149">
@@ -18,7 +18,7 @@
     <link rel="stylesheet" href="colisao-editor.css?v=3">
     <link rel="stylesheet" href="dragdrop.css?v=4">
     <link rel="stylesheet" href="ferreiro.css?v=1">
-    <link rel="stylesheet" href="intro.css?v=1">
+    <link rel="stylesheet" href="intro.css?v=2">
     <link rel="stylesheet" href="mobile-hud.css?v=11">
     <link rel="stylesheet" href="item-admin.css?v=2">
     <link rel="stylesheet" href="personagem-select.css?v=2">
@@ -162,27 +162,32 @@
     </script>
 
     <div id="login-screen">
-        <h1>⚔️ ENTRAR NO MUNDO</h1>
-        <p id="login-instructions">Acesse com Google ou entre como visitante:</p>
-        <div id="google-login-box" style="display:flex; flex-direction:column; align-items:center; gap:12px; min-height:48px;">
-            <div id="google-signin-button"></div>
-            <div id="login-remembered-account" style="display:none; flex-direction:column; align-items:center; gap:8px; justify-content:center; max-width:360px;">
-                <span style="color:#cfe9ff; font-size:12px; opacity:0.85;">Última conta: <strong id="login-remembered-email" style="color:#fff;"></strong></span>
+        <main class="login-panel" aria-labelledby="login-title">
+            <div class="login-crest" aria-hidden="true"><span>✦</span></div>
+            <p class="login-world-name">VAELKOR</p>
+            <p class="login-tagline">O Despertar dos Reinos</p>
+            <h1 id="login-title">ENTRAR NO MUNDO</h1>
+            <p id="login-instructions">Sua próxima aventura começa aqui.</p>
+            <div class="login-divider"><span>ESCOLHA COMO JOGAR</span></div>
+            <div id="google-login-box" style="display:flex; flex-direction:column; align-items:center; gap:12px; min-height:48px;">
+                <div id="google-signin-button"></div>
+                <div id="login-remembered-account" style="display:none; flex-direction:column; align-items:center; gap:8px; justify-content:center; max-width:360px;">
+                    <span>Última conta: <strong id="login-remembered-email"></strong></span>
+                </div>
+                <button id="login-direct-button" type="button">ENTRAR</button>
+                <div id="google-login-status" role="status" aria-live="polite">Carregando login Google…</div>
+                <button id="login-logout" type="button" onclick="window.logoutGoogleConta && window.logoutGoogleConta()">Sair da conta</button>
             </div>
-            <button id="login-direct-button" type="button" style="display:none; padding:12px 36px; border-radius:999px; border:1px solid rgba(255,218,112,0.9); background:linear-gradient(135deg,#9c2c16,#d85620); box-shadow:0 4px 16px rgba(88,20,8,0.45); color:#fff4d0; cursor:pointer; font:700 18px 'Rajdhani',sans-serif; letter-spacing:1px;">ENTRAR</button>
-            <div id="google-login-status" role="status" aria-live="polite" style="max-width:320px; color:#ffd27d; text-align:center; font:600 14px 'Rajdhani',sans-serif;">Carregando login Google…</div>
-            <button id="login-logout" type="button" onclick="window.logoutGoogleConta && window.logoutGoogleConta()" style="display:none; padding:8px 12px; border-radius:999px; background:rgba(231,76,60,0.2); border:1px solid rgba(231,76,60,0.45); color:#ffd5d5; cursor:pointer; font-weight:700;">Sair da conta</button>
-        </div>
-        <button id="guest-login-button" type="button">ENTRAR COMO VISITANTE</button>
-        <small id="guest-login-note">Conta temporária para testes, sem vínculo com o Google.</small>
-        <div id="local-id-login-box" style="display:none; flex-direction:column; align-items:center; gap:10px; margin-top:12px;">
-            <label for="local-id-login-input" style="color:#cfe9ff;font:600 14px 'Rajdhani',sans-serif;">ID do personagem (modo local de teste)</label>
-            <input id="local-id-login-input" type="text" maxlength="64" autocomplete="off" spellcheck="false"
-                style="width:min(280px,80vw);padding:10px 12px;border:1px solid rgba(255,255,255,.25);border-radius:8px;background:#101820;color:#fff;">
-            <button id="local-id-login-button" type="button"
-                style="padding:9px 18px;border-radius:999px;background:#1c7c54;border:1px solid #49b989;color:#fff;font-weight:700;cursor:pointer;">Entrar por ID (somente local)</button>
-            <span id="local-id-login-status" role="status" style="max-width:320px;color:#ffd27d;text-align:center;font:600 13px 'Rajdhani',sans-serif;"></span>
-        </div>
+            <div class="login-divider login-divider-or"><span>OU</span></div>
+            <button id="guest-login-button" type="button">ENTRAR COMO VISITANTE</button>
+            <small id="guest-login-note">Conta temporária para testes, sem vínculo com o Google.</small>
+            <div id="local-id-login-box" style="display:none; flex-direction:column; align-items:center; gap:10px; margin-top:12px;">
+                <label for="local-id-login-input">ID do personagem (modo local de teste)</label>
+                <input id="local-id-login-input" type="text" maxlength="64" autocomplete="off" spellcheck="false">
+                <button id="local-id-login-button" type="button">Entrar por ID (somente local)</button>
+                <span id="local-id-login-status" role="status"></span>
+            </div>
+        </main>
         <div class="game-version-display">v1.75.103</div>
     </div>
 
@@ -243,7 +248,7 @@
     <div id="elite-alert-notice" role="alert" aria-live="assertive">⚠ ATENÇÃO: ELITE ESTÁ NO MAPA</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
     <div id="ping-counter" data-ui="ping">PING: -- ms</div>
-    <div id="hud-version" class="game-version-display">v1.75.103</div>
+    <div id="hud-version" class="game-version-display" aria-hidden="true">v1.75.103</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -429,6 +434,10 @@
         <div id="minimap-relogio" class="minimap-clock-badge" onclick="notificarCicloDiaNoite()" title="Horário do Servidor (Ciclo Dia/Noite)">
             <span id="relogio-icone">☀️</span>
             <span id="relogio-texto">12:00</span>
+        </div>
+        <div id="minimap-area-protegida" class="minimap-safe-zone-badge" role="status" aria-label="Área protegida" title="Você está em uma área protegida" hidden>
+            <span aria-hidden="true">🛡️</span>
+            <span>ÁREA PROTEGIDA</span>
         </div>
         <div id="minimap-header">
             <div id="minimap-header-top">
@@ -995,6 +1004,14 @@
                     <div class="settings-dica">Alta mantém partículas e brilhos completos. Média reduz efeitos; Baixa otimiza para celulares e PCs fracos.</div>
                 </div>
                 <div class="settings-linha">
+                    <div class="settings-label"><span class="settings-ico">🌘</span>SOMBRAS DINÂMICAS</div>
+                    <select id="vis-sombras-mapa" class="settings-select" onchange="mudarSombrasMapa(this.value)">
+                        <option value="on">Ativadas (Realista)</option>
+                        <option value="off">Desativadas (Otimizar FPS)</option>
+                    </select>
+                    <div class="settings-dica">Projeta sombras em tempo real das árvores e cenários usando a posição do sol, da lua e fontes de luz dinâmicas. Desative se o jogo estiver travando.</div>
+                </div>
+                <div class="settings-linha">
                     <div class="settings-label"><span class="settings-ico">🌟</span>MODO MELHORADO</div>
                     <label class="enhanced-mode-option">
                         <input id="enhanced-mode-toggle" type="checkbox">
@@ -1017,17 +1034,17 @@
             </div>
             </div>
             <div id="settings-acoes">
-                <button id="btn-editar-interface" class="btn-config-acao btn-editar-ui" onclick="window.ativarEditarInterface()"><span class="btn-ico">🔧</span><span class="btn-lbl">EDITAR INTERFACE</span></button>
                 <button id="btn-trocar-char" class="btn-config-acao btn-trocar" onclick="trocarDePersonagem()"><span class="btn-ico">🔁</span><span class="btn-lbl">TROCAR CHAR</span></button>
                 <button id="btn-logout-conta" class="btn-config-acao btn-sair" onclick="window.logoutGoogleConta && window.logoutGoogleConta()"><span class="btn-ico">🚪</span><span class="btn-lbl">LOGOUT</span></button>
                 <button id="btn-sair-jogo" class="btn-config-acao btn-sair" onclick="sairDoJogo()"><span class="btn-ico">🚫</span><span class="btn-lbl">SAIR DO JOGO</span></button>
             </div>
+            <div id="settings-version">VERSÃO <span id="settings-version-text"></span></div>
             <div id="settings-roda-pe">MMORPG PC &amp; MOBILE</div>
         </div>
     </div>
 
     <script src="mapas-registry.js?v=6"></script>
-    <script src="mapas/mapa_mundo.js?v=22"></script>
+    <script src="mapas/mapa_mundo.js?v=24"></script>
     <script src="cartografia_universal.js?v=9"></script>
     <script src="engine_otimizador.js?v=5"></script>
     <script>
@@ -1044,7 +1061,7 @@
         })();
     </script>
     <!-- SISTEMA DE CICLO DIA/NOITE & ILUMINAÇÃO DINÂMICA (v1.52.1) -->
-    <script src="sistema_dia_noite_cliente.js?v=1528"></script>
+    <script src="sistema_dia_noite_cliente.js?v=1529"></script>
     <!-- DASH v2: módulo ISOMÓRFICO (o MESMO arquivo é require() no server.js).
          Precisa vir antes das classes porque elas podem consultar window.DASH. -->
     <script src="dash.js?v=1501"></script>
@@ -1063,7 +1080,8 @@
     <script src="classes/sniper.js?v=1500"></script>
     <script src="classes/pikeman.js?v=14"></script>
     <script src="classes/florim.js?v=7"></script>
-    <script src="classes/guerreiro_kaledron.js?v=1"></script>
+    <script src="classes/guerreiro_kaledron.js?v=2"></script>
+    <script src="classes/kaledron_visual.js?v=3"></script>
     <script src="classes/lord_malakar.js?v=11"></script>
     <script src="efeitos/arqueiro_efeitos.js?v=231"></script>
     <script src="efeitos/curandeiro_efeitos.js?v=231"></script>
@@ -1074,7 +1092,8 @@
     <script src="efeitos/ladino_efeitos.js?v=1300"></script>
     <script src="efeitos/pikeman_efeitos.js?v=3"></script>
     <script src="efeitos/florim_efeitos.js?v=6"></script>
-    <script src="efeitos/kaledron_efeitos.js?v=1"></script>
+    <script src="efeitos/kaledron_efeitos.js?v=2"></script>
+    <script src="efeitos/kaledron_visual_efeitos.js?v=2"></script>
     <script src="efeitos.js?v=236"></script>
     <script src="efeitos/vfx_master.js?v=1"></script>
     <script src="efeitos/vfx_guerreiro_escudo.js?v=3"></script>
@@ -1098,31 +1117,39 @@
     <script src="config.js?v=147"></script>
     <script src="atributos.js?v=4"></script>
     <script src="spawn-admin.js?v=12"></script>
-    <script src="map-vfx-admin.js?v=3"></script>
+    <script src="map-vfx-admin.js?v=4"></script>
     <script src="mob-editor.js?v=1513"></script>
     <script src="mob-vfx.js?v=1"></script>
     <script src="dragdrop.js?v=6"></script>
     <script src="ferreiro.js?v=2"></script>
+    <script src="loki-npc.js?v=5"></script>
+    <script src="zenia-shop.js?v=1"></script>
     <script src="colisao-editor.js?v=8"></script>
-    <script src="mapa-editor.js?v=29"></script>
+    <script src="mapa-editor.js?v=31"></script>
     <script src="audio-manager.js?v=12"></script>
     <script src="sonoro.js?v=1585"></script>
     <script src="intro.js?v=1"></script>
     <script src="mobile-hud.js?v=1"></script>
     <script src="mobile-touch-controls.js?v=2"></script>
     <script src="item-admin.js?v=5"></script>
-    <script src="chuva-cliente.js?v=10"></script>
-    <script src="admin-cheats.js?v=6"></script>
+    <script src="chuva-cliente.js?v=11"></script>
+    <script src="cloud-shadows.js?v=2"></script>
+    <script src="admin-cheats.js?v=7"></script>
+    <script src="npc-admin.js?v=6"></script>
     <script src="personagens-historias.js?v=2"></script>
     <script src="personagem-select.js?v=8"></script>
-    <script src="modo-melhorado/camera.js?v=1"></script>
+    <script src="modo-melhorado/camera.js?v=3"></script>
     <script src="modo-melhorado/combate.js?v=1"></script>
     <script src="modo-melhorado/atmosfera.js?v=1"></script>
     <script src="modo-melhorado/sombras.js?v=1"></script>
+    <script src="grama-cliente.js?v=1"></script>
     <script src="modo-melhorado/manager.js?v=1"></script>
+    <script src="ping-estimator.js?v=1"></script>
     <script>
         const GAME_VERSION = 'v1.75.103';
         window.GAME_VERSION = GAME_VERSION;
+        const settingsVersionText = document.getElementById('settings-version-text');
+        if (settingsVersionText) settingsVersionText.textContent = GAME_VERSION;
         const WORLD_WIDTH = 190000;
         const WORLD_HEIGHT = 28500;
         window.WORLD_WIDTH = WORLD_WIDTH;
@@ -2826,6 +2853,27 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                 window.abrirPets('pets');
             }
         };
+        function atualizarEstadoVisualCaptura() {
+            const botao = document.getElementById('btn-pet-capture-mobile');
+            if (!botao) return;
+            const alvo = autoAlvo && autoAlvo.tipo === 'slime' && autoAlvo.id
+                ? (window.listaSlimes || []).find(function (slime) {
+                    return slime && slime.id === autoAlvo.id && slime.hp > 0;
+                })
+                : null;
+            const distancia = alvo
+                ? Math.hypot(alvo.x - (window.meuX + 12), alvo.y - (window.meuY + 16))
+                : Infinity;
+            const pronto = !!alvo && distancia <= 140 && !window.estaMorto &&
+                !window.petCaptureChallengePending && ws && ws.readyState === WebSocket.OPEN;
+            if (botao.classList.contains('pronto') !== pronto) {
+                botao.classList.toggle('pronto', pronto);
+                botao.setAttribute('aria-label', pronto
+                    ? 'Capturar monstro ao alcance'
+                    : 'Usar rede para capturar');
+            }
+        }
+        window.setInterval(atualizarEstadoVisualCaptura, 180);
         window.solicitarCapturaPetUI = function () {
             if (window.estaMorto) return;
             if (window.petCaptureChallengePending) return;
@@ -3272,6 +3320,14 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         }
         window.abrirDialogoNPC = abrirDialogoNPC;
 
+        window.solicitarInteracaoNPC = function (npc) {
+            if (!npc || typeof ws === 'undefined' || !ws || ws.readyState !== WebSocket.OPEN) return;
+            ws.send(JSON.stringify({ action: 'npc_interact', npcId: npc.id }));
+            window.npcInteracaoOcultaId = npc.id;
+            const icon = document.getElementById('npc-interacao-icone');
+            if (icon) icon.classList.remove('ativo');
+        };
+
         function atualizarInteracaoNPC() {
             const npcs = Array.isArray(window.npcsInterativos) ? window.npcsInterativos : [];
             const canvas = window.canvas || document.getElementById('jogoCanvas');
@@ -3286,31 +3342,55 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                 icon = document.createElement('button');
                 icon.id = 'npc-interacao-icone';
                 icon.type = 'button';
-                icon.innerHTML = '💬';
-                icon.title = 'Falar com NPC';
+                const imagemIcone = document.createElement('img');
+                imagemIcone.alt = '';
+                imagemIcone.draggable = false;
+                imagemIcone.onerror = function () {
+                    this.onerror = null;
+                    this.src = 'sprites/Objetos/icones/SEM-ICONE.png';
+                };
+                icon.appendChild(imagemIcone);
                 icon.addEventListener('click', function () {
-                    const alvo = window.npcInteracaoAtiva;
-                    if (!alvo || typeof ws === 'undefined' || !ws || ws.readyState !== WebSocket.OPEN) return;
-                    ws.send(JSON.stringify({ action: 'npc_interact', npcId: alvo.id }));
+                    window.solicitarInteracaoNPC(window.npcInteracaoAtiva);
                 });
                 document.body.appendChild(icon);
             }
             window.npcInteracaoAtiva = npc;
-            if (!npc) { icon.classList.remove('ativo'); return; }
+            if (!npc) {
+                window.npcInteracaoOcultaId = null;
+                icon.classList.remove('ativo');
+                return;
+            }
+            const isLoki = npc.id === 'loki_forja';
+            const isZenia = npc.id === 'zenia_pocoes';
+            icon.title = isLoki ? 'Interagir com Loki (F)' :
+                (isZenia ? 'Comprar poções com Zenia (F)' : 'Falar com NPC');
+            icon.setAttribute('aria-label', icon.title);
+            const imagemIcone = icon.querySelector('img');
+            const nomeIcone = /^[a-z0-9_-]+\.png$/i.test(npc.iconeInteracao || '')
+                ? npc.iconeInteracao
+                : 'SEM-ICONE.png';
+            const caminhoIcone = 'sprites/Objetos/icones/' + nomeIcone;
+            if (imagemIcone && imagemIcone.getAttribute('src') !== caminhoIcone) {
+                imagemIcone.src = caminhoIcone;
+            }
+            icon.classList.toggle('npc-interacao-loki', isLoki);
             const zoom = window.cameraZoomAtual || 1;
             const camX = window.camX || 0, camY = window.camY || 0;
             const rect = canvas.getBoundingClientRect();
             const sx = rect.left + (npc.x - camX) * zoom * (rect.width / canvas.width);
-            const sy = rect.top + (npc.y - camY - 55) * zoom * (rect.height / canvas.height);
+            const inclinacaoY = window.CAMERA_25D ? (window.CAMERA_TILT_Y || 0.88) : 1;
+            const escalaTelaY = zoom * inclinacaoY * (rect.height / canvas.height);
+            const linhaBaseNome = rect.top + (npc.y - camY - 61) * escalaTelaY;
             icon.style.left = Math.round(sx - 22) + 'px';
-            icon.style.top = Math.round(sy - 22) + 'px';
-            icon.classList.add('ativo');
+            icon.style.top = Math.round(linhaBaseNome - 16 * escalaTelaY - 8 - 44) + 'px';
+            icon.classList.toggle('ativo', window.npcInteracaoOcultaId !== npc.id);
         }
         window.atualizarInteracaoNPC = atualizarInteracaoNPC;
 
         if (!document.getElementById('npc-interacao-style')) {
             const s = document.createElement('style'); s.id = 'npc-interacao-style';
-            s.textContent = '#npc-interacao-icone{display:none;position:fixed;width:44px;height:44px;padding:0;border-radius:50%;border:2px solid #f4d06f;background:rgba(12,18,24,.94);color:#fff;font-size:22px;z-index:900;box-shadow:0 0 14px rgba(244,208,111,.55);cursor:pointer;transform:scale(.8);transition:opacity .18s,transform .18s;touch-action:manipulation;}#npc-interacao-icone.ativo{display:block;opacity:1;transform:scale(1);animation:npcTalkPulse 1s infinite alternate;}@keyframes npcTalkPulse{from{box-shadow:0 0 8px rgba(244,208,111,.45)}to{box-shadow:0 0 20px rgba(244,208,111,.9)}}#npc-dialogo-modal{display:none;position:fixed;inset:0;z-index:200000;align-items:center;justify-content:center;background:rgba(0,0,0,.42);padding:20px;box-sizing:border-box;}#npc-dialogo-modal.ativo{display:flex;} .npc-dialogo-caixa{width:min(520px,calc(100vw - 36px));max-height:calc(100vh - 40px);overflow:auto;padding:22px;background:rgba(10,16,22,.98);border:2px solid rgba(244,208,111,.85);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.8);text-align:center;color:#eaf8ff;font-family:Rajdhani,Segoe UI,sans-serif}.npc-dialogo-caixa.tutorial-dialogo{width:min(560px,calc(100vw - 36px));}.npc-dialogo-nome{font-family:Cinzel,Georgia,serif;font-size:25px;font-weight:900;color:#f4d06f;margin-bottom:10px}.npc-dialogo-texto{font-size:19px;line-height:1.4;font-weight:600}.npc-dialogo-fechar{margin-top:18px;padding:9px 24px;border:1px solid #f4d06f;border-radius:6px;background:#18242e;color:#fff;font-weight:700;min-height:42px;}@media(max-width:900px){#npc-dialogo-modal{padding:14px;}#npc-dialogo-modal .npc-dialogo-caixa,#npc-dialogo-modal .npc-dialogo-caixa.tutorial-dialogo{width:min(560px,calc(100vw - 28px));max-height:calc(100vh - 28px);padding:22px 18px;border-radius:12px}.npc-dialogo-nome{font-size:24px}.npc-dialogo-texto{font-size:20px;line-height:1.45}.npc-dialogo-fechar{width:100%;font-size:16px;padding:11px 18px;min-height:46px}}';
+            s.textContent = '#npc-interacao-icone{display:none;position:fixed;width:44px;height:44px;padding:4px;border-radius:50%;border:2px solid #f4d06f;background:rgba(12,18,24,.94);z-index:9;box-shadow:0 0 14px rgba(244,208,111,.55);cursor:pointer;transform:scale(.8);transition:opacity .18s,transform .18s;touch-action:manipulation;}#npc-interacao-icone img{display:block;width:100%;height:100%;object-fit:contain;image-rendering:pixelated;pointer-events:none}#npc-interacao-icone.ativo{display:block;opacity:1;transform:scale(1);animation:npcTalkPulse 1s infinite alternate;}#npc-interacao-icone.npc-interacao-loki{border-color:#54e6ff;box-shadow:0 0 14px rgba(84,230,255,.65)}#npc-interacao-icone.npc-interacao-loki.ativo{animation:npcTalkPulseLoki 1s infinite alternate}@keyframes npcTalkPulse{from{box-shadow:0 0 8px rgba(244,208,111,.45)}to{box-shadow:0 0 20px rgba(244,208,111,.9)}}@keyframes npcTalkPulseLoki{from{box-shadow:0 0 8px rgba(84,230,255,.45)}to{box-shadow:0 0 20px rgba(84,230,255,.9)}}#npc-dialogo-modal{display:none;position:fixed;inset:0;z-index:200000;align-items:center;justify-content:center;background:rgba(0,0,0,.42);padding:20px;box-sizing:border-box;}#npc-dialogo-modal.ativo{display:flex;} .npc-dialogo-caixa{width:min(520px,calc(100vw - 36px));max-height:calc(100vh - 40px);overflow:auto;padding:22px;background:rgba(10,16,22,.98);border:2px solid rgba(244,208,111,.85);border-radius:10px;box-shadow:0 8px 30px rgba(0,0,0,.8);text-align:center;color:#eaf8ff;font-family:Rajdhani,Segoe UI,sans-serif}.npc-dialogo-caixa.tutorial-dialogo{width:min(560px,calc(100vw - 36px));}.npc-dialogo-nome{font-family:Cinzel,Georgia,serif;font-size:25px;font-weight:900;color:#f4d06f;margin-bottom:10px}.npc-dialogo-texto{font-size:19px;line-height:1.4;font-weight:600}.npc-dialogo-fechar{margin-top:18px;padding:9px 24px;border:1px solid #f4d06f;border-radius:6px;background:#18242e;color:#fff;font-weight:700;min-height:42px;}@media(max-width:900px){#npc-dialogo-modal{padding:14px;}#npc-dialogo-modal .npc-dialogo-caixa,#npc-dialogo-modal .npc-dialogo-caixa.tutorial-dialogo{width:min(560px,calc(100vw - 28px));max-height:calc(100vh - 28px);padding:22px 18px;border-radius:12px}.npc-dialogo-nome{font-size:24px}.npc-dialogo-texto{font-size:20px;line-height:1.45}.npc-dialogo-fechar{width:100%;font-size:16px;padding:11px 18px;min-height:46px}}';
             document.head.appendChild(s);
         }
 
@@ -3440,7 +3520,11 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             }
             if (!ok) { e.preventDefault(); e.stopImmediatePropagation(); }
         }, { capture: true, passive: false });
-        let slashes = []; let blockEffects = []; window.floatingTexts = []; window.petDamageTexts = []; let ultimoEnvioRede = 0; let pingAtual = 0; let pingServidorMs = 0; let pingLoopMs = 0;
+        let slashes = []; let blockEffects = []; window.floatingTexts = []; window.petDamageTexts = [];
+        let ultimoEnvioRede = 0;
+        let ultimoEstadoRedeEnviado = null;
+        const estimadorPing = window.PingEstimator.criar(5, 3);
+        let pingAtual = null; let pingServidorMs = 0; let pingLoopMs = 0; let pingPendenteEm = null;
         function adicionarTextoVisualLimitado(lista, texto, limite) {
             lista.push(texto);
             if (lista.length > limite) lista.splice(0, lista.length - limite);
@@ -3448,8 +3532,13 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         function atualizarHudPing() {
             const el = document.getElementById('ping-counter');
             if (!el) return;
-            el.textContent = 'PING: ' + Math.max(0, Math.round(pingAtual)) + ' ms · LOOP: ' + Math.max(0, Math.round(pingLoopMs)) + ' ms';
-            el.title = 'RTT total: ' + Math.round(pingAtual) + ' ms. Atraso do event loop do servidor: ' + pingLoopMs.toFixed(1) + ' ms. Processamento do ping no servidor: ' + pingServidorMs.toFixed(1) + ' ms. O restante inclui cliente e transporte.';
+            const pingExibido = Number.isFinite(pingAtual) ? Math.max(0, Math.round(pingAtual)) : '--';
+            el.textContent = 'PING: ' + pingExibido + ' ms · LOOP: ' + Math.max(0, Math.round(pingLoopMs)) + ' ms';
+            el.title = (Number.isFinite(pingAtual)
+                ? 'Ping exibido: mediana das últimas amostras RTT (' + pingExibido + ' ms). '
+                : 'Medindo ping, aguardando amostras estáveis. ') +
+                'Event loop servidor: ' + pingLoopMs.toFixed(1) + ' ms. Processamento do ping no servidor: ' +
+                pingServidorMs.toFixed(1) + ' ms. Picos isolados de inicialização/renderização não substituem a estimativa.';
         }
         window.atualizarHudPing = atualizarHudPing;
 
@@ -3977,7 +4066,7 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         // pequeno da HUD, espelhando o mesmo dispatch de desenho do jogo.
         function atualizarRetrato() {
             let c = document.getElementById("hud-retrato");
-            if (!c || !window.minhaClasse || !window.meuId) return;
+            if (document.hidden || !c || !window.minhaClasse || !window.meuId) return;
             let rctx = c.getContext("2d");
             rctx.clearRect(0, 0, c.width, c.height);
             if (window.estaMorto) {
@@ -4197,6 +4286,7 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
 
         let ws = null;
         let pingIntervalo = null;
+        let pingInicialTimeout = null;
         let classePendente = null;
         let ultimoToastSalvamentoObjeto = 0;
         let temporizadorReconexao = null;
@@ -4289,6 +4379,12 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                     clearInterval(pingIntervalo);
                     pingIntervalo = null;
                 }
+                if (pingInicialTimeout) {
+                    clearTimeout(pingInicialTimeout);
+                    pingInicialTimeout = null;
+                }
+                pingPendenteEm = null;
+                ultimoEstadoRedeEnviado = null;
                 statusText.classList.remove("conectado-oculto");
 
                 if (event.code === 4001) {
@@ -4541,10 +4637,14 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                         window.mostrarAlertaElite(dados);
                     }
                     if (dados.type === 'pong') {
-                        pingAtual = Math.max(0, Date.now() - (Number(dados.t) || Date.now()));
-                        pingServidorMs = Math.max(0, (Number(dados.sTime) || 0) - (Number(dados.time) || 0));
-                        pingLoopMs = Math.max(0, Number(dados.loopLagMs) || 0);
-                        if (typeof window.atualizarHudPing === 'function') window.atualizarHudPing();
+                        const timestampPing = Number(dados.t);
+                        if (pingPendenteEm !== null && timestampPing === pingPendenteEm) {
+                            pingPendenteEm = null;
+                            pingAtual = estimadorPing.adicionar(Math.max(0, performance.now() - timestampPing));
+                            pingServidorMs = Math.max(0, (Number(dados.sTime) || 0) - (Number(dados.time) || 0));
+                            pingLoopMs = Math.max(0, Number(dados.loopLagMs) || 0);
+                            if (typeof window.atualizarHudPing === 'function') window.atualizarHudPing();
+                        }
                     }
                     if (dados.type === 'party_invite_received') {
                         let modal = document.getElementById("party-invite-modal");
@@ -4641,13 +4741,26 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                         if (window.atualizarHudHp) window.atualizarHudHp();
                         if (window.atualizarHudPocoes) window.atualizarHudPocoes();
                         if (pingIntervalo) clearInterval(pingIntervalo);
-                        pingAtual = 0;
+                        if (pingInicialTimeout) clearTimeout(pingInicialTimeout);
+                        estimadorPing.resetar();
+                        pingPendenteEm = null;
+                        pingAtual = null;
                         pingServidorMs = 0;
                         pingLoopMs = 0;
                         if (typeof window.atualizarHudPing === 'function') window.atualizarHudPing();
-                        const enviarPingReal = () => { if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ action: 'ping', t: Date.now() })); };
-                        enviarPingReal();
-                        pingIntervalo = setInterval(enviarPingReal, 1000);
+                        const socketPing = ws;
+                        const enviarPingReal = () => {
+                            if (socketPing === ws && socketPing.readyState === WebSocket.OPEN && pingPendenteEm === null) {
+                                pingPendenteEm = performance.now();
+                                socketPing.send(JSON.stringify({ action: 'ping', t: pingPendenteEm }));
+                            }
+                        };
+                        pingInicialTimeout = setTimeout(function () {
+                            pingInicialTimeout = null;
+                            if (socketPing !== ws || socketPing.readyState !== WebSocket.OPEN) return;
+                            enviarPingReal();
+                            pingIntervalo = setInterval(enviarPingReal, 1000);
+                        }, 1000);
                         window.ehAdmin = dados.admin === true;
                         if (window.ehAdmin) {
                             if (typeof mostrarBotaoSpawnAdmin === "function") mostrarBotaoSpawnAdmin();
@@ -4731,6 +4844,13 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                     if (dados.type === 'spawn_flags') {
                         window.listaBandeiras = dados.bandeiras || [];
                         if (typeof atualizarPainelSpawnAdmin === "function") atualizarPainelSpawnAdmin();
+                    }
+                    if (dados.type === 'npc_admin_state' || dados.type === 'npc_admin_saved' || dados.type === 'npc_state') {
+                        if (window.NpcAdmin) window.NpcAdmin.handleMessage(dados);
+                        if (dados.type === 'npc_state') {
+                            window.npcsInterativos = dados.npcs || [];
+                            if (typeof atualizarInteracaoNPC === 'function') atualizarInteracaoNPC();
+                        }
                     }
                     if (dados.type === 'admin_spawn_result' && typeof window.receberResultadoSpawnAdmin === 'function') {
                         window.receberResultadoSpawnAdmin(dados);
@@ -5268,6 +5388,11 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                     if (dados.type === 'npc_dialogo') {
                         if (typeof abrirDialogoNPC === 'function') abrirDialogoNPC(dados.npc);
                     }
+                    if (dados.type === 'npc_service_open' && dados.service === 'forja' &&
+                        dados.npcId === 'loki_forja' && typeof window.abrirFerreiro === 'function') {
+                        window.abrirFerreiro(dados.npcId);
+                    }
+                    if (window.ZeniaShop) window.ZeniaShop.handleMessage(dados);
 
                     if (dados.type === 'lord_malakar_skill_result' && dados.ok) {
                         const malakarSkillButtons = {
@@ -8355,6 +8480,11 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                 !autoAlvo || window.arqueiroSaltoNoAlto || window.arqueiroSaltoEmAndamento) return;
             if (window.minhaClasse === 'pikeman' && typeof window.pikemanEmAnimacaoSkill === 'function' && window.pikemanEmAnimacaoSkill(window.meuId)) return;
             let ang = Math.atan2(autoAlvo.y - (window.meuY + 16), autoAlvo.x - (window.meuX + 12));
+            const cameraModule = window.EnhancedModeModules && window.EnhancedModeModules.camera;
+            if (cameraModule && typeof cameraModule.impulse === 'function' &&
+                !(window.EnhancedMode && window.EnhancedMode.isReducedMotion())) {
+                cameraModule.impulse(ang, cameraModule.config.attackImpulse);
+            }
             // Ataque básico: arma/personagem sempre acompanham o inimigo atingido,
             // independentemente da posição do mouse ou do joystick.
             window.meuAngulo = ang;
@@ -8719,6 +8849,11 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         function iniciarPredicaoDash(ang, cfg) {
             const destino = dashResolverDestino(window.meuX, window.meuY, ang, cfg.distancia);
             if (destino.distPercorrida < 4) return;   // parede colada: nada a fazer
+            const cameraModule = window.EnhancedModeModules && window.EnhancedModeModules.camera;
+            if (cameraModule && typeof cameraModule.impulse === 'function' &&
+                !(window.EnhancedMode && window.EnhancedMode.isReducedMotion())) {
+                cameraModule.impulse(ang, cameraModule.config.dashImpulse);
+            }
             window.dashPrev = {
                 x0: window.meuX, y0: window.meuY, x1: destino.x, y1: destino.y,
                 ang: ang, inicio: Date.now(), duracaoMs: cfg.duracaoMs,
@@ -8925,9 +9060,11 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         const mmCanvas = document.getElementById("minimap-canvas");
         const mmCtx = mmCanvas ? mmCanvas.getContext("2d") : null;
         if (mmCanvas) { mmCanvas.width = 141; mmCanvas.height = 80; }
+        let ultimoMinimapRenderEm = -Infinity;
         const minimapBioma = document.getElementById("minimap-bioma");
         const minimapCoords = document.getElementById("minimap-coords");
         const minimapWrapper = document.getElementById("minimap-wrapper");
+        const minimapAreaProtegida = document.getElementById("minimap-area-protegida");
         let eliteAlertTimer = null;
         window._eliteAlertId = null;
         window._eliteAlertUntil = 0;
@@ -9001,6 +9138,7 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             if (window.estaMorto) return;
             window.bigMapAberto = true;
             bigMapRenderCache = null;
+            ultimoBigMapRenderEm = -Infinity;
             if (bigMapScreen) bigMapScreen.style.display = "flex";
             if (bigMapCanvas) {
                 bigMapCanvas.style.cursor = window.ehAdmin ? "crosshair" : "default";
@@ -9345,6 +9483,9 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         let bigMapFogSaveTimer = null;
         let bigMapLastRevealPosition = null;
         let bigMapRenderCache = null;
+        let ultimoBigMapRenderEm = -Infinity;
+        let ultimaDescobertaMapaEm = -Infinity;
+        const INTERVALO_MAPAS_AUXILIARES_MS = 100;
         const bigMapFogCanvas = document.createElement('canvas');
         bigMapFogCanvas.width = FOG_GRID_W;
         bigMapFogCanvas.height = FOG_GRID_H;
@@ -9469,6 +9610,9 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         function atualizarDescobertaMapaMundo() {
             if (!window.jogoIniciado || window.currentMap !== 'mundo' ||
                 !Number.isFinite(window.meuX) || !Number.isFinite(window.meuY)) return;
+            const agora = performance.now();
+            if (agora - ultimaDescobertaMapaEm < INTERVALO_MAPAS_AUXILIARES_MS) return;
+            ultimaDescobertaMapaEm = agora;
             carregarNevoaMapa();
             const atual = { x: window.meuX, y: window.meuY };
             const anterior = bigMapLastRevealPosition;
@@ -9510,6 +9654,9 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
 
         function desenharBigMap() {
             if (!bigMapCtx || !bigMapCanvas) return;
+            const agora = performance.now();
+            if (agora - ultimoBigMapRenderEm < INTERVALO_MAPAS_AUXILIARES_MS) return;
+            ultimoBigMapRenderEm = agora;
             const bw = bigMapCanvas.clientWidth || 800;
             const bh = bigMapCanvas.clientHeight || 380;
             if (bigMapCanvas.width !== bw || bigMapCanvas.height !== bh) {
@@ -9811,6 +9958,14 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
 
                 const permitido = code === 'Escape';
                 if (!permitido) { e.preventDefault(); return; }
+            }
+
+            if ((key === 'f' || code === 'KeyF') && !e.repeat &&
+                !window.ferreiroAberto && !window.zeniaShopAberto &&
+                window.npcInteracaoAtiva) {
+                e.preventDefault();
+                window.solicitarInteracaoNPC(window.npcInteracaoAtiva);
+                return;
             }
 
             if (code in teclasMovimento) {
@@ -10377,6 +10532,12 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             const tilt = (window.CAMERA_25D ? (window.CAMERA_TILT_Y || 0.88) : 1.0);
             let mx = Math.max(0, Math.min(WORLD_WIDTH, (e.clientX / window.innerWidth * window.canvas.width) / (window.cameraZoomAtual || ZOOM_CAMERA) + camX));
             let my = Math.max(0, Math.min(WORLD_HEIGHT, (e.clientY / window.innerHeight * window.canvas.height) / ((window.cameraZoomAtual || ZOOM_CAMERA) * tilt) + camY));
+            const npcClicado = window.npcInteracaoAtiva;
+            if (npcClicado && Math.hypot(mx - npcClicado.x, my - (npcClicado.y - 28)) <= 48) {
+                window.solicitarInteracaoNPC(npcClicado);
+                e.preventDefault();
+                return;
+            }
             if (window.ehAdmin && typeof window.tentarAbrirBandeira === 'function' && window.tentarAbrirBandeira(mx, my)) {
                 e.preventDefault();
                 return;
@@ -10480,6 +10641,9 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         }
 
         window.lastFrameTime = window.lastFrameTime || performance.now();
+        const cameraFollowBounds = { minX: 0, maxX: 0, minY: 0, maxY: 0 };
+        const spritesSort = [];
+        let cameraFollowKey = null;
         function loop() {
             const perfFrameStart = perfHudAtivo ? performance.now() : 0;
             if (window.EngineOtimizador) {
@@ -10487,6 +10651,7 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                 if (window.ctx) window.EngineOtimizador.aplicarInterceptorContexto(window.ctx);
             }
             let currentFrameTime = performance.now();
+            spritesSort.length = 0;
             let dt = (currentFrameTime - window.lastFrameTime) / 16.666; // Normalized to 60fps
             if (dt > 3.0) dt = 3.0; // clamp max delta
             window.lastFrameTime = currentFrameTime;
@@ -10526,7 +10691,10 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             frameCount++;
 
             let shakeX = 0, shakeY = 0;
-            if (window.tremorTela > 0) { shakeX = (Math.random() - 0.5) * window.tremorTela; shakeY = (Math.random() - 0.5) * window.tremorTela; window.tremorTela *= 0.88; if (window.tremorTela < 0.5) window.tremorTela = 0; }
+            const cameraShakeScale = window.EnhancedModeModules && window.EnhancedModeModules.camera
+                ? window.EnhancedModeModules.camera.config.screenShakeScale
+                : 1;
+            if (window.tremorTela > 0) { shakeX = (Math.random() - 0.5) * window.tremorTela * cameraShakeScale; shakeY = (Math.random() - 0.5) * window.tremorTela * cameraShakeScale; window.tremorTela *= 0.88; if (window.tremorTela < 0.5) window.tremorTela = 0; }
             let enhancedFrameState = null;
             if (window.EnhancedMode && window.EnhancedMode.isEnabled()) {
                 enhancedFrameState = {
@@ -10743,6 +10911,27 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             let alturaVisivel = canvas.height / ((window.cameraZoomAtual || ZOOM_CAMERA) * cameraTiltY);
             let cameraX = Math.max(0, Math.min(window.meuX - larguraVisivel / 2, Math.max(0, WORLD_WIDTH - larguraVisivel))); 
             let cameraY = Math.max(0, Math.min(window.meuY - alturaVisivel / 2, Math.max(0, WORLD_HEIGHT - alturaVisivel)));
+            const cameraKey = window.currentMap + ':' + !!window.estaMorto;
+            cameraFollowBounds.maxX = Math.max(0, WORLD_WIDTH - larguraVisivel);
+            cameraFollowBounds.maxY = Math.max(0, WORLD_HEIGHT - alturaVisivel);
+            const cameraModule = window.EnhancedModeModules && window.EnhancedModeModules.camera;
+            if (cameraModule && typeof cameraModule.follow === 'function') {
+                if (cameraFollowKey !== cameraKey) {
+                    cameraFollowKey = cameraKey;
+                    cameraModule.resetFollow();
+                }
+                const cameraPosition = cameraModule.follow(
+                    cameraX,
+                    cameraY,
+                    window.meuX + 12,
+                    window.meuY + 16,
+                    dt / 60,
+                    cameraFollowBounds,
+                    cameraKey
+                );
+                cameraX = cameraPosition.x;
+                cameraY = cameraPosition.y;
+            }
             window.camX = cameraX; window.camY = cameraY;
             if (typeof window.atualizarMiraMouse === 'function') window.atualizarMiraMouse();
 
@@ -10771,7 +10960,30 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             // não pode viajar (ver dashBloquearEnvio). `ultimoEnvioRede` fica
             // congelado de propósito: assim que a guarda cai, o envio retoma
             // no mesmo frame em vez de esperar mais 30ms.
-            if (ws && ws.readyState === WebSocket.OPEN && (agora - ultimoEnvioRede > 30) && !dashEnvioBloqueado()) { ws.send(JSON.stringify({ x: window.meuX, y: window.meuY, angulo: window.meuAngulo, moving: movingReportado })); ultimoEnvioRede = agora; }
+            if (ws && ws.readyState === WebSocket.OPEN && (agora - ultimoEnvioRede > 30) && !dashEnvioBloqueado()) {
+                const estadoMudou = !ultimoEstadoRedeEnviado ||
+                    ultimoEstadoRedeEnviado.socket !== ws ||
+                    ultimoEstadoRedeEnviado.x !== window.meuX ||
+                    ultimoEstadoRedeEnviado.y !== window.meuY ||
+                    ultimoEstadoRedeEnviado.angulo !== window.meuAngulo ||
+                    ultimoEstadoRedeEnviado.moving !== movingReportado;
+                if (estadoMudou) {
+                    ws.send(JSON.stringify({
+                        x: window.meuX,
+                        y: window.meuY,
+                        angulo: window.meuAngulo,
+                        moving: movingReportado
+                    }));
+                    ultimoEstadoRedeEnviado = {
+                        socket: ws,
+                        x: window.meuX,
+                        y: window.meuY,
+                        angulo: window.meuAngulo,
+                        moving: movingReportado
+                    };
+                    ultimoEnvioRede = agora;
+                }
+            }
             const visibilidadeMargem = 150;
             const cameraBounds = {
                 minX: cameraX - visibilidadeMargem,
@@ -10794,6 +11006,12 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             ctx.fillStyle = "#0e3250";
             ctx.fillRect(100000, 0, 88000, 28000);
             if (typeof window.desenharCenarioMundo === "function") window.desenharCenarioMundo(tempoAnimacao, ctx);
+            if (window.currentMap === 'mundo' && window.CloudShadows) {
+                window.CloudShadows.render(ctx, cameraBounds, tempoAnimacao, window.tempoMundo);
+            }
+            if (typeof window.desenharSombrasObjetosMapa === "function") {
+                window.desenharSombrasObjetosMapa(ctx, cameraX, cameraY, canvas.width / zoomRenderMundo, canvas.height / zoomRenderMundo, window.tempoMundo);
+            }
             // Só copiar a tela inteira quando há camadas foreground sem renderer próprio.
             // No mapa comum quase sempre não há nenhuma, então evita uma alocação/cópia
             // de bitmap do tamanho da tela a cada frame.
@@ -10833,7 +11051,7 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             }
             if (typeof window.desenharPinosLocalizacao === "function") window.desenharPinosLocalizacao();
             if (typeof window.desenharBandeirasSpawn === "function") window.desenharBandeirasSpawn();
-            if (typeof window.desenharVfxMapa === "function") window.desenharVfxMapa();
+            if (typeof window.desenharVfxMapa === "function") window.desenharVfxMapa('atras');
             // Efeitos de área (meteoro/nevasca/sísmico) — protegidos: erro visual
             // jamais pode travar o loop de render do jogo inteiro
             try {
@@ -10933,7 +11151,6 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             ctx.shadowColor = 'transparent';
 
             // ===== Y-SORT: profundidade entre cenário decorado, monstros e jogadores =====
-            let spritesSort = [];
             window.lordMalakarVfx = (window.lordMalakarVfx || []).filter(function (effect) {
                 if (Date.now() - effect.startedAt >= effect.duration) return false;
                 if (typeof window.desenharLordMalakarEfeito === 'function') {
@@ -11339,14 +11556,56 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                 })(id, pp);
             }
 
+            if (window.GramaMundo && typeof window.GramaMundo.collect === 'function') {
+                const personagensGrama = [{
+                    id: window.meuId || 'local',
+                    x: window.meuX,
+                    y: window.meuY,
+                    moving: isMoving,
+                    angle: window.meuAngulo
+                }];
+                Object.keys(window.todosJogadores || {}).forEach(function (id) {
+                    if (id === window.meuId) return;
+                    const player = window.todosJogadores[id];
+                    if (player && player.hp > 0) {
+                        personagensGrama.push({
+                            id: id,
+                            x: player.x,
+                            y: player.y,
+                            moving: player.moving,
+                            angle: player.angulo
+                        });
+                    }
+                });
+                const tufosGrama = window.GramaMundo.collect(
+                    cameraBounds, personagensGrama, dt, Date.now(), window.currentMap
+                );
+                for (let i = 0; i < tufosGrama.length; i++) spritesSort.push(tufosGrama[i]);
+            }
+            if (window.NpcAdmin && typeof window.NpcAdmin.drawOverlay === 'function') {
+                window.NpcAdmin.drawOverlay(ctx);
+            }
+            (window.npcsInterativos || []).forEach(function (npc) {
+                if (!npc || !npc.spriteDir || npc.x < cameraBounds.minX || npc.x > cameraBounds.maxX ||
+                    npc.y < cameraBounds.minY || npc.y > cameraBounds.maxY) return;
+                spritesSort.push({
+                    y: npc.y,
+                    draw: function () {
+                        if (window.LokiNpcRenderer) {
+                            window.LokiNpcRenderer.desenhar(ctx, npc, Date.now());
+                        }
+                    }
+                });
+            });
             spritesSort.sort(function (a, b) { return a.y - b.y; });
-            for (let i = 0; i < spritesSort.length; i++) spritesSort[i].draw();
+            for (let i = 0; i < spritesSort.length; i++) spritesSort[i].draw(ctx);
 
             // Aura de equipamentos melhorados (+10/+15/+20) — client-side, leve
             if (typeof window.desenharAurasEquipamentos === "function") window.desenharAurasEquipamentos(tempoAnimacao);
 
             // CAMADA FRENTE: objetos do editor desenhados ACIMA dos jogadores (árvores altas, telhados, zonas de frente)
             if (typeof window.desenharObjetosFrente === "function") window.desenharObjetosFrente();
+            if (typeof window.desenharVfxMapa === "function") window.desenharVfxMapa('frente');
 
             if (typeof window.desenharMortesMonstros === "function") window.desenharMortesMonstros();
 
@@ -11886,7 +12145,9 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             // O mesmo pulso controla o véu de escuridão e o raio desenhado sobre o mapa.
             const horaMundoAtual = window.tempoMundo && window.tempoMundo.horaDecimal;
             const estaNoite = Number.isFinite(horaMundoAtual) && (horaMundoAtual >= 19 || horaMundoAtual < 6);
-            if (typeof window.atualizarTrovao === 'function') window.atualizarTrovao(estaNoite);
+            if (typeof window.atualizarTrovao === 'function') {
+                window.atualizarTrovao(estaNoite, window.chuvaAtiva === true);
+            }
 
             // v1.52.0: CICLO DIA/NOITE & ILUMINAÇÃO DINÂMICA (véu de escuridão com recortes de luz)
             if (typeof window.renderizarCicloDiaNoite === 'function' && window.currentMap !== 'testevisual') {
@@ -11905,8 +12166,24 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             if (typeof window.desenharTrovao === 'function') window.desenharTrovao(ctx);
             const perfWorldEnd = perfHudAtivo ? performance.now() : 0;
 
+            if (minimapAreaProtegida) {
+                const mapaComAreaSegura = window.currentMap === 'mundo' && window.mapaMundo &&
+                    typeof window.mapaMundo.ehAreaSegura === 'function';
+                const centroPersonagemX = Number(window.meuX) + 12;
+                const centroPersonagemY = Number(window.meuY) + 16;
+                minimapAreaProtegida.hidden = !(
+                    mapaComAreaSegura &&
+                    Number.isFinite(centroPersonagemX) &&
+                    Number.isFinite(centroPersonagemY) &&
+                    window.mapaMundo.ehAreaSegura(centroPersonagemX, centroPersonagemY)
+                );
+            }
+
             // ======= NOVO MINIMAPA FUNCIONAL (COM RADAR DE ZOOM, MONSTROS, PLAYERS E DROPS) =======
-            if (mmCtx && mmCanvas && mmCanvas.style.display !== "none" && typeof window.meuX === "number") {
+            if (mmCtx && mmCanvas && mmCanvas.style.display !== "none" &&
+                typeof window.meuX === "number" &&
+                agora - ultimoMinimapRenderEm >= INTERVALO_MAPAS_AUXILIARES_MS) {
+                ultimoMinimapRenderEm = agora;
                 if (mmCanvas.width !== 176) mmCanvas.width = 176;
                 if (mmCanvas.height !== 100) mmCanvas.height = 100;
                 let mw = 176, mh = 100;

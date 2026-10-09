@@ -293,8 +293,8 @@
             return 0.12 * (1 - (idade - 280) / 140);
         }
 
-        function atualizar(noite, agora) {
-            if (!noite) {
+        function atualizar(noite, chuvaAtiva, agora) {
+            if (!noite || !chuvaAtiva) {
                 proximoTrovaoEm = null;
                 clarãoIniciadoEm = null;
                 caminhosRelampago = [];
@@ -390,8 +390,8 @@
         desenhador(ctx, ativa, agora, camera, intensidade);
     };
     const desenhadorTrovao = criarEfeitoTrovao(undefined, tocarSomTrovao);
-    global.atualizarTrovao = function (noite) {
-        global.trovaoIntensidade = desenhadorTrovao.atualizar(noite);
+    global.atualizarTrovao = function (noite, chuvaAtiva) {
+        global.trovaoIntensidade = desenhadorTrovao.atualizar(noite, chuvaAtiva);
         return global.trovaoIntensidade;
     };
     global.desenharTrovao = function (ctx) {

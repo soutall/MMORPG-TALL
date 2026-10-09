@@ -73,6 +73,6 @@ test('game and asset cache versions are advanced', () => {
     assert.match(html, /GAME_VERSION = 'v1\.75\.103'/);
     assert.match(html, /skills\.js\?v=157/);
     assert.match(html, /skills\.css\?v=149/);
-    assert.match(html, /style\.css\?v=257/);
+    assert.match(html, /style\.css\?v=260/);
     assert.match(html, /mobile-hud\.css\?v=11/);
 });

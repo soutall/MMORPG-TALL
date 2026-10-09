@@ -2,34 +2,371 @@
 img, canvas, video, svg image { image-rendering: crisp-edges; image-rendering: pixelated; }
 html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; padding: 0; touch-action: none; overflow: hidden; width: 100vw; height: 100vh; position: relative; }
 
-/* Menu principal (INICIAR → JOGAR): fundo com a arte oficial do menu.
-   A imagem fica na CAMADA 1, um vinheta sutil na CAMADA 2 (legibilidade),
-   e o conteúdo (título/input/JOGAR) fica por cima — nada é duplicado. */
-#login-screen { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; height: 100dvh; background-color: #0a0a0a; background-image: radial-gradient(ellipse at center, rgba(6,8,12,0.05) 0%, rgba(6,8,12,0.30) 100%), url('imagem/menu/menu_jogar.png'); background-size: cover, cover; background-position: center center, center center; background-repeat: no-repeat, no-repeat; image-rendering: pixelated; display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 600; gap: 15px; }
-/* Em telas mais altas que largas (retrato/tablet vertical), mantém o enquadramento
-   central da arte (castelo/dragão/personagens) com corte simétrico nas laterais. */
-@media (orientation: portrait) {
-    #login-screen { background-position: center 34%, center 34%; }
+/* Tela de entrada: painel de alto contraste sobre a arte principal. */
+#login-screen {
+    position: absolute;
+    inset: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100dvh;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: #090d14;
+    background-image: url('imagem/menu/menu_jogar.png');
+    background-size: cover;
+    background-position: center center;
+    background-repeat: no-repeat;
+    image-rendering: pixelated;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 600;
+    padding: 24px 16px;
 }
-/* Em telas muito largas (ultrawide 21:9+), ancora a arte no centro vertical para
-   cortar o mínimo possível do cenário superior/inferior. */
-@media (min-aspect-ratio: 2/1) {
-    #login-screen { background-position: center 48%, center 48%; }
+#login-screen::before {
+    position: absolute;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+    background:
+        radial-gradient(ellipse at 50% 46%, rgba(7, 12, 20, .18) 0%, rgba(5, 9, 16, .62) 72%, rgba(3, 6, 12, .78) 100%),
+        linear-gradient(180deg, rgba(5, 8, 15, .28), rgba(5, 8, 15, .12) 45%, rgba(5, 8, 15, .48));
 }
-#login-screen h1 { font-family: 'Cinzel', serif; font-size: 26px; color: #f1c40f; text-shadow: 0 2px 10px rgba(0,0,0,0.8); margin: 0; letter-spacing: 2px; }
-#login-screen p { font-size: 14px; color: #bdc3c7; margin: 0; }
-#google-login-box { margin-top: clamp(14px, 5vh, 42px); }
-#guest-login-button { min-height: 44px; padding: 10px 24px; border: 1px solid #ffb35a; border-radius: 999px; background: linear-gradient(135deg, #f28c28, #dc5b16); color: #fff8ee; box-shadow: 0 5px 18px rgba(220, 91, 22, 0.32), inset 0 1px rgba(255,255,255,0.25); cursor: pointer; font: 700 15px 'Rajdhani', sans-serif; letter-spacing: 1px; transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease; }
+#login-screen > .login-panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: min(460px, 100%);
+    padding: clamp(22px, 4vh, 34px) clamp(20px, 5vw, 42px);
+    border: 1px solid rgba(224, 190, 112, .72);
+    border-radius: 12px;
+    background:
+        linear-gradient(145deg, rgba(25, 33, 45, .97), rgba(8, 14, 23, .97) 62%, rgba(20, 23, 30, .97));
+    box-shadow:
+        0 22px 70px rgba(0, 0, 0, .78),
+        0 0 0 4px rgba(7, 10, 16, .74),
+        inset 0 1px rgba(255, 239, 190, .15),
+        inset 0 0 34px rgba(109, 79, 32, .12);
+    text-align: center;
+}
+#login-screen > .login-panel::before {
+    position: absolute;
+    inset: 7px;
+    border: 1px solid rgba(226, 190, 112, .2);
+    border-radius: 7px;
+    content: "";
+    pointer-events: none;
+}
+.login-crest {
+    display: grid;
+    place-items: center;
+    width: 42px;
+    height: 42px;
+    margin: 0 0 9px;
+    border: 1px solid rgba(239, 205, 130, .72);
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(201, 155, 71, .3), rgba(26, 30, 38, .92) 70%);
+    box-shadow: 0 0 22px rgba(222, 174, 88, .18), inset 0 0 9px rgba(247, 220, 157, .14);
+    color: #f5d58f;
+    font: 24px 'Cinzel', serif;
+    text-shadow: 0 2px 8px #000;
+}
+.login-world-name {
+    color: #d9bd7b !important;
+    font: 700 19px 'Cinzel', Georgia, serif !important;
+    letter-spacing: 4px;
+    margin: 0 0 5px !important;
+    text-shadow: 0 2px 8px #000, 0 0 16px rgba(244, 195, 102, .22);
+}
+.login-tagline {
+    margin: 0 0 5px !important;
+    color: #f0e8d5 !important;
+    font: 600 12px 'Oswald', sans-serif !important;
+    letter-spacing: 1.7px;
+    text-transform: uppercase;
+    text-shadow: 0 2px 6px #000;
+}
+#login-screen h1 {
+    margin: 0;
+    color: #fff0c8;
+    font: 700 clamp(25px, 5vw, 34px) 'Cinzel', Georgia, serif;
+    letter-spacing: clamp(1px, .35vw, 2.5px);
+    line-height: 1.2;
+    text-shadow: 0 2px 2px #000, 0 0 20px rgba(244, 195, 102, .24);
+}
+#login-instructions {
+    margin: 8px 0 0 !important;
+    color: #e1e7ef !important;
+    font: 500 16px 'Rajdhani', sans-serif !important;
+    letter-spacing: .35px;
+    text-shadow: 0 2px 6px #000;
+}
+.login-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    margin: 17px 0 12px;
+    color: #d6bd81;
+    font: 700 10px 'Oswald', sans-serif;
+    letter-spacing: 2px;
+    white-space: nowrap;
+}
+.login-divider::before,
+.login-divider::after {
+    height: 1px;
+    flex: 1;
+    background: linear-gradient(90deg, transparent, rgba(205, 171, 103, .6));
+    content: "";
+}
+.login-divider::after {
+    transform: rotate(180deg);
+}
+#google-login-box {
+    margin-top: clamp(14px, 3vh, 22px);
+    width: 100%;
+    gap: 10px !important;
+}
+#google-signin-button {
+    display: flex;
+    justify-content: center;
+    max-width: 100%;
+    min-height: 40px;
+}
+#google-signin-button iframe {
+    max-width: 100%;
+}
+#login-remembered-account {
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid rgba(149, 178, 207, .27);
+    border-radius: 6px;
+    background: rgba(5, 10, 17, .72);
+    color: #d5dfeb;
+    font: 500 13px 'Rajdhani', sans-serif;
+    overflow-wrap: anywhere;
+}
+#login-remembered-email {
+    color: #fff;
+    font-weight: 700;
+}
+#login-direct-button {
+    display: none;
+    justify-content: center;
+    align-items: center;
+    width: min(280px, 100%);
+    min-height: 46px;
+    padding: 10px 24px;
+    border: 1px solid #f1ca78;
+    border-radius: 6px;
+    background: linear-gradient(180deg, #bd7130, #87421f);
+    box-shadow: 0 4px 14px rgba(0, 0, 0, .42), inset 0 1px rgba(255, 241, 205, .24);
+    color: #fff7e6;
+    cursor: pointer;
+    font: 700 17px 'Oswald', sans-serif;
+    letter-spacing: 1.5px;
+    transition: filter .16s ease, transform .16s ease, box-shadow .16s ease;
+}
+#login-direct-button:hover,
+#local-id-login-button:hover { filter: brightness(1.12); }
+#login-direct-button:active,
+#local-id-login-button:active { transform: translateY(1px); }
+#login-direct-button:disabled { cursor: wait; filter: grayscale(.35); opacity: .72; }
+#login-direct-button:focus-visible,
+#guest-login-button:focus-visible,
+#local-id-login-button:focus-visible {
+    outline: 3px solid #fff0b5 !important;
+    outline-offset: 3px;
+}
+#google-login-status {
+    max-width: 320px;
+    min-height: 18px;
+    color: #f5d992;
+    text-align: center;
+    font: 600 13px 'Rajdhani', sans-serif;
+    line-height: 1.35;
+    text-shadow: 0 1px 4px #000;
+}
+#login-logout {
+    display: none;
+    padding: 7px 13px;
+    border: 1px solid rgba(231, 118, 108, .5);
+    border-radius: 5px;
+    background: rgba(120, 34, 34, .35);
+    color: #ffe2dc;
+    cursor: pointer;
+    font: 600 13px 'Rajdhani', sans-serif;
+}
+.login-divider-or { margin: 14px 0 10px; }
+#guest-login-button {
+    min-height: 48px;
+    width: min(320px, 100%);
+    padding: 11px 22px;
+    border: 1px solid #ffc06d;
+    border-radius: 6px;
+    background: linear-gradient(135deg, #f28c28, #dc5b16);
+    color: #fff8ee;
+    box-shadow: 0 5px 18px rgba(220, 91, 22, 0.32), inset 0 1px rgba(255,255,255,0.25);
+    cursor: pointer;
+    font: 700 16px 'Oswald', sans-serif;
+    letter-spacing: 1.2px;
+    text-shadow: 0 1px 2px rgba(64, 24, 8, .6);
+    transition: transform 0.16s ease, filter 0.16s ease, box-shadow 0.16s ease;
+}
 #guest-login-button:hover { filter: brightness(1.12); box-shadow: 0 7px 22px rgba(220, 91, 22, 0.45), inset 0 1px rgba(255,255,255,0.3); }
 #guest-login-button:active { transform: translateY(1px) scale(0.98); }
-#guest-login-note { max-width: 84vw; color: rgba(232, 237, 244, 0.76); font-size: 12px; text-align: center; text-shadow: 0 1px 4px #000; }
+#guest-login-note {
+    max-width: 100%;
+    margin-top: 8px;
+    color: #c4cfdb;
+    font: 500 12px 'Rajdhani', sans-serif;
+    text-align: center;
+    text-shadow: 0 1px 4px #000;
+}
+#local-id-login-box {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    color: #e4edf6;
+    font: 600 14px 'Rajdhani', sans-serif;
+}
+#local-id-login-input {
+    width: min(280px, 100%);
+    padding: 10px 12px;
+    border: 1px solid rgba(202, 218, 235, .38);
+    border-radius: 5px;
+    background: #101820;
+    color: #fff;
+    font: 600 16px 'Rajdhani', sans-serif;
+}
+#local-id-login-button {
+    padding: 9px 18px;
+    border: 1px solid #49b989;
+    border-radius: 5px;
+    background: #1c7c54;
+    color: #fff;
+    cursor: pointer;
+    font: 700 14px 'Rajdhani', sans-serif;
+}
+#local-id-login-status {
+    max-width: 320px;
+    color: #f5d992;
+    text-align: center;
+    font: 600 13px 'Rajdhani', sans-serif;
+}
+@media (orientation: portrait) {
+    #login-screen { background-position: center 34%; }
+}
+@media (min-aspect-ratio: 2/1) {
+    #login-screen { background-position: center 48%; }
+}
 @media (max-width: 600px) {
-    #google-login-box { margin-top: clamp(12px, 4vh, 28px); }
-    #guest-login-button { width: min(320px, 84vw); }
+    #login-screen { overflow: hidden; }
+    #google-login-box { margin-top: clamp(12px, 4vh, 22px); }
+    #login-screen > .login-panel { width: min(420px, 100%); }
+    #login-screen h1 { font-size: clamp(20px, 6.3vw, 28px); white-space: nowrap; }
 }
 @media (max-height: 650px) {
     #google-login-box { margin-top: 10px; }
-    #login-screen { gap: 10px; }
+    #login-screen { justify-content: center; padding-top: 12px; padding-bottom: 12px; }
+    #login-screen > .login-panel { padding-top: 16px; padding-bottom: 16px; }
+    .login-crest { width: 32px; height: 32px; margin-bottom: 5px; font-size: 19px; }
+    .login-divider { margin-top: 10px; margin-bottom: 8px; }
+    .login-divider-or { margin-top: 8px; margin-bottom: 7px; }
+}
+@media (max-width: 950px) and (max-height: 520px) {
+    #login-screen {
+        justify-content: center;
+        overflow: hidden;
+        padding: 8px max(14px, env(safe-area-inset-left, 0px));
+    }
+    #login-screen > .login-panel {
+        width: min(430px, 100%);
+        max-height: 100%;
+        overflow: hidden;
+        padding: 9px clamp(16px, 4vw, 28px);
+        border-radius: 9px;
+    }
+    #login-screen > .login-panel::before { inset: 5px; }
+    .login-crest {
+        width: 26px;
+        height: 26px;
+        margin-bottom: 2px;
+        font-size: 16px;
+    }
+    .login-world-name {
+        margin-bottom: 1px !important;
+        font-size: 14px !important;
+        letter-spacing: 2.5px;
+    }
+    .login-tagline {
+        margin-bottom: 2px !important;
+        font-size: 9px !important;
+        letter-spacing: 1px;
+    }
+    #login-screen h1 {
+        font-size: clamp(17px, 2.8vw, 23px);
+        letter-spacing: 1px;
+        white-space: nowrap;
+    }
+    #login-instructions {
+        margin-top: 2px !important;
+        font-size: 12px !important;
+        line-height: 1.15;
+    }
+    .login-divider {
+        gap: 8px;
+        margin: 5px 0 3px;
+        font-size: 8px;
+        letter-spacing: 1.3px;
+    }
+    #google-login-box {
+        min-height: 0 !important;
+        margin-top: 4px;
+        gap: 4px !important;
+    }
+    #google-signin-button { min-height: 36px; }
+    #google-signin-button iframe { transform: scale(.9); transform-origin: center; }
+    #login-direct-button {
+        min-height: 36px;
+        padding: 6px 18px;
+        font-size: 14px;
+    }
+    #google-login-status {
+        min-height: 0;
+        max-width: 100%;
+        font-size: 10px;
+        line-height: 1.1;
+    }
+    #login-logout { padding: 4px 10px; font-size: 11px; }
+    .login-divider-or { margin: 4px 0 3px; }
+    #guest-login-button {
+        min-height: 36px;
+        padding: 7px 14px;
+        font-size: 13px;
+    }
+    #guest-login-note {
+        margin-top: 3px;
+        font-size: 10px;
+        line-height: 1.05;
+    }
+    #local-id-login-box {
+        gap: 5px !important;
+        margin-top: 5px !important;
+        font-size: 11px;
+    }
+    #local-id-login-input { padding: 6px 9px; font-size: 14px; }
+    #local-id-login-button { padding: 6px 12px; font-size: 12px; }
+    #local-id-login-status { font-size: 11px; line-height: 1.1; }
+    #login-screen .game-version-display {
+        right: max(10px, env(safe-area-inset-right, 0px));
+        bottom: 6px;
+        padding: 2px 7px;
+        font-size: 11px;
+    }
 }
 #login-box { display: flex; flex-direction: column; gap: 12px; width: 260px; }
 #input-userid { padding: 12px 15px; border-radius: 8px; border: 2px solid #f1c40f; background: rgba(0,0,0,0.7); color: #fff; font-size: 17px; font-weight: bold; text-align: center; font-family: 'Rajdhani', sans-serif; }
@@ -67,6 +404,17 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
     border-radius: 6px;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.7);
 }
+@media (max-width: 600px) {
+    #login-screen .game-version-display {
+        position: relative;
+        right: auto;
+        bottom: auto;
+        align-self: flex-end;
+        margin: 10px 0 0;
+    }
+}
+#login-screen:not([style*="display: none"]) ~ #hud-version { display: none !important; }
+#hud-version { display: none !important; }
 
 /* Aviso de rotação: pede para girar o celular quando estiver em modo retrato */
 #rotate-overlay { position: absolute; top: 0; left: 0; width: 100vw; height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; background: #0a0a0a; color: #f1c40f; font-family: 'Cinzel', serif; font-size: 20px; font-weight: bold; letter-spacing: 2px; text-align: center; padding: 20px; box-sizing: border-box; z-index: 900; }
@@ -144,9 +492,10 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 }
 #fps-counter {
     position: fixed;
-    top: calc(24px + env(safe-area-inset-top, 0px));
-    left: 50%;
-    transform: translateX(-50%);
+    top: calc(24px + env(safe-area-inset-top, 0px)) !important;
+    left: 50% !important;
+    right: auto !important;
+    transform: translateX(-50%) !important;
     font-size: 11px;
     color: #2ecc71;
     background: rgba(0,0,0,0.6);
@@ -165,8 +514,27 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 #hud-status-main { display: flex; align-items: flex-start; gap: 8px; }
 #hud-retrato { width: 46px; height: 46px; image-rendering: pixelated; background: radial-gradient(circle at 50% 35%, #3c5a46, #17241b 70%); border: 3px solid #f1c40f; box-shadow: 0 0 0 2px #000, 0 0 0 4px #8a6d1a, 0 4px 8px rgba(0,0,0,0.5); flex: 0 0 auto; }
 #hud-barras { display: flex; flex-direction: column; gap: 3px; padding: 2px 0; }
-#level-text-wrap { margin-bottom: 1px; }
-#level-text { font-size: 13px; font-weight: bold; color: #f1c40f; text-shadow: 1px 1px 0 #000, 2px 2px 0 rgba(0,0,0,0.6); }
+#level-text-wrap {
+    position: relative;
+    z-index: 2;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 58px;
+    min-height: 21px;
+    margin: 0;
+    padding: 2px 8px;
+    border: 1px solid rgba(255, 218, 126, .82);
+    border-radius: 6px;
+    background: linear-gradient(135deg, rgba(45, 34, 17, .94), rgba(13, 18, 24, .96));
+    box-shadow: 0 2px 7px rgba(0, 0, 0, .7), inset 0 0 0 1px rgba(255, 244, 203, .1);
+}
+#level-text {
+    color: #ffe28a;
+    font: 800 12px 'Oswald', 'Rajdhani', sans-serif;
+    letter-spacing: .8px;
+    text-shadow: 0 1px 2px #000, 0 0 8px rgba(255, 204, 94, .35);
+}
 
 /* v1.34: molduras pixel art com sombras em degrau */
 #hp-bar-container { width: 130px; height: 11px; background: #7a0e0e; border: 2px solid #000; box-shadow: inset 0 0 0 1px #c0392b, 2px 2px 0 #000; overflow: hidden; position: relative; }
@@ -215,7 +583,42 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 /* v1.34: Barra de XP central inferior (amarela; restante azul claro) */
 #hud-xp-central { position: fixed; bottom: 0; left: 0; width: 100%; height: 12px; z-index: 11; pointer-events: none; }
 #hud-xp-central #xp-bar-container { width: 100%; height: 12px; background: #7ec8ff; border: 2px solid #000; box-shadow: inset 0 0 0 1px #a8dcff, 2px 2px 0 rgba(0,0,0,0.6); overflow: hidden; margin-top: 0; }
-#hud-xp-central #xp-bar-fill { width: 0%; height: 100%; background: linear-gradient(180deg, #ffe066, #f1c40f 60%, #d4ac0d); transition: width 0.2s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4); }
+#hud-xp-central #xp-bar-fill { position: relative; width: 0%; height: 100%; background: linear-gradient(180deg, #ffe066, #f1c40f 60%, #d4ac0d); transition: width 0.2s; box-shadow: inset 0 1px 0 rgba(255,255,255,0.4); }
+#hud-xp-central #xp-bar-fill::before,
+#hud-xp-central #xp-bar-fill::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    pointer-events: none;
+}
+#hud-xp-central #xp-bar-fill::before {
+    background-image:
+        radial-gradient(circle, rgba(255,255,235,.95) 0 1px, transparent 1.8px),
+        radial-gradient(circle, rgba(255,250,205,.82) 0 1.3px, transparent 2px),
+        radial-gradient(circle, rgba(255,255,255,.72) 0 .8px, transparent 1.6px);
+    background-size: 31px 12px, 47px 12px, 23px 12px;
+    background-position: 0 0, 13px 0, 6px 0;
+    animation: xp-luzes-correndo 1.8s linear infinite;
+}
+#hud-xp-central #xp-bar-fill::after {
+    left: -30%;
+    right: auto;
+    width: 25%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,230,.66), transparent);
+    animation: xp-brilho-passagem 2.4s ease-in-out infinite;
+}
+@keyframes xp-luzes-correndo {
+    to { background-position: 31px 0, 60px 0, 29px 0; }
+}
+@keyframes xp-brilho-passagem {
+    from { transform: translateX(0); opacity: 0; }
+    20%, 75% { opacity: .9; }
+    to { transform: translateX(500%); opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+    #hud-xp-central #xp-bar-fill::before,
+    #hud-xp-central #xp-bar-fill::after { animation: none; }
+}
 
 /* v1.35: painel de buffs SEM MOLDURA — só os ícones soltos na HUD */
 #hud-buffs { position: absolute; top: 112px; left: 10px; z-index: 20; font-size: 12px; color: #fff; pointer-events: auto; overflow: visible; }
@@ -487,6 +890,31 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
     background: rgba(4, 2, 8, 0.96);
     box-shadow: 0 4px 14px rgba(0,0,0,0.9), 0 0 12px rgba(147, 51, 234, 0.45);
 }
+#minimap-area-protegida {
+    position: absolute;
+    right: 147px;
+    top: 27px;
+    height: 22px;
+    padding: 0 7px;
+    background: rgba(8, 38, 24, 0.95);
+    border: 1.5px solid rgba(92, 220, 132, 0.85);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    color: #b9ffcb;
+    font-size: 11px;
+    font-family: 'Rajdhani', sans-serif;
+    font-weight: 700;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.95);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.65), 0 0 10px rgba(72, 220, 125, 0.35);
+    white-space: nowrap;
+    user-select: none;
+    pointer-events: none;
+    box-sizing: border-box;
+}
+#minimap-area-protegida[hidden] { display: none; }
 #minimap-header {
     width: 100%;
     display: flex;

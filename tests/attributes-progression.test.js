@@ -16,6 +16,11 @@ test('Força e Inteligência concedem dano plano por ponto acima do inicial', ()
     assert.equal(progression.bonusDanoAtributo('inteligencia', 11), 100);
 });
 
+test('ataques básicos mágicos recebem um de dano por ponto de Inteligência', () => {
+    assert.equal(progression.bonusDanoAtaqueBasicoMagico(1), 0);
+    assert.equal(progression.bonusDanoAtaqueBasicoMagico(11), 10);
+});
+
 test('Destreza concede chance crítica até o limite de 70%', () => {
     assert.equal(progression.chanceCriticaDestreza(1), 0.05);
     assert.equal(progression.chanceCriticaDestreza(10), 0.14);

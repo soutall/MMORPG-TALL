@@ -5,6 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 const chuva = require('../chuva-cliente');
+const cicloChuva = require('../sistemas/ciclo_chuva.js');
 
 const root = path.join(__dirname, '..');
 const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
@@ -43,8 +44,8 @@ test('rain audio fades in and out while looping, and thunder audio follows light
     const lightning = chuva.criarEfeitoTrovao(() => 0.5, function (perto) {
         thunderSounds.push(perto ? 'forte' : 'fraco');
     });
-    lightning.atualizar(true, 0);
-    lightning.atualizar(true, 21000);
+    lightning.atualizar(true, true, 0);
+    lightning.atualizar(true, true, 21000);
     lightning.desenhar({ canvas: { width: 1280, height: 720 }, save() {}, restore() {}, setTransform() {}, beginPath() {}, moveTo() {}, lineTo() {}, stroke() {} }, 21000);
     assert.deepEqual(thunderSounds, ['forte']);
 });
@@ -163,30 +164,69 @@ test('lightning brightens the night veil in short pulses and draws the bolt on t
     };
     const lightning = chuva.criarEfeitoTrovao(() => 0.5);
 
-    assert.equal(lightning.atualizar(false, 0), 0, 'daytime should disable lightning');
-    assert.equal(lightning.atualizar(true, 0), 0);
-    assert.equal(lightning.atualizar(true, 20099), 0, 'the first strike should wait for a random interval');
-    const primeiraPiscada = lightning.atualizar(true, 21000);
+    assert.equal(lightning.atualizar(false, true, 0), 0, 'daytime should disable lightning');
+    assert.equal(lightning.atualizar(true, true, 0), 0);
+    assert.equal(lightning.atualizar(true, true, 20099), 0, 'the first strike should wait for a random interval');
+    const primeiraPiscada = lightning.atualizar(true, true, 21000);
     assert.ok(primeiraPiscada > 0.9, 'the first pulse should almost lift the darkness veil');
     lightning.desenhar(ctx, 21000);
     assert.equal(calls.fills, 0, 'the visible scene should be revealed by reducing the night veil');
     assert.equal(calls.strokes, 1);
     assert.ok(calls.segments >= 14, 'the lightning bolt should contain multiple segments');
-    assert.ok(lightning.atualizar(true, 21070) < primeiraPiscada, 'the first pulse should fade quickly');
-    assert.equal(lightning.atualizar(true, 21110), 0.72, 'a secondary pulse should briefly reveal the map again');
+    assert.ok(lightning.atualizar(true, true, 21070) < primeiraPiscada, 'the first pulse should fade quickly');
+    assert.equal(lightning.atualizar(true, true, 21110), 0.72, 'a secondary pulse should briefly reveal the map again');
 
-    assert.equal(lightning.atualizar(false, 21120), 0, 'daytime should cancel the flash');
-    assert.equal(lightning.atualizar(true, 21140), 0, 'returning to night starts a new random wait');
+    assert.equal(lightning.atualizar(false, true, 21120), 0, 'daytime should cancel the flash');
+    assert.equal(lightning.atualizar(true, true, 21140), 0, 'returning to night starts a new random wait');
 });
 
-test('rain is disabled by default, controlled only by admins, and synchronized to every client', () => {
+test('thunder is disabled whenever rain is inactive, including an in-progress lightning flash', () => {
+    const lightning = chuva.criarEfeitoTrovao(() => 0.5);
+    assert.equal(lightning.atualizar(true, false, 0), 0, 'night without rain must not schedule thunder');
+    assert.equal(lightning.atualizar(true, false, 21000), 0, 'night without rain must not create lightning');
+
+    assert.equal(lightning.atualizar(true, true, 0), 0);
+    assert.ok(lightning.atualizar(true, true, 21000) > 0, 'rain at night allows lightning');
+    assert.equal(lightning.atualizar(true, false, 21001), 0, 'ending rain immediately cancels lightning');
+});
+
+test('rain schedule starts randomly, lasts 3 to 30 minutes, and cycles all intensities', () => {
+    const cycle = cicloChuva.criarCicloChuva({ random: () => 0, agoraInicial: 0 });
+    assert.deepEqual(cycle.atualizar(179999), { chuvaAtiva: false, intensidade: 'fraca' });
+    assert.deepEqual(cycle.atualizar(180000), { chuvaAtiva: true, intensidade: 'fraca' });
+    assert.deepEqual(cycle.atualizar(210000), { chuvaAtiva: true, intensidade: 'media' });
+    assert.deepEqual(cycle.atualizar(240000), { chuvaAtiva: true, intensidade: 'tempestade' });
+    assert.deepEqual(cycle.atualizar(270000), { chuvaAtiva: true, intensidade: 'fraca' });
+    assert.deepEqual(cycle.atualizar(359999), { chuvaAtiva: true, intensidade: 'tempestade' });
+    assert.deepEqual(cycle.atualizar(360000), { chuvaAtiva: false, intensidade: 'fraca' });
+    assert.deepEqual(cycle.atualizar(539999), { chuvaAtiva: false, intensidade: 'fraca' });
+    assert.deepEqual(cycle.atualizar(540000), { chuvaAtiva: true, intensidade: 'fraca' });
+
+    const maxCycle = cicloChuva.criarCicloChuva({ random: () => 1, agoraInicial: 0 });
+    assert.deepEqual(maxCycle.atualizar(900000), { chuvaAtiva: true, intensidade: 'tempestade' });
+    assert.deepEqual(maxCycle.atualizar(2699999), { chuvaAtiva: true, intensidade: 'media' });
+    assert.deepEqual(maxCycle.atualizar(2700000), { chuvaAtiva: false, intensidade: 'fraca' });
+});
+
+test('rain schedule can be manually overridden and resumes after the admin turns it off', () => {
+    const cycle = cicloChuva.criarCicloChuva({ random: () => 0, agoraInicial: 0 });
+    assert.deepEqual(cycle.definirManual(true, 'media', 0), { chuvaAtiva: true, intensidade: 'media' });
+    assert.deepEqual(cycle.atualizar(3600000), { chuvaAtiva: true, intensidade: 'media' });
+    assert.deepEqual(cycle.definirManual(false, 'media', 3600000), { chuvaAtiva: false, intensidade: 'fraca' });
+    assert.deepEqual(cycle.atualizar(3779999), { chuvaAtiva: false, intensidade: 'fraca' });
+    assert.deepEqual(cycle.atualizar(3780000), { chuvaAtiva: true, intensidade: 'fraca' });
+});
+
+test('rain is automatically scheduled, has admin overrides, and synchronizes to every client', () => {
     assert.match(server, /let chuvaAtiva = false/);
     assert.match(server, /let intensidadeChuva = 'fraca'/);
+    assert.match(server, /criarCicloChuva\(\)/);
+    assert.match(server, /setInterval\(atualizarCicloChuva, 1000\)/);
     assert.match(server, /data\.action === 'admin_chuva_toggle'[\s\S]{0,200}if \(!ws\.ehAdminCliente\)/);
     assert.match(server, /typeof data\.ativa !== 'boolean'/);
-    assert.match(server, /chuvaAtiva = data\.ativa/);
+    assert.match(server, /cicloChuva\.definirManual\(data\.ativa, intensidadeChuva, Date\.now\(\)\)/);
     assert.match(server, /data\.action === 'admin_chuva_intensidade'[\s\S]{0,250}if \(!ws\.ehAdminCliente\)/);
-    assert.match(server, /intensidadeChuva = data\.intensidade/);
+    assert.match(server, /cicloChuva\.definirIntensidadeManual\(data\.intensidade\)/);
     assert.match(server, /type: 'world_update',\s*chuvaAtiva: chuvaAtiva,\s*intensidadeChuva: intensidadeChuva/);
 });
 
@@ -194,13 +234,13 @@ test('admin panel exposes a synchronized rain switch and client draws it in the 
     assert.match(admin, /id="ac-toggle-chuva"[\s\S]{0,300}adminDefinirChuva/);
     assert.match(admin, /action: 'admin_chuva_toggle', ativa: !!ativa/);
     assert.match(admin, /window\.atualizarVisualChuvaAdmin = function/);
-    assert.match(html, /chuva-cliente\.js\?v=10/);
+    assert.match(html, /chuva-cliente\.js\?v=11/);
     assert.match(html, /window\.chuvaAtiva = dados\.chuvaAtiva === true/);
     assert.match(html, /window\.intensidadeChuva = dados\.intensidadeChuva/);
     assert.match(html, /window\.desenharChuva\(ctx, window\.chuvaAtiva === true, undefined, \{[\s\S]{0,300}window\.intensidadeChuva/);
     assert.match(admin, /id="ac-intensidade-chuva"/);
     assert.match(admin, /action: 'admin_chuva_intensidade', intensidade: intensidade/);
-    assert.match(html, /window\.atualizarTrovao\(estaNoite\)/);
+    assert.match(html, /window\.atualizarTrovao\(estaNoite, window\.chuvaAtiva === true\)/);
     assert.match(html, /window\.desenharTrovao\(ctx\)/);
     assert.match(html, /const estaNoite = Number\.isFinite\(horaMundoAtual\) && \(horaMundoAtual >= 19 \|\| horaMundoAtual < 6\)/);
     assert.match(dayNight, /var escuridaoDuranteTrovao = escuridao \* \(1 - intensidadeTrovao\)/);

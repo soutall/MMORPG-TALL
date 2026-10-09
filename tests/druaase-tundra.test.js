@@ -169,8 +169,8 @@ test('Druaase uses its supplied attack animation without procedural visual overl
 });
 
 test('Druaase attacks immediately in melee range without the red attack telegraph', () => {
-    assert.match(serverSource, /slime\.tipo === 'druaase_tundra'[\s\S]{0,100}\{ status: 'ready', angle: Math\.atan2\(dy, dx\) \}[\s\S]{0,100}prepararAtaqueMonstroComAviso/);
-    assert.match(serverSource, /if \(aviso\.status === 'ready' && \(distancia <= alcanceAtaque\)\)/);
+    assert.match(serverSource, /slime\.tipo === 'druaase_tundra'\s*\?\s*\{ status: 'ready', angle: Math\.atan2\(dy, dx\) \}\s*:\s*prepararAtaqueMonstroComAviso/);
+    assert.match(serverSource, /if \(aviso\.status === 'ready' && \(distancia <= alcanceAtaque \+ \(melee \? \(typeof PLAYER_COLLISION_RADIUS === 'number' \? PLAYER_COLLISION_RADIUS : 12\) : 0\)\)\)/);
 });
 
 test('players with Druaase bleed receive the blood-drop visual marker', () => {

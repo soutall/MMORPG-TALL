@@ -79,7 +79,7 @@ test('browser caches load the redesigned class and skill renderers', () => {
     const html = read('index.html');
 
     assert.match(html, /const GAME_VERSION = 'v1\.75\.103'/);
-    assert.equal((html.match(/game-version-display">v1\.75\.103/g) || []).length, 2);
+    assert.equal((html.match(/game-version-display">v1\.75\.103/g) || []).length, 1);
     for (const [script, version] of [
         ['classes/barbaro.js', '1005'],
         ['classes/pikeman.js', '14'],

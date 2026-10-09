@@ -2518,3 +2518,261 @@
     .mochila-filtro-slot { gap: 1px; font-size: 7px; }
     .filtro-slot-ico { font-size: 10px; }
 }
+
+/* Inventário mobile compacto: a janela fica fixa e apenas a lista de itens rola. */
+@media (max-width: 760px), (pointer: coarse) {
+    #inventory-screen {
+        position: fixed !important;
+        inset: 0 !important;
+        overflow: hidden !important;
+        padding: 3px !important;
+        box-sizing: border-box !important;
+    }
+
+    #inv-window {
+        width: min(98vw, 980px) !important;
+        height: min(94dvh, 720px) !important;
+        max-width: 98vw !important;
+        max-height: 94dvh !important;
+        aspect-ratio: auto !important;
+        overflow: hidden !important;
+    }
+
+    #inv-artboard {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    #inv-overlay {
+        position: absolute !important;
+        inset: 0 !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        gap: 6px !important;
+        padding: 48px 7px 7px !important;
+        box-sizing: border-box !important;
+        font-size: 11px !important;
+    }
+
+    #inv-title {
+        inset: 9px 48px auto 12px !important;
+        gap: 6px !important;
+        font-size: 15px !important;
+    }
+
+    .inv-title-ico { font-size: 19px !important; }
+
+    #btn-inv-fechar {
+        inset: 7px 8px auto auto !important;
+        width: 31px !important;
+        height: 31px !important;
+    }
+
+    #inv-col-esquerda,
+    #inv-col-inspecao,
+    #inv-col-direita {
+        min-width: 0 !important;
+        min-height: 0 !important;
+        overflow: hidden !important;
+        padding: 5px !important;
+        gap: 5px !important;
+        border-radius: 7px !important;
+    }
+
+    #inv-col-esquerda {
+        display: grid !important;
+        grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr) !important;
+        align-items: stretch !important;
+    }
+
+    #equip-body {
+        width: 100% !important;
+        height: 100% !important;
+        min-height: 0 !important;
+        grid-template-rows: repeat(3, minmax(0, 1fr)) !important;
+        gap: 3px !important;
+    }
+
+    .inv-slot { min-width: 0 !important; min-height: 0 !important; border-radius: 5px !important; }
+    .inv-slot .slot-ico { font-size: clamp(15px, 5vw, 25px) !important; }
+
+    #inv-personagem {
+        min-width: 0 !important;
+        min-height: 0 !important;
+        gap: 3px !important;
+        padding: 4px !important;
+        overflow-y: auto !important;
+    }
+
+    #inv-personagem-nivel,
+    .inv-recurso {
+        min-height: 18px !important;
+        padding: 2px 4px !important;
+        font-size: 9px !important;
+    }
+
+    .inv-recurso > span:last-child { font-size: 9px !important; }
+    #inv-atributos { gap: 2px !important; }
+    #inv-atributos [data-atributo] { min-height: 16px !important; font-size: 8px !important; }
+
+    #inv-col-inspecao {
+        display: grid !important;
+        grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    }
+
+    #inv-col-inspecao .inv-info-panel,
+    #inv-col-inspecao .inv-compare-panel {
+        min-width: 0 !important;
+        min-height: 0 !important;
+        padding: 4px !important;
+        overflow: auto !important;
+    }
+
+    #inv-info,
+    #inv-comparacao,
+    #inv-comparacao-empty {
+        min-width: 0 !important;
+        padding: 2px !important;
+        font-size: 9px !important;
+        overflow-wrap: anywhere !important;
+    }
+
+    #inv-botoes {
+        min-width: 0 !important;
+        min-height: 0 !important;
+        gap: 4px !important;
+        overflow: hidden !important;
+    }
+
+    #btn-inv-acao-principal,
+    #btn-inv-comparacao-equipar,
+    #btn-inv-destruir,
+    #btn-inv-bloquear {
+        min-width: 32px !important;
+        height: 30px !important;
+        padding: 0 6px !important;
+        font-size: 10px !important;
+    }
+
+    #inv-col-direita {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-rows: 29px 25px 32px minmax(0, 1fr) 16px !important;
+        grid-template-areas: "categories" "slots" "controls" "items" "count" !important;
+        gap: 4px !important;
+    }
+
+    #mochila-abas,
+    #mochila-filtros-slot {
+        display: flex !important;
+        width: 100% !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        flex-direction: row !important;
+        gap: 3px !important;
+        overflow-x: auto !important;
+        overflow-y: hidden !important;
+        scrollbar-width: none;
+    }
+
+    #mochila-abas::-webkit-scrollbar,
+    #mochila-filtros-slot::-webkit-scrollbar { display: none; }
+
+    .mochila-aba,
+    .mochila-filtro-slot {
+        flex: 1 0 39px !important;
+        width: auto !important;
+        min-width: 32px !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        padding: 2px !important;
+        border-radius: 5px !important;
+    }
+
+    .mochila-aba { flex-direction: row !important; gap: 3px !important; font-size: 12px !important; }
+    .mochila-aba .aba-ico { font-size: 13px !important; }
+    .mochila-aba .aba-rotulo { font-size: 8px !important; white-space: nowrap !important; }
+    .mochila-filtro-slot { font-size: 7px !important; }
+    .mochila-filtro-slot > span:not(.filtro-slot-ico) { display: none !important; }
+    .filtro-slot-ico { font-size: 12px !important; }
+
+    #mochila-filtros {
+        display: grid !important;
+        grid-template-columns: minmax(0, 1fr) minmax(76px, .55fr) 32px !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        gap: 4px !important;
+    }
+
+    #mochila-filtros input,
+    #mochila-filtros select,
+    #btn-inv-organizar {
+        min-width: 0 !important;
+        min-height: 0 !important;
+        height: 100% !important;
+        padding: 2px 5px !important;
+        font-size: 9px !important;
+    }
+
+    #mochila-grade-container {
+        position: relative !important;
+        min-width: 0 !important;
+        min-height: 0 !important;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+        scrollbar-width: thin;
+    }
+
+    #mochila-grade {
+        display: grid !important;
+        grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+        grid-auto-rows: minmax(43px, 1fr) !important;
+        gap: 4px !important;
+        min-height: 0 !important;
+        padding: 1px !important;
+    }
+
+    .mochila-slot,
+    .mochila-slot-vazio {
+        min-width: 0 !important;
+        min-height: 43px !important;
+        max-height: 58px !important;
+        border-radius: 5px !important;
+    }
+}
+
+@media (max-width: 760px) and (orientation: portrait), (pointer: coarse) and (orientation: portrait) {
+    #inv-overlay {
+        grid-template-columns: minmax(0, 1fr) !important;
+        grid-template-rows: minmax(112px, 22dvh) minmax(0, 1fr) minmax(58px, 9dvh) 32px !important;
+        grid-template-areas: "equipment" "backpack" "inspect" "actions" !important;
+    }
+
+    #inv-col-esquerda { grid-area: equipment !important; }
+    #inv-col-direita { grid-area: backpack !important; }
+    #inv-col-inspecao { grid-area: inspect !important; }
+    #inv-botoes { grid-area: actions !important; }
+
+    #inv-col-inspecao .inv-info-panel,
+    #inv-col-inspecao .inv-compare-panel { font-size: 9px !important; }
+}
+
+@media (max-width: 1024px) and (orientation: landscape), (pointer: coarse) and (orientation: landscape) {
+    #inv-overlay {
+        grid-template-columns: minmax(190px, .82fr) minmax(0, 1.6fr) !important;
+        grid-template-rows: minmax(0, 1fr) 57px 32px !important;
+        grid-template-areas: "equipment backpack" "inspect backpack" "actions backpack" !important;
+        padding-top: 44px !important;
+    }
+
+    #inv-col-esquerda { grid-area: equipment !important; }
+    #inv-col-direita { grid-area: backpack !important; }
+    #inv-col-inspecao { grid-area: inspect !important; }
+    #inv-botoes { grid-area: actions !important; }
+
+    #equip-body { max-height: 150px !important; }
+    #inv-col-inspecao { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    #mochila-grade { grid-template-columns: repeat(7, minmax(0, 1fr)) !important; }
+}

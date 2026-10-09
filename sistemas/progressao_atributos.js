@@ -33,6 +33,10 @@ function bonusDanoAtributo(atributo, valorEfetivo) {
     return 0;
 }
 
+function bonusDanoAtaqueBasicoMagico(inteligenciaEfetiva) {
+    return Math.max(0, valorSeguro(inteligenciaEfetiva) - 1);
+}
+
 function chanceCriticaDestreza(destrezaEfetiva) {
     const points = Math.max(0, valorSeguro(destrezaEfetiva) - 1);
     return Math.min(0.70, 0.05 + points * 0.01);
@@ -49,6 +53,7 @@ module.exports = {
     calcularVidaMaxima,
     calcularVidaMaximaLacaio,
     bonusDanoAtributo,
+    bonusDanoAtaqueBasicoMagico,
     chanceCriticaDestreza,
     multiplicadorDanoPeriodico
 };
