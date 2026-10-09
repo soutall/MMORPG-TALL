@@ -357,6 +357,28 @@
                         <button class="ac-btn ac-btn-off" onclick="window.adminDefinirHorarioMundo('retomar')">▶ Retomar ciclo</button>
                     </div>
                 </div>
+
+                <div class="ac-card" id="ac-card-chuva">
+                    <div class="ac-info">
+                        <div class="ac-label">🌧️ Chuva</div>
+                        <div class="ac-desc" id="ac-chuva-status">Desativada</div>
+                    </div>
+                    <div class="ac-toggle" id="ac-toggle-chuva" role="switch" aria-checked="false" tabindex="0"
+                        onclick="window.adminDefinirChuva(!window.chuvaAtiva)"
+                        onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();window.adminDefinirChuva(!window.chuvaAtiva)}"></div>
+                </div>
+                <div class="ac-card" style="flex-direction:column; align-items:stretch; gap:10px;">
+                    <div class="ac-info">
+                        <div class="ac-label">💨 Intensidade da chuva</div>
+                        <div class="ac-desc">Fraca: atual · Média: 30% mais densa · Tempestade: 60% mais densa e rápida.</div>
+                    </div>
+                    <select class="ac-time-input" id="ac-intensidade-chuva" aria-label="Intensidade da chuva"
+                        onchange="window.adminDefinirIntensidadeChuva(this.value)">
+                        <option value="fraca">Fraca</option>
+                        <option value="media">Média</option>
+                        <option value="tempestade">Tempestade</option>
+                    </select>
+                </div>
             </div>
             <div class="ac-footer">
                 <button class="ac-btn ac-btn-on" onclick="window.setTodosAdminCheats(true)">⚡ Ativar Todos</button>
@@ -456,6 +478,43 @@
             return;
         }
         window.ws.send(JSON.stringify(pedido));
+    };
+
+    window.adminDefinirChuva = function (ativa) {
+        if (!window.ehAdmin) return;
+        if (!window.ws || window.ws.readyState !== WebSocket.OPEN) {
+            console.error('Não foi possível alterar a chuva: conexão com o servidor indisponível.');
+            return;
+        }
+        window.ws.send(JSON.stringify({ action: 'admin_chuva_toggle', ativa: !!ativa }));
+    };
+
+    window.adminDefinirIntensidadeChuva = function (intensidade) {
+        if (!window.ehAdmin) return;
+        if (!window.ws || window.ws.readyState !== WebSocket.OPEN) {
+            console.error('Não foi possível alterar a intensidade: conexão com o servidor indisponível.');
+            return;
+        }
+        if (intensidade !== 'fraca' && intensidade !== 'media' && intensidade !== 'tempestade') {
+            console.error('Intensidade de chuva inválida:', intensidade);
+            return;
+        }
+        window.ws.send(JSON.stringify({ action: 'admin_chuva_intensidade', intensidade: intensidade }));
+    };
+
+    window.atualizarVisualChuvaAdmin = function () {
+        const ativa = window.chuvaAtiva === true;
+        const card = document.getElementById('ac-card-chuva');
+        const toggle = document.getElementById('ac-toggle-chuva');
+        const status = document.getElementById('ac-chuva-status');
+        if (card) card.classList.toggle('active', ativa);
+        if (toggle) {
+            toggle.classList.toggle('on', ativa);
+            toggle.setAttribute('aria-checked', String(ativa));
+        }
+        if (status) status.textContent = ativa ? 'Ativada para todos os jogadores' : 'Desativada';
+        const seletor = document.getElementById('ac-intensidade-chuva');
+        if (seletor) seletor.value = window.intensidadeChuva || 'fraca';
     };
 
     function atualizarStatusHorarioMundo() {
@@ -672,13 +731,16 @@
         }
         if (dados.type === 'admin_tempo_mundo_result') {
             const status = document.getElementById('ac-time-status');
-        if (status && !dados.ok) {
-            status.textContent = dados.mensagem || 'Falha ao alterar horário';
-        } else if (status && dados.ok) {
-            status.textContent = dados.controle.travado
-                ? 'Horário fixado em ' + dados.controle.horaFormatada
-                : 'Ciclo natural retomado';
+            if (status && !dados.ok) {
+                status.textContent = dados.mensagem || 'Falha ao alterar horário';
+            } else if (status && dados.ok) {
+                status.textContent = dados.controle.travado
+                    ? 'Horário fixado em ' + dados.controle.horaFormatada
+                    : 'Ciclo natural retomado';
             }
+        }
+        if (dados.type === 'admin_chuva_result' && !dados.ok) {
+            console.error('Falha ao alterar a chuva:', dados.mensagem || 'erro desconhecido');
         }
     });
     setInterval(atualizarStatusHorarioMundo, 1000);

@@ -4,10 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>MMORPG Mobile Modular</title>
+    <script src="nearest-neighbor.js?v=3"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=Oswald:wght@500;600;700&family=Rajdhani:wght@500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css?v=256">
+    <link rel="stylesheet" href="style.css?v=257">
     <link rel="stylesheet" href="sistemas/pets/pets-ui.css?v=5">
     <link rel="stylesheet" href="inventario.css?v=174">
     <link rel="stylesheet" href="skills.css?v=149">
@@ -18,9 +19,10 @@
     <link rel="stylesheet" href="dragdrop.css?v=4">
     <link rel="stylesheet" href="ferreiro.css?v=1">
     <link rel="stylesheet" href="intro.css?v=1">
-    <link rel="stylesheet" href="mobile-hud.css?v=10">
+    <link rel="stylesheet" href="mobile-hud.css?v=11">
     <link rel="stylesheet" href="item-admin.css?v=2">
     <link rel="stylesheet" href="personagem-select.css?v=2">
+    <link rel="stylesheet" href="modo-melhorado/enhanced-mode.css?v=1">
     <style>
         #confusao-overlay {
             position: fixed;
@@ -167,7 +169,7 @@
             <div id="login-remembered-account" style="display:none; flex-direction:column; align-items:center; gap:8px; justify-content:center; max-width:360px;">
                 <span style="color:#cfe9ff; font-size:12px; opacity:0.85;">Última conta: <strong id="login-remembered-email" style="color:#fff;"></strong></span>
             </div>
-            <button id="login-direct-button" type="button" style="display:none; padding:9px 18px; border-radius:999px; border:1px solid rgba(241,196,15,0.7); background:rgba(35,28,8,0.82); color:#ffe17a; cursor:pointer; font:700 15px 'Rajdhani',sans-serif;">Entrar direto com Google</button>
+            <button id="login-direct-button" type="button" style="display:none; padding:12px 36px; border-radius:999px; border:1px solid rgba(255,218,112,0.9); background:linear-gradient(135deg,#9c2c16,#d85620); box-shadow:0 4px 16px rgba(88,20,8,0.45); color:#fff4d0; cursor:pointer; font:700 18px 'Rajdhani',sans-serif; letter-spacing:1px;">ENTRAR</button>
             <div id="google-login-status" role="status" aria-live="polite" style="max-width:320px; color:#ffd27d; text-align:center; font:600 14px 'Rajdhani',sans-serif;">Carregando login Google…</div>
             <button id="login-logout" type="button" onclick="window.logoutGoogleConta && window.logoutGoogleConta()" style="display:none; padding:8px 12px; border-radius:999px; background:rgba(231,76,60,0.2); border:1px solid rgba(231,76,60,0.45); color:#ffd5d5; cursor:pointer; font-weight:700;">Sair da conta</button>
         </div>
@@ -181,7 +183,7 @@
                 style="padding:9px 18px;border-radius:999px;background:#1c7c54;border:1px solid #49b989;color:#fff;font-weight:700;cursor:pointer;">Entrar por ID (somente local)</button>
             <span id="local-id-login-status" role="status" style="max-width:320px;color:#ffd27d;text-align:center;font:600 13px 'Rajdhani',sans-serif;"></span>
         </div>
-        <div class="game-version-display">v1.75.95</div>
+        <div class="game-version-display">v1.75.103</div>
     </div>
 
     <div id="rotate-overlay">🔄 GIRE O CELULAR PARA HORIZONTAL</div>
@@ -241,7 +243,7 @@
     <div id="elite-alert-notice" role="alert" aria-live="assertive">⚠ ATENÇÃO: ELITE ESTÁ NO MAPA</div>
     <div id="fps-counter" data-ui="fps">FPS: 60</div>
     <div id="ping-counter" data-ui="ping">PING: -- ms</div>
-    <div id="hud-version" class="game-version-display">v1.75.95</div>
+    <div id="hud-version" class="game-version-display">v1.75.103</div>
 
     <div id="hud-status-window" data-ui="hud-status-window">
         <div id="hud-status-main">
@@ -438,7 +440,7 @@
                 </div>
             </div>
             <div id="minimap-header-bottom">
-                <span id="minimap-coords">X: 144000  Y: 14018</span>
+                <span id="minimap-coords">X: 143854  Y: 13897</span>
             </div>
         </div>
         <canvas id="minimap-canvas"></canvas>
@@ -993,6 +995,18 @@
                     <div class="settings-dica">Alta mantém partículas e brilhos completos. Média reduz efeitos; Baixa otimiza para celulares e PCs fracos.</div>
                 </div>
                 <div class="settings-linha">
+                    <div class="settings-label"><span class="settings-ico">🌟</span>MODO MELHORADO</div>
+                    <label class="enhanced-mode-option">
+                        <input id="enhanced-mode-toggle" type="checkbox">
+                        Ativar melhorias visuais (F8 no PC)
+                    </label>
+                    <div class="enhanced-mode-hint">No navegador, também pode iniciar com ?enhanced=1. Os efeitos extras não alteram as regras do jogo.</div>
+                    <label class="enhanced-mode-option" style="margin-top:7px;">
+                        <input id="enhanced-reduce-motion" type="checkbox">
+                        Reduzir tremor e movimento
+                    </label>
+                </div>
+                <div class="settings-linha">
                     <div class="settings-label"><span class="settings-ico">📶</span>MOSTRAR FPS / PING</div>
                     <select id="vis-fps-ping" class="settings-select" onchange="mudarVisualFpsPing(this.value)">
                         <option value="sim">Mostrar</option>
@@ -1030,7 +1044,7 @@
         })();
     </script>
     <!-- SISTEMA DE CICLO DIA/NOITE & ILUMINAÇÃO DINÂMICA (v1.52.1) -->
-    <script src="sistema_dia_noite_cliente.js?v=1527"></script>
+    <script src="sistema_dia_noite_cliente.js?v=1528"></script>
     <!-- DASH v2: módulo ISOMÓRFICO (o MESMO arquivo é require() no server.js).
          Precisa vir antes das classes porque elas podem consultar window.DASH. -->
     <script src="dash.js?v=1501"></script>
@@ -1050,7 +1064,7 @@
     <script src="classes/pikeman.js?v=14"></script>
     <script src="classes/florim.js?v=7"></script>
     <script src="classes/guerreiro_kaledron.js?v=1"></script>
-    <script src="classes/lord_malakar.js?v=10"></script>
+    <script src="classes/lord_malakar.js?v=11"></script>
     <script src="efeitos/arqueiro_efeitos.js?v=231"></script>
     <script src="efeitos/curandeiro_efeitos.js?v=231"></script>
     <script src="efeitos/barbaro_efeitos.js?v=232"></script>
@@ -1095,13 +1109,19 @@
     <script src="sonoro.js?v=1585"></script>
     <script src="intro.js?v=1"></script>
     <script src="mobile-hud.js?v=1"></script>
-    <script src="mobile-touch-controls.js?v=1"></script>
+    <script src="mobile-touch-controls.js?v=2"></script>
     <script src="item-admin.js?v=5"></script>
+    <script src="chuva-cliente.js?v=10"></script>
     <script src="admin-cheats.js?v=6"></script>
     <script src="personagens-historias.js?v=2"></script>
     <script src="personagem-select.js?v=8"></script>
+    <script src="modo-melhorado/camera.js?v=1"></script>
+    <script src="modo-melhorado/combate.js?v=1"></script>
+    <script src="modo-melhorado/atmosfera.js?v=1"></script>
+    <script src="modo-melhorado/sombras.js?v=1"></script>
+    <script src="modo-melhorado/manager.js?v=1"></script>
     <script>
-        const GAME_VERSION = 'v1.75.95';
+        const GAME_VERSION = 'v1.75.103';
         window.GAME_VERSION = GAME_VERSION;
         const WORLD_WIDTH = 190000;
         const WORLD_HEIGHT = 28500;
@@ -1110,10 +1130,10 @@
         window.LARGURA_MUNDO = 100000;
         window.FIM_MUNDO = 188000;
         window.ALTO_MUNDO = 28000;
-        // Ponto de spawn de Gaia (espelho do server: MUNDO_SPAWN_X/Y = 144000, 14018).
-        // O respawn do jogador SEMPRE devolve para cá (Centro exato de Gaia).
-        window.SPAWN_CIDADE = { x: 144000, y: 14018 };
-        window.SPAWN_MUNDO = { x: 144000, y: 14018 };
+        // Ponto de spawn de Gaia (espelho do server: MUNDO_SPAWN_X/Y = 143854, 13897).
+        // O respawn do jogador SEMPRE devolve para cá.
+        window.SPAWN_CIDADE = { x: 143854, y: 13897 };
+        window.SPAWN_MUNDO = { x: 143854, y: 13897 };
         window.currentMap = 'mundo'; // ID do mapa único: Continente de Gaia. Limites vêm de MAPAS_REGISTRY.
         // Pré-jogo: tela de login / seleção de personagem é independente do mundo.
         // Só vira true quando o jogador realmente entra (selecionarClasse).
@@ -1589,6 +1609,8 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
 
         let meuLoginId = localStorage.getItem("mmorpg_google_account") || "";
         let googleCredentialAtual = null;
+        let emailGooglePendente = '';
+        let loginGooglePromptPendente = false;
         let localIdLoginAtual = localStorage.getItem("mmorpg_local_test_id") || "";
         let visitorTokenAtual = localStorage.getItem("mmorpg_visitor_token") || "";
         let visitorLoginPendente = false;
@@ -1623,6 +1645,9 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             if (emailEl) emailEl.textContent = email;
             if (botoesLogout) botoesLogout.style.display = (googleCredentialAtual || email) ? 'inline-flex' : 'none';
             if (botaoConfigLogout) botaoConfigLogout.style.display = (googleCredentialAtual || email) ? 'inline-flex' : 'none';
+            if (googleSignInButton) googleSignInButton.style.display = email && !googleCredentialAtual ? 'none' : 'block';
+            const botaoLoginDireto = document.getElementById('login-direct-button');
+            if (botaoLoginDireto) botaoLoginDireto.style.display = 'inline-flex';
         }
 
         window.logoutGoogleConta = function () {
@@ -1637,8 +1662,11 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                 }
             } catch (e) {}
             googleCredentialAtual = null;
+            emailGooglePendente = '';
+            loginGooglePromptPendente = false;
             window.googleLoginConcluido = false;
             localStorage.removeItem('mmorpg_google_account');
+            localStorage.removeItem('mmorpg_last_google_email');
             localStorage.removeItem('mmorpg_user_id');
             localStorage.removeItem('mmorpg_local_test_id');
             localStorage.removeItem('mmorpg_visitor_token');
@@ -3002,7 +3030,7 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         let proximoAutoAtaqueEm = 0;    // performance.now() do próximo ataque permitido
         let ultimoAutoAtaqueEm = 0;     // feedback visual de ataque executado
         let historicoDano = []; let danoTotalAcumulado = 0;
-        window.meuId = null; window.meuX = 144000, window.meuY = 14018; window.meuHp = 100, window.meuMaxHp = 100; window.estaMorto = false;
+        window.meuId = null; window.meuX = 143854, window.meuY = 13897; window.meuHp = 100, window.meuMaxHp = 100; window.estaMorto = false;
         window.meuOuro = 0; window.pedraBrilhoFx = [];
         window.meuEscudoAbsoluto = 0; window.meuEscudoAbsolutoMax = 0;
         let _tickBateria = 0; window.ultimoWorldUpdateAt = 0;
@@ -3413,6 +3441,10 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             if (!ok) { e.preventDefault(); e.stopImmediatePropagation(); }
         }, { capture: true, passive: false });
         let slashes = []; let blockEffects = []; window.floatingTexts = []; window.petDamageTexts = []; let ultimoEnvioRede = 0; let pingAtual = 0; let pingServidorMs = 0; let pingLoopMs = 0;
+        function adicionarTextoVisualLimitado(lista, texto, limite) {
+            lista.push(texto);
+            if (lista.length > limite) lista.splice(0, lista.length - limite);
+        }
         function atualizarHudPing() {
             const el = document.getElementById('ping-counter');
             if (!el) return;
@@ -3814,17 +3846,40 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                     if (i === 0 && malakarPetrifiedRatio > 0) {
                         var petrifiedWidth = Math.min(bw, Math.max(1, bw * malakarPetrifiedRatio));
                         var petrifiedX = bx + bw - petrifiedWidth;
+                        var stonePulse = (Math.sin(animacaoAgora / 260) + 1) / 2;
+                        var stoneShineX = petrifiedX + ((animacaoAgora / 18) % (petrifiedWidth + bh * 2)) - bh * 2;
                         ctx.save();
                         caminhoRedondo(ctx, bx, by, bw, bh, raio);
                         ctx.clip();
                         var stone = ctx.createLinearGradient(0, by, 0, by + bh);
-                        stone.addColorStop(0, '#b5bbc0');
-                        stone.addColorStop(0.48, '#858c92');
-                        stone.addColorStop(1, '#50565c');
+                        stone.addColorStop(0, '#e1e5e7');
+                        stone.addColorStop(0.2, '#aeb5ba');
+                        stone.addColorStop(0.52, '#747d83');
+                        stone.addColorStop(0.8, '#939ba0');
+                        stone.addColorStop(1, '#424a50');
                         ctx.fillStyle = stone;
                         ctx.fillRect(petrifiedX, by, petrifiedWidth, bh);
-                        ctx.strokeStyle = 'rgba(34, 39, 44, 0.9)';
-                        ctx.lineWidth = Math.max(1, bh * 0.1);
+
+                        // Facetas e veios dão relevo de pedra sem alterar o valor de HP.
+                        ctx.fillStyle = 'rgba(235, 240, 242, 0.2)';
+                        ctx.beginPath();
+                        ctx.moveTo(petrifiedX, by);
+                        ctx.lineTo(petrifiedX + petrifiedWidth * 0.32, by);
+                        ctx.lineTo(petrifiedX + petrifiedWidth * 0.22, by + bh * 0.48);
+                        ctx.lineTo(petrifiedX, by + bh * 0.72);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.fillStyle = 'rgba(21, 27, 32, 0.2)';
+                        ctx.beginPath();
+                        ctx.moveTo(petrifiedX + petrifiedWidth * 0.65, by);
+                        ctx.lineTo(petrifiedX + petrifiedWidth, by);
+                        ctx.lineTo(petrifiedX + petrifiedWidth, by + bh);
+                        ctx.lineTo(petrifiedX + petrifiedWidth * 0.78, by + bh * 0.55);
+                        ctx.closePath();
+                        ctx.fill();
+
+                        ctx.strokeStyle = 'rgba(41, 48, 53, 0.9)';
+                        ctx.lineWidth = Math.max(1, bh * 0.12);
                         ctx.beginPath();
                         ctx.moveTo(petrifiedX + petrifiedWidth * 0.25, by);
                         ctx.lineTo(petrifiedX + petrifiedWidth * 0.34, by + bh * 0.46);
@@ -3833,11 +3888,31 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                         ctx.lineTo(petrifiedX + petrifiedWidth * 0.63, by + bh * 0.55);
                         ctx.lineTo(petrifiedX + petrifiedWidth * 0.8, by + bh);
                         ctx.stroke();
-                        ctx.strokeStyle = 'rgba(224, 229, 232, 0.65)';
-                        ctx.lineWidth = Math.max(1, bh * 0.07);
+
+                        ctx.strokeStyle = 'rgba(244, 249, 251, 0.8)';
+                        ctx.lineWidth = Math.max(1, bh * 0.08);
                         ctx.beginPath();
                         ctx.moveTo(petrifiedX + petrifiedWidth * 0.25, by + bh * 0.05);
                         ctx.lineTo(petrifiedX + petrifiedWidth * 0.34, by + bh * 0.46);
+                        ctx.stroke();
+
+                        // Brilho frio percorre a superfície; o pulso destaca a vida petrificada.
+                        ctx.globalAlpha = 0.12 + stonePulse * 0.2;
+                        ctx.fillStyle = '#f1fbff';
+                        ctx.beginPath();
+                        ctx.moveTo(stoneShineX, by);
+                        ctx.lineTo(stoneShineX + bh * 0.65, by);
+                        ctx.lineTo(stoneShineX + bh * 1.55, by + bh);
+                        ctx.lineTo(stoneShineX + bh * 0.9, by + bh);
+                        ctx.closePath();
+                        ctx.fill();
+                        ctx.globalAlpha = 1;
+
+                        ctx.strokeStyle = 'rgba(224, 244, 250, ' + (0.35 + stonePulse * 0.4) + ')';
+                        ctx.lineWidth = Math.max(1, bh * 0.1);
+                        ctx.beginPath();
+                        ctx.moveTo(petrifiedX, by + bh * 0.08);
+                        ctx.lineTo(petrifiedX + petrifiedWidth, by + bh * 0.08);
                         ctx.stroke();
                         ctx.restore();
                     }
@@ -4192,6 +4267,9 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             };
 
             socket.onerror = () => {
+                loginGooglePromptPendente = false;
+                const botaoLoginDireto = document.getElementById('login-direct-button');
+                if (botaoLoginDireto) botaoLoginDireto.disabled = false;
                 statusText.classList.remove("conectado-oculto");
                 statusText.innerText = ehReconexao ? "Status: Reconectando ao servidor..." : "Status: Servidor offline";
                 statusText.style.color = "red";
@@ -4284,6 +4362,9 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             socket.onmessage = (event) => {
                 try {
                         let dados = JSON.parse(event.data);
+                        if (window.EnhancedMode && dados && typeof dados.type === 'string') {
+                            window.EnhancedMode.handleNetworkEvent(dados);
+                        }
                         window.__msgTipo = (dados && dados.type) || '?';
                         if (dados.type === 'pet_xp_ganho') {
                             if (window.PetsUI && dados.petProfile) window.PetsUI.setProfile(dados.petProfile);
@@ -4405,6 +4486,11 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                                 return;
                             }
                             googleCredentialAtual = null;
+                            emailGooglePendente = '';
+                            loginGooglePromptPendente = false;
+                            const botaoLoginDireto = document.getElementById('login-direct-button');
+                            if (botaoLoginDireto) botaoLoginDireto.disabled = false;
+                            if (googleSignInButton) googleSignInButton.style.display = 'block';
                             loginScreen.style.display = 'flex';
                             googleLoginStatus.innerText = dados.mensagem || 'Falha no login Google.';
                             return;
@@ -4427,9 +4513,14 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                                 if (localIdLoginStatus) localIdLoginStatus.innerText = 'ID local autenticado.';
                             } else {
                                 localStorage.setItem('mmorpg_google_account', dados.conta);
+                                if (emailGooglePendente) {
+                                    localStorage.setItem('mmorpg_last_google_email', emailGooglePendente);
+                                    emailGooglePendente = '';
+                                }
                                 localStorage.removeItem('mmorpg_user_id');
                                 localStorage.removeItem('mmorpg_local_test_id');
                                 localIdLoginAtual = '';
+                                atualizarUiUltimoEmailLogin();
                             }
                             loginScreen.style.display = 'none';
                             if (googleLoginStatus) googleLoginStatus.innerText = '';
@@ -4911,14 +5002,14 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
 
                     if (dados.type === 'texto_critico') {
                         // CRÍTICO aparece mais acima, maior e com cor forte
-                        window.floatingTexts.push({ 
+                        adicionarTextoVisualLimitado(window.floatingTexts, {
                             x: dados.x + (Math.random() * 20 - 10), 
                             y: dados.y - 35 - (Math.random() * 10), 
                             text: "CRÍTICO!", 
                             color: "#ff3300", 
                             alpha: 1.2, 
                             isCrit: true 
-                        });
+                        }, 100);
                     }
 
                     if (dados.type === 'texto_dano' && dados.dano > 0) {
@@ -4926,29 +5017,30 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                         let hasDebuff = window.curandeiroCanticoDebuffs && window.curandeiroCanticoDebuffs.some(d => Math.hypot(d.x - dados.x, d.y - dados.y) < 45);
                         let offsetY = hasDebuff ? 12 : 15;
                         let offsetX = hasDebuff ? ((Math.random() < 0.5 ? -1 : 1) * (34 + Math.random() * 8)) : (Math.random() * 16 - 8);
-                        window.floatingTexts.forEach(ft => {
+                        for (let i = window.floatingTexts.length - 1, vistos = 0; i >= 0 && vistos < 24; i--, vistos++) {
+                            let ft = window.floatingTexts[i];
                             if (!ft.isCrit && Math.abs(ft.x - (dados.x + offsetX)) < 15 && Math.abs(ft.y - (dados.y - offsetY)) < 20) {
                                 offsetY += 15; // Joga pra cima se tiver sobreposto
                             }
-                        });
+                        }
 
-                        window.floatingTexts.push({ 
+                        adicionarTextoVisualLimitado(window.floatingTexts, {
                             x: dados.x + offsetX, 
                             y: dados.y - offsetY, 
                             text: "-" + dados.dano, 
                             color: "#f5b041", 
                             alpha: 1.0 
-                        });
+                        }, 100);
                         if (dados.autorId === window.meuId && typeof registrarDanoCausado === 'function') registrarDanoCausado(dados.dano);
                     }
                     if (dados.type === 'pet_texto_dano' && dados.dano > 0 && window.petDamageTexts) {
-                        window.petDamageTexts.push({
+                        adicionarTextoVisualLimitado(window.petDamageTexts, {
                             x: dados.x,
                             y: dados.y - 18,
                             dano: Math.round(dados.dano),
                             startedAt: Date.now(),
                             duration: 820
-                        });
+                        }, 100);
                     }
 
                     if (dados.type === 'mob_block') {
@@ -5283,6 +5375,11 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
 
                     if (dados.type === 'world_update') {
                         window.ultimoWorldUpdateAt = Date.now();
+                        window.chuvaAtiva = dados.chuvaAtiva === true;
+                        window.intensidadeChuva = dados.intensidadeChuva === 'media' || dados.intensidadeChuva === 'tempestade'
+                            ? dados.intensidadeChuva
+                            : 'fraca';
+                        if (typeof window.atualizarVisualChuvaAdmin === 'function') window.atualizarVisualChuvaAdmin();
                         if (typeof tutorialAplicarEstado === 'function' && dados.tutorial) tutorialAplicarEstado(dados.tutorial);
                         window.npcsInterativos = Array.isArray(dados.npcs) ? dados.npcs : [];
                         atualizarInteracaoNPC();
@@ -6896,11 +6993,11 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                 return;
             }
             googleCredentialAtual = resposta.credential;
+            loginGooglePromptPendente = false;
+            emailGooglePendente = obterEmailGoogleDoToken(resposta.credential);
+            const botaoLoginDireto = document.getElementById('login-direct-button');
+            if (botaoLoginDireto) botaoLoginDireto.disabled = true;
             window.googleLoginConcluido = true;
-            const email = obterEmailGoogleDoToken(resposta.credential);
-            if (email) {
-                localStorage.setItem('mmorpg_last_google_email', email);
-            }
             atualizarUiUltimoEmailLogin();
             googleLoginStatus.innerText = 'Verificando sua conta Google…';
             tentarHorizontalAutomatico();
@@ -6912,8 +7009,12 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
         function inicializarLoginLocalId() {
             if (!localIdLoginDeTeste) return false;
             const googleBox = document.getElementById('google-login-box');
+            const guestButton = document.getElementById('guest-login-button');
+            const guestNote = document.getElementById('guest-login-note');
             const instructions = document.getElementById('login-instructions');
             if (googleBox) googleBox.style.display = 'none';
+            if (guestButton) guestButton.style.display = 'none';
+            if (guestNote) guestNote.style.display = 'none';
             if (localIdLoginBox) localIdLoginBox.style.display = 'flex';
             if (instructions) instructions.textContent = 'Login local por ID habilitado somente para teste nesta máquina.';
             if (localIdLoginInput) localIdLoginInput.value = localIdLoginAtual;
@@ -6966,19 +7067,33 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                     });
                     const botaoLoginDireto = document.getElementById('login-direct-button');
                     if (botaoLoginDireto) {
-                        botaoLoginDireto.style.display = 'inline-flex';
+                        atualizarUiUltimoEmailLogin();
                         botaoLoginDireto.addEventListener('click', function () {
+                            if (loginGooglePromptPendente || window.googleLoginConcluido) return;
                             if (!window.google || !window.google.accounts || !window.google.accounts.id) {
                                 googleLoginStatus.innerText = 'O login Google ainda não está disponível. Tente novamente em instantes.';
                                 return;
                             }
-                            googleLoginStatus.innerText = 'Tentando entrar com a conta Google já conectada…';
+                            loginGooglePromptPendente = true;
+                            botaoLoginDireto.disabled = true;
+                            googleLoginStatus.innerText = localStorage.getItem('mmorpg_last_google_email')
+                                ? 'Entrando com a conta Google lembrada…'
+                                : 'Verificando sua conta Google…';
                             window.google.accounts.id.prompt(function (notificacao) {
-                                if (window.googleLoginConcluido || !notificacao) return;
+                                if (window.googleLoginConcluido) return;
+                                loginGooglePromptPendente = false;
+                                botaoLoginDireto.disabled = false;
+                                if (!notificacao) {
+                                    if (googleSignInButton) googleSignInButton.style.display = 'block';
+                                    googleLoginStatus.innerText = 'Não foi possível entrar automaticamente. Use “Continuar com o Google” para escolher a conta.';
+                                    return;
+                                }
                                 if (notificacao.isNotDisplayed && notificacao.isNotDisplayed()) {
-                                    googleLoginStatus.innerText = 'Não foi possível usar a sessão Google atual. Clique em “Continuar com o Google” para escolher sua conta.';
+                                    if (googleSignInButton) googleSignInButton.style.display = 'block';
+                                    googleLoginStatus.innerText = 'Não foi possível entrar automaticamente. Use “Continuar com o Google” para escolher a conta.';
                                 } else if (notificacao.isSkippedMoment && notificacao.isSkippedMoment()) {
-                                    googleLoginStatus.innerText = 'A entrada direta não foi concluída. Clique em “Continuar com o Google” para entrar.';
+                                    if (googleSignInButton) googleSignInButton.style.display = 'block';
+                                    googleLoginStatus.innerText = 'A entrada automática não foi concluída. Use “Continuar com o Google” para entrar.';
                                 }
                             });
                         });
@@ -9439,7 +9554,7 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
 
             atualizarCanvasNevoaMapa();
             bigMapCtx.save();
-            bigMapCtx.imageSmoothingEnabled = true;
+            bigMapCtx.imageSmoothingEnabled = false;
             bigMapCtx.filter = 'blur(2px)';
             bigMapCtx.drawImage(bigMapFogCanvas, ox, oy, mapaW, mapaH);
             bigMapCtx.filter = 'none';
@@ -9986,13 +10101,20 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                     continue;
                 }
             }
-            // O segundo dedo controla a lanterna sem interromper o joystick.
-            if (joystickTouchId !== null && lanternaTouchId === null) {
+            // Toque no campo aponta a lanterna; com joystick ativo, o outro dedo pode mirar.
+            if (lanternaTouchId === null) {
                 for (let i = 0; i < e.changedTouches.length; i++) {
                     let touch = e.changedTouches[i];
                     if (touch.identifier === joystickTouchId) continue;
                     let alvo = touch.target || e.target;
-                    if (!alvo || (alvo.closest && alvo.closest('#joystick-base, button, a, input, textarea, select, [data-ui], .modal-window'))) continue;
+                    if (typeof window.canAimLanternWithTouch !== 'function' ||
+                        !window.canAimLanternWithTouch(
+                            touch,
+                            alvo,
+                            joystickTouchId !== null,
+                            lanternaTouchId !== null,
+                            window.innerWidth
+                        )) continue;
                     lanternaTouchId = touch.identifier;
                     window.lanternaMobileAtiva = true;
                     atualizarMiraLanternaTouch(touch);
@@ -10081,7 +10203,7 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             for (let i = 0; i < e.changedTouches.length; i++) {
                 if (e.changedTouches[i].identifier === lanternaTouchId) {
                     lanternaTouchId = null;
-                    window.lanternaMobileAtiva = false;
+                    window.encerrarMiraLanternaMobile(window);
                 }
             }
             for (let i = 0; i < e.changedTouches.length; i++) {
@@ -10101,7 +10223,14 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             for (let i = 0; i < e.changedTouches.length; i++) {
                 if (e.changedTouches[i].identifier === lanternaTouchId) {
                     lanternaTouchId = null;
-                    window.lanternaMobileAtiva = false;
+                    window.encerrarMiraLanternaMobile(window);
+                }
+                if (e.changedTouches[i].identifier === joystickTouchId) {
+                    joystickTouchId = null;
+                    moveX = 0;
+                    moveY = 0;
+                    joystickBase.style.display = "none";
+                    joystickStick.style.transform = "translate(0px, 0px)";
                 }
             }
             for (let i = 0; i < e.changedTouches.length; i++) {
@@ -10398,6 +10527,19 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
 
             let shakeX = 0, shakeY = 0;
             if (window.tremorTela > 0) { shakeX = (Math.random() - 0.5) * window.tremorTela; shakeY = (Math.random() - 0.5) * window.tremorTela; window.tremorTela *= 0.88; if (window.tremorTela < 0.5) window.tremorTela = 0; }
+            let enhancedFrameState = null;
+            if (window.EnhancedMode && window.EnhancedMode.isEnabled()) {
+                enhancedFrameState = {
+                    playerX: window.meuX,
+                    playerY: window.meuY,
+                    playerId: window.meuId,
+                    players: window.todosJogadores || {},
+                    map: window.currentMap
+                };
+                const enhancedShake = window.EnhancedMode.update(dt, enhancedFrameState);
+                shakeX += enhancedShake.x;
+                shakeY += enhancedShake.y;
+            }
 
             // SNIPER: zoom-out suave enquanto aponta o Disparo Supremo (~10% mais longe) e volta ao normal ao atirar
             window.zoomAlvo = (window.snAimAtivo) ? ZOOM_CAMERA * 0.90 : ZOOM_CAMERA;
@@ -10581,8 +10723,8 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                     window.meuX = ref.x;
                     window.meuY = ref.y;
                 } else {
-                    window.meuX = window.SPAWN_MUNDO ? window.SPAWN_MUNDO.x : 144000;
-                    window.meuY = window.SPAWN_MUNDO ? window.SPAWN_MUNDO.y : 14018;
+                    window.meuX = window.SPAWN_MUNDO ? window.SPAWN_MUNDO.x : 143854;
+                    window.meuY = window.SPAWN_MUNDO ? window.SPAWN_MUNDO.y : 13897;
                 }
             }
             window.currentMap = 'mundo';
@@ -10642,7 +10784,10 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
             ctx.setTransform(1, 0, 0, 1, 0, 0);
             ctx.fillStyle = "#0a1926";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.save(); ctx.scale((window.cameraZoomAtual || ZOOM_CAMERA), (window.cameraZoomAtual || ZOOM_CAMERA) * cameraTiltY); ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
+            const zoomRenderMundo = window.cameraZoomAtual || ZOOM_CAMERA;
+            ctx.save();
+            ctx.scale(zoomRenderMundo, zoomRenderMundo * cameraTiltY);
+            ctx.translate(-cameraX + shakeX, -cameraY + shakeY);
 
             // ===== FUNDO + CENÁRIO: Continente de Gaia (Mundo Único) =====
             let tempoAnimacao = Date.now() / 1000;
@@ -10679,6 +10824,13 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                 window._mapLayerSnapshot = null;
             }
 
+            if (enhancedFrameState) {
+                enhancedFrameState.cameraX = cameraX;
+                enhancedFrameState.cameraY = cameraY;
+                enhancedFrameState.zoom = zoomRenderMundo;
+                enhancedFrameState.tiltY = cameraTiltY;
+                window.EnhancedMode.renderShadows(ctx, enhancedFrameState);
+            }
             if (typeof window.desenharPinosLocalizacao === "function") window.desenharPinosLocalizacao();
             if (typeof window.desenharBandeirasSpawn === "function") window.desenharBandeirasSpawn();
             if (typeof window.desenharVfxMapa === "function") window.desenharVfxMapa();
@@ -11728,12 +11880,29 @@ const btnMalakarMinion = document.getElementById("btn-malakar-minion");
                 ctx.restore();
             }
 
+            if (enhancedFrameState) window.EnhancedMode.renderEffects(ctx, enhancedFrameState);
             ctx.restore();
+
+            // O mesmo pulso controla o véu de escuridão e o raio desenhado sobre o mapa.
+            const horaMundoAtual = window.tempoMundo && window.tempoMundo.horaDecimal;
+            const estaNoite = Number.isFinite(horaMundoAtual) && (horaMundoAtual >= 19 || horaMundoAtual < 6);
+            if (typeof window.atualizarTrovao === 'function') window.atualizarTrovao(estaNoite);
 
             // v1.52.0: CICLO DIA/NOITE & ILUMINAÇÃO DINÂMICA (véu de escuridão com recortes de luz)
             if (typeof window.renderizarCicloDiaNoite === 'function' && window.currentMap !== 'testevisual') {
                 window.renderizarCicloDiaNoite(ctx, cameraX, cameraY, shakeX, shakeY, (window.cameraZoomAtual || ZOOM_CAMERA), cameraTiltY);
             }
+            if (typeof window.desenharChuva === 'function') {
+                window.desenharChuva(ctx, window.chuvaAtiva === true, undefined, {
+                    x: cameraX,
+                    y: cameraY,
+                    zoom: zoomRenderMundo,
+                    inclinacaoY: cameraTiltY,
+                    shakeX: shakeX,
+                    shakeY: shakeY
+                }, window.intensidadeChuva || 'fraca');
+            }
+            if (typeof window.desenharTrovao === 'function') window.desenharTrovao(ctx);
             const perfWorldEnd = perfHudAtivo ? performance.now() : 0;
 
             // ======= NOVO MINIMAPA FUNCIONAL (COM RADAR DE ZOOM, MONSTROS, PLAYERS E DROPS) =======

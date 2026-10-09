@@ -95,7 +95,7 @@ test('automatic depth-split sprites serialize all required masks and large raste
     assert.match(send, /assetDepthSplit: divisaoSpriteValida\(o\) \? o\.assetDepthSplit/);
     assert.match(server, /const MAX_WS_PAYLOAD_BYTES = 8 \* 1024 \* 1024/);
     assert.match(server, /maxPayload: MAX_WS_PAYLOAD_BYTES/);
-    assert.match(html, /GAME_VERSION = 'v1\.75\.43'/);
+    assert.match(html, /GAME_VERSION = 'v1\.75\.103'/);
 });
 
 test('client waits for the authoritative server broadcast before removing the selected object', () => {

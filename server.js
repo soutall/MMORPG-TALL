@@ -270,7 +270,11 @@ let contextoBroadcastAtual = null;
 const webSocketSendOriginal = WebSocket.prototype.send;
 WebSocket.prototype.send = function (payload) {
     let dados = null;
-    try { dados = typeof payload === 'string' ? JSON.parse(payload) : null; } catch (e) {}
+    const podeSerEventoCombate = typeof payload === 'string' &&
+        /"type"\s*:\s*"(?:action_|skill_|monster_lanceiro_block_hit"|mob_block"|boss_golem_reflexo")/.test(payload);
+    if (podeSerEventoCombate) {
+        try { dados = JSON.parse(payload); } catch (e) {}
+    }
     const ehEventoCombate = !!(dados && (
         (typeof dados.type === 'string' && (dados.type.indexOf('action_') === 0 || dados.type.indexOf('skill_') === 0)) ||
         dados.type === 'monster_lanceiro_block_hit' || dados.type === 'mob_block' ||
@@ -283,6 +287,8 @@ WebSocket.prototype.send = function (payload) {
     return webSocketSendOriginal.apply(this, arguments);
 };
 let players = {};
+let chuvaAtiva = false;
+let intensidadeChuva = 'fraca';
 let playerSockets = {};
 let trades = {}; // { tradeId: { p1: id1, p2: id2, items1: [], items2: [], conf1: false, conf2: false } }
 let tradeCounter = 1;
@@ -966,8 +972,8 @@ const LARGURA_VERDE = 18000, LARGURA_DESERTO = 50000, LARGURA_PANTANO = 58000,
     LARGURA_TILETESTE = 128000, FIM_TILETESTE = 128960, ALTO_TILETESTE = 600,
     ALTO_VERDE = 5400, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 1145, ALTO_SOLARI = 1240, ALTO_CIDADE_PERDIDA = 3920, ALTO_TESTE_VISUAL = 960, ALTO_ZONA_ZERO = 9000, ALTO_CASTELO = 1800;
 
-// SPAWN OFICIAL E ÚNICO: CENTRO EXATO DO CONTINENTE DE GAIA (144000, 14018)
-const MUNDO_SPAWN_X = 144000, MUNDO_SPAWN_Y = 14018;
+// SPAWN OFICIAL E ÚNICO: CONTINENTE DE GAIA (143854, 13897)
+const MUNDO_SPAWN_X = 143854, MUNDO_SPAWN_Y = 13897;
 const CIDADE_SPAWN_X = MUNDO_SPAWN_X, CIDADE_SPAWN_Y = MUNDO_SPAWN_Y;
 const BEMVINDO_SPAWN_X = MUNDO_SPAWN_X, BEMVINDO_SPAWN_Y = MUNDO_SPAWN_Y;
 
@@ -2593,12 +2599,27 @@ function calcularCuraJogador(autorId, curaBase) {
     return Math.round(curaBase * (1 + (getAtr(p, 'divindade') - 1) * 0.05));
 }
 
-function broadcastCritico(x, y, autorId) {
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ type: 'texto_critico', x: x, y: y, autorId: autorId }));
-        }
-    });
+const danosFlutuantesPendentes = new Map();
+let timerFlushDanosFlutuantes = null;
+
+function obterDanoFlutuantePendente(x, y, autorId, alvoId, instanciaId) {
+    const xArredondado = Math.round(x);
+    const yArredondado = Math.round(y);
+    const idAlvo = alvoId || `${Math.round(xArredondado / 32)}:${Math.round(yArredondado / 32)}`;
+    const chave = JSON.stringify([autorId || null, instanciaId || null, idAlvo]);
+    let pendente = danosFlutuantesPendentes.get(chave);
+    if (!pendente) {
+        pendente = { x: xArredondado, y: yArredondado, dano: 0, autorId: autorId || null, critico: false };
+        danosFlutuantesPendentes.set(chave, pendente);
+    }
+    pendente.x = xArredondado;
+    pendente.y = yArredondado;
+    if (!timerFlushDanosFlutuantes) timerFlushDanosFlutuantes = setTimeout(flushDanosFlutuantes, 100);
+    return pendente;
+}
+
+function broadcastCritico(x, y, autorId, alvoId, instanciaId) {
+    obterDanoFlutuantePendente(x, y, autorId, alvoId, instanciaId).critico = true;
 }
 
 function broadcastBesouroDecolagem(id, x, y, ang) {
@@ -5568,8 +5589,10 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem, petInstanc
         let pctVamp = autorP.vampirismoBonus || 0.20;
         aplicarCuraAoJogador(autorId, Math.max(1, Math.round(danoFinal * pctVamp)));
     }
-    if (calc.critico) broadcastCritico(slime.x, slime.y, autorId);
-    if (danoFinal > 0 && autorP && tipoOrigem !== 'pet') broadcastDanoFlut(slime.x, slime.y, danoFinal, autorId);
+    if (calc.critico) broadcastCritico(slime.x, slime.y, autorId, slime.id, slime.instanciaId);
+    if (danoFinal > 0 && autorP && tipoOrigem !== 'pet') {
+        broadcastDanoFlut(slime.x, slime.y, danoFinal, autorId, slime.id, slime.instanciaId);
+    }
     if (danoFinal > 0 && petInstanceId) broadcastDanoPetFlut(slime.x, slime.y, danoFinal, autorId, petInstanceId);
 
     if (slime.hp <= 0) {
@@ -6093,8 +6116,10 @@ function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem, petInsta
         let pctVamp = autorBossP.vampirismoBonus || 0.20;
         aplicarCuraAoJogador(autorId, Math.max(1, Math.round(danoFinal * pctVamp)));
     }
-    if (calc.critico) broadcastCritico(boss.x, boss.y, autorId);
-    if (danoFinal > 0 && autorBossP && tipoOrigem !== 'pet') broadcastDanoFlut(boss.x, boss.y, danoFinal, autorId);
+    if (calc.critico) broadcastCritico(boss.x, boss.y, autorId, boss.id, boss.instanciaId);
+    if (danoFinal > 0 && autorBossP && tipoOrigem !== 'pet') {
+        broadcastDanoFlut(boss.x, boss.y, danoFinal, autorId, boss.id, boss.instanciaId);
+    }
     if (danoFinal > 0 && petInstanceId) broadcastDanoPetFlut(boss.x, boss.y, danoFinal, autorId, petInstanceId);
     return { dano: danoFinal, critico: calc.critico };
 }
@@ -7033,7 +7058,7 @@ function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
         let pctVamp = atk.vampirismoBonus || 0.20;
         aplicarCuraAoJogador(atkId, Math.max(1, Math.round(dano * pctVamp)));
     }
-    broadcastDanoFlut(p2.x, p2.y - 20, dano, atkId);
+    broadcastDanoFlut(p2.x, p2.y - 20, dano, atkId, defId, p2.instanciaId);
     if (p2.hp <= 0) {
         removerEntidadesLordMalakar(p2);
         // DRONEMASTER — PROTOCOLO TITÃ (revive especial em PvP também)
@@ -7563,15 +7588,40 @@ function broadcastDanoLacaio(x, y, dano) {
     });
 }
 
-// Número flutuante de dano REAL aplicado por JOGADOR (monstros/bosses). Pet já tem o seu.
-function broadcastDanoFlut(x, y, dano, autorId) {
-    if (!dano || dano <= 0) return;
-    let msg = { type: 'texto_dano', x: Math.round(x), y: Math.round(y), dano: Math.round(dano), autorId: autorId || null };
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(msg));
+function flushDanosFlutuantes() {
+    timerFlushDanosFlutuantes = null;
+    for (const danoPendente of danosFlutuantesPendentes.values()) {
+        if (danoPendente.critico) {
+            const critico = JSON.stringify({
+                type: 'texto_critico',
+                x: danoPendente.x,
+                y: danoPendente.y,
+                autorId: danoPendente.autorId
+            });
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) client.send(critico);
+            });
         }
-    });
+        if (danoPendente.dano > 0) {
+            const dano = JSON.stringify({
+                type: 'texto_dano',
+                x: danoPendente.x,
+                y: danoPendente.y,
+                dano: danoPendente.dano,
+                autorId: danoPendente.autorId
+            });
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) client.send(dano);
+            });
+        }
+    }
+    danosFlutuantesPendentes.clear();
+}
+
+// Coalesce números visuais por alvo; o dano de jogo já foi aplicado antes desta notificação.
+function broadcastDanoFlut(x, y, dano, autorId, alvoId, instanciaId) {
+    if (!dano || dano <= 0) return;
+    obterDanoFlutuantePendente(x, y, autorId, alvoId, instanciaId).dano += Math.round(dano);
 }
 
 function broadcastDanoPetFlut(x, y, dano, ownerId, petInstanceId) {
@@ -10134,7 +10184,6 @@ setInterval(() => {
         if (player.giroDescontroladoAtivo && player.giroDescontroladoExpiresAt && Date.now() >= player.giroDescontroladoExpiresAt) {
             player.giroDescontroladoTimer = 0;
             player.giroDescontroladoAtivo = false;
-            player.giroDescontroladoCooldown = 300; // 15s de cooldown
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify({ type: 'action_barbaro_giro_end', id: pid }));
@@ -10144,7 +10193,6 @@ setInterval(() => {
             player.giroDescontroladoTimer--;
             if (player.giroDescontroladoTimer <= 0) {
                 player.giroDescontroladoAtivo = false;
-                player.giroDescontroladoCooldown = 300; // 15s de cooldown
                 wss.clients.forEach((client) => {
                     if (client.readyState === WebSocket.OPEN) {
                         client.send(JSON.stringify({ type: 'action_barbaro_giro_end', id: pid }));
@@ -13893,6 +13941,8 @@ if (g.hp <= 0) {
             : tempoMundoAtual;
         client.send(JSON.stringify({
             type: 'world_update',
+            chuvaAtiva: chuvaAtiva,
+            intensidadeChuva: intensidadeChuva,
             tempoMundo: tempoMundoCliente,
             instanciaId: instanciaCliente,
             instanciaTipo: instanciaTipoCliente,
@@ -14289,6 +14339,10 @@ wss.on('connection', (ws) => {
             }
 
             if (data.action === 'guest_login') {
+                if (LOCAL_ID_LOGIN_ENABLED) {
+                    ws.send(JSON.stringify({ type: 'login_erro', mensagem: 'Use o login local por ID neste servidor de teste.' }));
+                    return;
+                }
                 const remoteAddress = String(ws._socket && ws._socket.remoteAddress || 'desconhecido');
                 const resultadoVisitante = autenticarVisitante(ws, data.token, remoteAddress);
                 if (!resultadoVisitante.ok) {
@@ -15768,6 +15822,36 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 }
             }
             // ===== ADMIN: CONTROLE GLOBAL DO CICLO DIA/NOITE =====
+            if (data.action === 'admin_chuva_toggle') {
+                if (!ws.ehAdminCliente) {
+                    console.warn('[ADMIN CHUVA] Tentativa não autorizada rejeitada para:', playerId);
+                    return;
+                }
+                if (typeof data.ativa !== 'boolean') {
+                    ws.send(JSON.stringify({ type: 'admin_chuva_result', ok: false, mensagem: 'Estado da chuva inválido.' }));
+                    return;
+                }
+                chuvaAtiva = data.ativa;
+                console.log('[ADMIN CHUVA]', playerId, chuvaAtiva ? 'chuva ativada' : 'chuva desativada');
+                ws.send(JSON.stringify({ type: 'admin_chuva_result', ok: true, ativa: chuvaAtiva }));
+                return;
+            }
+
+            if (data.action === 'admin_chuva_intensidade') {
+                if (!ws.ehAdminCliente) {
+                    console.warn('[ADMIN CHUVA] Tentativa de alterar intensidade não autorizada para:', playerId);
+                    return;
+                }
+                if (data.intensidade !== 'fraca' && data.intensidade !== 'media' && data.intensidade !== 'tempestade') {
+                    ws.send(JSON.stringify({ type: 'admin_chuva_result', ok: false, mensagem: 'Intensidade de chuva inválida.' }));
+                    return;
+                }
+                intensidadeChuva = data.intensidade;
+                console.log('[ADMIN CHUVA]', playerId, 'intensidade definida:', intensidadeChuva);
+                ws.send(JSON.stringify({ type: 'admin_chuva_result', ok: true, intensidade: intensidadeChuva }));
+                return;
+            }
+
             if (data.action === 'admin_tempo_mundo') {
                 if (!ws.ehAdminCliente || !sistemaDiaNoite) {
                     console.warn('[ADMIN TEMPO] Tentativa não autorizada ou sistema indisponível:', playerId);
@@ -17753,7 +17837,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     p.giroDescontroladoTimer = Math.ceil(duracaoGiroMs / 50);
                     p.giroDescontroladoExpiresAt = Date.now() + duracaoGiroMs;
                     p.giroDescontroladoAtivo = true;
-                    p.giroDescontroladoCooldown = 300; // 15s de cooldown
+                    p.giroDescontroladoCooldown = 300; // Cooldown começa no uso, igual ao cliente.
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'action_barbaro_giro_start', id: playerId, x: p.x + 12, y: p.y + 16, duracaoMs: duracaoGiroMs }));

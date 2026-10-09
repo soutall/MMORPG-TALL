@@ -1122,7 +1122,7 @@
             for (let i = 0; i < visibles.length; i++) {
                 const ch = visibles[i];
                 const imagemChunk = ch.pronto ? ch.canvas : ch.previa;
-                ctx.imageSmoothingEnabled = !ch.pronto;
+                ctx.imageSmoothingEnabled = false;
                 if (imagemChunk) {
                     const margem = TEXEL;
                     ctx.drawImage(imagemChunk, ch.ci * CHUNK - margem, ch.cj * CHUNK - margem, CHUNK + margem * 2, CHUNK + margem * 2);

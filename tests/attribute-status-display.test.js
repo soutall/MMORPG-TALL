@@ -37,5 +37,20 @@ test('Berserker spin damage and skill preview both use a half-damage multiplier'
     assert.match(serverSource, /registrarDanoMonstro\(slime, pid, danoGiro, 'player', undefined, undefined, 0\.5\)/);
     assert.match(serverSource, /registrarDanoBoss\(boss, pid, danoGiro, 'skill', 'player', undefined, undefined, 0\.5\)/);
     assert.match(skillsSource, /id: 'giro_descontrolado'[\s\S]{0,300}danoMultiplicadorBase: 0\.2, danoMultiplicadorFinal: 0\.5/);
-    assert.match(clientSource, /const GAME_VERSION = 'v1\.75\.83'/);
+    assert.match(clientSource, /const GAME_VERSION = 'v1\.75\.103'/);
+});
+
+test('Berserker spin cooldown starts on cast and is not restarted when its 4s duration ends', () => {
+    const start = serverSource.indexOf("if (data.action === 'barbaro_giro_descontrolado')");
+    assert.notEqual(start, -1);
+    const castHandler = serverSource.slice(start, serverSource.indexOf('// ROQUEIRO:', start));
+    assert.match(castHandler, /p\.giroDescontroladoCooldown = 300/);
+
+    const tickStart = serverSource.indexOf('if (player.giroDescontroladoAtivo && player.giroDescontroladoExpiresAt');
+    const tickEnd = serverSource.indexOf('if (player.giroDescontroladoAtivo && (!player.giroDescontroladoExpiresAt', tickStart);
+    assert.notEqual(tickStart, -1);
+    assert.notEqual(tickEnd, -1);
+    const expirationHandler = serverSource.slice(tickStart, tickEnd);
+    assert.doesNotMatch(expirationHandler, /giroDescontroladoCooldown\s*=/,
+        'ending the spin must not add another cooldown on top of the one started on cast');
 });

@@ -38,7 +38,7 @@ test('flashlight direction follows the camera vertical tilt used by the game wor
     assert.ok(diagonalAim.distancia < Math.hypot(100, 100));
 });
 
-test('mobile flashlight follows facing direction unless the second touch is aiming', () => {
+test('mobile flashlight follows facing direction unless a world touch is aiming', () => {
     const state = {
         meuAngulo: Math.PI / 2,
         anguloLanternaMobile: 0,
@@ -55,6 +55,13 @@ test('mobile flashlight follows facing direction unless the second touch is aimi
     const alvoToque = dayNight.obterAlvoLanterna(state, 100, 200, true, 330);
     assert.ok(Math.abs(alvoToque.x - 430) < 1e-9);
     assert.ok(Math.abs(alvoToque.y - 200) < 1e-9);
+
+    dayNight.encerrarMiraLanternaMobile(state);
+    assert.equal(state.lanternaMobileAtiva, false);
+    assert.equal(state.meuAngulo, 0);
+    const alvoDepoisDoToque = dayNight.obterAlvoLanterna(state, 100, 200, true, 330);
+    assert.ok(Math.abs(alvoDepoisDoToque.x - 430) < 1e-9);
+    assert.ok(Math.abs(alvoDepoisDoToque.y - 200) < 1e-9);
 });
 
 test('desktop flashlight remains aimed at the mouse world position', () => {
@@ -73,10 +80,10 @@ test('night lighting draws a reduced player halo and a mouse-aimed fading beam',
     assert.match(source, /function renderizarCicloDiaNoite\(ctx,\s*camX,\s*camY,\s*shakeX,\s*shakeY,\s*zoom,\s*inclinacaoY\)/);
     assert.match(source, /y:\s*\(wy - camY \+ shakeY\)\s*\*\s*zoom\s*\*\s*tiltY/);
     assert.match(html, /renderizarCicloDiaNoite\(ctx,\s*cameraX,\s*cameraY,\s*shakeX,\s*shakeY,\s*\(window\.cameraZoomAtual \|\| ZOOM_CAMERA\),\s*cameraTiltY\)/);
-    assert.match(html, /sistema_dia_noite_cliente\.js\?v=1527/);
+    assert.match(html, /sistema_dia_noite_cliente\.js\?v=1528/);
     assert.match(html, /let joystickTouchId = null; let lanternaTouchId = null/);
     assert.match(html, /function atualizarMiraLanternaTouch\(touch\)/);
     assert.match(html, /window\.lanternaMobileAtiva = true/);
-    assert.match(html, /window\.lanternaMobileAtiva = false/);
-    assert.match(html, /const GAME_VERSION = 'v1\.75\.95'/);
+    assert.match(html, /window\.encerrarMiraLanternaMobile\(window\)/);
+    assert.match(html, /const GAME_VERSION = 'v1\.75\.103'/);
 });

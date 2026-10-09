@@ -157,6 +157,15 @@
         };
     }
 
+    function encerrarMiraLanternaMobile(global) {
+        if (!global) return null;
+        if (Number.isFinite(global.anguloLanternaMobile)) {
+            global.meuAngulo = global.anguloLanternaMobile;
+        }
+        global.lanternaMobileAtiva = false;
+        return global.meuAngulo;
+    }
+
     function recortarFeixeLanterna(ctx, sx, sy, geometria, zoom, forca) {
         var comprimento = geometria.distancia * zoom;
         if (comprimento <= 1) return;
@@ -199,6 +208,8 @@
         if (!tm) return;
         var tiltY = Number.isFinite(inclinacaoY) && inclinacaoY > 0 ? inclinacaoY : 1;
         var escuridao = obterEscuridaoEficaz(tm, global.minhaClasse || global.meuClasse || (global.meuPersonagem && global.meuPersonagem.classe));
+        var intensidadeTrovao = Math.max(0, Math.min(1, Number(global.trovaoIntensidade) || 0));
+        var escuridaoDuranteTrovao = escuridao * (1 - intensidadeTrovao);
 
         // Otimização crucial: Durante pleno dia (escuridao <= 0.005), nada é executado. 0ms overhead!
         if (escuridao <= 0.005) return;
@@ -245,7 +256,7 @@
         }
 
         // Camada principal de escuridão (até 100% de perda de visão na madrugada de 00h às 04h)
-        luzCtx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + Math.min(1.0, escuridao).toFixed(3) + ')';
+        luzCtx.fillStyle = 'rgba(' + r + ',' + g + ',' + b + ',' + Math.min(1.0, escuridaoDuranteTrovao).toFixed(3) + ')';
         luzCtx.fillRect(0, 0, w, h);
 
         // Vinheta Periférica e Efeito de Nebulosidade durante a Noite
@@ -253,14 +264,14 @@
             // Vinheta escura nas bordas do campo de visão
             var vGrad = luzCtx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.32, w / 2, h / 2, Math.max(w, h) * 0.72);
             vGrad.addColorStop(0, 'rgba(0, 0, 0, 0)');
-            vGrad.addColorStop(1, 'rgba(' + r + ',' + g + ',' + b + ',' + (escuridao * 0.22).toFixed(3) + ')');
+            vGrad.addColorStop(1, 'rgba(' + r + ',' + g + ',' + b + ',' + (escuridaoDuranteTrovao * 0.22).toFixed(3) + ')');
             luzCtx.fillStyle = vGrad;
             luzCtx.fillRect(0, 0, w, h);
 
             // Nebulosidade sutil / névoa noturna em suave deriva
             var agora = Date.now();
             var mistTempo = agora * 0.00015;
-            var mistAlpha = Math.min(0.14, (escuridao - 0.25) * 0.28);
+            var mistAlpha = Math.min(0.14, (escuridaoDuranteTrovao - 0.25) * 0.28);
             if (mistAlpha > 0) {
                 for (var mi = 0; mi < 3; mi++) {
                     var mx = ((mistTempo * 70 + mi * (w * 0.45)) % (w + 400)) - 200;
@@ -538,6 +549,7 @@
     global.isLuzMapaAtiva = isLuzMapaAtiva;
     global.obterFatorLuzDiaNoite = obterFatorLuzDiaNoite;
     global.isEfeitoLuz = isEfeitoLuz;
+    global.encerrarMiraLanternaMobile = encerrarMiraLanternaMobile;
 
     if (typeof module !== 'undefined' && module.exports) {
         module.exports = {
@@ -548,7 +560,8 @@
             obterFatorLuzDiaNoite: obterFatorLuzDiaNoite,
             isEfeitoLuz: isEfeitoLuz,
             calcularFeixeLanterna: calcularFeixeLanterna,
-            obterAlvoLanterna: obterAlvoLanterna
+            obterAlvoLanterna: obterAlvoLanterna,
+            encerrarMiraLanternaMobile: encerrarMiraLanternaMobile
         };
     }
 

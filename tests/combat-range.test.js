@@ -47,7 +47,7 @@ test('basic-attack search ranges match between client and server, except unchang
         assert.match(serverSource, new RegExp("p\\.classe === '" + className + "'\\) return " + range + ";"));
     }
     assert.match(serverSource, /function alcanceAtaqueBasicoClasse\(p\) \{\s*if \(!p\) return 363;/);
-    assert.match(clientSource, /const GAME_VERSION = 'v1\.75\.94'/);
+    assert.match(clientSource, /const GAME_VERSION = 'v1\.75\.103'/);
 });
 
 test('basic attacks validate their target before consuming cooldown', () => {

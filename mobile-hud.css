@@ -446,6 +446,12 @@
         box-shadow: 0 2px 6px rgba(0, 0, 0, 0.7), inset 0 0 4px rgba(0, 0, 0, 0.6) !important;
     }
 
+    #hud-pocoes button,
+    .actions .btn-action,
+    #util-buttons .btn-util {
+        touch-action: none !important;
+    }
+
     #btn-pocao-hp {
         border-color: #c0392b !important;
         box-shadow: 0 0 8px rgba(231, 76, 60, 0.4), inset 0 0 4px rgba(0,0,0,0.8) !important;

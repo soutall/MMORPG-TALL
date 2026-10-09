@@ -61,9 +61,9 @@ test('all prepared icons are valid square PNGs and the version/cache references 
         assert.equal(image.readUInt32BE(16), image.readUInt32BE(20), `${icon.name} must be square`);
         assert.ok(image.readUInt32BE(16) > 0);
     }
-    assert.match(html, /GAME_VERSION = 'v1\.75\.50'/);
-    assert.match(html, /skills\.js\?v=156/);
+    assert.match(html, /GAME_VERSION = 'v1\.75\.103'/);
+    assert.match(html, /skills\.js\?v=157/);
     assert.match(html, /skills\.css\?v=149/);
-    assert.match(html, /style\.css\?v=254/);
-    assert.match(html, /mobile-hud\.css\?v=9/);
+    assert.match(html, /style\.css\?v=257/);
+    assert.match(html, /mobile-hud\.css\?v=11/);
 });
