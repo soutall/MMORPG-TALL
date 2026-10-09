@@ -24,5 +24,5 @@ test('HUD resolves Malakar to his supplied portrait', () => {
 test('all other class renderers are visually enlarged around the feet without scaling Malakar', () => {
     assert.match(html, /ctx\.save\(\);\s*if \(classeJogador !== 'lord_malakar'\) \{\s*const escalaVisualClasse = 1\.3;/);
     assert.match(html, /ctx\.scale\(escalaVisualClasse, escalaVisualClasse\)/);
-    assert.match(html, /ctx\.restore\(\);\s*if \(classeJogador === 'lord_malakar' && window\.desenharLordMalakarBuff\)/);
+    assert.match(html, /ctx\.restore\(\);[\s\S]{0,700}if \(classeJogador === 'lord_malakar' && window\.desenharLordMalakarBuff\)/);
 });

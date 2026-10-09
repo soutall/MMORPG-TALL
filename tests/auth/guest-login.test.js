@@ -9,6 +9,7 @@ const root = path.join(__dirname, '..', '..');
 const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
 const css = fs.readFileSync(path.join(root, 'style.css'), 'utf8');
+const introCss = fs.readFileSync(path.join(root, 'intro.css'), 'utf8');
 
 function extractFunction(source, name) {
     const start = source.indexOf(`function ${name}(`);
@@ -105,4 +106,10 @@ test('login page exposes the orange visitor button and shifts Google controls be
     assert.match(css, /#google-login-box\s*\{\s*margin-top:\s*clamp\(/);
     assert.match(css, /@media \(max-width: 600px\)[\s\S]*?#google-login-box\s*\{/);
     assert.match(css, /#guest-login-button\s*\{[^}]*linear-gradient\(135deg, #f28c28, #dc5b16\)/);
+});
+
+test('mobile landscape keeps login controls in one viewport and fits the studio intro logo', () => {
+    assert.match(css, /@media \(max-width: 950px\) and \(max-height: 520px\)[\s\S]*?#login-screen\s*\{[^}]*overflow:\s*hidden/);
+    assert.match(css, /@media \(max-width: 950px\) and \(max-height: 520px\)[\s\S]*?#guest-login-button\s*\{[^}]*min-height:\s*36px/);
+    assert.match(introCss, /@media \(max-width: 900px\)[\s\S]*?\.intro-estudio-nome\s*\{[^}]*font-size:\s*clamp\(15px,\s*4\.2vw,\s*24px\)[^}]*letter-spacing:/);
 });

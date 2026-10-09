@@ -42,6 +42,8 @@ test('monster steering follows an open route around an editor collision', () => 
         Date,
         velocidadeMovimentoMonstro: velocidade => velocidade * 1.25,
         podeAndar: (x, y) => !blocksObstacle(x, y),
+        posicaoNoNucleoCidade: () => false,
+        MONSTER_COLLISION_RADIUS: 14,
         petBloqueiaMonstro: () => false
     });
     const move = vm.runInContext(`(${functionSource('moverMonstroDirecionalComDesvio')})`, context);

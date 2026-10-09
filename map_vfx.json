@@ -513,7 +513,7 @@
     "tipo": "lampada",
     "escala": 1,
     "intensidade": 1,
-    "raio": 110,
+    "raio": 50,
     "cor": "#ffd166"
   },
   {
@@ -578,8 +578,86 @@
     "y": 14232,
     "tipo": "lampada",
     "escala": 1,
-    "intensidade": 1,
+    "intensidade": 0.6,
     "raio": 115,
     "cor": "#ffd166"
+  },
+  {
+    "id": "vfx_mv1iw1vl",
+    "mapa": "mundo",
+    "x": 143506,
+    "y": 13802,
+    "tipo": "holofote",
+    "escala": 1,
+    "intensidade": 0.5,
+    "raio": 80,
+    "cor": "#fff3b0",
+    "direcao": "se",
+    "camada": "frente"
+  },
+  {
+    "id": "vfx_mv1iwvfn",
+    "mapa": "mundo",
+    "x": 144276,
+    "y": 13848,
+    "tipo": "lampada",
+    "escala": 0.5,
+    "intensidade": 1,
+    "raio": 45,
+    "cor": "#ffd166",
+    "direcao": "n",
+    "camada": "atras"
+  },
+  {
+    "id": "vfx_mv1ixduv",
+    "mapa": "mundo",
+    "x": 144434,
+    "y": 13859,
+    "tipo": "lampada",
+    "escala": 0.4,
+    "intensidade": 0.6,
+    "raio": 80,
+    "cor": "#ffd166",
+    "direcao": "n",
+    "camada": "frente"
+  },
+  {
+    "id": "vfx_mv1j15an",
+    "mapa": "mundo",
+    "x": 144369,
+    "y": 13855,
+    "tipo": "brasa",
+    "escala": 0.5,
+    "intensidade": 1,
+    "raio": 80,
+    "cor": "#ff9f43",
+    "direcao": "n",
+    "camada": "frente"
+  },
+  {
+    "id": "vfx_mv1j1sf2",
+    "mapa": "mundo",
+    "x": 144377,
+    "y": 13728,
+    "tipo": "fumaça-chaminé",
+    "escala": 0.6,
+    "intensidade": 1,
+    "raio": 80,
+    "cor": "#b4b5bb",
+    "direcao": "n",
+    "camada": "atras"
+  },
+  {
+    "id": "vfx_mv1j2a3k",
+    "mapa": "mundo",
+    "x": 143945,
+    "y": 13718,
+    "tipo": "fumaça",
+    "escala": 0.8,
+    "intensidade": 1,
+    "raio": 80,
+    "cor": "#aab7b8",
+    "direcao": "n",
+    "camada": "frente"
   }
 ]

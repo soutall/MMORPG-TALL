@@ -70,9 +70,9 @@ test('Kenney attribution and CC0 license are documented locally and in the Summo
 });
 
 test('game and asset cache versions are advanced', () => {
-    assert.match(html, /GAME_VERSION = 'v1\.75\.50'/);
-    assert.match(html, /skills\.js\?v=156/);
+    assert.match(html, /GAME_VERSION = 'v1\.75\.103'/);
+    assert.match(html, /skills\.js\?v=157/);
     assert.match(html, /skills\.css\?v=149/);
-    assert.match(html, /style\.css\?v=254/);
-    assert.match(html, /mobile-hud\.css\?v=9/);
+    assert.match(html, /style\.css\?v=260/);
+    assert.match(html, /mobile-hud\.css\?v=11/);
 });

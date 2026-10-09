@@ -187,7 +187,7 @@ function carregarConfigVisual() {
     // Padrão: as barras mostram PORCENTAGEM. 'max' mostra valor/máximo e
     // 'off' some com o texto. mostrarFpsPing = false esconde as etiquetas de
     // status e FPS no topo. qualidadeGrafica: administra a densidade de VFX.
-    var padrao = { hpBar: 'pct', mpBar: 'pct', staminaBar: 'pct', xpBar: 'pct', mostrarFpsPing: true, tela: 'fullscreen', qualidadeGrafica: 'alta' };
+    var padrao = { hpBar: 'pct', mpBar: 'pct', staminaBar: 'pct', xpBar: 'pct', mostrarFpsPing: true, tela: 'fullscreen', qualidadeGrafica: 'alta', sombrasMapa: 'on' };
     window.configVisual = padrao;
     try {
         var s = localStorage.getItem(chaveVisual());
@@ -201,6 +201,9 @@ function carregarConfigVisual() {
     window.graficosQualidade = window.obterQualidadeGraficaAtual();
     if (window.EngineOtimizador && typeof window.EngineOtimizador.setQualidade === 'function') {
         window.EngineOtimizador.setQualidade(window.graficosQualidade);
+    }
+    if (typeof window.SOMBRAS_MAPA_CONFIG === 'object') {
+        window.SOMBRAS_MAPA_CONFIG.enabled = (window.configVisual.sombrasMapa !== 'off');
     }
 }
 
@@ -249,6 +252,15 @@ window.mudarVisualXpBar = function (val) {
     window.configVisual.xpBar = val;
     salvarConfigVisual();
     refrescarBarrasHud();
+};
+
+window.mudarSombrasMapa = function (val) {
+    window.configVisual = window.configVisual || {};
+    window.configVisual.sombrasMapa = val;
+    salvarConfigVisual();
+    if (typeof window.SOMBRAS_MAPA_CONFIG === 'object') {
+        window.SOMBRAS_MAPA_CONFIG.enabled = (val === 'on');
+    }
 };
 
 window.mudarVisualStaminaBar = function (val) {
@@ -426,6 +438,8 @@ function preencherAbaVisual() {
     if (sf) sf.value = (cfg.mostrarFpsPing === false) ? 'nao' : 'sim';
     var sq = document.getElementById("vis-grafica-qualidade");
     if (sq) sq.value = window.obterQualidadeGraficaAtual();
+    var ssm = document.getElementById("vis-sombras-mapa");
+    if (ssm) ssm.value = cfg.sombrasMapa || 'on';
     atualizarSeletorTela();
 }
 

@@ -62,5 +62,5 @@ test('sunlight shadow fades near dawn and dusk and is absent at night', () => {
 test('the solar shadow prototype stays disabled in the client', () => {
     assert.doesNotMatch(clientSource, /sombra-solar\.js/);
     assert.doesNotMatch(clientSource, /window\.desenharSombraSolarJogador\(/);
-    assert.match(clientSource, /const GAME_VERSION = 'v1\.75\.95'/);
+    assert.match(clientSource, /const GAME_VERSION = 'v1\.75\.103'/);
 });

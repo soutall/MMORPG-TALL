@@ -11,6 +11,7 @@ const { verificarGoogleCredential } = require('./google-auth.js');
 const { executeAttack: executeSharedMonsterAttack } = require('./sistemas/pets/monster_combat_executor.js');
 const lordMalakar = require('./sistemas/lord_malakar.js');
 const progressaoAtributos = require('./sistemas/progressao_atributos.js');
+const cicloChuva = require('./sistemas/ciclo_chuva.js').criarCicloChuva();
 const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || '683484909196-v0a7ed8fthbh7imsk61le98jf17gaksu.apps.googleusercontent.com').trim();
 const LOCAL_ID_LOGIN_ENABLED = process.env.NODE_ENV !== 'production' && process.env.LOCAL_ID_LOGIN_ENABLED === '1';
 const LOCAL_LASSO_DIAGNOSTICS = process.env.LOCAL_LASSO_DIAGNOSTICS === '1';
@@ -270,7 +271,11 @@ let contextoBroadcastAtual = null;
 const webSocketSendOriginal = WebSocket.prototype.send;
 WebSocket.prototype.send = function (payload) {
     let dados = null;
-    try { dados = typeof payload === 'string' ? JSON.parse(payload) : null; } catch (e) {}
+    const podeSerEventoCombate = typeof payload === 'string' &&
+        /"type"\s*:\s*"(?:action_|skill_|monster_lanceiro_block_hit"|mob_block"|boss_golem_reflexo")/.test(payload);
+    if (podeSerEventoCombate) {
+        try { dados = JSON.parse(payload); } catch (e) {}
+    }
     const ehEventoCombate = !!(dados && (
         (typeof dados.type === 'string' && (dados.type.indexOf('action_') === 0 || dados.type.indexOf('skill_') === 0)) ||
         dados.type === 'monster_lanceiro_block_hit' || dados.type === 'mob_block' ||
@@ -283,6 +288,18 @@ WebSocket.prototype.send = function (payload) {
     return webSocketSendOriginal.apply(this, arguments);
 };
 let players = {};
+let chuvaAtiva = false;
+let intensidadeChuva = 'fraca';
+function atualizarCicloChuva() {
+    const estadoChuva = cicloChuva.atualizar(Date.now());
+    if (chuvaAtiva !== estadoChuva.chuvaAtiva || intensidadeChuva !== estadoChuva.intensidade) {
+        chuvaAtiva = estadoChuva.chuvaAtiva;
+        intensidadeChuva = estadoChuva.intensidade;
+        console.log('[CLIMA] Chuva', chuvaAtiva ? 'iniciada:' : 'encerrada;', chuvaAtiva ? intensidadeChuva : 'próxima ocorrência aleatória');
+    }
+}
+const timerCicloChuva = setInterval(atualizarCicloChuva, 1000);
+if (typeof timerCicloChuva.unref === 'function') timerCicloChuva.unref();
 let playerSockets = {};
 let trades = {}; // { tradeId: { p1: id1, p2: id2, items1: [], items2: [], conf1: false, conf2: false } }
 let tradeCounter = 1;
@@ -341,10 +358,516 @@ const tutorialDemonioPorPlayer = {};
 
 // Registro base de NPCs interativos. Novos NPCs entram aqui sem criar lógica nova no cliente.
 const NPCS_INTERATIVOS = {
-    tutorial_guia: { id: 'tutorial_guia', nome: 'Guia', x: TUTORIAL_BEMVINDO_NPC.x, y: TUTORIAL_BEMVINDO_NPC.y, mapa: 'bemvindo', raioInteracao: 125, dialogo: 'Olá, aventureiro! Posso te ajudar a conhecer este mundo.' }
+    tutorial_guia: { id: 'tutorial_guia', nome: 'Guia', x: TUTORIAL_BEMVINDO_NPC.x, y: TUTORIAL_BEMVINDO_NPC.y, mapa: 'bemvindo', raioInteracao: 125, dialogo: 'Olá, aventureiro! Posso te ajudar a conhecer este mundo.' },
+    loki_forja: {
+        id: 'loki_forja', nome: 'Loki', x: 144238, y: 13894, mapa: 'mundo',
+        raioInteracao: 105, servico: 'forja', spriteDir: 'ferreiro',
+        iconeInteracao: 'ferreiro.png', animacao: 'custom/tool_hammer/down',
+        patrulha: [], velocidadePatrulha: 90, patrulhaInicioEm: 0, velocidadeFrames: 10,
+        sequenciaAnimacoes: [], animacaoConversa: '',
+        rotasProgramadas: [], intervalosDesativados: []
+    },
+    zenia_pocoes: {
+        id: 'zenia_pocoes', nome: 'Zenia', x: 144500, y: 13894, mapa: 'mundo',
+        raioInteracao: 105, servico: 'potion_shop', spriteDir: 'npc-potion',
+        iconeInteracao: 'HP-lvl1.png', animacao: 'standard/idle/down',
+        patrulha: [], velocidadePatrulha: 90, patrulhaInicioEm: 0, velocidadeFrames: 10,
+        sequenciaAnimacoes: [], animacaoConversa: '',
+        rotasProgramadas: [], intervalosDesativados: []
+    }
 };
-function npcsParaMapa(mapa) {
-    return Object.values(NPCS_INTERATIVOS).filter(n => n.mapa === mapa).map(n => ({ ...n }));
+const NPC_CONFIG_FILE = path.join(__dirname, 'npcs_interativos.json');
+const ZENIA_POTION_SHOP = {
+    hp: { nome: 'Poção de Vida I', subtipo: 'pocao_hp', tipo: 'hp', nivel: 1, preco: 10 },
+    mp: { nome: 'Poção de Mana I', subtipo: 'pocao_mp', tipo: 'mp', nivel: 1, preco: 50 }
+};
+const NPC_SPRITES_DIRS = {
+    ferreiro: path.join(__dirname, 'sprites', 'NPC', 'ferreiro'),
+    'npc-potion': path.join(__dirname, 'sprites', 'NPC', 'npc-potion')
+};
+
+function npcAnimacoesDisponiveis(spriteDir) {
+    const animacoes = [];
+    const raizSprites = NPC_SPRITES_DIRS[spriteDir];
+    if (!raizSprites) return animacoes;
+    for (const categoria of ['standard', 'custom']) {
+        const pastaCategoria = path.join(raizSprites, categoria);
+        if (!fs.existsSync(pastaCategoria)) continue;
+        for (const animacao of fs.readdirSync(pastaCategoria, { withFileTypes: true })) {
+            if (!animacao.isDirectory()) continue;
+            const pastaAnimacao = path.join(pastaCategoria, animacao.name);
+            for (const direcao of fs.readdirSync(pastaAnimacao, { withFileTypes: true })) {
+                if (!direcao.isDirectory()) continue;
+                const pastaDirecao = path.join(pastaAnimacao, direcao.name);
+                const quadros = fs.readdirSync(pastaDirecao)
+                    .map(nome => /^([1-9]\d*)\.png$/i.exec(nome))
+                    .filter(Boolean)
+                    .map(match => Number(match[1]))
+                    .sort((a, b) => a - b);
+                if (!quadros.length || quadros.some((numero, indice) => numero !== indice + 1)) continue;
+                const key = categoria + '/' + animacao.name + '/' + direcao.name;
+                animacoes.push({
+                    id: key, nome: categoria + ' / ' + animacao.name + ' / ' + direcao.name,
+                    quadros: quadros.length, spriteDir: spriteDir
+                });
+            }
+        }
+    }
+    return animacoes;
+}
+
+const NPC_ANIMACOES_DISPONIVEIS = Object.keys(NPC_SPRITES_DIRS)
+    .flatMap(spriteDir => npcAnimacoesDisponiveis(spriteDir));
+
+function npcAnimacaoDisponivel(npc, animacao) {
+    return NPC_ANIMACOES_DISPONIVEIS.find(item =>
+        item.spriteDir === (npc.spriteDir || 'ferreiro') && item.id === animacao);
+}
+
+function minutosDoHorario(horario) {
+    const match = /^([01]\d|2[0-3]):([0-5]\d)$/.exec(String(horario || ''));
+    return match ? Number(match[1]) * 60 + Number(match[2]) : null;
+}
+
+function horariosSeSobrepoem(a, b) {
+    const aInicio = minutosDoHorario(a.inicio), aFim = minutosDoHorario(a.fim);
+    const bInicio = minutosDoHorario(b.inicio), bFim = minutosDoHorario(b.fim);
+    const intervalos = function (inicio, fim) {
+        return inicio < fim ? [[inicio, fim]] : [[inicio, 1440], [0, fim]];
+    };
+    return intervalos(aInicio, aFim).some(([ai, af]) =>
+        intervalos(bInicio, bFim).some(([bi, bf]) => ai < bf && bi < af));
+}
+
+function npcConfigValido(npcId, config) {
+    const base = NPCS_INTERATIVOS[npcId];
+    const mapa = base && MAPAS_REGISTRY[base.mapa];
+    if (!base || !mapa || !config || typeof config !== 'object') return null;
+    const x = Number(config.x);
+    const y = Number(config.y);
+    const animacao = String(config.animacao || base.animacao);
+    const patrulha = config.patrulha === undefined ? (base.patrulha || []) : config.patrulha;
+    const velocidadePatrulha = Number(config.velocidadePatrulha === undefined ? base.velocidadePatrulha : config.velocidadePatrulha);
+    const velocidadeFrames = Number(config.velocidadeFrames === undefined ? (base.velocidadeFrames || 10) : config.velocidadeFrames);
+    const patrulhaInicioEm = Number(config.patrulhaInicioEm === undefined ? (base.patrulhaInicioEm || 0) : config.patrulhaInicioEm);
+    const sequenciaAnimacoes = config.sequenciaAnimacoes === undefined ? (base.sequenciaAnimacoes || []) : config.sequenciaAnimacoes;
+    const animacaoConversa = String(config.animacaoConversa === undefined ? (base.animacaoConversa || '') : config.animacaoConversa);
+    const rotasProgramadas = config.rotasProgramadas === undefined ? (base.rotasProgramadas || []) : config.rotasProgramadas;
+    const intervalosDesativados = config.intervalosDesativados === undefined ? (base.intervalosDesativados || []) : config.intervalosDesativados;
+    const animacaoValida = !!npcAnimacaoDisponivel(base, animacao);
+    const animacaoConversaValida = animacaoConversa === '' || !!npcAnimacaoDisponivel(base, animacaoConversa);
+    if (!Number.isFinite(x) || !Number.isFinite(y) ||
+        x < mapa.x0 || x >= mapa.x0 + mapa.w ||
+        y < (mapa.y0 || 0) || y >= (mapa.y0 || 0) + mapa.h ||
+        !animacaoValida || !animacaoConversaValida ||
+        !Array.isArray(sequenciaAnimacoes) || sequenciaAnimacoes.length > 16 ||
+        !Array.isArray(patrulha) || patrulha.length > 250 || patrulha.length === 1 ||
+        !Number.isFinite(velocidadePatrulha) || velocidadePatrulha < 20 || velocidadePatrulha > 250 ||
+        !Number.isFinite(velocidadeFrames) || velocidadeFrames < 1 || velocidadeFrames > 30 ||
+        !Number.isFinite(patrulhaInicioEm) || patrulhaInicioEm < 0 ||
+        !Array.isArray(rotasProgramadas) || rotasProgramadas.length > 16 ||
+        !Array.isArray(intervalosDesativados) || intervalosDesativados.length > 16) return null;
+    const pontos = [];
+    for (const ponto of patrulha) {
+        const px = Number(ponto && ponto.x);
+        const py = Number(ponto && ponto.y);
+        if (!Number.isFinite(px) || !Number.isFinite(py) ||
+            px < mapa.x0 || px >= mapa.x0 + mapa.w ||
+            py < (mapa.y0 || 0) || py >= (mapa.y0 || 0) + mapa.h) return null;
+        pontos.push({ x: px, y: py });
+    }
+    const sequenciaValida = [];
+    for (const etapa of sequenciaAnimacoes) {
+        const idAnimacao = String(etapa && etapa.animacao || '');
+        const duracaoMs = Number(etapa && etapa.duracaoMs);
+        if (!npcAnimacaoDisponivel(base, idAnimacao) ||
+            !Number.isFinite(duracaoMs) || duracaoMs < 500 || duracaoMs > 30000) return null;
+        sequenciaValida.push({
+            animacao: idAnimacao,
+            duracaoMs: duracaoMs,
+            loop: etapa.loop !== false
+        });
+    }
+    const horarios = [];
+    const rotasValidas = [];
+    const intervalosValidos = [];
+    for (const rota of rotasProgramadas) {
+        const id = String(rota && rota.id || '');
+        const nome = String(rota && rota.nome || '').trim();
+        const inicio = String(rota && rota.inicio || '');
+        const fim = String(rota && rota.fim || '');
+        const velocidadeRota = Number(rota && rota.velocidadePatrulha);
+        const pontosRota = rota && rota.patrulha;
+        if (!/^agenda_[a-z0-9_-]{1,48}$/i.test(id) || !nome || nome.length > 48 ||
+            minutosDoHorario(inicio) === null || minutosDoHorario(fim) === null ||
+            minutosDoHorario(inicio) === minutosDoHorario(fim) ||
+            !Number.isFinite(velocidadeRota) || velocidadeRota < 20 || velocidadeRota > 250 ||
+            !Array.isArray(pontosRota) || pontosRota.length > 250 || pontosRota.length === 1) return null;
+        const pontosValidos = [];
+        for (const ponto of pontosRota) {
+            const px = Number(ponto && ponto.x), py = Number(ponto && ponto.y);
+            if (!Number.isFinite(px) || !Number.isFinite(py) ||
+                px < mapa.x0 || px >= mapa.x0 + mapa.w ||
+                py < (mapa.y0 || 0) || py >= (mapa.y0 || 0) + mapa.h) return null;
+            pontosValidos.push({ x: px, y: py });
+        }
+        const janela = { id: id, nome: nome, inicio: inicio, fim: fim };
+        if (horarios.some(outra => horariosSeSobrepoem(janela, outra))) return null;
+        horarios.push(janela);
+        rotasValidas.push(Object.assign(janela, {
+            patrulha: pontosValidos,
+            velocidadePatrulha: velocidadeRota
+        }));
+    }
+    for (const intervalo of intervalosDesativados) {
+        const id = String(intervalo && intervalo.id || '');
+        const nome = String(intervalo && intervalo.nome || '').trim();
+        const inicio = String(intervalo && intervalo.inicio || '');
+        const fim = String(intervalo && intervalo.fim || '');
+        if (!/^dormir_[a-z0-9_-]{1,48}$/i.test(id) || !nome || nome.length > 48 ||
+            minutosDoHorario(inicio) === null || minutosDoHorario(fim) === null ||
+            minutosDoHorario(inicio) === minutosDoHorario(fim)) return null;
+        const janela = { id: id, nome: nome, inicio: inicio, fim: fim };
+        if (horarios.some(outra => horariosSeSobrepoem(janela, outra))) return null;
+        horarios.push(janela);
+        intervalosValidos.push(janela);
+    }
+    return {
+        x: x, y: y, animacao: animacao, patrulha: pontos,
+        velocidadePatrulha: velocidadePatrulha, velocidadeFrames: velocidadeFrames,
+        patrulhaInicioEm: patrulhaInicioEm,
+        sequenciaAnimacoes: sequenciaValida, animacaoConversa: animacaoConversa,
+        rotasProgramadas: rotasValidas, intervalosDesativados: intervalosValidos
+    };
+}
+
+function carregarNpcConfigs() {
+    let configs;
+    try {
+        configs = JSON.parse(fs.readFileSync(NPC_CONFIG_FILE, 'utf8'));
+    } catch (err) {
+        if (err.code === 'ENOENT') return;
+        console.error('Erro ao carregar configuração dos NPCs:', err.message);
+        return;
+    }
+    if (!configs || typeof configs !== 'object' || Array.isArray(configs)) {
+        console.error('Configuração dos NPCs inválida; os valores padrão serão usados.');
+        return;
+    }
+    for (const [npcId, config] of Object.entries(configs)) {
+        const validado = npcConfigValido(npcId, config);
+        if (!validado) {
+            console.error('Configuração inválida ignorada para o NPC:', npcId);
+            continue;
+        }
+        Object.assign(NPCS_INTERATIVOS[npcId], validado);
+    }
+}
+
+carregarNpcConfigs();
+
+const NPC_PATRULHA_CACHE = new WeakMap();
+
+function dataLocalKey(data) {
+    return data.getFullYear() + '-' + String(data.getMonth() + 1).padStart(2, '0') + '-' +
+        String(data.getDate()).padStart(2, '0');
+}
+
+function horarioNpcAtivo(janela, agora) {
+    const inicio = minutosDoHorario(janela.inicio), fim = minutosDoHorario(janela.fim);
+    if (inicio === null || fim === null || inicio === fim) return false;
+    const minutoAtual = agora.getHours() * 60 + agora.getMinutes();
+    return inicio < fim
+        ? minutoAtual >= inicio && minutoAtual < fim
+        : minutoAtual >= inicio || minutoAtual < fim;
+}
+
+function npcAgendaAtual(npc, agora) {
+    const instante = new Date(agora);
+    const intervalos = npc.intervalosDesativados || [];
+    const desativado = intervalos.find(janela => horarioNpcAtivo(janela, instante));
+    if (desativado) return { desativado: true, janela: desativado };
+    const rotas = npc.rotasProgramadas || [];
+    const rota = rotas.find(janela => horarioNpcAtivo(janela, instante));
+    if (!rota) return null;
+    const inicioMinutos = minutosDoHorario(rota.inicio);
+    const agoraMinutos = instante.getHours() * 60 + instante.getMinutes();
+    const inicioData = new Date(instante);
+    inicioData.setHours(0, 0, 0, 0);
+    if (inicioMinutos > agoraMinutos) inicioData.setDate(inicioData.getDate() - 1);
+    inicioData.setMinutes(inicioMinutos);
+    return {
+        rota: rota,
+        inicioMs: inicioData.getTime(),
+        dataKey: dataLocalKey(inicioData)
+    };
+}
+
+function npcRotaPausar(npc, agora) {
+    if (!npc.conversasAtivas || npc.conversasAtivas.size > 0 || !npc.conversaInicioEm) return;
+    if (npc.conversaPauseKey) {
+        npc.pausasPorRota = npc.pausasPorRota || {};
+        npc.pausasPorRota[npc.conversaPauseKey] =
+            (npc.pausasPorRota[npc.conversaPauseKey] || 0) + Math.max(0, agora - npc.conversaInicioEm);
+    }
+    npc.conversaInicioEm = 0;
+    npc.conversaAte = 0;
+    npc.conversaPauseKey = '';
+    npc.conversaPose = null;
+}
+
+function npcRemoverConversasExpiradas(npc, agora) {
+    if (!npc.conversasAtivas) return;
+    for (const [idJogador, expiracao] of npc.conversasAtivas) {
+        if (expiracao <= agora) npc.conversasAtivas.delete(idJogador);
+    }
+    npcRotaPausar(npc, agora);
+}
+
+function npcCacheRota(pontos) {
+    let cache = NPC_PATRULHA_CACHE.get(pontos);
+    if (cache) return cache;
+    const segmentos = [];
+    let distanciaTotal = 0;
+    for (let i = 0; i < pontos.length; i++) {
+        const atual = pontos[i], proximo = pontos[(i + 1) % pontos.length];
+        const dx = proximo.x - atual.x, dy = proximo.y - atual.y;
+        const distancia = Math.hypot(dx, dy);
+        if (distancia <= 0) continue;
+        distanciaTotal += distancia;
+        segmentos.push({
+            x: atual.x, y: atual.y, dx: dx, dy: dy,
+            fim: distanciaTotal,
+            direcao: Math.abs(dx) >= Math.abs(dy)
+                ? (dx >= 0 ? 'right' : 'left')
+                : (dy >= 0 ? 'down' : 'up')
+        });
+    }
+    cache = { pontos: pontos, segmentos: segmentos, distanciaTotal: distanciaTotal };
+    NPC_PATRULHA_CACHE.set(pontos, cache);
+    return cache;
+}
+
+function salvarNpcConfigs(configs) {
+    const temporario = NPC_CONFIG_FILE + '.tmp';
+    try {
+        fs.writeFileSync(temporario, JSON.stringify(configs, null, 2), 'utf8');
+        fs.renameSync(temporario, NPC_CONFIG_FILE);
+        return true;
+    } catch (err) {
+        console.error('Erro ao salvar configuração dos NPCs:', err.message);
+        try { if (fs.existsSync(temporario)) fs.unlinkSync(temporario); } catch (cleanupError) {
+            console.error('Erro ao remover arquivo temporário de NPCs:', cleanupError.message);
+        }
+        return false;
+    }
+}
+
+function npcPoseNaDistancia(cache, distanciaPercorrida) {
+    let inicioBusca = 0, fimBusca = cache.segmentos.length - 1;
+    while (inicioBusca < fimBusca) {
+        const meio = (inicioBusca + fimBusca) >> 1;
+        if (distanciaPercorrida <= cache.segmentos[meio].fim) fimBusca = meio;
+        else inicioBusca = meio + 1;
+    }
+    const segmento = cache.segmentos[inicioBusca];
+    const inicioSegmento = inicioBusca === 0 ? 0 : cache.segmentos[inicioBusca - 1].fim;
+    const progresso = (distanciaPercorrida - inicioSegmento) / (segmento.fim - inicioSegmento);
+    return {
+        x: segmento.x + segmento.dx * progresso,
+        y: segmento.y + segmento.dy * progresso,
+        movendo: true,
+        direcao: segmento.direcao
+    };
+}
+
+function npcPoseAtual(npc, agora) {
+    const animacaoParada = npc.animacao || 'standard/idle/down';
+    npcRemoverConversasExpiradas(npc, agora);
+    const agenda = npcAgendaAtual(npc, agora);
+    if (agenda && agenda.desativado) {
+        return { x: npc.x, y: npc.y, movendo: false, desativado: true, direcao: 'down' };
+    }
+    const rotaProgramada = agenda && agenda.rota;
+    const possuiAgendaRota = Array.isArray(npc.rotasProgramadas) && npc.rotasProgramadas.length > 0;
+    const pontos = rotaProgramada
+        ? rotaProgramada.patrulha
+        : (possuiAgendaRota ? [] : npc.patrulha);
+    const velocidadePatrulha = rotaProgramada
+        ? rotaProgramada.velocidadePatrulha
+        : (npc.velocidadePatrulha || 90);
+    const inicioRota = rotaProgramada
+        ? agenda.inicioMs
+        : (Number(npc.patrulhaInicioEm) || agora);
+    const chavePausa = rotaProgramada
+        ? agenda.dataKey + ':' + rotaProgramada.id
+        : 'base';
+    if (!Array.isArray(pontos) || pontos.length < 2) {
+        const poseParada = {
+            x: npc.x, y: npc.y, movendo: false,
+            direcao: animacaoParada.split('/').pop(),
+            chavePausa: chavePausa
+        };
+        if (npc.conversaInicioEm && npc.conversaAte > agora && npc.conversaPose) {
+            poseParada.x = npc.conversaPose.x;
+            poseParada.y = npc.conversaPose.y;
+            poseParada.direcao = 'down';
+            poseParada.animacaoAtual = npc.animacaoConversa || 'standard/idle/down';
+            poseParada.animacaoInicioEm = npc.conversaInicioEm;
+            poseParada.chavePausa = npc.conversaPauseKey || chavePausa;
+        }
+        return poseParada;
+    }
+    const cache = npcCacheRota(pontos);
+    if (!Number.isFinite(cache.distanciaTotal) || cache.distanciaTotal <= 0) {
+        return { x: npc.x, y: npc.y, movendo: false, direcao: animacaoParada.split('/').pop() };
+    }
+    const inicio = inicioRota;
+    const pausasPorRota = npc.pausasPorRota || {};
+    const inicioAjustado = inicio - (pausasPorRota[chavePausa] || 0);
+    const tempoDecorrido = Math.max(0, (agora - inicioAjustado) / 1000);
+    const sequencia = Array.isArray(npc.sequenciaAnimacoes) ? npc.sequenciaAnimacoes : [];
+    let pose;
+    if (sequencia.length > 0) {
+        const velocidade = velocidadePatrulha;
+        const distanciaEtapa = cache.distanciaTotal / sequencia.length;
+        let cicloMs = 0;
+        for (const etapa of sequencia) {
+            cicloMs += distanciaEtapa / velocidade * 1000 + etapa.duracaoMs;
+        }
+        const tempoTotalMs = tempoDecorrido * 1000;
+        const cicloAtual = Math.floor(tempoTotalMs / cicloMs);
+        let faseMs = tempoTotalMs % cicloMs;
+        let distanciaInicioEtapa = 0;
+        let tempoInicioEtapa = cicloAtual * cicloMs;
+        for (const etapa of sequencia) {
+            const tempoCaminhandoMs = distanciaEtapa / velocidade * 1000;
+            if (faseMs < tempoCaminhandoMs) {
+                pose = npcPoseNaDistancia(cache, distanciaInicioEtapa + faseMs / 1000 * velocidade);
+                break;
+            }
+            faseMs -= tempoCaminhandoMs;
+            tempoInicioEtapa += tempoCaminhandoMs;
+            if (faseMs < etapa.duracaoMs) {
+                pose = npcPoseNaDistancia(cache, distanciaInicioEtapa + distanciaEtapa);
+                pose.movendo = false;
+                pose.animacaoAtual = etapa.animacao;
+                pose.animacaoInicioEm = inicioAjustado + tempoInicioEtapa;
+                pose.animacaoDuracaoMs = etapa.duracaoMs;
+                pose.animacaoLoop = etapa.loop !== false;
+                break;
+            }
+            faseMs -= etapa.duracaoMs;
+            tempoInicioEtapa += etapa.duracaoMs;
+            distanciaInicioEtapa += distanciaEtapa;
+        }
+        if (!pose) pose = npcPoseNaDistancia(cache, 0);
+    } else {
+        const distanciaPercorrida = ((tempoDecorrido * velocidadePatrulha) % cache.distanciaTotal + cache.distanciaTotal) % cache.distanciaTotal;
+        pose = npcPoseNaDistancia(cache, distanciaPercorrida);
+    }
+    pose.chavePausa = chavePausa;
+    if (npc.conversaInicioEm && npc.conversaAte > agora && npc.conversaPose) {
+        pose.movendo = false;
+        pose.x = npc.conversaPose.x;
+        pose.y = npc.conversaPose.y;
+        pose.direcao = 'down';
+        pose.animacaoAtual = npc.animacaoConversa || 'standard/idle/down';
+        pose.animacaoInicioEm = npc.conversaInicioEm;
+        pose.chavePausa = npc.conversaPauseKey || chavePausa;
+    }
+    return pose;
+}
+
+function npcsParaMapa(mapa, incluirAdmin) {
+    const agora = Date.now();
+    return Object.values(NPCS_INTERATIVOS).filter(n => {
+        if (n.mapa !== mapa) return false;
+        const agenda = npcAgendaAtual(n, agora);
+        return incluirAdmin || !(agenda && agenda.desativado);
+    }).map(n => {
+        const pose = npcPoseAtual(n, agora);
+        const animacao = n.animacao || 'standard/idle/down';
+        const animacaoMeta = npcAnimacaoDisponivel(n, animacao);
+        const animacaoCaminhadaMeta = npcAnimacaoDisponivel(n, 'standard/walk/' + (pose.direcao || 'down'));
+        const payload = {
+            id: n.id, nome: n.nome, mapa: n.mapa, x: pose.x, y: pose.y,
+            raioInteracao: n.raioInteracao, dialogo: n.dialogo, servico: n.servico,
+            spriteDir: n.spriteDir || '', iconeInteracao: n.iconeInteracao || '',
+            animacao: animacao, quadros: animacaoMeta ? animacaoMeta.quadros : 0,
+            walkQuadros: animacaoCaminhadaMeta ? animacaoCaminhadaMeta.quadros : 0,
+            movendo: pose.movendo, direcao: pose.direcao,
+            animacaoAtual: pose.animacaoAtual || '',
+            animacaoAtualQuadros: pose.animacaoAtual
+                ? ((npcAnimacaoDisponivel(n, pose.animacaoAtual) || {}).quadros || 0)
+                : 0,
+            animacaoInicioEm: pose.animacaoInicioEm || 0,
+            animacaoDuracaoMs: pose.animacaoDuracaoMs || 0,
+            animacaoLoop: pose.animacaoLoop !== false,
+            velocidadeFrames: n.velocidadeFrames || 10
+        };
+        if (incluirAdmin) {
+            payload.patrulha = n.patrulha;
+            payload.velocidadePatrulha = n.velocidadePatrulha;
+            payload.rotasProgramadas = n.rotasProgramadas || [];
+            payload.intervalosDesativados = n.intervalosDesativados || [];
+            payload.desativado = !!pose.desativado;
+        }
+        return payload;
+    });
+}
+
+function npcsParaPainelAdmin() {
+    return Object.values(NPCS_INTERATIVOS).map(npc => {
+        const pose = npcPoseAtual(npc, Date.now());
+        return {
+            id: npc.id, nome: npc.nome, mapa: npc.mapa,
+            spriteDir: npc.spriteDir || '', iconeInteracao: npc.iconeInteracao || '',
+            x: pose.x, y: pose.y, animacao: npc.animacao || '',
+            patrulha: npc.patrulha || [],
+            velocidadePatrulha: npc.velocidadePatrulha || 90,
+            velocidadeFrames: npc.velocidadeFrames || 10,
+            patrulhaInicioEm: npc.patrulhaInicioEm || 0,
+            sequenciaAnimacoes: npc.sequenciaAnimacoes || [],
+            animacaoConversa: npc.animacaoConversa || '',
+            rotasProgramadas: npc.rotasProgramadas || [],
+            intervalosDesativados: npc.intervalosDesativados || [],
+            desativado: !!pose.desativado,
+            editavel: !!npc.animacao
+        };
+    });
+}
+
+function transmitirEstadoNpcs() {
+    wss.clients.forEach(function (client) {
+        if (client.readyState !== WebSocket.OPEN) return;
+        const jogador = client._playerId ? players[client._playerId] : null;
+        const incluirAdmin = !!(client.ehAdminCliente || (jogador && jogador.isAdmin));
+        const mapas = Array.from(new Set(Object.values(NPCS_INTERATIVOS).map(npc => npc.mapa)));
+        const npcs = mapas.flatMap(mapa => npcsParaMapa(mapa, incluirAdmin));
+        client.send(JSON.stringify({ type: 'npc_state', npcs: npcs }));
+    });
+}
+
+setInterval(transmitirEstadoNpcs, 250);
+
+function serializarNpcConfigs() {
+    const configs = {};
+    for (const npc of Object.values(NPCS_INTERATIVOS)) {
+        if (!npc.animacao) continue;
+        configs[npc.id] = {
+            x: npc.x, y: npc.y, animacao: npc.animacao,
+            patrulha: npc.patrulha || [],
+            velocidadePatrulha: npc.velocidadePatrulha || 90,
+            velocidadeFrames: npc.velocidadeFrames || 10,
+            patrulhaInicioEm: npc.patrulhaInicioEm || 0,
+            sequenciaAnimacoes: npc.sequenciaAnimacoes || [],
+            animacaoConversa: npc.animacaoConversa || '',
+            rotasProgramadas: npc.rotasProgramadas || [],
+            intervalosDesativados: npc.intervalosDesativados || []
+        };
+    }
+    return configs;
 }
 
 function tutorialSalvar(p) {
@@ -779,10 +1302,6 @@ function mapaObjetosRemoverUm(lista, id) {
     if (index < 0) return null;
     return lista.filter(function (_, itemIndex) { return itemIndex !== index; });
 }
-function mapaObjetosLimparMapa(lista, mapa) {
-    if (!Array.isArray(lista) || typeof mapa !== 'string' || !mapa.trim()) return null;
-    return lista.filter(function (objeto) { return objeto && objeto.mapa !== mapa; });
-}
 function mapaObjetosMesclarMapa(lista, objetos, mapa) {
     if (!Array.isArray(lista) || !Array.isArray(objetos) || typeof mapa !== 'string' || !mapa.trim()) return null;
     const resultado = lista.slice();
@@ -966,8 +1485,8 @@ const LARGURA_VERDE = 18000, LARGURA_DESERTO = 50000, LARGURA_PANTANO = 58000,
     LARGURA_TILETESTE = 128000, FIM_TILETESTE = 128960, ALTO_TILETESTE = 600,
     ALTO_VERDE = 5400, ALTO_DESERTO = 36000, ALTO_PANTANO = 9000, ALTO_CAVERNA = 1800, ALTO_CIDADE = 1145, ALTO_SOLARI = 1240, ALTO_CIDADE_PERDIDA = 3920, ALTO_TESTE_VISUAL = 960, ALTO_ZONA_ZERO = 9000, ALTO_CASTELO = 1800;
 
-// SPAWN OFICIAL E ÚNICO: CENTRO EXATO DO CONTINENTE DE GAIA (144000, 14018)
-const MUNDO_SPAWN_X = 144000, MUNDO_SPAWN_Y = 14018;
+// SPAWN OFICIAL E ÚNICO: CONTINENTE DE GAIA (143854, 13897)
+const MUNDO_SPAWN_X = 143854, MUNDO_SPAWN_Y = 13897;
 const CIDADE_SPAWN_X = MUNDO_SPAWN_X, CIDADE_SPAWN_Y = MUNDO_SPAWN_Y;
 const BEMVINDO_SPAWN_X = MUNDO_SPAWN_X, BEMVINDO_SPAWN_Y = MUNDO_SPAWN_Y;
 
@@ -1468,6 +1987,10 @@ function calcularMaxMp(player) {
 // ===== SISTEMA DE SKILLS (níveis persistidos por jogador) =====
 const NIVEL_SKILL_MAX = 10;
 const DANO_BASE_ATAQUE_BASICO = Object.freeze({ melee: 5, physicalRanged: 3, magic: 4 });
+const CLASSES_QUE_ESCALAM_COM_INTELIGENCIA = new Set([
+    'mago', 'summoner', 'curandeiro', 'roqueiro',
+    'arqueiro_arcano', 'arqueiro_astral', 'florim'
+]);
 
 function obterNivelSkill(p, skillId) {
     return (p && p.skills && p.skills[skillId]) ? p.skills[skillId] : 1;
@@ -1641,29 +2164,39 @@ function validarAtaqueBasicoAlvo(playerId, p, alvoTipo, alvoId) {
 
 // Ataques básicos são sempre de alvo único. A validação de alvo/acesso ocorre
 // antes de chamar este helper; ele nunca procura inimigos vizinhos nem cria AoE.
-function aplicarDanoAtaqueBasicoAlvo(playerId, alvoTipo, alvoId, dano, tipoPvP) {
+function aplicarDanoAtaqueBasicoAlvo(playerId, alvoTipo, alvoId, dano, tipoPvP, escalaAtaqueBasicoInteligencia = false) {
     const alvo = obterAlvoAtaqueServidor(alvoTipo, alvoId);
     if (!alvo) return false;
     if (alvoTipo === 'player') {
         if (!pvpPodeAtacar(playerId, alvoId)) return false;
-        const danoCalculado = calcularDanoJogador(playerId, dano, 'player', alvo).dano;
+        const danoCalculado = calcularDanoJogador(
+            playerId, dano, 'player', alvo, undefined, 1, escalaAtaqueBasicoInteligencia
+        ).dano;
         aplicarDanoPvP(playerId, alvoId, danoCalculado, tipoPvP || 'físico');
         return true;
     }
     if (alvoTipo === 'pet') {
         if (!pvpPodeAtacar(playerId, alvo.owner_id) || !validarOwnerPet(alvo.owner_id, alvo)) return false;
-        const danoCalculado = calcularDanoJogador(playerId, dano, 'player', alvo).dano;
+        const danoCalculado = calcularDanoJogador(
+            playerId, dano, 'player', alvo, undefined, 1, escalaAtaqueBasicoInteligencia
+        ).dano;
         return applyDamageToCapturedPet(alvo, danoCalculado, playerId);
     }
     if (alvoTipo === 'malakar_summon') {
         if (!pvpPodeAtacar(playerId, alvo.owner_id)) return false;
-        const danoCalculado = calcularDanoJogador(playerId, dano, 'player', alvo).dano;
+        const danoCalculado = calcularDanoJogador(
+            playerId, dano, 'player', alvo, undefined, 1, escalaAtaqueBasicoInteligencia
+        ).dano;
         return aplicarDanoEntidadeLordMalakar(alvo.id, danoCalculado, playerId);
     }
     if (alvoTipo === 'boss') {
-        return registrarDanoBoss(alvo, playerId, dano, 'basico', 'player').dano > 0;
+        return registrarDanoBoss(
+            alvo, playerId, dano, 'basico', 'player', undefined, undefined, 1, escalaAtaqueBasicoInteligencia
+        ).dano > 0;
     }
-    return registrarDanoMonstro(alvo, playerId, dano, 'player').dano > 0;
+    return registrarDanoMonstro(
+        alvo, playerId, dano, 'player', undefined, undefined, 1, escalaAtaqueBasicoInteligencia
+    ).dano > 0;
 }
 
 function atualizarBonusMaxHpGritoGuerra(p) {
@@ -2402,7 +2935,7 @@ function lordMalakarSofrimentoBuffAtivo(player, summonAttack) {
 
 // Calcula dano final do autor, aplicando atributos, buffs e crítico.
 // Summons do Malakar combinam seus atributos herdados com o bônus atual da Afinidade.
-function calcularDanoJogador(autorId, quantidade, tipoOrigem, alvo, entidadeOrigem, multiplicadorFinal = 1) {
+function calcularDanoJogador(autorId, quantidade, tipoOrigem, alvo, entidadeOrigem, multiplicadorFinal = 1, escalaAtaqueBasicoInteligencia = false) {
     if (tipoOrigem === 'fixed') {
         return { dano: Math.max(0, Math.round(quantidade)), critico: false };
     }
@@ -2436,10 +2969,12 @@ function calcularDanoJogador(autorId, quantidade, tipoOrigem, alvo, entidadeOrig
     } else {
         let atributoDano = p.classe === lordMalakar.CONFIG.classId
             ? 'afinidade'
-            : (['mago', 'summoner', 'curandeiro', 'roqueiro', 'arqueiro_arcano', 'arqueiro_astral', 'florim'].indexOf(p.classe) !== -1
+            : (CLASSES_QUE_ESCALAM_COM_INTELIGENCIA.has(p.classe)
                 ? 'inteligencia' : 'forca');
         if (atributoDano === 'afinidade') {
             mult += (getAtr(p, atributoDano) - 1) * 0.05;
+        } else if (escalaAtaqueBasicoInteligencia && atributoDano === 'inteligencia') {
+            bonusDanoAtributo = progressaoAtributos.bonusDanoAtaqueBasicoMagico(getAtr(p, atributoDano));
         } else {
             bonusDanoAtributo = progressaoAtributos.bonusDanoAtributo(atributoDano, getAtr(p, atributoDano));
         }
@@ -2593,12 +3128,27 @@ function calcularCuraJogador(autorId, curaBase) {
     return Math.round(curaBase * (1 + (getAtr(p, 'divindade') - 1) * 0.05));
 }
 
-function broadcastCritico(x, y, autorId) {
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify({ type: 'texto_critico', x: x, y: y, autorId: autorId }));
-        }
-    });
+const danosFlutuantesPendentes = new Map();
+let timerFlushDanosFlutuantes = null;
+
+function obterDanoFlutuantePendente(x, y, autorId, alvoId, instanciaId) {
+    const xArredondado = Math.round(x);
+    const yArredondado = Math.round(y);
+    const idAlvo = alvoId || `${Math.round(xArredondado / 32)}:${Math.round(yArredondado / 32)}`;
+    const chave = JSON.stringify([autorId || null, instanciaId || null, idAlvo]);
+    let pendente = danosFlutuantesPendentes.get(chave);
+    if (!pendente) {
+        pendente = { x: xArredondado, y: yArredondado, dano: 0, autorId: autorId || null, critico: false };
+        danosFlutuantesPendentes.set(chave, pendente);
+    }
+    pendente.x = xArredondado;
+    pendente.y = yArredondado;
+    if (!timerFlushDanosFlutuantes) timerFlushDanosFlutuantes = setTimeout(flushDanosFlutuantes, 100);
+    return pendente;
+}
+
+function broadcastCritico(x, y, autorId, alvoId, instanciaId) {
+    obterDanoFlutuantePendente(x, y, autorId, alvoId, instanciaId).critico = true;
 }
 
 function broadcastBesouroDecolagem(id, x, y, ang) {
@@ -5474,12 +6024,14 @@ function concederConhecimentoBestiarioPorAbate(entidade, ownerId) {
     };
 }
 
-function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem, petInstanceId, entidadeOrigem, multiplicadorFinal = 1) {
+function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem, petInstanceId, entidadeOrigem, multiplicadorFinal = 1, escalaAtaqueBasicoInteligencia = false) {
     if (!slime || !autorId || slime.hp <= 0) return { dano: 0, critico: false };
     if (Array.isArray(slime.tags) && slime.tags.indexOf('invenciveis') !== -1) return { dano: 0, critico: false };
     const autorP = players[autorId];
     if (autorP && !instanciaCompativel(autorP, slime)) return { dano: 0, critico: false };
-    let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem, slime, entidadeOrigem, multiplicadorFinal);
+    let calc = calcularDanoJogador(
+        autorId, quantidade, tipoOrigem, slime, entidadeOrigem, multiplicadorFinal, escalaAtaqueBasicoInteligencia
+    );
     let danoFinal = calc.dano;
     // ===== ADMIN CHEAT: SUPER ATAQUE =====
     if (autorP && autorP.adminCheats && autorP.adminCheats.superAtaque) {
@@ -5568,8 +6120,10 @@ function registrarDanoMonstro(slime, autorId, quantidade, tipoOrigem, petInstanc
         let pctVamp = autorP.vampirismoBonus || 0.20;
         aplicarCuraAoJogador(autorId, Math.max(1, Math.round(danoFinal * pctVamp)));
     }
-    if (calc.critico) broadcastCritico(slime.x, slime.y, autorId);
-    if (danoFinal > 0 && autorP && tipoOrigem !== 'pet') broadcastDanoFlut(slime.x, slime.y, danoFinal, autorId);
+    if (calc.critico) broadcastCritico(slime.x, slime.y, autorId, slime.id, slime.instanciaId);
+    if (danoFinal > 0 && autorP && tipoOrigem !== 'pet') {
+        broadcastDanoFlut(slime.x, slime.y, danoFinal, autorId, slime.id, slime.instanciaId);
+    }
     if (danoFinal > 0 && petInstanceId) broadcastDanoPetFlut(slime.x, slime.y, danoFinal, autorId, petInstanceId);
 
     if (slime.hp <= 0) {
@@ -6040,13 +6594,15 @@ function aplicarDanoAmbiente(pid, dano, tipoDano, texto) {
 // ============ BOSS: GOLEM DE PEDRA ============
 let bosses = [];
 
-function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem, petInstanceId, entidadeOrigem, multiplicadorFinal = 1) {
+function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem, petInstanceId, entidadeOrigem, multiplicadorFinal = 1, escalaAtaqueBasicoInteligencia = false) {
     if (!boss || !autorId || boss.hp <= 0) return { dano: 0, critico: false };
     const autorP0 = players[autorId];
     if (autorP0 && !instanciaCompativel(autorP0, boss)) return { dano: 0, critico: false };
     let tipoDano = (tipo === 'basico') ? 'basico' : 'skill';
 
-    let calc = calcularDanoJogador(autorId, quantidade, tipoOrigem, boss, entidadeOrigem, multiplicadorFinal);
+    let calc = calcularDanoJogador(
+        autorId, quantidade, tipoOrigem, boss, entidadeOrigem, multiplicadorFinal, escalaAtaqueBasicoInteligencia
+    );
     let danoFinal = calc.dano;
     let autorP = players[autorId];
     // ===== ADMIN CHEAT: SUPER ATAQUE =====
@@ -6093,8 +6649,10 @@ function registrarDanoBoss(boss, autorId, quantidade, tipo, tipoOrigem, petInsta
         let pctVamp = autorBossP.vampirismoBonus || 0.20;
         aplicarCuraAoJogador(autorId, Math.max(1, Math.round(danoFinal * pctVamp)));
     }
-    if (calc.critico) broadcastCritico(boss.x, boss.y, autorId);
-    if (danoFinal > 0 && autorBossP && tipoOrigem !== 'pet') broadcastDanoFlut(boss.x, boss.y, danoFinal, autorId);
+    if (calc.critico) broadcastCritico(boss.x, boss.y, autorId, boss.id, boss.instanciaId);
+    if (danoFinal > 0 && autorBossP && tipoOrigem !== 'pet') {
+        broadcastDanoFlut(boss.x, boss.y, danoFinal, autorId, boss.id, boss.instanciaId);
+    }
     if (danoFinal > 0 && petInstanceId) broadcastDanoPetFlut(boss.x, boss.y, danoFinal, autorId, petInstanceId);
     return { dano: danoFinal, critico: calc.critico };
 }
@@ -7033,7 +7591,7 @@ function aplicarDanoPvP(atkId, defId, dano, type = 'físico') {
         let pctVamp = atk.vampirismoBonus || 0.20;
         aplicarCuraAoJogador(atkId, Math.max(1, Math.round(dano * pctVamp)));
     }
-    broadcastDanoFlut(p2.x, p2.y - 20, dano, atkId);
+    broadcastDanoFlut(p2.x, p2.y - 20, dano, atkId, defId, p2.instanciaId);
     if (p2.hp <= 0) {
         removerEntidadesLordMalakar(p2);
         // DRONEMASTER — PROTOCOLO TITÃ (revive especial em PvP também)
@@ -7563,15 +8121,40 @@ function broadcastDanoLacaio(x, y, dano) {
     });
 }
 
-// Número flutuante de dano REAL aplicado por JOGADOR (monstros/bosses). Pet já tem o seu.
-function broadcastDanoFlut(x, y, dano, autorId) {
-    if (!dano || dano <= 0) return;
-    let msg = { type: 'texto_dano', x: Math.round(x), y: Math.round(y), dano: Math.round(dano), autorId: autorId || null };
-    wss.clients.forEach((client) => {
-        if (client.readyState === WebSocket.OPEN) {
-            client.send(JSON.stringify(msg));
+function flushDanosFlutuantes() {
+    timerFlushDanosFlutuantes = null;
+    for (const danoPendente of danosFlutuantesPendentes.values()) {
+        if (danoPendente.critico) {
+            const critico = JSON.stringify({
+                type: 'texto_critico',
+                x: danoPendente.x,
+                y: danoPendente.y,
+                autorId: danoPendente.autorId
+            });
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) client.send(critico);
+            });
         }
-    });
+        if (danoPendente.dano > 0) {
+            const dano = JSON.stringify({
+                type: 'texto_dano',
+                x: danoPendente.x,
+                y: danoPendente.y,
+                dano: danoPendente.dano,
+                autorId: danoPendente.autorId
+            });
+            wss.clients.forEach((client) => {
+                if (client.readyState === WebSocket.OPEN) client.send(dano);
+            });
+        }
+    }
+    danosFlutuantesPendentes.clear();
+}
+
+// Coalesce números visuais por alvo; o dano de jogo já foi aplicado antes desta notificação.
+function broadcastDanoFlut(x, y, dano, autorId, alvoId, instanciaId) {
+    if (!dano || dano <= 0) return;
+    obterDanoFlutuantePendente(x, y, autorId, alvoId, instanciaId).dano += Math.round(dano);
 }
 
 function broadcastDanoPetFlut(x, y, dano, ownerId, petInstanceId) {
@@ -10134,7 +10717,6 @@ setInterval(() => {
         if (player.giroDescontroladoAtivo && player.giroDescontroladoExpiresAt && Date.now() >= player.giroDescontroladoExpiresAt) {
             player.giroDescontroladoTimer = 0;
             player.giroDescontroladoAtivo = false;
-            player.giroDescontroladoCooldown = 300; // 15s de cooldown
             wss.clients.forEach((client) => {
                 if (client.readyState === WebSocket.OPEN) {
                     client.send(JSON.stringify({ type: 'action_barbaro_giro_end', id: pid }));
@@ -10144,7 +10726,6 @@ setInterval(() => {
             player.giroDescontroladoTimer--;
             if (player.giroDescontroladoTimer <= 0) {
                 player.giroDescontroladoAtivo = false;
-                player.giroDescontroladoCooldown = 300; // 15s de cooldown
                 wss.clients.forEach((client) => {
                     if (client.readyState === WebSocket.OPEN) {
                         client.send(JSON.stringify({ type: 'action_barbaro_giro_end', id: pid }));
@@ -12467,7 +13048,16 @@ setInterval(() => {
         if (!removido) for (let s of slimes) {
             if (pp.origemBasica && pp.alvoId && (pp.alvoTipo !== 'slime' || String(s.id) !== String(pp.alvoId))) continue;
             if (s.hp > 0 && Math.hypot(s.x - pp.x, s.y - pp.y) < 30) {
-                registrarDanoMonstro(s, pp.ownerId, pp.dano, pp.danoFixo ? 'fixed' : undefined);
+                registrarDanoMonstro(
+                    s,
+                    pp.ownerId,
+                    pp.dano,
+                    pp.danoFixo ? 'fixed' : undefined,
+                    undefined,
+                    undefined,
+                    1,
+                    !!pp.escalaAtaqueBasicoInteligencia
+                );
                 if (pp.tipo === 'magia_gelo') {
                     s.hitsGeloBasico = (s.hitsGeloBasico || 0) + 1;
                     if (s.hitsGeloBasico >= 3) {
@@ -12488,8 +13078,17 @@ setInterval(() => {
             for (let bb of bosses) {
                 if (pp.origemBasica && pp.alvoId && (pp.alvoTipo !== 'boss' || String(bb.id) !== String(pp.alvoId))) continue;
                 if (bb.hp > 0 && Math.hypot(bb.x - pp.x, bb.y - pp.y) < 82) {
-                    registrarDanoBoss(bb, pp.ownerId, pp.dano, pp.origemBasica ? 'basico' : 'skill',
-                        pp.danoFixo ? 'fixed' : undefined);
+                    registrarDanoBoss(
+                        bb,
+                        pp.ownerId,
+                        pp.dano,
+                        pp.origemBasica ? 'basico' : 'skill',
+                        pp.danoFixo ? 'fixed' : undefined,
+                        undefined,
+                        undefined,
+                        1,
+                        !!pp.escalaAtaqueBasicoInteligencia
+                    );
                     if (pp.tipo === 'magia_gelo') {
                         bb.hitsGeloBasico = (bb.hitsGeloBasico || 0) + 1;
                         if (bb.hitsGeloBasico >= 3) {
@@ -12515,7 +13114,10 @@ setInterval(() => {
                     if (pd === pp.ownerId) continue;
                     let p2 = players[pd];
                     if (p2.pvpAtivo && p2.hp > 0 && Math.hypot(p2.x - pp.x, p2.y - pp.y) < 30) {
-                        aplicarDanoPvP(pp.ownerId, pd, pp.dano, 'projétil');
+                        const danoPvP = pp.escalaAtaqueBasicoInteligencia
+                            ? pp.dano + progressaoAtributos.bonusDanoAtaqueBasicoMagico(getAtr(p1, 'inteligencia'))
+                            : pp.dano;
+                        aplicarDanoPvP(pp.ownerId, pd, danoPvP, 'projétil');
                         if (!pp.perfurante) {
                             playerProjeteis.splice(i, 1);
                             removido = true;
@@ -13796,9 +14398,10 @@ if (g.hp <= 0) {
 
     // Players visíveis: sem inventário privado (sincronizado só com o dono)
     // e com atributosTotais (base + bônus de equipamento) para o cliente exibir
-    for (const pid of Object.keys(players)) sincronizarInstanciaMapaJogador(pid);
+    const jogadoresIdsSnapshot = Object.keys(players);
+    for (const pid of jogadoresIdsSnapshot) sincronizarInstanciaMapaJogador(pid);
     let playersVisivel = {};
-    for (let pid in players) {
+    for (const pid of jogadoresIdsSnapshot) {
         let p = players[pid];
         playersVisivel[pid] = Object.assign({}, p);
         delete playersVisivel[pid].inventario;
@@ -13854,12 +14457,84 @@ if (g.hp <= 0) {
         playersVisivel[pid].instanciaTipo = p.instanciaTipo || null;
     }
 
-    // Mantém a identidade de instância sincronizada mesmo quando o jogador
-    // atravessa uma fronteira de mapa por movimento, dash ou teleporte.
-    for (const pid of Object.keys(players)) sincronizarInstanciaMapaJogador(pid);
+    // A lista foi sincronizada antes do snapshot; o loop do tick é síncrono,
+    // então nenhuma posição muda entre esta etapa e o broadcast.
     sincronizarEntidadesInstanciadas();
 
     const tempoMundoAtual = sistemaDiaNoite ? sistemaDiaNoite.calcularTempoMundo() : null;
+
+    const mapCaches = {};
+    function getMapCache(mapa, instancia) {
+        const key = (mapa || 'null') + '|' + (instancia || 'null');
+        if (!mapCaches[key]) {
+            mapCaches[key] = {
+                slimes: filtrarPorMapa(slimes, mapa, instancia),
+                projeteis: filtrarPorMapa(projeteis, mapa, instancia),
+                playerProjeteis: filtrarPorMapa(playerProjeteis, mapa, instancia),
+                lacaios: Object.fromEntries(Object.entries(lacaios).filter(function (entry) { return entidadeNoMapa(entry[1], mapa, instancia); })),
+                pets: Object.fromEntries(Object.entries(petsAtivos).filter(function (entry) {
+                    return !entry[1].lordMalakarSummon && entidadeNoMapa(entry[1], mapa, instancia);
+                }).map(function (entry) {
+                    const pet = entry[1];
+                    return [entry[0], {
+                        id: pet.pet_instance_id,
+                        pet_instance_id: pet.pet_instance_id,
+                        species_id: pet.species_id,
+                        owner_id: pet.owner_id,
+                        type: 'pet',
+                        tipo: pet.tipo,
+                        asset: pet.asset,
+                        visual: pet.visual,
+                        x: pet.x,
+                        y: pet.y,
+                        hp: pet.hp,
+                        maxHp: pet.maxHp,
+                        state: pet.state,
+                        mode: pet.mode,
+                        targetId: pet.targetId || null,
+                        animationState: pet.animationState || 'IDLE',
+                        animationStartedAt: pet.animationStartedAt || 0,
+                        animationUntil: pet.animationUntil || 0,
+                        aiAtacandoAte: pet.aiAtacandoAte || 0,
+                        aiEstado: pet.aiEstado || 'idle',
+                        moving: !!pet.moving,
+                        angulo: Number.isFinite(pet.angulo) ? pet.angulo : 0,
+                        level: pet.level,
+                        rarity: pet.rarity,
+                        escala: pet.escala,
+                        instanciaId: pet.instanciaId || null
+                    }];
+                })),
+                lordMalakarEntities: Object.fromEntries(Object.entries(lordMalakarEntities)
+                    .filter(function (entry) {
+                        return entry[1].lordMalakarSummon && entidadeNoMapa(entry[1], mapa, instancia);
+                    })
+                    .map(function (entry) {
+                        const entity = entry[1];
+                        const owner = players[entity.owner_id];
+                        return [entry[0], Object.assign({}, entity, {
+                            lordMalakarBuffActive: !!(owner && lordMalakarSofrimentoBuffAtivo(owner, true))
+                        })];
+                    })),
+                bandas: Object.fromEntries(Object.entries(bandas).filter(function (entry) { return players[entry[0]] && (mapa === 'solari' ? solariEmSessao(entry[0]) : (mapaPorCoordenada(players[entry[0]].x + PLAYER_OFFSET_X) === mapa && (!mapaEhInstanciado(mapa) || players[entry[0]].instanciaId === instancia))); })),
+                bosses: filtrarPorMapa(bosses, mapa, instancia),
+                drops: filtrarPorMapa(dropsChao, mapa, instancia),
+                gases: filtrarPorMapa(gasesVeneno, mapa, instancia),
+                mapVfx: mapVfx.filter(function (v) { return v.mapa === mapa; }),
+                caixasFerramentas: filtrarPorMapa(caixasFerramentas, mapa, instancia),
+                chuvasCometas: filtrarPorMapa(chuvasCometas, mapa, instancia),
+                orbeConstelacoes: filtrarPorMapa(orbeConstelacoes, mapa, instancia),
+                redesSniper: filtrarPorMapa(redesSniper, mapa, instancia),
+                florimSementes: filtrarPorMapa(florimSementes, mapa, instancia),
+                florimArvores: filtrarPorMapa(florimArvores, mapa, instancia),
+                florimEspinhos: filtrarPorMapa(florimEspinhos, mapa, instancia),
+                florimParedes: filtrarPorMapa(florimParedes, mapa, instancia),
+                npcs: npcsParaMapa(mapa, false),
+                npcsAdmin: npcsParaMapa(mapa, true)
+            };
+        }
+        return mapCaches[key];
+    }
 
     wss.clients.forEach((client) => {
         if (client.readyState !== WebSocket.OPEN) return;
@@ -13879,7 +14554,6 @@ if (g.hp <= 0) {
                     Math.hypot(jogadorAlvo.x - (jogadorCliente.x + PLAYER_OFFSET_X), jogadorAlvo.y - (jogadorCliente.y + PLAYER_OFFSET_Y)) <= SNIPER_DETECTION_RADIUS;
                 if (pid !== client._playerId && oculto && !detectadoPeloSniper) continue;
                 if (clienteEmSolari) {
-                    // Durante a Solari: só enxerga os colegas da partida
                     const sessaoAlvo = solariSessaoDoJogador(pid);
                     if (sessaoAlvo && sessaoAlvo.instanciaId === instanciaCliente) jogadoresDoMapa[pid] = playersVisivel[pid];
                 } else {
@@ -13891,80 +14565,41 @@ if (g.hp <= 0) {
         const tempoMundoCliente = jogadorCliente && sistemaDiaNoite && typeof sistemaDiaNoite.aplicarEscuridaoPorClasse === 'function'
             ? sistemaDiaNoite.aplicarEscuridaoPorClasse(tempoMundoAtual, jogadorCliente.classe)
             : tempoMundoAtual;
+            
+        const isClientAdmin = !!(client.ehAdminCliente || (jogadorCliente && jogadorCliente.isAdmin));
+        const cache = getMapCache(mapaCliente, instanciaCliente);
+        
         client.send(JSON.stringify({
             type: 'world_update',
+            chuvaAtiva: chuvaAtiva,
+            intensidadeChuva: intensidadeChuva,
             tempoMundo: tempoMundoCliente,
             instanciaId: instanciaCliente,
             instanciaTipo: instanciaTipoCliente,
             players: jogadoresDoMapa,
-            slimes: filtrarPorMapa(slimes, mapaCliente, instanciaCliente).filter(function (s) {
+            slimes: cache.slimes.filter(function (s) {
                 return s && (s.tipo !== 'tutorial_demonio' || s.tutorialOwnerId === client._playerId);
             }),
             tutorial: tutorialEstadoParaPlayer(jogadorCliente),
-            npcs: npcsParaMapa(mapaCliente),
-            projeteis: filtrarPorMapa(projeteis, mapaCliente, instanciaCliente),
-            playerProjeteis: filtrarPorMapa(playerProjeteis, mapaCliente, instanciaCliente),
-            lacaios: Object.fromEntries(Object.entries(lacaios).filter(function (entry) { return entidadeNoMapa(entry[1], mapaCliente, instanciaCliente); })), 
-            pets: Object.fromEntries(Object.entries(petsAtivos).filter(function (entry) {
-                return !entry[1].lordMalakarSummon &&
-                    entidadeNoMapa(entry[1], mapaCliente, instanciaCliente);
-            }).map(function (entry) {
-                const pet = entry[1];
-                return [entry[0], {
-                    id: pet.pet_instance_id,
-                    pet_instance_id: pet.pet_instance_id,
-                    species_id: pet.species_id,
-                    owner_id: pet.owner_id,
-                    type: 'pet',
-                    tipo: pet.tipo,
-                    asset: pet.asset,
-                    visual: pet.visual,
-                    x: pet.x,
-                    y: pet.y,
-                    hp: pet.hp,
-                    maxHp: pet.maxHp,
-                    state: pet.state,
-                    mode: pet.mode,
-                    targetId: pet.targetId || null,
-                    animationState: pet.animationState || 'IDLE',
-                    animationStartedAt: pet.animationStartedAt || 0,
-                    animationUntil: pet.animationUntil || 0,
-                    aiAtacandoAte: pet.aiAtacandoAte || 0,
-                    aiEstado: pet.aiEstado || 'idle',
-                    moving: !!pet.moving,
-                    angulo: Number.isFinite(pet.angulo) ? pet.angulo : 0,
-                    level: pet.level,
-                    rarity: pet.rarity,
-                    escala: pet.escala,
-                    instanciaId: pet.instanciaId || null
-                }];
-            })),
-            lordMalakarEntities: Object.fromEntries(Object.entries(lordMalakarEntities)
-                .filter(function (entry) {
-                    return entry[1].lordMalakarSummon &&
-                        entidadeNoMapa(entry[1], mapaCliente, instanciaCliente);
-                })
-                .map(function (entry) {
-                    const entity = entry[1];
-                    const owner = players[entity.owner_id];
-                    return [entry[0], Object.assign({}, entity, {
-                        lordMalakarBuffActive: !!(owner && lordMalakarSofrimentoBuffAtivo(owner, true))
-                    })];
-                })),
-            bandas: Object.fromEntries(Object.entries(bandas).filter(function (entry) { return players[entry[0]] && (clienteEmSolari ? solariEmSessao(entry[0]) : (mapaPorCoordenada(players[entry[0]].x + PLAYER_OFFSET_X) === mapaCliente && (!mapaEhInstanciado(mapaCliente) || players[entry[0]].instanciaId === instanciaCliente))); })),
-            bosses: filtrarPorMapa(bosses, mapaCliente, instanciaCliente),
-            drops: filtrarPorMapa(dropsChao, mapaCliente, instanciaCliente),
-            gases: filtrarPorMapa(gasesVeneno, mapaCliente, instanciaCliente),
-            mapVfx: mapVfx.filter(function (v) { return v.mapa === mapaCliente; }),
-            // ===== NOVAS CLASSES (v1.31): zonas de chão + moitas =====
-            caixasFerramentas: filtrarPorMapa(caixasFerramentas, mapaCliente, instanciaCliente),
-            chuvasCometas: filtrarPorMapa(chuvasCometas, mapaCliente, instanciaCliente),
-            orbeConstelacoes: filtrarPorMapa(orbeConstelacoes, mapaCliente, instanciaCliente),
-            redesSniper: filtrarPorMapa(redesSniper, mapaCliente, instanciaCliente),
-            florimSementes: filtrarPorMapa(florimSementes, mapaCliente, instanciaCliente),
-            florimArvores: filtrarPorMapa(florimArvores, mapaCliente, instanciaCliente),
-            florimEspinhos: filtrarPorMapa(florimEspinhos, mapaCliente, instanciaCliente),
-            florimParedes: filtrarPorMapa(florimParedes, mapaCliente, instanciaCliente),
+            npcs: isClientAdmin ? cache.npcsAdmin : cache.npcs,
+            projeteis: cache.projeteis,
+            playerProjeteis: cache.playerProjeteis,
+            lacaios: cache.lacaios,
+            pets: cache.pets,
+            lordMalakarEntities: cache.lordMalakarEntities,
+            bandas: cache.bandas,
+            bosses: cache.bosses,
+            drops: cache.drops,
+            gases: cache.gases,
+            mapVfx: cache.mapVfx,
+            caixasFerramentas: cache.caixasFerramentas,
+            chuvasCometas: cache.chuvasCometas,
+            orbeConstelacoes: cache.orbeConstelacoes,
+            redesSniper: cache.redesSniper,
+            florimSementes: cache.florimSementes,
+            florimArvores: cache.florimArvores,
+            florimEspinhos: cache.florimEspinhos,
+            florimParedes: cache.florimParedes,
             moitas: MOITAS_SNIPER
         }), () => {});
     });
@@ -14289,6 +14924,10 @@ wss.on('connection', (ws) => {
             }
 
             if (data.action === 'guest_login') {
+                if (LOCAL_ID_LOGIN_ENABLED) {
+                    ws.send(JSON.stringify({ type: 'login_erro', mensagem: 'Use o login local por ID neste servidor de teste.' }));
+                    return;
+                }
                 const remoteAddress = String(ws._socket && ws._socket.remoteAddress || 'desconhecido');
                 const resultadoVisitante = autenticarVisitante(ws, data.token, remoteAddress);
                 if (!resultadoVisitante.ok) {
@@ -15768,6 +16407,40 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 }
             }
             // ===== ADMIN: CONTROLE GLOBAL DO CICLO DIA/NOITE =====
+            if (data.action === 'admin_chuva_toggle') {
+                if (!ws.ehAdminCliente) {
+                    console.warn('[ADMIN CHUVA] Tentativa não autorizada rejeitada para:', playerId);
+                    return;
+                }
+                if (typeof data.ativa !== 'boolean') {
+                    ws.send(JSON.stringify({ type: 'admin_chuva_result', ok: false, mensagem: 'Estado da chuva inválido.' }));
+                    return;
+                }
+                const estadoChuva = cicloChuva.definirManual(data.ativa, intensidadeChuva, Date.now());
+                chuvaAtiva = estadoChuva.chuvaAtiva;
+                intensidadeChuva = estadoChuva.intensidade;
+                console.log('[ADMIN CHUVA]', playerId, chuvaAtiva ? 'chuva ativada' : 'chuva desativada');
+                ws.send(JSON.stringify({ type: 'admin_chuva_result', ok: true, ativa: chuvaAtiva }));
+                return;
+            }
+
+            if (data.action === 'admin_chuva_intensidade') {
+                if (!ws.ehAdminCliente) {
+                    console.warn('[ADMIN CHUVA] Tentativa de alterar intensidade não autorizada para:', playerId);
+                    return;
+                }
+                if (data.intensidade !== 'fraca' && data.intensidade !== 'media' && data.intensidade !== 'tempestade') {
+                    ws.send(JSON.stringify({ type: 'admin_chuva_result', ok: false, mensagem: 'Intensidade de chuva inválida.' }));
+                    return;
+                }
+                const estadoChuva = cicloChuva.definirIntensidadeManual(data.intensidade);
+                chuvaAtiva = estadoChuva.chuvaAtiva;
+                intensidadeChuva = estadoChuva.intensidade;
+                console.log('[ADMIN CHUVA]', playerId, 'intensidade definida:', intensidadeChuva);
+                ws.send(JSON.stringify({ type: 'admin_chuva_result', ok: true, intensidade: intensidadeChuva }));
+                return;
+            }
+
             if (data.action === 'admin_tempo_mundo') {
                 if (!ws.ehAdminCliente || !sistemaDiaNoite) {
                     console.warn('[ADMIN TEMPO] Tentativa não autorizada ou sistema indisponível:', playerId);
@@ -16100,7 +16773,20 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     let mapa = mapaPorCoordenada(Number(v.x));
                     if (!mapa || !Number.isFinite(Number(v.x)) || !Number.isFinite(Number(v.y))) return;
                     let lim = mapVfx.find(function (item) { return item.id === v.id; });
-                    let limpo = { id: String(v.id || ('vfx_' + Date.now().toString(36))), mapa: mapa, x: Math.round(Number(v.x)), y: Math.round(Number(v.y)), tipo: String(v.tipo || 'lampada').slice(0, 32), escala: Math.max(.3, Math.min(4, Number(v.escala) || 1)), intensidade: Math.max(.1, Math.min(2, Number(v.intensidade) || 1)), raio: Math.max(20, Math.min(260, Number(v.raio) || 80)), cor: /^#[0-9a-fA-F]{6}$/.test(v.cor || '') ? v.cor : '#ffd166' };
+                    const direcoesHolofote = ['n', 'ne', 'e', 'se', 's', 'sw', 'w', 'nw'];
+                    let limpo = {
+                        id: String(v.id || ('vfx_' + Date.now().toString(36))),
+                        mapa: mapa,
+                        x: Math.round(Number(v.x)),
+                        y: Math.round(Number(v.y)),
+                        tipo: String(v.tipo || 'lampada').slice(0, 32),
+                        escala: Math.max(.3, Math.min(4, Number(v.escala) || 1)),
+                        intensidade: Math.max(.1, Math.min(2, Number(v.intensidade) || 1)),
+                        raio: Math.max(20, Math.min(260, Number(v.raio) || 80)),
+                        cor: /^#[0-9a-fA-F]{6}$/.test(v.cor || '') ? v.cor : '#ffd166',
+                        direcao: direcoesHolofote.includes(v.direcao) ? v.direcao : 'n',
+                        camada: v.camada === 'frente' ? 'frente' : 'atras'
+                    };
                     if (lim) Object.assign(lim, limpo); else mapVfx.push(limpo);
                 }
                 salvarMapVfx();
@@ -16109,13 +16795,181 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
             }
 
             // ===== NPCs: interação por proximidade =====
+            if (data.action === 'zenia_shop_buy') {
+                const jogadorLoja = players[playerId];
+                const npcLoja = NPCS_INTERATIVOS.zenia_pocoes;
+                const enviarErroLoja = motivo => ws.send(JSON.stringify({
+                    type: 'zenia_shop_error', motivo: motivo
+                }));
+                if (!jogadorLoja || !jogadorLoja.inventario || !npcLoja) {
+                    enviarErroLoja('Não foi possível validar o jogador ou a loja.');
+                    return;
+                }
+                if (jogadorLoja.hp <= 0) {
+                    enviarErroLoja('Não é possível comprar enquanto estiver morto.');
+                    return;
+                }
+                if (jogadorLoja.tradeId) {
+                    enviarErroLoja('Finalize ou cancele a negociação antes de comprar.');
+                    return;
+                }
+                const mapaJogadorLoja = mapaPorCoordenada(jogadorLoja.x + PLAYER_OFFSET_X);
+                const poseLoja = npcPoseAtual(npcLoja, Date.now());
+                if (mapaJogadorLoja !== npcLoja.mapa || poseLoja.desativado ||
+                    Math.hypot(jogadorLoja.x - poseLoja.x, jogadorLoja.y - poseLoja.y) >
+                        (npcLoja.raioInteracao || 105)) {
+                    enviarErroLoja('Você precisa estar perto da Zenia para comprar.');
+                    return;
+                }
+                if (!equipamentos || !data.quantidades ||
+                    typeof data.quantidades !== 'object' || Array.isArray(data.quantidades)) {
+                    enviarErroLoja('Pedido de compra inválido.');
+                    return;
+                }
+                if (typeof data.transactionId !== 'string' ||
+                    !data.transactionId.trim() || data.transactionId.length > 128) {
+                    enviarErroLoja('Identificador da compra inválido.');
+                    return;
+                }
+                if (jogadorLoja.zeniaShopTxn &&
+                    jogadorLoja.zeniaShopTxn.id === data.transactionId) {
+                    ws.send(JSON.stringify({
+                        type: 'inventario_sync',
+                        inventario: jogadorLoja.inventario,
+                        ouro: jogadorLoja.ouro || 0
+                    }));
+                    ws.send(JSON.stringify(Object.assign({
+                        type: 'zenia_shop_purchase_result',
+                        repetido: true,
+                        ouro: jogadorLoja.ouro || 0
+                    }, jogadorLoja.zeniaShopTxn.resultado)));
+                    return;
+                }
+                const chavesLoja = Object.keys(ZENIA_POTION_SHOP);
+                if (Object.keys(data.quantidades).some(chave => !chavesLoja.includes(chave))) {
+                    enviarErroLoja('A loja não vende um dos itens selecionados.');
+                    return;
+                }
+                const quantidades = {};
+                let quantidadeTotal = 0;
+                let custoTotal = 0;
+                for (const chave of chavesLoja) {
+                    const quantidade = data.quantidades[chave] === undefined
+                        ? 0
+                        : data.quantidades[chave];
+                    if (!Number.isInteger(quantidade) || quantidade < 0 || quantidade > 100) {
+                        enviarErroLoja('A quantidade de cada poção deve estar entre 0 e 100.');
+                        return;
+                    }
+                    quantidades[chave] = quantidade;
+                    quantidadeTotal += quantidade;
+                    custoTotal += quantidade * ZENIA_POTION_SHOP[chave].preco;
+                }
+                if (quantidadeTotal < 1) {
+                    enviarErroLoja('Selecione pelo menos uma poção para comprar.');
+                    return;
+                }
+                const ouroAtual = Number(jogadorLoja.ouro);
+                if (!Number.isSafeInteger(ouroAtual) || ouroAtual < custoTotal) {
+                    enviarErroLoja('Você não tem ouro suficiente para esta compra.');
+                    return;
+                }
+
+                const inventarioSeguinte = clonarInventario(jogadorLoja.inventario);
+                if (!Array.isArray(inventarioSeguinte.mochila)) {
+                    enviarErroLoja('O inventário está indisponível para esta compra.');
+                    return;
+                }
+                for (const chave of chavesLoja) {
+                    const quantidade = quantidades[chave];
+                    if (!quantidade) continue;
+                    const produto = ZENIA_POTION_SHOP[chave];
+                    const item = equipamentos.gerarPocao(produto.tipo, produto.nivel);
+                    if (!item || item.subtipo !== produto.subtipo || item.nivel !== produto.nivel) {
+                        enviarErroLoja('Não foi possível preparar uma poção válida.');
+                        return;
+                    }
+                    const stackKey = 'pocao:' + produto.subtipo + ':' + produto.nivel;
+                    const existente = inventarioSeguinte.mochila.find(itemMochila =>
+                        itemMochila && itemMochila.tipo === 'consumivel' &&
+                        itemMochila.subtipo === produto.subtipo &&
+                        Number(itemMochila.nivel) === produto.nivel);
+                    if (existente) {
+                        const quantidadeExistente = existente.quantidade === undefined
+                            ? 1
+                            : Number(existente.quantidade);
+                        if (!Number.isSafeInteger(quantidadeExistente) || quantidadeExistente < 1 ||
+                            !Number.isSafeInteger(quantidadeExistente + quantidade)) {
+                            enviarErroLoja('A pilha de poções no inventário está inválida.');
+                            return;
+                        }
+                        existente.quantidade = quantidadeExistente + quantidade;
+                        existente._stackChave = stackKey;
+                    } else {
+                        item.quantidade = quantidade;
+                        item.stackavel = true;
+                        item._stackChave = stackKey;
+                        inventarioSeguinte.mochila.push(item);
+                    }
+                }
+
+                const ouroSeguinte = ouroAtual - custoTotal;
+                const resumoCompra = {
+                    quantidades: quantidades,
+                    total: custoTotal
+                };
+                try {
+                    salvarProgresso(userId, {
+                        inventario: inventarioSeguinte,
+                        ouro: ouroSeguinte
+                    });
+                } catch (err) {
+                    console.error('[ZENIA] Falha ao salvar compra:', err && err.stack ? err.stack : err);
+                    enviarErroLoja('A compra não foi concluída porque não foi possível salvar seus dados.');
+                    return;
+                }
+                jogadorLoja.inventario = inventarioSeguinte;
+                jogadorLoja.ouro = ouroSeguinte;
+                jogadorLoja.zeniaShopTxn = {
+                    id: data.transactionId,
+                    resultado: resumoCompra
+                };
+                ws.send(JSON.stringify({
+                    type: 'inventario_sync',
+                    inventario: inventarioSeguinte,
+                    ouro: ouroSeguinte
+                }));
+                ws.send(JSON.stringify({
+                    type: 'zenia_shop_purchase_result',
+                    quantidades: quantidades,
+                    total: custoTotal,
+                    ouro: ouroSeguinte
+                }));
+                return;
+            }
+
             if (data.action === 'npc_interact') {
                 const pNpc = players[playerId];
                 const npc = NPCS_INTERATIVOS[String(data.npcId || '')];
                 if (!pNpc || !npc) return;
                 const mapaP = mapaPorCoordenada(pNpc.x + PLAYER_OFFSET_X);
                 if (npc.mapa !== mapaP) return;
-                if (Math.hypot(pNpc.x - npc.x, pNpc.y - npc.y) > (npc.raioInteracao || 125)) return;
+                const poseAtualNpc = npcPoseAtual(npc, Date.now());
+                if (poseAtualNpc.desativado ||
+                    Math.hypot(pNpc.x - poseAtualNpc.x, pNpc.y - poseAtualNpc.y) > (npc.raioInteracao || 125)) return;
+                if (npc.servico === 'forja') {
+                    npc.conversasAtivas = npc.conversasAtivas || new Map();
+                    npcRemoverConversasExpiradas(npc, Date.now());
+                    if (npc.conversasAtivas.size === 0) {
+                        const poseConversa = npcPoseAtual(npc, Date.now());
+                        npc.conversaInicioEm = Date.now();
+                        npc.conversaAte = npc.conversaInicioEm + 300000;
+                        npc.conversaPauseKey = poseConversa.chavePausa || 'base';
+                        npc.conversaPose = { x: poseConversa.x, y: poseConversa.y };
+                    }
+                    npc.conversasAtivas.set(playerId, Date.now() + 300000);
+                    transmitirEstadoNpcs();
+                }
                 if (npc.id === 'tutorial_guia') {
                     let etapaAntes = Number(pNpc.tutorialEtapa || 0);
 
@@ -16194,7 +17048,37 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     }));
                     return;
                 }
+                if (npc.servico === 'forja') {
+                    ws.send(JSON.stringify({
+                        type: 'npc_service_open',
+                        npcId: npc.id,
+                        service: npc.servico
+                    }));
+                    return;
+                }
+                if (npc.servico === 'potion_shop') {
+                    ws.send(JSON.stringify({
+                        type: 'npc_service_open',
+                        npcId: npc.id,
+                        service: npc.servico,
+                        items: Object.entries(ZENIA_POTION_SHOP).map(([id, item]) => ({
+                            id: id, nome: item.nome, preco: item.preco, nivel: item.nivel,
+                            subtipo: item.subtipo,
+                            icone: item.tipo === 'hp' ? 'HP-lvl1.png' : 'MP-lvl1.png'
+                        }))
+                    }));
+                    return;
+                }
                 ws.send(JSON.stringify({ type: 'npc_dialogo', npc: npc }));
+                return;
+            }
+
+            if (data.action === 'npc_service_close') {
+                const npc = NPCS_INTERATIVOS[String(data.npcId || '')];
+                if (!npc || npc.servico !== 'forja' || !npc.conversasAtivas) return;
+                npc.conversasAtivas.delete(playerId);
+                npcRotaPausar(npc, Date.now());
+                transmitirEstadoNpcs();
                 return;
             }
 
@@ -16275,6 +17159,71 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 }
                 return;
             }
+            if (data.action === 'npc_admin_get' || data.action === 'npc_admin_update') {
+                const jogadorAdminNpc = players[playerId];
+                if (!(jogadorAdminNpc && jogadorAdminNpc.isAdmin) && !(ws && ws.ehAdminCliente)) {
+                    console.warn('[SEGURANÇA] Tentativa não autorizada de editar NPC por:', jogadorAdminNpc ? jogadorAdminNpc.nome : 'desconhecido');
+                    return;
+                }
+                if (data.action === 'npc_admin_get') {
+                    ws.send(JSON.stringify({
+                        type: 'npc_admin_state',
+                        npcs: npcsParaPainelAdmin(),
+                        animacoes: NPC_ANIMACOES_DISPONIVEIS
+                    }));
+                    return;
+                }
+                const npc = NPCS_INTERATIVOS[String(data.npcId || '')];
+                if (!npc || !npc.animacao || !data.config || typeof data.config !== 'object' || Array.isArray(data.config)) {
+                    ws.send(JSON.stringify({ type: 'npc_admin_saved', ok: false, erro: 'NPC ou configuração inválida.' }));
+                    return;
+                }
+                const configAtual = {
+                    x: npc.x,
+                    y: npc.y,
+                    animacao: npc.animacao,
+                    patrulha: npc.patrulha || [],
+                    velocidadePatrulha: npc.velocidadePatrulha || 90,
+                    velocidadeFrames: npc.velocidadeFrames || 10,
+                    sequenciaAnimacoes: npc.sequenciaAnimacoes || [],
+                    animacaoConversa: npc.animacaoConversa || '',
+                    rotasProgramadas: npc.rotasProgramadas || [],
+                    intervalosDesativados: npc.intervalosDesativados || []
+                };
+                const configCandidata = Object.assign(configAtual, data.config);
+                if (Object.prototype.hasOwnProperty.call(data.config, 'patrulha') ||
+                    Object.prototype.hasOwnProperty.call(data.config, 'sequenciaAnimacoes')) {
+                    configCandidata.patrulhaInicioEm = Date.now();
+                }
+                const configValidada = npcConfigValido(npc.id, configCandidata);
+                if (!configValidada) {
+                    ws.send(JSON.stringify({
+                        type: 'npc_admin_saved',
+                        ok: false,
+                        erro: 'Configuração inválida: confira posição, animações, horários e evite faixas sobrepostas.'
+                    }));
+                    return;
+                }
+                const configsSalvos = serializarNpcConfigs();
+                configsSalvos[npc.id] = configValidada;
+                if (!salvarNpcConfigs(configsSalvos)) {
+                    ws.send(JSON.stringify({
+                        type: 'npc_admin_saved',
+                        ok: false,
+                        erro: 'Não foi possível salvar npcs_interativos.json no servidor.'
+                    }));
+                    return;
+                }
+                Object.assign(npc, configValidada);
+                transmitirEstadoNpcs();
+                ws.send(JSON.stringify({
+                    type: 'npc_admin_saved',
+                    ok: true,
+                    npcs: npcsParaPainelAdmin(),
+                    animacoes: NPC_ANIMACOES_DISPONIVEIS
+                }));
+                return;
+            }
             if (players[playerId] && (players[playerId].tutorialEtapa === 1 || players[playerId].tutorialEtapa === 2)) {
                 // Nesta fase o servidor rejeita movimento, ataque, skills, inventário,
                 // PvP, dash e demais comandos. A exceção são os pontos de atributo
@@ -16282,8 +17231,8 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                 if (data.action !== 'distribuir_ponto' && data.action !== 'npc_interact' && data.action !== 'tutorial_status_opened' && data.action !== 'tutorial_skill_opened' && data.action !== 'tutorial_skill_viewed' && data.action !== 'tutorial_skill_closed') return;
             }
 
-            // ===== ADMIN: EDITOR DE MAPA (objetos persistentes: criar/editar/excluir/limpar) =====
-            if (data.action === 'admin_map_objetos' || data.action === 'admin_map_objetos_excluir' || data.action === 'admin_map_objetos_limpar' || data.action === 'admin_map_objetos_sync' || data.action === 'admin_map_sprites_list' || data.action === 'admin_map_sprite_palette_get' || data.action === 'admin_map_sprite_palette_save') {
+            // ===== ADMIN: EDITOR DE MAPA (objetos persistentes: criar/editar/excluir) =====
+            if (data.action === 'admin_map_objetos' || data.action === 'admin_map_objetos_excluir' || data.action === 'admin_map_objetos_sync' || data.action === 'admin_map_sprites_list' || data.action === 'admin_map_sprite_palette_get' || data.action === 'admin_map_sprite_palette_save') {
                 let p = players[playerId];
                 let ehAdmin = (p && p.isAdmin) || (ws && ws.ehAdminCliente);
                 if (!ehAdmin) {
@@ -16596,23 +17545,6 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     }
                     broadcastMapObjetos();
                     ws.send(JSON.stringify({ type: 'map_objeto_excluido', ok: true, id: idExcluir }));
-                    return;
-                }
-                if (data.action === 'admin_map_objetos_limpar') {
-                    const mapaLimpar = typeof data.mapa === 'string' ? data.mapa : '';
-                    if (!mapaLimpar || !MAPAS_CONFIG[mapaLimpar]) {
-                        ws.send(JSON.stringify({ type: 'map_objetos_limpos', ok: false, erro: 'Mapa inválido; nenhum objeto foi removido.' }));
-                        return;
-                    }
-                    const objetosAnteriores = mapObjetos;
-                    mapObjetos = mapaObjetosLimparMapa(mapObjetos, mapaLimpar);
-                    if (!salvarMapObjetos()) {
-                        mapObjetos = objetosAnteriores;
-                        ws.send(JSON.stringify({ type: 'map_objetos_limpos', ok: false, erro: 'Não foi possível gravar a limpeza.' }));
-                        return;
-                    }
-                    broadcastMapObjetos();
-                    ws.send(JSON.stringify({ type: 'map_objetos_limpos', ok: true, mapa: mapaLimpar }));
                     return;
                 }
                 logDiagnosticoLaco('SAVE_RECEIVED', data.objeto, {
@@ -17753,7 +18685,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                     p.giroDescontroladoTimer = Math.ceil(duracaoGiroMs / 50);
                     p.giroDescontroladoExpiresAt = Date.now() + duracaoGiroMs;
                     p.giroDescontroladoAtivo = true;
-                    p.giroDescontroladoCooldown = 300; // 15s de cooldown
+                    p.giroDescontroladoCooldown = 300; // Cooldown começa no uso, igual ao cliente.
                     wss.clients.forEach((client) => {
                         if (client.readyState === WebSocket.OPEN) {
                             client.send(JSON.stringify({ type: 'action_barbaro_giro_start', id: playerId, x: p.x + 12, y: p.y + 16, duracaoMs: duracaoGiroMs }));
@@ -17786,6 +18718,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                         perfurante: false,
                         tipo: 'riff',
                         origemBasica: true,
+                        escalaAtaqueBasicoInteligencia: true,
                         alvoTipo: data.alvoTipo,
                         alvoId: data.alvoId,
                         solari: ownerInSolari
@@ -18235,7 +19168,7 @@ if (v && typeof v.x === 'number' && typeof v.y === 'number'
                             client.send(JSON.stringify({ type: 'action_arcano_flecha', id: playerId, x: pX, y: pY, ang: angulo, alvoX: alvoAuto.x, alvoY: alvoAuto.y }));
                         }
                     });
-                    aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, danoFlecha, 'mágico');
+                    aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, danoFlecha, 'mágico', true);
                 }
 
                 // ---- ARQUEIRO ASTRAAL SKILL 1: CHUVA DE COMETAS (impacto + chuva 4s) ----
@@ -19030,7 +19963,7 @@ if (data.action === 'dash') {
                     if (!alvo) return;
                     marcarSkillUsada(p, 'lastFlorimBasic');
                     const dano = dmgSkill(p, 'ataque_florim', DANO_BASE_ATAQUE_BASICO.magic);
-                    aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, dano, 'natureza');
+                    aplicarDanoAtaqueBasicoAlvo(playerId, data.alvoTipo, data.alvoId, dano, 'natureza', true);
                     florimBroadcast({ type: 'action_florim_basic', id: playerId, x: p.x + PLAYER_OFFSET_X, y: p.y + PLAYER_OFFSET_Y, angulo: Number(data.angulo) || p.angulo }, p);
                     return;
                 }
@@ -19996,6 +20929,7 @@ if (data.action === 'dash') {
                         perfurante: false,
                         tipo: tipoProj,
                         origemBasica: true,
+                        escalaAtaqueBasicoInteligencia: CLASSES_QUE_ESCALAM_COM_INTELIGENCIA.has(players[playerId].classe),
                         alvoTipo: data.alvoTipo,
                         alvoId: data.alvoId,
                         solari: ownerInSolari

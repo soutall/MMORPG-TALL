@@ -3006,6 +3006,374 @@
         }
     };
 
+    // ============================================================================
+    // SOMBRAS SOLARES DINÂMICAS E OCLUSÃO DE CONTATO NOS OBJETOS DO CENÁRIO
+    // ============================================================================
+    window.SOMBRAS_MAPA_CONFIG = {
+        enabled: (window.configVisual && window.configVisual.sombrasMapa === 'off') ? false : true,
+        oclusaoContato: false, // Desativado (causa impressão de objetos flutuando)
+        sombrasSolares: true,
+        intensidade: 1.0
+    };
+
+    function desenharSombraProcedural(ctx, o, d, pivotX, pivotY, skewX, scaleY, opacidade) {
+        var tipo = o.tipo || '';
+        var corSombra = 'rgba(2, 8, 14, ' + opacidade + ')';
+        ctx.fillStyle = corSombra;
+
+        var tipX = pivotX + skewX * d.H;
+        var tipY = pivotY - scaleY * d.H; // Sombra projetada para CIMA (Norte) para se esconder atrás do sprite
+
+        if (tipo.indexOf('arvore') === 0 || tipo === 'palmeira' || tipo === 'salgueiro' || tipo === 'pinheiro_silvestre') {
+            // Árvores: tronco estreito projetado + copa frondosa na ponta
+            var troncoW = Math.max(3, d.W * 0.12);
+            ctx.beginPath();
+            ctx.moveTo(pivotX - troncoW, pivotY);
+            ctx.lineTo(pivotX + troncoW, pivotY);
+            ctx.lineTo(tipX + troncoW * 0.8, tipY);
+            ctx.lineTo(tipX - troncoW * 0.8, tipY);
+            ctx.closePath();
+            ctx.fill();
+
+            // Copa projetada
+            var copaRx = d.W * 0.42;
+            var copaRy = Math.max(5, d.H * scaleY * 0.55);
+            ctx.beginPath();
+            ctx.ellipse(tipX, tipY - copaRy * 0.2, copaRx, copaRy, skewX * 0.2, 0, Math.PI * 2);
+            ctx.fill();
+
+            if (tipo === 'arvore_dupla') {
+                ctx.beginPath();
+                ctx.ellipse(tipX + d.W * 0.25, tipY, copaRx * 0.85, copaRy * 0.85, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        } else if (tipo.indexOf('cerca') === 0 || tipo.indexOf('parede') === 0 || tipo.indexOf('muro') === 0 || tipo === 'muralha') {
+            // Cercas e muros: projeção quadrilateral precisa
+            var halfW = d.W * 0.5;
+            ctx.beginPath();
+            ctx.moveTo(pivotX - halfW, pivotY);
+            ctx.lineTo(pivotX + halfW, pivotY);
+            ctx.lineTo(pivotX + halfW + skewX * d.H, pivotY + scaleY * d.H);
+            ctx.lineTo(pivotX - halfW + skewX * d.H, pivotY + scaleY * d.H);
+            ctx.closePath();
+            ctx.fill();
+        } else if (tipo.indexOf('cabana') === 0 || tipo.indexOf('torre') === 0 || tipo === 'ruina' || tipo === 'obelisco' || tipo === 'coluna') {
+            // Construções e torres: projeção com topo inclinado
+            var halfW = d.W * 0.48;
+            ctx.beginPath();
+            ctx.moveTo(pivotX - halfW, pivotY);
+            ctx.lineTo(pivotX + halfW, pivotY);
+            ctx.lineTo(pivotX + halfW * 0.6 + skewX * d.H, pivotY + scaleY * d.H);
+            ctx.lineTo(tipX, pivotY + scaleY * d.H * 1.15); // cume do telhado
+            ctx.lineTo(pivotX - halfW * 0.6 + skewX * d.H, pivotY + scaleY * d.H);
+            ctx.closePath();
+            ctx.fill();
+        } else {
+            // Rochas, caixas, barris, poços, fogueiras, carroças, postes e decorações
+            var rx = d.W * 0.44;
+            var ry = Math.max(3.5, d.H * scaleY * 0.5);
+            var midX = pivotX + skewX * d.H * 0.45;
+            var midY = pivotY + scaleY * d.H * 0.45;
+            ctx.beginPath();
+            ctx.ellipse(midX, midY, rx, ry, skewX * 0.25, 0, Math.PI * 2);
+            ctx.fill();
+        }
+    }
+
+    window.desenharSombrasObjetosMapa = function (ctx, camX, camY, cw, ch, tempoMundo) {
+        if (!ctx) return;
+        var lista = window.mapaObjetos;
+        if (!lista || !lista.length) return;
+
+        var mapa = global.currentMap || 'green';
+        var tm = tempoMundo || global.tempoMundo;
+        var horaDecimal = 12.0;
+        if (tm && typeof tm.horaDecimal === 'number') {
+            horaDecimal = tm.horaDecimal;
+        } else if (tm && typeof tm.hora === 'number') {
+            horaDecimal = tm.hora + (tm.minuto || 0) / 60;
+        }
+
+        // Configuração do sol e cálculo da direção da sombra
+        var isDia = horaDecimal >= 5.5 && horaDecimal <= 18.5;
+        var skewX = 0;
+        var scaleY = 0.32;
+        var opacidadeBase = 0.26;
+
+        if (isDia) {
+            // Progresso do dia: 0.0 (amanhecer 05:30) até 1.0 (entardecer 18:30)
+            var tSol = Math.max(0, Math.min(1, (horaDecimal - 5.5) / 13.0));
+            // Elevação do sol: 0 ao amanhecer/entardecer, 1.0 ao meio-dia (12:00)
+            var elevacao = Math.sin(tSol * Math.PI);
+
+            // Comprimento da sombra: curta ao meio-dia, alongada pela manhã e fim de tarde
+            scaleY = 0.22 + (1.0 - elevacao) * 0.38;
+
+            // Direção horizontal: o sol nasce no leste (sombra para a esquerda/oeste)
+            // e se põe no oeste (sombra para a direita/leste)
+            skewX = (tSol - 0.5) * 1.4 * (1.1 - elevacao * 0.4);
+
+            // Opacidade da sombra de acordo com a intensidade do sol
+            var fadeTransicao = Math.min(1.0, Math.min((horaDecimal - 5.5) * 1.5, (18.5 - horaDecimal) * 1.5));
+            opacidadeBase = Math.max(0.08, (0.20 + elevacao * 0.14) * Math.max(0.2, fadeTransicao));
+        } else {
+            // Noite: luar suave proporcionando sombras noturnas discretas
+            scaleY = 0.30;
+            skewX = 0.25;
+            opacidadeBase = 0.12;
+        }
+
+        // Multiplicador de intensidade configurável
+        var cfg = window.SOMBRAS_MAPA_CONFIG;
+        if (cfg && cfg.enabled === false) return;
+        if (cfg && typeof cfg.intensidade === 'number') {
+            opacidadeBase *= cfg.intensidade;
+        }
+        var desenharAO = cfg && cfg.oclusaoContato === true; // Desativado por padrão (causa ilusão de que objetos flutuam)
+        var desenharSolares = !cfg || cfg.sombrasSolares !== false;
+
+        var zoom = (typeof global.cameraZoomAtual === 'number' && global.cameraZoomAtual > 0) ? global.cameraZoomAtual : (global.ZOOM_CAMERA || 0.92);
+        var cx = (typeof camX === 'number') ? camX : (global.camX || 0);
+        var cy = (typeof camY === 'number') ? camY : (global.camY || 0);
+        var cLargura = (typeof cw === 'number' && cw > 0) ? cw : (((global.canvas && global.canvas.width) || 800) / zoom);
+        var cAltura = (typeof ch === 'number' && ch > 0) ? ch : (((global.canvas && global.canvas.height) || 600) / zoom);
+
+        // Margens generosas para incluir objetos cujas sombras se projetam para dentro do viewport
+        var margemX = 160;
+        var margemY = 180;
+        var minX = cx - margemX;
+        var maxX = cx + cLargura + margemX;
+        var minY = cy - margemY;
+        var maxY = cy + cAltura + margemY;
+
+        var supportsFilter = false;
+        if (ctx && typeof ctx.filter === 'string') {
+            supportsFilter = true;
+        }
+
+        ctx.save();
+
+        for (var i = 0; i < lista.length; i++) {
+            var o = lista[i];
+            if (!o || o.mapa !== mapa) continue;
+
+            // Ignorar camadas de chão plano (decalques, caminhos, tapetes de flor que não têm altura 3D)
+            var camada = normalizarCamadaEditor(o.camada);
+            if (camada === 'ground' || o.camada === 'chao') continue;
+
+            // Ignorar zonas transparentes do editor
+            if (o.tipo === 'zona_colisao' || o.tipo === 'zona_frente') continue;
+
+            // Ignorar blocos de água
+            var def = CATALOGO[o.tipo];
+            if (def && def.agua) continue;
+
+            var d = dims(o);
+            // Culling de frustum rápido
+            if (d.x + d.W < minX || d.x > maxX || d.y + d.H < minY || d.y > maxY) continue;
+
+            var pivotX = d.x + d.W * 0.5;
+            var pivotY = d.y + d.H;
+
+            // ----------------------------------------------------------------
+            // 1. OCLUSÃO DE CONTATO (Ambient Occlusion de base)
+            // ----------------------------------------------------------------
+            if (desenharAO) {
+                var aoRx = Math.max(5, d.W * 0.42);
+                var aoRy = Math.max(2.5, Math.min(10, d.H * 0.08));
+                ctx.fillStyle = 'rgba(2, 6, 12, ' + (opacidadeBase * 0.95) + ')';
+                ctx.beginPath();
+                ctx.ellipse(pivotX, pivotY - 1, aoRx, aoRy, 0, 0, Math.PI * 2);
+                ctx.fill();
+            }
+
+            // ----------------------------------------------------------------
+            // 2. SOMBRA DIRECIONAL SOLAR PROJETADA
+            // ----------------------------------------------------------------
+            if (!desenharSolares) continue;
+
+            var imgFinal = null;
+            var drawSrc = null;
+            var halfW = d.W * 0.5;
+            
+            if (o.tipo === 'sprite_personalizado') {
+                var imagemSprite = obterImagemSpriteMapa(o.asset);
+                if (imagemSprite && imagemSprite.complete && imagemSprite.naturalWidth > 0) {
+                    var sourceRegion = obterAssetRect(o, imagemSprite);
+                    if (mascaraAutomaticaAusente(o, sourceRegion)) continue;
+                    var imagemComMascara = obterSpriteComMascara(o, imagemSprite);
+                    imgFinal = imagemComMascara || imagemSprite;
+                    drawSrc = imagemComMascara ? null : sourceRegion;
+
+                    ctx.save();
+                    
+                    // Offset vertical para compensar a perspectiva isométrica e esconder a base da sombra atrás do sprite
+                    var baseOffset = Math.max(4, Math.min(d.W * 0.15, d.H * 0.12));
+                    ctx.translate(pivotX, pivotY - baseOffset);
+                    
+                    // Projetamos a sombra para CIMA (Norte) usando scaleY positivo.
+                    // Como a imagem é desenhada de y=-H até 0, um scaleY positivo mantém Y negativo (CIMA).
+                    ctx.transform(1, 0, -skewX, scaleY, 0, 0);
+                    ctx.globalAlpha = opacidadeBase;
+
+                    var filterApplied = false;
+                    if (supportsFilter) {
+                        try {
+                            ctx.filter = 'brightness(0)';
+                            filterApplied = true;
+                        } catch (eF) {
+                            filterApplied = false;
+                        }
+                    }
+
+                    if (filterApplied) {
+                        if (drawSrc) {
+                            ctx.drawImage(imgFinal, drawSrc.x, drawSrc.y, drawSrc.w, drawSrc.h, -halfW, -d.H, d.W, d.H);
+                        } else {
+                            ctx.drawImage(imgFinal, -halfW, -d.H, d.W, d.H);
+                        }
+                    } else {
+                        ctx.fillStyle = 'rgba(2, 6, 12, ' + opacidadeBase + ')';
+                        ctx.beginPath();
+                        ctx.ellipse(0, -d.H * 0.45, halfW * 0.85, Math.max(4, d.H * 0.45), 0, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                    ctx.restore();
+                }
+            } else {
+                // Procedural do catálogo: sombras com silhueta adaptada ao tipo
+                desenharSombraProcedural(ctx, o, d, pivotX, pivotY, skewX, scaleY, opacidadeBase);
+            }
+            
+            // ----------------------------------------------------------------
+            // 3. SOMBRA DINÂMICA DA LANTERNA (Apenas à Noite)
+            // ----------------------------------------------------------------
+            // ----------------------------------------------------------------
+            // 3. LUZES DINÂMICAS: LANTERNA E EDITOR VFX MAPA (Apenas à Noite)
+            // ----------------------------------------------------------------
+            if (!isDia) {
+                var luzes = [];
+                // 3.1. Lanterna Direcional do Jogador
+                if (typeof window.meuX === 'number' && typeof window.mouseWorldX === 'number') {
+                    luzes.push({
+                        tipo: 'lanterna',
+                        x: window.meuX + 12,
+                        y: window.meuY + 16,
+                        maxDist: 450,
+                        mouseDx: window.mouseWorldX - (window.meuX + 12),
+                        mouseDy: window.mouseWorldY - (window.meuY + 16)
+                    });
+                }
+                // 3.2. Luzes Fixas do Editor VFX Mapa
+                var mapVfxList = (typeof global !== 'undefined' ? global.vfxMapa : null) || window.vfxMapa || [];
+                for (var v = 0; v < mapVfxList.length; v++) {
+                    var vfx = mapVfxList[v];
+                    var tipoVfxLuz = vfx && ['lampada', 'holofote', 'tocha', 'fogo', 'fogo-alto', 'brasa'].indexOf(vfx.tipo) !== -1;
+                    if (tipoVfxLuz && (vfx.mapa === mapa || !vfx.mapa)) {
+                        var direcoesHolofote = {
+                            n: { x: 0, y: -1 }, ne: { x: 0.7071, y: -0.7071 },
+                            e: { x: 1, y: 0 }, se: { x: 0.7071, y: 0.7071 },
+                            s: { x: 0, y: 1 }, sw: { x: -0.7071, y: 0.7071 },
+                            w: { x: -1, y: 0 }, nw: { x: -0.7071, y: -0.7071 }
+                        };
+                        var direcaoHolofote = direcoesHolofote[vfx.direcao] || direcoesHolofote.n;
+                        luzes.push({
+                            tipo: vfx.tipo === 'holofote' ? 'holofote' : 'ambiente',
+                            x: vfx.x,
+                            y: vfx.y,
+                            maxDist: Math.max(150, (vfx.raio || 100) * 2.2),
+                            intensidadeFx: vfx.intensidade || 1.0,
+                            direcaoX: direcaoHolofote.x,
+                            direcaoY: direcaoHolofote.y
+                        });
+                    }
+                }
+
+                // Processar as sombras geradas por cada luz próxima
+                for (var l = 0; l < luzes.length; l++) {
+                    var luz = luzes[l];
+                    var dx = pivotX - luz.x;
+                    var dy = pivotY - luz.y;
+                    var dist = Math.sqrt(dx * dx + dy * dy);
+
+                    if (dist < luz.maxDist && dist > 15) {
+                        var angleObj = Math.atan2(dy, dx);
+                        var inCone = true;
+                        
+                        if (luz.tipo === 'lanterna') {
+                            var angleMouse = Math.atan2(luz.mouseDy, luz.mouseDx);
+                            var angleDiff = Math.abs(angleObj - angleMouse);
+                            if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+                            inCone = (angleDiff < 0.6);
+                        } else if (luz.tipo === 'holofote') {
+                            var angleFeixe = Math.atan2(luz.direcaoY, luz.direcaoX);
+                            var angleDiffHolofote = Math.abs(angleObj - angleFeixe);
+                            if (angleDiffHolofote > Math.PI) angleDiffHolofote = 2 * Math.PI - angleDiffHolofote;
+                            inCone = angleDiffHolofote < 0.48;
+                        }
+
+                        if (inCone) {
+                            var intLight = 1.0 - (dist / luz.maxDist);
+                            intLight = Math.max(0, intLight * intLight);
+                            if (luz.tipo === 'ambiente') intLight *= Math.min(1.5, luz.intensidadeFx);
+                            
+                            var dirX = dx / dist;
+                            var dirY = dy / dist;
+                            // Se for luz de ambiente (lâmpada de rua, etc), a sombra se alonga MUITO mais do que a lanterna
+                            var elongFactor = (luz.tipo === 'ambiente') ? 2.0 : 1.2;
+                            var shadowLen = d.H * (0.8 + elongFactor * intLight);
+                            var lAlpha = 0.5 * intLight;
+                            
+                            if (o.tipo === 'sprite_personalizado' && imgFinal && drawSrc !== undefined) {
+                                // Projeta o sprite
+                                var lSkewX = -(dirX * shadowLen) / d.H;
+                                var lScaleY = -(dirY * shadowLen) / d.H;
+                                
+                                ctx.save();
+                                var baseOffset = Math.max(4, Math.min(d.W * 0.15, d.H * 0.12));
+                                var extraUp = (lScaleY < 0) ? (d.H * 0.25) : 0; 
+                                ctx.translate(pivotX, pivotY - baseOffset - extraUp);
+                                
+                                ctx.transform(1, 0, lSkewX, lScaleY, 0, 0);
+                                ctx.globalAlpha = lAlpha;
+                                
+                                var fApplied = false;
+                                if (supportsFilter) {
+                                    try { ctx.filter = 'brightness(0)'; fApplied = true; } catch(e){}
+                                }
+                                
+                                if (fApplied) {
+                                    if (drawSrc) ctx.drawImage(imgFinal, drawSrc.x, drawSrc.y, drawSrc.w, drawSrc.h, -halfW, -d.H, d.W, d.H);
+                                    else ctx.drawImage(imgFinal, -halfW, -d.H, d.W, d.H);
+                                } else {
+                                    ctx.fillStyle = 'rgba(0, 3, 7, ' + lAlpha + ')';
+                                    ctx.beginPath();
+                                    ctx.ellipse(0, -d.H * 0.45, halfW * 0.85, Math.max(4, d.H * 0.45), 0, 0, Math.PI * 2);
+                                    ctx.fill();
+                                }
+                                ctx.restore();
+                            } else {
+                                // Sombra procedural alongada da luz para objetos comuns
+                                ctx.save();
+                                ctx.fillStyle = 'rgba(0, 3, 7, ' + lAlpha + ')';
+                                ctx.beginPath();
+                                ctx.translate(pivotX, pivotY);
+                                ctx.rotate(angleObj);
+                                var rx = shadowLen / 2;
+                                var ry = Math.max(4, d.W * 0.25);
+                                ctx.ellipse(rx, 0, rx, ry, 0, 0, Math.PI * 2);
+                                ctx.fill();
+                                ctx.restore();
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        ctx.restore();
+    };
+
     window.meSetSelAnimacao = function (animacao) {
         if (!meSel || meSel.tipo !== 'sprite_personalizado') return;
         meSel.animacao = ANIMACOES_SPRITE_VALIDAS.indexOf(animacao) !== -1 ? animacao : 'nenhuma';
@@ -4090,7 +4458,6 @@
                     '<div class="me-actions">' +
                         '<button class="me-act save" onclick="window.meSalvar()">💾 SALVAR</button>' +
                         '<button class="me-act lock" id="me-btn-lock" onclick="window.meTravar()">🔒 TRAVAR</button>' +
-                        '<button class="me-act del" onclick="window.meLimparMapa()">🧹 LIMPAR MAPA</button>' +
                     '</div>' +
                     '<div id="me-contador">0 objetos neste mapa</div>' +
                     '<div id="me-status-bar">Aponte o mouse e CLIQUE para colocar · segure SHIFT ou ARRASTE para pintar vários seguidos</div>' +
@@ -5673,18 +6040,6 @@
             meToast('💾 Salvando ' + objetos.length + ' objeto(s) do mapa ' + mapa + '...');
         } else {
             meToast('Erro: conexão fechada.');
-        }
-    };
-
-    window.meLimparMapa = function () {
-        if (window.mapaEditorTravado) { meToast('🔒 Editor travado! Destrave antes de limpar.'); return; }
-        var mapa = global.currentMap || 'green';
-        if (!window.confirm('Apagar TODOS os objetos/collisões do mapa ' + mapa.toUpperCase() + '?')) return;
-        if (global.ws && global.ws.readyState === 1) {
-            global.ws.send(JSON.stringify({ action: 'admin_map_objetos_limpar', mapa: mapa }));
-            meToast('Solicitando limpeza apenas do mapa ' + mapa + '...');
-        } else {
-            meToast('Não foi possível limpar: conexão com o servidor fechada.');
         }
     };
 

@@ -24,8 +24,12 @@
         { id: 'neve', nome: 'Neve caindo', grupo: 'Clima e água', cor: '#e8f7ff' },
         { id: 'água', nome: 'Correnteza', grupo: 'Clima e água', cor: '#38bdf8' },
         { id: 'ondas', nome: 'Ondas na superfície', grupo: 'Clima e água', cor: '#52d6e8' },
+        { id: 'nuvem-chuva', nome: 'Nuvem com chuva local', grupo: 'Clima e água', cor: '#9db9ce' },
+        { id: 'impacto-agua', nome: 'Objeto caindo na água', grupo: 'Clima e água', cor: '#8be9fd' },
         { id: 'cachoeira', nome: 'Cachoeira e respingos', grupo: 'Clima e água', cor: '#8be9fd' },
         { id: 'bolhas', nome: 'Bolhas subindo', grupo: 'Clima e água', cor: '#8de7ff' },
+        { id: 'impacto-pedra', nome: 'Batidas em pedra', grupo: 'Impactos e destroços', cor: '#c6c0b7' },
+        { id: 'rocha-quebrando', nome: 'Rocha se quebrando', grupo: 'Impactos e destroços', cor: '#d0c1a4' },
         { id: 'folhas', nome: 'Folhas caindo', grupo: 'Natureza', cor: '#7abf45' },
         { id: 'folhas-caindo', nome: 'Rajada de folhas', grupo: 'Natureza', cor: '#77b84b' },
         { id: 'pétalas', nome: 'Pétalas ao vento', grupo: 'Natureza', cor: '#ff86b7' },
@@ -57,7 +61,21 @@
         'pétalas': 'Pétalas delicadas flutuam e rodopiam pelo local.',
         'petalas-caindo': 'Chuva densa de pétalas com queda lenta e oscilante.',
         'cachoeira': 'Fluxo vertical contínuo com espuma e respingos na base.',
-        'névoa': 'Camadas baixas e translúcidas deslizam pelo terreno.'
+        'névoa': 'Camadas baixas e translúcidas deslizam pelo terreno.',
+        'nuvem-chuva': 'Nuvens locais com chuva e pequenos respingos; não altera o clima global.',
+        'impacto-agua': 'Gotas caem em ciclos, formando ondas concêntricas e respingos.',
+        'impacto-pedra': 'Batidas repetidas levantam lascas e poeira de pedra.',
+        'rocha-quebrando': 'Fissuras se abrem e fragmentos se soltam em ciclos.'
+    };
+    var direcoesHolofote = {
+        n: { x: 0, y: -1, rotacao: Math.PI },
+        ne: { x: 1, y: -1, rotacao: -Math.PI * 0.75 },
+        e: { x: 1, y: 0, rotacao: -Math.PI / 2 },
+        se: { x: 1, y: 1, rotacao: -Math.PI * 0.25 },
+        s: { x: 0, y: 1, rotacao: 0 },
+        sw: { x: -1, y: 1, rotacao: Math.PI * 0.25 },
+        w: { x: -1, y: 0, rotacao: Math.PI / 2 },
+        nw: { x: -1, y: -1, rotacao: Math.PI * 0.75 }
     };
 
     function el(tag, props) {
@@ -93,7 +111,9 @@
             '<div id="map-vfx-preview-wrap"><canvas id="map-vfx-preview" width="560" height="240"></canvas><span>PRÉVIA ANIMADA</span></div>' +
             '<div id="map-vfx-description"></div>' +
             '<div class="map-vfx-controls">' +
-                '<label>ESCALA <output id="map-vfx-escala-label">1.0x</output><input id="map-vfx-escala" type="range" min="0.3" max="4" step="0.1" value="1"></label>' +
+            '<label id="map-vfx-direcao-wrap">DIREÇÃO DO HOLOFOTE<select id="map-vfx-direcao"><option value="n">Norte ↑</option><option value="ne">Nordeste ↗</option><option value="e">Leste →</option><option value="se">Sudeste ↘</option><option value="s">Sul ↓</option><option value="sw">Sudoeste ↙</option><option value="w">Oeste ←</option><option value="nw">Noroeste ↖</option></select></label>' +
+            '<label>CAMADA<select id="map-vfx-camada"><option value="atras">Atrás das texturas</option><option value="frente">Na frente das texturas</option></select></label>' +
+            '<label>ESCALA <output id="map-vfx-escala-label">1.0x</output><input id="map-vfx-escala" type="range" min="0.3" max="4" step="0.1" value="1"></label>' +
                 '<label>INTENSIDADE <output id="map-vfx-intensidade-label">1.0x</output><input id="map-vfx-intensidade" type="range" min="0.1" max="2" step="0.1" value="1"></label>' +
                 '<label>ÁREA DO EFEITO <output id="map-vfx-raio-label">80</output><input id="map-vfx-raio" type="range" min="20" max="260" step="5" value="80"></label>' +
                 '<label class="map-vfx-color-label">COR DO EFEITO<input id="map-vfx-cor" type="color" value="#ffd166"></label>' +
@@ -118,10 +138,12 @@
         document.getElementById('map-vfx-delete').onclick = excluir;
         select.onchange = function () {
             document.getElementById('map-vfx-cor').value = obterTipo(select.value).cor;
+            document.getElementById('map-vfx-direcao-wrap').style.display = select.value === 'holofote' ? '' : 'none';
             atualizarPreview();
         };
-        ['map-vfx-escala', 'map-vfx-intensidade', 'map-vfx-raio', 'map-vfx-cor'].forEach(function (id) {
+        ['map-vfx-direcao', 'map-vfx-camada', 'map-vfx-escala', 'map-vfx-intensidade', 'map-vfx-raio', 'map-vfx-cor'].forEach(function (id) {
             document.getElementById(id).addEventListener('input', atualizarPreview);
+            document.getElementById(id).addEventListener('change', atualizarPreview);
         });
     }
 
@@ -144,7 +166,9 @@
             escala: Number(document.getElementById('map-vfx-escala').value),
             intensidade: Number(document.getElementById('map-vfx-intensidade').value),
             raio: Number(document.getElementById('map-vfx-raio').value),
-            cor: document.getElementById('map-vfx-cor').value
+            cor: document.getElementById('map-vfx-cor').value,
+            direcao: document.getElementById('map-vfx-direcao').value,
+            camada: document.getElementById('map-vfx-camada').value
         };
     }
 
@@ -169,7 +193,8 @@
         contexto.clearRect(0, 0, canvas.width, canvas.height);
         contexto.fillStyle = '#100c17';
         contexto.fillRect(0, 0, canvas.width, canvas.height);
-        var raioTela = Math.min(88 * controles.escala, canvas.height * 0.42, canvas.width * 0.42);
+        var raioTela = Math.min((controles.tipo === 'holofote' ? 43 : 88) * controles.escala,
+            canvas.height * 0.42, canvas.width * 0.42);
         desenhar({
             id: 'preview-' + controles.tipo,
             tipo: controles.tipo,
@@ -178,7 +203,9 @@
             escala: controles.escala,
             intensidade: controles.intensidade,
             raio: raioTela / controles.escala,
-            cor: controles.cor
+            cor: controles.cor,
+            direcao: controles.direcao,
+            camada: controles.camada
         }, tempo, contexto, true);
     }
 
@@ -212,6 +239,9 @@
         document.getElementById('map-vfx-intensidade').value = selecionado.intensidade || 1;
         document.getElementById('map-vfx-raio').value = selecionado.raio || 80;
         document.getElementById('map-vfx-cor').value = selecionado.cor || obterTipo(selecionado.tipo).cor;
+        document.getElementById('map-vfx-direcao').value = direcoesHolofote[selecionado.direcao] ? selecionado.direcao : 'n';
+        document.getElementById('map-vfx-camada').value = selecionado.camada === 'frente' ? 'frente' : 'atras';
+        document.getElementById('map-vfx-direcao-wrap').style.display = selecionado.tipo === 'holofote' ? '' : 'none';
         document.getElementById('map-vfx-pos').textContent = 'X: ' + Math.round(selecionado.x) + ' · Y: ' + Math.round(selecionado.y);
         document.getElementById('map-vfx-delete').style.display = vfx ? 'block' : 'none';
         mostrarStatus('', false);
@@ -246,7 +276,9 @@
             escala: Number(document.getElementById('map-vfx-escala').value),
             intensidade: Number(document.getElementById('map-vfx-intensidade').value),
             raio: Number(document.getElementById('map-vfx-raio').value),
-            cor: document.getElementById('map-vfx-cor').value
+            cor: document.getElementById('map-vfx-cor').value,
+            direcao: document.getElementById('map-vfx-direcao').value,
+            camada: document.getElementById('map-vfx-camada').value
         };
         window.ws.send(JSON.stringify({ action: 'admin_map_vfx', sub: selecionado.id ? 'editar' : 'criar', vfx: novo }));
         fechar();
@@ -283,6 +315,7 @@
         var potencia = Math.max(0.1, Number(v.intensidade) || 1) * (luz ? fatorLuz : 1);
         var a = tempo / 1000;
         var cor = v.cor || obterTipo(tipo).cor;
+        var direcao = direcoesHolofote[v.direcao] || direcoesHolofote.n;
         var seed = 0;
         String(v.id || tipo).split('').forEach(function (ch) { seed = (seed * 31 + ch.charCodeAt(0)) % 997; });
         var fase = seed / 997 * Math.PI * 2;
@@ -351,18 +384,28 @@
         if (tipo === 'lampada' || tipo === 'holofote' || tipo === 'sombra') {
             if (tipo === 'holofote') {
                 c.save();
-                c.rotate(-Math.PI / 2 + Math.sin(a * 0.35 + fase) * 0.08);
+                c.rotate(direcao.rotacao);
                 var cone = c.createRadialGradient(0, 0, raio * 0.05, 0, 0, raio);
-                cone.addColorStop(0, corComAlpha(cor, 0.4 * potencia));
+                cone.addColorStop(0, corComAlpha(cor, 0.48 * potencia));
                 cone.addColorStop(1, corComAlpha(cor, 0));
                 c.fillStyle = cone;
                 c.beginPath();
                 c.moveTo(-raio * 0.22, 0);
-                c.lineTo(-raio * 0.72, raio * 1.7);
-                c.quadraticCurveTo(0, raio * 1.92, raio * 0.72, raio * 1.7);
+                c.lineTo(-raio * 0.72, raio * 1.85);
+                c.quadraticCurveTo(0, raio * 2.1, raio * 0.72, raio * 1.85);
                 c.lineTo(raio * 0.22, 0);
                 c.closePath();
                 c.fill();
+                c.globalAlpha = 0.18 * potencia;
+                c.fillStyle = cor;
+                c.beginPath();
+                c.moveTo(-raio * 0.06, 0);
+                c.lineTo(-raio * 0.28, raio * 1.9);
+                c.quadraticCurveTo(0, raio * 2.02, raio * 0.28, raio * 1.9);
+                c.lineTo(raio * 0.06, 0);
+                c.closePath();
+                c.fill();
+                elipse(0, 0, 3.5 * escala, 3.5 * escala, 0, 1, '#fff9db');
                 c.restore();
             } else if (tipo === 'sombra') {
                 elipse(0, raio * 0.12, raio * 0.68, raio * 0.32, 0, 0.16 * potencia, cor);
@@ -426,6 +469,87 @@
                 var puffAlpha = (rasteira ? 0.11 : 0.15) * (1 - rise * 0.4) * potencia;
                 elipse(drift, puffY, puffSize * 1.35, puffSize * 0.72, Math.sin(a + s) * 0.12, puffAlpha, cor);
                 if (!rasteira && s % 2 === 0) elipse(drift - puffSize * 0.4, puffY + puffSize * 0.12, puffSize * 0.65, puffSize * 0.52, 0, puffAlpha * 0.7, '#d7dce0');
+            }
+        } else if (tipo === 'nuvem-chuva') {
+            for (var cloud = 0; cloud < 7; cloud++) {
+                var cloudX = (cloud - 3) * raio * 0.16;
+                var cloudY = -raio * 0.3 + Math.sin(cloud * 1.7 + fase) * raio * 0.07;
+                elipse(cloudX, cloudY, raio * (0.2 + aleatorio(cloud + 210) * 0.08), raio * 0.13,
+                    0, 0.34 * potencia, cloud % 2 ? '#6d8294' : cor);
+            }
+            c.lineCap = 'round';
+            for (var chuva = 0; chuva < 28; chuva++) {
+                var chuvaFase = (a * 0.72 + aleatorio(chuva + 250)) % 1;
+                var chuvaX = (aleatorio(chuva + 260) - 0.5) * raio * 1.25 + (chuvaFase - 0.5) * raio * 0.16;
+                var chuvaY = -raio * 0.12 + chuvaFase * raio * 1.25;
+                c.globalAlpha = (0.3 + aleatorio(chuva + 280) * 0.32) * potencia;
+                c.lineWidth = Math.max(0.7, escala * 0.9);
+                c.beginPath();
+                c.moveTo(chuvaX, chuvaY);
+                c.lineTo(chuvaX + raio * 0.035, chuvaY + raio * 0.1);
+                c.stroke();
+            }
+            for (var respingo = 0; respingo < 6; respingo++) {
+                var respingoFase = (a * 0.7 + aleatorio(respingo + 310)) % 1;
+                elipse((aleatorio(respingo + 320) - 0.5) * raio * 1.2, raio * 0.58,
+                    escala * (1 + respingoFase * 2), escala * 0.7, 0,
+                    (1 - respingoFase) * 0.6 * potencia, '#d9f5ff');
+            }
+        } else if (tipo === 'impacto-pedra' || tipo === 'rocha-quebrando') {
+            var cicloImpacto = (a * (tipo === 'rocha-quebrando' ? 0.34 : 0.62) + fase / (Math.PI * 2)) % 1;
+            var pulsoImpacto = Math.max(0, 1 - cicloImpacto * 4);
+            c.lineCap = 'round';
+            c.lineJoin = 'round';
+            if (tipo === 'rocha-quebrando') {
+                c.globalAlpha = (0.28 + Math.sin(a * 1.1 + fase) * 0.08) * potencia;
+                c.lineWidth = Math.max(1, 1.5 * escala);
+                c.beginPath();
+                c.moveTo(-raio * 0.16, raio * 0.2);
+                c.lineTo(-raio * 0.04, raio * 0.06);
+                c.lineTo(-raio * 0.1, -raio * 0.08);
+                c.lineTo(raio * 0.03, -raio * 0.18);
+                c.moveTo(raio * 0.03, -raio * 0.18);
+                c.lineTo(raio * 0.08, -raio * 0.02);
+                c.lineTo(raio * 0.2, raio * 0.08);
+                c.stroke();
+            }
+            for (var fragmento = 0; fragmento < (tipo === 'rocha-quebrando' ? 13 : 8); fragmento++) {
+                var anguloFragmento = fragmento * 2.399 + fase;
+                var faseFragmento = (cicloImpacto + aleatorio(fragmento + 350)) % 1;
+                var distanciaFragmento = raio * (0.12 + faseFragmento * (tipo === 'rocha-quebrando' ? 0.62 : 0.42));
+                var fx = Math.cos(anguloFragmento) * distanciaFragmento;
+                var fy = raio * 0.18 + Math.sin(anguloFragmento) * distanciaFragmento * 0.48 + faseFragmento * faseFragmento * raio * 0.24;
+                c.save();
+                c.translate(fx, fy);
+                c.rotate(anguloFragmento + faseFragmento * 4);
+                c.globalAlpha = (1 - faseFragmento) * potencia;
+                c.fillStyle = fragmento % 3 === 0 ? '#e1d4bd' : cor;
+                c.beginPath();
+                c.moveTo(-escala * 2.8, escala * 1.5);
+                c.lineTo(escala * 0.5, -escala * (2 + aleatorio(fragmento + 370) * 2));
+                c.lineTo(escala * 3, escala * 1.2);
+                c.closePath();
+                c.fill();
+                c.restore();
+            }
+            if (pulsoImpacto > 0) {
+                c.globalAlpha = pulsoImpacto * 0.85 * potencia;
+                c.lineWidth = Math.max(1, escala * 1.8);
+                c.beginPath();
+                c.moveTo(-raio * 0.25, raio * 0.16);
+                c.lineTo(0, raio * (0.05 + pulsoImpacto * 0.08));
+                c.lineTo(raio * 0.2, raio * 0.18);
+                c.stroke();
+                for (var fagulha = 0; fagulha < 5; fagulha++) {
+                    var anguloFagulha = fagulha * Math.PI * 0.4 - Math.PI * 0.9;
+                    var distanciaFagulha = raio * (0.12 + (1 - pulsoImpacto) * 0.18);
+                    elipse(Math.cos(anguloFagulha) * distanciaFagulha, raio * 0.12 + Math.sin(anguloFagulha) * distanciaFagulha,
+                        escala * 1.5, escala * 1.5, 0, pulsoImpacto, '#ffe2a3');
+                }
+            }
+            if (tipo === 'rocha-quebrando') {
+                c.globalAlpha = 0.14 * potencia;
+                elipse(0, raio * 0.2, raio * (0.24 + Math.sin(a * 2 + fase) * 0.02), raio * 0.09, 0, 1, '#9a8062');
             }
         } else if (tipo === 'folhas' || tipo === 'folhas-caindo' || tipo === 'pétalas' || tipo === 'petalas-caindo' || tipo === 'cinzas' || tipo === 'neve') {
             var folhas = tipo === 'folhas' || tipo === 'folhas-caindo';
@@ -496,14 +620,62 @@
             }
         } else if (tipo === 'ondas') {
             c.lineWidth = 1.5 * escala;
+            c.globalAlpha = 0.16 * potencia;
+            c.fillStyle = cor;
+            c.beginPath();
+            c.moveTo(-raio, 0);
+            for (var aguaX = -raio; aguaX <= raio; aguaX += 4 * escala) {
+                var aguaY = Math.sin(aguaX * 0.026 + a * 1.8) * raio * 0.055 +
+                    Math.sin(aguaX * 0.011 - a * 1.1) * raio * 0.035;
+                c.lineTo(aguaX, aguaY);
+            }
+            c.lineTo(raio, raio * 0.4);
+            c.lineTo(-raio, raio * 0.4);
+            c.closePath();
+            c.fill();
             for (var onda = 0; onda < 5; onda++) {
-                c.globalAlpha = (0.3 + onda * 0.09) * potencia;
+                c.globalAlpha = (0.2 + onda * 0.045) * potencia;
                 c.beginPath();
                 for (var ox = -raio; ox <= raio; ox += 5 * escala) {
-                    var oy = onda * raio * 0.12 + Math.sin(ox * 0.035 + a * 2 + onda) * raio * 0.045;
+                    var oy = onda * raio * 0.12 + Math.sin(ox * (0.026 + onda * 0.002) + a * (1.7 + onda * 0.08) + onda) * raio * 0.045;
                     if (ox === -raio) c.moveTo(ox, oy); else c.lineTo(ox, oy);
                 }
                 c.stroke();
+            }
+            for (var brilhoAgua = 0; brilhoAgua < 12; brilhoAgua++) {
+                var brilhoX = (aleatorio(brilhoAgua + 420) - 0.5) * raio * 1.8;
+                var brilhoY = (aleatorio(brilhoAgua + 430) - 0.5) * raio * 0.48;
+                var brilhoFase = (a * 0.7 + aleatorio(brilhoAgua + 440)) % 1;
+                c.globalAlpha = (1 - brilhoFase) * 0.38 * potencia;
+                c.lineWidth = Math.max(0.7, escala * 0.8);
+                c.beginPath();
+                c.moveTo(brilhoX - raio * 0.025, brilhoY);
+                c.quadraticCurveTo(brilhoX, brilhoY - escala * 1.4, brilhoX + raio * 0.025, brilhoY);
+                c.stroke();
+            }
+        } else if (tipo === 'impacto-agua') {
+            var faseAgua = (a * 0.42 + fase / (Math.PI * 2)) % 1;
+            var raioMaximoAgua = raio * 0.72;
+            for (var anel = 0; anel < 3; anel++) {
+                var faseAnel = (faseAgua + anel / 3) % 1;
+                c.globalAlpha = (1 - faseAnel) * 0.7 * potencia;
+                c.lineWidth = Math.max(1, escala * (1.8 - faseAnel));
+                c.beginPath();
+                c.ellipse(0, raio * 0.2, raioMaximoAgua * faseAnel, raioMaximoAgua * faseAnel * 0.22, 0, 0, Math.PI * 2);
+                c.stroke();
+            }
+            var alturaGota = raio * (0.45 + (1 - faseAgua) * 0.9);
+            elipse(Math.sin(a * 3) * raio * 0.05, raio * 0.2 - alturaGota,
+                escala * (1.5 + faseAgua), escala * (2.5 + faseAgua * 2), 0,
+                Math.min(1, faseAgua * 2) * potencia, '#e6fbff');
+            if (faseAgua > 0.87) {
+                var respingoAgua = (faseAgua - 0.87) / 0.13;
+                for (var gota = 0; gota < 7; gota++) {
+                    var anguloGota = gota * Math.PI * 2 / 7;
+                    var distanciaGota = raio * respingoAgua * 0.22;
+                    elipse(Math.cos(anguloGota) * distanciaGota, raio * 0.2 + Math.sin(anguloGota) * distanciaGota * 0.4,
+                        escala, escala * 1.8, anguloGota, (1 - respingoAgua) * potencia, cor);
+                }
             }
         } else if (tipo === 'bolhas') {
             for (var bubble = 0; bubble < 14; bubble++) {
@@ -637,12 +809,13 @@
         lista = Array.isArray(vfx) ? vfx : [];
         window.vfxMapa = lista;
     };
-    window.desenharVfxMapa = function () {
+    window.desenharVfxMapa = function (camada) {
         if (!window.ehAdmin && (!window.vfxMapa || !window.vfxMapa.length)) return;
         var mapa = window.currentMap || 'cidade';
         var agora = Date.now();
         (window.vfxMapa || lista).forEach(function (vfx) {
-            if (!vfx.mapa || vfx.mapa === mapa) desenhar(vfx, agora);
+            var camadaVfx = vfx.camada === 'frente' ? 'frente' : 'atras';
+            if ((!camada || camadaVfx === camada) && (!vfx.mapa || vfx.mapa === mapa)) desenhar(vfx, agora);
         });
     };
     window.tentarAbrirVfxMapa = function (wx, wy) {

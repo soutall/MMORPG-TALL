@@ -2693,10 +2693,10 @@
 
         const hpRatio = Math.max(0, Math.min(1, entity.hp / Math.max(1, entity.maxHp)));
         ctx.fillStyle = 'rgba(0, 0, 0, .78)';
-        ctx.fillRect(-12, 15, 24, 3);
+        ctx.fillRect(-12, -34, 24, 3);
         ctx.fillStyle = entity.type === 'cleric' ? '#e8c2ff' :
             entity.type === 'skull_mage' ? '#bc60ef' : '#ea2c48';
-        ctx.fillRect(-11, 16, 22 * hpRatio, 1.5);
+        ctx.fillRect(-11, -33, 22 * hpRatio, 1.5);
         const pointerX = Number(window.mouseWorldX);
         const pointerY = Number(window.mouseWorldY);
         const hovering = Number.isFinite(pointerX) && Number.isFinite(pointerY) &&

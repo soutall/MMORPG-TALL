@@ -1,0 +1,49 @@
+.enhanced-mode-notice {
+    position: fixed;
+    z-index: 1000000;
+    top: 18px;
+    left: 50%;
+    transform: translate(-50%, -8px);
+    padding: 7px 12px;
+    border: 1px solid rgba(173, 228, 226, 0.75);
+    background: rgba(8, 18, 24, 0.94);
+    color: #e8ffff;
+    font: 700 13px 'Rajdhani', sans-serif;
+    letter-spacing: 1px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.enhanced-mode-notice.visible {
+    transform: translate(-50%, 0);
+    opacity: 1;
+}
+
+.enhanced-mode-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    color: #e4e0d6;
+    font: 700 12px 'Rajdhani', sans-serif;
+    text-align: left;
+}
+
+.enhanced-mode-option input {
+    accent-color: #28b8a8;
+    width: 16px;
+    height: 16px;
+    flex: 0 0 auto;
+}
+
+.enhanced-mode-hint {
+    color: #89877f;
+    font: 10px/1.35 'Rajdhani', sans-serif;
+    text-align: left;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .enhanced-mode-notice {
+        transition: none;
+    }
+}

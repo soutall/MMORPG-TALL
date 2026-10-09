@@ -35,17 +35,9 @@ test('single-object deletion removes exactly one matching ID and treats unknown 
     assert.match(server, /type: 'map_objeto_excluido', ok: true, id: idExcluir, removido: false/);
 });
 
-test('map cleanup requires an explicit map and preserves every other map', () => {
-    const clearMap = vm.runInNewContext(`(${extractFunction(server, 'mapaObjetosLimparMapa')})`);
-    const objects = [
-        { id: 'green-1', mapa: 'green' },
-        { id: 'desert-1', mapa: 'desert' },
-        { id: 'green-2', mapa: 'green' }
-    ];
-    assert.deepEqual(Array.from(clearMap(objects, 'green'), item => item.id), ['desert-1']);
-    assert.equal(clearMap(objects, ''), null);
-    assert.match(server, /if \(!mapaLimpar \|\| !MAPAS_CONFIG\[mapaLimpar\]\)/);
-    assert.doesNotMatch(server, /if \(data\.mapa\)[\s\S]{0,180}else\s*\{\s*mapObjetos = \[\]/);
+test('dangerous map-wide clear operation is removed from the editor and server', () => {
+    assert.doesNotMatch(editor, /LIMPAR MAPA|meLimparMapa|admin_map_objetos_limpar/);
+    assert.doesNotMatch(server, /mapaObjetosLimparMapa|admin_map_objetos_limpar|map_objetos_limpos/);
 });
 
 test('save requests synchronization only and confirms server-side object counts', () => {
@@ -57,7 +49,7 @@ test('save requests synchronization only and confirms server-side object counts'
     assert.match(server, /Há um objeto inválido ou duplicado; nenhum objeto foi alterado/);
     assert.match(html, /dados\.type === 'map_objetos_sync_result'/);
     assert.match(html, /dados\.objetoId/);
-    assert.match(html, /mapa-editor\.js\?v=29/);
+    assert.match(html, /mapa-editor\.js\?v=31/);
     const merge = vm.runInNewContext(`(${extractFunction(server, 'mapaObjetosMesclarMapa')})`);
     const merged = merge([
         { id: 'old-world', mapa: 'mundo', x: 1 },
@@ -95,7 +87,7 @@ test('automatic depth-split sprites serialize all required masks and large raste
     assert.match(send, /assetDepthSplit: divisaoSpriteValida\(o\) \? o\.assetDepthSplit/);
     assert.match(server, /const MAX_WS_PAYLOAD_BYTES = 8 \* 1024 \* 1024/);
     assert.match(server, /maxPayload: MAX_WS_PAYLOAD_BYTES/);
-    assert.match(html, /GAME_VERSION = 'v1\.75\.43'/);
+    assert.match(html, /GAME_VERSION = 'v1\.75\.103'/);
 });
 
 test('client waits for the authoritative server broadcast before removing the selected object', () => {
