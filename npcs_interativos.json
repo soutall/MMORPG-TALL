@@ -16,14 +16,7 @@
     ],
     "animacaoConversa": "standard/idle/down",
     "rotasProgramadas": [],
-    "intervalosDesativados": [
-      {
-        "id": "dormir_mv1d2urd",
-        "nome": "Dormindo",
-        "inicio": "22:00",
-        "fim": "06:00"
-      }
-    ]
+    "intervalosDesativados": []
   },
   "zenia_pocoes": {
     "x": 143662,
@@ -388,13 +381,6 @@
         "velocidadePatrulha": 50
       }
     ],
-    "intervalosDesativados": [
-      {
-        "id": "dormir_mv1exzv5",
-        "nome": "Dormindo",
-        "inicio": "22:00",
-        "fim": "08:00"
-      }
-    ]
+    "intervalosDesativados": []
   }
 }
