@@ -12,6 +12,7 @@ const { executeAttack: executeSharedMonsterAttack } = require('./sistemas/pets/m
 const lordMalakar = require('./sistemas/lord_malakar.js');
 const progressaoAtributos = require('./sistemas/progressao_atributos.js');
 const cicloChuva = require('./sistemas/ciclo_chuva.js').criarCicloChuva();
+const npcSchedule = require('./sistemas/npc_schedule.js');
 const GOOGLE_CLIENT_ID = String(process.env.GOOGLE_CLIENT_ID || '683484909196-v0a7ed8fthbh7imsk61le98jf17gaksu.apps.googleusercontent.com').trim();
 const LOCAL_ID_LOGIN_ENABLED = process.env.NODE_ENV !== 'production' && process.env.LOCAL_ID_LOGIN_ENABLED === '1';
 const LOCAL_LASSO_DIAGNOSTICS = process.env.LOCAL_LASSO_DIAGNOSTICS === '1';
@@ -568,38 +569,23 @@ carregarNpcConfigs();
 
 const NPC_PATRULHA_CACHE = new WeakMap();
 
-function dataLocalKey(data) {
-    return data.getFullYear() + '-' + String(data.getMonth() + 1).padStart(2, '0') + '-' +
-        String(data.getDate()).padStart(2, '0');
-}
-
 function horarioNpcAtivo(janela, agora) {
-    const inicio = minutosDoHorario(janela.inicio), fim = minutosDoHorario(janela.fim);
-    if (inicio === null || fim === null || inicio === fim) return false;
-    const minutoAtual = agora.getHours() * 60 + agora.getMinutes();
-    return inicio < fim
-        ? minutoAtual >= inicio && minutoAtual < fim
-        : minutoAtual >= inicio || minutoAtual < fim;
+    return npcSchedule.isActive(janela, agora);
 }
 
 function npcAgendaAtual(npc, agora) {
-    const instante = new Date(agora);
+    const timestamp = new Date(agora).getTime();
     const intervalos = npc.intervalosDesativados || [];
-    const desativado = intervalos.find(janela => horarioNpcAtivo(janela, instante));
+    const desativado = intervalos.find(janela => horarioNpcAtivo(janela, timestamp));
     if (desativado) return { desativado: true, janela: desativado };
     const rotas = npc.rotasProgramadas || [];
-    const rota = rotas.find(janela => horarioNpcAtivo(janela, instante));
+    const rota = rotas.find(janela => horarioNpcAtivo(janela, timestamp));
     if (!rota) return null;
-    const inicioMinutos = minutosDoHorario(rota.inicio);
-    const agoraMinutos = instante.getHours() * 60 + instante.getMinutes();
-    const inicioData = new Date(instante);
-    inicioData.setHours(0, 0, 0, 0);
-    if (inicioMinutos > agoraMinutos) inicioData.setDate(inicioData.getDate() - 1);
-    inicioData.setMinutes(inicioMinutos);
+    const inicioRota = npcSchedule.activeWindowStart(rota, timestamp);
     return {
         rota: rota,
-        inicioMs: inicioData.getTime(),
-        dataKey: dataLocalKey(inicioData)
+        inicioMs: inicioRota.startMs,
+        dataKey: inicioRota.dataKey
     };
 }
 
