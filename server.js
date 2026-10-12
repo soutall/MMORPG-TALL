@@ -1289,7 +1289,9 @@ function listarSpritesMapa() {
 
 function salvarMapObjetos() {
     try {
-        fs.writeFileSync(MAP_OBJETOS_FILE, JSON.stringify(mapObjetos, null, 2), 'utf8');
+        // O arquivo é reescrito em operações de edição; JSON compacto reduz serialização e I/O.
+        // A formatação é cosmética e não altera o schema nem o conteúdo persistido.
+        fs.writeFileSync(MAP_OBJETOS_FILE, JSON.stringify(mapObjetos), 'utf8');
         return true;
     } catch (e) {
         console.error('Erro ao salvar map_objetos.json:', e.message);
@@ -1305,12 +1307,18 @@ function mapaObjetosRemoverUm(lista, id) {
 function mapaObjetosMesclarMapa(lista, objetos, mapa) {
     if (!Array.isArray(lista) || !Array.isArray(objetos) || typeof mapa !== 'string' || !mapa.trim()) return null;
     const resultado = lista.slice();
+    const indicePorId = new Map();
+    resultado.forEach(function (existente, index) {
+        if (existente && typeof existente.id === 'string') indicePorId.set(existente.id, index);
+    });
     objetos.forEach(function (objeto) {
-        const index = resultado.findIndex(function (existente) {
-            return existente && existente.id === objeto.id;
-        });
-        if (index < 0) resultado.push(objeto);
-        else resultado[index] = objeto;
+        const index = indicePorId.get(objeto.id);
+        if (index === undefined) {
+            indicePorId.set(objeto.id, resultado.length);
+            resultado.push(objeto);
+        } else {
+            resultado[index] = objeto;
+        }
     });
     return resultado;
 }
@@ -1336,8 +1344,16 @@ function broadcastMapObjetos() {
     if (LOCAL_LASSO_DIAGNOSTICS) {
         mapObjetos.forEach(function (objeto) { logDiagnosticoLaco('LOAD_BROADCAST', objeto); });
     }
+    // Serializa uma única vez por mutação, em vez de repetir JSON.stringify para cada cliente.
+    let payload;
+    try {
+        payload = JSON.stringify({ type: 'map_objetos', objetos: mapObjetos });
+    } catch (e) {
+        console.error('Erro ao serializar broadcast de objetos do mapa:', e.message);
+        return;
+    }
     wss.clients.forEach(function (client) {
-        if (client.readyState === WebSocket.OPEN) client.send(JSON.stringify({ type: 'map_objetos', objetos: mapObjetos }));
+        if (client.readyState === WebSocket.OPEN) client.send(payload);
     });
 }
 

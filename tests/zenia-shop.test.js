@@ -8,6 +8,7 @@ const test = require('node:test');
 const root = path.join(__dirname, '..');
 const server = fs.readFileSync(path.join(root, 'server.js'), 'utf8');
 const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+const npcConfigs = JSON.parse(fs.readFileSync(path.join(root, 'npcs_interativos.json'), 'utf8'));
 const admin = fs.readFileSync(path.join(root, 'npc-admin.js'), 'utf8');
 const renderer = fs.readFileSync(path.join(root, 'loki-npc.js'), 'utf8');
 const shop = fs.readFileSync(path.join(root, 'zenia-shop.js'), 'utf8');
@@ -36,6 +37,11 @@ test('Zenia sells only level-one HP and MP potions at the requested server price
     assert.match(shop, /Poção de Vida I/);
     assert.match(shop, /Poção de Mana I/);
     assert.match(shop, /sprites\/Objetos\/icones\/' \+ product\.icone/);
+});
+
+test('Zenia and Loki stay available overnight', () => {
+    assert.deepEqual(npcConfigs.zenia_pocoes.intervalosDesativados, []);
+    assert.deepEqual(npcConfigs.loki_forja.intervalosDesativados, []);
 });
 
 test('Potion purchases validate proximity, item IDs, quantities, gold, and persistence on server', () => {
