@@ -93,13 +93,6 @@
     }
 
     /* ---------- utilitários de desenho ---------- */
-    function _sombra(ctx) {
-        ctx.fillStyle = 'rgba(0,0,0,0.35)';
-        ctx.beginPath();
-        ctx.ellipse(0, 1.5, 17, 5.5, 0, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
     // Grade de curvas metálicas (brilhos) do RPG clássico — REMOVIDA no corpo novo
 
     function roundRectPath(ctx, x, y, w, h, r) {
@@ -824,8 +817,6 @@
 
         ctx.save();
         ctx.translate(posX + 12, posY + 12);
-        _sombra(ctx);
-
         // espelha conforme a direção do alvo + escala uniforme (−20% de altura: 0.9 → 0.72)
         let flip = (Math.sin(ang) < 0) ? -1 : 1;
         let escPikeman = 0.72;
@@ -922,7 +913,7 @@
                 let rot = -0.5 + p * 2.6;
                 ctx.save();
                 ctx.translate(4, -21);
-                _foiceCurta(ctx, rot, 0.35, posX, posY);
+                _foice(ctx, rot, 0.35, false, posX, posY);
                 ctx.restore();
                 _braco(ctx, -0.5 + p * 1.4, 3.2);
             } else {

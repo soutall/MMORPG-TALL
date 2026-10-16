@@ -1,0 +1,191 @@
+{
+  "group_id": "725a06a9-12fc-4072-9eb1-11174acf1e6c",
+  "states": [
+    {
+      "character": {
+        "id": "be2e6465-900e-4644-bb16-892b1798bf5c",
+        "name": "parado",
+        "prompt": "Create a beautiful angelic female Healer in pure 2D pixel art for a fantasy RPG. She has a serene, youthful face, delicate features, bright blue eyes and long flowing platinum-blonde hair. Wear elegant white and gold celestial armor with royal-blue accents, blue gemstones, refined golden engravings and white armored boots. Behind her head, place a large vertical golden celestial halo with elegant radiant spikes and a blue crystal at the top. Use luminous white, gold and blue colors to create a divine angelic appearance. Simple, elegant outfit with a clean silhouette, minimal fabric layers, no excessive ribbons or trailing cloth. One hand extended gently in a healing gesture. No weapons, no extra characters. Full body, centered, three-quarter front view, transparent background, PNG. Crisp pixel edges, detailed pixel shading, balanced proportions, high contrast. No text, no scenery, no background, no blur, no 3D rendering, no smooth digital painting. Authentic handcrafted pixel art for a 2D RPG character sprite.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T11:08:45.040363+00:00"
+      },
+      "folder": "parado",
+      "frames": {
+        "rotations": {
+          "south": "parado/rotations/south.png",
+          "south-east": "parado/rotations/south-east.png",
+          "east": "parado/rotations/east.png",
+          "north-east": "parado/rotations/north-east.png",
+          "north": "parado/rotations/north.png",
+          "north-west": "parado/rotations/north-west.png",
+          "west": "parado/rotations/west.png",
+          "south-west": "parado/rotations/south-west.png"
+        },
+        "animations": {
+          "Idle": {
+            "south": [
+              "parado/animations/Idle/south/frame_000.png",
+              "parado/animations/Idle/south/frame_001.png",
+              "parado/animations/Idle/south/frame_002.png",
+              "parado/animations/Idle/south/frame_003.png",
+              "parado/animations/Idle/south/frame_004.png",
+              "parado/animations/Idle/south/frame_005.png",
+              "parado/animations/Idle/south/frame_006.png",
+              "parado/animations/Idle/south/frame_007.png"
+            ],
+            "north": [
+              "parado/animations/Idle/north/frame_000.png",
+              "parado/animations/Idle/north/frame_001.png",
+              "parado/animations/Idle/north/frame_002.png",
+              "parado/animations/Idle/north/frame_003.png",
+              "parado/animations/Idle/north/frame_004.png",
+              "parado/animations/Idle/north/frame_005.png",
+              "parado/animations/Idle/north/frame_006.png",
+              "parado/animations/Idle/north/frame_007.png"
+            ],
+            "west": [
+              "parado/animations/Idle/west/frame_000.png",
+              "parado/animations/Idle/west/frame_001.png",
+              "parado/animations/Idle/west/frame_002.png",
+              "parado/animations/Idle/west/frame_003.png",
+              "parado/animations/Idle/west/frame_004.png",
+              "parado/animations/Idle/west/frame_005.png",
+              "parado/animations/Idle/west/frame_006.png",
+              "parado/animations/Idle/west/frame_007.png"
+            ],
+            "east": [
+              "parado/animations/Idle/east/frame_000.png",
+              "parado/animations/Idle/east/frame_001.png",
+              "parado/animations/Idle/east/frame_002.png",
+              "parado/animations/Idle/east/frame_003.png",
+              "parado/animations/Idle/east/frame_004.png",
+              "parado/animations/Idle/east/frame_005.png",
+              "parado/animations/Idle/east/frame_006.png",
+              "parado/animations/Idle/east/frame_007.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "67f521cb-5337-4af4-a422-b1ebc8693491",
+        "name": "andando",
+        "prompt": "Create a beautiful angelic female Healer in pure 2D pixel art for a fantasy RPG. She has a serene, youthful face, delicate features, bright blue eyes and long flowing platinum-blonde hair. Wear elegant white and gold celestial armor with royal-blue accents, blue gemstones, refined golden engravings and white armored boots. Behind her head, place a large vertical golden celestial halo with elegant radiant spikes and a blue crystal at the top. Use luminous white, gold and blue colors to create a divine angelic appearance. Simple, elegant outfit with a clean silhouette, minimal fabric layers, no excessive ribbons or trailing cloth. One hand extended gently in a healing gesture. No weapons, no extra characters. Full body, centered, three-quarter front view, transparent background, PNG. Crisp pixel edges, detailed pixel shading, balanced proportions, high contrast. No text, no scenery, no background, no blur, no 3D rendering, no smooth digital painting. Authentic handcrafted pixel art for a 2D RPG character sprite.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T11:25:26.275701+00:00"
+      },
+      "folder": "andando",
+      "frames": {
+        "rotations": {
+          "south": "andando/rotations/south.png",
+          "south-east": "andando/rotations/south-east.png",
+          "east": "andando/rotations/east.png",
+          "north-east": "andando/rotations/north-east.png",
+          "north": "andando/rotations/north.png",
+          "north-west": "andando/rotations/north-west.png",
+          "west": "andando/rotations/west.png",
+          "south-west": "andando/rotations/south-west.png"
+        },
+        "animations": {
+          "walking": {
+            "east": [
+              "andando/animations/walking/east/frame_000.png",
+              "andando/animations/walking/east/frame_001.png",
+              "andando/animations/walking/east/frame_002.png",
+              "andando/animations/walking/east/frame_003.png",
+              "andando/animations/walking/east/frame_004.png",
+              "andando/animations/walking/east/frame_005.png",
+              "andando/animations/walking/east/frame_006.png",
+              "andando/animations/walking/east/frame_007.png"
+            ],
+            "south-west": [
+              "andando/animations/walking/south-west/frame_000.png",
+              "andando/animations/walking/south-west/frame_001.png",
+              "andando/animations/walking/south-west/frame_002.png",
+              "andando/animations/walking/south-west/frame_003.png",
+              "andando/animations/walking/south-west/frame_004.png",
+              "andando/animations/walking/south-west/frame_005.png",
+              "andando/animations/walking/south-west/frame_006.png",
+              "andando/animations/walking/south-west/frame_007.png"
+            ],
+            "north-west": [
+              "andando/animations/walking/north-west/frame_000.png",
+              "andando/animations/walking/north-west/frame_001.png",
+              "andando/animations/walking/north-west/frame_002.png",
+              "andando/animations/walking/north-west/frame_003.png",
+              "andando/animations/walking/north-west/frame_004.png",
+              "andando/animations/walking/north-west/frame_005.png",
+              "andando/animations/walking/north-west/frame_006.png",
+              "andando/animations/walking/north-west/frame_007.png"
+            ],
+            "west": [
+              "andando/animations/walking/west/frame_000.png",
+              "andando/animations/walking/west/frame_001.png",
+              "andando/animations/walking/west/frame_002.png",
+              "andando/animations/walking/west/frame_003.png",
+              "andando/animations/walking/west/frame_004.png",
+              "andando/animations/walking/west/frame_005.png",
+              "andando/animations/walking/west/frame_006.png",
+              "andando/animations/walking/west/frame_007.png"
+            ],
+            "north-east": [
+              "andando/animations/walking/north-east/frame_000.png",
+              "andando/animations/walking/north-east/frame_001.png",
+              "andando/animations/walking/north-east/frame_002.png",
+              "andando/animations/walking/north-east/frame_003.png",
+              "andando/animations/walking/north-east/frame_004.png",
+              "andando/animations/walking/north-east/frame_005.png",
+              "andando/animations/walking/north-east/frame_006.png",
+              "andando/animations/walking/north-east/frame_007.png"
+            ],
+            "south-east": [
+              "andando/animations/walking/south-east/frame_000.png",
+              "andando/animations/walking/south-east/frame_001.png",
+              "andando/animations/walking/south-east/frame_002.png",
+              "andando/animations/walking/south-east/frame_003.png",
+              "andando/animations/walking/south-east/frame_004.png",
+              "andando/animations/walking/south-east/frame_005.png",
+              "andando/animations/walking/south-east/frame_006.png",
+              "andando/animations/walking/south-east/frame_007.png"
+            ],
+            "south": [
+              "andando/animations/walking/south/frame_000.png",
+              "andando/animations/walking/south/frame_001.png",
+              "andando/animations/walking/south/frame_002.png",
+              "andando/animations/walking/south/frame_003.png",
+              "andando/animations/walking/south/frame_004.png",
+              "andando/animations/walking/south/frame_005.png",
+              "andando/animations/walking/south/frame_006.png",
+              "andando/animations/walking/south/frame_007.png"
+            ],
+            "north": [
+              "andando/animations/walking/north/frame_000.png",
+              "andando/animations/walking/north/frame_001.png",
+              "andando/animations/walking/north/frame_002.png",
+              "andando/animations/walking/north/frame_003.png",
+              "andando/animations/walking/north/frame_004.png",
+              "andando/animations/walking/north/frame_005.png",
+              "andando/animations/walking/north/frame_006.png",
+              "andando/animations/walking/north/frame_007.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-10-14T21:28:08.494043"
+}

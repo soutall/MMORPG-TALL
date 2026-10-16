@@ -1,96 +1,157 @@
-// classes/barbaro.js - BERSERKER: corpo bruto com GRANDE MACHADO DE GUERRA
+// classes/barbaro.js - Berserker com sprites e machado de guerra
 // ============================================================================
-// O bárbaro agora é um Berserker: torso massivo, pelagem de lobo, olhos em
-// fúria e um GRANDE MACHADO segurado com as duas mãos. O controle da raiva
-// (aura vermelha + brasas + tremores) cresce conforme a vida cai.
-//
-// INTERFACES PÚBLICAS (INALTERADAS + pid extra opcional):
+// INTERFACES PÚBLICAS:
 //     window.desenharBarbaro(x, y, isMoving, angulo, hp, maxHp [, pid])
 //     window.enviarAtaqueBarbaro(ws)
-//     window.registrarMachadadaBarbaro(id)  -> anima o swing do machado
+//     window.registrarMachadadaBarbaro(id)
 // ============================================================================
 
 const BARBARO_COR = {
-    pele: '#d7996c',
-    peleSombra: '#b07050',
     cabelo: '#7f1020',
-    cabeloClaro: '#d32b3f',
-    barba: '#241116',
-    couro: '#4a2311',
     couroClaro: '#784212',
-    peloLobo: '#8a6a4a',
-    peloLoboEscuro: '#63482e',
     ferro: '#3a4658',
     ferroClaro: '#6b7b8f',
     aco: '#aeb6bf',
-    acoBrilho: '#e8edf2',
-    sangue: '#c0392b',
-    sangueEscuro: '#900c3f',
-    fogo: '#e74c3c',
-    ouro: '#d4af37',
-    osso: '#e5dcc8'
+    acoBrilho: '#e8edf2'
 };
+const BARBARO_BASE_SPRITES = new URL('../sprites/classes/berseker/', document.currentScript.src);
+const BARBARO_ESCALA_SPRITE = 1.5 / 1.3;
+const BARBARO_DIRECOES_ANDANDO = ['east', 'south-east', 'south', 'south-west', 'west', 'north-west', 'north', 'north-east'];
+const BARBARO_DIRECOES_PARADO = ['east', 'south', 'west', 'north'];
+const barbaroGruposSprites = Object.create(null);
+const barbaroPosicoes = Object.create(null);
+const barbaroDirecoes = Object.create(null);
+const barbaroUltimosFrames = Object.create(null);
+const barbaroSetoresAndando = Object.create(null);
 
-// Registro de golpes (id do jogador -> momento do golpe) para o swing do machado
+function barbaroObterDirecao(angulo, andando, idJogador) {
+    const anguloSeguro = Number.isFinite(angulo) ? angulo : 0;
+    if (andando) {
+        const setorAnterior = barbaroSetoresAndando[idJogador];
+        let setor = ((Math.round(anguloSeguro / (Math.PI / 4)) % 8) + 8) % 8;
+        if (Number.isInteger(setorAnterior)) {
+            const centroAnterior = setorAnterior * Math.PI / 4;
+            const diferenca = Math.atan2(
+                Math.sin(anguloSeguro - centroAnterior),
+                Math.cos(anguloSeguro - centroAnterior)
+            );
+            if (Math.abs(diferenca) < Math.PI / 8 + Math.PI / 36) {
+                setor = setorAnterior;
+            }
+        }
+        barbaroSetoresAndando[idJogador] = setor;
+        return { nome: BARBARO_DIRECOES_ANDANDO[setor], espelhar: false };
+    }
+
+    const setor = ((Math.round(anguloSeguro / (Math.PI / 2)) % 4) + 4) % 4;
+    const nome = BARBARO_DIRECOES_PARADO[setor];
+    return { nome: nome === 'west' ? 'east' : nome, espelhar: nome === 'west' };
+}
+
+function barbaroPosicaoNaGrade(ctx, x, y) {
+    if (typeof ctx.getTransform !== 'function') return { x: x, y: y };
+
+    const transformacao = ctx.getTransform();
+    const determinante = transformacao.a * transformacao.d - transformacao.b * transformacao.c;
+    if (!Number.isFinite(determinante) || Math.abs(determinante) < 0.000001) {
+        return { x: x, y: y };
+    }
+
+    const telaX = transformacao.a * x + transformacao.c * y + transformacao.e;
+    const telaY = transformacao.b * x + transformacao.d * y + transformacao.f;
+    const deltaX = Math.round(telaX) - telaX;
+    const deltaY = Math.round(telaY) - telaY;
+    return {
+        x: x + (transformacao.d * deltaX - transformacao.c * deltaY) / determinante,
+        y: y + (-transformacao.b * deltaX + transformacao.a * deltaY) / determinante
+    };
+}
+
+function barbaroCarregarGrupo(andando, direcao) {
+    const animacao = andando ? 'walking' : 'idle_breathing';
+    const chave = animacao + ':' + direcao;
+    if (barbaroGruposSprites[chave]) return barbaroGruposSprites[chave];
+
+    const caminho = andando
+        ? 'andando/animations/walking/'
+        : 'parado/animations/idle_breathing/';
+    const grupo = { imagens: [], carregadas: 0, falhou: false };
+    barbaroGruposSprites[chave] = grupo;
+
+    for (let i = 0; i < 8; i++) {
+        const imagem = new Image();
+        imagem.onload = function () {
+            grupo.carregadas++;
+        };
+        imagem.onerror = function () {
+            grupo.falhou = true;
+            console.error('Falha ao carregar frame do Berserker:', imagem.src);
+        };
+        imagem.src = new URL(caminho + direcao + '/frame_' + String(i).padStart(3, '0') + '.png', BARBARO_BASE_SPRITES).href;
+        grupo.imagens.push(imagem);
+    }
+    return grupo;
+}
+
 window.machadadasBarbaro = window.machadadasBarbaro || {};
 window.registrarMachadadaBarbaro = function (id) {
     window.machadadasBarbaro[id] = Date.now();
 };
 
-
-// ---------------------------------------------------------------------------
-// BERSERKER (personagem) — corpo massivo + grande machado de guerra
-// ---------------------------------------------------------------------------
-window.desenharBarbaro = function (x, y, isMoving, angulo, hp, maxHp, pid) {
+window.desenharBarbaro = function (x, y, isMoving, angulo, hp, maxHp, pid, anguloMovimento) {
     if (hp <= 0 || !window.ctx) return;
-    let ctx = window.ctx;
-    const t = Date.now() / 1000;
 
-    // ---------- Fúria (cresce quando a vida cai) ----------
-    let pctHp = maxHp > 0 ? hp / maxHp : 1;
-    let furyStage = pctHp <= 0.2 ? 3 : pctHp <= 0.4 ? 2 : pctHp <= 0.6 ? 1 : 0;
-    let furyScale = furyStage === 3 ? 0.18 : furyStage === 2 ? 0.09 : furyStage === 1 ? 0.04 : 0;
+    const ctx = window.ctx;
+    const agora = Date.now();
+    const t = agora / 1000;
+    const andando = Boolean(isMoving);
+    const idJogador = pid || '__local__';
+    const posicaoAnterior = barbaroPosicoes[idJogador];
+    let anguloCorpo = Number.isFinite(angulo) ? angulo : (barbaroDirecoes[idJogador] || 0);
 
-    // ---------- Swing do machado (golpe) ----------
+    if (andando && Number.isFinite(anguloMovimento)) {
+        anguloCorpo = anguloMovimento;
+    } else if (andando && posicaoAnterior) {
+        const dx = x - posicaoAnterior.x;
+        const dy = y - posicaoAnterior.y;
+        if (Math.hypot(dx, dy) > 0.5) anguloCorpo = Math.atan2(dy, dx);
+        else if (Number.isFinite(barbaroDirecoes[idJogador])) anguloCorpo = barbaroDirecoes[idJogador];
+    }
+    barbaroPosicoes[idJogador] = { x: x, y: y };
+    barbaroDirecoes[idJogador] = anguloCorpo;
+
+    const direcao = barbaroObterDirecao(anguloCorpo, andando, idJogador);
+    const grupo = barbaroCarregarGrupo(andando, direcao.nome);
+    const indice = Math.floor(agora / (andando ? 110 : 160)) % 8;
+    const pctHp = maxHp > 0 ? hp / maxHp : 1;
+    const furyStage = pctHp <= 0.2 ? 3 : pctHp <= 0.4 ? 2 : pctHp <= 0.6 ? 1 : 0;
+    const furyScale = furyStage === 3 ? 0.18 : furyStage === 2 ? 0.09 : furyStage === 1 ? 0.04 : 0;
+
     let swingT = 0;
-    const atqInicio = (typeof pid !== 'undefined' && window.machadadasBarbaro[pid]) || 0;
+    const atqInicio = window.machadadasBarbaro[pid] || 0;
     if (atqInicio) {
-        const dtSwing = Date.now() - atqInicio;
+        const dtSwing = agora - atqInicio;
         if (dtSwing < 280) swingT = 1 - dtSwing / 280;
         else window.machadadasBarbaro[pid] = 0;
     }
 
-    const dano = (window.danoFlashTimer || 0) > 0;
-    const cor = (normal, flash) => (dano ? flash : normal);
-
-    // ---------- GIRO DESCONTROLADO: machado girando com a velocidade do efeito ----------
-    let giroSpin = 0;
-    let giroAtivo = (pid === window.meuId) ? !!window.giroDescontroladoLigado
-        : !!(window.girosBarbaro && window.girosBarbaro.some(function (g) { return g.id === pid && g.ativo && !g.encerrando; }));
+    let giroAtivo = pid === window.meuId
+        ? !!window.giroDescontroladoLigado
+        : !!(window.girosBarbaro && window.girosBarbaro.some(function (g) {
+            return g.id === pid && g.ativo && !g.encerrando;
+        }));
     if (!giroAtivo && pid === window.meuId && window.girosBarbaro) {
-        // também vale pelo efeito local do giro
-        giroAtivo = window.girosBarbaro.some(function (g) { return g.id === pid && g.ativo && !g.encerrando; });
+        giroAtivo = window.girosBarbaro.some(function (g) {
+            return g.id === pid && g.ativo && !g.encerrando;
+        });
     }
-    if (giroAtivo) {
-        // ~2.4 giros/s → 15 rad/s (mesma cadência dos arcos do efeito do GIRO)
-        giroSpin = (Date.now() / 1000) * 15.5;
-    }
+    const giroSpin = giroAtivo ? t * 15.5 : 0;
 
     ctx.save();
-    ctx.translate(x, y);
+    const posicaoRender = barbaroPosicaoNaGrade(ctx, x, y);
+    ctx.translate(posicaoRender.x, posicaoRender.y);
     ctx.scale(1 + furyScale, 1 + furyScale);
 
-    const ciclo = window.walkCycle || 0;
-    const passo = isMoving ? Math.sin(ciclo) : 0;
-    const sobe = isMoving ? Math.abs(passo) * 1.4 : Math.sin(t * 2.1) * 0.5 + 0.5;
-
-    // ---------- sombra ----------
-    ctx.fillStyle = "rgba(0,0,0,0.5)";
-    ctx.beginPath();
-    ctx.ellipse(12, 32, 12, 4.4, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // ---------- aura de fúria + brasas ----------
     if (furyStage > 0) {
         const raioAura = 24 + furyStage * 9 + Math.sin(t * 3.2) * 3;
         ctx.save();
@@ -116,228 +177,92 @@ window.desenharBarbaro = function (x, y, isMoving, angulo, hp, maxHp, pid) {
         ctx.restore();
     }
 
-    // ---------- MACHADO DE GUERRA FLUTUANTE ----------
+    let imagem = grupo.imagens[indice];
+    if (!imagem || !imagem.complete || imagem.naturalWidth === 0) {
+        imagem = null;
+        for (let distancia = 1; distancia < grupo.imagens.length; distancia++) {
+            const antes = grupo.imagens[(indice - distancia + grupo.imagens.length) % grupo.imagens.length];
+            const depois = grupo.imagens[(indice + distancia) % grupo.imagens.length];
+            if (antes && antes.complete && antes.naturalWidth > 0) {
+                imagem = antes;
+                break;
+            }
+            if (depois && depois.complete && depois.naturalWidth > 0) {
+                imagem = depois;
+                break;
+            }
+        }
+    }
+    if (imagem && imagem.complete && imagem.naturalWidth > 0) {
+        barbaroUltimosFrames[idJogador] = imagem;
+    } else {
+        imagem = barbaroUltimosFrames[idJogador];
+    }
+    if (imagem && imagem.complete && imagem.naturalWidth > 0) {
+        const suavizacaoAnterior = ctx.imageSmoothingEnabled;
+        const qualidadeSuavizacaoAnterior = ctx.imageSmoothingQuality;
+        const larguraSprite = imagem.naturalWidth * BARBARO_ESCALA_SPRITE;
+        const alturaSprite = imagem.naturalHeight * BARBARO_ESCALA_SPRITE;
+        const spriteX = 8 - larguraSprite / 2;
+        const spriteY = -3 - alturaSprite / 2;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        try {
+            if (direcao.espelhar) {
+                ctx.save();
+                ctx.translate(16, 0);
+                ctx.scale(-1, 1);
+                ctx.drawImage(imagem, spriteX, spriteY, larguraSprite, alturaSprite);
+                ctx.restore();
+            } else {
+                ctx.drawImage(imagem, spriteX, spriteY, larguraSprite, alturaSprite);
+            }
+        } finally {
+            ctx.imageSmoothingEnabled = suavizacaoAnterior;
+            ctx.imageSmoothingQuality = qualidadeSuavizacaoAnterior;
+        }
+    }
+
     ctx.save();
     const ladoArma = Math.cos(angulo || 0) < 0 ? -1 : 1;
     if (giroSpin > 0) {
         ctx.translate(12, 16);
         ctx.rotate((angulo || 0) + giroSpin);
+        ctx.rotate(-Math.PI / 4);
     } else {
-        const avancarGolpe = swingT > 0 ? (1 - swingT) * 12 : 0;
-        ctx.translate(12 + ladoArma * (27 + avancarGolpe), 8 + Math.sin(t * 2.4) * 2);
-        ctx.rotate(ladoArma * (-0.35 + Math.sin(t * 1.7) * 0.08));
+        ctx.translate(12 + ladoArma * 22, 4 + Math.sin(t * 2.4) * 1.2);
+        ctx.scale(ladoArma, 1);
     }
 
     let swing = 0;
     if (giroSpin > 0) {
         swing = Math.sin(giroSpin * 3 + t * 2) * 0.05;
     } else if (swingT > 0) {
-        let p = 1 - swingT;
-        let ease = 1 - Math.pow(1 - p, 2);
-        swing = -2.1 + ease * 2.9;
+        const progresso = 1 - swingT;
+        const preparacao = Math.min(1, progresso / 0.28);
+        const corte = Math.max(0, Math.min(1, (progresso - 0.28) / 0.52));
+        const recuperacao = Math.max(0, (progresso - 0.8) / 0.2);
+        const easePreparacao = preparacao * preparacao * (3 - 2 * preparacao);
+        const easeCorte = corte * corte * (3 - 2 * corte);
+        swing = -0.85 + easePreparacao * 0.18 + easeCorte * 1.72 - recuperacao * 0.2;
+        ctx.translate(4 * Math.sin(Math.PI * progresso), 1.5 * Math.sin(Math.PI * progresso));
     } else {
-        let sway = isMoving ? Math.sin(ciclo) * 0.16 : Math.sin(t * 2.0) * 0.05;
-        swing = giroSpin > 0 ? sway : (swingT > 0 ? -1.8 + (1 - swingT) * 2.3 : sway);
-        if (furyStage === 3) swing += Math.sin(t * 9) * 0.06;
+        const ciclo = window.walkCycle || 0;
+        swing = andando ? Math.sin(ciclo) * 0.08 : Math.sin(t * 2.0) * 0.035;
+        if (furyStage === 3) swing += Math.sin(t * 9) * 0.04;
     }
-    ctx.rotate(swing);
+    ctx.rotate((giroSpin > 0 ? 1 : ladoArma) * swing);
 
-    let wp = window.inventario ? window.inventario.arma : null;
-    let armaV = null;
-    if (x === window.meuX && y === window.meuY) { 
-        if (wp && wp.customVisual) armaV = wp;
+    const arma = window.inventario ? window.inventario.arma : null;
+    const armaVisual = x === window.meuX && y === window.meuY && arma && arma.customVisual ? arma : null;
+    if (typeof window.desenharMachadoExposta === 'function') {
+        window.desenharMachadoExposta(ctx, armaVisual);
     }
-    if (typeof window.desenharMachadoExposta === 'function') window.desenharMachadoExposta(ctx, armaV);
-
+    barbaroDesenharGotasSangue(ctx, t, swingT > 0);
+    ctx.restore();
     ctx.restore();
 
-    // ---------- CORPO ----------
-    ctx.save();
-    ctx.translate(0, -sobe * 0.8);
-
-    // pernas grossas + faixas de couro + pés
-    ctx.fillStyle = cor(BARBARO_COR.peleSombra, '#ff9d8a');
-    ctx.fillRect(6, 24 + passo * 2.4, 5, 8 - passo * 0.6);
-    ctx.fillRect(13, 24 - passo * 2.4, 5, 8 + passo * 0.6);
-    ctx.fillStyle = BARBARO_COR.couroClaro;
-    ctx.fillRect(6, 29 + passo * 2.4, 5, 2.4);
-    ctx.fillRect(13, 29 - passo * 2.4, 5, 2.4);
-    ctx.fillStyle = BARBARO_COR.couro;
-    ctx.fillRect(5, 32 + passo * 2.4, 7, 2.2);
-    ctx.fillRect(12, 32 - passo * 2.4, 7, 2.2);
-
-    // ---------- tronco massivo ----------
-    const gTronco = ctx.createLinearGradient(2, 6, 22, 22);
-    gTronco.addColorStop(0, cor(BARBARO_COR.pele, '#ffa38d'));
-    gTronco.addColorStop(0.6, cor(BARBARO_COR.pele, '#f78d76'));
-    gTronco.addColorStop(1, cor(BARBARO_COR.peleSombra, '#e05f4a'));
-    ctx.fillStyle = gTronco;
-    ctx.strokeStyle = 'rgba(40,20,10,0.6)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(3, 9);
-    ctx.lineTo(21, 9);
-    ctx.lineTo(23, 22);
-    ctx.lineTo(1, 22);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // peitoral e abdômen
-    ctx.strokeStyle = 'rgba(120,60,35,0.55)';
-    ctx.lineWidth = 1.2;
-    ctx.beginPath();
-    ctx.moveTo(3, 13); ctx.lineTo(21, 13);
-    ctx.moveTo(7, 13); ctx.quadraticCurveTo(10, 21, 9, 23);
-    ctx.moveTo(17, 13); ctx.quadraticCurveTo(14, 21, 15, 23);
-    ctx.stroke();
-
-    // pintura tribal de guerra no peito + cicatrizes
-    ctx.fillStyle = 'rgba(160,20,20,0.8)';
-    ctx.beginPath();
-    ctx.moveTo(4, 15); ctx.lineTo(20, 15); ctx.lineTo(12, 18);
-    ctx.closePath();
-    ctx.fill();
-
-    // Peitoral de placas negras e tiras carmesim inspirado no equipamento de guerra.
-    ctx.fillStyle = '#171820';
-    ctx.strokeStyle = '#66505a';
-    ctx.lineWidth = 0.9;
-    ctx.beginPath();
-    ctx.moveTo(3, 9); ctx.lineTo(8, 10); ctx.lineTo(12, 13);
-    ctx.lineTo(16, 10); ctx.lineTo(21, 9); ctx.lineTo(19, 18);
-    ctx.lineTo(15, 20); ctx.lineTo(12, 17); ctx.lineTo(9, 20);
-    ctx.lineTo(5, 18); ctx.closePath();
-    ctx.fill(); ctx.stroke();
-    ctx.strokeStyle = '#a51e33';
-    ctx.lineWidth = 1.25;
-    ctx.beginPath();
-    ctx.moveTo(5, 11); ctx.lineTo(10, 14); ctx.lineTo(12, 16);
-    ctx.lineTo(14, 14); ctx.lineTo(19, 11);
-    ctx.stroke();
-    ctx.fillStyle = '#c6a9a2';
-    for (const spike of [[2, 9], [4, 7], [20, 9], [18, 7]]) {
-        ctx.beginPath();
-        ctx.moveTo(spike[0] - 1.4, spike[1] + 1);
-        ctx.lineTo(spike[0], spike[1] - 3.2);
-        ctx.lineTo(spike[0] + 1.4, spike[1] + 1);
-        ctx.closePath(); ctx.fill();
-    }
-
-    ctx.strokeStyle = 'rgba(240,220,200,0.5)';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(6, 16); ctx.lineTo(11, 17);
-    ctx.moveTo(16, 20); ctx.lineTo(19, 18.5);
-    ctx.stroke();
-
-    // ---------- cinto de couro + fivela de caveira ----------
-    ctx.fillStyle = BARBARO_COR.couro;
-    ctx.fillRect(1, 22, 22, 3.4);
-    ctx.fillStyle = BARBARO_COR.osso;
-    ctx.beginPath();
-    ctx.arc(12, 23.5, 2.6, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = '#1a1016';
-    ctx.fillRect(11.2, 22.6, 1.5, 1.2);
-    ctx.fillRect(12.6, 22.6, 1.5, 1.2);
-    ctx.fillRect(11.7, 24.4, 0.8, 1);
-    ctx.fillRect(12.3, 24.4, 0.8, 1);
-
-    // ---------- ombreira de lobo (ombro esquerdo) ----------
-    ctx.fillStyle = BARBARO_COR.peloLobo;
-    ctx.beginPath();
-    ctx.arc(2, 10, 5.4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = BARBARO_COR.peloLoboEscuro;
-    ctx.beginPath();
-    ctx.arc(2, 10, 5.4, 0, Math.PI);
-    ctx.fill();
-    // penduricalhos de ossos/garras
-    ctx.fillStyle = BARBARO_COR.osso;
-    ctx.beginPath();
-    ctx.moveTo(0, 14.5); ctx.lineTo(1.8, 17.5); ctx.lineTo(-0.4, 16.8); ctx.closePath();
-    ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(4, 14.5); ctx.lineTo(5.5, 17.5); ctx.lineTo(3.4, 16.7); ctx.closePath();
-    ctx.fill();
-
-    // ---------- colar de pelo no pescoço ----------
-    ctx.fillStyle = BARBARO_COR.peloLobo;
-    ctx.strokeStyle = BARBARO_COR.peloLoboEscuro;
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(3, 10);
-    ctx.lineTo(6, 6.8); ctx.lineTo(8, 10);
-    ctx.lineTo(11, 6.2); ctx.lineTo(14, 10);
-    ctx.lineTo(17, 6.4); ctx.lineTo(20, 10);
-    ctx.lineTo(21, 12); ctx.lineTo(3, 12);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // ---------- cabeça de guerra ----------
-    ctx.fillStyle = cor(BARBARO_COR.pele, '#ff9d8a');
-    ctx.strokeStyle = 'rgba(40,20,10,0.5)';
-    ctx.lineWidth = 1;
-    ctx.beginPath();
-    ctx.moveTo(6, 1);
-    ctx.lineTo(18, 1);
-    ctx.lineTo(20, 5);
-    ctx.quadraticCurveTo(21, 8, 19, 10);
-    ctx.lineTo(12, 11);
-    ctx.lineTo(5, 10);
-    ctx.quadraticCurveTo(3, 8, 4, 5);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // cabelo selvagem espetado
-    ctx.fillStyle = cor(BARBARO_COR.cabelo, '#ff775f');
-    ctx.beginPath();
-    ctx.moveTo(5, 6);
-    ctx.lineTo(4, 0); ctx.lineTo(7, 3);
-    ctx.lineTo(8, -2); ctx.lineTo(11, 2);
-    ctx.lineTo(12, -3); ctx.lineTo(15, 2);
-    ctx.lineTo(16, -1); ctx.lineTo(19, 4);
-    ctx.lineTo(19, 8);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = cor(BARBARO_COR.cabeloClaro, '#ffbd87');
-    ctx.beginPath();
-    ctx.moveTo(6, 4); ctx.lineTo(18, 4); ctx.lineTo(16, 1); ctx.lineTo(8, 1);
-    ctx.closePath();
-    ctx.fill();
-
-    // barba feroz
-    ctx.fillStyle = cor(BARBARO_COR.barba, '#5c2a12');
-    ctx.beginPath();
-    ctx.moveTo(6, 8);
-    ctx.quadraticCurveTo(8, 12, 12, 11.4);
-    ctx.quadraticCurveTo(16, 12, 18, 8);
-    ctx.lineTo(12, 12.8);
-    ctx.closePath();
-    ctx.fill();
-
-    // olhos vermelhos brilhantes (mais intensos com raiva)
-    ctx.save();
-    ctx.shadowColor = '#ff2d2d';
-    ctx.shadowBlur = 5 + furyStage * 4;
-    ctx.fillStyle = furyStage > 0 ? '#ff3b3b' : '#c0392b';
-    ctx.fillRect(8.2, 5.2, 2, 1.7);
-    ctx.fillRect(13.8, 5.2, 2, 1.7);
-    ctx.restore();
-
-    // faixa de guerra na testa
-    ctx.fillStyle = BARBARO_COR.sangue;
-    ctx.fillRect(6, 4.2, 12, 1.4);
-
-    ctx.restore(); // fim do corpo
-
-    ctx.restore(); // fim do scale/translate
-
-    // Barra de Vida
-    if (typeof window.desenharBarraHp === "function") {
+    if (typeof window.desenharBarraHp === 'function') {
         window.desenharBarraHp(x - 3, y - 8, hp, maxHp);
     }
 };
@@ -346,13 +271,17 @@ window.enviarAtaqueBarbaro = function (ws) {
     if (window.estaMorto) return;
     window.registrarMachadadaBarbaro(window.meuId);
     if (typeof window.tocarSomMachado === 'function') window.tocarSomMachado();
-    let pX = window.meuX + 12; let pY = window.meuY + 16;
-    let tx = pX + Math.cos(window.meuAngulo) * 35; let ty = pY + Math.sin(window.meuAngulo) * 35;
+    const pX = window.meuX + 12;
+    const pY = window.meuY + 16;
+    const tx = pX + Math.cos(window.meuAngulo) * 35;
+    const ty = pY + Math.sin(window.meuAngulo) * 35;
     if (typeof window.criarAnimacaoSangue === 'function') window.criarAnimacaoSangue(tx, ty);
-    if (ws && ws.readyState === 1) { ws.send(JSON.stringify({ action: 'ataque_barbaro', angulo: window.meuAngulo })); }
+    if (ws && ws.readyState === 1) {
+        ws.send(JSON.stringify({ action: 'ataque_barbaro', angulo: window.meuAngulo }));
+    }
 };
 
-window.desenharMachadoExposta = function(ctx, armaVisualCustom) {
+window.desenharMachadoExposta = function (ctx, armaVisualCustom) {
     let tamanho = 1;
     let largura = 1;
     let cBase = BARBARO_COR.cabelo;
@@ -361,7 +290,7 @@ window.desenharMachadoExposta = function(ctx, armaVisualCustom) {
     let cFio = BARBARO_COR.acoBrilho;
 
     if (armaVisualCustom && armaVisualCustom.customVisual) {
-        let cv = armaVisualCustom.customVisual;
+        const cv = armaVisualCustom.customVisual;
         if (cv.tamanho) tamanho = cv.tamanho;
         if (cv.largura) largura = cv.largura;
         if (cv.cBase) cBase = cv.cBase;
@@ -373,98 +302,177 @@ window.desenharMachadoExposta = function(ctx, armaVisualCustom) {
     ctx.save();
     ctx.scale(tamanho * 0.84, largura * 0.84);
 
-    // ---------- CABO de madeira ----------
-    const gCabo = ctx.createLinearGradient(-2, -6, 2, 26);
-    gCabo.addColorStop(0, '#6d4c2f');
-    gCabo.addColorStop(1, cBase);
-    ctx.fillStyle = gCabo;
-    ctx.fillRect(-2, -6, 4, 32);
-    ctx.strokeStyle = 'rgba(20,10,5,0.5)';
-    ctx.lineWidth = 0.8;
-    ctx.strokeRect(-2, -6, 4, 32);
+    const cabo = ctx.createLinearGradient(-2.2, 0, 2.2, 0);
+    cabo.addColorStop(0, '#21150f');
+    cabo.addColorStop(0.42, '#80502e');
+    cabo.addColorStop(0.7, '#4c2b1c');
+    cabo.addColorStop(1, '#1a120f');
+    ctx.fillStyle = cabo;
+    ctx.beginPath();
+    ctx.moveTo(-2.2, -9);
+    ctx.lineTo(2.2, -9);
+    ctx.lineTo(2.8, 24);
+    ctx.lineTo(1.1, 29);
+    ctx.lineTo(-1.5, 27);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#160e0a';
+    ctx.lineWidth = 1;
+    ctx.stroke();
 
-    // enrolamento de couro no cabo (punho)
-    ctx.fillStyle = BARBARO_COR.couroClaro;
-    for (let i = 0; i < 4; i++) {
-        ctx.fillRect(-2.5, 2 + i * 3, 5, 1.6);
+    // Empunhadura de couro vermelho escuro e anéis de ferro.
+    ctx.strokeStyle = '#7d1d19';
+    ctx.lineWidth = 2.4;
+    for (let i = 0; i < 5; i++) {
+        const y = 7 + i * 3.1;
+        ctx.beginPath();
+        ctx.moveTo(-1.8, y);
+        ctx.lineTo(1.8, y + 1.6);
+        ctx.stroke();
     }
+    ctx.fillStyle = '#c49a59';
+    [-7, -3.5, 4.5].forEach(function (y) {
+        ctx.fillRect(-3, y, 6, 1.4);
+        ctx.fillStyle = '#3a2a1b';
+        ctx.fillRect(-0.55, y + 0.25, 1.1, 0.9);
+        ctx.fillStyle = '#c49a59';
+    });
 
-    // pomo de metal na ponta do cabo
-    ctx.fillStyle = BARBARO_COR.ferroClaro;
+    // Pomo pesado e anel de fixação.
+    ctx.fillStyle = '#31251c';
     ctx.beginPath();
-    ctx.arc(0, 26, 3, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = BARBARO_COR.ferro;
-    ctx.beginPath();
-    ctx.arc(0, 26, 1.6, 0, Math.PI * 2);
-    ctx.fill();
-
-    // colar de metal entre cabo e l�mina
-    ctx.fillStyle = BARBARO_COR.ferro;
-    ctx.fillRect(-4, -7, 8, 3.5);
-    ctx.fillStyle = BARBARO_COR.ferroClaro;
-    ctx.fillRect(-4, -7, 8, 1.2);
-
-    // ---------- Lâmina tripla integrada ao encaixe do cabo ----------
-    ctx.save();
-    ctx.shadowColor = 'rgba(20,25,35,0.7)';
-    ctx.shadowBlur = 7;
-    const gLamin = ctx.createLinearGradient(0, -22, 0, 9);
-    gLamin.addColorStop(0, cFio);
-    gLamin.addColorStop(0.5, cMeio);
-    gLamin.addColorStop(1, cPonta);
-    ctx.fillStyle = gLamin;
-    ctx.strokeStyle = cPonta;
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(-1, -8);
-    ctx.lineTo(7, -13);
-    ctx.lineTo(13, -22);
-    ctx.lineTo(17, -14);
-    ctx.lineTo(27, -10);
-    ctx.lineTo(20, -4);
-    ctx.lineTo(24, 5);
-    ctx.lineTo(14, 2);
-    ctx.lineTo(8, 9);
-    ctx.lineTo(5, 1);
-    ctx.lineTo(-1, -2);
+    ctx.moveTo(-1.5, 25);
+    ctx.lineTo(1.5, 25);
+    ctx.lineTo(3.4, 28);
+    ctx.lineTo(0, 31);
+    ctx.lineTo(-3.4, 28);
     ctx.closePath();
     ctx.fill();
-    ctx.stroke();
-    ctx.shadowBlur = 0;
-
-    // brilho dos fios de corte (superior esquerdo e direito)
-    ctx.strokeStyle = cFio;
-    ctx.lineWidth = 1.4;
-    ctx.beginPath();
-    ctx.moveTo(13, -21);
-    ctx.lineTo(17, -14);
-    ctx.lineTo(26, -10);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(26, -10);
-    ctx.lineTo(20, -4);
-    ctx.lineTo(23, 4);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(-1, -8);
-    ctx.lineTo(7, -13);
-    ctx.lineTo(13, -21);
-    ctx.stroke();
-
-    ctx.fillStyle = cPonta;
-    ctx.beginPath();
-    ctx.moveTo(-3, -10);
-    ctx.lineTo(5, -12);
-    ctx.lineTo(11, -7);
-    ctx.lineTo(5, -2);
-    ctx.lineTo(-3, -4);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = cFio;
+    ctx.strokeStyle = '#b88a48';
     ctx.lineWidth = 0.8;
     ctx.stroke();
+    ctx.fillStyle = '#6f1719';
+    ctx.beginPath();
+    ctx.arc(0, 28, 1.1, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cabeça larga de aço escuro, com gume curvo e cristas de metal.
+    ctx.save();
+    ctx.shadowColor = 'rgba(8, 8, 12, 0.85)';
+    ctx.shadowBlur = 5;
+    ctx.fillStyle = '#171b22';
+    ctx.strokeStyle = '#101116';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(-2, -10);
+    ctx.lineTo(5, -15);
+    ctx.lineTo(10, -23);
+    ctx.lineTo(15, -20);
+    ctx.lineTo(22, -24);
+    ctx.lineTo(27, -19);
+    ctx.lineTo(30, -10);
+    ctx.lineTo(28, -3);
+    ctx.lineTo(23, 3);
+    ctx.lineTo(16, 6);
+    ctx.lineTo(10, 3);
+    ctx.lineTo(5, -2);
+    ctx.lineTo(-2, -5);
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke();
+
+    const lamina = ctx.createLinearGradient(7, -22, 28, 2);
+    lamina.addColorStop(0, cFio);
+    lamina.addColorStop(0.32, cMeio);
+    lamina.addColorStop(0.72, '#59616d');
+    lamina.addColorStop(1, cPonta);
+    ctx.fillStyle = lamina;
+    ctx.beginPath();
+    ctx.moveTo(4, -13);
+    ctx.lineTo(11, -22);
+    ctx.lineTo(16, -18);
+    ctx.lineTo(22, -22);
+    ctx.lineTo(27, -17);
+    ctx.lineTo(29, -10);
+    ctx.quadraticCurveTo(25, -5, 21, -1);
+    ctx.lineTo(16, 3);
+    ctx.lineTo(10, 0);
+    ctx.lineTo(6, -5);
+    ctx.closePath();
+    ctx.fill();
     ctx.restore();
+
+    // Gume polido e nervura central da lâmina.
+    ctx.strokeStyle = cFio;
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(11, -21);
+    ctx.lineTo(16, -18);
+    ctx.lineTo(22, -22);
+    ctx.lineTo(27, -17);
+    ctx.lineTo(29, -10);
+    ctx.quadraticCurveTo(25, -5, 21, -1);
+    ctx.stroke();
+    ctx.strokeStyle = 'rgba(235, 239, 244, 0.6)';
+    ctx.lineWidth = 0.75;
+    ctx.beginPath();
+    ctx.moveTo(8, -12);
+    ctx.lineTo(17, -11);
+    ctx.lineTo(26, -14);
+    ctx.stroke();
+
+    // Faixa escarlate marcada na face da lâmina.
+    ctx.strokeStyle = '#8e201b';
+    ctx.lineWidth = 2.2;
+    ctx.beginPath();
+    ctx.moveTo(12, -19);
+    ctx.lineTo(14, -13);
+    ctx.lineTo(20, -10);
+    ctx.lineTo(17, -4);
+    ctx.stroke();
+    ctx.strokeStyle = '#d34a32';
+    ctx.lineWidth = 0.8;
+    ctx.beginPath();
+    ctx.moveTo(13, -18);
+    ctx.lineTo(15, -13);
+    ctx.lineTo(21, -10);
+    ctx.stroke();
+
+    // Rebites e pequenas presas no calcanhar da cabeça.
+    ctx.fillStyle = '#d1ae70';
+    [[4, -10], [8, -5], [12, -8]].forEach(function (ponto) {
+        ctx.beginPath();
+        ctx.arc(ponto[0], ponto[1], 0.9, 0, Math.PI * 2);
+        ctx.fill();
+    });
+    ctx.fillStyle = '#262b32';
+    ctx.beginPath();
+    ctx.moveTo(3, -13);
+    ctx.lineTo(0, -18);
+    ctx.lineTo(7, -15);
+    ctx.closePath();
+    ctx.fill();
 
     ctx.restore();
 };
+
+function barbaroDesenharGotasSangue(ctx, tempo, golpeAtivo) {
+    const fase = (tempo * 0.72) % 1;
+    for (let i = 0; i < 2; i++) {
+        const deslocamento = (fase + i * 0.53) % 1;
+        if (deslocamento > 0.72) continue;
+        const progresso = deslocamento / 0.72;
+        const x = 24 - i * 3 + Math.sin(tempo * 2 + i) * 0.8;
+        const y = -9 + progresso * 8;
+        const alpha = (1 - progresso) * (golpeAtivo ? 0.9 : 0.62);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.fillStyle = i === 0 ? '#a20f18' : '#cf2730';
+        ctx.beginPath();
+        ctx.moveTo(x, y - 1.8);
+        ctx.quadraticCurveTo(x + 1.7, y + 0.4, x, y + 1.5);
+        ctx.quadraticCurveTo(x - 1.7, y + 0.4, x, y - 1.8);
+        ctx.fill();
+        ctx.restore();
+    }
+}

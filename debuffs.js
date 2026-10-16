@@ -9,6 +9,7 @@ const EFEITOS = {
     // ===== DEBUFFS =====
     stun:       { nome: 'Atordoado',     classe: 'debuff', icon: '⚡', cor: '#f1c40f', desc: 'Não pode agir nem se mover.', formato: (ef) => '' + ef.tempo },
     lentidao:   { nome: 'Lentidão',      classe: 'debuff', icon: '🐌', cor: '#00ffff', desc: 'Velocidade de movimento reduzida em 50%.', formato: (ef) => '' + ef.tempo },
+    slime_gosma_lentidao: { nome: 'Gosma Pegajosa', classe: 'debuff', icon: '🟡', cor: '#d9e600', desc: 'Velocidade de movimento reduzida em 60%.', formato: (ef) => Math.ceil((ef.tempo || 0) / 20) + 's' },
     deserto_lentidao: { nome: 'Lentidão do Deserto', classe: 'debuff', icon: '🐌', cor: '#e8c96a', desc: 'Velocidade de movimento reduzida em 30%.', formato: (ef) => Math.ceil((ef.tempo || 0) / 20) + 's' },
     deserto_reducao_ataque: { nome: 'Ataque Enfraquecido', classe: 'debuff', icon: '⚔️', cor: '#ff895e', desc: 'Dano causado reduzido em 20%.', formato: (ef) => Math.ceil((ef.tempo || 0) / 20) + 's' },
     deserto_reducao_defesa: { nome: 'Defesa Reduzida', classe: 'debuff', icon: '🛡️', cor: '#bd8be8', desc: 'Dano recebido aumentado em 10%.', formato: (ef) => Math.ceil((ef.tempo || 0) / 20) + 's' },

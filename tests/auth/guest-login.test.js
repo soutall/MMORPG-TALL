@@ -42,7 +42,8 @@ function createGuestAuthHarness() {
     const helpers = [
         extractFunction(server, 'contaAutenticada'),
         extractFunction(server, 'associarSessaoVisitante'),
-        extractFunction(server, 'autenticarVisitante')
+        extractFunction(server, 'autenticarVisitante'),
+        extractFunction(server, 'autenticarVisitantePorId')
     ].join('\n');
     vm.runInContext(`
         const SESSAO_VISITANTE_TTL_MS = 24 * 60 * 60 * 1000;
@@ -50,8 +51,9 @@ function createGuestAuthHarness() {
         const LIMITE_NOVOS_VISITANTES_POR_IP = 8;
         const sessoesVisitante = new Map();
         const emissoesVisitantePorIp = new Map();
+        const tentativasVisitanteIdPorIp = new Map();
         ${helpers}
-        globalThis.guestAuth = { autenticarVisitante, contaAutenticada };
+        globalThis.guestAuth = { autenticarVisitante, autenticarVisitantePorId, contaAutenticada };
     `, context);
     return context.guestAuth;
 }
@@ -89,9 +91,32 @@ test('guest login rejects unissued tokens and throttles new guest accounts per a
     assert.match(limited.mensagem, /Muitas contas visitantes/);
 });
 
+test('visitor ID login requires a private code, resumes the same isolated account, and grants no admin rights', () => {
+    const auth = createGuestAuthHarness();
+    const firstSocket = {};
+    const firstLogin = auth.autenticarVisitantePorId(firstSocket, 'Player-One', 'private-code-12345', '192.0.2.20');
+    const resumedSocket = {};
+    const resumedLogin = auth.autenticarVisitantePorId(resumedSocket, 'player-one', 'private-code-12345', '192.0.2.20');
+    const differentCodeLogin = auth.autenticarVisitantePorId({}, 'player-one', 'different-code-12345', '192.0.2.20');
+
+    assert.equal(firstLogin.ok, true);
+    assert.equal(resumedLogin.ok, true);
+    assert.equal(firstLogin.contaId, resumedLogin.contaId);
+    assert.notEqual(firstLogin.contaId, differentCodeLogin.contaId);
+    assert.equal(firstSocket._guestAuthenticated, true);
+    assert.equal(firstSocket.ehAdminContaGlobal, false);
+    assert.equal(firstSocket.ehAdminCliente, false);
+    assert.equal(resumedSocket._guestToken, resumedLogin.token);
+    assert.equal(auth.autenticarVisitantePorId({}, 'player-one', 'short', '192.0.2.20').ok, false);
+});
+
 test('visitor sessions can manage only their own character/account records', () => {
     assert.match(server, /'login', 'google_login', 'guest_login'/);
-    assert.match(server, /if \(data\.action === 'guest_login'\)[\s\S]*?visitorLogin: true,[\s\S]*?guestToken: resultadoVisitante\.token/);
+    assert.match(server, /if \(data\.action === 'guest_login'\)[\s\S]*?data\.id !== undefined \|\| data\.accessCode !== undefined[\s\S]*?visitorLogin: true,[\s\S]*?guestToken: resultadoVisitante\.token/);
+    assert.match(server, /visitorIdLogin: true/);
+    assert.match(html, /id="guest-id-login-input"/);
+    assert.match(html, /id="guest-id-login-code" type="password"/);
+    assert.match(html, /visitorId: id, visitorCode: codigo/);
     assert.match(server, /if \(data\.action === 'personagem_criar'\) \{\s*if \(!contaPodeGerenciarPersonagens\(ws\) \|\| !ws\._contaId\) return;/);
     assert.match(server, /if \(data\.action === 'personagem_deletar'\) \{\s*if \(!contaPodeGerenciarPersonagens\(ws\) \|\| !ws\._contaId\) return;/);
     assert.match(server, /personagemPertenceAConta\(nomeDel, contaId\)/);

@@ -228,6 +228,10 @@
         if (INTRO_RODOU) return;
         INTRO_RODOU = true;
         global.INTRO_RODOU_FLAG = true;   // informa o watchdog inline que a intro assumiu
+        if (global.INTRO_TEMPORARIAMENTE_DESATIVADA) {
+            console.info('[intro] introdução temporariamente desativada.');
+            return;
+        }
         console.info('[intro] iniciando introdução cinematográfica (' + INTRO_STUDIO_NAME + ').');
         try {
             criarDOM();

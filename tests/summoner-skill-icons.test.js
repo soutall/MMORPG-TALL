@@ -37,6 +37,7 @@ test('every Summoner skill and passive uses a valid local Kenney PNG pictogram',
     }
     assert.match(skillsCss, /\.skill-icon-img\[src\*="\/Summoner\/"\][\s\S]*?background:\s*linear-gradient/);
     assert.match(styleCss, /\.btn-ogro-skill \.btn-action-icon-img,[\s\S]*?width:\s*90%;[\s\S]*?height:\s*90%;[\s\S]*?background:\s*transparent;[\s\S]*?box-shadow:\s*none;/);
+    assert.match(styleCss, /#btn-ogro-skill,[\s\S]*?#btn-ogro-salto,[\s\S]*?#btn-ogro-colossal,[\s\S]*?#btn-summoner-golem\s*\{\s*background:\s*#000;\s*border-color:\s*transparent;\s*box-shadow:\s*none;/);
     assert.doesNotMatch(styleCss, /\.btn-ogro-skill \.btn-action-icon-img\s*\{[^}]*radial-gradient/);
     assert.doesNotMatch(mobileHud, /#btn-ogro-skill \.btn-action-icon-img/);
     assert.match(skills, /skillIconeHtml\(skill\)/);
@@ -70,9 +71,9 @@ test('Kenney attribution and CC0 license are documented locally and in the Summo
 });
 
 test('game and asset cache versions are advanced', () => {
-    assert.match(html, /GAME_VERSION = 'v1\.75\.103'/);
-    assert.match(html, /skills\.js\?v=157/);
+    assert.match(html, /GAME_VERSION = 'v1\.75\.110'/);
+    assert.match(html, /skills\.js\?v=158/);
     assert.match(html, /skills\.css\?v=149/);
-    assert.match(html, /style\.css\?v=260/);
-    assert.match(html, /mobile-hud\.css\?v=11/);
+    assert.match(html, /style\.css\?v=264/);
+    assert.match(html, /mobile-hud\.css\?v=13/);
 });

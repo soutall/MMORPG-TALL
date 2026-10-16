@@ -47,7 +47,7 @@ These values were not explicit in the specification excerpt available during imp
 
 - Summon max HP: 100.
 - Basic-attack damage: 1 per 300 ms tick while its validated target remains in range; range: 650 px; request interval: 500 ms. Mortal Bond range: 260 px.
-- Summon damage: melee/reaper 2, archer/sniper 3, mage 5; reaper area strike 2. Skill-4 minions have 100 HP and a movement step of 3 versus skulls at 2.5.
+- Summon damage: melee/reaper 2, archer 3, sniper 4.5, mage 5; the Reaper's area spin deals 3.6 damage (80% above the previous 2), while Sniper shots use 4.5 base damage (50% above the previous 3, before the existing shot multiplier). Skill-4 minions have 100 HP and a movement step of 3 versus skulls at 2.5.
 - Entity melee range: 72; ranged limit: 420; reaper special range: 120.
 - Skull/minion attack intervals and minion lifetimes are currently configuration defaults.
 

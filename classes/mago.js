@@ -1,341 +1,266 @@
-// classes/mago.js — Renderização completa do Mago (v2: visual 2.5D)
+// classes/mago.js — Sprites do corpo do Mago e orbes elementais
 // ============================================================================
-// INTERFACE PÚBLICA IDÊNTICA À v1 — nada fora deste arquivo mudou:
-//     window.desenharMago(x, y, isMoving, angulo, hp, maxHp)
-// Estado externo lido (os mesmos de antes):
-//     window.ctx, window.walkCycle, window.danoFlashTimer,
-//     window.modoMiraMeteoro, window.modoMiraNevasca
-//
-// O que mudou em relação à v1 (que era: retângulos + triângulos + um círculo):
-//   • silhueta da túnica, do capuz e do chapéu em CURVAS (quadraticCurveTo)
-//   • sombreamento por gradientes — luz vinda de noroeste, como o resto da cidade
-//   • contorno escuro em toda a silhueta: é o que faz o personagem "aparecer"
-//     quando ele tem só ~20x34 px na tela
-//   • rosto na sombra do capuz, olhos que pulsam, aura arcana nos pés
-//   • chapéu de ponta dobrada, com aba, faixa dourada e estrela no peito
-//   • cajado com haste curva, aros de metal, gavinhas e CRISTAL facetado com
-//     núcleo, halo e faíscas orbitando (era um círculo roxo com shadowBlur)
+// O corpo usa os frames existentes de parado/andando; as orbes substituem o
+// cajado e a aura arcana no chão permanece preservada.
 // ============================================================================
-window.desenharMago = function (x, y, isMoving, angulo, hp, maxHp) {
-    if (hp <= 0 || !window.ctx) return;
-    if (window.vfxMagoFormaIgnea && window.vfxMagoFormaIgnea.ativo && Date.now() < window.vfxMagoFormaIgnea.expiraEm) {
-        if (Math.hypot((window.meuX || 0) - x, (window.meuY || 0) - y) < 15) return;
-    }
-    const ctx = window.ctx;
+(function () {
+    'use strict';
 
-    // ---------- tempo / animação ----------
-    const t = Date.now() / 1000;
-    const ciclo = window.walkCycle || 0;
-    const passo = isMoving ? Math.sin(ciclo) : 0;                              // -1..1 (pernas)
-    const sobe = isMoving ? Math.abs(Math.sin(ciclo)) * 1.2                    // balanço ao andar
-                          : Math.sin(t * 2.1) * 0.45 + 0.45;                   // respiração parada
-    const ang = angulo || 0;
-    const dano = (window.danoFlashTimer || 0) > 0;
-    const cor = (normal, flash) => (dano ? flash : normal);
+    const baseSprites = new URL('../sprites/classes/mago/', document.currentScript.src);
+    const direcoesAndando = ['east', 'south-east', 'south', 'south-west', 'west', 'north-west', 'north', 'north-east'];
+    const direcoesParado = ['east', 'south', 'west', 'north'];
+    const grupos = Object.create(null);
+    const direcoesJogadores = Object.create(null);
+    const ultimosFrames = Object.create(null);
+    let frameReserva = null;
 
-    // ---------- paleta ----------
-    const TUNICA_TOPO = cor('#a05ac4', '#ff8f7d');
-    const TUNICA_MEIO = cor('#6c3483', '#e74c3c');
-    const TUNICA_BASE = cor('#371a45', '#a93226');
-    const MANGA       = cor('#5b2c78', '#d1442f');
-    const CAPUZ_TOPO  = cor('#5b2c78', '#e04b3a');
-    const CAPUZ_BASE  = cor('#2a1030', '#8e2a1f');
-    const CHAPEU_TOPO = cor('#8e44ad', '#ff9b8a');
-    const CHAPEU_MEIO = cor('#5b2c78', '#e04b3a');
-    const CHAPEU_BASE = cor('#2e1236', '#a93226');
-    const OURO        = cor('#f1c40f', '#ffe08a');
-    const OURO_ESCURO = cor('#b8860b', '#c9a227');
-    const PELE        = cor('#e8c39e', '#ffb3a7');
-    const CONTORNO    = 'rgba(16,7,24,0.85)';
+    function carregarGrupo(andando, direcao) {
+        const animacao = andando ? 'walking' : 'idle';
+        const chave = animacao + ':' + direcao;
+        if (grupos[chave]) return grupos[chave];
 
-    // cristal do cajado muda de cor conforme a magia na mira (como na v1)
-    let corCristal = '#9b59b6';
-    if (window.modoMiraMeteoro) corCristal = '#e74c3c';
-    if (window.modoMiraNevasca) corCristal = '#00ffff';
-
-    ctx.save();
-    ctx.translate(x, y);
-
-    // ========================================================================
-    // 1. AURA ARCANA NO CHÃO — pulsa e ajuda a ler o personagem no calçamento
-    // ========================================================================
-    const pulsoAura = 1 + Math.sin(t * 2.4) * 0.07;
-    const gAura = ctx.createRadialGradient(12, 31.2, 0.5, 12, 31.2, 9.8);
-    gAura.addColorStop(0, 'rgba(155, 89, 182, 0.22)');
-    gAura.addColorStop(0.55, 'rgba(108, 52, 131, 0.09)');
-    gAura.addColorStop(1, 'rgba(60, 30, 90, 0)');
-    ctx.fillStyle = gAura;
-    ctx.beginPath();
-    ctx.ellipse(12, 31.2, 9.8 * pulsoAura, 3.6 * pulsoAura, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // ========================================================================
-    // 2. SOMBRA NO CHÃO
-    // ========================================================================
-    const gSombra = ctx.createRadialGradient(12, 32.4, 0.5, 12, 32.4, 10.2);
-    gSombra.addColorStop(0, 'rgba(8, 4, 14, 0.60)');
-    gSombra.addColorStop(0.7, 'rgba(8, 4, 14, 0.34)');
-    gSombra.addColorStop(1, 'rgba(8, 4, 14, 0)');
-    ctx.fillStyle = gSombra;
-    ctx.beginPath();
-    ctx.ellipse(12, 32.4, 10.2, 3.3, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // ========================================================================
-    // 3. BOTAS (aparecem sob a barra da túnica, alternando no passo)
-    // ========================================================================
-    const pE = passo * 2.0, pD = -passo * 2.0;
-    ctx.fillStyle = cor('#241226', '#6b1f16');
-    ctx.beginPath();
-    ctx.ellipse(9.3, 30.9 + pE * 0.5, 3.1, 1.9, 0, 0, Math.PI * 2);
-    ctx.ellipse(14.7, 30.9 + pD * 0.5, 3.1, 1.9, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // ========================================================================
-    // 4. TÚNICA — silhueta em curvas + gradiente vertical (ombros claros, barra escura)
-    //    O translate(-sobe) faz o corpo "respirar" subindo e descendo.
-    // ========================================================================
-    ctx.save();
-    ctx.translate(0, -sobe * 0.55);
-
-    const gTunica = ctx.createLinearGradient(0, 10, 0, 31.5);
-    gTunica.addColorStop(0, TUNICA_TOPO);
-    gTunica.addColorStop(0.42, TUNICA_MEIO);
-    gTunica.addColorStop(1, TUNICA_BASE);
-    ctx.fillStyle = gTunica;
-    ctx.beginPath();
-    ctx.moveTo(7.1, 12.0);
-    ctx.quadraticCurveTo(4.1, 20.0, 2.7 + passo * 0.7, 30.3);
-    ctx.quadraticCurveTo(12.0, 33.0, 21.3 - passo * 0.7, 30.3);
-    ctx.quadraticCurveTo(19.9, 20.0, 16.9, 12.0);
-    ctx.quadraticCurveTo(12.0, 9.2, 7.1, 12.0);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = CONTORNO;
-    ctx.lineWidth = 0.9;
-    ctx.stroke();
-
-    // dobras verticais (um único stroke com 3 subcaminhos)
-    ctx.strokeStyle = 'rgba(28,10,40,0.55)';
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(9.3, 13.6); ctx.quadraticCurveTo(8.0, 21.0, 8.5, 29.4);
-    ctx.moveTo(12.0, 14.2); ctx.quadraticCurveTo(12.0, 22.0, 12.0, 29.9);
-    ctx.moveTo(14.7, 13.6); ctx.quadraticCurveTo(16.0, 21.0, 15.5, 29.4);
-    ctx.stroke();
-
-    // luz de borda (sol de noroeste) na lateral esquerda da túnica
-    ctx.strokeStyle = 'rgba(226,190,255,0.38)';
-    ctx.lineWidth = 0.9;
-    ctx.beginPath();
-    ctx.moveTo(7.6, 12.8); ctx.quadraticCurveTo(4.9, 20.0, 3.7, 29.2);
-    ctx.stroke();
-
-    // barra da túnica: faixa escura + filete dourado
-    ctx.strokeStyle = cor('#2a1336', '#8e2a1f');
-    ctx.lineWidth = 2.1;
-    ctx.beginPath();
-    ctx.moveTo(3.2, 29.9); ctx.quadraticCurveTo(12.0, 32.5, 20.8, 29.9);
-    ctx.stroke();
-    ctx.strokeStyle = OURO;
-    ctx.lineWidth = 0.9;
-    ctx.beginPath();
-    ctx.moveTo(3.6, 28.7); ctx.quadraticCurveTo(12.0, 31.2, 20.4, 28.7);
-    ctx.stroke();
-
-    // ========================================================================
-    // 5. CINTO + FIVELA
-    // ========================================================================
-    ctx.fillStyle = cor('#42195a', '#8e2a1f');
-    ctx.beginPath();
-    ctx.moveTo(5.9, 18.6);
-    ctx.quadraticCurveTo(12.0, 20.0, 18.1, 18.6);
-    ctx.lineTo(18.5, 21.2);
-    ctx.quadraticCurveTo(12.0, 22.6, 5.5, 21.2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.fillStyle = OURO;
-    ctx.beginPath();
-    ctx.ellipse(12.0, 20.3, 1.7, 1.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.fillStyle = OURO_ESCURO;
-    ctx.beginPath();
-    ctx.ellipse(12.0, 20.3, 0.7, 0.5, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // ========================================================================
-    // 6. ESTRELA ARCANA NO PEITO (emblema de 4 pontas)
-    // ========================================================================
-    // pontas retas = estrela arcana nítida (com curvas virava um losango mole)
-    ctx.fillStyle = OURO;
-    ctx.beginPath();
-    ctx.moveTo(12.0, 12.5);
-    ctx.lineTo(12.9, 15.0);
-    ctx.lineTo(15.4, 15.9);
-    ctx.lineTo(12.9, 16.8);
-    ctx.lineTo(12.0, 19.3);
-    ctx.lineTo(11.1, 16.8);
-    ctx.lineTo(8.6, 15.9);
-    ctx.lineTo(11.1, 15.0);
-    ctx.closePath();
-    ctx.fill();
-
-    // ========================================================================
-    // 7. MANGAS — a direita acompanha o cajado (o braço aponta para ele)
-    // ========================================================================
-    // Posição da MÃO = ponto (0, 6) do referencial do cajado (pegada na haste):
-    //   translate(12,16) -> rotate(ang) -> translate(13.5,0) -> local (0,6)
-    const DESLOC_CAJADO = 13.5, PEGADA = 6.0;
-    const maoX = 12.0 + Math.cos(ang) * DESLOC_CAJADO - Math.sin(ang) * PEGADA;
-    const maoY = 16.0 + Math.sin(ang) * DESLOC_CAJADO + Math.cos(ang) * PEGADA;
-
-    // manga esquerda (caída)
-    ctx.fillStyle = MANGA;
-    ctx.strokeStyle = CONTORNO;
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(7.0, 12.4);
-    ctx.quadraticCurveTo(3.7, 17.0, 4.6, 21.6);
-    ctx.quadraticCurveTo(7.0, 22.8, 7.9, 20.4);
-    ctx.quadraticCurveTo(6.9, 16.4, 8.9, 13.6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    // manga direita (em direção à mão que segura o cajado)
-    ctx.beginPath();
-    ctx.moveTo(16.6, 12.4);
-    ctx.quadraticCurveTo(maoX + 2.2, maoY - 4.6, maoX + 1.2, maoY - 0.8);
-    ctx.quadraticCurveTo(maoX - 2.6, maoY + 1.4, maoX - 3.2, maoY - 1.8);
-    ctx.quadraticCurveTo(14.0, 14.2, 14.6, 12.6);
-    ctx.closePath();
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.restore(); // fim do bloco "respirar"
-
-    // ========================================================================
-    // 8. CAPUZ + ROSTO
-    // ========================================================================
-    const gCapuz = ctx.createLinearGradient(0, 4.6, 0, 13.4);
-    gCapuz.addColorStop(0, CAPUZ_TOPO);
-    gCapuz.addColorStop(1, CAPUZ_BASE);
-    ctx.fillStyle = gCapuz;
-    ctx.beginPath();
-    ctx.moveTo(7.0, 12.2);
-    ctx.quadraticCurveTo(6.1, 5.6, 12.0, 5.2);
-    ctx.quadraticCurveTo(17.9, 5.6, 17.0, 12.2);
-    ctx.quadraticCurveTo(12.0, 14.4, 7.0, 12.2);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = CONTORNO;
-    ctx.lineWidth = 0.9;
-    ctx.stroke();
-
-    // vão do rosto (escuro)
-    ctx.fillStyle = '#150a1c';
-    ctx.beginPath();
-    ctx.ellipse(12.0, 9.6, 3.6, 3.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // olhos luminosos (pulsam)
-    const brilhoOlho = 0.70 + Math.sin(t * 3.4) * 0.30;
-    ctx.save();
-    ctx.shadowColor = '#7df9ff';
-    ctx.shadowBlur = 5;
-    ctx.fillStyle = 'rgba(165, 247, 255, ' + (0.72 + brilhoOlho * 0.28).toFixed(3) + ')';
-    ctx.beginPath();
-    ctx.ellipse(10.2, 9.3, 1.5, 1.1, 0, 0, Math.PI * 2);
-    ctx.ellipse(13.8, 9.3, 1.5, 1.1, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // ========================================================================
-    // 9. CHAPÉU — aba + cone de ponta dobrada + faixa dourada
-    // ========================================================================
-    const gChapeu = ctx.createLinearGradient(3, 0, 21, 0);
-    gChapeu.addColorStop(0, CHAPEU_TOPO);
-    gChapeu.addColorStop(0.45, CHAPEU_MEIO);
-    gChapeu.addColorStop(1, CHAPEU_BASE);
-
-    // cone (a ponta dobra para a direita e volta por dentro, criando a espessura)
-    ctx.fillStyle = gChapeu;
-    ctx.beginPath();
-    ctx.moveTo(5.3, 5.9);
-    ctx.quadraticCurveTo(7.4, 1.5, 10.2, -1.4);
-    ctx.quadraticCurveTo(12.5, -3.5, 15.4, -1.7);
-    ctx.quadraticCurveTo(13.3, -2.7, 12.3, -0.4);
-    ctx.quadraticCurveTo(15.4, 1.1, 18.7, 5.9);
-    ctx.quadraticCurveTo(12.0, 8.1, 5.3, 5.9);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = CONTORNO;
-    ctx.lineWidth = 0.9;
-    ctx.stroke();
-
-    // aba (elipse achatada — menor que a v2 inicial, que virava sombrero)
-    ctx.fillStyle = cor('#3d1f4d', '#8e2a1f');
-    ctx.beginPath();
-    ctx.ellipse(12.0, 6.0, 7.1, 1.9, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.strokeStyle = CONTORNO;
-    ctx.lineWidth = 0.9;
-    ctx.stroke();
-
-    // luz na aba (topo claro) — separa a aba do cone
-    ctx.strokeStyle = 'rgba(255,220,255,0.26)';
-    ctx.lineWidth = 0.9;
-    ctx.beginPath();
-    ctx.moveTo(5.2, 5.6); ctx.quadraticCurveTo(12.0, 3.5, 18.8, 5.6);
-    ctx.stroke();
-
-    // faixa dourada do chapéu
-    ctx.fillStyle = OURO;
-    ctx.beginPath();
-    ctx.moveTo(8.7, 4.5);
-    ctx.quadraticCurveTo(12.0, 5.6, 15.3, 4.5);
-    ctx.lineTo(15.5, 5.9);
-    ctx.quadraticCurveTo(12.0, 7.0, 8.5, 5.9);
-    ctx.closePath();
-    ctx.fill();
-
-    // ========================================================================
-    // 10. CAJADO — mesmo mecanismo de mira da v1 (orbita e gira com o ângulo)
-    // ========================================================================
-    // 10. CAJADO — mesmo mecanismo de mira da v1 (orbita e gira com o ângulo)
-    // ========================================================================
-    ctx.save();
-    ctx.translate(12, 16);
-    ctx.rotate(ang);
-    ctx.translate(DESLOC_CAJADO, 0);
-
-    let wp = window.inventario ? window.inventario.arma : null;
-    let armaV = null;
-    if (x === window.meuX && y === window.meuY) { // roughly identifying local player
-        if (wp && wp.customVisual) armaV = wp;
-    }
-    
-    if (typeof window.desenharCajadoExposta === 'function') {
-        window.desenharCajadoExposta(ctx, armaV);
+        const pasta = andando ? 'andando/animations/walking/' : 'Parado/animations/Idle/';
+        const grupo = { imagens: [] };
+        grupos[chave] = grupo;
+        for (let i = 0; i < 8; i++) {
+            const imagem = new Image();
+            imagem.onload = function () {
+                if (!frameReserva) frameReserva = imagem;
+            };
+            imagem.onerror = function () {
+                console.error('Falha ao carregar frame do Mago:', imagem.src);
+            };
+            imagem.src = new URL(
+                pasta + direcao + '/frame_' + String(i).padStart(3, '0') + '.png',
+                baseSprites
+            ).href;
+            grupo.imagens.push(imagem);
+        }
+        return grupo;
     }
 
-    // mão agarrando a haste — desenhada DEPOIS da haste, senão fica atrás dela
-    ctx.fillStyle = PELE;
-    ctx.strokeStyle = 'rgba(60,35,20,0.55)';
-    ctx.lineWidth = 0.6;
-    ctx.beginPath();
-    ctx.ellipse(0, PEGADA, 2.1, 1.8, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.stroke();
-
-    ctx.restore(); // fim do cajado
-    ctx.restore(); // fim do translate do personagem
-
-    // Barra de Vida (posição idêntica à v1)
-    if (typeof window.desenharBarraHp === "function") {
-        window.desenharBarraHp(x - 3, y - 8, hp, maxHp);
+    function obterFrameDisponivel(grupo, indice) {
+        if (!grupo) return null;
+        const atual = grupo.imagens[indice];
+        if (atual && atual.complete && atual.naturalWidth > 0) return atual;
+        for (let distancia = 1; distancia < grupo.imagens.length; distancia++) {
+            const anterior = grupo.imagens[(indice - distancia + grupo.imagens.length) % grupo.imagens.length];
+            const seguinte = grupo.imagens[(indice + distancia) % grupo.imagens.length];
+            if (anterior && anterior.complete && anterior.naturalWidth > 0) return anterior;
+            if (seguinte && seguinte.complete && seguinte.naturalWidth > 0) return seguinte;
+        }
+        return null;
     }
-};
+
+    function obterDirecao(angulo, andando, idJogador) {
+        const direcoes = andando ? direcoesAndando : direcoesParado;
+        const passoSetor = Math.PI * 2 / direcoes.length;
+        const anguloSeguro = Number.isFinite(angulo) ? angulo : 0;
+        const anterior = direcoesJogadores[idJogador];
+        let setor = ((Math.round(anguloSeguro / passoSetor) % direcoes.length) + direcoes.length) % direcoes.length;
+        if (anterior && anterior.andando === andando) {
+            const centroAnterior = anterior.setor * passoSetor;
+            const diferenca = Math.atan2(
+                Math.sin(anguloSeguro - centroAnterior),
+                Math.cos(anguloSeguro - centroAnterior)
+            );
+            if (Math.abs(diferenca) < passoSetor / 2 + Math.PI / 36) setor = anterior.setor;
+        }
+        direcoesJogadores[idJogador] = { andando: andando, setor: setor };
+        return direcoes[setor];
+    }
+
+    function alinharNaGrade(ctx) {
+        if (typeof ctx.getTransform !== 'function') return { x: 0, y: 0 };
+        const transformacao = ctx.getTransform();
+        const determinante = transformacao.a * transformacao.d - transformacao.b * transformacao.c;
+        if (!Number.isFinite(determinante) || Math.abs(determinante) < 0.000001) return { x: 0, y: 0 };
+        const deltaX = Math.round(transformacao.e) - transformacao.e;
+        const deltaY = Math.round(transformacao.f) - transformacao.f;
+        return {
+            x: (transformacao.d * deltaX - transformacao.c * deltaY) / determinante,
+            y: (-transformacao.b * deltaX + transformacao.a * deltaY) / determinante
+        };
+    }
+
+    function desenharCorpo(ctx, andando, angulo, idJogador, agora) {
+        const direcao = obterDirecao(angulo, andando, idJogador);
+        const grupo = carregarGrupo(andando, direcao);
+        const indice = Math.floor(agora / (andando ? 110 : 160)) % 8;
+        let imagem = obterFrameDisponivel(grupo, indice);
+        if (!imagem && frameReserva && frameReserva.complete && frameReserva.naturalWidth > 0) imagem = frameReserva;
+        if (imagem) ultimosFrames[idJogador] = imagem;
+        else imagem = ultimosFrames[idJogador];
+        if (!imagem || !imagem.complete || imagem.naturalWidth <= 0) return;
+
+        const escala = 1 / 1.3;
+        const largura = imagem.naturalWidth * escala;
+        const altura = imagem.naturalHeight * escala;
+        const posicao = alinharNaGrade(ctx);
+        const suavizacaoAnterior = ctx.imageSmoothingEnabled;
+        const qualidadeAnterior = ctx.imageSmoothingQuality;
+        ctx.save();
+        ctx.translate(posicao.x, posicao.y);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        try {
+            ctx.drawImage(imagem, 12 - largura / 2, 30 - altura, largura, altura);
+        } finally {
+            ctx.imageSmoothingEnabled = suavizacaoAnterior;
+            ctx.imageSmoothingQuality = qualidadeAnterior;
+            ctx.restore();
+        }
+    }
+
+    function desenharOrbe(ctx, x, y, agora, deslocamentoFase) {
+        const faseElemental = agora / 1000 + deslocamentoFase;
+        const paletas = [
+            { base: '#ff482f', luz: '#ffd08a', sombra: '#8f1e26' },
+            { base: '#35aaff', luz: '#c8f5ff', sombra: '#164cba' },
+            { base: '#ffd52f', luz: '#fff7a8', sombra: '#b46a17' }
+        ];
+        const elemento = Math.floor(faseElemental) % paletas.length;
+        const proximaPaleta = paletas[(elemento + 1) % paletas.length];
+        const fase = faseElemental - Math.floor(faseElemental);
+        const transicaoSuave = fase * fase * (3 - 2 * fase);
+        const misturarCores = function (corInicial, corFinal) {
+            const inicio = parseInt(corInicial.slice(1), 16);
+            const fim = parseInt(corFinal.slice(1), 16);
+            const canais = [16, 8, 0].map(function (deslocamento) {
+                const valorInicial = (inicio >> deslocamento) & 255;
+                const valorFinal = (fim >> deslocamento) & 255;
+                return Math.round(valorInicial + (valorFinal - valorInicial) * transicaoSuave);
+            });
+            return '#' + canais.map(function (canal) {
+                return canal.toString(16).padStart(2, '0');
+            }).join('');
+        };
+        const paletaAtual = paletas[elemento];
+        const paleta = {
+            base: misturarCores(paletaAtual.base, proximaPaleta.base),
+            luz: misturarCores(paletaAtual.luz, proximaPaleta.luz),
+            sombra: misturarCores(paletaAtual.sombra, proximaPaleta.sombra)
+        };
+        const semente = deslocamentoFase * 13.7 + x;
+        const flutuacao = Math.sin(agora / 210 + semente) * 1.15;
+        const rotacao = agora / (390 + deslocamentoFase * 170) + semente;
+        const brilho = 0.78
+            + Math.sin(agora / (105 + deslocamentoFase * 35) + semente) * 0.13
+            + Math.sin(agora / (67 + deslocamentoFase * 19) + semente * 1.7) * 0.09;
+
+        ctx.save();
+        ctx.translate(x, y + flutuacao);
+        ctx.globalAlpha = brilho;
+
+        ctx.shadowColor = paleta.base;
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = paleta.sombra;
+        ctx.beginPath();
+        ctx.arc(0, 0, 4.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        const gradiente = ctx.createRadialGradient(-1.4, -1.8, 0.3, 0, 0, 4.7);
+        gradiente.addColorStop(0, paleta.luz);
+        gradiente.addColorStop(0.45, paleta.base);
+        gradiente.addColorStop(1, paleta.sombra);
+        ctx.fillStyle = gradiente;
+        ctx.beginPath();
+        ctx.arc(0, 0, 3.8, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = paleta.luz;
+        ctx.globalAlpha = brilho * 0.8;
+        ctx.lineWidth = 0.75;
+        ctx.beginPath();
+        ctx.arc(0, 0, 5.5, 0, Math.PI * 2);
+        ctx.stroke();
+
+        ctx.globalAlpha = brilho;
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.05;
+        ctx.lineCap = 'round';
+        ctx.beginPath();
+        if (elemento === 0) {
+            ctx.moveTo(-1.5, 1.5);
+            ctx.quadraticCurveTo(-2.5, -0.1, -0.5, -1.7);
+            ctx.quadraticCurveTo(-0.2, -0.4, 1.3, -0.4);
+            ctx.quadraticCurveTo(2.1, 1.1, -1.5, 1.5);
+        } else if (elemento === 1) {
+            ctx.moveTo(0, -2.1);
+            ctx.quadraticCurveTo(-0.5, -0.6, -1.4, 0.4);
+            ctx.arc(0, 0.1, 1.5, Math.PI * 0.85, Math.PI * 0.15, true);
+            ctx.quadraticCurveTo(0.5, -0.8, 0, -2.1);
+        } else {
+            ctx.moveTo(0.6, -2.2);
+            ctx.lineTo(-1.2, 0.1);
+            ctx.lineTo(0.1, 0.1);
+            ctx.lineTo(-0.7, 2.1);
+        }
+        ctx.stroke();
+
+        // Brilho de carga percorre continuamente a borda de cada orbe.
+        const anguloBrilho = rotacao + fase * Math.PI * 2;
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = '#ffffff';
+        ctx.shadowColor = paleta.luz;
+        ctx.shadowBlur = 5;
+        ctx.beginPath();
+        ctx.arc(Math.cos(anguloBrilho) * 5.5, Math.sin(anguloBrilho) * 5.5, 1.05, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.restore();
+    }
+
+    function desenharOrbesElementais(ctx, agora) {
+        desenharOrbe(ctx, -1, 6, agora, 0);
+        desenharOrbe(ctx, 25, 6, agora, 0.37);
+    }
+
+    direcoesParado.forEach(function (direcao) { carregarGrupo(false, direcao); });
+    direcoesAndando.forEach(function (direcao) { carregarGrupo(true, direcao); });
+
+    window.desenharOrbesMagoExposta = function (ctx) {
+        desenharOrbesElementais(ctx, Date.now());
+    };
+
+    window.desenharMago = function (x, y, isMoving, angulo, hp, maxHp, pid, anguloMovimento) {
+        if (hp <= 0 || !window.ctx) return;
+        if (window.vfxMagoFormaIgnea && window.vfxMagoFormaIgnea.ativo && Date.now() < window.vfxMagoFormaIgnea.expiraEm) {
+            if (Math.hypot((window.meuX || 0) - x, (window.meuY || 0) - y) < 15) return;
+        }
+
+        const ctx = window.ctx;
+        const t = Date.now() / 1000;
+        const ang = Number.isFinite(angulo) ? angulo : 0;
+        const andando = Boolean(isMoving);
+        const idJogador = pid || '__local__';
+        const anguloSprite = andando && Number.isFinite(anguloMovimento) ? anguloMovimento : ang;
+
+        ctx.save();
+        ctx.translate(x, y);
+
+        const pulsoAura = 1 + Math.sin(t * 2.4) * 0.07;
+        const gAura = ctx.createRadialGradient(12, 31.2, 0.5, 12, 31.2, 9.8);
+        gAura.addColorStop(0, 'rgba(155, 89, 182, 0.22)');
+        gAura.addColorStop(0.55, 'rgba(108, 52, 131, 0.09)');
+        gAura.addColorStop(1, 'rgba(60, 30, 90, 0)');
+        ctx.fillStyle = gAura;
+        ctx.beginPath();
+        ctx.ellipse(12, 31.2, 9.8 * pulsoAura, 3.6 * pulsoAura, 0, 0, Math.PI * 2);
+        ctx.fill();
+
+        desenharCorpo(ctx, andando, anguloSprite, idJogador, Date.now());
+
+        desenharOrbesElementais(ctx, Date.now());
+        ctx.restore();
+
+        if (typeof window.desenharBarraHp === 'function') {
+            window.desenharBarraHp(x - 3, y - 8, hp, maxHp);
+        }
+    };
+
+})();
 
 window.enviarAtaqueMago = function(ws) {
     if (window.estaMorto) return;
@@ -344,109 +269,4 @@ window.enviarAtaqueMago = function(ws) {
     let alvoDetectado = typeof window.obterAlvoNaMira === 'function' ? window.obterAlvoNaMira() : null;
     let anguloDisparo = alvoDetectado ? alvoDetectado.angulo : window.meuAngulo;
     if (ws && ws.readyState === 1) { ws.send(JSON.stringify({ action: 'ataque_mago', angulo: anguloDisparo })); }
-};
-
-window.desenharCajadoExposta = function(ctx, armaVisualCustom) {
-    let t = Date.now() / 90;
-    
-    // Fallbacks base
-    let len = 11.6;
-    let wid = 1.9;
-    let cBase = '#8d6e63';
-    let cMeio = '#6d4c41';
-    let cPonta = '#3e2723';
-    let corCristal = '#a34dff';
-    
-    if (armaVisualCustom && armaVisualCustom.customVisual) {
-        let cv = armaVisualCustom.customVisual;
-        len = (cv.tamanho || 25) / 2.15; // normaliza pro cajado
-        wid = (cv.largura || 3.5) / 1.8;
-        cBase = cv.cBase || '#8d6e63';
-        cMeio = cv.cMeio || '#6d4c41';
-        cPonta = cv.cPonta || '#3e2723';
-        corCristal = cv.cFio || '#a34dff'; // O brilho serve pro cristal
-    }
-
-    // haste de madeira
-    const gHaste = ctx.createLinearGradient(-wid, 0, wid, 0);
-    gHaste.addColorStop(0, cBase);
-    gHaste.addColorStop(0.45, cMeio);
-    gHaste.addColorStop(1, cPonta);
-    ctx.fillStyle = gHaste;
-    ctx.beginPath();
-    ctx.moveTo(-wid * 0.7, -len);
-    ctx.quadraticCurveTo(-wid, 0.5, -wid * 0.6, len + 1);
-    ctx.quadraticCurveTo(0, len + 2.3, wid * 0.6, len + 1);
-    ctx.quadraticCurveTo(wid, 0.5, wid * 0.7, -len);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = 'rgba(24,14,8,0.75)';
-    ctx.lineWidth = 0.8;
-    ctx.stroke();
-
-    // aros de metal
-    ctx.fillStyle = '#b0bec5';
-    ctx.fillRect(-wid, -2.6, wid * 2, 1.4);
-    ctx.fillStyle = '#78909c';
-    ctx.fillRect(-wid, 1.8, wid * 2, 1.2);
-
-    // gavinhas
-    ctx.strokeStyle = '#90a4ae';
-    ctx.lineWidth = 1.0;
-    ctx.beginPath();
-    ctx.moveTo(-wid * 0.6, -len); ctx.quadraticCurveTo(-wid * 2.3, -len - 3, -wid * 1.3, -len - 5);
-    ctx.moveTo(wid * 0.6, -len);  ctx.quadraticCurveTo(wid * 2.3, -len - 3, wid * 1.3, -len - 5);
-    ctx.stroke();
-
-    // cristal facetado
-    let cy = -len - 4;
-    ctx.save();
-    ctx.shadowColor = corCristal;
-    ctx.shadowBlur = 10;
-    ctx.fillStyle = corCristal;
-    ctx.beginPath();
-    ctx.moveTo(0, cy - 4.6);
-    ctx.lineTo(wid * 1.7, cy);
-    ctx.lineTo(0, cy + 4.6);
-    ctx.lineTo(-wid * 1.7, cy);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    ctx.fillStyle = 'rgba(255,255,255,0.50)';
-    ctx.beginPath();
-    ctx.moveTo(0, cy - 3.7);
-    ctx.lineTo(wid * 0.8, cy);
-    ctx.lineTo(0, cy + 3.7);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = 'rgba(40,0,60,0.30)';
-    ctx.beginPath();
-    ctx.moveTo(0, cy - 3.7);
-    ctx.lineTo(-wid * 0.8, cy);
-    ctx.lineTo(0, cy + 3.7);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = 'rgba(255,255,255,0.9)';
-    ctx.beginPath();
-    ctx.ellipse(0, cy, 0.95, 1.4, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // faíscas
-    ctx.save();
-    ctx.shadowColor = corCristal;
-    ctx.shadowBlur = 6;
-    for (let i = 0; i < 3; i++) {
-        const a = t * 1.7 + i * (Math.PI * 2 / 3);
-        const sx = Math.cos(a) * 5.0;
-        const sy = cy + Math.sin(a) * 2.3;
-        const brilhoS = 0.30 + 0.70 * Math.abs(Math.sin(a * 0.5 + t * 1.3));
-        ctx.fillStyle = 'rgba(255,255,255,' + brilhoS.toFixed(3) + ')';
-        ctx.beginPath();
-        ctx.ellipse(sx, sy, 0.85, 0.85, 0, 0, Math.PI * 2);
-        ctx.fill();
-    }
-    ctx.restore();
 };

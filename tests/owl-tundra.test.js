@@ -285,7 +285,7 @@ test('Coruja dodges an approaching player projectile aimed at it', () => {
             return true;
         }
     });
-    const esquivar = vm.runInContext(`(${functionSource(serverSource, 'esquivarProjetilCoruja')})`, context);
+    const esquivar = vm.runInContext(`(${functionSource(serverSource, 'esquivarProjetilMonstro')})`, context);
     const coruja = {
         id: 'owl-test', x: 100, y: 100, velocidade: 2.7,
         raioColisao: 20, aiProximoDodge: 0
@@ -295,4 +295,46 @@ test('Coruja dodges an approaching player projectile aimed at it', () => {
     assert.notEqual(coruja.y, 100);
     assert.equal(coruja.aiEstado, 'run');
     assert.equal(coruja.aiProximoDodge, 5650);
+});
+
+test('other engaged monsters use the same tactical projectile dodge with a scan interval', () => {
+    const players = { jogador: { x: 0, y: 100, hp: 100 } };
+    const playerProjectiles = [{
+        x: 0, y: 100, vx: 10, vy: 0, vida: 20, raio: 8,
+        mapa: 'mundo', solari: false, ownerId: 'jogador'
+    }];
+    const context = vm.createContext({
+        Math,
+        PLAYER_OFFSET_X: 0,
+        players,
+        playerProjeteis: playerProjectiles,
+        mapaPorCoordenada: () => 'mundo',
+        instanciaCompativel: () => true,
+        moverMonstroComDesvio: (mob, x, y) => {
+            mob.x = x;
+            mob.y = y;
+            return true;
+        }
+    });
+    const esquivar = vm.runInContext(`(${functionSource(serverSource, 'esquivarProjetilMonstro')})`, context);
+    const slime = { id: 'slime-test', tipo: 'slime', x: 100, y: 100, velocidade: 1.4, raioColisao: 20 };
+
+    assert.equal(esquivar(slime, 5000), true);
+    assert.equal(slime.aiProximoProjectileScanAt, 5100);
+    const posicaoDepoisDaEsquiva = [slime.x, slime.y];
+    assert.equal(esquivar(slime, 5050), false, 'the scan throttle prevents repeated dodge work within 100ms');
+    assert.deepEqual([slime.x, slime.y], posicaoDepoisDaEsquiva);
+    assert.match(serverSource, /if \(slime\.tipo === 'tundra_dragon_elite' && slime\.tundraDragonDashState\)[\s\S]{0,180}if \(esquivarProjetilMonstro\(slime, agora\)\) return true;/);
+});
+
+test('legacy flag-spawned slimes also invoke the projectile dodge routine', () => {
+    const stunCheck = serverSource.indexOf('if (slime.stunTimer > 0 && !slime.imuneControle)');
+    assert.notEqual(stunCheck, -1);
+    const dodgeCall = serverSource.indexOf('esquivarProjetilMonstro(slime, Date.now())', stunCheck);
+    const lancerState = serverSource.indexOf('// Soldado Lanceiro: estados de investida/bloqueio', stunCheck);
+
+    assert.ok(dodgeCall > stunCheck && dodgeCall < lancerState,
+        'the legacy monster loop should dodge before its normal chase/attack states');
+    assert.match(serverSource.slice(stunCheck, lancerState),
+        /if \(!slime\.aiManaged && !slime\.lanceiroDashing && !slime\.lanceiroBloqueando &&\s*esquivarProjetilMonstro\(slime, Date\.now\(\)\)\) return;/);
 });

@@ -26,7 +26,7 @@ test('enhanced manager modules are wired in the client before the game loop', ()
     assert.match(html, /modo-melhorado\/manager\.js\?v=1/);
     assert.match(html, /window\.EnhancedMode\.renderEffects\(ctx, enhancedFrameState\)/);
     assert.match(html, /window\.EnhancedMode\.handleNetworkEvent\(dados\)/);
-    assert.match(html, /GAME_VERSION = 'v1\.75\.103'/);
+    assert.match(html, /GAME_VERSION = 'v1\.75\.110'/);
 });
 
 test('module diagnostics can disable one effect without disabling the enhanced mode', () => {

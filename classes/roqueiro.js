@@ -4,7 +4,119 @@
 // cabelo comprido/penteado estilo rock, guitarra elétrica vermelha/preta.
 // Aura de notas musicais ao seu redor. Movimento elegante e dinâmico.
 // ---------------------------------------------------------------------------
-window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
+const ROQUEIRO_BASE_SPRITES = new URL('../sprites/classes/roqueiro/', document.currentScript.src);
+const ROQUEIRO_DIRECOES_ANDANDO = ['east', 'south-east', 'south', 'south-west', 'west', 'north-west', 'north', 'north-east'];
+const ROQUEIRO_DIRECOES_PARADO = [
+    'east-4eef18ce', 'south', 'west', 'north-b093e6a5'
+];
+const roqueiroGruposSprites = Object.create(null);
+const roqueiroDirecoesSprites = Object.create(null);
+const roqueiroUltimosFrames = Object.create(null);
+let roqueiroFrameReserva = null;
+
+function roqueiroCarregarGrupo(andando, direcao) {
+    const animacao = andando ? 'walking' : 'idle';
+    const chave = animacao + ':' + direcao;
+    if (roqueiroGruposSprites[chave]) return roqueiroGruposSprites[chave];
+
+    const pasta = andando ? 'andando/animations/Walking/' : 'parado/animations/Idle/';
+    const grupo = { imagens: [] };
+    roqueiroGruposSprites[chave] = grupo;
+    for (let i = 0; i < 8; i++) {
+        const imagem = new Image();
+        imagem.onload = function () {
+            if (!roqueiroFrameReserva) roqueiroFrameReserva = imagem;
+        };
+        imagem.onerror = function () {
+            console.error('Falha ao carregar frame do Roqueiro:', imagem.src);
+        };
+        imagem.src = new URL(
+            pasta + direcao + '/frame_' + String(i).padStart(3, '0') + '.png',
+            ROQUEIRO_BASE_SPRITES
+        ).href;
+        grupo.imagens.push(imagem);
+    }
+    return grupo;
+}
+
+function roqueiroObterDirecao(angulo, andando, pid) {
+    const direcoes = andando ? ROQUEIRO_DIRECOES_ANDANDO : ROQUEIRO_DIRECOES_PARADO;
+    const passoSetor = Math.PI * 2 / direcoes.length;
+    const anguloSeguro = Number.isFinite(angulo) ? angulo : 0;
+    const anterior = roqueiroDirecoesSprites[pid];
+    let setor = ((Math.round(anguloSeguro / passoSetor) % direcoes.length) + direcoes.length) % direcoes.length;
+    if (anterior && anterior.andando === andando) {
+        const centroAnterior = anterior.setor * passoSetor;
+        const diferenca = Math.atan2(
+            Math.sin(anguloSeguro - centroAnterior),
+            Math.cos(anguloSeguro - centroAnterior)
+        );
+        if (Math.abs(diferenca) < passoSetor / 2 + Math.PI / 36) setor = anterior.setor;
+    }
+    roqueiroDirecoesSprites[pid] = { andando: andando, setor: setor };
+    return direcoes[setor];
+}
+
+function roqueiroObterFrame(grupo, indice) {
+    if (!grupo) return null;
+    const atual = grupo.imagens[indice];
+    if (atual && atual.complete && atual.naturalWidth > 0) return atual;
+    for (let distancia = 1; distancia < grupo.imagens.length; distancia++) {
+        const anterior = grupo.imagens[(indice - distancia + grupo.imagens.length) % grupo.imagens.length];
+        const seguinte = grupo.imagens[(indice + distancia) % grupo.imagens.length];
+        if (anterior && anterior.complete && anterior.naturalWidth > 0) return anterior;
+        if (seguinte && seguinte.complete && seguinte.naturalWidth > 0) return seguinte;
+    }
+    return null;
+}
+
+function roqueiroAlinharNaGrade(ctx, x, y) {
+    if (typeof ctx.getTransform !== 'function') return { x: x, y: y };
+    const transformacao = ctx.getTransform();
+    const determinante = transformacao.a * transformacao.d - transformacao.b * transformacao.c;
+    if (!Number.isFinite(determinante) || Math.abs(determinante) < 0.000001) return { x: x, y: y };
+    const telaX = transformacao.a * x + transformacao.c * y + transformacao.e;
+    const telaY = transformacao.b * x + transformacao.d * y + transformacao.f;
+    const deltaX = Math.round(telaX) - telaX;
+    const deltaY = Math.round(telaY) - telaY;
+    return {
+        x: x + (transformacao.d * deltaX - transformacao.c * deltaY) / determinante,
+        y: y + (-transformacao.b * deltaX + transformacao.a * deltaY) / determinante
+    };
+}
+
+function roqueiroDesenharSprite(ctx, andando, angulo, pid) {
+    const direcao = roqueiroObterDirecao(angulo, andando, pid);
+    const grupo = roqueiroCarregarGrupo(andando, direcao);
+    const indice = Math.floor(Date.now() / (andando ? 110 : 160)) % 8;
+    let imagem = roqueiroObterFrame(grupo, indice);
+    if (!imagem && roqueiroFrameReserva && roqueiroFrameReserva.complete && roqueiroFrameReserva.naturalWidth > 0) {
+        imagem = roqueiroFrameReserva;
+    }
+    if (imagem) roqueiroUltimosFrames[pid] = imagem;
+    else imagem = roqueiroUltimosFrames[pid];
+    if (!imagem || !imagem.complete || imagem.naturalWidth <= 0) return;
+
+    const posicao = roqueiroAlinharNaGrade(ctx, 0, 0);
+    const suavizacaoAnterior = ctx.imageSmoothingEnabled;
+    const qualidadeAnterior = ctx.imageSmoothingQuality;
+    ctx.save();
+    ctx.translate(posicao.x, posicao.y);
+    ctx.imageSmoothingEnabled = true;
+    ctx.imageSmoothingQuality = 'high';
+    try {
+        ctx.drawImage(imagem, -36, -47, imagem.naturalWidth, imagem.naturalHeight);
+    } finally {
+        ctx.imageSmoothingEnabled = suavizacaoAnterior;
+        ctx.imageSmoothingQuality = qualidadeAnterior;
+        ctx.restore();
+    }
+}
+
+ROQUEIRO_DIRECOES_PARADO.forEach(function (direcao) { roqueiroCarregarGrupo(false, direcao); });
+ROQUEIRO_DIRECOES_ANDANDO.forEach(function (direcao) { roqueiroCarregarGrupo(true, direcao); });
+
+window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid, anguloMovimento) {
     if (hp <= 0 || !window.ctx) return;
     let ctx = window.ctx;
     const t = Date.now() / 1000;
@@ -41,277 +153,35 @@ window.desenharRoqueiro = function(x, y, isMoving, angulo, hp, maxHp, pid) {
         if (nota.alpha <= 0) notas.splice(index, 1);
     });
 
-    // Sombra no chão
-    ctx.fillStyle = "rgba(0,0,0,0.4)";
-    ctx.beginPath();
-    ctx.ellipse(12, 32, 9, 3, 0, 0, Math.PI * 2);
-    ctx.fill();
+    const anguloSprite = isMoving && Number.isFinite(anguloMovimento)
+        ? anguloMovimento
+        : (Number.isFinite(angulo) ? angulo : 0);
+    const olhandoParaCima = Math.sin(anguloSprite) < -Math.SQRT1_2;
+    const desenharGuitarra = function() {
+        ctx.save();
+        const ladoGuitarra = Math.cos(anguloSprite) < 0 ? -1 : 1;
+        const lateral = Math.abs(Math.cos(anguloSprite)) > Math.SQRT1_2;
+        ctx.translate(12, lateral ? -10 : -7);
+        ctx.scale(ladoGuitarra, 1);
+        ctx.rotate(-0.48);
 
-    // ===== PERNAS: Calça preta apertada (estilo rock) =====
-    let legOffset = isMoving ? Math.sin(window.walkCycle || 0) * 3 : 0;
-    
-    // Coxas (calça preta)
-    ctx.fillStyle = "#0d0d0d";
-    ctx.fillRect(6, 24, 4, 8 + legOffset);
-    ctx.fillRect(14, 24, 4, 8 - legOffset);
-    
-    // Botas de couro preto com zíperes
-    ctx.fillStyle = "#000";
-    ctx.fillRect(5, 31 + legOffset, 6, 3);
-    ctx.fillRect(13, 31 - legOffset, 6, 3);
-    ctx.strokeStyle = "#333";
-    ctx.lineWidth = 0.5;
-    ctx.beginPath();
-    ctx.moveTo(7, 31.5 + legOffset);
-    ctx.lineTo(7, 34 + legOffset);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(15, 31.5 - legOffset);
-    ctx.lineTo(15, 34 - legOffset);
-    ctx.stroke();
+        let golpeEm = 0;
+        if (pid === undefined || pid === window.meuId) golpeEm = window.roqueiroGuitarraGolpeEm || 0;
+        else if (window._roqueiroGolpePorId) golpeEm = window._roqueiroGolpePorId[pid] || 0;
+        const dtGolpe = Date.now() - golpeEm;
+        if (dtGolpe >= 0 && dtGolpe < 200) {
+            ctx.rotate(Math.sin((dtGolpe / 200) * Math.PI) * 0.9);
+        }
 
-    // ===== CORPO: Jaqueta de couro preta elegante =====
-    let danoFlash = (window.danoFlashTimer || 0) > 0;
-    let corJaqueta = danoFlash ? "#e74c3c" : "#0f0f0f";
-    
-    ctx.fillStyle = corJaqueta;
-    ctx.beginPath();
-    ctx.moveTo(6, 12);
-    ctx.lineTo(18, 12);
-    ctx.lineTo(20, 24);
-    ctx.lineTo(4, 24);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Contorno da jaqueta
-    ctx.strokeStyle = "#222";
-    ctx.lineWidth = 0.8;
-    ctx.stroke();
-    
-    // Zíperes laterais da jaqueta
-    ctx.strokeStyle = "#666";
-    ctx.lineWidth = 0.4;
-    ctx.beginPath();
-    ctx.moveTo(4.5, 14);
-    ctx.lineTo(4.5, 23);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(19.5, 14);
-    ctx.lineTo(19.5, 23);
-    ctx.stroke();
-    
-    // Botões de metal na jaqueta
-    ctx.fillStyle = "#999";
-    for (let by = 16; by <= 21; by += 2.5) {
-        ctx.beginPath();
-        ctx.arc(4, by, 0.6, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.beginPath();
-        ctx.arc(20, by, 0.6, 0, Math.PI * 2);
-        ctx.fill();
-    }
-    
-    // Camisa preta por baixo (visível no meio)
-    ctx.fillStyle = "#000";
-    ctx.fillRect(10, 12, 4, 12);
+        const wp = window.inventario ? window.inventario.arma : null;
+        const armaV = x === window.meuX && y === window.meuY && wp && wp.customVisual ? wp : null;
+        if (typeof window.desenharGuitarraExposta === 'function') window.desenharGuitarraExposta(ctx, armaV);
+        ctx.restore();
+    };
 
-    // ===== CABEÇA: Rosto humano com cabelo comprido estilo rock =====
-    
-    // Pescoço
-    ctx.fillStyle = "#d4a574";
-    ctx.fillRect(10, 10, 4, 3);
-    
-    // Cabeça (rosto)
-    ctx.fillStyle = "#d4a574";
-    ctx.beginPath();
-    ctx.arc(12, 6, 3.5, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Cabelo vermelho em mechas, com silhueta de vocalista de palco.
-    ctx.fillStyle = "#971f32";
-    
-    // Topo e lateral esquerda
-    ctx.beginPath();
-    ctx.moveTo(8.5, 3);
-    ctx.quadraticCurveTo(5, 4, 4, 8);
-    ctx.quadraticCurveTo(3.5, 12, 5, 15);
-    ctx.lineTo(9, 9);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Lado direito
-    ctx.beginPath();
-    ctx.moveTo(15.5, 3);
-    ctx.quadraticCurveTo(19, 4, 20, 8);
-    ctx.quadraticCurveTo(20.5, 12, 19, 15);
-    ctx.lineTo(15, 9);
-    ctx.closePath();
-    ctx.fill();
-    
-    // Topo do cabelo (mais comprido atrás)
-    ctx.beginPath();
-    ctx.ellipse(12, 2, 3.8, 2.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Ondas/volume no cabelo
-    ctx.fillStyle = "#d12b42";
-    ctx.beginPath();
-    ctx.arc(8, 5, 1.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(16, 5, 1.2, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Franja (cabelo na testa)
-    ctx.fillStyle = "#bd263c";
-    ctx.beginPath();
-    ctx.moveTo(9, 4);
-    ctx.lineTo(8, 7);
-    ctx.lineTo(12, 5.5);
-    ctx.lineTo(16, 7);
-    ctx.lineTo(15, 4);
-    ctx.closePath();
-    ctx.fill();
-
-    // Fones de palco com aro e conchas metálicas.
-    ctx.strokeStyle = "#17151b";
-    ctx.lineWidth = 1.6;
-    ctx.beginPath();
-    ctx.arc(12, 5.7, 5.2, Math.PI * 1.02, Math.PI * 1.98);
-    ctx.stroke();
-    ctx.fillStyle = "#211922";
-    ctx.beginPath(); ctx.ellipse(7.2, 7, 1.5, 2.6, -0.2, 0, Math.PI * 2); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(16.8, 7, 1.5, 2.6, 0.2, 0, Math.PI * 2); ctx.fill();
-    ctx.strokeStyle = "#d5a13c";
-    ctx.lineWidth = 0.65;
-    ctx.beginPath(); ctx.arc(7.2, 7, 0.8, 0, Math.PI * 2); ctx.stroke();
-    ctx.beginPath(); ctx.arc(16.8, 7, 0.8, 0, Math.PI * 2); ctx.stroke();
-
-    // ===== ROSTO: Olhos e expressão rock =====
-    
-    // Olhos (intensos, estilo rock)
-    ctx.fillStyle = "#000";
-    ctx.beginPath();
-    ctx.ellipse(10, 5.5, 1, 1.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.ellipse(14, 5.5, 1, 1.2, 0, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Brilho nos olhos (expressão viva)
-    ctx.fillStyle = "#fff";
-    ctx.beginPath();
-    ctx.arc(10.3, 5, 0.4, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(14.3, 5, 0.4, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Sobrancelhas (expressão intensa)
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = 0.6;
-    ctx.beginPath();
-    ctx.moveTo(9, 4);
-    ctx.lineTo(11, 3.5);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(15, 3.5);
-    ctx.lineTo(13, 4);
-    ctx.stroke();
-    
-    // Nariz
-    ctx.strokeStyle = "#b8855f";
-    ctx.lineWidth = 0.5;
-    ctx.beginPath();
-    ctx.moveTo(12, 5);
-    ctx.lineTo(12, 7);
-    ctx.stroke();
-    
-    // Boca (sorriso confiante de rockstar)
-    ctx.strokeStyle = "#8b3a3a";
-    ctx.lineWidth = 0.6;
-    ctx.beginPath();
-    ctx.arc(12, 8.5, 1.5, 0, Math.PI);
-    ctx.stroke();
-
-    // ===== BRAÇO DIREITO (segura guitarra) =====
-    let armRotation = Math.sin(t * 1.5) * 0.1;
-    
-    ctx.save();
-    ctx.translate(16, 16);
-    ctx.rotate(armRotation);
-    
-    // Bíceps
-    ctx.fillStyle = "#d4a574";
-    ctx.fillRect(0, -1.5, 5, 3);
-    ctx.beginPath();
-    ctx.arc(5, 0, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-    
-    // Mão (dedos)
-    ctx.fillStyle = "#d4a574";
-    ctx.fillRect(5, -2, 2, 4);
-    
-    ctx.restore();
-
-    // ===== BRAÇO ESQUERDO =====
-    ctx.save();
-    ctx.translate(8, 16);
-    ctx.rotate(-armRotation);
-    
-    ctx.fillStyle = "#d4a574";
-    ctx.fillRect(-5, -1.5, 5, 3);
-    ctx.beginPath();
-    ctx.arc(-5, 0, 1.5, 0, Math.PI * 2);
-    ctx.fill();
-    
-    ctx.fillStyle = "#d4a574";
-    ctx.fillRect(-7, -2, 2, 4);
-    
-    ctx.restore();
-
-    // Alça diagonal no peito, por baixo da guitarra.
-    ctx.strokeStyle = "#57423e";
-    ctx.lineWidth = 2.2;
-    ctx.beginPath();
-    ctx.moveTo(5, 12);
-    ctx.lineTo(19, 24);
-    ctx.stroke();
-    ctx.strokeStyle = "#c99748";
-    ctx.lineWidth = 0.7;
-    ctx.beginPath();
-    ctx.moveTo(5, 12);
-    ctx.lineTo(19, 24);
-    ctx.stroke();
-
-    // ===== GUITARRA ELÉTRICA PRESA AO PEITO =====
-    ctx.save();
-    const ladoGuitarra = Math.cos(angulo || 0) < 0 ? -1 : 1;
-    ctx.translate(12, 17);
-    ctx.scale(ladoGuitarra, 1);
-    ctx.rotate(-0.48);
-
-    // Animação de golpe (swing da guitarra)
-    let golpeEm = 0;
-    if (pid === undefined || pid === window.meuId) golpeEm = window.roqueiroGuitarraGolpeEm || 0;
-    else if (window._roqueiroGolpePorId) golpeEm = window._roqueiroGolpePorId[pid] || 0;
-    let dtGolpe = Date.now() - golpeEm;
-    let golpeSwing = 0;
-    if (dtGolpe >= 0 && dtGolpe < 200) {
-        golpeSwing = Math.sin((dtGolpe / 200) * Math.PI) * 0.9;
-    }
-    ctx.rotate(golpeSwing);
-
-    // Strum vibratório quando bateria está ligada
-    let strum = window.roqueiroBateriaLigada ? Math.sin(Date.now() / 55) * 0.18 : Math.sin(t * 2.2) * 0.06;
-    let wp = window.inventario ? window.inventario.arma : null;
-    let armaV = null;
-    if (x === window.meuX && y === window.meuY) { 
-        if (wp && wp.customVisual) armaV = wp;
-    }
-    if (typeof window.desenharGuitarraExposta === 'function') window.desenharGuitarraExposta(ctx, armaV);
-
-    ctx.restore(); // fim guitarra/mira
+    if (olhandoParaCima) desenharGuitarra();
+    roqueiroDesenharSprite(ctx, Boolean(isMoving), anguloSprite, safePid);
+    if (!olhandoParaCima) desenharGuitarra();
 
     ctx.restore(); // fim translate principal
 
@@ -332,10 +202,6 @@ window.desenharBandaRoqueiro = function(listaBanda) {
             banda.membros.forEach(membro => {
                 ctx.save();
                 ctx.translate(membro.x, membro.y);
-
-                // Sombra do integrante
-                ctx.fillStyle = "rgba(0,0,0,0.4)";
-                ctx.beginPath(); ctx.ellipse(0, 16, 8, 3, 0, 0, Math.PI * 2); ctx.fill();
 
                 const pulse = 0.5 + Math.sin(t * 8 + (membro.x || 0) * 0.03) * 0.5;
                 const cantando = Math.sin(t * 7 + (membro.y || 0) * 0.02);

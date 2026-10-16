@@ -35,8 +35,8 @@ test('nearest-neighbor disables smoothing in regular and offscreen 2D canvases o
 });
 
 test('nearest-neighbor is loaded before game scripts and preserved for images and scaled map layers', () => {
-    assert.ok(html.indexOf('nearest-neighbor.js?v=3') < html.indexOf('style.css?v=260'));
-    assert.match(html, /GAME_VERSION = 'v1\.75\.103'/);
+    assert.ok(html.indexOf('nearest-neighbor.js?v=3') < html.indexOf('style.css?v=264'));
+    assert.match(html, /GAME_VERSION = 'v1\.75\.110'/);
     assert.match(css, /img,\s*canvas,\s*video,\s*svg image\s*\{\s*image-rendering:\s*crisp-edges;\s*image-rendering:\s*pixelated;/);
     assert.match(map, /ctx\.imageSmoothingEnabled = false;\s*if \(imagemChunk\)/);
     assert.match(html, /bigMapCtx\.imageSmoothingEnabled = false/);

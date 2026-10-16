@@ -1,0 +1,36 @@
+{
+  "group_id": "638b3180-7207-4916-81b5-1a3438d72e82",
+  "states": [
+    {
+      "character": {
+        "id": "296b245b-eeac-468d-afcb-725e0443a6e2",
+        "name": "Idle",
+        "prompt": "Create a unique dark fantasy Necromancer in pure 2D pixel art for a medieval RPG. Wear a long black hooded robe with torn edges, dark armor, ancient bronze ornaments, skull details and deep emerald-green fabric accents. The face must be completely hidden in darkness, with only two intensely glowing green eyes visible. Eerie green spectral smoke must flow outward from the eyes. Tall, intimidating silhouette, sinister magical presence, intricate pixel shading, strong contrast, crisp pixel edges and a cohesive dark palette. Full body, centered, three-quarter front view, transparent background, PNG. No weapons, no text, no scenery, no blur, no 3D rendering, no smooth digital painting. Authentic handcrafted pixel art, suitable for a 2D RPG character sprite.",
+        "size": {
+          "width": 48,
+          "height": 48
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "low top-down",
+        "created_at": "2026-10-14T00:27:34.162204+00:00"
+      },
+      "folder": "Idle",
+      "frames": {
+        "rotations": {
+          "south": "Idle/rotations/south.png",
+          "south-east": "Idle/rotations/south-east.png",
+          "east": "Idle/rotations/east.png",
+          "north-east": "Idle/rotations/north-east.png",
+          "north": "Idle/rotations/north.png",
+          "north-west": "Idle/rotations/north-west.png",
+          "west": "Idle/rotations/west.png",
+          "south-west": "Idle/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-10-14T00:30:41.580555"
+}

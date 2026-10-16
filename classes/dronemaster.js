@@ -20,6 +20,97 @@ function camadaRoundRect(c, x, y, w, h, r) {
 // ============================================================================
 window.dmVfx = window.dmVfx || { tirosLuz: [], caixasVoo: [], transformacoes: [], particulas: [] };
 window.dmAssaltoAtaques = window.dmAssaltoAtaques || Object.create(null);
+const DM_BASE_SPRITES = new URL('../sprites/classes/dronemaster/', document.currentScript.src);
+const DM_DIRECOES_ANDANDO = ['east', 'south-east', 'south', 'south-west', 'west', 'north-west', 'north', 'north-east'];
+const DM_DIRECOES_PARADO = ['east', 'south', 'west', 'north'];
+const dmGruposSprites = Object.create(null);
+const dmDirecoesJogadores = Object.create(null);
+const dmPosicoesJogadores = Object.create(null);
+const dmUltimosFrames = Object.create(null);
+
+function dmCarregarGrupoSprite(andando, direcao) {
+    const animacao = andando ? 'walking' : 'idle_breathing';
+    const chave = animacao + ':' + direcao;
+    if (dmGruposSprites[chave]) return dmGruposSprites[chave];
+
+    const pasta = andando
+        ? 'andando/animations/walking/'
+        : 'parado/animations/idle_breathing/';
+    const grupo = { imagens: [], carregadas: 0 };
+    dmGruposSprites[chave] = grupo;
+
+    for (let i = 0; i < 8; i++) {
+        const imagem = new Image();
+        imagem.onload = function () { grupo.carregadas++; };
+        imagem.onerror = function () {
+            console.error('Falha ao carregar frame do DroneMaster:', imagem.src);
+        };
+        imagem.src = new URL(pasta + direcao + '/frame_' + String(i).padStart(3, '0') + '.png', DM_BASE_SPRITES).href;
+        grupo.imagens.push(imagem);
+    }
+    return grupo;
+}
+
+function dmObterDirecaoSprite(angulo, andando, idJogador) {
+    const direcoes = andando ? DM_DIRECOES_ANDANDO : DM_DIRECOES_PARADO;
+    const passoSetor = Math.PI * 2 / direcoes.length;
+    const anguloSeguro = Number.isFinite(angulo) ? angulo : 0;
+    const estadoAnterior = dmDirecoesJogadores[idJogador];
+    let setor = ((Math.round(anguloSeguro / passoSetor) % direcoes.length) + direcoes.length) % direcoes.length;
+
+    if (estadoAnterior && estadoAnterior.andando === andando) {
+        const centroAnterior = estadoAnterior.setor * passoSetor;
+        const diferenca = Math.atan2(
+            Math.sin(anguloSeguro - centroAnterior),
+            Math.cos(anguloSeguro - centroAnterior)
+        );
+        if (Math.abs(diferenca) < passoSetor / 2 + Math.PI / 45) {
+            setor = estadoAnterior.setor;
+        }
+    }
+
+    dmDirecoesJogadores[idJogador] = { andando: andando, setor: setor };
+    return direcoes[setor];
+}
+
+function dmObterFrameDisponivel(grupo, indice) {
+    const atual = grupo.imagens[indice];
+    if (atual && atual.complete && atual.naturalWidth > 0) return atual;
+
+    for (let distancia = 1; distancia < grupo.imagens.length; distancia++) {
+        const anterior = grupo.imagens[(indice - distancia + grupo.imagens.length) % grupo.imagens.length];
+        const seguinte = grupo.imagens[(indice + distancia) % grupo.imagens.length];
+        if (anterior && anterior.complete && anterior.naturalWidth > 0) return anterior;
+        if (seguinte && seguinte.complete && seguinte.naturalWidth > 0) return seguinte;
+    }
+    return null;
+}
+
+function dmAlinharSpriteNaGrade(ctx, x, y) {
+    if (typeof ctx.getTransform !== 'function') return { x: x, y: y };
+
+    const transformacao = ctx.getTransform();
+    const determinante = transformacao.a * transformacao.d - transformacao.b * transformacao.c;
+    if (!Number.isFinite(determinante) || Math.abs(determinante) < 0.000001) {
+        return { x: x, y: y };
+    }
+
+    const telaX = transformacao.a * x + transformacao.c * y + transformacao.e;
+    const telaY = transformacao.b * x + transformacao.d * y + transformacao.f;
+    const deltaX = Math.round(telaX) - telaX;
+    const deltaY = Math.round(telaY) - telaY;
+    return {
+        x: x + (transformacao.d * deltaX - transformacao.c * deltaY) / determinante,
+        y: y + (-transformacao.b * deltaX + transformacao.a * deltaY) / determinante
+    };
+}
+
+DM_DIRECOES_PARADO.forEach(function (direcao) {
+    dmCarregarGrupoSprite(false, direcao);
+});
+DM_DIRECOES_ANDANDO.forEach(function (direcao) {
+    dmCarregarGrupoSprite(true, direcao);
+});
 
 function dmLuzChao(ctx, x, y, raio, corTemplate, alpha, achatamento) {
     const ry = Math.max(2, raio * (achatamento || 0.28));
@@ -200,11 +291,11 @@ function dmDesenharVfxTela() {
 
 // Órbita do Drone Companheiro em volta do dono (self) — espelha a lógica do servidor.
 window.dmOrbitarDrone = function() {
-    let t = Date.now() / 700;
+    let t = Date.now() / 850;
     let cx = (window.meuX || 0) + 12;
     let cy = (window.meuY || 0) + 16;
     window.dmDroneX = cx + Math.cos(t) * 30;
-    window.dmDroneY = cy - 14 + Math.sin(t) * 16;
+    window.dmDroneY = cy - 62 + Math.sin(t) * 8;
     return { x: window.dmDroneX, y: window.dmDroneY };
 };
 
@@ -267,12 +358,6 @@ window.desenharDrone = function(x, y, angulo, estado, ownerId) {
 
     ctx.save();
     ctx.translate(x, y);
-
-    // Sombra no chão do drone
-    ctx.fillStyle = "rgba(0,0,0,0.35)";
-    ctx.beginPath();
-    ctx.ellipse(0, 20, 9, 2.6, 0, 0, Math.PI * 2);
-    ctx.fill();
 
     // Hélices girando (4)
     for (let k = 0; k < 4; k++) {
@@ -578,8 +663,8 @@ window.desenharDronemaster = function(x, y, isMoving, angulo, hp, maxHp, extra) 
         else { window.dmOrbitarDrone(); }
         droneX = window.dmDroneX; droneY = window.dmDroneY;
     } else {
-        droneX = pp ? pp.dmDroneX : (x + 26);
-        droneY = pp ? pp.dmDroneY : (y - 8);
+        droneX = pp ? pp.dmDroneX : (x + 12);
+        droneY = pp ? pp.dmDroneY : (y - 46);
     }
     let estadoDrone = 'normal';
     if (pp) {
@@ -590,126 +675,50 @@ window.desenharDronemaster = function(x, y, isMoving, angulo, hp, maxHp, extra) 
         else if (window.dmAssaltoVisual) estadoDrone = 'assalto';
     }
 
-    ctx.save();
-    ctx.translate(x, y);
-
-    // Sombra
-    ctx.fillStyle = "rgba(0,0,0,0.45)";
-    ctx.beginPath();
-    ctx.ellipse(12, 32, 8.5, 3, 0, 0, Math.PI * 2);
-    ctx.fill();
-
     // Cabo / feixe de controle que liga o piloto ao drone
+    ctx.save();
     ctx.strokeStyle = (estadoDrone === 'supressao') ? "rgba(255,77,77,0.6)" : "rgba(0,255,255,0.5)";
     ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(12, 12);
-    ctx.lineTo(droneX - x, droneY - y);
+    ctx.moveTo(x + 12, y + 12);
+    ctx.lineTo(droneX, droneY);
     ctx.stroke();
+    const idJogador = (extra && extra.pid) || (ehEu ? window.meuId : 'remoto');
+    const posicaoAnterior = dmPosicoesJogadores[idJogador];
+    let anguloCorpo = Number.isFinite(angulo) ? angulo : 0;
+    if (isMoving && extra && Number.isFinite(extra.anguloMovimento)) {
+        anguloCorpo = extra.anguloMovimento;
+    } else if (isMoving && posicaoAnterior) {
+        const dx = x - posicaoAnterior.x;
+        const dy = y - posicaoAnterior.y;
+        if (Math.hypot(dx, dy) > 0.5) anguloCorpo = Math.atan2(dy, dx);
+    }
+    dmPosicoesJogadores[idJogador] = { x: x, y: y };
 
-    let agachamento = Math.sin(ate) * (isMoving ? 1.2 : 2.2);
-    ctx.save();
-    ctx.translate(12, 14 + agachamento * 0.4);
+    const direcao = dmObterDirecaoSprite(anguloCorpo, Boolean(isMoving), idJogador);
+    const grupo = dmCarregarGrupoSprite(Boolean(isMoving), direcao);
+    const indice = Math.floor(Date.now() / (isMoving ? 110 : 160)) % grupo.imagens.length;
+    let imagem = dmObterFrameDisponivel(grupo, indice);
+    if (imagem) dmUltimosFrames[idJogador] = imagem;
+    else imagem = dmUltimosFrames[idJogador];
 
-    // Pernas blindadas
-    let legOffset = isMoving ? Math.sin(window.walkCycle || 0) * 3.2 : 0;
-    ctx.fillStyle = "#2c3e50";
-    ctx.fillRect(-5, 9, 3.4, 7 + legOffset);
-    ctx.fillRect(2, 9, 3.4, 7 - legOffset);
-    ctx.fillStyle = "#1a1a1a";
-    ctx.fillRect(-6, 16 + legOffset, 5.4, 3);
-    ctx.fillRect(1, 16 - legOffset, 5.4, 3);
-
-    // Corpo: armadura azul-aço
-    let corBlindagem = ((window.danoFlashTimer || 0) > 0) ? "#e74c3c" : "#3b5998";
-    ctx.fillStyle = corBlindagem;
-    ctx.beginPath();
-    ctx.moveTo(-6, -6);
-    ctx.lineTo(6, -6);
-    ctx.lineTo(8, 10);
-    ctx.lineTo(-8, 10);
-    ctx.closePath();
-    ctx.fill();
-    // Peitoral técnico
-    ctx.fillStyle = "#5d6d7e";
-    ctx.fillRect(-5, -2, 10, 3);
-    ctx.fillStyle = "#00e5ff";
-    ctx.shadowColor = "#00ffff";
-    ctx.shadowBlur = 8;
-    ctx.beginPath();
-    ctx.arc(0, 0, 1.8, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.shadowBlur = 0;
-    // Cinto de ferramentas (bolsos)
-    ctx.fillStyle = "#4a5a63";
-    ctx.fillRect(-7, 4, 14, 2);
-    ctx.fillStyle = "#f1c40f";
-    ctx.fillRect(3, 4, 3, 2);
-
-    // Mochila técnica / jets
-    ctx.fillStyle = "#4a5e70";
-    ctx.fillRect(-8, -8, 3, 16);
-    ctx.fillRect(5, -8, 3, 16);
-
-    // Cabeça com viseira
-    ctx.fillStyle = "#cfc6d8"; // pele
-    ctx.fillRect(-4, -15, 8, 6);
-    ctx.fillStyle = "#22303c"; // capacete
-    ctx.beginPath();
-    ctx.moveTo(-5, -16);
-    ctx.lineTo(5, -16);
-    ctx.lineTo(6, -8);
-    ctx.lineTo(-6, -8);
-    ctx.closePath();
-    ctx.fill();
-    const visorCores = ["#168cff", "#f4fbff", "#ff3b4f"];
-    const visorCore = visorCores[Math.floor(Date.now() / 650) % visorCores.length];
-    ctx.fillStyle = visorCore;
-    ctx.shadowColor = visorCore;
-    ctx.shadowBlur = 10;
-    ctx.fillRect(-3.6, -13, 7.2, 2.6);
-    ctx.shadowBlur = 0;
-    ctx.fillStyle = "#85929e"; // respirador
-    ctx.fillRect(-3, -9.4, 6, 1.6);
-
-    // Bracos blindados fixos, com ombreiras, cotovelos e detalhes mecanicos.
-    for (const lado of [-1, 1]) {
+    if (imagem && imagem.complete && imagem.naturalWidth > 0) {
+        const posicaoRender = dmAlinharSpriteNaGrade(ctx, x, y);
+        const suavizacaoAnterior = ctx.imageSmoothingEnabled;
+        const qualidadeSuavizacaoAnterior = ctx.imageSmoothingQuality;
         ctx.save();
-        ctx.scale(lado, 1);
-
-        ctx.fillStyle = "#263744";
-        ctx.beginPath();
-        camadaRoundRect(ctx, 5, -5, 6, 6, 2);
-        ctx.fill();
-        ctx.fillStyle = "#718394";
-        ctx.beginPath();
-        camadaRoundRect(ctx, 6, -4, 4, 3, 1.5);
-        ctx.fill();
-
-        ctx.fillStyle = "#34495e";
-        ctx.beginPath();
-        camadaRoundRect(ctx, 8, 0, 4, 5, 1.5);
-        ctx.fill();
-        ctx.fillStyle = "#8997a3";
-        ctx.beginPath();
-        ctx.arc(10, 5, 2, 0, Math.PI * 2);
-        ctx.fill();
-
-        ctx.fillStyle = "#4a5e70";
-        ctx.beginPath();
-        camadaRoundRect(ctx, 8, 6, 5, 5, 1.5);
-        ctx.fill();
-        ctx.fillStyle = "#00e5ff";
-        ctx.fillRect(9, 7, 1, 2.5);
-        ctx.fillStyle = "#263744";
-        ctx.beginPath();
-        camadaRoundRect(ctx, 7.5, 10, 6, 3, 1.2);
-        ctx.fill();
-
-        ctx.restore();
+        try {
+            ctx.translate(posicaoRender.x, posicaoRender.y);
+            ctx.imageSmoothingEnabled = true;
+            ctx.imageSmoothingQuality = 'high';
+            ctx.drawImage(imagem, -36, -47, imagem.naturalWidth, imagem.naturalHeight);
+        } finally {
+            ctx.imageSmoothingEnabled = suavizacaoAnterior;
+            ctx.imageSmoothingQuality = qualidadeSuavizacaoAnterior;
+            ctx.restore();
+        }
     }
 
-    ctx.restore();
     ctx.restore();
 
     // Drone Companheiro por cima do personagem (desenhado depois)

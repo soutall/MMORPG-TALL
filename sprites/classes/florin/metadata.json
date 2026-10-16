@@ -1,0 +1,191 @@
+{
+  "group_id": "158a8217-b423-4066-b480-d5fe07ba9e76",
+  "states": [
+    {
+      "character": {
+        "id": "93030b09-f02b-4199-a157-0b159705049f",
+        "name": "parado",
+        "prompt": "Create a unique female Plant Warrior in pure 2D pixel art for a dark fantasy RPG. Her entire body is a hybrid of human and living plant, with olive-green bark-like skin, brown roots wrapping around her limbs, sharp pointed thorns growing across her shoulders, arms, torso and legs, and vivid deep-red roses blooming naturally throughout her body. Her face is an eerie fusion of human features and roses, with intense crimson eyes, thorn-like markings and organic petals integrated into one side of her face. Long dark-green vine hair decorated with red roses and wooden spikes. Her body armor is formed entirely from layered bark, twisted roots, leaves and thorny organic plates, creating a distinctive, intimidating silhouette. Use deep forest green, olive green, dark brown, bronze and blood-red colors. Full-body character, front three-quarter view, with a separate rear view and detailed close-up panels showing the face, roses, thorn-covered armor, arms, legs and back. Transparent background, PNG with true alpha transparency. Crisp pixel edges, detailed pixel shading, strong contrast, cohesive colors, authentic handcrafted pixel art for a 2D RPG. No text, no scenery, no background, no weapons, no blur, no 3D rendering, no smooth digital painting.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T14:14:26.414837+00:00"
+      },
+      "folder": "parado",
+      "frames": {
+        "rotations": {
+          "south": "parado/rotations/south.png",
+          "south-east": "parado/rotations/south-east.png",
+          "east": "parado/rotations/east.png",
+          "north-east": "parado/rotations/north-east.png",
+          "north": "parado/rotations/north.png",
+          "north-west": "parado/rotations/north-west.png",
+          "west": "parado/rotations/west.png",
+          "south-west": "parado/rotations/south-west.png"
+        },
+        "animations": {
+          "idle_breathing": {
+            "east": [
+              "parado/animations/idle_breathing/east/frame_000.png",
+              "parado/animations/idle_breathing/east/frame_001.png",
+              "parado/animations/idle_breathing/east/frame_002.png",
+              "parado/animations/idle_breathing/east/frame_003.png",
+              "parado/animations/idle_breathing/east/frame_004.png",
+              "parado/animations/idle_breathing/east/frame_005.png",
+              "parado/animations/idle_breathing/east/frame_006.png",
+              "parado/animations/idle_breathing/east/frame_007.png"
+            ],
+            "north": [
+              "parado/animations/idle_breathing/north/frame_000.png",
+              "parado/animations/idle_breathing/north/frame_001.png",
+              "parado/animations/idle_breathing/north/frame_002.png",
+              "parado/animations/idle_breathing/north/frame_003.png",
+              "parado/animations/idle_breathing/north/frame_004.png",
+              "parado/animations/idle_breathing/north/frame_005.png",
+              "parado/animations/idle_breathing/north/frame_006.png",
+              "parado/animations/idle_breathing/north/frame_007.png"
+            ],
+            "south": [
+              "parado/animations/idle_breathing/south/frame_000.png",
+              "parado/animations/idle_breathing/south/frame_001.png",
+              "parado/animations/idle_breathing/south/frame_002.png",
+              "parado/animations/idle_breathing/south/frame_003.png",
+              "parado/animations/idle_breathing/south/frame_004.png",
+              "parado/animations/idle_breathing/south/frame_005.png",
+              "parado/animations/idle_breathing/south/frame_006.png",
+              "parado/animations/idle_breathing/south/frame_007.png"
+            ],
+            "west": [
+              "parado/animations/idle_breathing/west/frame_000.png",
+              "parado/animations/idle_breathing/west/frame_001.png",
+              "parado/animations/idle_breathing/west/frame_002.png",
+              "parado/animations/idle_breathing/west/frame_003.png",
+              "parado/animations/idle_breathing/west/frame_004.png",
+              "parado/animations/idle_breathing/west/frame_005.png",
+              "parado/animations/idle_breathing/west/frame_006.png",
+              "parado/animations/idle_breathing/west/frame_007.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "fee09070-b77d-44e5-8d93-12d528e3c72a",
+        "name": "Andando",
+        "prompt": "Create a unique female Plant Warrior in pure 2D pixel art for a dark fantasy RPG. Her entire body is a hybrid of human and living plant, with olive-green bark-like skin, brown roots wrapping around her limbs, sharp pointed thorns growing across her shoulders, arms, torso and legs, and vivid deep-red roses blooming naturally throughout her body. Her face is an eerie fusion of human features and roses, with intense crimson eyes, thorn-like markings and organic petals integrated into one side of her face. Long dark-green vine hair decorated with red roses and wooden spikes. Her body armor is formed entirely from layered bark, twisted roots, leaves and thorny organic plates, creating a distinctive, intimidating silhouette. Use deep forest green, olive green, dark brown, bronze and blood-red colors. Full-body character, front three-quarter view, with a separate rear view and detailed close-up panels showing the face, roses, thorn-covered armor, arms, legs and back. Transparent background, PNG with true alpha transparency. Crisp pixel edges, detailed pixel shading, strong contrast, cohesive colors, authentic handcrafted pixel art for a 2D RPG. No text, no scenery, no background, no weapons, no blur, no 3D rendering, no smooth digital painting.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T14:50:03.074666+00:00"
+      },
+      "folder": "Andando",
+      "frames": {
+        "rotations": {
+          "south": "Andando/rotations/south.png",
+          "south-east": "Andando/rotations/south-east.png",
+          "east": "Andando/rotations/east.png",
+          "north-east": "Andando/rotations/north-east.png",
+          "north": "Andando/rotations/north.png",
+          "north-west": "Andando/rotations/north-west.png",
+          "west": "Andando/rotations/west.png",
+          "south-west": "Andando/rotations/south-west.png"
+        },
+        "animations": {
+          "walking": {
+            "north": [
+              "Andando/animations/walking/north/frame_000.png",
+              "Andando/animations/walking/north/frame_001.png",
+              "Andando/animations/walking/north/frame_002.png",
+              "Andando/animations/walking/north/frame_003.png",
+              "Andando/animations/walking/north/frame_004.png",
+              "Andando/animations/walking/north/frame_005.png",
+              "Andando/animations/walking/north/frame_006.png",
+              "Andando/animations/walking/north/frame_007.png"
+            ],
+            "north-west": [
+              "Andando/animations/walking/north-west/frame_000.png",
+              "Andando/animations/walking/north-west/frame_001.png",
+              "Andando/animations/walking/north-west/frame_002.png",
+              "Andando/animations/walking/north-west/frame_003.png",
+              "Andando/animations/walking/north-west/frame_004.png",
+              "Andando/animations/walking/north-west/frame_005.png",
+              "Andando/animations/walking/north-west/frame_006.png",
+              "Andando/animations/walking/north-west/frame_007.png"
+            ],
+            "east": [
+              "Andando/animations/walking/east/frame_000.png",
+              "Andando/animations/walking/east/frame_001.png",
+              "Andando/animations/walking/east/frame_002.png",
+              "Andando/animations/walking/east/frame_003.png",
+              "Andando/animations/walking/east/frame_004.png",
+              "Andando/animations/walking/east/frame_005.png",
+              "Andando/animations/walking/east/frame_006.png",
+              "Andando/animations/walking/east/frame_007.png"
+            ],
+            "south": [
+              "Andando/animations/walking/south/frame_000.png",
+              "Andando/animations/walking/south/frame_001.png",
+              "Andando/animations/walking/south/frame_002.png",
+              "Andando/animations/walking/south/frame_003.png",
+              "Andando/animations/walking/south/frame_004.png",
+              "Andando/animations/walking/south/frame_005.png",
+              "Andando/animations/walking/south/frame_006.png",
+              "Andando/animations/walking/south/frame_007.png"
+            ],
+            "south-west": [
+              "Andando/animations/walking/south-west/frame_000.png",
+              "Andando/animations/walking/south-west/frame_001.png",
+              "Andando/animations/walking/south-west/frame_002.png",
+              "Andando/animations/walking/south-west/frame_003.png",
+              "Andando/animations/walking/south-west/frame_004.png",
+              "Andando/animations/walking/south-west/frame_005.png",
+              "Andando/animations/walking/south-west/frame_006.png",
+              "Andando/animations/walking/south-west/frame_007.png"
+            ],
+            "south-east": [
+              "Andando/animations/walking/south-east/frame_000.png",
+              "Andando/animations/walking/south-east/frame_001.png",
+              "Andando/animations/walking/south-east/frame_002.png",
+              "Andando/animations/walking/south-east/frame_003.png",
+              "Andando/animations/walking/south-east/frame_004.png",
+              "Andando/animations/walking/south-east/frame_005.png",
+              "Andando/animations/walking/south-east/frame_006.png",
+              "Andando/animations/walking/south-east/frame_007.png"
+            ],
+            "north-east": [
+              "Andando/animations/walking/north-east/frame_000.png",
+              "Andando/animations/walking/north-east/frame_001.png",
+              "Andando/animations/walking/north-east/frame_002.png",
+              "Andando/animations/walking/north-east/frame_003.png",
+              "Andando/animations/walking/north-east/frame_004.png",
+              "Andando/animations/walking/north-east/frame_005.png",
+              "Andando/animations/walking/north-east/frame_006.png",
+              "Andando/animations/walking/north-east/frame_007.png"
+            ],
+            "west": [
+              "Andando/animations/walking/west/frame_000.png",
+              "Andando/animations/walking/west/frame_001.png",
+              "Andando/animations/walking/west/frame_002.png",
+              "Andando/animations/walking/west/frame_003.png",
+              "Andando/animations/walking/west/frame_004.png",
+              "Andando/animations/walking/west/frame_005.png",
+              "Andando/animations/walking/west/frame_006.png",
+              "Andando/animations/walking/west/frame_007.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-10-14T21:28:10.696481"
+}

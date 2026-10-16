@@ -1,0 +1,191 @@
+{
+  "group_id": "fdd68b66-329a-481e-ad00-ebed41114cc1",
+  "states": [
+    {
+      "character": {
+        "id": "7dd676b4-fdfd-4496-9dc7-3e3302cf2e6a",
+        "name": "parado",
+        "prompt": "Create a unique futuristic DroneMaster character in pure 2D pixel art for a sci-fi RPG. Wear advanced black, gunmetal and silver tactical armor with glowing cyan-blue circuitry. The face must be covered by a sleek technological visor emitting intense blue light, with no visible facial features. Add large holographic interface panels projecting from both shoulders, displaying futuristic blue HUD graphics. Include mechanical shoulder plates, cybernetic gauntlets, reinforced boots and a long asymmetric tech-cloak with luminous geometric patterns. No weapons, no drones. Distinctive high-tech silhouette, detailed armor, crisp pixel edges, sharp pixel shading and strong contrast. Full body, three-quarter front view, centered, transparent background, PNG. Authentic handcrafted pixel art, suitable for a 2D RPG sprite. No text, no scenery, no blur, no 3D rendering, no smooth digital painting.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T10:24:43.411349+00:00"
+      },
+      "folder": "parado",
+      "frames": {
+        "rotations": {
+          "south": "parado/rotations/south.png",
+          "south-east": "parado/rotations/south-east.png",
+          "east": "parado/rotations/east.png",
+          "north-east": "parado/rotations/north-east.png",
+          "north": "parado/rotations/north.png",
+          "north-west": "parado/rotations/north-west.png",
+          "west": "parado/rotations/west.png",
+          "south-west": "parado/rotations/south-west.png"
+        },
+        "animations": {
+          "idle_breathing": {
+            "east": [
+              "parado/animations/idle_breathing/east/frame_000.png",
+              "parado/animations/idle_breathing/east/frame_001.png",
+              "parado/animations/idle_breathing/east/frame_002.png",
+              "parado/animations/idle_breathing/east/frame_003.png",
+              "parado/animations/idle_breathing/east/frame_004.png",
+              "parado/animations/idle_breathing/east/frame_005.png",
+              "parado/animations/idle_breathing/east/frame_006.png",
+              "parado/animations/idle_breathing/east/frame_007.png"
+            ],
+            "north": [
+              "parado/animations/idle_breathing/north/frame_000.png",
+              "parado/animations/idle_breathing/north/frame_001.png",
+              "parado/animations/idle_breathing/north/frame_002.png",
+              "parado/animations/idle_breathing/north/frame_003.png",
+              "parado/animations/idle_breathing/north/frame_004.png",
+              "parado/animations/idle_breathing/north/frame_005.png",
+              "parado/animations/idle_breathing/north/frame_006.png",
+              "parado/animations/idle_breathing/north/frame_007.png"
+            ],
+            "south": [
+              "parado/animations/idle_breathing/south/frame_000.png",
+              "parado/animations/idle_breathing/south/frame_001.png",
+              "parado/animations/idle_breathing/south/frame_002.png",
+              "parado/animations/idle_breathing/south/frame_003.png",
+              "parado/animations/idle_breathing/south/frame_004.png",
+              "parado/animations/idle_breathing/south/frame_005.png",
+              "parado/animations/idle_breathing/south/frame_006.png",
+              "parado/animations/idle_breathing/south/frame_007.png"
+            ],
+            "west": [
+              "parado/animations/idle_breathing/west/frame_000.png",
+              "parado/animations/idle_breathing/west/frame_001.png",
+              "parado/animations/idle_breathing/west/frame_002.png",
+              "parado/animations/idle_breathing/west/frame_003.png",
+              "parado/animations/idle_breathing/west/frame_004.png",
+              "parado/animations/idle_breathing/west/frame_005.png",
+              "parado/animations/idle_breathing/west/frame_006.png",
+              "parado/animations/idle_breathing/west/frame_007.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "de0f50fe-f5ad-46b1-a020-19612795e3c7",
+        "name": "andando",
+        "prompt": "Create a unique futuristic DroneMaster character in pure 2D pixel art for a sci-fi RPG. Wear advanced black, gunmetal and silver tactical armor with glowing cyan-blue circuitry. The face must be covered by a sleek technological visor emitting intense blue light, with no visible facial features. Add large holographic interface panels projecting from both shoulders, displaying futuristic blue HUD graphics. Include mechanical shoulder plates, cybernetic gauntlets, reinforced boots and a long asymmetric tech-cloak with luminous geometric patterns. No weapons, no drones. Distinctive high-tech silhouette, detailed armor, crisp pixel edges, sharp pixel shading and strong contrast. Full body, three-quarter front view, centered, transparent background, PNG. Authentic handcrafted pixel art, suitable for a 2D RPG sprite. No text, no scenery, no blur, no 3D rendering, no smooth digital painting.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T10:36:22.411858+00:00"
+      },
+      "folder": "andando",
+      "frames": {
+        "rotations": {
+          "south": "andando/rotations/south.png",
+          "south-east": "andando/rotations/south-east.png",
+          "east": "andando/rotations/east.png",
+          "north-east": "andando/rotations/north-east.png",
+          "north": "andando/rotations/north.png",
+          "north-west": "andando/rotations/north-west.png",
+          "west": "andando/rotations/west.png",
+          "south-west": "andando/rotations/south-west.png"
+        },
+        "animations": {
+          "walking": {
+            "south-west": [
+              "andando/animations/walking/south-west/frame_000.png",
+              "andando/animations/walking/south-west/frame_001.png",
+              "andando/animations/walking/south-west/frame_002.png",
+              "andando/animations/walking/south-west/frame_003.png",
+              "andando/animations/walking/south-west/frame_004.png",
+              "andando/animations/walking/south-west/frame_005.png",
+              "andando/animations/walking/south-west/frame_006.png",
+              "andando/animations/walking/south-west/frame_007.png"
+            ],
+            "east": [
+              "andando/animations/walking/east/frame_000.png",
+              "andando/animations/walking/east/frame_001.png",
+              "andando/animations/walking/east/frame_002.png",
+              "andando/animations/walking/east/frame_003.png",
+              "andando/animations/walking/east/frame_004.png",
+              "andando/animations/walking/east/frame_005.png",
+              "andando/animations/walking/east/frame_006.png",
+              "andando/animations/walking/east/frame_007.png"
+            ],
+            "north-east": [
+              "andando/animations/walking/north-east/frame_000.png",
+              "andando/animations/walking/north-east/frame_001.png",
+              "andando/animations/walking/north-east/frame_002.png",
+              "andando/animations/walking/north-east/frame_003.png",
+              "andando/animations/walking/north-east/frame_004.png",
+              "andando/animations/walking/north-east/frame_005.png",
+              "andando/animations/walking/north-east/frame_006.png",
+              "andando/animations/walking/north-east/frame_007.png"
+            ],
+            "south-east": [
+              "andando/animations/walking/south-east/frame_000.png",
+              "andando/animations/walking/south-east/frame_001.png",
+              "andando/animations/walking/south-east/frame_002.png",
+              "andando/animations/walking/south-east/frame_003.png",
+              "andando/animations/walking/south-east/frame_004.png",
+              "andando/animations/walking/south-east/frame_005.png",
+              "andando/animations/walking/south-east/frame_006.png",
+              "andando/animations/walking/south-east/frame_007.png"
+            ],
+            "south": [
+              "andando/animations/walking/south/frame_000.png",
+              "andando/animations/walking/south/frame_001.png",
+              "andando/animations/walking/south/frame_002.png",
+              "andando/animations/walking/south/frame_003.png",
+              "andando/animations/walking/south/frame_004.png",
+              "andando/animations/walking/south/frame_005.png",
+              "andando/animations/walking/south/frame_006.png",
+              "andando/animations/walking/south/frame_007.png"
+            ],
+            "north": [
+              "andando/animations/walking/north/frame_000.png",
+              "andando/animations/walking/north/frame_001.png",
+              "andando/animations/walking/north/frame_002.png",
+              "andando/animations/walking/north/frame_003.png",
+              "andando/animations/walking/north/frame_004.png",
+              "andando/animations/walking/north/frame_005.png",
+              "andando/animations/walking/north/frame_006.png",
+              "andando/animations/walking/north/frame_007.png"
+            ],
+            "north-west": [
+              "andando/animations/walking/north-west/frame_000.png",
+              "andando/animations/walking/north-west/frame_001.png",
+              "andando/animations/walking/north-west/frame_002.png",
+              "andando/animations/walking/north-west/frame_003.png",
+              "andando/animations/walking/north-west/frame_004.png",
+              "andando/animations/walking/north-west/frame_005.png",
+              "andando/animations/walking/north-west/frame_006.png",
+              "andando/animations/walking/north-west/frame_007.png"
+            ],
+            "west": [
+              "andando/animations/walking/west/frame_000.png",
+              "andando/animations/walking/west/frame_001.png",
+              "andando/animations/walking/west/frame_002.png",
+              "andando/animations/walking/west/frame_003.png",
+              "andando/animations/walking/west/frame_004.png",
+              "andando/animations/walking/west/frame_005.png",
+              "andando/animations/walking/west/frame_006.png",
+              "andando/animations/walking/west/frame_007.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-10-14T21:28:12.131761"
+}

@@ -8,6 +8,7 @@ const dayNight = require('../sistema_dia_noite_cliente');
 
 const source = fs.readFileSync(path.join(__dirname, '..', 'sistema_dia_noite_cliente.js'), 'utf8');
 const html = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const server = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
 
 test('flashlight beam follows the mouse direction and has a 50% longer capped reach', () => {
     const beam = dayNight.calcularFeixeLanterna(100, 100, 500, 100, Math.PI, 330);
@@ -70,20 +71,30 @@ test('desktop flashlight remains aimed at the mouse world position', () => {
     assert.deepEqual(dayNight.obterAlvoLanterna(state, 100, 200, false, 330), { x: 450, y: 260 });
 });
 
-test('night lighting draws a reduced player halo and a mouse-aimed fading beam', () => {
-    assert.match(source, /var raioLuzPessoal = dispositivoTouch \? 38 \+ pulsoFogo[\s\S]*?: 68 \+ pulsoFogo/);
-    assert.match(source, /var forcaLuzPessoal = dispositivoTouch \? 0\.54 : 0\.78/);
+test('night renderer keeps camera tilt local to the render call', () => {
+    assert.match(source, /function renderizarCicloDiaNoite\(ctx,\s*camX,\s*camY,\s*shakeX,\s*shakeY,\s*zoom,\s*inclinacaoY\)\s*\{\s*var tm = global\.tempoMundo;\s*if \(!tm\) return;\s*var tiltY =/);
+});
+
+test('night lighting uses the same small personal halo and a mouse-aimed fading beam', () => {
+    assert.match(source, /var raioLuzJogador = 38 \+ pulsoFogo \* 0\.2;[\s\S]*?cortarLuz\(pLocal\.x,\s*pLocal\.y,\s*raioLuzJogador,\s*0\.54,\s*0\.24\)/);
     assert.match(source, /calcularFeixeLanterna\(\s*playerX,\s*playerY,\s*alvoLanterna\.x,\s*alvoLanterna\.y,\s*Number\(global\.meuAngulo\)/);
     assert.match(source, /calcularFeixeLanterna\([\s\S]*?global\.mouseWorldX[\s\S]*?global\.mouseWorldY[\s\S]*?330/);
     assert.match(source, /gradiente\.addColorStop\(0\.88,[\s\S]*?gradiente\.addColorStop\(1,\s*'rgba\(0, 0, 0, 0\)'/);
     assert.match(source, /recortarFeixeLanterna\(luzCtx,\s*pLocal\.x,\s*pLocal\.y,\s*feixe,\s*zoom,\s*escuridao\)/);
+    assert.match(source, /cortarLuz\(pt\.x,\s*pt\.y,\s*38 \+ pulsoFogo \* 0\.2,\s*0\.54,\s*0\.24\)/);
+    assert.match(source, /if \(Number\.isFinite\(pj\.angulo\)\)[\s\S]*?Math\.cos\(pj\.angulo\) \* 330[\s\S]*?Math\.sin\(pj\.angulo\) \* 330[\s\S]*?recortarFeixeLanterna\(luzCtx,\s*pt\.x,\s*pt\.y,\s*feixeOutro,\s*zoom,\s*escuridao\)/);
     assert.match(source, /function renderizarCicloDiaNoite\(ctx,\s*camX,\s*camY,\s*shakeX,\s*shakeY,\s*zoom,\s*inclinacaoY\)/);
     assert.match(source, /y:\s*\(wy - camY \+ shakeY\)\s*\*\s*zoom\s*\*\s*tiltY/);
     assert.match(html, /renderizarCicloDiaNoite\(ctx,\s*cameraX,\s*cameraY,\s*shakeX,\s*shakeY,\s*\(window\.cameraZoomAtual \|\| ZOOM_CAMERA\),\s*cameraTiltY\)/);
-    assert.match(html, /sistema_dia_noite_cliente\.js\?v=1529/);
+    assert.match(html, /sistema_dia_noite_cliente\.js\?v=1530/);
     assert.match(html, /let joystickTouchId = null; let lanternaTouchId = null/);
     assert.match(html, /function atualizarMiraLanternaTouch\(touch\)/);
+    assert.match(html, /window\.anguloLanternaMobile = Math\.atan2\([\s\S]*?window\.meuAngulo = window\.anguloLanternaMobile/);
     assert.match(html, /window\.lanternaMobileAtiva = true/);
     assert.match(html, /window\.encerrarMiraLanternaMobile\(window\)/);
-    assert.match(html, /const GAME_VERSION = 'v1\.75\.103'/);
+    assert.match(html, /ultimoEstadoRedeEnviado\.angulo !== window\.meuAngulo[\s\S]*?angulo: window\.meuAngulo/);
+    assert.match(server, /if \(data\.angulo !== undefined\) players\[playerId\]\.angulo = data\.angulo;/);
+    assert.match(server, /playersVisivel\[pid\] = Object\.assign\(\{\}, p\)/);
+    assert.match(html, /<div class="game-version-display">v1\.75\.110<\/div>/);
+    assert.match(html, /const GAME_VERSION = 'v1\.75\.110'/);
 });

@@ -1095,16 +1095,6 @@ window.desenharSummoner = function (x, y, isMoving, angulo, hp, maxHp) {
     ctx.ellipse(12, 31.0, 10.4 * pulsoAura, 3.7 * pulsoAura, 0, 0, Math.PI * 2);
     ctx.fill();
 
-    // ---------- sombra ----------
-    const gSombra = ctx.createRadialGradient(12, 32.3, 0.5, 12, 32.3, 10.2);
-    gSombra.addColorStop(0, 'rgba(8,4,16,0.58)');
-    gSombra.addColorStop(0.7, 'rgba(8,4,16,0.32)');
-    gSombra.addColorStop(1, 'rgba(8,4,16,0)');
-    ctx.fillStyle = gSombra;
-    ctx.beginPath();
-    ctx.ellipse(12, 32.3, 10.2, 3.3, 0, 0, Math.PI * 2);
-    ctx.fill();
-
     // ---------- botas ----------
     ctx.fillStyle = cor('#241a33', '#6b1f16');
     ctx.beginPath();

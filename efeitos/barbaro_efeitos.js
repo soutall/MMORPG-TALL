@@ -89,16 +89,16 @@ window.finalizarAnimacaoGiroBarbaro = function(id) {
 // Efeito de espirro de sangue quando o machado atinge o monstro
 window.criarAnimacaoSangue = function(x, y) {
     let gotas = [];
-    for (let i = 0; i < 30; i++) {
-        let ang = Math.random() * Math.PI * 2;
-        let vel = Math.random() * 5.2 + 1.8;
+    for (let i = 0; i < 7; i++) {
+        let ang = -Math.PI / 2 + (Math.random() - 0.5) * 1.25;
+        let vel = Math.random() * 2.2 + 0.7;
         gotas.push({
             x: x,
             y: y,
             vx: Math.cos(ang) * vel,
             vy: Math.sin(ang) * vel,
-            tamanho: Math.random() * 4.2 + 2.2,
-            vida: 1.2
+            tamanho: Math.random() * 2.2 + 1.4,
+            vida: 0.65
         });
     }
     window.espilhosSangue.push({ gotas: gotas });

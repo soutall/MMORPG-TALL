@@ -132,12 +132,6 @@ function desenharSniperGhilliePlanta(ctx, x, y, isMoving, angulo, posicao, armaV
     if (!posicao) {
         // Postura em pé / agachado camuflado de arbusto
         ctx.translate(x, y);
-        // Sombra de folhagem no chão
-        ctx.fillStyle = "rgba(10, 30, 10, 0.45)";
-        ctx.beginPath();
-        ctx.ellipse(12, 32, 11, 3.8, 0, 0, Math.PI * 2);
-        ctx.fill();
-
         ctx.save();
         let sway = isMoving ? Math.sin(window.walkCycle || (agora / 100)) * 2.2 : 0;
         ctx.translate(12, 16 + resp * 0.4);
@@ -342,11 +336,6 @@ window.desenharSniper = function(x, y, isMoving, angulo, hp, maxHp, extra) {
     if (!posicao) {
         // ===== POSTURA EM PÉ (agachado) =====
         ctx.translate(x, y);
-        ctx.fillStyle = "rgba(0,0,0,0.42)";
-        ctx.beginPath();
-        ctx.ellipse(12, 32, 8, 2.8, 0, 0, Math.PI * 2);
-        ctx.fill();
-
         let agachamento = Math.sin(Date.now() / 500) * (isMoving ? 1.2 : 2.2);
         ctx.save();
         ctx.translate(12, 14 + agachamento * 0.3);
@@ -443,10 +432,6 @@ window.desenharSniper = function(x, y, isMoving, angulo, hp, maxHp, extra) {
     } else {
         // ===== POSIÇÃO DE FRANCO-ATIRADOR (deitado) =====
         ctx.translate(x, y);
-        ctx.fillStyle = "rgba(0,0,0,0.42)";
-        ctx.beginPath();
-        ctx.ellipse(12, 20, 15, 4, 0, 0, Math.PI * 2);
-        ctx.fill();
         ctx.save();
         ctx.translate(12, 20);
 
@@ -638,4 +623,389 @@ window.desenharFuzilExposta = function(ctx, armaVisualCustom) {
     ctx.fillStyle = "rgba(190,200,180,0.55)";
     ctx.fillRect(3, -2.8, 2, 0.9);
     ctx.fillRect(19, -1.8, 7, 0.7);
+};
+
+function sniperNovaPeca(ctx, x, y, w, h, cor, raio) {
+    ctx.fillStyle = cor;
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(x, y, w, h, raio || 1);
+    else ctx.rect(x, y, w, h);
+    ctx.fill();
+}
+
+function sniperNovoCamo(ctx, x, y, w, h, seed, cores) {
+    const manchas = [
+        [0.2, 0.25, 0.36, 0.27], [0.68, 0.2, 0.38, 0.23],
+        [0.48, 0.63, 0.4, 0.24], [0.13, 0.76, 0.3, 0.19]
+    ];
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(x, y, w, h);
+    ctx.clip();
+    for (let i = 0; i < manchas.length; i++) {
+        const p = manchas[(i + seed) % manchas.length];
+        ctx.fillStyle = cores[(seed + i) % cores.length];
+        ctx.beginPath();
+        ctx.ellipse(x + p[0] * w, y + p[1] * h, Math.max(1, p[2] * w / 2), Math.max(0.7, p[3] * h / 2), (i + seed) * 0.55, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    ctx.restore();
+}
+
+function desenharNovoSniperEmPe(ctx, tempo, andando, angulo, uniforme, arma, atingido) {
+    const passada = andando ? Math.sin(tempo / 260) * 1.8 : 0;
+    const respiracao = Math.sin(tempo / 560) * 2.1;
+    const outline = '#171a17';
+    const camo = ['#746d49', '#454838', '#a18a60', '#35392e', '#5e6246'];
+
+    // A passada do Sniper é deliberadamente lenta e curta.
+    ctx.save();
+    ctx.translate(12, 0);
+    sniperNovaPeca(ctx, -7, 21 + passada, 6, 10, outline, 2);
+    sniperNovaPeca(ctx, 1, 21 - passada, 6, 10, outline, 2);
+    sniperNovaPeca(ctx, -6, 22 + passada, 4, 8, uniforme.calca, 1);
+    sniperNovaPeca(ctx, 2, 22 - passada, 4, 8, uniforme.calca, 1);
+    sniperNovoCamo(ctx, -6, 22 + passada, 4, 8, 1, camo);
+    sniperNovoCamo(ctx, 2, 22 - passada, 4, 8, 3, camo);
+    sniperNovaPeca(ctx, -7, 29 + passada, 6, 4, '#292a25', 1);
+    sniperNovaPeca(ctx, 1, 29 - passada, 6, 4, '#292a25', 1);
+    ctx.fillStyle = '#a99b79';
+    ctx.fillRect(-6, 31 + passada, 4, 0.8);
+    ctx.fillRect(2, 31 - passada, 4, 0.8);
+    ctx.restore();
+
+    // Respiração restrita ao colete/peito; as pernas ficam fora deste grupo.
+    ctx.save();
+    ctx.translate(12, 15 + respiracao);
+    sniperNovaPeca(ctx, -8, -6, 16, 15, outline, 3);
+    sniperNovaPeca(ctx, -7, -5, 14, 13, atingido ? '#a9443d' : uniforme.torso, 2.5);
+    sniperNovoCamo(ctx, -7, -5, 14, 13, 2, camo);
+    sniperNovaPeca(ctx, -5, -3, 10, 9, '#272b24', 1.5);
+    sniperNovaPeca(ctx, -4, -2.5, 8, 7, atingido ? '#c75a4b' : uniforme.placa, 1);
+    ctx.strokeStyle = '#b4a174';
+    ctx.lineWidth = 0.7;
+    ctx.strokeRect(-3, -1.5, 6, 5);
+    for (let i = 0; i < 3; i++) {
+        sniperNovaPeca(ctx, -7 + i * 4.8, 4, 3.4, 4.5, '#363930', 0.8);
+        ctx.fillStyle = '#c1ad7d';
+        ctx.fillRect(-6.2 + i * 4.8, 5, 1.7, 0.7);
+    }
+    ctx.fillStyle = '#b7a374';
+    ctx.fillRect(-1, -0.5, 2, 2.2);
+    sniperNovaPeca(ctx, -8, 8, 16, 2, '#31352c', 0.8);
+    ctx.restore();
+
+    // Rádio/mochila tática.
+    sniperNovaPeca(ctx, 18, 8, 5, 12, outline, 1.7);
+    sniperNovaPeca(ctx, 19, 9, 3.2, 10, '#4b4d3d', 1);
+    ctx.fillStyle = '#a79462';
+    ctx.fillRect(20, 12, 1.5, 1);
+
+    // Cabeça com balaclava, óculos e chapéu boonie de aba larga.
+    ctx.save();
+    ctx.translate(12, 3 + respiracao * 0.55);
+    ctx.fillStyle = outline;
+    ctx.beginPath(); ctx.ellipse(0, 0, 5.5, 6, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#b89b75';
+    ctx.beginPath(); ctx.ellipse(0, 0.8, 4.4, 4.7, 0, 0, Math.PI * 2); ctx.fill();
+    sniperNovaPeca(ctx, -4.5, -1, 9, 3, '#33382f', 1);
+    sniperNovaPeca(ctx, -4, -2.3, 8, 2.5, '#171c18', 1);
+    ctx.fillStyle = '#8db985';
+    ctx.fillRect(-2.7, -1.6, 2, 0.8);
+    ctx.fillRect(0.8, -1.6, 2, 0.8);
+    ctx.fillStyle = outline;
+    ctx.beginPath(); ctx.ellipse(0, -4, 5.5, 3.2, 0, Math.PI, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = uniforme.capacete;
+    ctx.beginPath(); ctx.ellipse(0, -4, 4.8, 2.7, 0, Math.PI, Math.PI * 2); ctx.fill();
+    sniperNovoCamo(ctx, -4.6, -6.6, 9.2, 3.2, 0, camo);
+    ctx.fillStyle = '#4c4a3c';
+    ctx.beginPath(); ctx.ellipse(1, -3.8, 7.4, 1.1, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.strokeStyle = '#b6a06d';
+    ctx.lineWidth = 0.7;
+    ctx.beginPath(); ctx.ellipse(0, -4.2, 4.8, 2.7, 0, Math.PI, Math.PI * 2); ctx.stroke();
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(12, 15 + respiracao * 0.45);
+    ctx.rotate(angulo || 0);
+    sniperNovaPeca(ctx, -1, -2, 11, 4, outline, 1.5);
+    sniperNovaPeca(ctx, 0, -1.3, 9, 2.6, uniforme.manga, 1);
+    sniperNovoCamo(ctx, 0, -1.3, 9, 2.6, 4, camo);
+    if (typeof window.desenharFuzilExposta === 'function') window.desenharFuzilExposta(ctx, arma);
+    sniperNovaPeca(ctx, 7, -3.2, 5, 3.8, '#393b33', 1);
+    ctx.fillStyle = '#b5a073';
+    ctx.fillRect(8, -2.5, 2.2, 0.7);
+    ctx.restore();
+}
+
+function desenharNovoSniperDeitado(ctx, tempo, angulo, uniforme, arma, atingido) {
+    const respiracao = Math.sin(tempo / 560) * 1.9;
+    const outline = '#171a17';
+    const camo = ['#746d49', '#454838', '#a18a60', '#35392e', '#5e6246'];
+
+    ctx.fillStyle = 'rgba(5, 8, 6, 0.48)';
+    ctx.beginPath();
+    ctx.ellipse(12, 22, 19, 4, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Pernas e botas apoiadas no solo, sem balanço respiratório.
+    sniperNovaPeca(ctx, 13, 17, 12, 6, outline, 2);
+    sniperNovaPeca(ctx, 14, 18, 10, 4, uniforme.calca, 1.5);
+    sniperNovoCamo(ctx, 14, 18, 10, 4, 1, camo);
+    sniperNovaPeca(ctx, 23, 18, 6, 4, '#292a25', 1.2);
+    sniperNovaPeca(ctx, 9, 20, 7, 5, outline, 1.5);
+    sniperNovaPeca(ctx, 10, 21, 5, 3, '#4b4d3d', 1);
+
+    // O tronco sobe e desce suavemente; pernas e mochila não acompanham.
+    ctx.save();
+    ctx.translate(3, 19 + respiracao);
+    sniperNovaPeca(ctx, -4, -4, 19, 8, outline, 3);
+    sniperNovaPeca(ctx, -3, -3, 17, 6, atingido ? '#a9443d' : uniforme.torso, 2);
+    sniperNovoCamo(ctx, -3, -3, 17, 6, 2, camo);
+    sniperNovaPeca(ctx, 0, -2.5, 9, 5, '#272b24', 1.5);
+    sniperNovaPeca(ctx, 1, -2, 7, 4, atingido ? '#c75a4b' : uniforme.placa, 1);
+    ctx.strokeStyle = '#b4a174';
+    ctx.lineWidth = 0.7;
+    ctx.strokeRect(2, -1.5, 5, 3);
+    for (let i = 0; i < 3; i++) {
+        sniperNovaPeca(ctx, 9 + i * 2.2, -2, 1.8, 4, '#363930', 0.5);
+        ctx.fillStyle = '#c1ad7d';
+        ctx.fillRect(9.4 + i * 2.2, -1, 0.8, 0.6);
+    }
+    ctx.restore();
+
+    // Cabeça baixa atrás da luneta, com o mesmo boonie, máscara e óculos.
+    ctx.save();
+    ctx.translate(-7, 19 + respiracao * 0.48);
+    ctx.fillStyle = outline;
+    ctx.beginPath(); ctx.ellipse(0, 0, 5, 4.5, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = '#b89b75';
+    ctx.beginPath(); ctx.ellipse(0, 0.4, 4.1, 3.6, 0, 0, Math.PI * 2); ctx.fill();
+    sniperNovaPeca(ctx, -4, -1.6, 8, 2.2, '#171c18', 0.8);
+    ctx.fillStyle = '#8db985';
+    ctx.fillRect(-2.8, -1, 1.7, 0.7);
+    ctx.fillRect(1, -1, 1.7, 0.7);
+    ctx.fillStyle = outline;
+    ctx.beginPath(); ctx.ellipse(0, -2.2, 4.8, 2.5, 0, Math.PI, Math.PI * 2); ctx.fill();
+    ctx.fillStyle = uniforme.capacete;
+    ctx.beginPath(); ctx.ellipse(0, -2.4, 4.1, 1.9, 0, Math.PI, Math.PI * 2); ctx.fill();
+    sniperNovoCamo(ctx, -4, -4.3, 8, 2.4, 3, camo);
+    ctx.fillStyle = '#4c4a3c';
+    ctx.beginPath(); ctx.ellipse(1, -2, 6, 0.9, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.restore();
+
+    ctx.save();
+    ctx.translate(1, 19 + respiracao * 0.55);
+    ctx.rotate(angulo || 0);
+    sniperNovaPeca(ctx, -2, -1.8, 9, 3.6, outline, 1.3);
+    sniperNovaPeca(ctx, -1, -1.1, 7, 2.2, uniforme.manga, 0.8);
+    if (typeof window.desenharFuzilExposta === 'function') window.desenharFuzilExposta(ctx, arma);
+    sniperNovaPeca(ctx, 5, -2.8, 5, 3.5, '#393b33', 1);
+    ctx.restore();
+}
+
+function desenharSniperPlanta(ctx, tempo, angulo, deitado, arma) {
+    const folhas = [
+        [-12, 2, -18, -8, 4.2, 0], [-8, 1, -13, -13, 4.4, 1],
+        [-4, 0, -8, -15, 4.3, 2], [0, 0, -1, -18, 4.6, 3],
+        [4, 0, 6, -16, 4.4, 1], [8, 1, 14, -13, 4.2, 2],
+        [12, 3, 19, -7, 4.4, 0], [-14, 4, -20, -2, 4.5, 2],
+        [14, 4, 21, 0, 4.4, 1], [-10, 5, -17, 5, 4.2, 3],
+        [10, 5, 18, 6, 4.5, 2], [-6, 5, -11, 10, 4.1, 1],
+        [5, 5, 9, 11, 4.4, 0], [-2, 3, -5, -10, 5.2, 2],
+        [2, 3, 4, -11, 5.4, 1], [-7, 4, -12, -5, 5.1, 3],
+        [7, 4, 13, -4, 5.2, 0], [-5, 6, -9, 7, 4.8, 1],
+        [4, 6, 8, 8, 4.8, 2], [-1, 4, -3, -6, 5.5, 0],
+        [1, 5, 3, -7, 5.3, 3], [-3, 7, -6, 5, 4.8, 2],
+        [3, 7, 7, 4, 4.8, 1]
+    ];
+    const paleta = ['#203b25', '#2d4b2c', '#3e5d32', '#526d3b', '#71804a', '#89945a'];
+    const escalaY = deitado ? 0.68 : 1;
+    const escalaX = deitado ? 1.12 : 0.92;
+    const centroX = 12;
+    const centroY = deitado ? 19 : 19;
+    const vento = Math.sin(tempo / 530) * 0.5;
+
+    function desenharFolha(ax, ay, px, py, largura, cor, n) {
+        const tipX = centroX + px * escalaX + vento * ((n % 3) - 1);
+        const tipY = centroY + py * escalaY;
+        const startX = centroX + ax * escalaX;
+        const startY = centroY + ay * escalaY;
+        const dx = tipX - startX, dy = tipY - startY;
+        const len = Math.hypot(dx, dy) || 1;
+        const nx = -dy / len, ny = dx / len;
+        const half = largura * (deitado ? 0.43 : 0.5);
+        const midX = (startX + tipX) / 2, midY = (startY + tipY) / 2;
+        ctx.fillStyle = paleta[cor];
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.quadraticCurveTo(midX + nx * half, midY + ny * half, tipX, tipY);
+        ctx.quadraticCurveTo(midX - nx * half * 0.72, midY - ny * half * 0.72, startX, startY);
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(15, 31, 17, 0.58)';
+        ctx.lineWidth = 0.55;
+        ctx.beginPath();
+        ctx.moveTo(startX, startY);
+        ctx.lineTo(tipX, tipY);
+        ctx.stroke();
+        ctx.strokeStyle = 'rgba(169, 185, 99, 0.55)';
+        ctx.lineWidth = 0.45;
+        ctx.beginPath();
+        ctx.moveTo(startX + nx * 0.4, startY + ny * 0.4);
+        ctx.lineTo(startX + dx * 0.58 + nx * half * 0.22, startY + dy * 0.58 + ny * half * 0.22);
+        ctx.stroke();
+    }
+
+    ctx.fillStyle = 'rgba(5, 10, 6, 0.58)';
+    ctx.beginPath();
+    ctx.ellipse(centroX, deitado ? 24 : 31, deitado ? 17 : 11, deitado ? 3 : 2.5, 0, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Folhas longas e pontudas formam uma moita assimétrica, não uma massa oval.
+    for (let i = 0; i < 13; i++) {
+        const f = folhas[i];
+        desenharFolha(f[0], f[1], f[2], f[3], f[4], f[5], i);
+    }
+    for (let i = 0; i < folhas.length; i++) {
+        const f = folhas[i];
+        desenharFolha(f[0], f[1], f[2], f[3], f[4], f[5], i);
+    }
+
+    // O centro é escuro e irregular: olhos e fuzil surgem entre as folhas.
+    ctx.save();
+    ctx.translate(centroX, centroY + 2);
+    ctx.rotate(angulo || 0);
+    if (typeof window.desenharFuzilExposta === 'function') window.desenharFuzilExposta(ctx, arma);
+    ctx.restore();
+
+    // Algumas folhas passam à frente da abertura para integrar o rosto na moita.
+    for (let i = 13; i < folhas.length; i++) {
+        const f = folhas[i];
+        desenharFolha(f[0], f[1], f[2], f[3], f[4], f[5], i);
+    }
+
+    const olhoX = centroX - 1;
+    const olhoY = deitado ? centroY - 3 : centroY - 8;
+    ctx.fillStyle = '#101810';
+    ctx.beginPath();
+    ctx.ellipse(olhoX, olhoY, 4.6, 2.2, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.fillStyle = '#b6d37a';
+    ctx.fillRect(olhoX - 2.7, olhoY - 0.5, 1.5, 1.1);
+    ctx.fillRect(olhoX + 1.1, olhoY - 0.5, 1.5, 1.1);
+    ctx.fillStyle = '#f0df9a';
+    ctx.fillRect(olhoX - 2.2, olhoY - 0.4, 0.55, 0.45);
+    ctx.fillRect(olhoX + 1.6, olhoY - 0.4, 0.55, 0.45);
+}
+
+function desenharNovoBadgeCamo(x, y, posicao, pp, ctx) {
+    const restante = pp
+        ? Math.max(0, (pp.snRoupaCamoAte || 0) - Date.now())
+        : Math.max(0, (window.snRoupaCamoAte || 0) - Date.now());
+    if (restante <= 0) {
+        if (pp) pp.snRoupaCamo = false;
+        else window.snRoupaCamoAte = 0;
+        return;
+    }
+    const bx = x + 12, by = (posicao ? y + 4 : y - 22) - 20;
+    ctx.save();
+    if (restante < 1500 && Math.floor(Date.now() / 200) % 2 === 0) ctx.globalAlpha = 0.55;
+    ctx.fillStyle = 'rgba(0,0,0,0.62)';
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(bx - 19, by - 8, 38, 16, 4);
+    else ctx.rect(bx - 19, by - 8, 38, 16);
+    ctx.fill();
+    ctx.fillStyle = '#d0c39a';
+    ctx.font = 'bold 9px system-ui, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText('CAMO ' + (restante / 1000).toFixed(1) + 's', bx, by);
+    ctx.fillStyle = '#b7a06c';
+    ctx.fillRect(bx - 18, by + 9, 36 * Math.min(1, restante / 5000), 2);
+    ctx.restore();
+}
+
+window.desenharSniper = function(x, y, isMoving, angulo, hp, maxHp, extra) {
+    if (hp <= 0 || !window.ctx) return;
+    const ctx = window.ctx;
+    const pp = extra && extra.pp ? extra.pp : null;
+    const ehEu = !!(extra && extra.eu) || !pp;
+    const deitado = pp ? !!pp.snPosicao : !!window.snPosicaoAtivo;
+    const camuflado = pp ? !!pp.snCamuflado : !!window.snCamufladoAtivo;
+    const vestindo = pp
+        ? !!pp.snRoupaCamo
+        : Date.now() < (window.snRoupaCamoAte || 0);
+    const item = window.inventario && window.inventario.arma;
+    const arma = x === window.meuX && y === window.meuY && item && item.customVisual ? item : null;
+    const uniforme = vestindo
+        ? { torso: '#4b5338', manga: '#626343', calca: '#414536', placa: '#596044', capacete: '#696444' }
+        : { torso: '#566044', manga: '#706a4b', calca: '#494b3b', placa: '#6b694b', capacete: '#77704a' };
+
+    ctx.save();
+    ctx.translate(x, y);
+    if (camuflado || vestindo) desenharSniperPlanta(ctx, Date.now(), angulo, deitado, arma);
+    else if (deitado) desenharNovoSniperDeitado(ctx, Date.now(), angulo, uniforme, arma, (window.danoFlashTimer || 0) > 0);
+    else desenharNovoSniperEmPe(ctx, Date.now(), !!isMoving, angulo, uniforme, arma, (window.danoFlashTimer || 0) > 0);
+    ctx.restore();
+
+    if (ehEu && window.snAimAtivo && typeof window.desenharLinhaMiraSniper === 'function') {
+        window.desenharLinhaMiraSniper(x + 12, y + 16, angulo, 700);
+    }
+    desenharNovoBadgeCamo(x, y, deitado, pp, ctx);
+    if (typeof window.desenharBarraHp === 'function') window.desenharBarraHp(x - 3, y - 8, hp, maxHp);
+};
+
+window.desenharFuzilExposta = function(ctx, armaVisualCustom) {
+    let tamanho = 45, largura = 4.8;
+    let base = '#454b3a', metal = '#1c211c', destaque = '#777052', sombra = '#111511';
+    const custom = armaVisualCustom && armaVisualCustom.customVisual;
+    if (custom) {
+        if (custom.tamanho) tamanho = custom.tamanho;
+        if (custom.largura) largura = custom.largura;
+        if (custom.cBase) base = custom.cBase;
+        if (custom.cMeio) metal = custom.cMeio;
+        if (custom.cPonta) destaque = custom.cPonta;
+        if (custom.cFio) sombra = custom.cFio;
+    }
+    ctx.fillStyle = base;
+    ctx.beginPath();
+    ctx.moveTo(-13, -2.2); ctx.lineTo(-8, -3.5); ctx.lineTo(4, -3);
+    ctx.lineTo(7, 2.8); ctx.lineTo(-8, 3.5); ctx.lineTo(-13, 1.8);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = metal;
+    ctx.fillRect(-9, -2.2, 8, 1.3);
+    ctx.fillStyle = base;
+    ctx.fillRect(0, -largura / 2, tamanho, largura);
+    ctx.fillStyle = destaque;
+    ctx.fillRect(1, -largura / 2, tamanho - 5, 0.8);
+    ctx.fillStyle = metal;
+    ctx.fillRect(4, -2, 14, 1.8);
+    ctx.fillRect(9, 1.8, 5, 1.6);
+    ctx.beginPath();
+    ctx.moveTo(12, 1.8); ctx.lineTo(18, 1.8); ctx.lineTo(17, 8); ctx.lineTo(13, 8);
+    ctx.closePath(); ctx.fill();
+    ctx.fillStyle = destaque;
+    ctx.fillRect(5, -5, 4, 2);
+    ctx.fillRect(8, -6, 7, 1.3);
+    ctx.fillStyle = sombra;
+    ctx.fillRect(-2, -7, 20, 3);
+    ctx.fillRect(0, -8, 3, 5);
+    ctx.fillRect(14, -8, 3, 5);
+    ctx.fillStyle = '#8db985';
+    ctx.fillRect(-3, -5.8, 2, 1.2);
+    ctx.fillStyle = destaque;
+    ctx.fillRect(17, -1.7, tamanho - 11, 3.4);
+    ctx.fillStyle = metal;
+    ctx.fillRect(18, -0.8, tamanho - 10, 1);
+    const boca = tamanho + 2;
+    ctx.fillStyle = sombra;
+    ctx.beginPath();
+    ctx.moveTo(boca - 2, -4); ctx.lineTo(boca + 7, -3); ctx.lineTo(boca + 7, 3);
+    ctx.lineTo(boca - 2, 4); ctx.closePath(); ctx.fill();
+    ctx.fillStyle = destaque;
+    ctx.fillRect(boca + 1, -3, 3, 1.2);
+    ctx.fillRect(boca + 1, 1.8, 3, 1.2);
+    ctx.fillStyle = 'rgba(190, 200, 180, 0.55)';
+    ctx.fillRect(3, -2.7, 2, 0.8);
+    ctx.fillRect(20, -1.5, 7, 0.6);
 };

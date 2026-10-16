@@ -103,8 +103,10 @@ test('lacaios skill 4 têm dano reduzido e expiram removendo seu estado', () => 
     assert.equal(malakar.CONFIG.minions.cleric.movementSpeedMultiplier, 1.5);
     assert.deepEqual(
         [malakar.CONFIG.reaperDamage, malakar.CONFIG.reaperSpinDamage, malakar.CONFIG.sniperDamage],
-        [2, 2, 3]
+        [2, 3.6, 4.5]
     );
+    assert.equal(malakar.CONFIG.reaperSpinDamage / 2, 1.8);
+    assert.equal(malakar.CONFIG.sniperDamage / 3, 1.5);
     assert.equal(malakar.CONFIG.skullMovementStep, 2.5);
     assert.equal(malakar.CONFIG.minionMovementStep, 3);
     assert.deepEqual(

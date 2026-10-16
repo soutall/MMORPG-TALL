@@ -3151,6 +3151,44 @@
             supportsFilter = true;
         }
 
+        // As fontes não mudam durante este passe: prepare-as uma vez, não uma vez por objeto.
+        var luzes = [];
+        if (!isDia) {
+            if (typeof window.meuX === 'number' && typeof window.mouseWorldX === 'number') {
+                luzes.push({
+                    tipo: 'lanterna',
+                    x: window.meuX + 12,
+                    y: window.meuY + 16,
+                    maxDist: 450,
+                    angulo: Math.atan2(window.mouseWorldY - (window.meuY + 16), window.mouseWorldX - (window.meuX + 12))
+                });
+            }
+
+            var mapVfxList = (typeof global !== 'undefined' ? global.vfxMapa : null) || window.vfxMapa || [];
+            var direcoesHolofote = {
+                n: { x: 0, y: -1 }, ne: { x: 0.7071, y: -0.7071 },
+                e: { x: 1, y: 0 }, se: { x: 0.7071, y: 0.7071 },
+                s: { x: 0, y: 1 }, sw: { x: -0.7071, y: 0.7071 },
+                w: { x: -1, y: 0 }, nw: { x: -0.7071, y: -0.7071 }
+            };
+            for (var v = 0; v < mapVfxList.length; v++) {
+                var vfx = mapVfxList[v];
+                var tipoVfxLuz = vfx && ['lampada', 'holofote', 'tocha', 'fogo', 'fogo-alto', 'brasa'].indexOf(vfx.tipo) !== -1;
+                if (!tipoVfxLuz || (vfx.mapa && vfx.mapa !== mapa)) continue;
+
+                var direcaoHolofote = direcoesHolofote[vfx.direcao] || direcoesHolofote.n;
+                luzes.push({
+                    tipo: vfx.tipo === 'holofote' ? 'holofote' : 'ambiente',
+                    x: vfx.x,
+                    y: vfx.y,
+                    maxDist: Math.max(150, (vfx.raio || 100) * 2.2),
+                    intensidadeFx: vfx.intensidade || 1.0,
+                    direcaoX: direcaoHolofote.x,
+                    direcaoY: direcaoHolofote.y
+                });
+            }
+        }
+
         ctx.save();
 
         for (var i = 0; i < lista.length; i++) {
@@ -3251,121 +3289,80 @@
             // ----------------------------------------------------------------
             // 3. LUZES DINÂMICAS: LANTERNA E EDITOR VFX MAPA (Apenas à Noite)
             // ----------------------------------------------------------------
-            if (!isDia) {
-                var luzes = [];
-                // 3.1. Lanterna Direcional do Jogador
-                if (typeof window.meuX === 'number' && typeof window.mouseWorldX === 'number') {
-                    luzes.push({
-                        tipo: 'lanterna',
-                        x: window.meuX + 12,
-                        y: window.meuY + 16,
-                        maxDist: 450,
-                        mouseDx: window.mouseWorldX - (window.meuX + 12),
-                        mouseDy: window.mouseWorldY - (window.meuY + 16)
-                    });
-                }
-                // 3.2. Luzes Fixas do Editor VFX Mapa
-                var mapVfxList = (typeof global !== 'undefined' ? global.vfxMapa : null) || window.vfxMapa || [];
-                for (var v = 0; v < mapVfxList.length; v++) {
-                    var vfx = mapVfxList[v];
-                    var tipoVfxLuz = vfx && ['lampada', 'holofote', 'tocha', 'fogo', 'fogo-alto', 'brasa'].indexOf(vfx.tipo) !== -1;
-                    if (tipoVfxLuz && (vfx.mapa === mapa || !vfx.mapa)) {
-                        var direcoesHolofote = {
-                            n: { x: 0, y: -1 }, ne: { x: 0.7071, y: -0.7071 },
-                            e: { x: 1, y: 0 }, se: { x: 0.7071, y: 0.7071 },
-                            s: { x: 0, y: 1 }, sw: { x: -0.7071, y: 0.7071 },
-                            w: { x: -1, y: 0 }, nw: { x: -0.7071, y: -0.7071 }
-                        };
-                        var direcaoHolofote = direcoesHolofote[vfx.direcao] || direcoesHolofote.n;
-                        luzes.push({
-                            tipo: vfx.tipo === 'holofote' ? 'holofote' : 'ambiente',
-                            x: vfx.x,
-                            y: vfx.y,
-                            maxDist: Math.max(150, (vfx.raio || 100) * 2.2),
-                            intensidadeFx: vfx.intensidade || 1.0,
-                            direcaoX: direcaoHolofote.x,
-                            direcaoY: direcaoHolofote.y
-                        });
-                    }
+            for (var l = 0; l < luzes.length; l++) {
+                var luz = luzes[l];
+                var dx = pivotX - luz.x;
+                var dy = pivotY - luz.y;
+                var distancia2 = dx * dx + dy * dy;
+                if (distancia2 >= luz.maxDist * luz.maxDist || distancia2 <= 225) continue;
+
+                var dist = Math.sqrt(distancia2);
+                var angleObj = Math.atan2(dy, dx);
+                var inCone = true;
+
+                if (luz.tipo === 'lanterna') {
+                    var angleDiff = Math.abs(angleObj - luz.angulo);
+                    if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
+                    inCone = (angleDiff < 0.6);
+                } else if (luz.tipo === 'holofote') {
+                    var angleFeixe = Math.atan2(luz.direcaoY, luz.direcaoX);
+                    var angleDiffHolofote = Math.abs(angleObj - angleFeixe);
+                    if (angleDiffHolofote > Math.PI) angleDiffHolofote = 2 * Math.PI - angleDiffHolofote;
+                    inCone = angleDiffHolofote < 0.48;
                 }
 
-                // Processar as sombras geradas por cada luz próxima
-                for (var l = 0; l < luzes.length; l++) {
-                    var luz = luzes[l];
-                    var dx = pivotX - luz.x;
-                    var dy = pivotY - luz.y;
-                    var dist = Math.sqrt(dx * dx + dy * dy);
+                if (inCone) {
+                    var intLight = 1.0 - (dist / luz.maxDist);
+                    intLight = Math.max(0, intLight * intLight);
+                    if (luz.tipo === 'ambiente') intLight *= Math.min(1.5, luz.intensidadeFx);
 
-                    if (dist < luz.maxDist && dist > 15) {
-                        var angleObj = Math.atan2(dy, dx);
-                        var inCone = true;
-                        
-                        if (luz.tipo === 'lanterna') {
-                            var angleMouse = Math.atan2(luz.mouseDy, luz.mouseDx);
-                            var angleDiff = Math.abs(angleObj - angleMouse);
-                            if (angleDiff > Math.PI) angleDiff = 2 * Math.PI - angleDiff;
-                            inCone = (angleDiff < 0.6);
-                        } else if (luz.tipo === 'holofote') {
-                            var angleFeixe = Math.atan2(luz.direcaoY, luz.direcaoX);
-                            var angleDiffHolofote = Math.abs(angleObj - angleFeixe);
-                            if (angleDiffHolofote > Math.PI) angleDiffHolofote = 2 * Math.PI - angleDiffHolofote;
-                            inCone = angleDiffHolofote < 0.48;
+                    var dirX = dx / dist;
+                    var dirY = dy / dist;
+                    // Se for luz de ambiente (lâmpada de rua, etc), a sombra se alonga MUITO mais do que a lanterna
+                    var elongFactor = (luz.tipo === 'ambiente') ? 2.0 : 1.2;
+                    var shadowLen = d.H * (0.8 + elongFactor * intLight);
+                    var lAlpha = 0.5 * intLight;
+
+                    if (o.tipo === 'sprite_personalizado' && imgFinal && drawSrc !== undefined) {
+                        // Projeta o sprite
+                        var lSkewX = -(dirX * shadowLen) / d.H;
+                        var lScaleY = -(dirY * shadowLen) / d.H;
+
+                        ctx.save();
+                        var baseOffset = Math.max(4, Math.min(d.W * 0.15, d.H * 0.12));
+                        var extraUp = (lScaleY < 0) ? (d.H * 0.25) : 0;
+                        ctx.translate(pivotX, pivotY - baseOffset - extraUp);
+
+                        ctx.transform(1, 0, lSkewX, lScaleY, 0, 0);
+                        ctx.globalAlpha = lAlpha;
+
+                        var fApplied = false;
+                        if (supportsFilter) {
+                            try { ctx.filter = 'brightness(0)'; fApplied = true; } catch (e) {}
                         }
 
-                        if (inCone) {
-                            var intLight = 1.0 - (dist / luz.maxDist);
-                            intLight = Math.max(0, intLight * intLight);
-                            if (luz.tipo === 'ambiente') intLight *= Math.min(1.5, luz.intensidadeFx);
-                            
-                            var dirX = dx / dist;
-                            var dirY = dy / dist;
-                            // Se for luz de ambiente (lâmpada de rua, etc), a sombra se alonga MUITO mais do que a lanterna
-                            var elongFactor = (luz.tipo === 'ambiente') ? 2.0 : 1.2;
-                            var shadowLen = d.H * (0.8 + elongFactor * intLight);
-                            var lAlpha = 0.5 * intLight;
-                            
-                            if (o.tipo === 'sprite_personalizado' && imgFinal && drawSrc !== undefined) {
-                                // Projeta o sprite
-                                var lSkewX = -(dirX * shadowLen) / d.H;
-                                var lScaleY = -(dirY * shadowLen) / d.H;
-                                
-                                ctx.save();
-                                var baseOffset = Math.max(4, Math.min(d.W * 0.15, d.H * 0.12));
-                                var extraUp = (lScaleY < 0) ? (d.H * 0.25) : 0; 
-                                ctx.translate(pivotX, pivotY - baseOffset - extraUp);
-                                
-                                ctx.transform(1, 0, lSkewX, lScaleY, 0, 0);
-                                ctx.globalAlpha = lAlpha;
-                                
-                                var fApplied = false;
-                                if (supportsFilter) {
-                                    try { ctx.filter = 'brightness(0)'; fApplied = true; } catch(e){}
-                                }
-                                
-                                if (fApplied) {
-                                    if (drawSrc) ctx.drawImage(imgFinal, drawSrc.x, drawSrc.y, drawSrc.w, drawSrc.h, -halfW, -d.H, d.W, d.H);
-                                    else ctx.drawImage(imgFinal, -halfW, -d.H, d.W, d.H);
-                                } else {
-                                    ctx.fillStyle = 'rgba(0, 3, 7, ' + lAlpha + ')';
-                                    ctx.beginPath();
-                                    ctx.ellipse(0, -d.H * 0.45, halfW * 0.85, Math.max(4, d.H * 0.45), 0, 0, Math.PI * 2);
-                                    ctx.fill();
-                                }
-                                ctx.restore();
-                            } else {
-                                // Sombra procedural alongada da luz para objetos comuns
-                                ctx.save();
-                                ctx.fillStyle = 'rgba(0, 3, 7, ' + lAlpha + ')';
-                                ctx.beginPath();
-                                ctx.translate(pivotX, pivotY);
-                                ctx.rotate(angleObj);
-                                var rx = shadowLen / 2;
-                                var ry = Math.max(4, d.W * 0.25);
-                                ctx.ellipse(rx, 0, rx, ry, 0, 0, Math.PI * 2);
-                                ctx.fill();
-                                ctx.restore();
-                            }
+                        if (fApplied) {
+                            if (drawSrc) ctx.drawImage(imgFinal, drawSrc.x, drawSrc.y, drawSrc.w, drawSrc.h, -halfW, -d.H, d.W, d.H);
+                            else ctx.drawImage(imgFinal, -halfW, -d.H, d.W, d.H);
+                        } else {
+                            ctx.fillStyle = 'rgba(0, 3, 7, ' + lAlpha + ')';
+                            ctx.beginPath();
+                            ctx.ellipse(0, -d.H * 0.45, halfW * 0.85, Math.max(4, d.H * 0.45), 0, 0, Math.PI * 2);
+                            ctx.fill();
                         }
+                        ctx.restore();
+                    } else {
+                        // Sombra procedural alongada da luz para objetos comuns
+                        ctx.save();
+                        ctx.fillStyle = 'rgba(0, 3, 7, ' + lAlpha + ')';
+                        ctx.beginPath();
+                        ctx.translate(pivotX, pivotY);
+                        ctx.rotate(angleObj);
+                        var rx = shadowLen / 2;
+                        var ry = Math.max(4, d.W * 0.25);
+                        ctx.ellipse(rx, 0, rx, ry, 0, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
                     }
                 }
             }

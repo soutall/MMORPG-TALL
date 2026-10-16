@@ -328,9 +328,8 @@
                 var pLocal = paraTela(playerX, playerY);
                 var dispositivoTouch = (('ontouchstart' in global) || (global.navigator && global.navigator.maxTouchPoints > 0)) &&
                     (global.innerWidth <= 1024 || (typeof global.matchMedia === 'function' && global.matchMedia('(pointer: coarse)').matches));
-                var raioLuzPessoal = dispositivoTouch ? 38 + pulsoFogo * 0.2 : 68 + pulsoFogo * 0.25;
-                var forcaLuzPessoal = dispositivoTouch ? 0.54 : 0.78;
-                cortarLuz(pLocal.x, pLocal.y, raioLuzPessoal, forcaLuzPessoal, dispositivoTouch ? 0.24 : 0.20);
+                var raioLuzJogador = 38 + pulsoFogo * 0.2;
+                cortarLuz(pLocal.x, pLocal.y, raioLuzJogador, 0.54, 0.24);
                 var alvoLanterna = obterAlvoLanterna(global, playerX, playerY, dispositivoTouch, 330);
                 var feixe = calcularFeixeLanterna(
                     playerX,
@@ -354,8 +353,26 @@
                 var efeitosOutros = Array.isArray(pj.efeitos) ? pj.efeitos : [];
                 var invisivelOutro = efeitosOutros.some(function (ef) { return ef && ef.id === 'invisivel' && Number(ef.tempo) > 0; });
                 if (invisivelOutro) continue;
-                var pt = paraTela(pj.x + 12, pj.y + 16);
-                cortarLuz(pt.x, pt.y, 120 + pulsoFogo * 0.4, 0.88, 0.22);
+                var jogadorX = pj.x + 12;
+                var jogadorY = pj.y + 16;
+                var pt = paraTela(jogadorX, jogadorY);
+                cortarLuz(pt.x, pt.y, 38 + pulsoFogo * 0.2, 0.54, 0.24);
+                if (Number.isFinite(pj.angulo)) {
+                    var alvoFeixeOutro = {
+                        x: jogadorX + Math.cos(pj.angulo) * 330,
+                        y: jogadorY + Math.sin(pj.angulo) * 330
+                    };
+                    var feixeOutro = calcularFeixeLanterna(
+                        jogadorX,
+                        jogadorY,
+                        alvoFeixeOutro.x,
+                        alvoFeixeOutro.y,
+                        pj.angulo,
+                        330,
+                        tiltY
+                    );
+                    recortarFeixeLanterna(luzCtx, pt.x, pt.y, feixeOutro, zoom, escuridao);
+                }
             }
         }
 

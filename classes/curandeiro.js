@@ -78,19 +78,7 @@ window.desenharCurandeiro = function (x, y, isMoving, angulo, hp, maxHp) {
     ctx.fill();
 
     // ========================================================================
-    // 2. SOMBRA NO CHÃƒO
-    // ========================================================================
-    const gSombra = ctx.createRadialGradient(12, 32.4, 0.5, 12, 32.4, 10.2);
-    gSombra.addColorStop(0, 'rgba(10, 8, 5, 0.58)');
-    gSombra.addColorStop(0.7, 'rgba(10, 8, 5, 0.32)');
-    gSombra.addColorStop(1, 'rgba(10, 8, 5, 0)');
-    ctx.fillStyle = gSombra;
-    ctx.beginPath();
-    ctx.ellipse(12, 32.4, 10.2, 3.3, 0, 0, Math.PI * 2);
-    ctx.fill();
-
-    // ========================================================================
-    // 3. BOTAS SACRAS (aparecem sob a barra da batina alternando no passo)
+    // 2. BOTAS SACRAS (aparecem sob a barra da batina alternando no passo)
     // ========================================================================
     const pE = passo * 1.9, pD = -passo * 1.9;
     ctx.fillStyle = cor('#2c3e50', '#5b1f16');
@@ -541,7 +529,7 @@ window.desenharCajadoLuzExposta = function(ctx, armaVisualCustom) {
     ctx.lineWidth = 0.7;
     ctx.stroke();
 
-    // Anéis cerimoniais dourados na haste
+    // Anï¿½is cerimoniais dourados na haste
     ctx.fillStyle = '#f1c40f'; // OURO
     ctx.fillRect(-1.7, -12.4, 3.4, 1.4);
     ctx.fillRect(-1.6, -2.4, 3.2, 1.2);
@@ -554,7 +542,7 @@ window.desenharCajadoLuzExposta = function(ctx, armaVisualCustom) {
     ctx.closePath();
     ctx.fill();
 
-    // Cabeça do Staff: Coroa solar alada sustentando o orbe de luz
+    // Cabeï¿½a do Staff: Coroa solar alada sustentando o orbe de luz
     ctx.strokeStyle = '#f1c40f'; // OURO
     ctx.lineWidth = 1.3;
     ctx.beginPath();
@@ -566,7 +554,7 @@ window.desenharCajadoLuzExposta = function(ctx, armaVisualCustom) {
     ctx.quadraticCurveTo(5.4, -15.5, 3.2, -19.4);
     ctx.stroke();
 
-    // Mini auréola dourada na coroa do cajado
+    // Mini aurï¿½ola dourada na coroa do cajado
     ctx.strokeStyle = '#f9e79f'; // OURO_CLARO
     ctx.lineWidth = 0.9;
     ctx.beginPath();
@@ -574,7 +562,7 @@ window.desenharCajadoLuzExposta = function(ctx, armaVisualCustom) {
     ctx.stroke();
 
     // ------------------------------------------------------------------------
-    // ORBE DE PURA LUZ SAGRADA (NÚCLEO RADIANTE + RAIOS EM CRUZ + CENTELHAS)
+    // ORBE DE PURA LUZ SAGRADA (Nï¿½CLEO RADIANTE + RAIOS EM CRUZ + CENTELHAS)
     // ------------------------------------------------------------------------
     const pulsoOrbe = Math.sin(t * 5.0) * 0.8;
     const pulsoRaio = Math.sin(t * 3.5) * 1.5;
@@ -588,7 +576,7 @@ window.desenharCajadoLuzExposta = function(ctx, armaVisualCustom) {
     ctx.arc(0, -17.0, 5.0 + pulsoOrbe, 0, Math.PI * 2);
     ctx.fill();
 
-    // Núcleo branco incandescente de luz pura
+    // Nï¿½cleo branco incandescente de luz pura
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(0, -17.0, 2.6, 0, Math.PI * 2);
