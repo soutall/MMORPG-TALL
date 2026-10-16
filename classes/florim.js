@@ -1,13 +1,5 @@
 // ============================================================================
-// classes/florim.js — Florin v3.1: "Classe das Rosas"
-// Proporções oficiais ajustadas para o padrão do jogo (~32px de altura, centro X+12):
-// - Donzela das rosas em escala chibi/proporcional idêntica aos outros personagens
-// - Cabeça, tiara e cajado perfeitamente alinhados abaixo do Nickname e barra de HP
-// - Cabelos loiro-caramelo longos e ondulados com vento suave
-// - Tiara de rosas carmesim e espinhos dourados
-// - Vestido elegante de folhas verde-esmeralda pontiagudas com espartilho dourado
-// - Trepadeiras douradas nas pernas e calçados com salto de espinho
-// - Cajado das Rosas flutuante em escala harmoniosa ao lado do corpo
+// classes/florim.js — Sprites da Florin e cajado das Rosas do corpo
 // ============================================================================
 (function(){
 'use strict';
@@ -17,57 +9,125 @@ function corDano(normal, flash) {
 }
 
 window.florimArmas = window.florimArmas || {};
+const FLORIM_BASE_SPRITES = new URL('../sprites/classes/florin/', document.currentScript.src);
+const FLORIM_DIRECOES_ANDANDO = ['east', 'south-east', 'south', 'south-west', 'west', 'north-west', 'north', 'north-east'];
+const FLORIM_DIRECOES_PARADO = ['east', 'south', 'west', 'north'];
+const florimGruposSprites = Object.create(null);
+const florimDirecoesJogadores = Object.create(null);
+const florimPosicoesJogadores = Object.create(null);
+const florimUltimosFrames = Object.create(null);
 
-window.desenharFlorim = function(x, y, isMoving, angulo, hp, maxHp, pid) {
+function florimCarregarGrupo(andando, direcao) {
+    const animacao = andando ? 'walking' : 'idle_breathing';
+    const chave = animacao + ':' + direcao;
+    if (florimGruposSprites[chave]) return florimGruposSprites[chave];
+
+    const pasta = andando ? 'Andando/animations/walking/' : 'parado/animations/idle_breathing/';
+    const grupo = { imagens: [], carregadas: 0 };
+    florimGruposSprites[chave] = grupo;
+    for (let i = 0; i < 8; i++) {
+        const imagem = new Image();
+        imagem.onload = function () { grupo.carregadas++; };
+        imagem.onerror = function () {
+            console.error('Falha ao carregar frame da Florin:', imagem.src);
+        };
+        imagem.src = new URL(pasta + direcao + '/frame_' + String(i).padStart(3, '0') + '.png', FLORIM_BASE_SPRITES).href;
+        grupo.imagens.push(imagem);
+    }
+    return grupo;
+}
+
+function florimObterDirecaoSprite(angulo, andando, idJogador) {
+    const direcoes = andando ? FLORIM_DIRECOES_ANDANDO : FLORIM_DIRECOES_PARADO;
+    const passoSetor = Math.PI * 2 / direcoes.length;
+    const anguloSeguro = Number.isFinite(angulo) ? angulo : 0;
+    const anterior = florimDirecoesJogadores[idJogador];
+    let setor = ((Math.round(anguloSeguro / passoSetor) % direcoes.length) + direcoes.length) % direcoes.length;
+    if (anterior && anterior.andando === andando) {
+        const centroAnterior = anterior.setor * passoSetor;
+        const diferenca = Math.atan2(
+            Math.sin(anguloSeguro - centroAnterior),
+            Math.cos(anguloSeguro - centroAnterior)
+        );
+        if (Math.abs(diferenca) < passoSetor / 2 + Math.PI / 45) setor = anterior.setor;
+    }
+    florimDirecoesJogadores[idJogador] = { andando: andando, setor: setor };
+    return direcoes[setor];
+}
+
+function florimObterFrameDisponivel(grupo, indice) {
+    const atual = grupo.imagens[indice];
+    if (atual && atual.complete && atual.naturalWidth > 0) return atual;
+    for (let distancia = 1; distancia < grupo.imagens.length; distancia++) {
+        const anterior = grupo.imagens[(indice - distancia + grupo.imagens.length) % grupo.imagens.length];
+        const seguinte = grupo.imagens[(indice + distancia) % grupo.imagens.length];
+        if (anterior && anterior.complete && anterior.naturalWidth > 0) return anterior;
+        if (seguinte && seguinte.complete && seguinte.naturalWidth > 0) return seguinte;
+    }
+    return null;
+}
+
+function florimAlinharNaGrade(ctx, x, y) {
+    if (typeof ctx.getTransform !== 'function') return { x: x, y: y };
+    const transformacao = ctx.getTransform();
+    const determinante = transformacao.a * transformacao.d - transformacao.b * transformacao.c;
+    if (!Number.isFinite(determinante) || Math.abs(determinante) < 0.000001) return { x: x, y: y };
+    const telaX = transformacao.a * x + transformacao.c * y + transformacao.e;
+    const telaY = transformacao.b * x + transformacao.d * y + transformacao.f;
+    const deltaX = Math.round(telaX) - telaX;
+    const deltaY = Math.round(telaY) - telaY;
+    return {
+        x: x + (transformacao.d * deltaX - transformacao.c * deltaY) / determinante,
+        y: y + (-transformacao.b * deltaX + transformacao.a * deltaY) / determinante
+    };
+}
+
+FLORIM_DIRECOES_PARADO.forEach(function (direcao) { florimCarregarGrupo(false, direcao); });
+FLORIM_DIRECOES_ANDANDO.forEach(function (direcao) { florimCarregarGrupo(true, direcao); });
+
+window.desenharFlorim = function(x, y, isMoving, angulo, hp, maxHp, pid, anguloMovimento) {
     const ctx = window.ctx || (document.getElementById('gameCanvas') ? document.getElementById('gameCanvas').getContext('2d') : null);
     if (!ctx || hp <= 0) return;
+
+    const idJogador = pid || '__local__';
+    const posicaoAnterior = florimPosicoesJogadores[idJogador];
+    let anguloCorpo = Number.isFinite(angulo) ? angulo : 0;
+    if (isMoving && Number.isFinite(anguloMovimento)) {
+        anguloCorpo = anguloMovimento;
+    } else if (isMoving && posicaoAnterior) {
+        const dx = x - posicaoAnterior.x;
+        const dy = y - posicaoAnterior.y;
+        if (Math.hypot(dx, dy) > 0.5) anguloCorpo = Math.atan2(dy, dx);
+    }
+    florimPosicoesJogadores[idJogador] = { x: x, y: y };
 
     ctx.save();
     // Centro horizontal padrão do MMORPG: x + 12. Ponto de pivô vertical: y + 18.
     // Chão em y + 32 (local +14), Topo da tiara em y + 2 (local -16).
     // Nickname em y - 42 fica 44px acima da tiara, sem nenhuma sobreposição!
-    ctx.translate(x + 12, y + 18);
+    const posicaoRender = florimAlinharNaGrade(ctx, x, y);
+    ctx.translate(posicaoRender.x + 12, posicaoRender.y + 18);
 
     const t = performance.now() / 1000;
     const ang = Number.isFinite(angulo) ? angulo : 0;
     const flip = Math.cos(ang) < 0 ? -1 : 1;
-    const olhandoCostas = Math.sin(ang) < -0.45;
 
-    // Animações de ciclo
     const walkCycle = window.walkCycle || (t * 7.5);
     const passo = isMoving ? Math.sin(walkCycle) : 0;
-    const passoCos = isMoving ? Math.cos(walkCycle) : 0;
-    const breath = Math.sin(t * 2.2) * 0.45;
     const floatOsc = Math.sin(t * 2.8) * 1.8;
-    const ventoCabelo = Math.sin(t * 3.2) * 1.1 + (isMoving ? -passo * 1.6 : 0);
-
-    // ========================================================================
-    // PALETA OFICIAL DA FLORIN
-    // ========================================================================
-    const cPele = corDano('#fbede6', '#ffffff');
-    const cPeleSombra = corDano('#eac8bc', '#ffffff');
-    const cPeleBlush = 'rgba(230, 70, 90, 0.32)';
-
-    const cCabeloBase = corDano('#cbb396', '#ffffff');
-    const cCabeloLuz = corDano('#ebdcc7', '#ffffff');
-    const cCabeloSombra = corDano('#987c5c', '#ffffff');
-    const cCabeloProfundo = corDano('#745b40', '#ffffff');
 
     const cFolhaEscura = corDano('#133924', '#ffffff');
     const cFolhaBase = corDano('#1e5436', '#ffffff');
     const cFolhaClara = corDano('#327c52', '#ffffff');
 
     const cOuroEscuro = corDano('#8e6d2a', '#ffffff');
-    const cOuroBase = corDano('#cfa448', '#ffffff');
     const cOuroLuz = corDano('#f7e082', '#ffffff');
 
     const cRosaProfunda = corDano('#6b0615', '#ffffff');
     const cRosaBase = corDano('#b81228', '#ffffff');
     const cRosaViva = corDano('#e6223d', '#ffffff');
-    const cRosaRealce = corDano('#ff6078', '#ffffff');
     const cRosaCentro = corDano('#ffe072', '#ffffff');
 
-    const cRubiEscuro = corDano('#80001a', '#ffffff');
     const cRubiBase = corDano('#df1537', '#ffffff');
     const cRubiLuz = corDano('#ff6b84', '#ffffff');
     const cMadeiraBase = corDano('#38251b', '#ffffff');
@@ -130,450 +190,25 @@ window.desenharFlorim = function(x, y, isMoving, angulo, hp, maxHp, pid) {
         ctx.restore();
     }
 
-    // -------------------------------------------------------------
-    // [CAMADA 1] SOMBRAS NO SOLO (Chão em Y = 14)
-    // -------------------------------------------------------------
-    ctx.save();
-    ctx.fillStyle = 'rgba(10, 18, 12, 0.45)';
-    ctx.beginPath();
-    ctx.ellipse(0, 14, 8.5, 3.2, 0, 0, Math.PI * 2);
-    ctx.fill();
+    const direcao = florimObterDirecaoSprite(anguloCorpo, Boolean(isMoving), idJogador);
+    const grupoSprite = florimCarregarGrupo(Boolean(isMoving), direcao);
+    const indiceSprite = Math.floor(Date.now() / (isMoving ? 110 : 160)) % grupoSprite.imagens.length;
+    let imagemSprite = florimObterFrameDisponivel(grupoSprite, indiceSprite);
+    if (imagemSprite) florimUltimosFrames[idJogador] = imagemSprite;
+    else imagemSprite = florimUltimosFrames[idJogador];
 
-    // Sombra do cajado flutuante
-    const armaOffsetBaseX = flip * 14;
-    ctx.fillStyle = 'rgba(10, 18, 12, 0.28)';
-    ctx.beginPath();
-    ctx.ellipse(armaOffsetBaseX, 14, 4.5, 2.0, 0, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // -------------------------------------------------------------
-    // [CAMADA 2] AURA SUAVE DA CLASSE DAS ROSAS
-    // -------------------------------------------------------------
-    ctx.save();
-    const pulsoAura = Math.sin(t * 3.0) * 0.1 + 0.9;
-    const gradAura = ctx.createRadialGradient(0, -6, 2, 0, -6, 20 * pulsoAura);
-    gradAura.addColorStop(0, 'rgba(85, 170, 117, 0.16)');
-    gradAura.addColorStop(0.6, 'rgba(230, 34, 61, 0.06)');
-    gradAura.addColorStop(1, 'rgba(30, 84, 54, 0)');
-    ctx.fillStyle = gradAura;
-    ctx.beginPath();
-    ctx.arc(0, -6, 20 * pulsoAura, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // =============================================================
-    // [CAMADA 3] CORPO DA FLORIN (Proporção equilibrada ~30px)
-    // =============================================================
-    ctx.save();
-    ctx.scale(flip, 1);
-
-    // -------------------------------------------------------------
-    // 3.1 Cabelo Traseiro Longo Ondulado
-    // -------------------------------------------------------------
-    ctx.save();
-    ctx.translate(0, -10 + breath);
-
-    ctx.fillStyle = cCabeloProfundo;
-    ctx.beginPath();
-    ctx.moveTo(-4.5, -2);
-    ctx.bezierCurveTo(-8 + ventoCabelo * 0.5, 4, -8 + ventoCabelo * 0.7, 10, -5 + ventoCabelo * 0.8, 17);
-    ctx.bezierCurveTo(-1 + ventoCabelo * 0.6, 18, 3 + ventoCabelo * 0.6, 17, 6 + ventoCabelo * 0.8, 16);
-    ctx.bezierCurveTo(8 + ventoCabelo * 0.6, 10, 8 + ventoCabelo * 0.4, 4, 4.5, -2);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.fillStyle = cCabeloBase;
-    ctx.beginPath();
-    ctx.moveTo(-4, -1);
-    ctx.bezierCurveTo(-7 + ventoCabelo * 0.4, 4, -6 + ventoCabelo * 0.6, 9, -4 + ventoCabelo * 0.7, 15);
-    ctx.bezierCurveTo(0 + ventoCabelo * 0.5, 16, 2 + ventoCabelo * 0.5, 15, 5 + ventoCabelo * 0.7, 14);
-    ctx.bezierCurveTo(7 + ventoCabelo * 0.5, 9, 6 + ventoCabelo * 0.3, 4, 4, -1);
-    ctx.closePath();
-    ctx.fill();
-
-    ctx.strokeStyle = cCabeloLuz;
-    ctx.lineWidth = 0.9;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(-2.5, 0);
-    ctx.bezierCurveTo(-5 + ventoCabelo * 0.3, 5, -4 + ventoCabelo * 0.5, 10, -2.5 + ventoCabelo * 0.6, 13);
-    ctx.moveTo(2, 0);
-    ctx.bezierCurveTo(4 + ventoCabelo * 0.3, 5, 4 + ventoCabelo * 0.5, 10, 2.5 + ventoCabelo * 0.6, 13);
-    ctx.stroke();
-
-    if (olhandoCostas) {
-        desenharRosa(-2, 4, 0.55, 0.2);
-        desenharRosa(2.5, 5, 0.6, -0.3);
+    if (imagemSprite && imagemSprite.complete && imagemSprite.naturalWidth > 0) {
+        const suavizacaoAnterior = ctx.imageSmoothingEnabled;
+        const qualidadeSuavizacaoAnterior = ctx.imageSmoothingQuality;
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        try {
+            ctx.drawImage(imagemSprite, -48, -65, imagemSprite.naturalWidth, imagemSprite.naturalHeight);
+        } finally {
+            ctx.imageSmoothingEnabled = suavizacaoAnterior;
+            ctx.imageSmoothingQuality = qualidadeSuavizacaoAnterior;
+        }
     }
-    ctx.restore();
-
-    // -------------------------------------------------------------
-    // 3.2 Pernas Delicadas com Trepadeiras e Saltos de Espinho
-    // -------------------------------------------------------------
-    const pernaChaoY = 13.5;
-
-    // Perna Esquerda (traseira)
-    ctx.save();
-    ctx.translate(-2.5, 2);
-    const pY1 = 11.5 + passo * 2.2;
-    ctx.fillStyle = cPeleSombra;
-    ctx.beginPath();
-    ctx.moveTo(-1.4, 0);
-    ctx.lineTo(1.4, 0);
-    ctx.lineTo(1.2 + passo, pY1);
-    ctx.lineTo(-1.2 + passo, pY1);
-    ctx.closePath();
-    ctx.fill();
-
-    // Trepadeira dourada
-    ctx.strokeStyle = cOuroBase;
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(-1.2, 1);
-    ctx.quadraticCurveTo(1.4, 4 + passo, -0.8, 7 + passo * 1.5);
-    ctx.stroke();
-
-    // Sapato esmeralda com salto de espinho
-    ctx.fillStyle = cFolhaEscura;
-    ctx.beginPath();
-    ctx.moveTo(-1.3 + passo, pY1);
-    ctx.lineTo(2.0 + passo, pY1);
-    ctx.lineTo(1.5 + passo, pY1 + 2);
-    ctx.lineTo(-1.3 + passo, pY1 + 2);
-    ctx.closePath();
-    ctx.fill();
-    // Espinho do salto
-    ctx.fillStyle = cOuroLuz;
-    ctx.beginPath();
-    ctx.moveTo(-1.3 + passo, pY1 + 0.6);
-    ctx.lineTo(-3.0 + passo, pY1 + 1.4);
-    ctx.lineTo(-1.3 + passo, pY1 + 2);
-    ctx.fill();
-    ctx.restore();
-
-    // Perna Direita (frontal com fenda do vestido)
-    ctx.save();
-    ctx.translate(2.2, 2);
-    const pY2 = 11.5 - passo * 2.2;
-    ctx.fillStyle = cPele;
-    ctx.beginPath();
-    ctx.moveTo(-1.5, 0);
-    ctx.lineTo(1.5, 0);
-    ctx.lineTo(1.3 - passo, pY2);
-    ctx.lineTo(-1.3 - passo, pY2);
-    ctx.closePath();
-    ctx.fill();
-
-    // Trepadeira espiralando
-    ctx.strokeStyle = cOuroLuz;
-    ctx.lineWidth = 0.9;
-    ctx.beginPath();
-    ctx.moveTo(-1.3, 1);
-    ctx.quadraticCurveTo(1.6, 3 - passo, -1.0, 6 - passo * 1.5);
-    ctx.quadraticCurveTo(1.5, 8 - passo * 1.8, 0, pY2);
-    ctx.stroke();
-
-    // Mini botão de rosa na perna
-    desenharRosa(0.7, 4 - passo, 0.35, 0.3);
-
-    // Sapato frontal
-    ctx.fillStyle = cFolhaBase;
-    ctx.beginPath();
-    ctx.moveTo(-1.4 - passo, pY2);
-    ctx.lineTo(2.4 - passo, pY2);
-    ctx.lineTo(2.0 - passo, pY2 + 2);
-    ctx.lineTo(-1.4 - passo, pY2 + 2);
-    ctx.closePath();
-    ctx.fill();
-    // Espinho dourado frontal
-    ctx.fillStyle = cOuroLuz;
-    ctx.beginPath();
-    ctx.moveTo(2.4 - passo, pY2);
-    ctx.lineTo(4.0 - passo, pY2 + 1.2);
-    ctx.lineTo(2.0 - passo, pY2 + 2);
-    ctx.fill();
-    ctx.restore();
-
-    // -------------------------------------------------------------
-    // 3.3 Saia Elegante de Folhas Esmeralda Pontiagudas
-    // -------------------------------------------------------------
-    ctx.save();
-    ctx.translate(0, 0 + breath * 0.3);
-
-    // Folhas traseiras
-    ctx.fillStyle = cFolhaEscura;
-    ctx.beginPath();
-    ctx.moveTo(-5, 0);
-    ctx.lineTo(-7.5 - passoCos * 0.8, 5.5);
-    ctx.lineTo(-5.5, 4);
-    ctx.lineTo(-4 - passoCos * 0.5, 6.5);
-    ctx.lineTo(-2, 4);
-    ctx.lineTo(0.5, 6.5);
-    ctx.lineTo(2.5, 4);
-    ctx.lineTo(5.5 + passoCos * 0.8, 5.5);
-    ctx.lineTo(4.5, 0);
-    ctx.closePath();
-    ctx.fill();
-
-    // Folhas frontais
-    ctx.fillStyle = cFolhaBase;
-    ctx.beginPath();
-    ctx.moveTo(-4.5, 0);
-    ctx.lineTo(-6.5, 3.5);
-    ctx.lineTo(-4.5, 2.5);
-    ctx.lineTo(-2.8, 5.5);
-    ctx.lineTo(-1.4, 2.5);
-    ctx.lineTo(0, 4.8);
-    ctx.lineTo(2, 2.0);
-    ctx.lineTo(4.2, 4.0);
-    ctx.lineTo(3.8, 0);
-    ctx.closePath();
-    ctx.fill();
-
-    // Nervuras douradas
-    ctx.strokeStyle = cOuroLuz;
-    ctx.lineWidth = 0.8;
-    ctx.beginPath();
-    ctx.moveTo(-2.8, 0); ctx.lineTo(-2.8, 4.5);
-    ctx.moveTo(0, 0); ctx.lineTo(0, 4.0);
-    ctx.moveTo(2, 0); ctx.lineTo(2.8, 3.2);
-    ctx.stroke();
-
-    // Rosas na saia
-    desenharRosa(-4.2, 1.8, 0.5, 0.2);
-    desenharRosa(3.6, 1.2, 0.55, -0.2);
-    ctx.restore();
-
-    // -------------------------------------------------------------
-    // 3.4 Torso / Corpete de Folhas e Vinhas Douradas
-    // -------------------------------------------------------------
-    ctx.save();
-    ctx.translate(0, -6 + breath);
-
-    // Colo de pele visível no decote
-    if (!olhandoCostas) {
-        ctx.fillStyle = cPele;
-        ctx.beginPath();
-        ctx.moveTo(-3.8, -4.5);
-        ctx.lineTo(3.8, -4.5);
-        ctx.lineTo(2.2, 0);
-        ctx.lineTo(-2.2, 0);
-        ctx.closePath();
-        ctx.fill();
-    }
-
-    // Corpete vegetal
-    ctx.fillStyle = cFolhaBase;
-    ctx.beginPath();
-    ctx.moveTo(-4.0, 2);
-    ctx.bezierCurveTo(-5.0, -1.5, -4.5, -4.5, -3.8, -6);
-    ctx.bezierCurveTo(-1.2, -6.8, 1.2, -6.8, 3.8, -6);
-    ctx.bezierCurveTo(4.5, -4.5, 5.0, -1.5, 4.0, 2);
-    ctx.closePath();
-    ctx.fill();
-
-    // Sombra do corpete
-    ctx.fillStyle = cFolhaEscura;
-    ctx.beginPath();
-    ctx.moveTo(-4.0, 2);
-    ctx.lineTo(-1.5, 2);
-    ctx.lineTo(-3.0, -4.5);
-    ctx.lineTo(-3.8, -6);
-    ctx.closePath();
-    ctx.fill();
-
-    // Espartilho de vinhas douradas
-    ctx.strokeStyle = cOuroLuz;
-    ctx.lineWidth = 0.9;
-    ctx.beginPath();
-    ctx.moveTo(-3.5, -4); ctx.lineTo(2.2, 0.5);
-    ctx.moveTo(3.5, -4); ctx.lineTo(-2.2, 0.5);
-    ctx.moveTo(-2.8, -1); ctx.lineTo(2.8, -1);
-    ctx.stroke();
-
-    // Espinhos dourados saindo da cintura
-    ctx.fillStyle = cOuroLuz;
-    ctx.beginPath();
-    ctx.moveTo(-4.0, -1.5); ctx.lineTo(-6.0, -2.2); ctx.lineTo(-4.3, -0.8); ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(4.0, -1.5); ctx.lineTo(6.0, -2.2); ctx.lineTo(4.3, -0.8); ctx.fill();
-
-    // Rosas no decote
-    if (!olhandoCostas) {
-        desenharRosa(-2.2, -4.0, 0.55, -0.2);
-        desenharRosa(2.5, -3.6, 0.6, 0.2);
-        desenharRosa(0, 0.8, 0.48, 0.0);
-    } else {
-        desenharRosa(0, -2.5, 0.55, 0.0);
-    }
-    ctx.restore(); // Restaura Torso
-
-    // -------------------------------------------------------------
-    // 3.5 Braço Esquerdo (traseiro)
-    // -------------------------------------------------------------
-    ctx.save();
-    ctx.translate(-4.2, -10.5 + breath);
-    ctx.rotate(-0.12 + Math.sin(t * 2.2) * 0.08);
-
-    ctx.strokeStyle = cPeleSombra;
-    ctx.lineWidth = 2.4;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(-2.8, 4.5, -1.5, 8.5);
-    ctx.stroke();
-
-    // Manguito de folha e rosa
-    ctx.fillStyle = cFolhaBase;
-    ctx.beginPath();
-    ctx.moveTo(-2.8, 5); ctx.lineTo(-0.8, 4.2); ctx.lineTo(-1.5, 7.8); ctx.lineTo(-3.5, 7.8); ctx.fill();
-    desenharRosa(-2.2, 6.5, 0.4, -0.2);
-
-    ctx.fillStyle = cPeleSombra;
-    ctx.beginPath();
-    ctx.arc(-1.5, 9.2, 1.1, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // -------------------------------------------------------------
-    // 3.6 Braço Direito (frontal)
-    // -------------------------------------------------------------
-    ctx.save();
-    ctx.translate(4.2, -10.5 + breath);
-    ctx.rotate(0.14 + Math.cos(t * 2.2) * 0.09);
-
-    ctx.strokeStyle = cPele;
-    ctx.lineWidth = 2.4;
-    ctx.lineCap = 'round';
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.quadraticCurveTo(2.2, 4.0, 1.5, 8.5);
-    ctx.stroke();
-
-    // Manguito com espinho e rosa
-    ctx.fillStyle = cFolhaClara;
-    ctx.beginPath();
-    ctx.moveTo(0.8, 4.5); ctx.lineTo(3.0, 5.2); ctx.lineTo(2.2, 8.0); ctx.lineTo(0.0, 7.2); ctx.fill();
-    ctx.strokeStyle = cOuroLuz;
-    ctx.lineWidth = 0.7;
-    ctx.beginPath(); ctx.moveTo(0, 6.5); ctx.lineTo(3.5, 6.0); ctx.stroke();
-    desenharRosa(1.5, 6.8, 0.42, 0.3);
-
-    ctx.fillStyle = cPele;
-    ctx.beginPath();
-    ctx.arc(1.5, 9.2, 1.2, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.restore();
-
-    // -------------------------------------------------------------
-    // 3.7 Cabeça, Rosto Belo, Cabelos e Tiara de Rosas
-    // Centro da cabeça em Y = -11.5, Topo da tiara em Y = -16.5
-    // -------------------------------------------------------------
-    ctx.save();
-    ctx.translate(0, -11.5 + breath);
-
-    // Formato oval gracioso do rosto
-    ctx.fillStyle = cPele;
-    ctx.beginPath();
-    ctx.moveTo(-3.8, -3.8);
-    ctx.bezierCurveTo(-5.0, -0.8, -4.2, 3.0, 0, 4.4);
-    ctx.bezierCurveTo(4.2, 3.0, 5.0, -0.8, 3.8, -3.8);
-    ctx.bezierCurveTo(3.0, -6.0, -3.0, -6.0, -3.8, -3.8);
-    ctx.closePath();
-    ctx.fill();
-
-    // Detalhes faciais refinados
-    if (!olhandoCostas) {
-        // Blush rosado
-        ctx.fillStyle = cPeleBlush;
-        ctx.beginPath();
-        ctx.arc(-2.4, 0.3, 1.5, 0, Math.PI * 2);
-        ctx.arc(2.4, 0.3, 1.5, 0, Math.PI * 2);
-        ctx.fill();
-
-        const olhOffX = 0.3;
-        // Olho esquerdo
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath(); ctx.ellipse(-2.1 + olhOffX, -0.8, 1.3, 0.9, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#8b2035';
-        ctx.beginPath(); ctx.arc(-2.0 + olhOffX, -0.8, 0.7, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath(); ctx.arc(-2.2 + olhOffX, -1.0, 0.3, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = '#3a1e16'; ctx.lineWidth = 0.6;
-        ctx.beginPath(); ctx.moveTo(-3.0 + olhOffX, -1.4); ctx.lineTo(-1.2 + olhOffX, -1.3); ctx.stroke();
-
-        // Olho direito
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath(); ctx.ellipse(1.9 + olhOffX, -0.8, 1.3, 0.9, 0, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#8b2035';
-        ctx.beginPath(); ctx.arc(2.0 + olhOffX, -0.8, 0.7, 0, Math.PI * 2); ctx.fill();
-        ctx.fillStyle = '#ffffff';
-        ctx.beginPath(); ctx.arc(1.8 + olhOffX, -1.0, 0.3, 0, Math.PI * 2); ctx.fill();
-        ctx.strokeStyle = '#3a1e16'; ctx.lineWidth = 0.6;
-        ctx.beginPath(); ctx.moveTo(1.1 + olhOffX, -1.3); ctx.lineTo(2.9 + olhOffX, -1.4); ctx.stroke();
-
-        // Narizinho delicado
-        ctx.fillStyle = cPeleSombra;
-        ctx.beginPath(); ctx.arc(0.1, 0.8, 0.4, 0, Math.PI * 2); ctx.fill();
-
-        // Lábios rosados
-        ctx.fillStyle = '#d43b56';
-        ctx.beginPath();
-        ctx.ellipse(0.1, 2.3, 1.0, 0.55, 0, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = '#f58296';
-        ctx.beginPath();
-        ctx.ellipse(0.1, 2.1, 0.55, 0.25, 0, 0, Math.PI * 2);
-        ctx.fill();
-    }
-
-    // Franja e cabelos frontais ondulados
-    ctx.fillStyle = cCabeloBase;
-    ctx.beginPath();
-    ctx.moveTo(-4.5, -3.8);
-    ctx.quadraticCurveTo(-3.0, -0.8, -1.8, -3.0);
-    ctx.quadraticCurveTo(1.5, -0.8, 4.5, -3.8);
-    ctx.quadraticCurveTo(0.8, -6.8, -3.0, -6.0);
-    ctx.closePath();
-    ctx.fill();
-
-    // Mecha frontal caindo sobre o ombro
-    ctx.fillStyle = cCabeloLuz;
-    ctx.beginPath();
-    ctx.moveTo(3.0, -3.0);
-    ctx.quadraticCurveTo(4.5 + ventoCabelo * 0.4, 2, 3.8 + ventoCabelo * 0.6, 7.5);
-    ctx.quadraticCurveTo(2.2 + ventoCabelo * 0.4, 4, 1.5, -0.8);
-    ctx.closePath();
-    ctx.fill();
-
-    // -------------------------------------------------------------
-    // Tiara / Arranjo de Rosas Carmesim e Espinhos Dourados
-    // -------------------------------------------------------------
-    // Arco dourado
-    ctx.strokeStyle = cOuroLuz;
-    ctx.lineWidth = 0.9;
-    ctx.beginPath();
-    ctx.arc(0, -4.5, 5.6, Math.PI + 0.3, -0.3);
-    ctx.stroke();
-
-    // Espinhos dourados saindo da tiara
-    ctx.fillStyle = cOuroLuz;
-    ctx.beginPath();
-    ctx.moveTo(-3.8, -6.8); ctx.lineTo(-6.0, -9.8); ctx.lineTo(-3.0, -7.5); ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(2.4, -6.8); ctx.lineTo(4.6, -9.8); ctx.lineTo(3.2, -7.5); ctx.fill();
-    ctx.beginPath();
-    ctx.moveTo(-0.8, -8.2); ctx.lineTo(0.0, -11.2); ctx.lineTo(0.8, -8.2); ctx.fill();
-
-    // Três rosas na tiara
-    desenharRosa(-3.0, -5.8, 0.62, -0.25);
-    desenharRosa(0.3, -7.2, 0.78, 0.15);
-    desenharRosa(3.4, -5.4, 0.60, 0.3);
-
-    ctx.restore(); // Restaura Cabeça
-
-    ctx.restore(); // Restaura flip do corpo
 
     // =============================================================
     // [CAMADA 4] O CAJADO DAS ROSAS FLUTUANTE (Staff das Rosas)

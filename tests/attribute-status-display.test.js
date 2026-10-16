@@ -50,7 +50,7 @@ test('Berserker spin damage and skill preview both use a half-damage multiplier'
     assert.match(serverSource, /registrarDanoMonstro\(slime, pid, danoGiro, 'player', undefined, undefined, 0\.5\)/);
     assert.match(serverSource, /registrarDanoBoss\(boss, pid, danoGiro, 'skill', 'player', undefined, undefined, 0\.5\)/);
     assert.match(skillsSource, /id: 'giro_descontrolado'[\s\S]{0,300}danoMultiplicadorBase: 0\.2, danoMultiplicadorFinal: 0\.5/);
-    assert.match(clientSource, /const GAME_VERSION = 'v1\.75\.103'/);
+    assert.match(clientSource, /const GAME_VERSION = 'v1\.75\.110'/);
 });
 
 test('Berserker spin cooldown starts on cast and is not restarted when its 4s duration ends', () => {

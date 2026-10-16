@@ -1753,6 +1753,42 @@
         }
     };
 
+    delete SKILL_UPGRADE_TREES.mago.vulcao;
+    SKILL_UPGRADE_TREES.mago.trovao_letal = {
+        id: 'trovao_letal',
+        nome: 'Trovão Letal',
+        icon: '⚡',
+        descBase: 'Raio dourado encadeado em até quatro inimigos, causando dano e paralisia.',
+        tiers: {
+            1: {
+                nivelRequerido: 10,
+                A: { id: 'trovao_dano_inicial', nome: 'Carga Dourada', categoria: 'Dano', icone: '✨', desc: 'Amplifica a energia do raio.', efeito: '+15% de dano do Trovão Letal', valores: { bonusDanoPct: 0.15 } },
+                B: { id: 'trovao_paralisia_inicial', nome: 'Pulso Paralisante', categoria: 'Controle', icone: '⛓️', desc: 'A eletricidade mantém as vítimas imóveis por mais tempo.', efeito: '+0,3s de paralisia', valores: { bonusParalisiaTicks: 6 } }
+            },
+            2: {
+                nivelRequerido: 20,
+                A: { id: 'trovao_salto_amplo', nome: 'Arco Ampliado', categoria: 'Encadeamento', icone: '🌟', desc: 'O raio consegue saltar por distâncias maiores.', efeito: '+50px de alcance entre saltos', valores: { bonusRaioSalto: 50 } },
+                B: { id: 'trovao_dano_arco', nome: 'Arco Potente', categoria: 'Dano', icone: '⚡', desc: 'Fortalece cada salto do raio.', efeito: '+15% de dano', valores: { bonusDanoPct: 0.15 } }
+            },
+            3: {
+                nivelRequerido: 30,
+                A: { id: 'trovao_paralisia_ampliada', nome: 'Choque Prolongado', categoria: 'Controle', icone: '🔒', desc: 'A descarga paralisa por mais tempo.', efeito: '+0,3s de paralisia', valores: { bonusParalisiaTicks: 6 } },
+                B: { id: 'trovao_dano_concentrado', nome: 'Descarga Concentrada', categoria: 'Dano', icone: '💥', desc: 'Concentra energia nos arcos encadeados.', efeito: '+15% de dano', valores: { bonusDanoPct: 0.15 } }
+            },
+            4: {
+                nivelRequerido: 40,
+                A: { id: 'trovao_salto_supremo', nome: 'Tempestade Dourada', categoria: 'Encadeamento', icone: '🌩️', desc: 'Amplia ainda mais a distância possível entre saltos.', efeito: '+50px de alcance entre saltos', valores: { bonusRaioSalto: 50 } },
+                B: { id: 'trovao_poder_supremo', nome: 'Trovão Devastador', categoria: 'Dano', icone: '💫', desc: 'Libera uma descarga final de maior potência.', efeito: '+25% de dano', valores: { bonusDanoPct: 0.25 } }
+            }
+        }
+    };
+    SKILL_UPGRADE_TREES.mago = {
+        nevasca: SKILL_UPGRADE_TREES.mago.nevasca,
+        trovao_letal: SKILL_UPGRADE_TREES.mago.trovao_letal,
+        bola_elemental: SKILL_UPGRADE_TREES.mago.bola_elemental,
+        meteoro: SKILL_UPGRADE_TREES.mago.meteoro
+    };
+
     /**
      * Calcula quantos pontos de upgrade o personagem ganhou pelo seu nível.
      * Concede 1 ponto a cada 5 níveis até o teto de 16 (4 skills x 4 tiers).

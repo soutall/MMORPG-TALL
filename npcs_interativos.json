@@ -1,12 +1,12 @@
 {
   "loki_forja": {
-    "x": 144236,
-    "y": 13923,
+    "x": 143453,
+    "y": 13811,
     "animacao": "standard/idle/down",
     "patrulha": [],
     "velocidadePatrulha": 80,
     "velocidadeFrames": 2,
-    "patrulhaInicioEm": 1791574220389,
+    "patrulhaInicioEm": 1792018830510,
     "sequenciaAnimacoes": [
       {
         "animacao": "standard/idle/down",

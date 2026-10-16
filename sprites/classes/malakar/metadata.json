@@ -1,0 +1,220 @@
+{
+  "group_id": "016af6d4-ee38-40ff-823e-c57f6d2f46fd",
+  "states": [
+    {
+      "character": {
+        "id": "2e8d5615-739c-4279-a6f1-33d285bbd1ed",
+        "name": "Andando",
+        "prompt": "Create a unique dark fantasy Necromancer in pure 2D pixel art for a medieval RPG. Wear a long black hooded robe with torn edges, dark armor, ancient bronze ornaments, skull details and deep emerald-green fabric accents. The face must be completely hidden in darkness, with only two intensely glowing green eyes visible. Eerie green spectral smoke must flow outward from the eyes. Tall, intimidating silhouette, sinister magical presence, intricate pixel shading, strong contrast, crisp pixel edges and a cohesive dark palette. Full body, centered, three-quarter front view, transparent background, PNG. No weapons, no text, no scenery, no blur, no 3D rendering, no smooth digital painting. Authentic handcrafted pixel art, suitable for a 2D RPG character sprite.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T00:39:04.756728+00:00"
+      },
+      "folder": "Andando",
+      "frames": {
+        "rotations": {
+          "south": "Andando/rotations/south.png",
+          "south-east": "Andando/rotations/south-east.png",
+          "east": "Andando/rotations/east.png",
+          "north-east": "Andando/rotations/north-east.png",
+          "north": "Andando/rotations/north.png",
+          "north-west": "Andando/rotations/north-west.png",
+          "west": "Andando/rotations/west.png",
+          "south-west": "Andando/rotations/south-west.png"
+        },
+        "animations": {
+          "Walking": {
+            "south": [
+              "Andando/animations/Walking/south/frame_000.png",
+              "Andando/animations/Walking/south/frame_001.png",
+              "Andando/animations/Walking/south/frame_002.png",
+              "Andando/animations/Walking/south/frame_003.png",
+              "Andando/animations/Walking/south/frame_004.png",
+              "Andando/animations/Walking/south/frame_005.png",
+              "Andando/animations/Walking/south/frame_006.png",
+              "Andando/animations/Walking/south/frame_007.png"
+            ],
+            "south-west": [
+              "Andando/animations/Walking/south-west/frame_000.png",
+              "Andando/animations/Walking/south-west/frame_001.png",
+              "Andando/animations/Walking/south-west/frame_002.png",
+              "Andando/animations/Walking/south-west/frame_003.png",
+              "Andando/animations/Walking/south-west/frame_004.png",
+              "Andando/animations/Walking/south-west/frame_005.png",
+              "Andando/animations/Walking/south-west/frame_006.png",
+              "Andando/animations/Walking/south-west/frame_007.png"
+            ],
+            "north": [
+              "Andando/animations/Walking/north/frame_000.png",
+              "Andando/animations/Walking/north/frame_001.png",
+              "Andando/animations/Walking/north/frame_002.png",
+              "Andando/animations/Walking/north/frame_003.png",
+              "Andando/animations/Walking/north/frame_004.png",
+              "Andando/animations/Walking/north/frame_005.png",
+              "Andando/animations/Walking/north/frame_006.png",
+              "Andando/animations/Walking/north/frame_007.png"
+            ],
+            "north-east": [
+              "Andando/animations/Walking/north-east/frame_000.png",
+              "Andando/animations/Walking/north-east/frame_001.png",
+              "Andando/animations/Walking/north-east/frame_002.png",
+              "Andando/animations/Walking/north-east/frame_003.png",
+              "Andando/animations/Walking/north-east/frame_004.png",
+              "Andando/animations/Walking/north-east/frame_005.png",
+              "Andando/animations/Walking/north-east/frame_006.png",
+              "Andando/animations/Walking/north-east/frame_007.png"
+            ],
+            "south-east": [
+              "Andando/animations/Walking/south-east/frame_000.png",
+              "Andando/animations/Walking/south-east/frame_001.png",
+              "Andando/animations/Walking/south-east/frame_002.png",
+              "Andando/animations/Walking/south-east/frame_003.png",
+              "Andando/animations/Walking/south-east/frame_004.png",
+              "Andando/animations/Walking/south-east/frame_005.png",
+              "Andando/animations/Walking/south-east/frame_006.png",
+              "Andando/animations/Walking/south-east/frame_007.png"
+            ],
+            "west": [
+              "Andando/animations/Walking/west/frame_000.png",
+              "Andando/animations/Walking/west/frame_001.png",
+              "Andando/animations/Walking/west/frame_002.png",
+              "Andando/animations/Walking/west/frame_003.png",
+              "Andando/animations/Walking/west/frame_004.png",
+              "Andando/animations/Walking/west/frame_005.png",
+              "Andando/animations/Walking/west/frame_006.png",
+              "Andando/animations/Walking/west/frame_007.png"
+            ],
+            "north-west": [
+              "Andando/animations/Walking/north-west/frame_000.png",
+              "Andando/animations/Walking/north-west/frame_001.png",
+              "Andando/animations/Walking/north-west/frame_002.png",
+              "Andando/animations/Walking/north-west/frame_003.png",
+              "Andando/animations/Walking/north-west/frame_004.png",
+              "Andando/animations/Walking/north-west/frame_005.png",
+              "Andando/animations/Walking/north-west/frame_006.png",
+              "Andando/animations/Walking/north-west/frame_007.png"
+            ],
+            "east": [
+              "Andando/animations/Walking/east/frame_000.png",
+              "Andando/animations/Walking/east/frame_001.png",
+              "Andando/animations/Walking/east/frame_002.png",
+              "Andando/animations/Walking/east/frame_003.png",
+              "Andando/animations/Walking/east/frame_004.png",
+              "Andando/animations/Walking/east/frame_005.png",
+              "Andando/animations/Walking/east/frame_006.png",
+              "Andando/animations/Walking/east/frame_007.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "2586c458-3a58-4779-bc47-15c63d1fb162",
+        "name": "Parado",
+        "prompt": "Create a unique dark fantasy Necromancer in pure 2D pixel art for a medieval RPG. Wear a long black hooded robe with torn edges, dark armor, ancient bronze ornaments, skull details and deep emerald-green fabric accents. The face must be completely hidden in darkness, with only two intensely glowing green eyes visible. Eerie green spectral smoke must flow outward from the eyes. Tall, intimidating silhouette, sinister magical presence, intricate pixel shading, strong contrast, crisp pixel edges and a cohesive dark palette. Full body, centered, three-quarter front view, transparent background, PNG. No weapons, no text, no scenery, no blur, no 3D rendering, no smooth digital painting. Authentic handcrafted pixel art, suitable for a 2D RPG character sprite.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T02:24:25.118029+00:00"
+      },
+      "folder": "Parado",
+      "frames": {
+        "rotations": {
+          "south": "Parado/rotations/south.png",
+          "south-east": "Parado/rotations/south-east.png",
+          "east": "Parado/rotations/east.png",
+          "north-east": "Parado/rotations/north-east.png",
+          "north": "Parado/rotations/north.png",
+          "north-west": "Parado/rotations/north-west.png",
+          "west": "Parado/rotations/west.png",
+          "south-west": "Parado/rotations/south-west.png"
+        },
+        "animations": {
+          "idle_breathing": {
+            "west": [
+              "Parado/animations/idle_breathing/west/frame_000.png",
+              "Parado/animations/idle_breathing/west/frame_001.png",
+              "Parado/animations/idle_breathing/west/frame_002.png",
+              "Parado/animations/idle_breathing/west/frame_003.png",
+              "Parado/animations/idle_breathing/west/frame_004.png",
+              "Parado/animations/idle_breathing/west/frame_005.png",
+              "Parado/animations/idle_breathing/west/frame_006.png",
+              "Parado/animations/idle_breathing/west/frame_007.png"
+            ],
+            "north": [
+              "Parado/animations/idle_breathing/north/frame_000.png",
+              "Parado/animations/idle_breathing/north/frame_001.png",
+              "Parado/animations/idle_breathing/north/frame_002.png",
+              "Parado/animations/idle_breathing/north/frame_003.png",
+              "Parado/animations/idle_breathing/north/frame_004.png",
+              "Parado/animations/idle_breathing/north/frame_005.png",
+              "Parado/animations/idle_breathing/north/frame_006.png",
+              "Parado/animations/idle_breathing/north/frame_007.png"
+            ],
+            "east": [
+              "Parado/animations/idle_breathing/east/frame_000.png",
+              "Parado/animations/idle_breathing/east/frame_001.png",
+              "Parado/animations/idle_breathing/east/frame_002.png",
+              "Parado/animations/idle_breathing/east/frame_003.png",
+              "Parado/animations/idle_breathing/east/frame_004.png",
+              "Parado/animations/idle_breathing/east/frame_005.png",
+              "Parado/animations/idle_breathing/east/frame_006.png",
+              "Parado/animations/idle_breathing/east/frame_007.png"
+            ],
+            "south": [
+              "Parado/animations/idle_breathing/south/frame_000.png",
+              "Parado/animations/idle_breathing/south/frame_001.png",
+              "Parado/animations/idle_breathing/south/frame_002.png",
+              "Parado/animations/idle_breathing/south/frame_003.png",
+              "Parado/animations/idle_breathing/south/frame_004.png",
+              "Parado/animations/idle_breathing/south/frame_005.png",
+              "Parado/animations/idle_breathing/south/frame_006.png",
+              "Parado/animations/idle_breathing/south/frame_007.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "0b06089b-4d58-4ac2-b9e4-847fabd4129d",
+        "name": "Parado (copy)",
+        "prompt": "Create a unique dark fantasy Necromancer in pure 2D pixel art for a medieval RPG. Wear a long black hooded robe with torn edges, dark armor, ancient bronze ornaments, skull details and deep emerald-green fabric accents. The face must be completely hidden in darkness, with only two intensely glowing green eyes visible. Eerie green spectral smoke must flow outward from the eyes. Tall, intimidating silhouette, sinister magical presence, intricate pixel shading, strong contrast, crisp pixel edges and a cohesive dark palette. Full body, centered, three-quarter front view, transparent background, PNG. No weapons, no text, no scenery, no blur, no 3D rendering, no smooth digital painting. Authentic handcrafted pixel art, suitable for a 2D RPG character sprite.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T02:32:59.680037+00:00"
+      },
+      "folder": "Parado_copy",
+      "frames": {
+        "rotations": {
+          "south": "Parado_copy/rotations/south.png",
+          "south-east": "Parado_copy/rotations/south-east.png",
+          "east": "Parado_copy/rotations/east.png",
+          "north-east": "Parado_copy/rotations/north-east.png",
+          "north": "Parado_copy/rotations/north.png",
+          "north-west": "Parado_copy/rotations/north-west.png",
+          "west": "Parado_copy/rotations/west.png",
+          "south-west": "Parado_copy/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-10-14T21:27:36.714476"
+}

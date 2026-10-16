@@ -1,0 +1,191 @@
+{
+  "group_id": "585beff5-2d97-42ec-8c6f-096544f5f783",
+  "states": [
+    {
+      "character": {
+        "id": "0b207ee2-3148-471b-8b41-ba5259105243",
+        "name": "parado",
+        "prompt": "Create a unique male tank warrior in pure 2D pixel art for a dark medieval fantasy RPG. He is a massive, rugged warrior with long messy dark hair, a stern scarred face, and a powerful, intimidating presence. Wear extremely heavy blackened steel plate armor with antique gold engravings, layered metal plates, thick gauntlets, reinforced greaves, chains, and sharp metal details. His most distinctive feature is an enormous golden lion-head pauldron covering one shoulder, with a fierce sculpted lion face and a glowing amber eye. Add smaller lion emblems to the chest and knees, a dark fur mantle, and a long torn crimson cape with golden heraldic patterns, shown in both front and back views. No helmet, no weapons, no shield. The design must communicate fear, durability, and protection. Full-body character, straight standing pose, front and back views, with separate close-up panels showing the face, lion shoulder armor, chest, cape, gauntlets, belt, and boots. Transparent background, PNG. Crisp pixel edges, strong contrast, detailed metallic pixel shading, cohesive black steel, antique gold, and crimson palette. No text, no scenery, no blur, no 3D rendering, no smooth digital painting. Original handcrafted pixel-art character reference sheet for a 2D RPG.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T14:00:49.605938+00:00"
+      },
+      "folder": "parado",
+      "frames": {
+        "rotations": {
+          "south": "parado/rotations/south.png",
+          "south-east": "parado/rotations/south-east.png",
+          "east": "parado/rotations/east.png",
+          "north-east": "parado/rotations/north-east.png",
+          "north": "parado/rotations/north.png",
+          "north-west": "parado/rotations/north-west.png",
+          "west": "parado/rotations/west.png",
+          "south-west": "parado/rotations/south-west.png"
+        },
+        "animations": {
+          "idle_breathing": {
+            "west": [
+              "parado/animations/idle_breathing/west/frame_000.png",
+              "parado/animations/idle_breathing/west/frame_001.png",
+              "parado/animations/idle_breathing/west/frame_002.png",
+              "parado/animations/idle_breathing/west/frame_003.png",
+              "parado/animations/idle_breathing/west/frame_004.png",
+              "parado/animations/idle_breathing/west/frame_005.png",
+              "parado/animations/idle_breathing/west/frame_006.png",
+              "parado/animations/idle_breathing/west/frame_007.png"
+            ],
+            "north": [
+              "parado/animations/idle_breathing/north/frame_000.png",
+              "parado/animations/idle_breathing/north/frame_001.png",
+              "parado/animations/idle_breathing/north/frame_002.png",
+              "parado/animations/idle_breathing/north/frame_003.png",
+              "parado/animations/idle_breathing/north/frame_004.png",
+              "parado/animations/idle_breathing/north/frame_005.png",
+              "parado/animations/idle_breathing/north/frame_006.png",
+              "parado/animations/idle_breathing/north/frame_007.png"
+            ],
+            "south": [
+              "parado/animations/idle_breathing/south/frame_000.png",
+              "parado/animations/idle_breathing/south/frame_001.png",
+              "parado/animations/idle_breathing/south/frame_002.png",
+              "parado/animations/idle_breathing/south/frame_003.png",
+              "parado/animations/idle_breathing/south/frame_004.png",
+              "parado/animations/idle_breathing/south/frame_005.png",
+              "parado/animations/idle_breathing/south/frame_006.png",
+              "parado/animations/idle_breathing/south/frame_007.png"
+            ],
+            "east": [
+              "parado/animations/idle_breathing/east/frame_000.png",
+              "parado/animations/idle_breathing/east/frame_001.png",
+              "parado/animations/idle_breathing/east/frame_002.png",
+              "parado/animations/idle_breathing/east/frame_003.png",
+              "parado/animations/idle_breathing/east/frame_004.png",
+              "parado/animations/idle_breathing/east/frame_005.png",
+              "parado/animations/idle_breathing/east/frame_006.png",
+              "parado/animations/idle_breathing/east/frame_007.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "ad65a95a-367f-4879-9fa2-ce75e99c7449",
+        "name": "Andando",
+        "prompt": "Create a unique male tank warrior in pure 2D pixel art for a dark medieval fantasy RPG. He is a massive, rugged warrior with long messy dark hair, a stern scarred face, and a powerful, intimidating presence. Wear extremely heavy blackened steel plate armor with antique gold engravings, layered metal plates, thick gauntlets, reinforced greaves, chains, and sharp metal details. His most distinctive feature is an enormous golden lion-head pauldron covering one shoulder, with a fierce sculpted lion face and a glowing amber eye. Add smaller lion emblems to the chest and knees, a dark fur mantle, and a long torn crimson cape with golden heraldic patterns, shown in both front and back views. No helmet, no weapons, no shield. The design must communicate fear, durability, and protection. Full-body character, straight standing pose, front and back views, with separate close-up panels showing the face, lion shoulder armor, chest, cape, gauntlets, belt, and boots. Transparent background, PNG. Crisp pixel edges, strong contrast, detailed metallic pixel shading, cohesive black steel, antique gold, and crimson palette. No text, no scenery, no blur, no 3D rendering, no smooth digital painting. Original handcrafted pixel-art character reference sheet for a 2D RPG.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T14:15:22.195373+00:00"
+      },
+      "folder": "Andando",
+      "frames": {
+        "rotations": {
+          "south": "Andando/rotations/south.png",
+          "south-east": "Andando/rotations/south-east.png",
+          "east": "Andando/rotations/east.png",
+          "north-east": "Andando/rotations/north-east.png",
+          "north": "Andando/rotations/north.png",
+          "north-west": "Andando/rotations/north-west.png",
+          "west": "Andando/rotations/west.png",
+          "south-west": "Andando/rotations/south-west.png"
+        },
+        "animations": {
+          "Walking": {
+            "north-east": [
+              "Andando/animations/Walking/north-east/frame_000.png",
+              "Andando/animations/Walking/north-east/frame_001.png",
+              "Andando/animations/Walking/north-east/frame_002.png",
+              "Andando/animations/Walking/north-east/frame_003.png",
+              "Andando/animations/Walking/north-east/frame_004.png",
+              "Andando/animations/Walking/north-east/frame_005.png",
+              "Andando/animations/Walking/north-east/frame_006.png",
+              "Andando/animations/Walking/north-east/frame_007.png"
+            ],
+            "east": [
+              "Andando/animations/Walking/east/frame_000.png",
+              "Andando/animations/Walking/east/frame_001.png",
+              "Andando/animations/Walking/east/frame_002.png",
+              "Andando/animations/Walking/east/frame_003.png",
+              "Andando/animations/Walking/east/frame_004.png",
+              "Andando/animations/Walking/east/frame_005.png",
+              "Andando/animations/Walking/east/frame_006.png",
+              "Andando/animations/Walking/east/frame_007.png"
+            ],
+            "south-west": [
+              "Andando/animations/Walking/south-west/frame_000.png",
+              "Andando/animations/Walking/south-west/frame_001.png",
+              "Andando/animations/Walking/south-west/frame_002.png",
+              "Andando/animations/Walking/south-west/frame_003.png",
+              "Andando/animations/Walking/south-west/frame_004.png",
+              "Andando/animations/Walking/south-west/frame_005.png",
+              "Andando/animations/Walking/south-west/frame_006.png",
+              "Andando/animations/Walking/south-west/frame_007.png"
+            ],
+            "south": [
+              "Andando/animations/Walking/south/frame_000.png",
+              "Andando/animations/Walking/south/frame_001.png",
+              "Andando/animations/Walking/south/frame_002.png",
+              "Andando/animations/Walking/south/frame_003.png",
+              "Andando/animations/Walking/south/frame_004.png",
+              "Andando/animations/Walking/south/frame_005.png",
+              "Andando/animations/Walking/south/frame_006.png",
+              "Andando/animations/Walking/south/frame_007.png"
+            ],
+            "west": [
+              "Andando/animations/Walking/west/frame_000.png",
+              "Andando/animations/Walking/west/frame_001.png",
+              "Andando/animations/Walking/west/frame_002.png",
+              "Andando/animations/Walking/west/frame_003.png",
+              "Andando/animations/Walking/west/frame_004.png",
+              "Andando/animations/Walking/west/frame_005.png",
+              "Andando/animations/Walking/west/frame_006.png",
+              "Andando/animations/Walking/west/frame_007.png"
+            ],
+            "north": [
+              "Andando/animations/Walking/north/frame_000.png",
+              "Andando/animations/Walking/north/frame_001.png",
+              "Andando/animations/Walking/north/frame_002.png",
+              "Andando/animations/Walking/north/frame_003.png",
+              "Andando/animations/Walking/north/frame_004.png",
+              "Andando/animations/Walking/north/frame_005.png",
+              "Andando/animations/Walking/north/frame_006.png",
+              "Andando/animations/Walking/north/frame_007.png"
+            ],
+            "north-west": [
+              "Andando/animations/Walking/north-west/frame_000.png",
+              "Andando/animations/Walking/north-west/frame_001.png",
+              "Andando/animations/Walking/north-west/frame_002.png",
+              "Andando/animations/Walking/north-west/frame_003.png",
+              "Andando/animations/Walking/north-west/frame_004.png",
+              "Andando/animations/Walking/north-west/frame_005.png",
+              "Andando/animations/Walking/north-west/frame_006.png",
+              "Andando/animations/Walking/north-west/frame_007.png"
+            ],
+            "south-east": [
+              "Andando/animations/Walking/south-east/frame_000.png",
+              "Andando/animations/Walking/south-east/frame_001.png",
+              "Andando/animations/Walking/south-east/frame_002.png",
+              "Andando/animations/Walking/south-east/frame_003.png",
+              "Andando/animations/Walking/south-east/frame_004.png",
+              "Andando/animations/Walking/south-east/frame_005.png",
+              "Andando/animations/Walking/south-east/frame_006.png",
+              "Andando/animations/Walking/south-east/frame_007.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-10-14T21:28:11.864210"
+}

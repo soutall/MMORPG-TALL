@@ -349,6 +349,26 @@
         margin: 0 !important;
     }
 
+    #btn-attack {
+        position: fixed !important;
+        right: calc(236px + env(safe-area-inset-right, 0px)) !important;
+        bottom: calc(8px + env(safe-area-inset-bottom, 0px)) !important;
+        display: flex !important;
+        width: 54px !important;
+        height: 54px !important;
+        z-index: 24 !important;
+        border: 2px solid #ffc477 !important;
+        border-radius: 50% !important;
+        background: linear-gradient(145deg, #ef7048, #a62f36) !important;
+        box-shadow: 0 0 12px rgba(239, 112, 72, 0.5), inset 0 1px 3px rgba(255,255,255,0.35) !important;
+        font-size: 24px !important;
+        pointer-events: auto !important;
+    }
+
+    #btn-attack:active {
+        transform: scale(0.91) !important;
+    }
+
     /* --- SLOT 6: TOPO ESQUERDA (Autofarm) --- */
     #btn-autofarm {
         grid-column: 1 !important;
@@ -365,7 +385,7 @@
 
     /* --- SLOT 3: MEIO ESQUERDA (Skill 3 das classes) --- */
     #btn-guerreiro-provocacao,
-    #btn-vulcao,
+    #btn-mago-bola,
     #btn-ogro-colossal,
     #ogro-colossal-wrap,
     #btn-arqueiro-rajada,
@@ -388,6 +408,7 @@
     }
 
     /* --- SLOT 4: MEIO DIREITA (Skill 4 das classes que possuem) --- */
+    #btn-meteoro,
     #btn-roqueiro-grito,
     #btn-ladino-estrela,
     #btn-dm-tita,
@@ -402,7 +423,7 @@
     }
 
     /* --- SLOT 1: FUNDO ESQUERDA (Skill 1 das classes) --- */
-    #btn-meteoro,
+    #btn-nevasca,
     #btn-ogro-skill,
     #btn-arqueiro-chuva,
     #btn-curandeiro-cura,
@@ -419,7 +440,7 @@
 
     /* --- SLOT 2: FUNDO DIREITA (Skill 2 das classes) --- */
     #btn-tornado,
-    #btn-nevasca,
+    #btn-mago-trovao,
     #btn-ogro-salto,
     #btn-arqueiro-perfurante,
     #btn-curandeiro-julgamento,
@@ -755,5 +776,12 @@
         pointer-events: none !important;
         font-weight: bold !important;
         white-space: nowrap !important;
+        transition: color 0.25s ease, font-size 0.25s ease, text-shadow 0.25s ease, background 0.25s ease;
+    }
+    #ping-counter.ping-bom { color: #2ecc71 !important; }
+    #ping-counter.ping-alerta { color: #e74c3c !important; font-size: 14px !important; text-shadow: 0 0 8px rgba(231,76,60,0.9), 0 0 16px rgba(231,76,60,0.6) !important; background: rgba(120,20,20,0.75) !important; animation: pingPulsoMobile 0.7s ease-in-out infinite; }
+    @keyframes pingPulsoMobile {
+        0%, 100% { transform: none; }
+        50% { transform: scale(1.12); }
     }
 }

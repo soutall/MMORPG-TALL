@@ -6,7 +6,10 @@ const skills = sut.obterSkillsParticipantes('mago');
 console.log('1. Skills participantes:', skills);
 if (skills.length !== 4) throw new Error('Esperado 4 skills para Mago');
 
-const expectedSkills = ['meteoro', 'nevasca', 'vulcao', 'bola_elemental'];
+const expectedSkills = ['nevasca', 'trovao_letal', 'bola_elemental', 'meteoro'];
+if (JSON.stringify(skills) !== JSON.stringify(expectedSkills)) {
+    throw new Error('Ordem incorreta das skills do Mago: ' + skills.join(', '));
+}
 for (const s of expectedSkills) {
     if (!skills.includes(s)) throw new Error('Skill faltando: ' + s);
 }

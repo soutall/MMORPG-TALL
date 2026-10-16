@@ -1,7 +1,5 @@
 // classes/guerreiro.js — Renderização completa do Guerreiro (CAVALEIRO DA VANGUARDA / TANQUE PESADO)
-// 100% procedural em Canvas 2D: Armadura completa de placas gravadas, Elmo Great Helm,
-// Escudo Ogival (Kite Shield) com o Leão Rampante Dourado e Lança de Batalha com Borla Vermelha.
-// NENHUMA mecânica alterada: apenas representação visual + animações/VFX fiéis à arte conceitual.
+// Corpo por sprites; escudo, lança e efeitos de combate mantidos em Canvas 2D.
 (function () {
     'use strict';
 
@@ -13,6 +11,119 @@
     window.guerreiroPrepTimers = window.guerreiroPrepTimers || {}; // recuo elástico do Grito de Provocação
     window.guerreiroCortes = window.guerreiroCortes || {};         // início (ms) da estocada de lança / pid
     window.guerreiroDefesas = window.guerreiroDefesas || {};       // início (ms) da postura defensiva / pid
+    window.guerreiroPassos = window.guerreiroPassos || {};         // fase de caminhada independente por jogador
+    const GUERREIRO_BASE_SPRITES = (typeof document !== 'undefined' && document.currentScript)
+        ? new URL('../sprites/classes/Guerreiro/', document.currentScript.src)
+        : null;
+    const GUERREIRO_DIRECOES_ANDANDO = ['east', 'south-east', 'south', 'south-west', 'west', 'north-west', 'north', 'north-east'];
+    const GUERREIRO_DIRECOES_PARADO = ['east', 'south', 'west', 'north'];
+    const guerreiroGruposSprites = Object.create(null);
+    const guerreiroDirecoesSprites = Object.create(null);
+    const guerreiroUltimosFrames = Object.create(null);
+
+    function guerreiroCarregarGrupo(andando, direcao) {
+        if (!GUERREIRO_BASE_SPRITES || typeof Image !== 'function') return null;
+        const animacao = andando ? 'walking' : 'idle_breathing';
+        const chave = animacao + ':' + direcao;
+        if (guerreiroGruposSprites[chave]) return guerreiroGruposSprites[chave];
+
+        const pasta = andando ? 'Andando/animations/Walking/' : 'parado/animations/idle_breathing/';
+        const grupo = { imagens: [] };
+        guerreiroGruposSprites[chave] = grupo;
+        for (let i = 0; i < 8; i++) {
+            const imagem = new Image();
+            imagem.onerror = function () {
+                console.error('Falha ao carregar frame do Guerreiro:', imagem.src);
+            };
+            imagem.src = new URL(
+                pasta + direcao + '/frame_' + String(i).padStart(3, '0') + '.png',
+                GUERREIRO_BASE_SPRITES
+            ).href;
+            grupo.imagens.push(imagem);
+        }
+        return grupo;
+    }
+
+    function guerreiroObterFrameDisponivel(grupo, indice) {
+        if (!grupo) return null;
+        const atual = grupo.imagens[indice];
+        if (atual && atual.complete && atual.naturalWidth > 0) return atual;
+        for (let distancia = 1; distancia < grupo.imagens.length; distancia++) {
+            const anterior = grupo.imagens[(indice - distancia + grupo.imagens.length) % grupo.imagens.length];
+            const seguinte = grupo.imagens[(indice + distancia) % grupo.imagens.length];
+            if (anterior && anterior.complete && anterior.naturalWidth > 0) return anterior;
+            if (seguinte && seguinte.complete && seguinte.naturalWidth > 0) return seguinte;
+        }
+        return null;
+    }
+
+    function guerreiroObterDirecaoSprite(angulo, andando, idJogador) {
+        const direcoes = andando ? GUERREIRO_DIRECOES_ANDANDO : GUERREIRO_DIRECOES_PARADO;
+        const passoSetor = Math.PI * 2 / direcoes.length;
+        const anguloSeguro = Number.isFinite(angulo) ? angulo : 0;
+        const anterior = guerreiroDirecoesSprites[idJogador];
+        let setor = ((Math.round(anguloSeguro / passoSetor) % direcoes.length) + direcoes.length) % direcoes.length;
+        if (anterior && anterior.andando === andando) {
+            const centroAnterior = anterior.setor * passoSetor;
+            const diferenca = Math.atan2(
+                Math.sin(anguloSeguro - centroAnterior),
+                Math.cos(anguloSeguro - centroAnterior)
+            );
+            if (Math.abs(diferenca) < passoSetor / 2 + Math.PI / 36) setor = anterior.setor;
+        }
+        guerreiroDirecoesSprites[idJogador] = { andando: andando, setor: setor };
+        return direcoes[setor];
+    }
+
+    function guerreiroAlinharNaGrade(ctx, x, y) {
+        if (typeof ctx.getTransform !== 'function') return { x: x, y: y };
+        const transformacao = ctx.getTransform();
+        const determinante = transformacao.a * transformacao.d - transformacao.b * transformacao.c;
+        if (!Number.isFinite(determinante) || Math.abs(determinante) < 0.000001) return { x: x, y: y };
+        const telaX = transformacao.a * x + transformacao.c * y + transformacao.e;
+        const telaY = transformacao.b * x + transformacao.d * y + transformacao.f;
+        const deltaX = Math.round(telaX) - telaX;
+        const deltaY = Math.round(telaY) - telaY;
+        return {
+            x: x + (transformacao.d * deltaX - transformacao.c * deltaY) / determinante,
+            y: y + (-transformacao.b * deltaX + transformacao.a * deltaY) / determinante
+        };
+    }
+
+    function desenharSpriteGuerreiro(ctx, andando, angulo, idJogador, agora) {
+        const direcao = guerreiroObterDirecaoSprite(angulo, andando, idJogador);
+        const grupo = guerreiroCarregarGrupo(andando, direcao);
+        const indice = Math.floor(agora / (andando ? 110 : 160)) % 8;
+        let imagem = guerreiroObterFrameDisponivel(grupo, indice);
+        if (imagem) guerreiroUltimosFrames[idJogador] = imagem;
+        else imagem = guerreiroUltimosFrames[idJogador];
+        if (!imagem || !imagem.complete || imagem.naturalWidth <= 0) return;
+
+        const escalaSprite = 1 / 1.3;
+        const largura = imagem.naturalWidth * escalaSprite;
+        const altura = imagem.naturalHeight * escalaSprite;
+        const posicao = guerreiroAlinharNaGrade(ctx, 0, 0);
+        const suavizacaoAnterior = ctx.imageSmoothingEnabled;
+        const qualidadeSuavizacaoAnterior = ctx.imageSmoothingQuality;
+        ctx.save();
+        ctx.translate(posicao.x, posicao.y);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        try {
+            ctx.drawImage(imagem, 12 - largura / 2, 30 - altura, largura, altura);
+        } finally {
+            ctx.imageSmoothingEnabled = suavizacaoAnterior;
+            ctx.imageSmoothingQuality = qualidadeSuavizacaoAnterior;
+            ctx.restore();
+        }
+    }
+
+    GUERREIRO_DIRECOES_PARADO.forEach(function (direcao) {
+        guerreiroCarregarGrupo(false, direcao);
+    });
+    GUERREIRO_DIRECOES_ANDANDO.forEach(function (direcao) {
+        guerreiroCarregarGrupo(true, direcao);
+    });
 
     window.registrarCorteGuerreiro = function (pid) { if (pid) window.guerreiroCortes[pid] = _agora(); };
     window.registrarDefesaGuerreiro = function (pid) { if (pid) window.guerreiroDefesas[pid] = _agora(); };
@@ -269,161 +380,105 @@
     window.desenharLaminaLargaExposta = desenharLancaBatalha; // retrocompatibilidade
 
     function desenharLancaBatalha(ctx, off, armaVisual, faseAtk) {
-        // Origem no frame: mão segurando a haste em (0, 0)
-        // Direção longitudinal ao longo do eixo X (+X para a ponta, -X para a traseira)
-        let L_Ponta = 30.0 + (off || 0); // comprimento à frente da mão
-        let L_Traseira = 16.0;          // comprimento atrás da mão
-
-        // Paleta base (Aço de Cavaleiro Imperial)
-        let cAcoClaro = '#f4f6f7';
-        let cAcoMeio = '#bdc3c7';
-        let cAcoEscuro = '#566573';
-        let cOuro = '#f1c40f';
-        let cOuroEscuro = '#9a7d0a';
-        let cMadeira = '#3e2a1e';
-        let cMadeiraLuz = '#5c4033';
-        let cBorla = '#c0392b';
-        let cBorlaLuz = '#e74c3c';
-
-        // Apoio a customVisual / raridades
+        const comprimento = 31;
+        const madeira = '#6b4a2f';
+        const madeiraEscura = '#39271d';
+        let acoClaro = '#f4f6f7';
+        let acoMeio = '#bdc3c7';
+        let acoEscuro = '#64717d';
+        let ouro = '#e0b64d';
         if (armaVisual && armaVisual.customVisual) {
-            let cv = armaVisual.customVisual;
-            cAcoClaro = cv.cBase || cAcoClaro;
-            cAcoMeio = cv.cMeio || cAcoMeio;
-            cAcoEscuro = cv.cPonta || cAcoEscuro;
-        } else if (armaVisual) {
-            if (armaVisual.raridade === 'raro') {
-                cAcoClaro = '#d4e6f1'; cAcoMeio = '#5dade2'; cAcoEscuro = '#1b4f72'; cOuro = '#85c1e9';
-            } else if (armaVisual.raridade === 'epico') {
-                cAcoClaro = '#ebd5f7'; cAcoMeio = '#af7ac5'; cAcoEscuro = '#512e5f'; cOuro = '#bb8fce';
-            } else if (armaVisual.raridade === 'lendario') {
-                cAcoClaro = '#fdebd0'; cAcoMeio = '#f39c12'; cAcoEscuro = '#784212'; cOuro = '#f39c12';
-            }
+            acoClaro = armaVisual.customVisual.cBase || acoClaro;
+            acoMeio = armaVisual.customVisual.cMeio || acoMeio;
+            acoEscuro = armaVisual.customVisual.cPonta || acoEscuro;
+        } else if (armaVisual && armaVisual.raridade === 'raro') {
+            acoClaro = '#bfe6ff'; acoMeio = '#5dade2'; acoEscuro = '#3486b4'; ouro = '#69c8ef';
+        } else if (armaVisual && armaVisual.raridade === 'epico') {
+            acoClaro = '#e8c8ff'; acoMeio = '#af7ac5'; acoEscuro = '#8852ac'; ouro = '#c58be9';
+        } else if (armaVisual && armaVisual.raridade === 'lendario') {
+            acoClaro = '#fff0b0'; acoMeio = '#e4a13a'; acoEscuro = '#ca7927'; ouro = '#ffc44d';
         }
 
-        // 1. HASTE DE MADEIRA (Shaft)
-        let gHaste = _grad(ctx, -L_Traseira, -1.1, L_Ponta * 0.55, 1.1, [
-            0, cMadeira,
-            0.5, cMadeiraLuz,
-            1, cMadeira
-        ]);
-        ctx.fillStyle = gHaste;
-        ctx.fillRect(-L_Traseira, -1.0, L_Traseira + L_Ponta * 0.55, 2.0);
-        ctx.strokeStyle = '#22150d';
-        ctx.lineWidth = 0.5;
-        ctx.strokeRect(-L_Traseira, -1.0, L_Traseira + L_Ponta * 0.55, 2.0);
+        ctx.save();
+        ctx.translate(Number(off) || 0, Math.sin((faseAtk || 0) * Math.PI * 2 + Date.now() / 260) * 0.7);
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#22160f';
+        ctx.lineWidth = 3.2;
+        _lin(ctx, -3, 0, comprimento - 4, 0);
+        ctx.strokeStyle = madeira;
+        ctx.lineWidth = 2;
+        _lin(ctx, -3, -0.2, comprimento - 4, -0.2);
+        ctx.strokeStyle = 'rgba(255,235,190,0.55)';
+        ctx.lineWidth = 0.55;
+        _lin(ctx, 0, -0.8, comprimento - 5, -0.8);
 
-        // Abraçadeiras / Anéis de Latão Dourado na haste
-        [-8.0, 4.0, 12.0].forEach(function (ax) {
-            ctx.fillStyle = cOuro;
-            ctx.fillRect(ax, -1.3, 2.0, 2.6);
-            ctx.strokeStyle = cOuroEscuro;
-            ctx.lineWidth = 0.4;
-            ctx.strokeRect(ax, -1.3, 2.0, 2.6);
+        [-1, 5, 19].forEach(function (x) {
+            ctx.fillStyle = ouro;
+            ctx.fillRect(x, -1.5, 1.2, 3);
+            ctx.fillStyle = madeiraEscura;
+            ctx.fillRect(x + 1.2, -0.35, 0.6, 0.7);
         });
 
-        // 2. POMO TRASEIRO E BORLA VERMELHA CARMESIM (Tassel)
-        let pomX = -L_Traseira;
-        ctx.fillStyle = cOuro;
+        ctx.fillStyle = ouro;
         ctx.beginPath();
-        ctx.arc(pomX, 0, 1.7, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.strokeStyle = cOuroEscuro;
-        ctx.lineWidth = 0.5;
-        ctx.stroke();
-
-        // Anel de fixação da borla
-        ctx.strokeStyle = cOuro;
-        ctx.lineWidth = 0.8;
-        ctx.beginPath();
-        ctx.arc(pomX - 1.6, 0, 1.0, 0, Math.PI * 2);
-        ctx.stroke();
-
-        // Fios da Borla Vermelha balançando
-        let balanco = Math.sin((faseAtk || 0) * Math.PI * 2 + Date.now() / 250) * 1.5;
-        let borlaX = pomX - 2.4;
-        let borlaY = 0;
-
-        // Cabeça da borla (nó esférico de seda)
-        ctx.fillStyle = cBorla;
-        ctx.beginPath();
-        ctx.arc(borlaX, borlaY, 1.4, 0, Math.PI * 2);
-        ctx.fill();
-        ctx.fillStyle = cOuro;
-        ctx.fillRect(borlaX - 0.4, borlaY - 0.5, 0.8, 1.0); // anel dourado do nó
-
-        // Franjas pendentes da borla
-        ctx.strokeStyle = cBorlaLuz;
-        ctx.lineWidth = 0.9;
-        ctx.beginPath();
-        ctx.moveTo(borlaX, borlaY);
-        ctx.quadraticCurveTo(borlaX - 3.5, borlaY + balanco, borlaX - 6.5, borlaY + 1.2 + balanco * 1.4);
-        ctx.stroke();
-        ctx.strokeStyle = cBorla;
-        ctx.lineWidth = 0.8;
-        ctx.beginPath();
-        ctx.moveTo(borlaX, borlaY);
-        ctx.quadraticCurveTo(borlaX - 3.0, borlaY - balanco * 0.8, borlaX - 5.8, borlaY - 1.0 - balanco);
-        ctx.stroke();
-
-        // 3. BASE DA PONTA: GUARDA ALADA (Winged Lugs / Crossguard)
-        let baseBladeX = L_Ponta * 0.55;
-        let wingW = 3.6;
-
-        ctx.fillStyle = cOuro;
-        ctx.beginPath();
-        // Colar de encaixe
-        ctx.fillRect(baseBladeX - 1.5, -1.8, 3.0, 3.6);
-        // Asa superior curvada para trás
-        ctx.moveTo(baseBladeX, -1.8);
-        ctx.quadraticCurveTo(baseBladeX - 1.5, -wingW - 1.5, baseBladeX - 3.5, -wingW - 0.5);
-        ctx.lineTo(baseBladeX - 2.8, -wingW + 0.8);
-        ctx.quadraticCurveTo(baseBladeX - 0.8, -wingW, baseBladeX + 1.5, -1.5);
-        // Asa inferior curvada para trás
-        ctx.moveTo(baseBladeX, 1.8);
-        ctx.quadraticCurveTo(baseBladeX - 1.5, wingW + 1.5, baseBladeX - 3.5, wingW + 0.5);
-        ctx.lineTo(baseBladeX - 2.8, wingW - 0.8);
-        ctx.quadraticCurveTo(baseBladeX - 0.8, wingW, baseBladeX + 1.5, 1.5);
+        ctx.moveTo(comprimento - 9, -2.8);
+        ctx.lineTo(comprimento - 5, -1.4);
+        ctx.lineTo(comprimento - 4, 0);
+        ctx.lineTo(comprimento - 5, 1.4);
+        ctx.lineTo(comprimento - 9, 2.8);
+        ctx.lineTo(comprimento - 8, 0);
         ctx.closePath();
         ctx.fill();
-        ctx.strokeStyle = cOuroEscuro;
+        ctx.strokeStyle = '#76521c';
         ctx.lineWidth = 0.6;
         ctx.stroke();
 
-        // 4. LÂMINA DE AÇO FOLHA-DE-LOURO (Spearhead Blade)
-        let tipX = L_Ponta;
-        let midBladeX = baseBladeX + (tipX - baseBladeX) * 0.42;
-        let halfW = 3.1; // largura máxima da folha
-
-        let gBlade = _grad(ctx, baseBladeX, -halfW, tipX, halfW, [
-            0, cAcoClaro,
-            0.4, cAcoMeio,
-            1, cAcoEscuro
-        ]);
-
-        ctx.fillStyle = gBlade;
+        const ponta = comprimento + 1;
+        ctx.fillStyle = acoEscuro;
         ctx.beginPath();
-        ctx.moveTo(baseBladeX + 1.5, -1.2);
-        ctx.quadraticCurveTo(midBladeX, -halfW, tipX, 0); // aresta superior curvada
-        ctx.quadraticCurveTo(midBladeX, halfW, baseBladeX + 1.5, 1.2); // aresta inferior
+        ctx.moveTo(comprimento - 7, -1.7);
+        ctx.lineTo(comprimento - 3, -3.1);
+        ctx.lineTo(ponta, 0);
+        ctx.lineTo(comprimento - 3, 3.1);
+        ctx.lineTo(comprimento - 7, 1.7);
         ctx.closePath();
         ctx.fill();
-
-        // Linha central de crista (vinco longitudinal de reforço perfurante)
-        ctx.strokeStyle = '#ffffff';
-        ctx.lineWidth = 0.9;
-        _lin(ctx, baseBladeX + 1.0, 0, tipX - 1.0, 0);
-        ctx.strokeStyle = 'rgba(40, 50, 60, 0.55)';
-        ctx.lineWidth = 0.7;
-        _lin(ctx, baseBladeX + 1.0, 0.5, tipX - 2.0, 0.5);
-
-        // Fio de luz reluzente no gume superior
-        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
-        ctx.lineWidth = 0.65;
+        ctx.fillStyle = _grad(ctx, comprimento - 7, -2.4, ponta, 2.4, [
+            0, acoClaro, 0.52, acoMeio, 1, acoEscuro
+        ]);
         ctx.beginPath();
-        ctx.moveTo(baseBladeX + 2.5, -1.2);
-        ctx.quadraticCurveTo(midBladeX, -halfW + 0.4, tipX - 1.0, -0.2);
-        ctx.stroke();
+        ctx.moveTo(comprimento - 7, -1.7);
+        ctx.lineTo(comprimento - 3, -2.3);
+        ctx.lineTo(ponta - 1, 0);
+        ctx.lineTo(comprimento - 3, 2.3);
+        ctx.lineTo(comprimento - 7, 1.7);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+        ctx.lineWidth = 0.6;
+        _lin(ctx, comprimento - 6, -1.5, ponta - 1.5, -0.1);
+        ctx.restore();
+    }
+
+    function desenharLancaFlutuante(ctx, anguloMira, atk, armaVisual, tempo) {
+        const oscilacao = Math.sin(tempo / 240) * 1.1;
+        const impulso = atk > 0 && atk < 1 ? Math.sin(Math.PI * atk) * 4 : 0;
+        const anguloSeguro = Number.isFinite(anguloMira) ? anguloMira : 0;
+        ctx.save();
+        ctx.translate(23 + Math.cos(anguloSeguro) * impulso, -7 + oscilacao + Math.sin(anguloSeguro) * impulso);
+        ctx.rotate(anguloSeguro);
+        desenharLancaBatalha(ctx, 0, armaVisual, atk);
+        ctx.restore();
+
+        if (atk >= 0.25 && atk <= 0.85) {
+            const intensidade = Math.sin(Math.PI * ((atk - 0.25) / 0.60));
+            ctx.save();
+            ctx.globalAlpha = Math.max(0, intensidade) * 0.55;
+            ctx.strokeStyle = '#fff1a8';
+            ctx.lineWidth = 1.1;
+            _lin(ctx, 22, -7, 39, -7);
+            ctx.restore();
+        }
     }
 
     /* ============================================================
@@ -1112,11 +1167,316 @@
         }
     }
 
+    function desenharFormaRenovadaGuerreiro(ctx, corCapa, passo, movendo, defendendo, dano) {
+        const capeColor = corCapa || '#8e2734';
+        const legSwing = movendo ? Math.sin(passo * Math.PI * 2) * 2.2 : 0;
+        const crouch = defendendo ? 1.2 : 0;
+        const chestBreath = 0.5 + 0.5 * Math.sin(_agora() / 760);
+        const chestLift = chestBreath * 1.25;
+
+        // Capa curta recortada, visivel atras da armadura.
+        ctx.save();
+        ctx.fillStyle = _grad(ctx, 4, 7, 20, 29, [
+            0, capeColor,
+            0.62, capeColor,
+            1, '#381d2a'
+        ]);
+        ctx.beginPath();
+        ctx.moveTo(6, 7);
+        ctx.quadraticCurveTo(12, 5.5, 18, 7);
+        ctx.lineTo(20, 15);
+        ctx.lineTo(18 + legSwing * 0.25, 24);
+        ctx.lineTo(15, 22);
+        ctx.lineTo(12, 26);
+        ctx.lineTo(9, 22);
+        ctx.lineTo(5, 25);
+        ctx.lineTo(4, 15);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#291c27';
+        ctx.lineWidth = 1;
+        ctx.stroke();
+
+        ctx.strokeStyle = 'rgba(255,220,190,0.38)';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(7, 10);
+        ctx.quadraticCurveTo(10, 16, 9 + legSwing * 0.2, 22);
+        ctx.moveTo(16, 9);
+        ctx.quadraticCurveTo(14, 15, 15, 21);
+        ctx.stroke();
+        ctx.restore();
+
+        // Pernas articuladas com botas largas para uma silhueta mais robusta.
+        ctx.lineCap = 'round';
+        [
+            { x: 8.5, swing: -legSwing },
+            { x: 15.5, swing: legSwing }
+        ].forEach(function (leg, index) {
+            const hipY = 20 - crouch;
+            const kneeX = leg.x + leg.swing * 0.55;
+            const kneeY = 24;
+            const footX = leg.x + leg.swing;
+            const footY = 29.5;
+
+            ctx.strokeStyle = '#19232e';
+            ctx.lineWidth = 5.5;
+            _lin(ctx, leg.x, hipY, kneeX, kneeY);
+            ctx.strokeStyle = index === 0 ? '#526477' : '#3d4d60';
+            ctx.lineWidth = 3.8;
+            _lin(ctx, leg.x, hipY, kneeX, kneeY);
+
+            ctx.fillStyle = '#9aa9b5';
+            ctx.beginPath();
+            ctx.moveTo(kneeX - 2.1, kneeY - 1.4);
+            ctx.lineTo(kneeX + 1.8, kneeY - 1.2);
+            ctx.lineTo(kneeX + 2.2, kneeY + 1.1);
+            ctx.lineTo(kneeX - 1.3, kneeY + 1.8);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#202a36';
+            ctx.lineWidth = 0.7;
+            ctx.stroke();
+
+            ctx.strokeStyle = '#687b8d';
+            ctx.lineWidth = 3.2;
+            _lin(ctx, kneeX, kneeY + 1, footX, footY - 1);
+            ctx.fillStyle = '#202a35';
+            ctx.beginPath();
+            ctx.moveTo(footX - 2.8, footY - 1.6);
+            ctx.lineTo(footX + 2.1, footY - 1.4);
+            ctx.lineTo(footX + 3.4, footY + 0.8);
+            ctx.lineTo(footX + 2.2, footY + 1.5);
+            ctx.lineTo(footX - 3.2, footY + 1.2);
+            ctx.closePath();
+            ctx.fill();
+            ctx.strokeStyle = '#0e1720';
+            ctx.lineWidth = 0.8;
+            ctx.stroke();
+            ctx.strokeStyle = 'rgba(209,225,234,0.58)';
+            ctx.lineWidth = 0.65;
+            _lin(ctx, footX - 1.2, footY - 0.8, footX + 1.7, footY - 0.7);
+        });
+
+        // Cota curta e peitoral sobrepostos em placas de aço azul-escuro.
+        ctx.fillStyle = '#202c39';
+        ctx.beginPath();
+        ctx.moveTo(5.2, 17);
+        ctx.lineTo(18.8, 17);
+        ctx.lineTo(19.8, 21.5);
+        ctx.lineTo(17.5, 23.2);
+        ctx.lineTo(6.3, 23.2);
+        ctx.lineTo(4.2, 21.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#101923';
+        ctx.lineWidth = 0.8;
+        ctx.stroke();
+        for (let x = 7; x <= 17; x += 2) {
+            ctx.fillStyle = '#82919a';
+            ctx.fillRect(x, 19.3, 0.8, 0.8);
+            ctx.fillRect(x + 0.8, 20.2, 0.8, 0.8);
+        }
+
+        ctx.fillStyle = '#542b32';
+        ctx.fillRect(5.2, 17.4, 13.6, 2.2);
+        ctx.fillStyle = '#d5b36a';
+        ctx.fillRect(10.3, 17.4, 3.3, 2.2);
+        ctx.save();
+        ctx.translate(12, 13.5 - crouch - chestLift);
+        ctx.scale(1 + chestBreath * 0.12, 1 + chestBreath * 0.16);
+        ctx.translate(-12, -13.5 + crouch);
+        ctx.fillStyle = '#283646';
+        ctx.beginPath();
+        ctx.moveTo(5.2, 8.8 - crouch);
+        ctx.quadraticCurveTo(11.8, 5.7 - crouch, 18.8, 8.5 - crouch);
+        ctx.lineTo(20.1, 14.8);
+        ctx.quadraticCurveTo(19.4, 18.1, 16.2, 19);
+        ctx.lineTo(7.6, 19);
+        ctx.quadraticCurveTo(4.5, 17.4, 4.2, 14.7);
+        ctx.closePath();
+        ctx.fillStyle = _grad(ctx, 5, 8, 20, 18, [
+            0, '#a7b7c1',
+            0.24, '#657889',
+            0.58, '#354657',
+            1, '#1b2632'
+        ]);
+        ctx.fill();
+        ctx.strokeStyle = '#101923';
+        ctx.lineWidth = 1.1;
+        ctx.stroke();
+
+        // Peitoral central em vermelho escuro com insígnia de lança.
+        ctx.fillStyle = '#6e3038';
+        ctx.beginPath();
+        ctx.moveTo(8.2, 9.1 - crouch);
+        ctx.lineTo(12, 8.2 - crouch);
+        ctx.lineTo(15.8, 9.1 - crouch);
+        ctx.lineTo(15.1, 15.5);
+        ctx.lineTo(12, 17.2);
+        ctx.lineTo(8.9, 15.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#d1b16d';
+        ctx.lineWidth = 0.75;
+        ctx.stroke();
+        ctx.strokeStyle = '#f0d99c';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.moveTo(12, 10);
+        ctx.lineTo(12, 14.2);
+        ctx.moveTo(10.4, 11.7);
+        ctx.lineTo(12, 10.5);
+        ctx.lineTo(13.6, 11.7);
+        ctx.stroke();
+        ctx.fillStyle = '#e2bf74';
+        ctx.beginPath();
+        ctx.arc(12, 15.1, 0.8, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+
+        // Ombreiras assimetricas e braçadeiras segmentadas.
+        ctx.fillStyle = '#9aabb6';
+        ctx.beginPath();
+        ctx.moveTo(3.2, 8.5); ctx.lineTo(6.1, 6.3); ctx.lineTo(9.1, 7.5);
+        ctx.lineTo(8.6, 11.1); ctx.lineTo(5.4, 12.1); ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#202a36'; ctx.lineWidth = 0.9; ctx.stroke();
+        ctx.fillStyle = '#b9c5ca';
+        ctx.beginPath();
+        ctx.moveTo(15.5, 7.5); ctx.lineTo(18.4, 6.8); ctx.lineTo(21, 9);
+        ctx.lineTo(19.1, 12); ctx.lineTo(16.2, 11.2); ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#202a36'; ctx.stroke();
+        ctx.fillStyle = '#d8b46c';
+        ctx.beginPath(); ctx.arc(6.2, 9.2, 0.9, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(18.2, 9.2, 0.7, 0, Math.PI * 2); ctx.fill();
+
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = '#17222d';
+        ctx.lineWidth = 4.2;
+        _lin(ctx, 5.2, 10.5, 4.6, 15.1);
+        _lin(ctx, 18.6, 10.5, 19.1, 14.3);
+        ctx.strokeStyle = '#728493';
+        ctx.lineWidth = 2.8;
+        _lin(ctx, 5, 12.3, 4.5, 15.4);
+        _lin(ctx, 18.7, 12.1, 19.2, 14.6);
+        ctx.fillStyle = '#263442';
+        ctx.beginPath(); ctx.arc(4.5, 15.6, 1.7, 0, Math.PI * 2); ctx.fill();
+        ctx.beginPath(); ctx.arc(19.3, 14.8, 1.6, 0, Math.PI * 2); ctx.fill();
+
+        // Capacete fechado, visor luminoso e crista de tecido.
+        ctx.fillStyle = capeColor;
+        ctx.beginPath();
+        ctx.moveTo(8, 5.4);
+        ctx.quadraticCurveTo(8, 0.8, 12.1, 0.3);
+        ctx.quadraticCurveTo(16.7, 0.7, 17, 5.1);
+        ctx.lineTo(14.9, 7.6);
+        ctx.lineTo(9.1, 7.5);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#311d27'; ctx.lineWidth = 1; ctx.stroke();
+
+        ctx.fillStyle = '#758796';
+        ctx.beginPath();
+        ctx.moveTo(8.1, 5.1);
+        ctx.quadraticCurveTo(8.2, 1.1, 12.2, 1.2);
+        ctx.quadraticCurveTo(16.1, 1.1, 16.7, 5.1);
+        ctx.lineTo(15.7, 7.8);
+        ctx.lineTo(9.2, 7.8);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#17212b'; ctx.lineWidth = 0.9; ctx.stroke();
+        ctx.fillStyle = '#101923';
+        ctx.beginPath();
+        ctx.moveTo(9.2, 3.8); ctx.lineTo(15.7, 3.8); ctx.lineTo(15.2, 5.1); ctx.lineTo(9.5, 5.1);
+        ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#6fe2df';
+        ctx.fillRect(10, 4.15, 1.7, 0.45);
+        ctx.fillRect(13.2, 4.15, 1.7, 0.45);
+        ctx.strokeStyle = '#d5b36a'; ctx.lineWidth = 1;
+        _lin(ctx, 12.5, 1.6, 12.5, 7.2);
+        ctx.fillStyle = '#e8cf91';
+        ctx.fillRect(11.9, 1.9, 1.2, 0.7);
+
+        if (dano) {
+            ctx.fillStyle = 'rgba(255,70,60,0.32)';
+            ctx.beginPath();
+            ctx.moveTo(5.2, 8.8 - crouch);
+            ctx.quadraticCurveTo(11.8, 5.7 - crouch, 18.8, 8.5 - crouch);
+            ctx.lineTo(20.1, 14.8);
+            ctx.quadraticCurveTo(19.4, 18.1, 16.2, 19);
+            ctx.lineTo(7.6, 19);
+            ctx.quadraticCurveTo(4.5, 17.4, 4.2, 14.7);
+            ctx.closePath();
+            ctx.fill();
+        }
+    }
+
+    function desenharEscudoRenovado(ctx, x, y, w, h) {
+        ctx.save();
+        ctx.translate(x, y);
+        ctx.fillStyle = '#15212d';
+        ctx.beginPath();
+        ctx.moveTo(0, 1);
+        ctx.quadraticCurveTo(w * 0.5, -1.5, w, 1);
+        ctx.lineTo(w - 0.5, h * 0.57);
+        ctx.quadraticCurveTo(w * 0.82, h * 0.84, w * 0.5, h);
+        ctx.quadraticCurveTo(w * 0.18, h * 0.84, 0.5, h * 0.57);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#d5b36a'; ctx.lineWidth = 1.2; ctx.stroke();
+
+        ctx.fillStyle = _grad(ctx, 1.5, 1, w - 1, h, [
+            0, '#496173', 0.5, '#283c50', 1, '#162431'
+        ]);
+        ctx.beginPath();
+        ctx.moveTo(2, 2.5);
+        ctx.quadraticCurveTo(w * 0.5, 1, w - 2, 2.5);
+        ctx.lineTo(w - 2.2, h * 0.55);
+        ctx.quadraticCurveTo(w * 0.78, h * 0.81, w * 0.5, h - 2);
+        ctx.quadraticCurveTo(w * 0.22, h * 0.81, 2.2, h * 0.55);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#8f3540';
+        ctx.beginPath();
+        ctx.moveTo(w * 0.5, 4);
+        ctx.lineTo(w * 0.74, h * 0.42);
+        ctx.lineTo(w * 0.5, h * 0.7);
+        ctx.lineTo(w * 0.26, h * 0.42);
+        ctx.closePath();
+        ctx.fill();
+        ctx.strokeStyle = '#e8cf91'; ctx.lineWidth = 0.9;
+        ctx.beginPath();
+        ctx.moveTo(w * 0.5, h * 0.19);
+        ctx.lineTo(w * 0.5, h * 0.52);
+        ctx.moveTo(w * 0.35, h * 0.34);
+        ctx.lineTo(w * 0.5, h * 0.22);
+        ctx.lineTo(w * 0.65, h * 0.34);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function desenharEscudoNaDirecao(ctx, angulo, y, w, h) {
+        const x = Math.cos(angulo || 0) >= 0 ? -6.5 : 15.5;
+        desenharEscudoRenovado(ctx, x, y + 5, w, h);
+    }
+
+    function desenharEquipamentosFlutuantes(ctx, anguloMira, atk, armaVisual, agora) {
+        const oscilacao = Math.sin(agora / 240) * 1.1;
+        ctx.save();
+        ctx.translate(-7, -11 + oscilacao);
+        desenharEscudoRenovado(ctx, 0, 0, 15, 23);
+        ctx.restore();
+        desenharLancaFlutuante(ctx, anguloMira, atk, armaVisual, agora);
+    }
+
     /* ============================================================
        DESENHADOR PRINCIPAL DO GUERREIRO — ASSINATURA INALTERADA
-       (x, y, corCapa, isMoving, anguloBase, hp, maxHp, isSpinning, spinTimer, pid)
+       (x, y, corCapa, isMoving, anguloBase, hp, maxHp, isSpinning, spinTimer, pid, anguloMovimento)
        ============================================================ */
-    window.desenharGuerreiro = function (x, y, corCapa, isMoving, anguloBase, hp, maxHp, isSpinning, spinTimer, pid) {
+    window.desenharGuerreiro = function (x, y, corCapa, isMoving, anguloBase, hp, maxHp, isSpinning, spinTimer, pid, anguloMovimento) {
         if (hp <= 0 || !window.ctx) return;
         let ctx = window.ctx;
         ctx.save();
@@ -1139,6 +1499,14 @@
         let pctHp = (maxHp && maxHp > 0) ? (hp / maxHp) : 1;
         let resp = Math.sin(agora / 680);
         let passo = (typeof window.walkCycle === 'number') ? window.walkCycle : 0;
+        if (pid && pid !== window.meuId) {
+            let passoRemoto = window.guerreiroPassos[pid];
+            if (!passoRemoto) passoRemoto = window.guerreiroPassos[pid] = { fase: 0, atualizadoEm: agora };
+            let dtPasso = Math.max(0, Math.min(0.05, (agora - passoRemoto.atualizadoEm) / 1000));
+            passoRemoto.atualizadoEm = agora;
+            if (isMoving) passoRemoto.fase += dtPasso * 2.6;
+            passo = passoRemoto.fase;
+        }
         let dano = (window.danoFlashTimer || 0) > 0;
         let pidK = pid || '';
         let dadosJogador = (pidK && window.todosJogadores && window.todosJogadores[pidK]) || null;
@@ -1181,12 +1549,6 @@
         // SKILL 1: Aura do Vanguarda (Cúpula Dourada de Proteção)
         if (guardiaoAtivo) desenharAuraVanguarda(ctx, Date.now());
 
-        // Sombra realista no chão (tanque pesado)
-        ctx.fillStyle = "rgba(0, 0, 0, 0.44)";
-        ctx.beginPath();
-        ctx.ellipse(12, 31, 14, 4.0, 0, 0, Math.PI * 2);
-        ctx.fill();
-
         // Postura defensiva baixa
         if (defesa) ctx.translate(0.6, 1.4);
 
@@ -1198,66 +1560,17 @@
             ctx.translate(-12, -16);
         }
 
-        // RENDERIZAÇÃO DO CAVALEIRO: Pernas -> Tronco -> Ombros -> Great Helm
-        desenharPernas(ctx, passo, isMoving, defesa);
-        desenharTronco(ctx, dano, resp);
-        desenharOmbros(ctx, dano);
-        desenharCapacete(ctx, resp);
-
         let atk = 0;
         let corteIni = window.guerreiroCortes[pidK] || 0;
         if (corteIni) atk = Math.max(0, Math.min(1, (agora - corteIni) / 380));
 
-        // RENDERIZAÇÃO DAS ARMAS (ESCUDO OGIVAL + LANÇA DE BATALHA)
-        if (isSpinning) {
-            // No Giro: Escudo protegido ao corpo + Lança estendida varrendo
-            ctx.save();
-            ctx.translate(-11.0, 1.0);
-            desenharBracoEscudo(ctx, 0, isMoving, false);
-            desenharEscudoOgivalLeao(ctx, -1.0, -1.0, 14.5, 23.0, false);
-            ctx.restore();
-
-            // Lança estendida girando na horizontal
-            ctx.save();
-            ctx.translate(14.0, 1.0);
-            desenharBracoLanca(ctx, 0.5, armaVisual);
-            ctx.restore();
-        } else if (escudoDash) {
-            // NO DASH: Escudo Ogival erguido frontalmente cobrindo o corpo
-            desenharLancaDefesa(ctx, armaVisual);
-            ctx.save();
-            ctx.translate(12, 16);
-            ctx.rotate(angulo);
-            ctx.translate(-11.5, 0);
-            desenharBracoEscudo(ctx, resp, isMoving, true);
-            desenharEscudoOgivalLeao(ctx, 1.0, 0.0, 16.0, 25.0, true);
-            ctx.restore();
-        } else if (defesa) {
-            // POSTURA DEFENSIVA: Escudo Ogival à frente e Lança em prontidão
-            desenharLancaDefesa(ctx, armaVisual);
-            ctx.save();
-            ctx.translate(1.0, 0);
-            desenharBracoEscudo(ctx, resp, isMoving, true);
-            desenharEscudoOgivalLeao(ctx, 1.0, 0.0, 15.5, 24.5, true);
-            ctx.restore();
-        } else {
-            // IDLE / ANDANDO: Escudo Ogival no braço esquerdo + Lança na mão direita
-            ctx.save();
-            ctx.translate(12, 16);
-            ctx.rotate(angulo);
-            ctx.translate(-11.5, 0);
-            desenharBracoEscudo(ctx, resp, isMoving, false);
-            desenharEscudoOgivalLeao(ctx, -7.0, -1.5, 15.0, 24.0, false);
-            ctx.restore();
-
-            // Mão direita: Braço + Lança de Batalha com estocada
-            ctx.save();
-            ctx.translate(12, 16);
-            ctx.rotate(angulo);
-            ctx.translate(13.5, 0);
-            desenharBracoLanca(ctx, atk, armaVisual);
-            ctx.restore();
-        }
+        const anguloSprite = isMoving && Number.isFinite(anguloMovimento)
+            ? anguloMovimento
+            : (Number.isFinite(anguloBase) ? anguloBase : 0);
+        const olhandoParaCima = Math.sin(anguloSprite) < -Math.SQRT1_2;
+        if (olhandoParaCima) desenharEquipamentosFlutuantes(ctx, anguloBase, atk, armaVisual, agora);
+        desenharSpriteGuerreiro(ctx, Boolean(isMoving), anguloSprite, pidK || '__local__', agora);
+        if (!olhandoParaCima) desenharEquipamentosFlutuantes(ctx, anguloBase, atk, armaVisual, agora);
 
         // Faíscas de bloqueio locais
         if (pidK === window.meuId) {

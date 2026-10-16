@@ -7,6 +7,9 @@
         root.GramaMundo = createGrass(function (x, y) {
             return !!(root.mapaMundo && typeof root.mapaMundo.ehTerrenoGrama === 'function' &&
                 root.mapaMundo.ehTerrenoGrama(x, y));
+        }, function (x, y) {
+            return !!(root.mapaMundo && typeof root.mapaMundo.ehPlanicieCentral === 'function' &&
+                root.mapaMundo.ehPlanicieCentral(x, y));
         });
     }
 })(typeof window !== 'undefined' ? window : globalThis, function () {
@@ -17,6 +20,7 @@
     const MAX_PATCHES = 360;
     const MAX_CACHE_SIZE = 8000;
     const BEND_RADIUS = 54;
+    const CLUSTER_CELL_SIZE = 5;
 
     function hash(x, y) {
         let value = Math.imul(x ^ 0x2c1b3c6d, 0x297a2d39) ^
@@ -26,7 +30,23 @@
         return ((value ^ (value >>> 16)) >>> 0) / 4294967296;
     }
 
-    function createGrass(isGrassTerrain) {
+    function smoothstep(value) {
+        return value * value * (3 - 2 * value);
+    }
+
+    function clusterDensity(cellX, cellY) {
+        const gridX = Math.floor(cellX / CLUSTER_CELL_SIZE);
+        const gridY = Math.floor(cellY / CLUSTER_CELL_SIZE);
+        const blendX = smoothstep((cellX - gridX * CLUSTER_CELL_SIZE) / CLUSTER_CELL_SIZE);
+        const blendY = smoothstep((cellY - gridY * CLUSTER_CELL_SIZE) / CLUSTER_CELL_SIZE);
+        const top = hash(gridX + 1201, gridY - 809) * (1 - blendX) +
+            hash(gridX + 1202, gridY - 809) * blendX;
+        const bottom = hash(gridX + 1201, gridY - 808) * (1 - blendX) +
+            hash(gridX + 1202, gridY - 808) * blendX;
+        return top * (1 - blendY) + bottom * blendY;
+    }
+
+    function createGrass(isGrassTerrain, isEnhancedTerrain) {
         const patches = new Map();
         const visiblePatches = [];
         const previousPlayers = new Map();
@@ -35,23 +55,38 @@
 
         function createPatch(cellX, cellY) {
             const seed = hash(cellX, cellY);
-            if (seed > 0.43) return null;
             const x = (cellX + 0.18 + hash(cellX + 71, cellY - 19) * 0.64) * CELL_WIDTH;
             const y = (cellY + 0.18 + hash(cellX - 43, cellY + 53) * 0.64) * CELL_HEIGHT;
             if (!isGrassTerrain(x, y)) return null;
 
+            const enhanced = typeof isEnhancedTerrain === 'function' && isEnhancedTerrain(x, y);
+            const spawnChance = enhanced ? 0.12 + clusterDensity(cellX, cellY) * 0.62 : 0.43;
+            if (seed > spawnChance) return null;
             const colorVariant = hash(cellX + 113, cellY + 211);
+            const tuftVariant = hash(cellX + 401, cellY - 293);
             const patch = {
                 x: x,
                 y: y,
                 z: y,
                 phase: hash(cellX - 317, cellY + 127) * Math.PI * 2,
-                height: 9 + hash(cellX + 251, cellY - 97) * 8,
+                height: enhanced
+                    ? 13 + hash(cellX + 251, cellY - 97) * 8
+                    : 9 + hash(cellX + 251, cellY - 97) * 8,
+                bladeCount: enhanced ? 3 + Math.floor(tuftVariant * 5) : 3,
+                fanWidth: enhanced ? 0.22 + hash(cellX - 227, cellY + 367) * 0.3 : 0,
+                rootSpread: enhanced ? 0.7 + hash(cellX + 109, cellY + 317) * 0.8 : 1.1,
+                enhanced: enhanced,
+                bendRadius: enhanced ? 76 : BEND_RADIUS,
+                bendScale: enhanced ? 1.35 : 1,
                 lean: 0,
                 leanX: 0,
                 leanY: 0,
-                color: colorVariant < 0.34 ? '#4f9a42' : (colorVariant < 0.68 ? '#68ad4e' : '#83b95b'),
-                shade: colorVariant < 0.34 ? '#34783c' : '#4a8b3f',
+                color: enhanced
+                    ? (colorVariant < 0.34 ? '#8edb58' : (colorVariant < 0.68 ? '#b4ed63' : '#dcf47a'))
+                    : (colorVariant < 0.34 ? '#4f9a42' : (colorVariant < 0.68 ? '#68ad4e' : '#83b95b')),
+                shade: enhanced
+                    ? (colorVariant < 0.5 ? '#4b9c42' : '#68b94a')
+                    : (colorVariant < 0.34 ? '#34783c' : '#4a8b3f'),
                 draw: drawPatch
             };
             return patch;
@@ -99,34 +134,40 @@
         }
 
         function drawPatch(ctx) {
-            const breeze = Math.sin(now / 850 + this.phase) * 0.12;
-            const bendX = this.leanX + breeze;
-            const bendY = this.leanY;
+            const breeze = Math.sin(now / (this.enhanced ? 650 : 850) + this.phase) *
+                (this.enhanced ? 0.2 : 0.12);
+            const bendX = this.leanX * this.bendScale + breeze;
+            const bendY = this.leanY * this.bendScale;
             const height = this.height;
 
             ctx.save();
-            ctx.globalAlpha = 0.78;
+            ctx.globalAlpha = this.enhanced ? 0.96 : 0.78;
             ctx.lineCap = 'round';
-            ctx.lineWidth = 1.7;
+            ctx.lineWidth = this.enhanced ? 2.3 : 1.7;
             ctx.strokeStyle = this.shade;
             ctx.beginPath();
-            for (let blade = 0; blade < 3; blade++) {
-                const side = blade - 1;
-                const rootX = this.x + side * 2.1;
-                const bladeHeight = height * (0.72 + blade * 0.12);
-                const sway = bendX * bladeHeight * 1.45 + breeze * (blade + 1) * 1.8;
-                const lift = bendY * bladeHeight * 0.55;
+            const bladeCount = this.bladeCount;
+            const centerBlade = (bladeCount - 1) / 2;
+            for (let blade = 0; blade < bladeCount; blade++) {
+                const side = blade - centerBlade;
+                const spread = this.enhanced ? side * height * this.fanWidth : side * 2.1;
+                const rootX = this.x + side * this.rootSpread;
+                const bladeHeight = height * (this.enhanced
+                    ? 0.7 + (1 - Math.abs(side) / centerBlade) * 0.22
+                    : 0.72 + blade * 0.12);
+                const sway = bendX * bladeHeight * (this.enhanced ? 1.35 : 1.45) + breeze * (blade + 1) * 2.2;
+                const lift = bendY * bladeHeight * (this.enhanced ? 0.8 : 0.55);
                 ctx.moveTo(rootX, this.y);
                 ctx.quadraticCurveTo(
-                    rootX + sway * 0.45,
+                    rootX + spread * 0.45 + sway * 0.45,
                     this.y - bladeHeight * 0.58 + lift,
-                    rootX + sway,
+                    rootX + spread + sway,
                     this.y - bladeHeight + lift
                 );
             }
             ctx.stroke();
 
-            ctx.lineWidth = 0.8;
+            ctx.lineWidth = this.enhanced ? 1.1 : 0.8;
             ctx.strokeStyle = this.color;
             ctx.beginPath();
             ctx.moveTo(this.x, this.y - 1);
@@ -160,23 +201,26 @@
                     let targetLean = 0;
                     let targetLeanX = 0;
                     let targetLeanY = 0;
+                    let patchFrameBlend = frameBlend;
                     for (let i = 0; i < playerSnapshots.length; i++) {
                         const player = playerSnapshots[i];
                         const dx = patch.x - player.x;
                         const dy = patch.y - player.y;
                         const distance = Math.hypot(dx, dy);
-                        if (distance >= BEND_RADIUS) continue;
-                        const strength = 1 - distance / BEND_RADIUS;
+                        if (distance >= patch.bendRadius) continue;
+                        const strength = 1 - distance / patch.bendRadius;
                         if (strength > targetLean) {
                             targetLean = strength;
-                            targetLeanX = player.directionX * strength;
-                            targetLeanY = player.directionY * strength;
+                            const bendStrength = patch.enhanced ? Math.pow(strength, 0.9) : strength;
+                            targetLeanX = player.directionX * bendStrength;
+                            targetLeanY = player.directionY * bendStrength;
+                            if (patch.enhanced) patchFrameBlend = Math.min(1, Math.max(patchFrameBlend, (Number(deltaFrames) || 1) * 0.34));
                         }
                     }
 
-                    patch.lean += (targetLean - patch.lean) * frameBlend;
-                    patch.leanX += (targetLeanX - patch.leanX) * frameBlend;
-                    patch.leanY += (targetLeanY - patch.leanY) * frameBlend;
+                    patch.lean += (targetLean - patch.lean) * patchFrameBlend;
+                    patch.leanX += (targetLeanX - patch.leanX) * patchFrameBlend;
+                    patch.leanY += (targetLeanY - patch.leanY) * patchFrameBlend;
                     visiblePatches.push(patch);
                     if (visiblePatches.length >= MAX_PATCHES) break;
                 }

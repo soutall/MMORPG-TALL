@@ -1,0 +1,221 @@
+{
+  "group_id": "18eb2e5b-02f6-4cd8-9385-1b5e0f5801f5",
+  "states": [
+    {
+      "character": {
+        "id": "d2268c24-33ee-4f02-8d92-3e5db07a9c58",
+        "name": "parado",
+        "prompt": "Create a unique Heavy Metal Rocker character in pure 2D pixel art for a fantasy RPG. A rugged adult male rock musician with very long, messy black hair, a short beard, and dark sunglasses. Wear a black sleeveless rock vest, ripped black pants, heavy black leather boots, studded wristbands, metal chains, skull accessories and silver spikes. Add subtle dark-red details to his clothing for a rebellious heavy-metal aesthetic. A distinctive black-and-red electric guitar must be strapped diagonally across his back, clearly visible over his shoulder, never held in his hands. Muscular arms with rock tattoos, confident and intimidating attitude, distinctive silhouette. Full body, three-quarter front view, centered, transparent background, PNG. Crisp pixel edges, detailed pixel shading, strong contrast, authentic handcrafted pixel art for a 2D RPG. No text, no scenery, no extra characters, no blur, no 3D rendering, no smooth digital painting.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T11:51:48.417947+00:00"
+      },
+      "folder": "parado",
+      "frames": {
+        "rotations": {
+          "south": "parado/rotations/south.png",
+          "south-east": "parado/rotations/south-east.png",
+          "east": "parado/rotations/east.png",
+          "north-east": "parado/rotations/north-east.png",
+          "north": "parado/rotations/north.png",
+          "north-west": "parado/rotations/north-west.png",
+          "west": "parado/rotations/west.png",
+          "south-west": "parado/rotations/south-west.png"
+        },
+        "animations": {
+          "Idle": {
+            "north-03f68bc6": [
+              "parado/animations/Idle/north-03f68bc6/frame_000.png",
+              "parado/animations/Idle/north-03f68bc6/frame_001.png",
+              "parado/animations/Idle/north-03f68bc6/frame_002.png",
+              "parado/animations/Idle/north-03f68bc6/frame_003.png",
+              "parado/animations/Idle/north-03f68bc6/frame_004.png",
+              "parado/animations/Idle/north-03f68bc6/frame_005.png",
+              "parado/animations/Idle/north-03f68bc6/frame_006.png",
+              "parado/animations/Idle/north-03f68bc6/frame_007.png"
+            ],
+            "north-0d37a8e4": [
+              "parado/animations/Idle/north-0d37a8e4/frame_000.png",
+              "parado/animations/Idle/north-0d37a8e4/frame_001.png",
+              "parado/animations/Idle/north-0d37a8e4/frame_002.png",
+              "parado/animations/Idle/north-0d37a8e4/frame_003.png",
+              "parado/animations/Idle/north-0d37a8e4/frame_004.png",
+              "parado/animations/Idle/north-0d37a8e4/frame_005.png",
+              "parado/animations/Idle/north-0d37a8e4/frame_006.png",
+              "parado/animations/Idle/north-0d37a8e4/frame_007.png"
+            ],
+            "south": [
+              "parado/animations/Idle/south/frame_000.png",
+              "parado/animations/Idle/south/frame_001.png",
+              "parado/animations/Idle/south/frame_002.png",
+              "parado/animations/Idle/south/frame_003.png",
+              "parado/animations/Idle/south/frame_004.png",
+              "parado/animations/Idle/south/frame_005.png",
+              "parado/animations/Idle/south/frame_006.png",
+              "parado/animations/Idle/south/frame_007.png"
+            ],
+            "east-4eef18ce": [
+              "parado/animations/Idle/east-4eef18ce/frame_000.png",
+              "parado/animations/Idle/east-4eef18ce/frame_001.png",
+              "parado/animations/Idle/east-4eef18ce/frame_002.png",
+              "parado/animations/Idle/east-4eef18ce/frame_003.png",
+              "parado/animations/Idle/east-4eef18ce/frame_004.png",
+              "parado/animations/Idle/east-4eef18ce/frame_005.png",
+              "parado/animations/Idle/east-4eef18ce/frame_006.png",
+              "parado/animations/Idle/east-4eef18ce/frame_007.png"
+            ],
+            "east-88d26b21": [
+              "parado/animations/Idle/east-88d26b21/frame_000.png",
+              "parado/animations/Idle/east-88d26b21/frame_001.png",
+              "parado/animations/Idle/east-88d26b21/frame_002.png",
+              "parado/animations/Idle/east-88d26b21/frame_003.png",
+              "parado/animations/Idle/east-88d26b21/frame_004.png",
+              "parado/animations/Idle/east-88d26b21/frame_005.png",
+              "parado/animations/Idle/east-88d26b21/frame_006.png",
+              "parado/animations/Idle/east-88d26b21/frame_007.png"
+            ],
+            "west": [
+              "parado/animations/Idle/west/frame_000.png",
+              "parado/animations/Idle/west/frame_001.png",
+              "parado/animations/Idle/west/frame_002.png",
+              "parado/animations/Idle/west/frame_003.png",
+              "parado/animations/Idle/west/frame_004.png",
+              "parado/animations/Idle/west/frame_005.png",
+              "parado/animations/Idle/west/frame_006.png",
+              "parado/animations/Idle/west/frame_007.png"
+            ],
+            "north-b093e6a5": [
+              "parado/animations/Idle/north-b093e6a5/frame_000.png",
+              "parado/animations/Idle/north-b093e6a5/frame_001.png",
+              "parado/animations/Idle/north-b093e6a5/frame_002.png",
+              "parado/animations/Idle/north-b093e6a5/frame_003.png",
+              "parado/animations/Idle/north-b093e6a5/frame_004.png",
+              "parado/animations/Idle/north-b093e6a5/frame_005.png",
+              "parado/animations/Idle/north-b093e6a5/frame_006.png",
+              "parado/animations/Idle/north-b093e6a5/frame_007.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "c999509d-3001-43e8-a7d0-cfb2c6e5fd94",
+        "name": "andando",
+        "prompt": "Create a unique Heavy Metal Rocker character in pure 2D pixel art for a fantasy RPG. A rugged adult male rock musician with very long, messy black hair, a short beard, and dark sunglasses. Wear a black sleeveless rock vest, ripped black pants, heavy black leather boots, studded wristbands, metal chains, skull accessories and silver spikes. Add subtle dark-red details to his clothing for a rebellious heavy-metal aesthetic. A distinctive black-and-red electric guitar must be strapped diagonally across his back, clearly visible over his shoulder, never held in his hands. Muscular arms with rock tattoos, confident and intimidating attitude, distinctive silhouette. Full body, three-quarter front view, centered, transparent background, PNG. Crisp pixel edges, detailed pixel shading, strong contrast, authentic handcrafted pixel art for a 2D RPG. No text, no scenery, no extra characters, no blur, no 3D rendering, no smooth digital painting.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T12:51:48.876241+00:00"
+      },
+      "folder": "andando",
+      "frames": {
+        "rotations": {
+          "south": "andando/rotations/south.png",
+          "south-east": "andando/rotations/south-east.png",
+          "east": "andando/rotations/east.png",
+          "north-east": "andando/rotations/north-east.png",
+          "north": "andando/rotations/north.png",
+          "north-west": "andando/rotations/north-west.png",
+          "west": "andando/rotations/west.png",
+          "south-west": "andando/rotations/south-west.png"
+        },
+        "animations": {
+          "Walking": {
+            "north-west": [
+              "andando/animations/Walking/north-west/frame_000.png",
+              "andando/animations/Walking/north-west/frame_001.png",
+              "andando/animations/Walking/north-west/frame_002.png",
+              "andando/animations/Walking/north-west/frame_003.png",
+              "andando/animations/Walking/north-west/frame_004.png",
+              "andando/animations/Walking/north-west/frame_005.png",
+              "andando/animations/Walking/north-west/frame_006.png",
+              "andando/animations/Walking/north-west/frame_007.png"
+            ],
+            "north-east": [
+              "andando/animations/Walking/north-east/frame_000.png",
+              "andando/animations/Walking/north-east/frame_001.png",
+              "andando/animations/Walking/north-east/frame_002.png",
+              "andando/animations/Walking/north-east/frame_003.png",
+              "andando/animations/Walking/north-east/frame_004.png",
+              "andando/animations/Walking/north-east/frame_005.png",
+              "andando/animations/Walking/north-east/frame_006.png",
+              "andando/animations/Walking/north-east/frame_007.png"
+            ],
+            "west": [
+              "andando/animations/Walking/west/frame_000.png",
+              "andando/animations/Walking/west/frame_001.png",
+              "andando/animations/Walking/west/frame_002.png",
+              "andando/animations/Walking/west/frame_003.png",
+              "andando/animations/Walking/west/frame_004.png",
+              "andando/animations/Walking/west/frame_005.png",
+              "andando/animations/Walking/west/frame_006.png",
+              "andando/animations/Walking/west/frame_007.png"
+            ],
+            "south-west": [
+              "andando/animations/Walking/south-west/frame_000.png",
+              "andando/animations/Walking/south-west/frame_001.png",
+              "andando/animations/Walking/south-west/frame_002.png",
+              "andando/animations/Walking/south-west/frame_003.png",
+              "andando/animations/Walking/south-west/frame_004.png",
+              "andando/animations/Walking/south-west/frame_005.png",
+              "andando/animations/Walking/south-west/frame_006.png",
+              "andando/animations/Walking/south-west/frame_007.png"
+            ],
+            "south": [
+              "andando/animations/Walking/south/frame_000.png",
+              "andando/animations/Walking/south/frame_001.png",
+              "andando/animations/Walking/south/frame_002.png",
+              "andando/animations/Walking/south/frame_003.png",
+              "andando/animations/Walking/south/frame_004.png",
+              "andando/animations/Walking/south/frame_005.png",
+              "andando/animations/Walking/south/frame_006.png",
+              "andando/animations/Walking/south/frame_007.png"
+            ],
+            "east": [
+              "andando/animations/Walking/east/frame_000.png",
+              "andando/animations/Walking/east/frame_001.png",
+              "andando/animations/Walking/east/frame_002.png",
+              "andando/animations/Walking/east/frame_003.png",
+              "andando/animations/Walking/east/frame_004.png",
+              "andando/animations/Walking/east/frame_005.png",
+              "andando/animations/Walking/east/frame_006.png",
+              "andando/animations/Walking/east/frame_007.png"
+            ],
+            "north": [
+              "andando/animations/Walking/north/frame_000.png",
+              "andando/animations/Walking/north/frame_001.png",
+              "andando/animations/Walking/north/frame_002.png",
+              "andando/animations/Walking/north/frame_003.png",
+              "andando/animations/Walking/north/frame_004.png",
+              "andando/animations/Walking/north/frame_005.png",
+              "andando/animations/Walking/north/frame_006.png",
+              "andando/animations/Walking/north/frame_007.png"
+            ],
+            "south-east": [
+              "andando/animations/Walking/south-east/frame_000.png",
+              "andando/animations/Walking/south-east/frame_001.png",
+              "andando/animations/Walking/south-east/frame_002.png",
+              "andando/animations/Walking/south-east/frame_003.png",
+              "andando/animations/Walking/south-east/frame_004.png",
+              "andando/animations/Walking/south-east/frame_005.png",
+              "andando/animations/Walking/south-east/frame_006.png",
+              "andando/animations/Walking/south-east/frame_007.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-10-14T21:28:29.314707"
+}

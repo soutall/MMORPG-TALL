@@ -2,6 +2,116 @@
     'use strict';
 
     const TAU = Math.PI * 2;
+    const MALAKAR_BASE_SPRITES = new URL('../sprites/classes/malakar/', document.currentScript.src);
+    const MALAKAR_DIRECOES_ANDANDO = ['east', 'south-east', 'south', 'south-west', 'west', 'north-west', 'north', 'north-east'];
+    const MALAKAR_DIRECOES_PARADO = ['east', 'south', 'west', 'north'];
+    const malakarGruposSprites = Object.create(null);
+    const malakarDirecoesSprites = Object.create(null);
+    const malakarUltimosFrames = Object.create(null);
+    let malakarFrameReserva = null;
+
+    function carregarGrupoMalakar(andando, direcao) {
+        const animacao = andando ? 'walking' : 'idle_breathing';
+        const chave = animacao + ':' + direcao;
+        if (malakarGruposSprites[chave]) return malakarGruposSprites[chave];
+
+        const pasta = andando ? 'Andando/animations/Walking/' : 'Parado/animations/idle_breathing/';
+        const grupo = { imagens: [] };
+        malakarGruposSprites[chave] = grupo;
+        for (let i = 0; i < 8; i++) {
+            const imagem = new Image();
+            imagem.onload = function () {
+                if (!malakarFrameReserva) malakarFrameReserva = imagem;
+            };
+            imagem.onerror = function () {
+                console.error('Falha ao carregar frame do Malakar:', imagem.src);
+            };
+            imagem.src = new URL(
+                pasta + direcao + '/frame_' + String(i).padStart(3, '0') + '.png',
+                MALAKAR_BASE_SPRITES
+            ).href;
+            grupo.imagens.push(imagem);
+        }
+        return grupo;
+    }
+
+    function obterDirecaoMalakar(angulo, andando, playerId) {
+        const direcoes = andando ? MALAKAR_DIRECOES_ANDANDO : MALAKAR_DIRECOES_PARADO;
+        const passoSetor = TAU / direcoes.length;
+        const anguloSeguro = Number.isFinite(angulo) ? angulo : 0;
+        const anterior = malakarDirecoesSprites[playerId];
+        let setor = ((Math.round(anguloSeguro / passoSetor) % direcoes.length) + direcoes.length) % direcoes.length;
+        if (anterior && anterior.andando === andando) {
+            const centroAnterior = anterior.setor * passoSetor;
+            const diferenca = Math.atan2(
+                Math.sin(anguloSeguro - centroAnterior),
+                Math.cos(anguloSeguro - centroAnterior)
+            );
+            if (Math.abs(diferenca) < passoSetor / 2 + Math.PI / 36) setor = anterior.setor;
+        }
+        malakarDirecoesSprites[playerId] = { andando: andando, setor: setor };
+        return direcoes[setor];
+    }
+
+    function obterFrameMalakar(grupo, indice) {
+        if (!grupo) return null;
+        const atual = grupo.imagens[indice];
+        if (atual && atual.complete && atual.naturalWidth > 0) return atual;
+        for (let distancia = 1; distancia < grupo.imagens.length; distancia++) {
+            const anterior = grupo.imagens[(indice - distancia + grupo.imagens.length) % grupo.imagens.length];
+            const seguinte = grupo.imagens[(indice + distancia) % grupo.imagens.length];
+            if (anterior && anterior.complete && anterior.naturalWidth > 0) return anterior;
+            if (seguinte && seguinte.complete && seguinte.naturalWidth > 0) return seguinte;
+        }
+        return null;
+    }
+
+    function alinharMalakarNaGrade(ctx) {
+        if (typeof ctx.getTransform !== 'function') return { x: 0, y: 0 };
+        const transformacao = ctx.getTransform();
+        const determinante = transformacao.a * transformacao.d - transformacao.b * transformacao.c;
+        if (!Number.isFinite(determinante) || Math.abs(determinante) < 0.000001) return { x: 0, y: 0 };
+        const deltaX = Math.round(transformacao.e) - transformacao.e;
+        const deltaY = Math.round(transformacao.f) - transformacao.f;
+        return {
+            x: (transformacao.d * deltaX - transformacao.c * deltaY) / determinante,
+            y: (-transformacao.b * deltaX + transformacao.a * deltaY) / determinante
+        };
+    }
+
+    function drawMalakarSprite(ctx, isMoving, angle, playerId, time) {
+        const direcao = obterDirecaoMalakar(angle, isMoving, playerId);
+        const grupo = carregarGrupoMalakar(isMoving, direcao);
+        const indice = Math.floor(time / (isMoving ? 110 : 160)) % 8;
+        let imagem = obterFrameMalakar(grupo, indice);
+        if (!imagem && malakarFrameReserva && malakarFrameReserva.complete && malakarFrameReserva.naturalWidth > 0) {
+            imagem = malakarFrameReserva;
+        }
+        if (imagem) malakarUltimosFrames[playerId] = imagem;
+        else imagem = malakarUltimosFrames[playerId];
+        if (!imagem || !imagem.complete || imagem.naturalWidth <= 0) return;
+
+        const escala = 1;
+        const largura = imagem.naturalWidth * escala;
+        const altura = imagem.naturalHeight * escala;
+        const posicao = alinharMalakarNaGrade(ctx);
+        const suavizacaoAnterior = ctx.imageSmoothingEnabled;
+        const qualidadeAnterior = ctx.imageSmoothingQuality;
+        ctx.save();
+        ctx.translate(posicao.x, posicao.y);
+        ctx.imageSmoothingEnabled = true;
+        ctx.imageSmoothingQuality = 'high';
+        try {
+            ctx.drawImage(imagem, -largura / 2, 16 - altura, largura, altura);
+        } finally {
+            ctx.imageSmoothingEnabled = suavizacaoAnterior;
+            ctx.imageSmoothingQuality = qualidadeAnterior;
+            ctx.restore();
+        }
+    }
+
+    MALAKAR_DIRECOES_PARADO.forEach(function (direcao) { carregarGrupoMalakar(false, direcao); });
+    MALAKAR_DIRECOES_ANDANDO.forEach(function (direcao) { carregarGrupoMalakar(true, direcao); });
 
     function path(ctx, points, close) {
         ctx.beginPath();
@@ -91,7 +201,7 @@
         }
     }
 
-    function drawMalakar(x, y, isMoving, angle, hp, maxHp, playerId) {
+    function drawMalakar(x, y, isMoving, angle, hp, maxHp, playerId, movementAngle) {
         const ctx = window.ctx;
         if (!ctx || hp <= 0) return;
         const now = Date.now();
@@ -99,8 +209,6 @@
         const local = playerId === window.meuId;
         const player = window.todosJogadores && window.todosJogadores[playerId];
         const suffering = !!(player && player.lordMalakarSuffering);
-        const walk = isMoving ? Math.sin((window.walkCycle || 0) * 0.7) : 0;
-        const breath = Math.sin(time / 430 + (Number(playerId && playerId.length) || 0)) * 1.3;
         const cx = x + 12;
         const cy = y + 16;
         const aimX = local && window.mouseJaMoveu ? window.mouseWorldX - cx : Math.cos(angle || 0) * 140;
@@ -112,11 +220,6 @@
         ctx.save();
         ctx.translate(cx, cy);
 
-        ctx.fillStyle = 'rgba(10, 3, 9, .54)';
-        ctx.beginPath();
-        ctx.ellipse(0, 13, 20, 6, 0, 0, TAU);
-        ctx.fill();
-
         if (suffering) {
             const pulse = 0.18 + (Math.sin(time / 170) + 1) * 0.08;
             ctx.strokeStyle = 'rgba(255, 24, 57, ' + pulse + ')';
@@ -126,133 +229,9 @@
             ctx.stroke();
         }
 
-        ctx.save();
-        ctx.translate(0, breath * 0.65);
-        ctx.scale(1, 1 + breath * 0.006);
-
-        ctx.fillStyle = '#09090e';
-        path(ctx, [[-9, 6], [-8, 12 + walk], [-3, 12 + walk], [-2, 5]]);
-        ctx.fill();
-        path(ctx, [[2, 5], [3, 12 - walk], [8, 12 - walk], [9, 6]]);
-        ctx.fill();
-        ctx.fillStyle = '#32141c';
-        path(ctx, [[-10, 10 + walk], [-2, 10 + walk], [-2, 13 + walk], [-11, 13 + walk]]);
-        ctx.fill();
-        path(ctx, [[2, 10 - walk], [10, 10 - walk], [12, 13 - walk], [3, 13 - walk]]);
-        ctx.fill();
-        ctx.strokeStyle = '#a1283c';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(-10, 10 + walk);
-        ctx.lineTo(-2, 10 + walk);
-        ctx.moveTo(2, 10 - walk);
-        ctx.lineTo(10, 10 - walk);
-        ctx.stroke();
-
-        ctx.fillStyle = '#130b10';
-        ctx.shadowColor = suffering ? '#ec173d' : '#45101f';
-        ctx.shadowBlur = suffering ? 15 : 7;
-        path(ctx, [[-10, -9], [-15, -4], [-17, 8], [-12, 13], [-7, 7], [-5, -4]]);
-        ctx.fill();
-        path(ctx, [[9, -9], [15, -4], [17, 8], [12, 13], [7, 7], [5, -4]]);
-        ctx.fill();
-        ctx.shadowBlur = 0;
-        ctx.strokeStyle = '#812238';
-        ctx.lineWidth = 1.2;
-        ctx.stroke();
-        ctx.fillStyle = '#5d1324';
-        path(ctx, [[-15, -2], [-19, 4], [-14, 3], [-12, 7], [-9, 1]]);
-        ctx.fill();
-        path(ctx, [[15, -2], [19, 4], [14, 3], [12, 7], [9, 1]]);
-        ctx.fill();
-
-        ctx.fillStyle = '#201219';
-        path(ctx, [[-10, -9], [-7, -15], [-3, -17], [4, -17], [8, -13], [11, 0], [7, 9], [0, 12], [-8, 8], [-11, 0]]);
-        ctx.fill();
-        ctx.strokeStyle = '#b28b58';
-        ctx.lineWidth = 1;
-        ctx.stroke();
-
-        ctx.fillStyle = '#501927';
-        path(ctx, [[-8, -14], [-13, -18], [-7, -18], [-2, -15], [0, -10]]);
-        ctx.fill();
-        path(ctx, [[8, -14], [13, -18], [7, -18], [2, -15], [0, -10]]);
-        ctx.fill();
-        ctx.fillStyle = '#171017';
-        path(ctx, [[-7, -15], [-5, -19], [-1, -16], [2, -19], [7, -14], [5, -10], [-4, -10]]);
-        ctx.fill();
-        ctx.strokeStyle = '#b08a57';
-        ctx.lineWidth = .8;
-        ctx.stroke();
-
-        ctx.fillStyle = '#bca9a5';
-        path(ctx, [[-4, -15], [-5, -10], [-3, -7], [0, -6], [4, -9], [4, -14]]);
-        ctx.fill();
-        ctx.fillStyle = '#e7d1c7';
-        ctx.beginPath();
-        ctx.ellipse(0, -12, 4.1, 5.6, 0, 0, TAU);
-        ctx.fill();
-        ctx.fillStyle = '#38232b';
-        path(ctx, [[-4, -14], [0, -17], [5, -14], [3, -12], [-1, -13]]);
-        ctx.fill();
-        glowOrb(ctx, -2.1, -11.7, .8, '#ff263f', 8);
-        glowOrb(ctx, 2.2, -11.7, .8, '#ff263f', 8);
-        ctx.strokeStyle = '#6a3940';
-        ctx.lineWidth = .6;
-        ctx.beginPath();
-        ctx.moveTo(-1, -9);
-        ctx.lineTo(0, -7);
-        ctx.lineTo(1, -9);
-        ctx.stroke();
-
-        ctx.fillStyle = '#bbb2bd';
-        path(ctx, [[-5, -15], [-8, -21], [-6, -27], [-3, -20], [-1, -25], [0, -19], [4, -26], [4, -19], [8, -22], [7, -15], [4, -13], [2, -17], [-1, -13]]);
-        ctx.fill();
-        ctx.fillStyle = '#64505f';
-        path(ctx, [[-7, -18], [-10, -24], [-9, -17], [-6, -14]]);
-        ctx.fill();
-        path(ctx, [[6, -17], [11, -23], [9, -16], [6, -12]]);
-        ctx.fill();
-
-        ctx.fillStyle = '#130b10';
-        path(ctx, [[-8, -5], [-13, 1], [-12, 8], [-8, 5], [-5, -2]]);
-        ctx.fill();
-        path(ctx, [[8, -5], [13, 1], [12, 8], [8, 5], [5, -2]]);
-        ctx.fill();
-        ctx.strokeStyle = '#bb9b66';
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.moveTo(-9, -4);
-        ctx.lineTo(-13, 2);
-        ctx.moveTo(9, -4);
-        ctx.lineTo(13, 2);
-        ctx.stroke();
-        ctx.fillStyle = '#9f1c34';
-        path(ctx, [[-7, 4], [-3, 9], [0, 6], [3, 9], [7, 4], [6, 11], [0, 14], [-6, 11]]);
-        ctx.fill();
-        ctx.strokeStyle = '#8f6c4b';
-        ctx.lineWidth = .8;
-        ctx.beginPath();
-        ctx.moveTo(0, -4);
-        ctx.lineTo(0, 6);
-        ctx.stroke();
-        glowOrb(ctx, 0, 1, 1.7, '#ff1d3f', suffering ? 15 : 8);
-
-        ctx.fillStyle = '#171014';
-        path(ctx, [[-5, 1], [-9, 6], [-7, 10], [-3, 6]]);
-        ctx.fill();
-        path(ctx, [[5, 1], [9, 6], [7, 10], [3, 6]]);
-        ctx.fill();
-        ctx.strokeStyle = '#b4915f';
-        ctx.beginPath();
-        ctx.moveTo(-7, 5);
-        ctx.lineTo(-4, 9);
-        ctx.moveTo(7, 5);
-        ctx.lineTo(4, 9);
-        ctx.stroke();
-
+        const anguloSprite = isMoving && Number.isFinite(movementAngle) ? movementAngle : angle;
+        drawMalakarSprite(ctx, Boolean(isMoving), anguloSprite, playerId || '__local__', time);
         if (suffering) drawBloodDrips(ctx, time, String(playerId || '').length);
-        ctx.restore();
 
         drawLantern(ctx, -15, -4, time);
         drawBook(ctx, bookX, bookY, aimAngle, time);
@@ -3405,18 +3384,19 @@
         ctx.restore();
     }
 
-    function drawRange(player, x, y, local, hasTarget, targetInfo) {
+    function drawRange(player, x, y, local, hasTarget, targetInfo, range) {
         const ctx = window.ctx;
-        if (!ctx || !local || !hasTarget) return;
+        if (!ctx || !local) return;
         const px = x + 12;
         const py = y + 16;
+        const radius = Number.isFinite(range) && range > 0 ? range : 242;
         ctx.save();
         ctx.fillStyle = 'rgba(222, 20, 55, .035)';
         ctx.strokeStyle = 'rgba(251, 57, 83, .34)';
         ctx.lineWidth = 1;
         ctx.setLineDash([6, 8]);
         ctx.beginPath();
-        ctx.arc(px, py, 200, 0, TAU);
+        ctx.arc(px, py, radius, 0, TAU);
         ctx.fill();
         ctx.stroke();
         ctx.setLineDash([]);

@@ -47,8 +47,16 @@ function carregarTodos() {
 // Salva o registro completo no arquivo JSON
 function salvarTodos(dados) {
     const tmpFile = DB_FILE + '.' + process.pid + '.' + crypto.randomUUID() + '.tmp';
+    // === INSTRUMENTACAO DE DISCO (descobrir o custo real de persistir) ===
+    const perfDisco = global.__perfDisco || (global.__perfDisco = {
+        chamadas: 0, totalMs: 0, maxMs: 0, stringifyMs: 0, fsyncMs: 0, bytes: 0, ultimoRel: 0
+    });
+    const t0 = process.hrtime.bigint();
+    const tJson = process.hrtime.bigint();
     try {
         const payload = JSON.stringify(dados, null, 2);
+        perfDisco.stringifyMs += Number(process.hrtime.bigint() - tJson) / 1e6;
+        const tFsync = process.hrtime.bigint();
         const fd = fs.openSync(tmpFile, 'wx');
         try {
             fs.writeFileSync(fd, payload, 'utf-8');
@@ -56,7 +64,21 @@ function salvarTodos(dados) {
         } finally {
             fs.closeSync(fd);
         }
+        perfDisco.fsyncMs += Number(process.hrtime.bigint() - tFsync) / 1e6;
         fs.renameSync(tmpFile, DB_FILE);
+        const ms = Number(process.hrtime.bigint() - t0) / 1e6;
+        perfDisco.chamadas++;
+        perfDisco.totalMs += ms;
+        perfDisco.bytes = payload.length;
+        if (ms > perfDisco.maxMs) perfDisco.maxMs = ms;
+        const agora = Date.now();
+        if (agora - perfDisco.ultimoRel >= 5000) {
+            perfDisco.ultimoRel = agora;
+            const n = Math.max(1, perfDisco.chamadas);
+            console.log(`[PERF-DISCO] salvadas ${perfDisco.chamadas} | total ${(perfDisco.totalMs / n).toFixed(2)} ms (pico ${perfDisco.maxMs.toFixed(2)}) | JSON.stringify ${(perfDisco.stringifyMs / n).toFixed(2)} ms | write+fsync ${(perfDisco.fsyncMs / n).toFixed(2)} ms | ${(perfDisco.bytes / 1024).toFixed(0)} KB`);
+            perfDisco.chamadas = 0; perfDisco.totalMs = 0; perfDisco.maxMs = 0;
+            perfDisco.stringifyMs = 0; perfDisco.fsyncMs = 0;
+        }
         return true;
     } catch (e) {
         console.error("Erro ao gravar banco de dados JSON:", e);

@@ -24,9 +24,14 @@ function ladinoPush(lista, p) {
 // ===== ATAQUE BÁSICO: CORTE DA ADAGA (arco + faísca) =====
 window.criarAnimacaoAdagaBasica = function(x, y, ang) {
     if (x === undefined || y === undefined) return;
+    const direcao = ang || 0;
     ladinoPush('ladinoCortes', {
-        x: x, y: y, ang: ang || 0,
-        raio: 14, vida: 0.16, alpha: 1.0, vivo: 1
+        x: x, y: y, ang: direcao - 0.16,
+        raio: 18, vida: 0.12, alpha: 1.0, atraso: 0, vivo: 1
+    });
+    ladinoPush('ladinoCortes', {
+        x: x, y: y, ang: direcao + 0.18,
+        raio: 21, vida: 0.12, alpha: 1.0, atraso: 0.11, vivo: 1
     });
     // Faísca rápida na ponta da lâmina
     for (let i = 0; i < 3; i++) {
@@ -162,17 +167,40 @@ window.desenharEfeitosLadino = function() {
         // Fade: entra (~0,5s) e some no fim (~0,5s) usando o tempo restante do servidor
         const fade = Math.max(0, Math.min(1, Math.min(gz.tempo, 10) / 10));
         if (fade <= 0) continue;
-        // Nuvem base em 3 camadas translúcidas (volume suave, sem gradiente pesado)
+        const pulse = 1 + Math.sin(Date.now() / 420 + gi) * 0.045;
+        const radius = gz.raio * pulse;
+        const drift = Date.now() / 900 + gi * 1.7;
         ctx.save();
-        ctx.globalAlpha = 0.14 * fade;
-        ctx.fillStyle = '#27ae60';
-        ctx.beginPath(); ctx.arc(gz.x, gz.y, gz.raio, 0, Math.PI * 2); ctx.fill();
-        ctx.globalAlpha = 0.20 * fade;
-        ctx.fillStyle = '#2ecc71';
-        ctx.beginPath(); ctx.arc(gz.x + gz.raio * 0.15, gz.y - gz.raio * 0.1, gz.raio * 0.72, 0, Math.PI * 2); ctx.fill();
-        ctx.globalAlpha = 0.16 * fade;
-        ctx.fillStyle = '#145a32';
-        ctx.beginPath(); ctx.arc(gz.x - gz.raio * 0.2, gz.y + gz.raio * 0.15, gz.raio * 0.46, 0, Math.PI * 2); ctx.fill();
+        ctx.globalAlpha = 0.58 * fade;
+        const cloud = ctx.createRadialGradient(gz.x, gz.y, radius * 0.08, gz.x, gz.y, radius);
+        cloud.addColorStop(0, 'rgba(82, 255, 127, 0.56)');
+        cloud.addColorStop(0.48, 'rgba(23, 178, 78, 0.34)');
+        cloud.addColorStop(0.82, 'rgba(9, 94, 48, 0.16)');
+        cloud.addColorStop(1, 'rgba(9, 94, 48, 0)');
+        ctx.fillStyle = cloud;
+        ctx.beginPath(); ctx.arc(gz.x, gz.y, radius, 0, Math.PI * 2); ctx.fill();
+
+        // Camadas assimétricas dão volume e movimento sem criar novas listas de partículas.
+        for (let w = 0; w < 5; w++) {
+            const angle = drift + w * (Math.PI * 2 / 5);
+            const orbit = radius * (0.18 + (w % 2) * 0.1);
+            const wx = gz.x + Math.cos(angle) * orbit;
+            const wy = gz.y + Math.sin(angle * 0.83) * orbit * 0.55 - radius * 0.06;
+            const wr = radius * (0.28 + (w % 3) * 0.035);
+            ctx.globalAlpha = (0.16 + (w % 2) * 0.04) * fade;
+            const wisp = ctx.createRadialGradient(wx - wr * 0.2, wy - wr * 0.25, wr * 0.05, wx, wy, wr);
+            wisp.addColorStop(0, 'rgba(129, 255, 145, 0.7)');
+            wisp.addColorStop(0.58, 'rgba(26, 177, 77, 0.52)');
+            wisp.addColorStop(1, 'rgba(13, 88, 45, 0)');
+            ctx.fillStyle = wisp;
+            ctx.beginPath(); ctx.ellipse(wx, wy, wr, wr * 0.72, angle * 0.12, 0, Math.PI * 2); ctx.fill();
+        }
+        ctx.globalAlpha = 0.3 * fade;
+        ctx.strokeStyle = 'rgba(155, 255, 162, 0.55)';
+        ctx.lineWidth = Math.max(1, gz.raio * 0.012);
+        ctx.beginPath();
+        ctx.ellipse(gz.x, gz.y, radius * 0.56, radius * 0.38, drift * 0.12, drift, drift + Math.PI * 1.45);
+        ctx.stroke();
         ctx.restore();
         // Borda tracejada delimitando a área da cegueira
         ctx.save();
@@ -205,8 +233,17 @@ window.desenharEfeitosLadino = function() {
         else {
             ctx.save();
             ctx.globalAlpha = q.vida * 0.7;
-            ctx.strokeStyle = '#c39bd3';
-            ctx.lineWidth = 2.4;
+            ctx.strokeStyle = '#e9b8ff';
+            ctx.lineWidth = 5;
+            ctx.shadowColor = '#b83dff';
+            ctx.shadowBlur = 18;
+            ctx.beginPath();
+            ctx.moveTo(q.x, q.y - 96);
+            ctx.lineTo(q.x, q.y - 10);
+            ctx.stroke();
+            ctx.shadowBlur = 0;
+            ctx.strokeStyle = 'rgba(255,255,255,0.9)';
+            ctx.lineWidth = 1.2;
             ctx.beginPath();
             ctx.moveTo(q.x, q.y - 96);
             ctx.lineTo(q.x, q.y - 10);
@@ -218,6 +255,10 @@ window.desenharEfeitosLadino = function() {
     // --- Cortes da adaga (arco translúcido) ---
     for (let i = window.ladinoCortes.length - 1; i >= 0; i--) {
         const c = window.ladinoCortes[i];
+        if (c.atraso > 0) {
+            c.atraso -= dt;
+            continue;
+        }
         c.vida -= dt; c.alpha -= dt * 5;
         if (c.vida <= 0 || c.alpha <= 0) { window.ladinoCortes.splice(i, 1); continue; }
         ctx.save();
@@ -279,11 +320,22 @@ window.desenharEfeitosLadino = function() {
         g.vida -= dt; g.x += g.vx; g.y += g.vy; g.alpha -= dt * 1.4;
         if (g.vida <= 0 || g.alpha <= 0) { window.ladinoGasPuffs.splice(i, 1); continue; }
         ctx.save();
-        ctx.globalAlpha = Math.max(0, g.alpha) * 0.35;
-        ctx.fillStyle = g.cor || '#27ae60';
+        const puffSize = g.tamanho * (0.72 + (1 - g.vida) * 0.5);
+        ctx.globalAlpha = Math.max(0, g.alpha) * 0.56;
+        const puff = ctx.createRadialGradient(g.x - puffSize * 0.24, g.y - puffSize * 0.3, 0, g.x, g.y, puffSize);
+        puff.addColorStop(0, 'rgba(173, 255, 131, 0.88)');
+        puff.addColorStop(0.35, g.cor || 'rgba(39, 174, 96, 0.72)');
+        puff.addColorStop(1, 'rgba(18, 93, 46, 0)');
+        ctx.fillStyle = puff;
         ctx.beginPath();
-        ctx.arc(g.x, g.y, g.tamanho, 0, Math.PI * 2);
+        ctx.arc(g.x, g.y, puffSize, 0, Math.PI * 2);
         ctx.fill();
+        ctx.globalAlpha = Math.max(0, g.alpha) * 0.45;
+        ctx.strokeStyle = 'rgba(176, 255, 140, 0.8)';
+        ctx.lineWidth = 0.8;
+        ctx.beginPath();
+        ctx.arc(g.x, g.y, puffSize * 0.48, -0.5, Math.PI * 1.15);
+        ctx.stroke();
         ctx.restore();
     }
 
@@ -308,9 +360,33 @@ window.desenharEfeitosLadino = function() {
         if (e.vida <= 0 || e.alpha <= 0) { window.ladinoEstrelaVisual = null; }
         else {
             ctx.save();
-            ctx.globalAlpha = Math.max(0, e.alpha) * 0.7;
-            ctx.strokeStyle = '#c39bd3';
-            ctx.lineWidth = 2;
+            e.giro = (e.giro || 0) + dt * 0.45;
+            const strength = Math.max(0, e.alpha);
+            const pulse = 0.94 + Math.sin(Date.now() / 110) * 0.06;
+            ctx.globalAlpha = strength * 0.32;
+            const aura = ctx.createRadialGradient(e.cx, e.cy, 2, e.cx, e.cy, e.raio * pulse);
+            aura.addColorStop(0, 'rgba(187, 63, 255, 0.38)');
+            aura.addColorStop(0.58, 'rgba(104, 39, 154, 0.2)');
+            aura.addColorStop(1, 'rgba(70, 20, 110, 0)');
+            ctx.fillStyle = aura;
+            ctx.beginPath(); ctx.arc(e.cx, e.cy, e.raio * pulse, 0, Math.PI * 2); ctx.fill();
+
+            ctx.globalAlpha = strength * 0.78;
+            ctx.strokeStyle = '#a64dff';
+            ctx.lineWidth = 2.6;
+            ctx.setLineDash([8, 5]);
+            ctx.beginPath(); ctx.arc(e.cx, e.cy, e.raio * pulse, e.giro, e.giro + Math.PI * 1.75); ctx.stroke();
+            ctx.setLineDash([2, 7]);
+            ctx.strokeStyle = 'rgba(235, 190, 255, 0.85)';
+            ctx.lineWidth = 1;
+            ctx.beginPath(); ctx.arc(e.cx, e.cy, e.raio * 0.78, -e.giro * 1.4, -e.giro * 1.4 + Math.PI * 1.8); ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.globalAlpha = strength * 0.88;
+            ctx.strokeStyle = '#edceff';
+            ctx.lineWidth = 2.2;
+            ctx.shadowColor = '#c54cff';
+            ctx.shadowBlur = 12;
             // Estrela de 5 pontas: liga os vértices em ordem de estrela
             const pts = e.pontos;
             if (pts && pts.length === 5) {
@@ -323,12 +399,28 @@ window.desenharEfeitosLadino = function() {
                 }
                 ctx.stroke();
             } else {
-                // fallback: círculo pontilhado
-                ctx.setLineDash([6, 6]);
+                ctx.setLineDash([5, 5]);
                 ctx.beginPath();
                 ctx.arc(e.cx, e.cy, e.raio, 0, Math.PI * 2);
                 ctx.stroke();
                 ctx.setLineDash([]);
+            }
+            ctx.shadowBlur = 0;
+            // Cinco focos pulsam nos vértices da marca, ligados ao mesmo evento do servidor.
+            if (pts && pts.length === 5) {
+                for (let k = 0; k < pts.length; k++) {
+                    const p = pts[k];
+                    const blink = 2.2 + Math.sin(Date.now() / 90 + k * 1.25) * 1.1;
+                    ctx.globalAlpha = strength * 0.9;
+                    ctx.fillStyle = '#fff0ff';
+                    ctx.shadowColor = '#bd42ff';
+                    ctx.shadowBlur = 12;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, blink, 0, Math.PI * 2); ctx.fill();
+                    ctx.shadowBlur = 0;
+                    ctx.strokeStyle = 'rgba(221, 154, 255, 0.9)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.arc(p.x, p.y, blink + 3, 0, Math.PI * 2); ctx.stroke();
+                }
             }
             ctx.restore();
         }
@@ -355,12 +447,15 @@ window.desenharEfeitosLadino = function() {
         if (o.vida <= 0 || o.alpha <= 0) { window.ladinoOndas.splice(i, 1); continue; }
         ctx.save();
         ctx.globalAlpha = Math.max(0, o.alpha) * 0.8;
-        ctx.strokeStyle = '#f39c12';
+        ctx.strokeStyle = '#e891ff';
         ctx.lineWidth = 3;
+        ctx.shadowColor = '#a02cff';
+        ctx.shadowBlur = 13;
         ctx.beginPath();
         ctx.arc(o.x, o.y, Math.min(o.raio, o.raioMax), 0, Math.PI * 2);
         ctx.stroke();
-        ctx.strokeStyle = '#c0392b';
+        ctx.shadowBlur = 0;
+        ctx.strokeStyle = '#f5e7ff';
         ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.arc(o.x, o.y, Math.min(o.raio * 0.6, o.raioMax), 0, Math.PI * 2);

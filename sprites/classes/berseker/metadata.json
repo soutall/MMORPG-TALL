@@ -1,0 +1,181 @@
+{
+  "group_id": "dcfaeabf-d1e5-4292-9747-87bb183eee85",
+  "states": [
+    {
+      "character": {
+        "id": "22836a17-f986-4444-b93b-566317a3dac7",
+        "name": "parado",
+        "prompt": "Create a unique Berserker Executioner in pure 2D pixel art for a dark medieval RPG. A massive, intimidating warrior inspired by ancient medieval executioners. Muscular build, completely hidden face beneath a pointed, blood-red hood, scarred exposed arms, heavy leather straps, rusted metal armor, hanging chains, skull ornaments and a long torn black-and-crimson cloak. A massive, rectangular executioner guillotine blade mounted vertically on his back, secured with thick leather straps and chains. The weapon must remain on his back, never in his hands. Dark red, black, brown and aged steel palette. Brutal silhouette, detailed pixel shading, crisp edges, high contrast. Full body, front three-quarter view, transparent background, PNG. No text, no scenery, no blur, no 3D rendering, no smooth digital painting. Authentic handcrafted pixel art, designed for a 2D RPG.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T02:44:47.169436+00:00"
+      },
+      "folder": "parado",
+      "frames": {
+        "rotations": {
+          "south": "parado/rotations/south.png",
+          "south-east": "parado/rotations/south-east.png",
+          "east": "parado/rotations/east.png",
+          "north-east": "parado/rotations/north-east.png",
+          "north": "parado/rotations/north.png",
+          "north-west": "parado/rotations/north-west.png",
+          "west": "parado/rotations/west.png",
+          "south-west": "parado/rotations/south-west.png"
+        },
+        "animations": {
+          "idle_breathing": {
+            "north": [
+              "parado/animations/idle_breathing/north/frame_000.png",
+              "parado/animations/idle_breathing/north/frame_001.png",
+              "parado/animations/idle_breathing/north/frame_002.png",
+              "parado/animations/idle_breathing/north/frame_003.png",
+              "parado/animations/idle_breathing/north/frame_004.png",
+              "parado/animations/idle_breathing/north/frame_005.png",
+              "parado/animations/idle_breathing/north/frame_006.png",
+              "parado/animations/idle_breathing/north/frame_007.png"
+            ],
+            "east": [
+              "parado/animations/idle_breathing/east/frame_000.png",
+              "parado/animations/idle_breathing/east/frame_001.png",
+              "parado/animations/idle_breathing/east/frame_002.png",
+              "parado/animations/idle_breathing/east/frame_003.png",
+              "parado/animations/idle_breathing/east/frame_004.png",
+              "parado/animations/idle_breathing/east/frame_005.png",
+              "parado/animations/idle_breathing/east/frame_006.png",
+              "parado/animations/idle_breathing/east/frame_007.png"
+            ],
+            "south": [
+              "parado/animations/idle_breathing/south/frame_000.png",
+              "parado/animations/idle_breathing/south/frame_001.png",
+              "parado/animations/idle_breathing/south/frame_002.png",
+              "parado/animations/idle_breathing/south/frame_003.png",
+              "parado/animations/idle_breathing/south/frame_004.png",
+              "parado/animations/idle_breathing/south/frame_005.png",
+              "parado/animations/idle_breathing/south/frame_006.png",
+              "parado/animations/idle_breathing/south/frame_007.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "26d1cb77-d2b7-4f22-b37e-b8c19ff91461",
+        "name": "andando",
+        "prompt": "Create a unique Berserker Executioner in pure 2D pixel art for a dark medieval RPG. A massive, intimidating warrior inspired by ancient medieval executioners. Muscular build, completely hidden face beneath a pointed, blood-red hood, scarred exposed arms, heavy leather straps, rusted metal armor, hanging chains, skull ornaments and a long torn black-and-crimson cloak. A massive, rectangular executioner guillotine blade mounted vertically on his back, secured with thick leather straps and chains. The weapon must remain on his back, never in his hands. Dark red, black, brown and aged steel palette. Brutal silhouette, detailed pixel shading, crisp edges, high contrast. Full body, front three-quarter view, transparent background, PNG. No text, no scenery, no blur, no 3D rendering, no smooth digital painting. Authentic handcrafted pixel art, designed for a 2D RPG.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T09:35:00.629130+00:00"
+      },
+      "folder": "andando",
+      "frames": {
+        "rotations": {
+          "south": "andando/rotations/south.png",
+          "south-east": "andando/rotations/south-east.png",
+          "east": "andando/rotations/east.png",
+          "north-east": "andando/rotations/north-east.png",
+          "north": "andando/rotations/north.png",
+          "north-west": "andando/rotations/north-west.png",
+          "west": "andando/rotations/west.png",
+          "south-west": "andando/rotations/south-west.png"
+        },
+        "animations": {
+          "walking": {
+            "west": [
+              "andando/animations/walking/west/frame_000.png",
+              "andando/animations/walking/west/frame_001.png",
+              "andando/animations/walking/west/frame_002.png",
+              "andando/animations/walking/west/frame_003.png",
+              "andando/animations/walking/west/frame_004.png",
+              "andando/animations/walking/west/frame_005.png",
+              "andando/animations/walking/west/frame_006.png",
+              "andando/animations/walking/west/frame_007.png"
+            ],
+            "north-east": [
+              "andando/animations/walking/north-east/frame_000.png",
+              "andando/animations/walking/north-east/frame_001.png",
+              "andando/animations/walking/north-east/frame_002.png",
+              "andando/animations/walking/north-east/frame_003.png",
+              "andando/animations/walking/north-east/frame_004.png",
+              "andando/animations/walking/north-east/frame_005.png",
+              "andando/animations/walking/north-east/frame_006.png",
+              "andando/animations/walking/north-east/frame_007.png"
+            ],
+            "east": [
+              "andando/animations/walking/east/frame_000.png",
+              "andando/animations/walking/east/frame_001.png",
+              "andando/animations/walking/east/frame_002.png",
+              "andando/animations/walking/east/frame_003.png",
+              "andando/animations/walking/east/frame_004.png",
+              "andando/animations/walking/east/frame_005.png",
+              "andando/animations/walking/east/frame_006.png",
+              "andando/animations/walking/east/frame_007.png"
+            ],
+            "south-west": [
+              "andando/animations/walking/south-west/frame_000.png",
+              "andando/animations/walking/south-west/frame_001.png",
+              "andando/animations/walking/south-west/frame_002.png",
+              "andando/animations/walking/south-west/frame_003.png",
+              "andando/animations/walking/south-west/frame_004.png",
+              "andando/animations/walking/south-west/frame_005.png",
+              "andando/animations/walking/south-west/frame_006.png",
+              "andando/animations/walking/south-west/frame_007.png"
+            ],
+            "south-east": [
+              "andando/animations/walking/south-east/frame_000.png",
+              "andando/animations/walking/south-east/frame_001.png",
+              "andando/animations/walking/south-east/frame_002.png",
+              "andando/animations/walking/south-east/frame_003.png",
+              "andando/animations/walking/south-east/frame_004.png",
+              "andando/animations/walking/south-east/frame_005.png",
+              "andando/animations/walking/south-east/frame_006.png",
+              "andando/animations/walking/south-east/frame_007.png"
+            ],
+            "south": [
+              "andando/animations/walking/south/frame_000.png",
+              "andando/animations/walking/south/frame_001.png",
+              "andando/animations/walking/south/frame_002.png",
+              "andando/animations/walking/south/frame_003.png",
+              "andando/animations/walking/south/frame_004.png",
+              "andando/animations/walking/south/frame_005.png",
+              "andando/animations/walking/south/frame_006.png",
+              "andando/animations/walking/south/frame_007.png"
+            ],
+            "north-west": [
+              "andando/animations/walking/north-west/frame_000.png",
+              "andando/animations/walking/north-west/frame_001.png",
+              "andando/animations/walking/north-west/frame_002.png",
+              "andando/animations/walking/north-west/frame_003.png",
+              "andando/animations/walking/north-west/frame_004.png",
+              "andando/animations/walking/north-west/frame_005.png",
+              "andando/animations/walking/north-west/frame_006.png",
+              "andando/animations/walking/north-west/frame_007.png"
+            ],
+            "north": [
+              "andando/animations/walking/north/frame_000.png",
+              "andando/animations/walking/north/frame_001.png",
+              "andando/animations/walking/north/frame_002.png",
+              "andando/animations/walking/north/frame_003.png",
+              "andando/animations/walking/north/frame_004.png",
+              "andando/animations/walking/north/frame_005.png",
+              "andando/animations/walking/north/frame_006.png",
+              "andando/animations/walking/north/frame_007.png"
+            ]
+          }
+        }
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-10-14T21:28:10.578388"
+}

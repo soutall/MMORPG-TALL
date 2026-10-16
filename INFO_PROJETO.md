@@ -1,5 +1,23 @@
 # INFO DO PROJETO - MMORPG Mobile
 
+## Registro v1.75.106 - Maior frequência de cuspe do slime inicial
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.106 | 13/10/2026 | Slimes agora tentam habilidades com mais frequência, têm maior chance de iniciar habilidade e priorizam o cuspe quando o salto e os tiros são opções válidas. Recarga dos tiros reduzida, mantendo as pausas entre rajadas. | server.js, tests/slime-initial-skills.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.105 - Habilidades do slime inicial e feedback de dano
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.105 | 13/10/2026 | Slime inicial recebeu salto com marcação circular e dano/stun de 0,5s, além de cuspe em três rajadas telegrafadas (1, 2 e 1 projéteis) que reduz a velocidade em 60% por 3s. Inimigos agora recuam brevemente e ganham brilho vermelho ao receber dano. | server.js, debuffs.js, index.html, monstros.js, tests/slime-initial-skills.test.js, CHANGELOG.md, INFO_PROJETO.md |
+
+## Registro v1.75.104 - Balanceamento dos lacaios do Lord Malakar
+
+| Versao | Data | O que foi feito | Arquivos |
+|---|---|---|---|
+| v1.75.104 | 11/10/2026 | Dano do giro em área do Ceifador aumentado em 80% (2 para 3,6); dano-base dos tiros do Sniper aumentado em 50% (3 para 4,5), mantendo os multiplicadores atuais dos disparos. | sistemas/lord_malakar.js, tests/lord-malakar.test.js, LORD_MALAKAR_IMPLEMENTATION.md, index.html, CHANGELOG.md, INFO_PROJETO.md |
+
 ## Registro v1.75.88 - Redesign visual completo da Florin (Classe das Rosas)
 
 | Versao | Data | O que foi feito | Arquivos |

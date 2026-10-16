@@ -240,6 +240,29 @@ test('shadow pass is toggled cleanly via SOMBRAS_MAPA_CONFIG', () => {
     assert.equal(drawings.length, 0, 'no shadows should be drawn when config.enabled is false');
 });
 
+test('night lights are collected once and still cast shadows on nearby objects', () => {
+    const { window, ctx, drawings } = setupEnvironment();
+    window.mapaObjetos = [
+        { id: 'tree1', mapa: 'green', tipo: 'arvore', x: 100, y: 100, w: 46, h: 64, camada: 'meio' },
+        { id: 'tree2', mapa: 'green', tipo: 'arvore', x: 170, y: 120, w: 46, h: 64, camada: 'meio' }
+    ];
+
+    let vfxReads = 0;
+    Object.defineProperty(window, 'vfxMapa', {
+        configurable: true,
+        get() {
+            vfxReads++;
+            return [{ mapa: 'green', tipo: 'lampada', x: 100, y: 100, raio: 100 }];
+        }
+    });
+
+    window.desenharSombrasObjetosMapa(ctx, 0, 0, 800, 600, { horaDecimal: 23.0 });
+
+    assert.equal(vfxReads, 1, 'map lights should be collected once per shadow pass');
+    const lightShadows = drawings.filter(d => d.type === 'ellipse' && d.fillStyle.startsWith('rgba(0, 3, 7'));
+    assert.equal(lightShadows.length, 2, 'both nearby objects should retain their dynamic light shadows');
+});
+
 test('index.html renders map object shadows right after ground terrain before entities', () => {
     assert.match(clientSource, /window\.desenharSombrasObjetosMapa\(/);
     const posCenario = clientSource.indexOf('desenharCenarioMundo');

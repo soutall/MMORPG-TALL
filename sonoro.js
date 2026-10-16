@@ -37,6 +37,7 @@
         mago_skill4:           { caminho: 'Sonoro/Mago/mago_skill-4.wav',           volume: 0.85 },
         mago_skill4_rolar:     { caminho: 'Sonoro/Mago/mago_skill-4.wav',           volume: 0.85 },
         mago_skill4_impacto:   { caminho: 'Sonoro/Mago/mago_skill-4-impacto.wav',   volume: 0.9 },
+        mago_trovao_letal:     { caminho: 'Sonoro/Mago/mago_trovao.mp3',            volume: 0.9 },
         sniper_atk:            { caminho: 'Sonoro/Sniper/Sniper_atk_basico.ogg',    volume: 0.5 },
         sniper_disparo:        { caminho: 'Sonoro/Sniper/Sniper_disparo.ogg',       volume: 0.85 },
         sniper_rede:           { caminho: 'Sonoro/Sniper/sniper_Teia_Granada.ogg',  volume: 0.7 },

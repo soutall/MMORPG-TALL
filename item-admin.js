@@ -60,8 +60,8 @@ function atualizarPreviewItemAdmin() {
 
     if (isDrone && typeof window.desenharDroneExposta === 'function') {
         window.desenharDroneExposta(ctx, armaVisualCustom);
-    } else if (isMago && typeof window.desenharCajadoExposta === 'function') {
-        window.desenharCajadoExposta(ctx, armaVisualCustom);
+    } else if (isMago && typeof window.desenharOrbesMagoExposta === 'function') {
+        window.desenharOrbesMagoExposta(ctx);
     } else if (cls === 'summoner' && typeof window.desenharOrbeExposta === 'function') {
         window.desenharOrbeExposta(ctx, armaVisualCustom);
     } else if (cls === 'arqueiro' && typeof window.desenharArcoExposta === 'function') {

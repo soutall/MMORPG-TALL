@@ -1,0 +1,220 @@
+{
+  "group_id": "b282047f-800a-4f7d-89bb-b44f42d117bd",
+  "states": [
+    {
+      "character": {
+        "id": "16d30bfb-4005-4c62-bf89-2ca01bb815d4",
+        "name": "Parado",
+        "prompt": "Create a unique Elementalist Mage in pure 2D pixel art for a fantasy RPG. Wear elegant dark medieval robes with ivory, black and bronze-gold armor details. The design must combine three elements: blazing orange-red fire, bright electric-blue lightning, and flowing cyan water. Each element must have distinct, clearly visible effects surrounding the character, emerging naturally from his hands and armor. Add elemental crystals embedded in the outfit, asymmetrical robes and an imposing magical silhouette. Mysterious face hidden beneath a deep hood, glowing eyes. No weapons. Full body, centered, three-quarter front view, transparent background, PNG. Crisp pixel edges, detailed pixel shading, strong contrast, limited cohesive palette. No text, no scenery, no blur, no 3D rendering, no smooth digital painting. Original handcrafted pixel art character for a 2D RPG.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T02:40:06.412933+00:00"
+      },
+      "folder": "Parado",
+      "frames": {
+        "rotations": {
+          "south": "Parado/rotations/south.png",
+          "south-east": "Parado/rotations/south-east.png",
+          "east": "Parado/rotations/east.png",
+          "north-east": "Parado/rotations/north-east.png",
+          "north": "Parado/rotations/north.png",
+          "north-west": "Parado/rotations/north-west.png",
+          "west": "Parado/rotations/west.png",
+          "south-west": "Parado/rotations/south-west.png"
+        },
+        "animations": {
+          "Idle": {
+            "south": [
+              "Parado/animations/Idle/south/frame_000.png",
+              "Parado/animations/Idle/south/frame_001.png",
+              "Parado/animations/Idle/south/frame_002.png",
+              "Parado/animations/Idle/south/frame_003.png",
+              "Parado/animations/Idle/south/frame_004.png",
+              "Parado/animations/Idle/south/frame_005.png",
+              "Parado/animations/Idle/south/frame_006.png",
+              "Parado/animations/Idle/south/frame_007.png"
+            ],
+            "east": [
+              "Parado/animations/Idle/east/frame_000.png",
+              "Parado/animations/Idle/east/frame_001.png",
+              "Parado/animations/Idle/east/frame_002.png",
+              "Parado/animations/Idle/east/frame_003.png",
+              "Parado/animations/Idle/east/frame_004.png",
+              "Parado/animations/Idle/east/frame_005.png",
+              "Parado/animations/Idle/east/frame_006.png",
+              "Parado/animations/Idle/east/frame_007.png"
+            ],
+            "west": [
+              "Parado/animations/Idle/west/frame_000.png",
+              "Parado/animations/Idle/west/frame_001.png",
+              "Parado/animations/Idle/west/frame_002.png",
+              "Parado/animations/Idle/west/frame_003.png",
+              "Parado/animations/Idle/west/frame_004.png",
+              "Parado/animations/Idle/west/frame_005.png",
+              "Parado/animations/Idle/west/frame_006.png",
+              "Parado/animations/Idle/west/frame_007.png"
+            ],
+            "north": [
+              "Parado/animations/Idle/north/frame_000.png",
+              "Parado/animations/Idle/north/frame_001.png",
+              "Parado/animations/Idle/north/frame_002.png",
+              "Parado/animations/Idle/north/frame_003.png",
+              "Parado/animations/Idle/north/frame_004.png",
+              "Parado/animations/Idle/north/frame_005.png",
+              "Parado/animations/Idle/north/frame_006.png",
+              "Parado/animations/Idle/north/frame_007.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "7df38b69-0cd2-4694-a0f2-ac0c7c5cb0e5",
+        "name": "andando",
+        "prompt": "Create a unique Elementalist Mage in pure 2D pixel art for a fantasy RPG. Wear elegant dark medieval robes with ivory, black and bronze-gold armor details. The design must combine three elements: blazing orange-red fire, bright electric-blue lightning, and flowing cyan water. Each element must have distinct, clearly visible effects surrounding the character, emerging naturally from his hands and armor. Add elemental crystals embedded in the outfit, asymmetrical robes and an imposing magical silhouette. Mysterious face hidden beneath a deep hood, glowing eyes. No weapons. Full body, centered, three-quarter front view, transparent background, PNG. Crisp pixel edges, detailed pixel shading, strong contrast, limited cohesive palette. No text, no scenery, no blur, no 3D rendering, no smooth digital painting. Original handcrafted pixel art character for a 2D RPG.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T02:54:58.216570+00:00"
+      },
+      "folder": "andando",
+      "frames": {
+        "rotations": {
+          "south": "andando/rotations/south.png",
+          "south-east": "andando/rotations/south-east.png",
+          "east": "andando/rotations/east.png",
+          "north-east": "andando/rotations/north-east.png",
+          "north": "andando/rotations/north.png",
+          "north-west": "andando/rotations/north-west.png",
+          "west": "andando/rotations/west.png",
+          "south-west": "andando/rotations/south-west.png"
+        },
+        "animations": {
+          "walking": {
+            "north": [
+              "andando/animations/walking/north/frame_000.png",
+              "andando/animations/walking/north/frame_001.png",
+              "andando/animations/walking/north/frame_002.png",
+              "andando/animations/walking/north/frame_003.png",
+              "andando/animations/walking/north/frame_004.png",
+              "andando/animations/walking/north/frame_005.png",
+              "andando/animations/walking/north/frame_006.png",
+              "andando/animations/walking/north/frame_007.png"
+            ],
+            "south": [
+              "andando/animations/walking/south/frame_000.png",
+              "andando/animations/walking/south/frame_001.png",
+              "andando/animations/walking/south/frame_002.png",
+              "andando/animations/walking/south/frame_003.png",
+              "andando/animations/walking/south/frame_004.png",
+              "andando/animations/walking/south/frame_005.png",
+              "andando/animations/walking/south/frame_006.png",
+              "andando/animations/walking/south/frame_007.png"
+            ],
+            "west": [
+              "andando/animations/walking/west/frame_000.png",
+              "andando/animations/walking/west/frame_001.png",
+              "andando/animations/walking/west/frame_002.png",
+              "andando/animations/walking/west/frame_003.png",
+              "andando/animations/walking/west/frame_004.png",
+              "andando/animations/walking/west/frame_005.png",
+              "andando/animations/walking/west/frame_006.png",
+              "andando/animations/walking/west/frame_007.png"
+            ],
+            "north-east": [
+              "andando/animations/walking/north-east/frame_000.png",
+              "andando/animations/walking/north-east/frame_001.png",
+              "andando/animations/walking/north-east/frame_002.png",
+              "andando/animations/walking/north-east/frame_003.png",
+              "andando/animations/walking/north-east/frame_004.png",
+              "andando/animations/walking/north-east/frame_005.png",
+              "andando/animations/walking/north-east/frame_006.png",
+              "andando/animations/walking/north-east/frame_007.png"
+            ],
+            "south-west": [
+              "andando/animations/walking/south-west/frame_000.png",
+              "andando/animations/walking/south-west/frame_001.png",
+              "andando/animations/walking/south-west/frame_002.png",
+              "andando/animations/walking/south-west/frame_003.png",
+              "andando/animations/walking/south-west/frame_004.png",
+              "andando/animations/walking/south-west/frame_005.png",
+              "andando/animations/walking/south-west/frame_006.png",
+              "andando/animations/walking/south-west/frame_007.png"
+            ],
+            "north-west": [
+              "andando/animations/walking/north-west/frame_000.png",
+              "andando/animations/walking/north-west/frame_001.png",
+              "andando/animations/walking/north-west/frame_002.png",
+              "andando/animations/walking/north-west/frame_003.png",
+              "andando/animations/walking/north-west/frame_004.png",
+              "andando/animations/walking/north-west/frame_005.png",
+              "andando/animations/walking/north-west/frame_006.png",
+              "andando/animations/walking/north-west/frame_007.png"
+            ],
+            "east": [
+              "andando/animations/walking/east/frame_000.png",
+              "andando/animations/walking/east/frame_001.png",
+              "andando/animations/walking/east/frame_002.png",
+              "andando/animations/walking/east/frame_003.png",
+              "andando/animations/walking/east/frame_004.png",
+              "andando/animations/walking/east/frame_005.png",
+              "andando/animations/walking/east/frame_006.png",
+              "andando/animations/walking/east/frame_007.png"
+            ],
+            "south-east": [
+              "andando/animations/walking/south-east/frame_000.png",
+              "andando/animations/walking/south-east/frame_001.png",
+              "andando/animations/walking/south-east/frame_002.png",
+              "andando/animations/walking/south-east/frame_003.png",
+              "andando/animations/walking/south-east/frame_004.png",
+              "andando/animations/walking/south-east/frame_005.png",
+              "andando/animations/walking/south-east/frame_006.png",
+              "andando/animations/walking/south-east/frame_007.png"
+            ]
+          }
+        }
+      }
+    },
+    {
+      "character": {
+        "id": "6c42a175-bf95-4234-93d7-eb4a26a67049",
+        "name": "Idle (copy 2)",
+        "prompt": "Create a unique Elementalist Mage in pure 2D pixel art for a fantasy RPG. Wear elegant dark medieval robes with ivory, black and bronze-gold armor details. The design must combine three elements: blazing orange-red fire, bright electric-blue lightning, and flowing cyan water. Each element must have distinct, clearly visible effects surrounding the character, emerging naturally from his hands and armor. Add elemental crystals embedded in the outfit, asymmetrical robes and an imposing magical silhouette. Mysterious face hidden beneath a deep hood, glowing eyes. No weapons. Full body, centered, three-quarter front view, transparent background, PNG. Crisp pixel edges, detailed pixel shading, strong contrast, limited cohesive palette. No text, no scenery, no blur, no 3D rendering, no smooth digital painting. Original handcrafted pixel art character for a 2D RPG.",
+        "size": {
+          "width": 64,
+          "height": 64
+        },
+        "template_id": "mannequin",
+        "directions": 8,
+        "view": "high top-down",
+        "created_at": "2026-10-14T09:21:20.950786+00:00"
+      },
+      "folder": "Idle_copy_2",
+      "frames": {
+        "rotations": {
+          "south": "Idle_copy_2/rotations/south.png",
+          "south-east": "Idle_copy_2/rotations/south-east.png",
+          "east": "Idle_copy_2/rotations/east.png",
+          "north-east": "Idle_copy_2/rotations/north-east.png",
+          "north": "Idle_copy_2/rotations/north.png",
+          "north-west": "Idle_copy_2/rotations/north-west.png",
+          "west": "Idle_copy_2/rotations/west.png",
+          "south-west": "Idle_copy_2/rotations/south-west.png"
+        },
+        "animations": {}
+      }
+    }
+  ],
+  "export_version": "3.1",
+  "export_date": "2026-10-14T21:28:04.193768"
+}

@@ -6,6 +6,7 @@ const path = require('node:path');
 const test = require('node:test');
 const estimator = require('../ping-estimator.js');
 const indexHtml = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+const serverSource = fs.readFileSync(path.join(__dirname, '..', 'server.js'), 'utf8');
 
 test('ping estimate waits for three RTT samples and suppresses a transient outlier', () => {
     const ping = estimator.criarEstimadorPing(5, 3);
@@ -48,4 +49,16 @@ test('the game waits until initialization settles and permits only one outstandi
     assert.match(indexHtml, /timestampPing === pingPendenteEm/);
     assert.match(indexHtml, /pingAtual = estimadorPing\.adicionar/);
     assert.match(indexHtml, /clearTimeout\(pingInicialTimeout\)/);
+});
+
+test('high raw RTT logs client frame stalls and server transport/event-loop metrics', () => {
+    assert.match(indexHtml, /rttBrutoMs >= 150/);
+    assert.match(indexHtml, /window\._picoFrameGapPingMs = Math\.max/);
+    assert.match(indexHtml, /action: 'ping_diagnostic'/);
+    assert.match(indexHtml, /clientFrameGapMs: Math\.max/);
+    assert.match(serverSource, /data\.action === 'ping_diagnostic'/);
+    assert.match(serverSource, /ping-diagnostics\.log/);
+    assert.match(serverSource, /clientReportedServerEventLoopLagMs/);
+    assert.match(serverSource, /socketWritableBytes/);
+    assert.match(serverSource, /diagnosticNow - \(ws\._lastPingDiagnosticAt \|\| 0\) < 2000/);
 });

@@ -506,7 +506,13 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
     font-weight: bold;
     white-space: nowrap;
 }
-#ping-counter { position: fixed; top: calc(44px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); font-size: 11px; color: #5dade2; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px; z-index: 10; pointer-events: none; font-weight: bold; white-space: nowrap; }
+#ping-counter { position: fixed; top: calc(44px + env(safe-area-inset-top, 0px)); left: 50%; transform: translateX(-50%); font-size: 11px; color: #5dade2; background: rgba(0,0,0,0.6); padding: 2px 8px; border-radius: 4px; z-index: 10; pointer-events: none; font-weight: bold; white-space: nowrap; transition: color 0.25s ease, font-size 0.25s ease, text-shadow 0.25s ease, background 0.25s ease; }
+#ping-counter.ping-bom { color: #2ecc71; }
+#ping-counter.ping-alerta { color: #e74c3c; font-size: 15px; text-shadow: 0 0 8px rgba(231,76,60,0.9), 0 0 16px rgba(231,76,60,0.6); background: rgba(120,20,20,0.75); animation: pingPulso 0.7s ease-in-out infinite; }
+@keyframes pingPulso {
+  0%, 100% { transform: translateX(-50%) scale(1); }
+  50% { transform: translateX(-50%) scale(1.12); }
+}
 .btn-util.btn-local { background: #2980b9; border-color: #3498db; }
 .btn-util.btn-local.modo-ativo { background: #e67e22; border-color: #f39c12; box-shadow: 0 0 12px #e67e22; }
 
@@ -708,7 +714,7 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 .btn-util .key-badge { font-size: 8px; padding: 1px 3px; bottom: -4px; right: -4px; }
 
 .btn-attack { background: #d9534f; font-size: 20px; } .btn-attack.cooldown { background: #444 !important; opacity: 0.55; pointer-events: none; }
-.btn-attack { display: none !important; } /* v1.30.2: ataque básico MANUAL desativado — só o auto-attack */
+.btn-attack { display: none; }
 
 /* BOTÕES DE UTILITÁRIOS: Canto inferior direito */
 #util-buttons { position: fixed; bottom: 14px; right: 14px; display: flex; flex-direction: row; gap: 6px; z-index: 10; align-items: center; }
@@ -726,6 +732,10 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 .btn-nevasca { background: #1b4f72; font-size: 22px; border: 2px solid #00ffff; display: none; } 
 .btn-nevasca.aiming { background: #00bcd4; box-shadow: 0 0 15px #00ffff; animation: pulseSkillBtn 0.4s infinite alternate; } 
 .btn-nevasca.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
+
+.btn-mago-trovao { background: linear-gradient(145deg, #805f0c, #f1c40f); font-size: 22px; border: 2px solid #fff0a8; box-shadow: 0 0 10px rgba(241, 196, 15, 0.5); display: none; }
+.btn-mago-trovao.aiming { background: #f1c40f; box-shadow: 0 0 18px #ffe57a; animation: pulseSkillBtn 0.4s infinite alternate; }
+.btn-mago-trovao.cooldown { background: #555; opacity: 0.6; pointer-events: none; box-shadow: none; }
 
 .btn-arqueiro-chuva { background: #16a085; font-size: 22px; border: 2px solid #1abc9c; display: none; } 
 .btn-arqueiro-chuva.aiming { background: #1abc9c; box-shadow: 0 0 15px #1abc9c; animation: pulseSkillBtn 0.4s infinite alternate; }
@@ -754,6 +764,14 @@ html, body { background: #0b0b0b; color: #fff; font-family: 'Rajdhani', -apple-s
 .btn-ogro-colossal { background: #6c3483; font-size: 22px; border: 2px solid #a569bd; display: none; } .btn-ogro-colossal.cooldown { background: #555; opacity: 0.6; pointer-events: none; }
 .btn-summoner-golem { background: #4e342e; font-size: 22px; border: 2px solid #8d6e63; display: none; box-shadow: 0 0 10px rgba(141, 110, 99, 0.4); } 
 .btn-summoner-golem.cooldown { background: #333; opacity: 0.6; pointer-events: none; }
+#btn-ogro-skill,
+#btn-ogro-salto,
+#btn-ogro-colossal,
+#btn-summoner-golem {
+    background: #000;
+    border-color: transparent;
+    box-shadow: none;
+}
 .btn-curandeiro-cantico { background: linear-gradient(135deg, #d4ac0d, #f1c40f); font-size: 22px; border: 2px solid #ffd700; display: none; box-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
 .btn-curandeiro-cantico.cooldown { background: #333; opacity: 0.6; pointer-events: none; }
 .btn-barbaro-vinculo { background: linear-gradient(135deg, #780206, #b71540); font-size: 22px; border: 2px solid #e74c3c; display: none; box-shadow: 0 0 10px rgba(231, 76, 60, 0.4); }

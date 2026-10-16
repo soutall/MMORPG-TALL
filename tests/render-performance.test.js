@@ -30,7 +30,7 @@ test('mobile profiling is opt-in and reports the frame phases, chunk cost, sprit
     assert.match(html, /perfAcumulado\.mapa/);
     assert.match(html, /perfAcumulado\.sprites/);
     assert.match(html, /canvas\.width \+ 'x' \+ canvas\.height/);
-    assert.match(html, /mapas\/mapa_mundo\.js\?v=24/);
+    assert.match(html, /mapas\/mapa_mundo\.js\?v=27/);
 });
 
 test('the world-map renderer exposes chunk queue work time for per-frame profiling', () => {

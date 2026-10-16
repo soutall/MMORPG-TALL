@@ -3199,9 +3199,25 @@ window.desenharSlime = function(slime) {
         if (Number.isFinite(slime.angulo)) estS.face = slime.angulo;
         var spriteOriginal = _slimeSprites[slime.asset];
         var leapJump = slime.eliteLeapJump && slime.eliteLeapJump.endsAt > Date.now();
+        var initialLeap = slime.tipo === 'slime' && typeof window !== 'undefined'
+            ? (window.slimeInitialLeapEffects || []).find(function (effect) {
+                return effect.id === slime.id && effect.phase === 'jump';
+            })
+            : null;
+        var drawX = slime.x;
+        var drawY = slime.y;
+        if (initialLeap) {
+            var leapProgress = Math.max(0, Math.min(1,
+                (Date.now() - initialLeap.startedAt) /
+                Math.max(1, initialLeap.expiresAt - initialLeap.startedAt)));
+            var inverseLeap = 1 - leapProgress;
+            drawX = inverseLeap * initialLeap.sourceX + leapProgress * initialLeap.x;
+            drawY = inverseLeap * initialLeap.sourceY + leapProgress * initialLeap.y -
+                Math.sin(leapProgress * Math.PI) * 105;
+        }
         if (!leapJump) {
             ctx.save();
-            ctx.translate(slime.x, slime.y);
+            ctx.translate(drawX, drawY);
             if (escala !== 1) ctx.scale(escala, escala);
             if (!_desenharSpriteSlime(ctx, slime, estS) && slime.tipo !== 'tundra_dragon_elite') {
                 _sombra(ctx, info.raio / 14);
@@ -3289,6 +3305,37 @@ window.desenharSlime = function(slime) {
     var offs = (arq === 'web' || tp.indexOf('aranha') !== -1) ? [-28, -38] : (foi ? [-18, -30] : [-15, -20]);
     _barraHp(slime, offs[0] * escala, offs[1] * escala);
     if (elite) _desenharEliteMark(slime, escala);
+};
+
+var _desenharSlimeBase = window.desenharSlime;
+window.desenharSlime = function(slime) {
+    if (!slime || slime.hp <= 0 || !window.ctx) return;
+    var est = _estado(slime);
+    var agora = Date.now();
+    if (est.hitFeedbackHp == null) {
+        est.hitFeedbackHp = slime.hp;
+    } else if (slime.hp < est.hitFeedbackHp) {
+        est.hitFeedbackHp = slime.hp;
+        est.hitFeedbackAt = agora;
+        est.hitFeedbackAngle = Number.isFinite(slime.angulo) ? slime.angulo : (est.face || 0);
+    } else if (slime.hp > est.hitFeedbackHp) {
+        est.hitFeedbackHp = slime.hp;
+    }
+
+    var ctx = window.ctx;
+    ctx.save();
+    if (est.hitFeedbackAt && agora - est.hitFeedbackAt < 240) {
+        var progresso = Math.max(0, Math.min(1, (agora - est.hitFeedbackAt) / 240));
+        var recuo = (1 - progresso) * 5;
+        ctx.translate(-Math.cos(est.hitFeedbackAngle) * recuo,
+            -Math.sin(est.hitFeedbackAngle) * recuo);
+        ctx.filter = 'drop-shadow(0 0 6px rgba(255, 20, 35, ' + (1 - progresso * 0.55) + '))';
+    }
+    try {
+        _desenharSlimeBase(slime);
+    } finally {
+        ctx.restore();
+    }
 };
 
 var _estadosBaloesConversaPet = Object.create(null);

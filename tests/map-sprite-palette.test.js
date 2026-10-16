@@ -365,14 +365,16 @@ test('lasso diagnostics trace selected pixels through the live map renderer and 
     assert.match(editor, /rendererTexture: imagemComMascara \? 'masked-canvas' : o\.asset/);
 });
 
-test('local ID login is opt-in, loopback-only, existing-character-only, and preserves Google auth', () => {
-    assert.match(server, /process\.env\.NODE_ENV !== 'production' && process\.env\.LOCAL_ID_LOGIN_ENABLED === '1'/);
+test('local ID login is enabled outside production, loopback-only, isolated from saved players, and preserves Google auth', () => {
+    assert.match(server, /process\.env\.NODE_ENV !== 'production' && process\.env\.LOCAL_ID_LOGIN_ENABLED !== '0'/);
     assert.match(server, /LOCAL_ID_LOGIN_ENABLED \? '127\.0\.0\.1' : '0\.0\.0\.0'/);
     assert.match(server, /\['127\.0\.0\.1', '::1'\]\.includes\(remoteAddress\)/);
-    assert.match(server, /const localRecord = carregarProgresso\(requestedId\)/);
+    assert.match(server, /const localRecord = carregarProgresso\(localCharacterId\)/);
+    assert.match(server, /const localIdIsAdmin = requestedId\.toLowerCase\(\) === 'admin' \|\| LOCAL_ID_LOGIN_TEST_ADMIN/);
+    assert.match(server, /ws\.ehAdminContaGlobal = localIdIsAdmin;\s*ws\.ehAdminCliente = localIdIsAdmin;/);
     assert.match(server, /if \(data\.action === 'google_login'\)/);
-    assert.match(html, /get\('local-id-login'\) === '1'/);
-    assert.match(html, /window\.location\.hostname === 'localhost'/);
+    assert.match(html, /config\.localIdLogin === true && hostLocal/);
+    assert.match(html, /classList\.add\('login-id-temporario'\)/);
     assert.match(html, /googleBox\.style\.display = 'none'/);
     assert.match(html, /action: 'login', id: credential\.localId/);
 });

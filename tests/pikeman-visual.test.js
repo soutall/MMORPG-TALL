@@ -33,6 +33,8 @@ test('Pikeman redesign keeps the renderer, scythe and every skill animation draw
 
     assert.equal(typeof window.desenharPikeman, 'function');
     assert.equal(typeof window.desenharFoiceExposta, 'function');
+    assert.match(source, /_foice\(ctx, rot, 0\.35, false, posX, posY\)/,
+        'the basic-attack swing must use the full-size scythe renderer');
 
     for (const estado of ['idle', 'andando', 'foice', 'giro', 'pirueta', 'geada', 'execucao']) {
         const pid = `pikeman-${estado}`;

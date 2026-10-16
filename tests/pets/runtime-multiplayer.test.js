@@ -1,6 +1,7 @@
 'use strict';
 
 const assert = require('node:assert/strict');
+const crypto = require('node:crypto');
 const fs = require('node:fs');
 const os = require('node:os');
 const path = require('node:path');
@@ -11,6 +12,14 @@ const WebSocket = require('ws');
 const petSystem = require('../../sistemas/pets/pets_system.js');
 
 const projectRoot = path.resolve(__dirname, '../..');
+
+function localProfileId(id) {
+    return 'local-test-' + crypto.createHash('sha256').update(id, 'utf8').digest('hex');
+}
+
+function localPlayerId(id) {
+    return 'heroi_' + localProfileId(id);
+}
 
 function sleep(ms) {
     return new Promise((resolve) => setTimeout(resolve, ms));
@@ -97,16 +106,16 @@ function listenForMessages(socket) {
         }
         const recent = messages.slice(-3).map((message) => ({
             type: message.type,
-            owner: message.players && message.players.heroi_player_a
-                ? { x: message.players.heroi_player_a.x, y: message.players.heroi_player_a.y }
+            owner: message.players && message.players[localPlayerId('player_a')]
+                ? { x: message.players[localPlayerId('player_a')].x, y: message.players[localPlayerId('player_a')].y }
                 : null,
             pets: message.pets
                 ? Object.fromEntries(Object.entries(message.pets).map(([id, pet]) =>
                     [id, { x: pet.x, y: pet.y, hp: pet.hp, state: pet.state, mode: pet.mode, targetId: pet.targetId }]))
                 : null,
-            ownerC: message.players && message.players.heroi_player_c
-                ? { x: message.players.heroi_player_c.x, y: message.players.heroi_player_c.y,
-                    hp: message.players.heroi_player_c.hp }
+            ownerC: message.players && message.players[localPlayerId('player_c')]
+                ? { x: message.players[localPlayerId('player_c')].x, y: message.players[localPlayerId('player_c')].y,
+                    hp: message.players[localPlayerId('player_c')].hp }
                 : null,
             projectiles: message.projeteis
                 ? message.projeteis.map((projectile) => projectile.tipo)
@@ -187,15 +196,15 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
     petA.mode = 'PARADO';
     petB.mode = 'PARADO';
     fs.writeFileSync(databaseFile, JSON.stringify({
-        player_a: {
+        [localProfileId('player_a')]: {
             personagemId: 'test-a', level: 50, x: 142950, y: 13000,
             pets: [petA], petActiveId: petA.pet_instance_id
         },
-        player_b: {
+        [localProfileId('player_b')]: {
             personagemId: 'test-b', level: 50, x: 145050, y: 13000,
             pets: [petB], petActiveId: petB.pet_instance_id
         },
-        player_c: {
+        [localProfileId('player_c')]: {
             personagemId: 'test-c', level: 50, x: 142950, y: 15035,
             pets: [], petActiveId: null,
             captureState: { species: { slime: { fails: 100 } } }
@@ -208,6 +217,7 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
         env: Object.assign({}, process.env, {
             NODE_ENV: 'test',
             LOCAL_ID_LOGIN_ENABLED: '1',
+            LOCAL_ID_LOGIN_TEST_ADMIN: '1',
             MMORPG_DATABASE_FILE: databaseFile,
             PORT: String(port)
         }),
@@ -263,17 +273,17 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
         message.type === 'world_update' &&
         message.slimes && message.slimes.length > 0 &&
         message.pets && message.pets[petA.pet_instance_id] && message.pets[petB.pet_instance_id]);
-    assert.equal(updateA.pets[petA.pet_instance_id].owner_id, 'heroi_player_a');
-    assert.equal(updateA.pets[petB.pet_instance_id].owner_id, 'heroi_player_b');
-    assert.equal(updateB.pets[petA.pet_instance_id].owner_id, 'heroi_player_a');
-    assert.equal(updateB.pets[petB.pet_instance_id].owner_id, 'heroi_player_b');
+    assert.equal(updateA.pets[petA.pet_instance_id].owner_id, localPlayerId('player_a'));
+    assert.equal(updateA.pets[petB.pet_instance_id].owner_id, localPlayerId('player_b'));
+    assert.equal(updateB.pets[petA.pet_instance_id].owner_id, localPlayerId('player_a'));
+    assert.equal(updateB.pets[petB.pet_instance_id].owner_id, localPlayerId('player_b'));
     assert.equal(updateA.pets[petA.pet_instance_id].hp > 0, true);
     assert.equal(updateB.pets[petB.pet_instance_id].hp > 0, true);
 
     clientA.socket.send(JSON.stringify({ action: 'pet_set_mode', mode: 'ATK' }));
     await clientA.waitFor((message) =>
         message.type === 'pet_mode_result' && message.success === true && message.mode === 'ATK');
-    const ownerA = updateA.players.heroi_player_a;
+    const ownerA = updateA.players[localPlayerId('player_a')];
     const engagedMonster = updateA.slimes.filter((monster) => monster && monster.hp > 0)
         .map((monster) => ({
             monster,
@@ -312,10 +322,10 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
     assert.ok(petXpUpdateEarly.petProfile.maestria[petA.species_id].xpMaestria > 0 ||
         petXpUpdateEarly.petProfile.maestria[petA.species_id].nivelMaestria > 0,
     'mastery progress must be included in the updated owner profile');
-    const persistedPetXpEarly = JSON.parse(fs.readFileSync(databaseFile, 'utf8')).player_a.pets
+    const persistedPetXpEarly = JSON.parse(fs.readFileSync(databaseFile, 'utf8'))[localProfileId('player_a')].pets
         .find((pet) => pet.pet_instance_id === petA.pet_instance_id);
     assert.ok(persistedPetXpEarly.pet_xp > 0, 'pet individual XP must be saved to the player profile');
-    const persistedMastery = JSON.parse(fs.readFileSync(databaseFile, 'utf8')).player_a.maestria[petA.species_id];
+    const persistedMastery = JSON.parse(fs.readFileSync(databaseFile, 'utf8'))[localProfileId('player_a')].maestria[petA.species_id];
     assert.ok(persistedMastery.xpMaestria > 0 || persistedMastery.nivelMaestria > 0,
         'species mastery progress must be persisted');
     await sleep(550);
@@ -326,7 +336,7 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
     await clientA.waitFor((message) =>
         message.type === 'admin_cheats_sync' && message.cheats && !message.cheats.superAtaque);
 
-    const initialOwner = updateA.players.heroi_player_a;
+    const initialOwner = updateA.players[localPlayerId('player_a')];
     const initialPet = updateA.pets[petA.pet_instance_id];
     const movementCursor = clientA.waitFor.mark();
     for (let step = 1; step <= 16; step++) {
@@ -339,13 +349,13 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
         await sleep(120);
     }
     const followedUpdate = await clientA.waitFor.after(movementCursor, (message) => {
-        const owner = message.type === 'world_update' && message.players && message.players.heroi_player_a;
+        const owner = message.type === 'world_update' && message.players && message.players[localPlayerId('player_a')];
         const pet = message.type === 'world_update' && message.pets && message.pets[petA.pet_instance_id];
         return !!(owner && pet && owner.y < initialOwner.y - 10 &&
             Math.hypot(pet.x - initialPet.x, pet.y - initialPet.y) > 10 &&
             pet.animationState === 'WALK');
     });
-    const followedOwner = followedUpdate.players.heroi_player_a;
+    const followedOwner = followedUpdate.players[localPlayerId('player_a')];
     const followedPet = followedUpdate.pets[petA.pet_instance_id];
     assert.ok(followedOwner.y < initialOwner.y - 10, 'owner movement must be applied by the live server');
     assert.ok(Math.hypot(followedPet.x - initialPet.x, followedPet.y - initialPet.y) > 10,
@@ -355,7 +365,7 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
         'pet should remain within recovery distance instead of becoming detached (distance=' + followedDistance + ')');
     const caughtUpCursor = clientA.waitFor.mark();
     const caughtUp = await clientA.waitFor.after(caughtUpCursor, (message) => {
-        const owner = message.type === 'world_update' && message.players && message.players.heroi_player_a;
+        const owner = message.type === 'world_update' && message.players && message.players[localPlayerId('player_a')];
         const pet = message.type === 'world_update' && message.pets && message.pets[petA.pet_instance_id];
         return !!(owner && pet && owner.y < initialOwner.y - 150 &&
             Math.hypot(pet.x - owner.x, pet.y - owner.y) < 150);
@@ -363,7 +373,7 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
 
     const cInitialUpdate = await clientC.waitFor((message) =>
         message.type === 'world_update' && message.slimes && message.slimes.length > 0);
-    const cOwner = cInitialUpdate.players.heroi_player_c;
+    const cOwner = cInitialUpdate.players[localPlayerId('player_c')];
     const captureMonster = cInitialUpdate.slimes.find((monster) =>
         monster && monster.hp > 0 && monster.tipo === 'slime' &&
         Math.hypot(monster.x - (cOwner.x + 12), monster.y - (cOwner.y + 16)) <= 140);
@@ -390,15 +400,15 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
         'capture response must refresh the owner Bestiary record');
     assert.ok(captureResult.petProfile.maestria.slime,
         'successful species discovery must initialize its existing mastery record');
-    const captureUpdate = await clientB.waitFor((message) =>
+    const captureUpdate = await clientC.waitFor((message) =>
         message.type === 'world_update' && message.pets && message.pets[capturedPetId]);
     const consumedMonster = captureUpdate.slimes.find((monster) => monster.id === captureMonster.id);
     assert.equal(consumedMonster.hp, 0, 'captured live monster must be consumed in the world');
-    assert.equal(captureUpdate.players.heroi_player_c.xp, initialXp, 'capture must not grant monster XP');
+    assert.equal(captureUpdate.players[localPlayerId('player_c')].xp, initialXp, 'capture must not grant monster XP');
     for (const drop of captureUpdate.drops || []) {
         assert.ok(initialDropIds.has(drop.id), 'capture must not produce a new monster drop');
     }
-    const persisted = JSON.parse(fs.readFileSync(databaseFile, 'utf8')).player_c;
+    const persisted = JSON.parse(fs.readFileSync(databaseFile, 'utf8'))[localProfileId('player_c')];
     assert.ok(persisted.pets.some((pet) => pet.pet_instance_id === capturedPetId),
         'captured PetInstance must be persisted');
     assert.equal(persisted.petActiveId, capturedPetId, 'first successful capture must activate its runtime');
@@ -419,7 +429,7 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
         message.type === 'admin_cheats_sync' && message.cheats && message.cheats.vidaInfinita);
     const restoredCapture = await clientA.waitFor.after(reconnectCursor, (message) =>
         message.type === 'world_update' && message.pets && message.pets[capturedPetId]);
-    assert.equal(restoredCapture.pets[capturedPetId].owner_id, 'heroi_player_c',
+    assert.equal(restoredCapture.pets[capturedPetId].owner_id, localPlayerId('player_c'),
         'reconnect must restore the persisted Pet to the server runtime');
     assert.ok(['FOLLOW', 'IDLE', 'COMBAT'].includes(restoredCapture.pets[capturedPetId].state),
         'reconnected Pet must be alive in the runtime');
@@ -488,7 +498,7 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
         message.pets[capturedPetId].state === 'FOLLOW' &&
         message.pets[capturedPetId].hp === message.pets[capturedPetId].maxHp, 8000);
     const respawnedPet = followAgain.pets[capturedPetId];
-    const respawnedOwner = followAgain.players.heroi_player_c;
+    const respawnedOwner = followAgain.players[localPlayerId('player_c')];
     assert.ok(Math.hypot(respawnedPet.x - (respawnedOwner.x + 12),
         respawnedPet.y - (respawnedOwner.y + 16)) < 160,
     'respawn must use a safe position near the owner and resume FOLLOW');
@@ -572,7 +582,7 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
         message.type === 'world_update' && message.pets &&
         message.pets[petA.pet_instance_id] &&
         message.pets[petA.pet_instance_id].state === 'RETURN', 5000);
-    const recoveredOwner = recoveredPet.players.heroi_player_a;
+    const recoveredOwner = recoveredPet.players[localPlayerId('player_a')];
     const recoveredRuntime = recoveredPet.pets[petA.pet_instance_id];
     assert.ok(Math.hypot(recoveredRuntime.x - (recoveredOwner.x + 12),
         recoveredRuntime.y - (recoveredOwner.y + 16)) < 160,
@@ -592,7 +602,7 @@ test('isolated authenticated clients validate multiplayer PvE, real capture, and
     clients.push(clientBAfterReconnect);
     const reconnectUpdate = await clientBAfterReconnect.waitFor((message) =>
         message.type === 'world_update' && message.pets && message.pets[petB.pet_instance_id]);
-    assert.equal(reconnectUpdate.pets[petB.pet_instance_id].owner_id, 'heroi_player_b');
+    assert.equal(reconnectUpdate.pets[petB.pet_instance_id].owner_id, localPlayerId('player_b'));
 });
 
 test('server stuck recovery repositions a following Pet blocked by an isolated map obstacle', async (t) => {
@@ -605,7 +615,7 @@ test('server stuck recovery repositions a following Pet blocked by an isolated m
     const pet = petSystem.createPetInstance('slime');
     pet.mode = 'PARADO';
     fs.writeFileSync(databaseFile, JSON.stringify({
-        stuck_owner: { personagemId: 'stuck-owner', level: 50, x: 142950, y: 13000, pets: [pet], petActiveId: pet.pet_instance_id }
+        [localProfileId('stuck_owner')]: { personagemId: 'stuck-owner', level: 50, x: 142950, y: 13000, pets: [pet], petActiveId: pet.pet_instance_id }
     }));
     fs.writeFileSync(preloadFile, [
         "'use strict';",
@@ -645,6 +655,7 @@ test('server stuck recovery repositions a following Pet blocked by an isolated m
         env: Object.assign({}, process.env, {
             NODE_ENV: 'test',
             LOCAL_ID_LOGIN_ENABLED: '1',
+            LOCAL_ID_LOGIN_TEST_ADMIN: '1',
             MMORPG_DATABASE_FILE: databaseFile,
             PET_TEST_OBSTACLE_FILE: obstacleConfigFile,
             PET_TEST_OBSTACLE_STATS_FILE: obstacleStatsFile,
@@ -687,8 +698,8 @@ test('server stuck recovery repositions a following Pet blocked by an isolated m
         message.type === 'admin_cheats_sync' && message.cheats && message.cheats.vidaInfinita);
     const initial = await client.waitFor((message) =>
         message.type === 'world_update' && message.players &&
-        message.players.heroi_stuck_owner && message.pets && message.pets[pet.pet_instance_id]);
-    const initialOwner = initial.players.heroi_stuck_owner;
+        message.players[localPlayerId('stuck_owner')] && message.pets && message.pets[pet.pet_instance_id]);
+    const initialOwner = initial.players[localPlayerId('stuck_owner')];
     const initialPet = initial.pets[pet.pet_instance_id];
     client.socket.send(JSON.stringify({ action: 'pet_set_mode', mode: 'PARADO' }));
     const modeSet = await client.waitFor.next((message) =>
@@ -710,11 +721,11 @@ test('server stuck recovery repositions a following Pet blocked by an isolated m
         await sleep(80);
     }
     const hasSnapshot = (message) =>
-        message.type === 'world_update' && message.players && message.players.heroi_stuck_owner &&
+        message.type === 'world_update' && message.players && message.players[localPlayerId('stuck_owner')] &&
         message.pets && message.pets[pet.pet_instance_id];
     let follow = await client.waitFor.after(startMovingAt, (message) => {
         if (!hasSnapshot(message)) return false;
-        const owner = message.players.heroi_stuck_owner;
+        const owner = message.players[localPlayerId('stuck_owner')];
         const runtime = message.pets[pet.pet_instance_id];
         const distance = Math.hypot(owner.x + 12 - runtime.x, owner.y + 16 - runtime.y);
         return runtime.state === 'FOLLOW' && distance > 76 && distance < 300;
@@ -724,7 +735,7 @@ test('server stuck recovery repositions a following Pet blocked by an isolated m
         'Pet must make measurable FOLLOW progress before obstruction');
     const currentCursor = client.waitFor.mark();
     const current = await client.waitFor.after(currentCursor, hasSnapshot, 1000);
-    const ownerBeforeObstacle = current.players.heroi_stuck_owner;
+    const ownerBeforeObstacle = current.players[localPlayerId('stuck_owner')];
     const petBeforeObstacle = current.pets[pet.pet_instance_id];
     const distanceBefore = Math.hypot(ownerBeforeObstacle.x + 12 - petBeforeObstacle.x,
         ownerBeforeObstacle.y + 16 - petBeforeObstacle.y);
@@ -754,7 +765,7 @@ test('server stuck recovery repositions a following Pet blocked by an isolated m
         const snapshot = await client.waitFor.after(cursor, hasSnapshot, 1000);
         const runtime = snapshot.pets[pet.pet_instance_id];
         const displacement = Math.hypot(runtime.x - petBeforeObstacle.x, runtime.y - petBeforeObstacle.y);
-        const owner = snapshot.players.heroi_stuck_owner;
+        const owner = snapshot.players[localPlayerId('stuck_owner')];
         const distanceToOwner = Math.hypot(runtime.x - (owner.x + 12), runtime.y - (owner.y + 16));
         if (Date.now() - obstacleActivatedAt >= 1200 && runtime.state === 'RETURN' &&
             displacement > 30 && distanceToOwner < 160) {
@@ -782,7 +793,7 @@ test('server stuck recovery repositions a following Pet blocked by an isolated m
         'absence of progress must persist long enough to exercise stuck detection');
     assert.ok(recovery, 'stuck detection must enter recovery and reposition the Pet');
     const recoveredPet = recovery.pets[pet.pet_instance_id];
-    const recoveredOwner = recovery.players.heroi_stuck_owner;
+    const recoveredOwner = recovery.players[localPlayerId('stuck_owner')];
     assert.ok(Math.hypot(recoveredPet.x - petBeforeObstacle.x,
         recoveredPet.y - petBeforeObstacle.y) > 30);
     assert.ok(Math.hypot(recoveredPet.x - (recoveredOwner.x + 12),

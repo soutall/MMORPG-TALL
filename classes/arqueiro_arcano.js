@@ -34,12 +34,6 @@ window.desenharArqueiroArcano = function(x, y, isMoving, angulo, hp, maxHp) {
     ctx.save();
     ctx.translate(x, y);
 
-    // Sombra
-    ctx.fillStyle = "rgba(0,0,0,0.42)";
-    ctx.beginPath();
-    ctx.ellipse(12, 32, 8, 2.8, 0, 0, Math.PI * 2);
-    ctx.fill();
-
     let agachamento = Math.sin(Date.now() / 520) * (isMoving ? 1.2 : 2.2);
     ctx.save();
     ctx.translate(12, 14 + agachamento * 0.3);
@@ -871,4 +865,3 @@ window.desenharArcoArcanoExposta = function(ctx, armaVisualCustom) {
 
     ctx.restore();
 };
-

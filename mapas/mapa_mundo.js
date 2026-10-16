@@ -199,6 +199,74 @@
     // Retorna 0: terra firme, 1: praia/margem, 2: água rasa, 3: oceano profundo
     let _prof = 0;
 
+    const LAGO_PLANTAS = { x: 144280, y: 13830, rx: 320, ry: 250 };
+    const TRILHAS_PLANTAS = [
+        { largura: 23, pontos: [[142250, 15070], [143000, 14880], [143900, 15120], [144850, 15030], [145800, 15220], [146300, 15300]] },
+        { largura: 18, pontos: [[142950, 15000], [143450, 14600], [143700, 14250], [143854, 13897], [143960, 13830]] }
+    ];
+
+    function valorLagoPlantas(wx, wy) {
+        const dx = (wx - LAGO_PLANTAS.x) / LAGO_PLANTAS.rx;
+        const dy = (wy - LAGO_PLANTAS.y) / LAGO_PLANTAS.ry;
+        return Math.hypot(dx, dy) +
+            perlin(SEED + 60, wx / 190, wy / 190) * 0.1 +
+            perlin(SEED + 61, wx / 62, wy / 62) * 0.028;
+    }
+
+    function distanciaTrilha(wx, wy, pontos) {
+        let menor = Infinity;
+        for (let i = 1; i < pontos.length; i++) {
+            const a = pontos[i - 1], b = pontos[i];
+            const dx = b[0] - a[0], dy = b[1] - a[1];
+            const t = clamp(((wx - a[0]) * dx + (wy - a[1]) * dy) / (dx * dx + dy * dy), 0, 1);
+            menor = Math.min(menor, Math.hypot(wx - a[0] - dx * t, wy - a[1] - dy * t));
+        }
+        return menor;
+    }
+
+    function trilhaPlantasEm(wx, wy) {
+        if (wx < 142100 || wx > 146400 || wy < 13500 || wy > 15550) return null;
+        const irregularidade = perlin(SEED + 62, wx / 24, wy / 24) * 4;
+        for (let i = 0; i < TRILHAS_PLANTAS.length; i++) {
+            const trilha = TRILHAS_PLANTAS[i];
+            const distancia = distanciaTrilha(wx, wy, trilha.pontos);
+            if (distancia <= trilha.largura + irregularidade) {
+                return { distancia: distancia, largura: trilha.largura, irregularidade: irregularidade };
+            }
+        }
+        return null;
+    }
+
+    function corTrilhaPlantas(wx, wy, trilha) {
+        if (trilha.distancia > trilha.largura * 0.62 + trilha.irregularidade * 0.5) return [91, 70, 51];
+        const detalhe = hash3(SEED + 63, Math.floor(wx / 6), Math.floor(wy / 6), 0) & 3;
+        if (detalhe === 0) return [158, 126, 90];
+        if (detalhe === 1) return [111, 83, 60];
+        return [132, 102, 74];
+    }
+
+    function corPraiaLagoPlantas(wx, wy) {
+        const detalhe = hash3(SEED + 64, Math.floor(wx / 6), Math.floor(wy / 6), 0) % 10;
+        if (detalhe === 0) return [145, 125, 86];
+        if (detalhe === 9) return [226, 208, 156];
+        return PRAIA[B.PLANTAS];
+    }
+
+    function corAguaLagoPlantas(wx, wy) {
+        const valor = valorLagoPlantas(wx, wy);
+        if (valor > 0.965) return [22, 62, 80];
+        let profundidade = clamp((0.97 - valor) / 0.48, 0, 1);
+        profundidade *= profundidade * (3 - 2 * profundidade);
+        const rasa = [66, 143, 162], funda = [25, 78, 104];
+        const variacao = perlin(SEED + 65, wx / 145, wy / 108) * 13 +
+            perlin(SEED + 66, wx / 33, wy / 27) * 5;
+        return [
+            clamp(lerp(rasa[0], funda[0], profundidade) + variacao, 0, 255) | 0,
+            clamp(lerp(rasa[1], funda[1], profundidade) + variacao, 0, 255) | 0,
+            clamp(lerp(rasa[2], funda[2], profundidade) + variacao, 0, 255) | 0
+        ];
+    }
+
     function distanciaMassaContinental(wx, wy) {
         // Distância até o corpo principal contínuo do continente
         // O continente é composto por:
@@ -285,6 +353,22 @@
         if (d > -90) {
             _prof = 0;
             return 1;
+        }
+
+        if (bio === B.PLANTAS) {
+            const lago = valorLagoPlantas(wx, wy);
+            if (lago <= 1.045) {
+                if (lago > 1) {
+                    _prof = 0;
+                    return 1;
+                }
+                _prof = clamp((0.98 - lago) / 0.38, 0, 1);
+                return lago < 0.78 ? 3 : 2;
+            }
+            if (trilhaPlantasEm(wx, wy)) {
+                _prof = 0;
+                return 0;
+            }
         }
 
         // Lagos e riachos de interior
@@ -503,7 +587,8 @@
             const liq = liquidoEm(x, y, bio);
 
             // Props aparecem em terra firme (liq === 0)
-            if (liq === 0 && hash01(SEED + 22, i, j) < DENS[bio]) {
+            if (liq === 0 && !(bio === B.PLANTAS && trilhaPlantasEm(x, y)) &&
+                hash01(SEED + 22, i, j) < DENS[bio]) {
                 let r = hash01(SEED + 23, i, j), tipo = TABELA[bio][0][0];
                 for (let k = 0; k < TABELA[bio].length; k++) {
                     r -= TABELA[bio][k][1];
@@ -546,11 +631,14 @@
 
     function colideProjetilMundo(x, y) { return !dentro(x, y); }
     function biomaNome(x, y) { return NOMES[biomaEm(x, y, 0)]; }
+    function ehPlanicieCentral(wx, wy) {
+        return dentro(wx, wy) && biomaEm(wx, wy, 0) === B.PLANTAS;
+    }
     function ehTerrenoGrama(wx, wy) {
         if (!dentro(wx, wy)) return false;
         const bio = biomaEm(wx, wy, 0);
         if (bio !== B.PLANTAS && bio !== B.FLORESTA && bio !== B.SELVA) return false;
-        return liquidoEm(wx, wy, bio) === 0;
+        return liquidoEm(wx, wy, bio) === 0 && !(bio === B.PLANTAS && trilhaPlantasEm(wx, wy));
     }
     function ehAreaSegura(wx, wy) {
         return Math.hypot(wx - SPAWN.x, wy - SPAWN.y) < RAIO_AREA_SEGURA_SANTUARIO;
@@ -610,8 +698,17 @@
         const bio = biomaEm(wx, wy, 0);
         const l = liquidoEm(wx, wy, bio);
         if (l === 0) {
+            if (bio === B.PLANTAS) {
+                const trilha = trilhaPlantasEm(wx, wy);
+                if (trilha) return corTrilhaPlantas(wx, wy, trilha);
+            }
             const n = perlin(SEED + 8, wx / 48, wy / 36) * 0.5 + 0.5;
             return corTerra(wx, wy, bio, n);
+        }
+        if (bio === B.PLANTAS) {
+            const lago = valorLagoPlantas(wx, wy);
+            if (lago > 1 && lago <= 1.045) return corPraiaLagoPlantas(wx, wy);
+            if (lago <= 1) return corAguaLagoPlantas(wx, wy);
         }
         if (l === 1) return PRAIA[bio];
         return l === 2 ? AGUA_RASA[bio] : AGUA_FUNDO[bio];
@@ -871,7 +968,7 @@
         SPAWN: SPAWN, PORTAL_RETORNO: PORTAL_RETORNO,
         CENTROS_BIOMAS: CENTROS_BIOMAS,
         colideMundo: colideMundo, colideProjetilMundo: colideProjetilMundo,
-        biomaNome: biomaNome, isMundo: dentro, ehTerrenoGrama: ehTerrenoGrama,
+        biomaNome: biomaNome, isMundo: dentro, ehTerrenoGrama: ehTerrenoGrama, ehPlanicieCentral: ehPlanicieCentral,
         ehAreaSegura: ehAreaSegura,
         ehBiomaGelo: ehBiomaGelo, ehLava: ehLava, ehVeneno: ehVeneno, ehDeserto: ehDeserto,
         ehCristal: ehCristal, ehTempestade: ehTempestade, ehProfanado: ehProfanado, ehSelva: ehSelva,
@@ -984,6 +1081,7 @@
                         const bio = biomaEm(wx, wy, dith);
                         const l = liquidoEm(wx, wy, bio);
                         const prof = _prof;
+                        const lago = bio === B.PLANTAS ? valorLagoPlantas(wx, wy) : Infinity;
                         if (l === 0) {
                             const n = perlin(SEED + 8, wx / 32, wy / 24) * 0.5 + 0.5;
                             const trans = biomaTransicaoInfo(wx, wy);
@@ -999,16 +1097,28 @@
                             const h = hash01(SEED + 31, wx >> 2, wy >> 2);
                             if (h < 0.04) col = SOLO[bio][0];
                             else if (h > 0.96) col = SOLO[bio][3];
+                            if (bio === B.PLANTAS) {
+                                const trilha = trilhaPlantasEm(wx, wy);
+                                if (trilha) col = corTrilhaPlantas(wx, wy, trilha);
+                            }
                         } else if (l === 1) {
-                            const pc = PRAIA[bio], f = 0.92 + hash01(SEED + 32, tx + ch.ci * CT, ty + ch.cj * CT) * 0.14;
-                            col = [pc[0] * f, pc[1] * f, pc[2] * f];
+                            if (bio === B.PLANTAS && lago > 1 && lago <= 1.045) {
+                                col = corPraiaLagoPlantas(wx, wy);
+                            } else {
+                                const pc = PRAIA[bio], f = 0.92 + hash01(SEED + 32, tx + ch.ci * CT, ty + ch.cj * CT) * 0.14;
+                                col = [pc[0] * f, pc[1] * f, pc[2] * f];
+                            }
                         } else {
-                            const A = AGUA_RASA[bio] || OCEANO_RASO, Bc = AGUA_FUNDO[bio] || OCEANO_FUNDO;
-                            const p = l === 2 ? prof * 0.5 : 0.5 + prof * 0.5;
-                            const g = 1 + hash01(SEED + 33, tx + ch.ci * CT, ty + ch.cj * CT) * 0.05;
-                            col = [lerp(A[0], Bc[0], p) * g, lerp(A[1], Bc[1], p) * g, lerp(A[2], Bc[2], p) * g];
-                            const cau = Math.sin(wx * 0.05 + Math.sin(wy * 0.04) * 2.4) + Math.cos(wy * 0.08 + wx * 0.015);
-                            if (cau > 1.82) col = [col[0] * 1.15, col[1] * 1.15, col[2] * 1.15];
+                            if (bio === B.PLANTAS && lago <= 1) {
+                                col = corAguaLagoPlantas(wx, wy);
+                            } else {
+                                const A = AGUA_RASA[bio] || OCEANO_RASO, Bc = AGUA_FUNDO[bio] || OCEANO_FUNDO;
+                                const p = l === 2 ? prof * 0.5 : 0.5 + prof * 0.5;
+                                const g = 1 + hash01(SEED + 33, tx + ch.ci * CT, ty + ch.cj * CT) * 0.05;
+                                col = [lerp(A[0], Bc[0], p) * g, lerp(A[1], Bc[1], p) * g, lerp(A[2], Bc[2], p) * g];
+                                const cau = Math.sin(wx * 0.05 + Math.sin(wy * 0.04) * 2.4) + Math.cos(wy * 0.08 + wx * 0.015);
+                                if (cau > 1.82) col = [col[0] * 1.15, col[1] * 1.15, col[2] * 1.15];
+                            }
                         }
                     }
                     const i4 = (ty * CT + tx) * 4;
@@ -1101,6 +1211,77 @@
             return clamp(1 - f, 0, 1);
         }
 
+        let quadrosBrilhoLago = null;
+
+        function prepararBrilhosLagoPlantas() {
+            if (quadrosBrilhoLago || typeof document === 'undefined') return;
+            const largura = LAGO_PLANTAS.rx, altura = LAGO_PLANTAS.ry;
+            const celula = 7;
+            const brilhos = [];
+
+            for (let gy = 0; gy <= altura / celula; gy++) {
+                for (let gx = 0; gx <= largura / celula; gx++) {
+                    const densidade = hash01(SEED + 67, gx, gy);
+                    if (densidade > 0.18) continue;
+                    const x = gx * celula + Math.floor(hash01(SEED + 69, gx, gy) * 4);
+                    const y = gy * celula + Math.floor(hash01(SEED + 70, gx, gy) * 4);
+                    const wx = LAGO_PLANTAS.x - largura + x * 2;
+                    const wy = LAGO_PLANTAS.y - altura + y * 2;
+                    if (valorLagoPlantas(wx, wy) > 0.965 ||
+                        valorLagoPlantas(wx + 6, wy) > 0.965 ||
+                        valorLagoPlantas(wx, wy + 4) > 0.965) continue;
+                    brilhos.push({
+                        x: x,
+                        y: y,
+                        fase: Math.floor(hash01(SEED + 71, gx, gy) * 4),
+                        raro: densidade < 0.035
+                    });
+                }
+            }
+
+            quadrosBrilhoLago = [];
+            for (let quadro = 0; quadro < 4; quadro++) {
+                const camada = document.createElement('canvas');
+                camada.width = largura;
+                camada.height = altura;
+                const brilhoCtx = camada.getContext('2d');
+                brilhoCtx.imageSmoothingEnabled = false;
+                for (const brilho of brilhos) {
+                    const idade = (quadro - brilho.fase + 4) % 4;
+                    if (idade > 1) continue;
+                    brilhoCtx.fillStyle = idade === 0 ? '#d7f2ec' : '#65aeb4';
+                    brilhoCtx.fillRect(brilho.x + idade, brilho.y, idade === 0 ? 2 : 3, 1);
+                    if (brilho.raro && idade === 0) {
+                        brilhoCtx.fillStyle = '#f1f4dc';
+                        brilhoCtx.fillRect(brilho.x, brilho.y - 1, 1, 1);
+                    }
+                }
+                quadrosBrilhoLago.push(camada);
+            }
+        }
+
+        function desenharReflexosLagoPlantas(ctx, t, v) {
+            const margem = 40;
+            if (v.x > LAGO_PLANTAS.x + LAGO_PLANTAS.rx + margem ||
+                v.x + v.w < LAGO_PLANTAS.x - LAGO_PLANTAS.rx - margem ||
+                v.y > LAGO_PLANTAS.y + LAGO_PLANTAS.ry + margem ||
+                v.y + v.h < LAGO_PLANTAS.y - LAGO_PLANTAS.ry - margem) return;
+
+            prepararBrilhosLagoPlantas();
+            if (!quadrosBrilhoLago) return;
+            const quadro = Math.floor(t * 3) % quadrosBrilhoLago.length;
+            ctx.save();
+            ctx.imageSmoothingEnabled = false;
+            ctx.drawImage(
+                quadrosBrilhoLago[quadro],
+                LAGO_PLANTAS.x - LAGO_PLANTAS.rx,
+                LAGO_PLANTAS.y - LAGO_PLANTAS.ry,
+                LAGO_PLANTAS.rx * 2,
+                LAGO_PLANTAS.ry * 2
+            );
+            ctx.restore();
+        }
+
         function desenharCenarioMundo(t, ctxIn) {
             const ctx = ctxIn || global.ctx || (global.canvas && global.canvas.getContext('2d'));
             if (!ctx) return;
@@ -1149,6 +1330,7 @@
                 }
             }
             ctx.restore();
+            desenharReflexosLagoPlantas(ctx, t, v);
         }
 
         function elip(ctx, x, y, rx, ry, cor) {

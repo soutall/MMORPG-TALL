@@ -10,6 +10,7 @@ const projectRoot = path.resolve(__dirname, '..');
 const clientSource = fs.readFileSync(path.join(projectRoot, 'index.html'), 'utf8');
 const serverSource = fs.readFileSync(path.join(projectRoot, 'server.js'), 'utf8');
 const malakarSource = fs.readFileSync(path.join(projectRoot, 'sistemas', 'lord_malakar.js'), 'utf8');
+const malakarRendererSource = fs.readFileSync(path.join(projectRoot, 'classes', 'lord_malakar.js'), 'utf8');
 
 test('basic-attack search ranges match between client and server, except unchanged Ladino', () => {
     const expected = {
@@ -47,21 +48,25 @@ test('basic-attack search ranges match between client and server, except unchang
         assert.match(serverSource, new RegExp("p\\.classe === '" + className + "'\\) return " + range + ";"));
     }
     assert.match(serverSource, /function alcanceAtaqueBasicoClasse\(p\) \{\s*if \(!p\) return 363;/);
-    assert.match(clientSource, /const GAME_VERSION = 'v1\.75\.103'/);
+    assert.match(clientSource, /const GAME_VERSION = 'v1\.75\.110'/);
+    assert.match(clientSource, /function desenharAlcanceAtaqueBasico\(x, y, alcance\)/);
+    assert.match(clientSource, /desenharAlcanceAtaqueBasico\(posX, posY, alcance\)/);
+    assert.match(clientSource, /window\.desenharLordMalakarAlcance\(pp, posX, posY, true,[\s\S]{0,120}alcance\)/);
+    assert.match(malakarRendererSource, /ctx\.arc\(px, py, radius, 0, TAU\)/);
 });
 
 test('basic attacks validate their target before consuming cooldown', () => {
     const handlers = [
-        ['ataque_barbaro', 'validarAtaqueBasicoAlvo', 'players[playerId].lastBasicAttack = agora;', 1],
+        ['ataque_barbaro', 'obterAlvoAtaqueBasicoOpcional', 'players[playerId].lastBasicAttack = agora;', 1],
         ['ataque_roqueiro', 'validarAtaqueBasicoAlvo', 'players[playerId].lastBasicAttack = agora;', 1],
-        ['ataque_ladino', 'validarAtaqueBasicoAlvo', 'pA.lastBasicAttack = agora;', 1],
-        ['ataque_dronemaster', 'validarAtaqueBasicoAlvo', 'pD.lastBasicAttack = Date.now();', 2],
-        ['ataque_arqueiro_arcano', 'validarAtaqueBasicoAlvo', 'pA.lastBasicAttack = Date.now();', 1],
-        ['ataque_sniper', 'validarAtaqueBasicoAlvo', 'pS.lastBasicAttack = Date.now();', 1],
-        ['ataque_florim', 'validarAtaqueBasicoAlvo', "marcarSkillUsada(p, 'lastFlorimBasic');", 1],
-        ['ataque_pikeman', 'validarAtaqueBasicoAlvo', 'players[playerId].lastBasicAttack = agora;', 1],
-        ['ataque_kaledron', 'validarAtaqueBasicoAlvo', 'pk.lastBasicAttack = agora;', 1],
-        ['corte', 'validarAtaqueBasicoAlvo', 'players[playerId].lastBasicAttack = agora;', 1],
+        ['ataque_ladino', 'obterAlvoAtaqueBasicoOpcional', 'pA.lastBasicAttack = agora;', 1],
+        ['ataque_dronemaster', 'obterAlvoAtaqueBasicoOpcional', 'pD.lastBasicAttack = Date.now();', 2],
+        ['ataque_arqueiro_arcano', 'obterAlvoAtaqueBasicoOpcional', 'pA.lastBasicAttack = Date.now();', 1],
+        ['ataque_sniper', 'obterAlvoAtaqueBasicoOpcional', 'pS.lastBasicAttack = Date.now();', 1],
+        ['ataque_florim', 'obterAlvoAtaqueBasicoOpcional', "marcarSkillUsada(p, 'lastFlorimBasic');", 1],
+        ['ataque_pikeman', 'obterAlvoAtaqueBasicoOpcional', 'players[playerId].lastBasicAttack = agora;', 1],
+        ['ataque_kaledron', 'obterAlvoAtaqueBasicoOpcional', 'pk.lastBasicAttack = agora;', 1],
+        ['corte', 'obterAlvoAtaqueBasicoOpcional', 'players[playerId].lastBasicAttack = agora;', 1],
         ['ataque_mago', 'validarAtaqueBasicoAlvo', 'players[playerId].lastBasicAttack = agora;', 1]
     ];
 
